@@ -6,7 +6,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "lint": "./node_modules/.bin/eslint .",
+    "lint": "./node_modules/.bin/eslint",
     "format": "node_modules/prettier/bin-prettier.js  --check '**/*.js'",
     "format:fix": "yarn format --write"
   },
@@ -85,11 +85,6 @@
       "@typescript-eslint/no-explicit-any": 0,
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off"
-    }
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint && yarn format"
     }
   }
 }
