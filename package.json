@@ -11,7 +11,8 @@
     "format:fix": "yarn format --write",
     "build": "rm -rf ./build && tsc",
     "start": "node ./build/server.js",
-    "dev": "nodemon --inspect=0.0.0.0:5858  -e ts --exec \"yarn build && yarn start\""
+    "dev": "nodemon --inspect=0.0.0.0:5858  -e ts --exec \"yarn build && yarn start\"",
+    "test": "NODE_ENV=test lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l"
   },
   "dependencies": {
     "@hapi/glue": "^8.0.0",
@@ -36,6 +37,7 @@
     "@types/hapi__hoek": "^9.0.1",
     "@types/hapi__inert": "^5.2.2",
     "@types/hapi__joi": "^17.1.6",
+    "@types/hapi__lab": "^22.0.1",
     "@types/hapi__vision": "^5.5.2",
     "@types/joi": "^14.3.4",
     "@types/node": "^14.14.11",
@@ -50,6 +52,7 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.2.0",
     "husky": "^4.3.5",
+    "lab-transform-typescript": "^3.0.1",
     "nodemon": "^2.0.6",
     "prettier": "^2.2.1",
     "rosie": "^2.0.1",
