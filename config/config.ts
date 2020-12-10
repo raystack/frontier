@@ -30,10 +30,10 @@ internals.config = {
     test: {
       $filter: 'ci',
       gitlab: {
-        uri: 'postgresql://shield_test@postgres:5432/shield_test'
+        uri: 'postgresql://shield_test@localhost:4322/shield_test'
       },
       $default: {
-        uri: 'postgresql://shield_test@postgres:5432/shield_test'
+        uri: 'postgresql://shield_test@localhost:4322/shield_test'
       }
     },
     $default: {
