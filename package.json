@@ -6,12 +6,41 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "lint": "./node_modules/.bin/eslint",
-    "format": "node_modules/prettier/bin-prettier.js  --check '**/*.js'",
-    "format:fix": "yarn format --write"
+    "lint": "./node_modules/.bin/eslint **/*.ts",
+    "format": "node_modules/prettier/bin-prettier.js  --check '**/*.ts'",
+    "format:fix": "yarn format --write",
+    "build": "rm -rf ./build && tsc",
+    "start": "node ./build/server.js",
+    "dev": "nodemon --inspect=0.0.0.0:5858  -e ts --exec \"yarn build && yarn start\""
+  },
+  "dependencies": {
+    "@hapi/glue": "^8.0.0",
+    "@hapi/hapi": "^20.0.3",
+    "@hapi/hoek": "^9.1.0",
+    "@hapi/inert": "^6.0.3",
+    "@hapi/vision": "^6.0.1",
+    "confidence": "^5.0.0",
+    "hapi-swagger": "^14.0.0",
+    "joi": "^17.3.0",
+    "pg": "^8.5.1",
+    "qs": "^6.9.4",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.2.29",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "@hapi/lab": "^24.1.0",
+    "@types/confidence": "^1.4.30",
+    "@types/hapi__glue": "^6.1.2",
+    "@types/hapi__hapi": "^20.0.2",
+    "@types/hapi__hoek": "^9.0.1",
+    "@types/hapi__inert": "^5.2.2",
+    "@types/hapi__joi": "^17.1.6",
+    "@types/hapi__vision": "^5.5.2",
+    "@types/joi": "^14.3.4",
+    "@types/node": "^14.14.11",
+    "@types/qs": "^6.9.5",
+    "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^4.9.1",
     "@typescript-eslint/parser": "^4.9.1",
     "code": "^5.2.4",
@@ -51,7 +80,9 @@
       "plugin:prettier/recommended",
       "plugin:@typescript-eslint/recommended",
       "prettier/@typescript-eslint",
-      "plugin:prettier/recommended"
+      "plugin:import/typescript",
+      "plugin:import/errors",
+      "plugin:import/warnings"
     ],
     "parserOptions": {
       "sourceType": "module",
@@ -63,7 +94,7 @@
         "unix"
       ],
       "prettier/prettier": "error",
-      "no-unused-vars": "error",
+      "no-unused-vars": "off",
       "func-names": "off",
       "global-require": "off",
       "camelcase": "off",
@@ -81,10 +112,25 @@
           "devDependencies": true
         }
       ],
+      "import/prefer-default-export": "off",
       "@typescript-eslint/no-var-requires": 0,
       "@typescript-eslint/no-explicit-any": 0,
       "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/explicit-module-boundary-types": "off"
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-unused-vars": "error",
+      "import/extensions": [
+        "error",
+        "ignorePackages",
+        {
+          "js": "never",
+          "ts": "never"
+        }
+      ]
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint && yarn format"
     }
   }
 }

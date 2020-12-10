@@ -1,0 +1,41 @@
+version: '3.7'
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+  server:
+    build: .
+    volumes:
+      - './:/opt/shield'
+      - ./node_modules:/opt/shield/node_modules
+    ports:
+      - 5000:5000
+    env_file:
+      - ./.env
+    networks:
+      - backend
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ['CMD', 'sh', '-c', 'curl -f http://localhost:5000/ping']
+      interval: 20s
+      timeout: 5s
+      retries: 12
+    command: yarn dev
+  postgres:
+    image: 'postgres:11.10'
+    environment:
+      POSTGRES_USER: 'shield_dev'
+      POSTGRES_DB: 'shield_dev'
+      POSTGRES_HOST_AUTH_METHOD: 'trust'
+    volumes:
+      - shield_postgres:/data/db
+    networks:
+      - backend
+    ports:
+      - 4321:5432
+
+volumes:
+  shield_postgres:
