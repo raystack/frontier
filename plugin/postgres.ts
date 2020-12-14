@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 import 'reflect-metadata';
 import { Connection, createConnection } from 'typeorm';
-import Hoek from '@hapi/hoek';
 import Hapi from '@hapi/hapi';
 import Logger from '../lib/logger';
 
@@ -10,14 +9,12 @@ interface ConnectionConfig {
   options?: any;
 }
 
-type NullOrConnection = Connection | null;
-
 // eslint-disable-next-line import/prefer-default-export
 export const plugin = {
   name: 'postgres',
   version: '1.0.0',
   async register(server: Hapi.Server, options: ConnectionConfig) {
-    const tryConnectToPostgres: () => Promise<NullOrConnection> = async () => {
+    const tryConnectToPostgres: () => Promise<Connection> = async () => {
       try {
         return createConnection({
           type: 'postgres',
@@ -32,27 +29,22 @@ export const plugin = {
 
     const postgresConnectionErrorHandler: (
       err: any
-    ) => Promise<NullOrConnection> = async (err: any) => {
+    ) => Promise<Connection> = async (err: any) => {
       return new Promise((resolve) => {
-        if (err) {
-          Logger.error(
-            'Failed to connect to postgres on start up - retrying in 5 sec'
-          );
-          setTimeout(async () => {
-            resolve(await tryConnectToPostgres());
-          }, 5000);
-        }
-        Hoek.assert(!err, err);
+        Logger.error(
+          `Failed to connect to postgres on start up - retrying in 5 sec : ${err}`
+        );
+        setTimeout(async () => {
+          resolve(await tryConnectToPostgres());
+        }, 5000);
       });
     };
 
-    const connection: NullOrConnection = await tryConnectToPostgres();
+    const connection: Connection = await tryConnectToPostgres();
 
     server.events.on('stop', async () => {
       Logger.info('Closing Postgres connections on server stop');
-      if (connection && connection.close) {
-        await connection.close();
-      }
+      await connection.close();
     });
   }
 };
