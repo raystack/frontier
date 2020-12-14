@@ -27,16 +27,16 @@ const getCombinations = (chars: string[]) => {
   return result.map((v) => v.split('::'));
 };
 
-const getJSONSubsets = (str: string) => {
+const getStringifiedJSONSubsets: (str: string) => string[] = (str: string) => {
   try {
     const obj = JSON.parse(str);
     const keyList: string[] = Object.keys(obj);
     const combinations = getCombinations(keyList);
-    const objSubsets = combinations.reduce((acc, keys) => {
+    const stringifiedJsonSubsets = combinations.reduce((acc, keys) => {
       const subObj = _.pick(obj, keys);
       return [...acc, JSON.stringify(subObj)];
     }, []);
-    return objSubsets;
+    return stringifiedJsonSubsets;
     // eslint-disable-next-line no-empty
   } catch (e) {}
   return [];
@@ -287,20 +287,49 @@ export class AttributeBasedRoleManager implements RoleManager {
     role1.deleteRole(role2);
   }
 
-  private addJSONSubsetsAsRoles(allRoles: Roles, name1: string) {
+  private addJSONSubsetsAsRoles(allRoles: Roles, roleName: string) {
     // we need to dynamically add name1 and name2 so that we can compare attributes that are not present in the policy
-    if (!allRoles.get(name1)) {
-      allRoles.set(name1, new Role(name1));
+    if (!allRoles.get(roleName)) {
+      allRoles.set(roleName, new Role(roleName));
     }
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const [key, value] of allRoles) {
-      allRoles.set(key, value);
-      const jsonSubsets = getJSONSubsets(key);
-      jsonSubsets.forEach((jsonSubset) => {
-        const roleOfKey = allRoles.get(key);
-        if (roleOfKey) {
-          roleOfKey.addRole(new Role(jsonSubset));
+    const roleToAddSubsetsTo = allRoles.get(roleName);
+
+    const getAllRelatedRoleNamesInHierarchy: (
+      role: Role,
+      result?: Set<string>
+    ) => Set<string> = (role: Role, result: Set<string> = new Set()) => {
+      if (result.has(role.name)) return result;
+      result.add(role.name);
+
+      const immediateRoleNames = role.getRoles();
+      immediateRoleNames.forEach((immediateRoleName) => {
+        const immediateRole = allRoles.get(immediateRoleName);
+        if (immediateRole) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          getAllRelatedRoleNamesInHierarchy(immediateRole, result);
+        }
+      });
+
+      return result;
+    };
+
+    if (roleToAddSubsetsTo) {
+      const relatedRolesNames = getAllRelatedRoleNamesInHierarchy(
+        roleToAddSubsetsTo
+      );
+      relatedRolesNames.forEach((relatedRoleName) => {
+        const relatedRole = allRoles.get(relatedRoleName);
+        if (relatedRole) {
+          const stringifiedJsonSubsets = getStringifiedJSONSubsets(
+            relatedRoleName
+          );
+          stringifiedJsonSubsets.forEach((jsonSubsetStr) => {
+            const jsonSubsetRole =
+              allRoles.get(jsonSubsetStr) || new Role(jsonSubsetStr);
+            relatedRole.addRole(jsonSubsetRole);
+            allRoles.set(jsonSubsetStr, jsonSubsetRole);
+          });
         }
       });
     }
