@@ -136,7 +136,7 @@ class Roles extends Map<string, Role> {
   }
 }
 
-export class AttributeBasedRoleManager implements RoleManager {
+export class JsonRoleManager implements RoleManager {
   private allDomains: Map<string, Roles>;
 
   private maxHierarchyLevel: number;
