@@ -29,6 +29,7 @@
     "qs": "^6.9.4",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.29",
+    "typeorm-adapter": "^1.2.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {
