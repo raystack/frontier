@@ -21,72 +21,72 @@ export class JsonEnforcer extends CachedEnforcer {
     this.setRoleManager(jsonRM);
   }
 
-  public enforceJsonPolicy(
+  public async enforceJsonPolicy(
     subject: JsonAttributes,
     resource: JsonAttributes,
     action: JsonAttributes
   ) {
-    this.enforce(
+    return this.enforce(
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
     );
   }
 
-  public addJsonPolicy(
+  public async addJsonPolicy(
     subject: JsonAttributes,
     resource: JsonAttributes,
     action: JsonAttributes
   ) {
-    this.addPolicy(
+    await this.addPolicy(
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
     );
 
-    this.invalidateCache();
+    await this.invalidateCache();
   }
 
-  public addSubjectGroupingJsonPolicy<T extends string>(
+  public async addSubjectGroupingJsonPolicy<T extends string>(
     subject: OneKey<T>,
     jsonAttributes: JsonAttributes
   ) {
-    this.addNamedGroupingPolicy(
+    await this.addNamedGroupingPolicy(
       'g',
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(jsonAttributes),
       'subject'
     );
 
-    this.invalidateCache();
+    await this.invalidateCache();
   }
 
-  public addResourceGroupingJsonPolicy<T extends string>(
+  public async addResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,
     jsonAttributes: JsonAttributes
   ) {
-    this.addNamedGroupingPolicy(
+    await this.addNamedGroupingPolicy(
       'g2',
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(jsonAttributes),
       'resource'
     );
 
-    this.invalidateCache();
+    await this.invalidateCache();
   }
 
-  public addActionGroupingJsonPolicy<T extends string>(
+  public async addActionGroupingJsonPolicy<T extends string>(
     action: OneKey<T>,
     jsonAttributes: JsonAttributes
   ) {
-    this.addNamedGroupingPolicy(
+    await this.addNamedGroupingPolicy(
       'g3',
       convertJSONToStringInOrder(action),
       convertJSONToStringInOrder(jsonAttributes),
       'action'
     );
 
-    this.invalidateCache();
+    await this.invalidateCache();
   }
 }
 
