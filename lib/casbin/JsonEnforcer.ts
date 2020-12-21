@@ -5,7 +5,7 @@ const convertJSONToStringInOrder = (json: Record<string, unknown>): string => {
   const keys = Object.keys(json).sort((a, b) => a.localeCompare(b));
 
   const orderedJSON = keys.reduce((acc, key) => {
-    return { ...acc, key: json[key] };
+    return { ...acc, [key]: json[key] };
   }, {});
   return JSON.stringify(orderedJSON);
 };
@@ -17,11 +17,11 @@ export class JsonEnforcer extends CachedEnforcer {
   constructor() {
     super();
     const jsonRM = new JsonRoleManager(10);
-    jsonRM.addMatchingFunc(Util.keyMatch2Func);
+    jsonRM.addMatchingFunc(Util.keyMatchFunc);
     this.setRoleManager(jsonRM);
   }
 
-  public async enforceJsonPolicy(
+  public async enforceJson(
     subject: JsonAttributes,
     resource: JsonAttributes,
     action: JsonAttributes
