@@ -23,6 +23,7 @@
     "@hapi/inert": "^6.0.3",
     "@hapi/vision": "^6.0.1",
     "casbin": "^5.2.2",
+    "casbin-pg-watcher": "^0.1.1",
     "confidence": "^5.0.0",
     "hapi-swagger": "^14.0.0",
     "joi": "^17.3.0",

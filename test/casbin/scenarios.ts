@@ -3,17 +3,18 @@ import Lab from '@hapi/lab';
 import { createConnection, Connection } from 'typeorm';
 import * as Config from '../../config/config';
 import setupSampleData from './sample';
-import setupEnforcer, { enforcerContainer } from '../../lib/casbin';
+import CasbinSingleton from '../../lib/casbin';
 
 const lab = Lab.script();
 exports.lab = lab;
 
 lab.experiment('IAM scenarios:', () => {
-  let connection: null | Connection = null;
+  let connection: null | Connection = null,
+    enforcer = null;
 
   lab.before(async () => {
     const dbUri = Config.get('/postgres').uri;
-    await setupEnforcer(dbUri);
+    enforcer = await CasbinSingleton.create(dbUri);
     await setupSampleData();
     connection = await createConnection({
       type: 'postgres',
@@ -35,7 +36,7 @@ lab.experiment('IAM scenarios:', () => {
         resource: 'p-gojek-id-firehose-transport-123'
       };
       const act = { action: 'firehose.write' };
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -49,7 +50,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.read' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -63,7 +64,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -80,7 +81,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -97,7 +98,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -111,7 +112,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.read' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -127,7 +128,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'beast.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -143,7 +144,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'beast.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -157,7 +158,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'beast.read' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -173,7 +174,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'beast.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -187,7 +188,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'beast.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -201,7 +202,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'role.creator' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -215,7 +216,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'role.creator' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -229,7 +230,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'team.creator' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -246,7 +247,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -260,7 +261,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -274,7 +275,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -288,7 +289,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'role.creator' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -304,7 +305,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'beast.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -318,7 +319,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.read' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -332,7 +333,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'role.creator' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -346,10 +347,10 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.read' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
 
-      const res2 = await enforcerContainer.enforcer.enforceJson(sub, obj, {
+      const res2 = await enforcer.enforceJson(sub, obj, {
         action: 'firehose.write'
       });
       Code.expect(res2).to.equal(false);
@@ -365,7 +366,7 @@ lab.experiment('IAM scenarios:', () => {
       };
       const act = { action: 'firehose.write' };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);
     }
   );
@@ -379,7 +380,7 @@ lab.experiment('IAM scenarios:', () => {
         resource: 'p-gojek-id-firehose-augur-private-345'
       };
 
-      const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+      const res = await enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(false);
     }
   );
@@ -391,11 +392,11 @@ lab.experiment('IAM scenarios:', () => {
     };
     const act = { action: 'firehose.write' };
 
-    const res = await enforcerContainer.enforcer.enforceJson(sub, obj, act);
+    const res = await enforcer.enforceJson(sub, obj, act);
     Code.expect(res).to.equal(true);
 
     const act2 = { action: 'role.creator' };
-    const res2 = await enforcerContainer.enforcer.enforceJson(
+    const res2 = await enforcer.enforceJson(
       sub,
       {
         team: 'gofinance'
@@ -405,7 +406,7 @@ lab.experiment('IAM scenarios:', () => {
     Code.expect(res2).to.equal(true);
 
     const act3 = { action: 'team.creator' };
-    const res3 = await enforcerContainer.enforcer.enforceJson(
+    const res3 = await enforcer.enforceJson(
       sub,
       {
         entity: 'gojek'

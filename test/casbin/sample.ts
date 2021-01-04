@@ -1,7 +1,7 @@
-import { enforcerContainer } from '../../lib/casbin';
+import CasbinSingleton from '../../lib/casbin';
 
 const setupPolicies = async () => {
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { user: 'alice' },
     {
       entity: 'gojek',
@@ -12,7 +12,7 @@ const setupPolicies = async () => {
     { role: 'resource.manager' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { user: 'alice' },
     {
       entity: 'gojek'
@@ -20,7 +20,7 @@ const setupPolicies = async () => {
     { role: 'dwh.manager' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { user: 'frank' },
     {
       entity: 'gojek',
@@ -31,7 +31,7 @@ const setupPolicies = async () => {
     { role: 'resource.manager' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { user: 'bob' },
     {
       team: 'transport'
@@ -39,7 +39,7 @@ const setupPolicies = async () => {
     { role: 'team.admin' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { user: 'cathy' },
     {
       entity: 'gojek'
@@ -47,7 +47,7 @@ const setupPolicies = async () => {
     { role: 'entity.admin' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { team: 'transport' },
     {
       team: 'transport'
@@ -55,7 +55,7 @@ const setupPolicies = async () => {
     { role: 'resource.viewer' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { team: 'augur' },
     {
       team: 'augur'
@@ -63,7 +63,7 @@ const setupPolicies = async () => {
     { role: 'resource.viewer' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { team: 'gofinance' },
     {
       team: 'gofinance'
@@ -71,7 +71,7 @@ const setupPolicies = async () => {
     { role: 'resource.viewer' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { team: 'transport' },
     {
       entity: 'gojek',
@@ -80,7 +80,7 @@ const setupPolicies = async () => {
     { role: 'resource.viewer' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { team: 'augur' },
     {
       entity: 'gojek',
@@ -89,7 +89,7 @@ const setupPolicies = async () => {
     { role: 'resource.viewer' }
   );
 
-  await enforcerContainer.enforcer.addJsonPolicy(
+  await CasbinSingleton.enforcer.addJsonPolicy(
     { team: 'gofinance' },
     {
       entity: 'gofin',
@@ -98,7 +98,7 @@ const setupPolicies = async () => {
     { role: 'resource.viewer' }
   );
 
-  await enforcerContainer.enforcer.addPolicy(
+  await CasbinSingleton.enforcer.addPolicy(
     JSON.stringify({ team: 'de' }),
     '*',
     JSON.stringify({ role: 'super.admin' })
@@ -106,34 +106,34 @@ const setupPolicies = async () => {
 };
 
 const setupUserTeamMapping = async () => {
-  await enforcerContainer.enforcer.addSubjectGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addSubjectGroupingJsonPolicy(
     { user: 'alice' },
     { team: 'transport' }
   );
-  await enforcerContainer.enforcer.addSubjectGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addSubjectGroupingJsonPolicy(
     { user: 'bob' },
     { team: 'transport' }
   );
-  await enforcerContainer.enforcer.addSubjectGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addSubjectGroupingJsonPolicy(
     { user: 'dave' },
     { team: 'augur' }
   );
-  await enforcerContainer.enforcer.addSubjectGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addSubjectGroupingJsonPolicy(
     { user: 'frank' },
     { team: 'augur' }
   );
-  await enforcerContainer.enforcer.addSubjectGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addSubjectGroupingJsonPolicy(
     { user: 'ele' },
     { team: 'gofinance' }
   );
-  await enforcerContainer.enforcer.addSubjectGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addSubjectGroupingJsonPolicy(
     { user: 'gary' },
     { team: 'de' }
   );
 };
 
 const setupResourceProjectMapping = async () => {
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       resource: 'p-gojek-id-firehose-transport-123'
     },
@@ -146,7 +146,7 @@ const setupResourceProjectMapping = async () => {
     }
   );
 
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       resource: 'p-gojek-id-firehose-augur-345'
     },
@@ -159,7 +159,7 @@ const setupResourceProjectMapping = async () => {
     }
   );
 
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       resource: 'p-gojek-id-firehose-augur-private-345'
     },
@@ -172,7 +172,7 @@ const setupResourceProjectMapping = async () => {
     }
   );
 
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       resource: 'p-gojek-id-beast-123'
     },
@@ -184,7 +184,7 @@ const setupResourceProjectMapping = async () => {
     }
   );
 
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       resource: 'p-gofin-id-firehose-gofinance-789'
     },
@@ -199,7 +199,7 @@ const setupResourceProjectMapping = async () => {
 };
 
 const setupTeamEntityProjectMapping = async () => {
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       team: 'augur'
     },
@@ -208,7 +208,7 @@ const setupTeamEntityProjectMapping = async () => {
     }
   );
 
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       team: 'transport'
     },
@@ -217,7 +217,7 @@ const setupTeamEntityProjectMapping = async () => {
     }
   );
 
-  await enforcerContainer.enforcer.addResourceGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addResourceGroupingJsonPolicy(
     {
       team: 'gofinance'
     },
@@ -228,46 +228,46 @@ const setupTeamEntityProjectMapping = async () => {
 };
 
 const setupPermissionRoleMapping = async () => {
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: '*' },
     { role: 'team.admin' }
   );
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: '*' },
     { role: 'entity.admin' }
   );
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: '*' },
     { role: 'super.admin' }
   );
 
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'firehose.read' },
     { role: 'resource.viewer' }
   );
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'dagger.read' },
     { role: 'resource.viewer' }
   );
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'beast.read' },
     { role: 'resource.viewer' }
   );
 
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'firehose.write' },
     { role: 'resource.manager' }
   );
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'dagger.write' },
     { role: 'resource.manager' }
   );
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { role: 'resource.viewer' },
     { role: 'resource.manager' }
   );
 
-  await enforcerContainer.enforcer.addActionGroupingJsonPolicy(
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'beast.*' },
     { role: 'dwh.manager' }
   );
