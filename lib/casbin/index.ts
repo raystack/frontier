@@ -1,27 +1,40 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import TypeORMAdapter from 'typeorm-adapter';
-import path from 'path';
+import * as CasbinPgWatcher from 'casbin-pg-watcher';
+import { join } from 'path';
 import { newJsonEnforcer, JsonEnforcer } from './JsonEnforcer';
 
-export const enforcerContainer: Record<'enforcer', null | JsonEnforcer> = {
-  enforcer: null
-};
+const { newWatcher } = CasbinPgWatcher;
 
-export default async (dbConnectionUrl: string) => {
-  if (!enforcerContainer.enforcer) {
-    const policyAdapter = await TypeORMAdapter.newAdapter({
-      type: 'postgres',
-      url: dbConnectionUrl
-    });
-    // ! handle path properly
-    const modelPath = path.resolve('./lib/casbin/model.conf');
-    enforcerContainer.enforcer = await newJsonEnforcer(
-      modelPath,
-      policyAdapter
-    );
-    enforcerContainer.enforcer.enableAutoSave(true);
-    enforcerContainer.enforcer.enableLog(true);
+class CasbinSingleton {
+  // eslint-disable-next-line no-useless-constructor
+  private constructor() {}
 
-    // Load the policy from DB.
-    await enforcerContainer.enforcer.loadPolicy();
+  public static enforcer: null | JsonEnforcer;
+
+  public static async create(dbConnectionUrl: string) {
+    if (!this.enforcer) {
+      const policyAdapter = await TypeORMAdapter.newAdapter({
+        type: 'postgres',
+        url: dbConnectionUrl
+      });
+
+      const policyWatcher = await newWatcher({
+        connectionString: dbConnectionUrl
+      });
+      const modelPath = join(__dirname, 'model.conf');
+
+      this.enforcer = await newJsonEnforcer(modelPath, policyAdapter);
+      this.enforcer.setWatcher(policyWatcher);
+      this.enforcer.enableAutoSave(true);
+      this.enforcer.enableLog(true);
+
+      // Load the policy from DB.
+      await this.enforcer.loadPolicy();
+    }
+
+    return this.enforcer;
   }
-};
+}
+
+export default CasbinSingleton;
