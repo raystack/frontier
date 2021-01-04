@@ -15,7 +15,9 @@
     "test": "NODE_ENV=test lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l"
   },
   "dependencies": {
+    "@hapi/boom": "^9.1.1",
     "@hapi/glue": "^8.0.0",
+    "@hapi/h2o2": "^9.0.2",
     "@hapi/hapi": "^20.0.3",
     "@hapi/hoek": "^9.1.0",
     "@hapi/inert": "^6.0.3",
@@ -36,6 +38,7 @@
     "@hapi/lab": "^24.1.0",
     "@types/confidence": "^1.4.30",
     "@types/hapi__glue": "^6.1.2",
+    "@types/hapi__h2o2": "^8.3.2",
     "@types/hapi__hapi": "^20.0.2",
     "@types/hapi__hoek": "^9.0.1",
     "@types/hapi__inert": "^5.2.2",

@@ -2,6 +2,7 @@ import Confidence from 'confidence';
 import Inert from '@hapi/inert';
 import Vision from '@hapi/vision';
 import Glue from '@hapi/glue';
+import H2o2 from '@hapi/h2o2';
 import HapiSwagger from 'hapi-swagger';
 import Qs from 'qs';
 import * as Config from './config';
@@ -36,7 +37,19 @@ internals.manifest = {
         options: Config.get('/postgres')
       },
       {
+        plugin: H2o2
+      },
+      {
+        plugin: '../plugin/iap'
+      },
+      {
+        plugin: '../plugin/iam'
+      },
+      {
         plugin: '../app/ping/index'
+      },
+      {
+        plugin: '../app/proxy/index'
       },
       {
         plugin: Inert

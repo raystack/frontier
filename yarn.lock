@@ -147,6 +147,13 @@
   dependencies:
     "@hapi/hoek" "9.x.x"
 
+"@hapi/boom@^9.1.1":
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/@hapi/boom/-/boom-9.1.1.tgz#89e6f0e01637c2a4228da0d113e8157c93677b04"
+  integrity sha512-VNR8eDbBrOxBgbkddRYIe7+8DZ+vSbV6qlmaN2x7eWjsUjy2VmQgChkOKcVZIeupEZYj+I0dqNg430OhwzagjA==
+  dependencies:
+    "@hapi/hoek" "9.x.x"
+
 "@hapi/bossy@5.x.x":
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/@hapi/bossy/-/bossy-5.0.1.tgz#d31153b6148d032aaeec33e74605c6ea42f361d9"
@@ -227,6 +234,16 @@
     "@hapi/hapi" "20.x.x"
     "@hapi/hoek" "9.x.x"
     "@hapi/validate" "1.x.x"
+
+"@hapi/h2o2@^9.0.2":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@hapi/h2o2/-/h2o2-9.0.2.tgz#e9f1dfe789257c80d6ee37ec9fe358f8c69f855a"
+  integrity sha512-V7RsmVyl7uyWeuEko4uaSZbFpBHKcSFSui6PXNRaRLJHFX+iPbqWmeH6m1pW/WJ8DuaCVJFKhluDCDI9l4+1cw==
+  dependencies:
+    "@hapi/boom" "9.x.x"
+    "@hapi/hoek" "9.x.x"
+    "@hapi/validate" "1.x.x"
+    "@hapi/wreck" "17.x.x"
 
 "@hapi/hapi@20.x.x", "@hapi/hapi@^20.0.3":
   version "20.0.3"
@@ -424,7 +441,7 @@
     "@hapi/hoek" "9.x.x"
     "@hapi/validate" "1.x.x"
 
-"@hapi/wreck@17.x.x":
+"@hapi/wreck@17.x.x", "@hapi/wreck@^17.0.0":
   version "17.1.0"
   resolved "https://registry.yarnpkg.com/@hapi/wreck/-/wreck-17.1.0.tgz#fbdc380c6f3fa1f8052dc612b2d3b6ce3e88dbec"
   integrity sha512-nx6sFyfqOpJ+EFrHX+XWwJAxs3ju4iHdbB/bwR8yTNZOiYmuhA8eCe7lYPtYmb4j7vyK/SlbaQsmTtUrMvPEBw==
@@ -548,6 +565,16 @@
   integrity sha512-5tFDbrM0zKEsZI41GiLcmiI5QPVEN1pPWGyGe5nmx1tNtAPLWzcMg8otqDDbO03IfQAK+ZXi7OHGaStZt2CfOQ==
   dependencies:
     "@types/hapi__hapi" "*"
+
+"@types/hapi__h2o2@^8.3.2":
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/@types/hapi__h2o2/-/hapi__h2o2-8.3.2.tgz#43cce95972c3097a2ca3efe6b7054a0c95fbf291"
+  integrity sha512-l36uuLHTwUQNbNUIkT14Z4WbJl1CIWpBZu7ZCBemGBypiNnbJxN3o0YyQ6QAid3YYa2C7LVDIdyY4MhpX8q9ZA==
+  dependencies:
+    "@hapi/boom" "^9.0.0"
+    "@hapi/wreck" "^17.0.0"
+    "@types/hapi__hapi" "*"
+    "@types/node" "*"
 
 "@types/hapi__hapi@*", "@types/hapi__hapi@^20.0.2":
   version "20.0.2"
