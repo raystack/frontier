@@ -12,7 +12,6 @@ interface ConnectionConfig {
 // eslint-disable-next-line import/prefer-default-export
 export const plugin = {
   name: 'postgres',
-  version: '1.0.0',
   async register(server: Hapi.Server, options: ConnectionConfig) {
     const tryConnectToPostgres: () => Promise<Connection> = async () => {
       try {
