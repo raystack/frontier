@@ -1,4 +1,4 @@
-import CasbinSingleton from '../../lib/casbin';
+import CasbinSingleton from '../../../lib/casbin';
 
 const setupPolicies = async () => {
   await CasbinSingleton.enforcer.addJsonPolicy(

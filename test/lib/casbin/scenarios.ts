@@ -1,9 +1,9 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
 import { createConnection, Connection } from 'typeorm';
-import * as Config from '../../config/config';
+import * as Config from '../../../config/config';
 import setupSampleData from './sample';
-import CasbinSingleton from '../../lib/casbin';
+import CasbinSingleton from '../../../lib/casbin';
 
 const lab = Lab.script();
 exports.lab = lab;
