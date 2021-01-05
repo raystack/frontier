@@ -43,7 +43,8 @@ internals.manifest = {
         plugin: '../plugin/iap'
       },
       {
-        plugin: '../plugin/iam'
+        plugin: '../plugin/iam/index',
+        options: Config.get('/postgres')
       },
       {
         plugin: '../app/ping/index'

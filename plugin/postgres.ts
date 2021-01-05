@@ -4,7 +4,7 @@ import { Connection, createConnection } from 'typeorm';
 import Hapi from '@hapi/hapi';
 import Logger from '../lib/logger';
 
-interface ConnectionConfig {
+export interface ConnectionConfig {
   uri: string;
   options?: any;
 }
