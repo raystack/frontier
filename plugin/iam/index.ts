@@ -27,7 +27,7 @@ export const plugin = {
             resourceTransformConfig
           );
 
-          return enforcer.enforceJson({ user: username }, resource, {
+          return enforcer.enforceJson({ username }, resource, {
             action
           });
         };

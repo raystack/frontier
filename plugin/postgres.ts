@@ -12,15 +12,10 @@ export interface ConnectionConfig {
 // eslint-disable-next-line import/prefer-default-export
 export const plugin = {
   name: 'postgres',
-  async register(server: Hapi.Server, options: ConnectionConfig) {
+  async register(server: Hapi.Server) {
     const tryConnectToPostgres: () => Promise<Connection> = async () => {
       try {
-        return createConnection({
-          type: 'postgres',
-          url: options.uri,
-          entities: [],
-          logging: true
-        });
+        return createConnection();
       } catch (e) {
         return postgresConnectionErrorHandler(e);
       }

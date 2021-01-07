@@ -33,8 +33,7 @@ internals.manifest = {
   register: {
     plugins: [
       {
-        plugin: '../plugin/postgres',
-        options: Config.get('/postgres')
+        plugin: '../plugin/postgres'
       },
       {
         plugin: H2o2
