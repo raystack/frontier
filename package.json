@@ -23,6 +23,7 @@
     "@hapi/hoek": "^9.1.0",
     "@hapi/inert": "^6.0.3",
     "@hapi/vision": "^6.0.1",
+    "@hapi/wreck": "^17.1.0",
     "casbin": "^5.2.2",
     "casbin-pg-watcher": "^0.1.1",
     "confidence": "^5.0.0",
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@hapi/lab": "^24.1.0",
     "@types/confidence": "^1.4.30",
+    "@types/hapi__boom": "^9.0.1",
     "@types/hapi__glue": "^6.1.2",
     "@types/hapi__h2o2": "^8.3.2",
     "@types/hapi__hapi": "^20.0.2",
@@ -47,6 +49,7 @@
     "@types/hapi__joi": "^17.1.6",
     "@types/hapi__lab": "^22.0.1",
     "@types/hapi__vision": "^5.5.2",
+    "@types/hapi__wreck": "^17.0.1",
     "@types/joi": "^14.3.4",
     "@types/lodash": "^4.14.165",
     "@types/node": "^14.14.11",

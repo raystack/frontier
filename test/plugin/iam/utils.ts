@@ -1,11 +1,11 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
-import { constructResource } from '../../../plugin/iam/utils';
+import { constructIAMObjFromRequest } from '../../../plugin/iam/utils';
 
 const lab = Lab.script();
 exports.lab = lab;
 
-lab.experiment('IAM Plugin Utils::constructResource', () => {
+lab.experiment('IAM Plugin Utils::constructIAMObjFromRequest', () => {
   lab.test(
     'should construct the resource object for the given request and transformConfig',
     async () => {
@@ -18,7 +18,8 @@ lab.experiment('IAM Plugin Utils::constructResource', () => {
         },
         payload: {
           environment: 'integration'
-        }
+        },
+        response: {}
       };
 
       const resourceTransformConfig = {
@@ -47,7 +48,10 @@ lab.experiment('IAM Plugin Utils::constructResource', () => {
         environment: 'integration'
       };
 
-      const resource = constructResource(request, resourceTransformConfig);
+      const resource = constructIAMObjFromRequest(
+        request,
+        resourceTransformConfig
+      );
 
       Code.expect(expectedResult).to.equal(resource);
     }
