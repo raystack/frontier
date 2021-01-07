@@ -101,6 +101,15 @@ export class JsonEnforcer extends CachedEnforcer {
 
     await this.invalidateCache();
   }
+
+  public async setWatcher(watcher: any) {
+    this.watcher = watcher;
+    // eslint-disable-next-line no-return-await
+    watcher.setUpdateCallback(async () => {
+      await this.invalidateCache();
+      await this.loadPolicy();
+    });
+  }
 }
 
 // newCachedEnforcer creates a cached enforcer via file or DB.

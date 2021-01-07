@@ -3,7 +3,7 @@ import {
   RequestToIAMTransformConfig,
   RequestToIAMTransformObj,
   RequestKeysForIAM
-} from '../../app/proxy/types';
+} from './types';
 
 export const constructIAMObjFromRequest = (
   request: Record<RequestKeysForIAM, unknown>,

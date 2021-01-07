@@ -4,11 +4,7 @@ import Wreck from '@hapi/wreck';
 import _ from 'lodash';
 import CasbinSingleton from '../../lib/casbin';
 import { ConnectionConfig } from '../postgres';
-import {
-  IAMRouteOptionsApp,
-  IAMAuthorizeList,
-  IAMAuthorize
-} from '../../app/proxy/types';
+import { IAMRouteOptionsApp, IAMAuthorizeList, IAMAuthorize } from './types';
 import { constructIAMObjFromRequest } from './utils';
 
 export const plugin = {
@@ -31,7 +27,7 @@ export const plugin = {
             resourceTransformConfig
           );
 
-          return enforcer.enforceJson({ username }, resource, {
+          return enforcer.enforceJson({ user: username }, resource, {
             action
           });
         };
@@ -50,7 +46,7 @@ export const plugin = {
 
         if (iam?.authorize) {
           const hasAccess = await checkAuthorization(iam.authorize);
-          if (hasAccess) {
+          if (!hasAccess) {
             return Boom.forbidden("Sorry you don't have access");
           }
         }
@@ -70,40 +66,37 @@ export const plugin = {
         const shouldUpsertIAMPolicy = iamUpsertConfigList && response.source;
 
         if (shouldUpsertIAMPolicy) {
+          const body = await Wreck.read(response.source, {
+            json: 'force',
+            gunzip: true
+          });
+
+          const requestData = _.assign(
+            _.pick(request, ['query', 'params', 'payload']),
+            { response: body }
+          );
+
           const iamPolicyUpsertOperationList = _.map(
             iamUpsertConfigList,
             async function upsertIAMConfig(iamUpsertConfig) {
-              if (
-                iamUpsertConfig.resource &&
+              const resource = constructIAMObjFromRequest(
+                requestData,
+                iamUpsertConfig.resource
+              );
+              const resourceAttributes = constructIAMObjFromRequest(
+                requestData,
                 iamUpsertConfig.resourceAttributes
-              ) {
-                const body = await Wreck.read(response.source, {
-                  json: 'force',
-                  gunzip: true
-                });
-                const requestData = _.assign(
-                  _.pick(request, ['query', 'params', 'payload']),
-                  { response: body }
-                );
+              );
 
-                const resource = constructIAMObjFromRequest(
-                  requestData,
-                  iamUpsertConfig.resource
-                );
-                const resourceAttributes = constructIAMObjFromRequest(
-                  requestData,
-                  iamUpsertConfig.resourceAttributes
-                );
-
-                await enforcer.upsertResourceGroupingJsonPolicy(
-                  resource,
-                  resourceAttributes
-                );
-              }
+              return enforcer.upsertResourceGroupingJsonPolicy(
+                resource,
+                resourceAttributes
+              );
             }
           );
 
           await Promise.all(iamPolicyUpsertOperationList);
+          return h.response(body);
         }
         return h.continue;
       }
