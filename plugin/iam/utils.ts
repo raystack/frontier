@@ -1,15 +1,18 @@
 import _ from 'lodash';
 import {
-  ResourceTransformConfig,
-  RequestToIAMTransformConfig
-} from '../../app/proxy/routes';
+  RequestToIAMTransformConfig,
+  RequestToIAMTransformObj,
+  RequestKeysForIAM
+} from '../../app/proxy/types';
 
-export const constructResource = (
-  request: Record<keyof ResourceTransformConfig, unknown>,
-  resourceTransformConfig: ResourceTransformConfig
+export const constructIAMObjFromRequest = (
+  request: Record<RequestKeysForIAM, unknown>,
+  requestToIAMTransformConfig: RequestToIAMTransformConfig
 ) => {
   return _.reduce(
-    <Record<'string', RequestToIAMTransformConfig[]>>resourceTransformConfig,
+    <Record<RequestKeysForIAM, RequestToIAMTransformObj[]>>(
+      requestToIAMTransformConfig
+    ),
     (finalResource, transformConfig, key) => {
       const requestData = _.get(request, key, {});
 

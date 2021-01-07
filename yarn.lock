@@ -140,17 +140,17 @@
   dependencies:
     "@hapi/hoek" "9.x.x"
 
+"@hapi/boom@*", "@hapi/boom@^9.1.1":
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/@hapi/boom/-/boom-9.1.1.tgz#89e6f0e01637c2a4228da0d113e8157c93677b04"
+  integrity sha512-VNR8eDbBrOxBgbkddRYIe7+8DZ+vSbV6qlmaN2x7eWjsUjy2VmQgChkOKcVZIeupEZYj+I0dqNg430OhwzagjA==
+  dependencies:
+    "@hapi/hoek" "9.x.x"
+
 "@hapi/boom@9.x.x", "@hapi/boom@^9.0.0", "@hapi/boom@^9.1.0":
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/@hapi/boom/-/boom-9.1.0.tgz#0d9517657a56ff1e0b42d0aca9da1b37706fec56"
   integrity sha512-4nZmpp4tXbm162LaZT45P7F7sgiem8dwAh2vHWT6XX24dozNjGMg6BvKCRvtCUcmcXqeMIUqWN8Rc5X8yKuROQ==
-  dependencies:
-    "@hapi/hoek" "9.x.x"
-
-"@hapi/boom@^9.1.1":
-  version "9.1.1"
-  resolved "https://registry.yarnpkg.com/@hapi/boom/-/boom-9.1.1.tgz#89e6f0e01637c2a4228da0d113e8157c93677b04"
-  integrity sha512-VNR8eDbBrOxBgbkddRYIe7+8DZ+vSbV6qlmaN2x7eWjsUjy2VmQgChkOKcVZIeupEZYj+I0dqNg430OhwzagjA==
   dependencies:
     "@hapi/hoek" "9.x.x"
 
@@ -441,7 +441,7 @@
     "@hapi/hoek" "9.x.x"
     "@hapi/validate" "1.x.x"
 
-"@hapi/wreck@17.x.x", "@hapi/wreck@^17.0.0":
+"@hapi/wreck@*", "@hapi/wreck@17.x.x", "@hapi/wreck@^17.0.0", "@hapi/wreck@^17.1.0":
   version "17.1.0"
   resolved "https://registry.yarnpkg.com/@hapi/wreck/-/wreck-17.1.0.tgz#fbdc380c6f3fa1f8052dc612b2d3b6ce3e88dbec"
   integrity sha512-nx6sFyfqOpJ+EFrHX+XWwJAxs3ju4iHdbB/bwR8yTNZOiYmuhA8eCe7lYPtYmb4j7vyK/SlbaQsmTtUrMvPEBw==
@@ -567,6 +567,13 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
+"@types/hapi__boom@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/@types/hapi__boom/-/hapi__boom-9.0.1.tgz#8fbf719d0358e361b831802fb05fb4feced2ac29"
+  integrity sha512-TSqwgnTmNNp3/9uOpV16S8IVJv+QDmZLEImSuQrzGLCzmuK5P3bx3wdaXGXxfWLlN09Qqnd27POLrEAKhVCM5g==
+  dependencies:
+    "@hapi/boom" "*"
+
 "@types/hapi__catbox@*":
   version "10.2.3"
   resolved "https://registry.yarnpkg.com/@types/hapi__catbox/-/hapi__catbox-10.2.3.tgz#c9279c16d709bf2987491c332e11d18124ae018f"
@@ -655,6 +662,13 @@
   dependencies:
     "@types/hapi__hapi" "*"
     handlebars "^4.1"
+
+"@types/hapi__wreck@^17.0.1":
+  version "17.0.1"
+  resolved "https://registry.yarnpkg.com/@types/hapi__wreck/-/hapi__wreck-17.0.1.tgz#a15298a8f3c0f4531bb0e2081cf84486c9193402"
+  integrity sha512-vb98quNhRokw2IafKDRfTCu30rwf18+7oYnZZIXlS1xTTggoUtvtyNiuEY3VZYX1vSA/QWuJDMEELbuRMQG/xQ==
+  dependencies:
+    "@hapi/wreck" "*"
 
 "@types/joi@*", "@types/joi@^14.3.4":
   version "14.3.4"
