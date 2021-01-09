@@ -2,6 +2,7 @@ import Hapi from '@hapi/hapi';
 import Boom from '@hapi/boom';
 import Wreck from '@hapi/wreck';
 import _ from 'lodash';
+import * as R from 'ramda';
 import CasbinSingleton from '../../lib/casbin';
 import { ConnectionConfig } from '../postgres';
 import { IAMRouteOptionsApp, IAMAuthorizeList, IAMAuthorize } from './types';
@@ -88,10 +89,14 @@ export const plugin = {
                 iamUpsertConfig.resourceAttributes
               );
 
-              return enforcer.upsertResourceGroupingJsonPolicy(
-                resource,
-                resourceAttributes
-              );
+              if (!R.isEmpty(resource) && !R.isEmpty(resourceAttributes)) {
+                return enforcer.upsertResourceGroupingJsonPolicy(
+                  resource,
+                  resourceAttributes
+                );
+              }
+
+              return Promise.resolve();
             }
           );
 

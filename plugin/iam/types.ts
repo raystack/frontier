@@ -19,8 +19,8 @@ export type IAMAuthorize = {
 export type IAMAuthorizeList = IAMAuthorize[];
 
 export interface IAMRouteOptionsApp extends Hapi.RouteOptionsApp {
-  iam: {
-    authorize: IAMAuthorizeList;
+  iam?: {
+    authorize?: IAMAuthorizeList;
     manage?: {
       upsert?: {
         [index: number]: {
@@ -33,9 +33,9 @@ export interface IAMRouteOptionsApp extends Hapi.RouteOptionsApp {
 }
 
 export interface IAMRouteOptions extends Hapi.RouteOptions {
-  app: IAMRouteOptionsApp;
+  app?: IAMRouteOptionsApp;
 }
 
 export interface IAMRoute extends Hapi.ServerRoute {
-  options: IAMRouteOptions;
+  options?: IAMRouteOptions;
 }

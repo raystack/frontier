@@ -18,7 +18,8 @@ export const UserEntity = new EntitySchema<UserType>({
     id: {
       name: 'id',
       type: 'bigint',
-      primary: true
+      primary: true,
+      generated: 'increment'
     },
     username: {
       name: 'username',
@@ -34,28 +35,32 @@ export const UserEntity = new EntitySchema<UserType>({
     },
     name: {
       name: 'name',
-      type: String
+      type: String,
+      nullable: true
     },
     slack: {
       name: 'slack',
-      type: String
+      type: String,
+      nullable: true
     },
     designation: {
       name: 'designation',
-      type: String
+      type: String,
+      nullable: true
     },
     company: {
       name: 'company',
-      type: String
+      type: String,
+      nullable: true
     },
     createdAt: {
       name: 'created_at',
-      type: 'timestamp with time zone',
+      type: 'timestamp',
       createDate: true
     },
     updatedAt: {
       name: 'updated_at',
-      type: 'timestamp with time zone',
+      type: 'timestamp',
       updateDate: true
     }
   }

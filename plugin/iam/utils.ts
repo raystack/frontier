@@ -1,3 +1,4 @@
+import * as R from 'ramda';
 import _ from 'lodash';
 import {
   RequestToIAMTransformConfig,
@@ -14,16 +15,16 @@ export const constructIAMObjFromRequest = (
       requestToIAMTransformConfig
     ),
     (finalResource, transformConfig, key) => {
-      const requestData = _.get(request, key, {});
+      const requestData = R.pathOr({}, [key], request);
 
       return transformConfig?.reduce((transformedObj, config) => {
         const { requestKey, iamKey } = config;
-        const valueInRequestData = requestData[requestKey];
+        const valueInRequestData = R.path([requestKey], requestData);
 
-        return {
-          ...transformedObj,
-          ...(valueInRequestData && { [iamKey]: valueInRequestData })
-        };
+        if (valueInRequestData) {
+          return R.assocPath([iamKey], valueInRequestData, transformedObj);
+        }
+        return transformedObj;
       }, finalResource);
     },
     {}
