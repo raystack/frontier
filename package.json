@@ -13,7 +13,11 @@
     "postbuild": "cpy --parents '**/*.conf' ./build/",
     "start": "node ./build/server.js",
     "dev": "nodemon --inspect=0.0.0.0:5858  -e ts --exec \"yarn build && yarn start\"",
-    "test": "NODE_ENV=test lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l"
+    "test": "NODE_ENV=test node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l -v",
+    "dev:migrate:run": "docker exec shield-js_server_1 sh -c 'NODE_ENV=dev npx typeorm migration:run'",
+    "dev:migrate:revert": "docker exec shield-js_server_1 sh -c 'NODE_ENV=dev npx typeorm migration:revert'",
+    "test:migrate:run": "NODE_ENV=test npx typeorm migration:run",
+    "test:migrate:revert": "NODE_ENV=test npx typeorm migration:revert"
   },
   "dependencies": {
     "@hapi/boom": "^9.1.1",
@@ -27,6 +31,7 @@
     "casbin": "^5.2.2",
     "casbin-pg-watcher": "^0.1.1",
     "confidence": "^5.0.0",
+    "faker": "^5.1.0",
     "hapi-swagger": "^14.0.0",
     "joi": "^17.3.0",
     "lodash": "^4.17.20",
@@ -36,11 +41,14 @@
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.29",
     "typeorm-adapter": "^1.2.0",
+    "typeorm-seeding": "^1.6.1",
     "winston": "^3.3.3"
   },
   "devDependencies": {
     "@hapi/lab": "^24.1.0",
+    "@types/code": "^4.0.5",
     "@types/confidence": "^1.4.30",
+    "@types/faker": "^5.1.5",
     "@types/hapi__boom": "^9.0.1",
     "@types/hapi__glue": "^6.1.2",
     "@types/hapi__h2o2": "^8.3.2",
@@ -56,6 +64,7 @@
     "@types/node": "^14.14.11",
     "@types/qs": "^6.9.5",
     "@types/ramda": "^0.27.34",
+    "@types/sinon": "^9.0.10",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^4.9.1",
     "@typescript-eslint/parser": "^4.9.1",

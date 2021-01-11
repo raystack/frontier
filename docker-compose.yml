@@ -39,9 +39,11 @@ services:
   postgres-test:
     image: 'postgres:11.10'
     environment:
-      POSTGRES_DB: 'shield_test'
       POSTGRES_USER: 'shield_test'
+      POSTGRES_DB: 'shield_test'
       POSTGRES_HOST_AUTH_METHOD: 'trust'
+    volumes:
+      - shield_postgres:/data/testdb
     networks:
       - backend
     ports:
