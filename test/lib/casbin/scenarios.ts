@@ -1,31 +1,22 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
-import { createConnection, Connection } from 'typeorm';
 import * as Config from '../../../config/config';
 import setupSampleData from './sample';
 import CasbinSingleton from '../../../lib/casbin';
+import { lab } from '../../setup';
 
-const lab = Lab.script();
-exports.lab = lab;
+exports.lab = Lab.script();
 
 lab.experiment('IAM scenarios:', () => {
-  let connection: null | Connection = null,
-    enforcer = null;
+  let enforcer = null;
 
   lab.before(async () => {
     const dbUri = Config.get('/postgres').uri;
     enforcer = await CasbinSingleton.create(dbUri);
-    await setupSampleData();
-    connection = await createConnection({
-      type: 'postgres',
-      url: dbUri
-    });
   });
 
-  lab.after(async () => {
-    const queryRunner = connection.createQueryRunner();
-    await queryRunner.dropTable('casbin_rule');
-    await connection.close();
+  lab.beforeEach(async () => {
+    await setupSampleData();
   });
 
   lab.test(

@@ -41,6 +41,15 @@ internals.config = {
       options: {}
     }
   },
+  typeormDir: {
+    $filter: 'env',
+    test: {
+      dir: '.'
+    },
+    $default: {
+      dir: './build'
+    }
+  },
   environment: {
     $filter: 'env',
     test: {

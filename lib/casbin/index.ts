@@ -27,7 +27,7 @@ class CasbinSingleton {
       this.enforcer = await newJsonEnforcer(modelPath, policyAdapter);
       this.enforcer.setWatcher(policyWatcher);
       this.enforcer.enableAutoSave(true);
-      this.enforcer.enableLog(true);
+      this.enforcer.enableLog(false);
 
       // Load the policy from DB.
       await this.enforcer.loadPolicy();

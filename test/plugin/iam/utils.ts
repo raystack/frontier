@@ -1,9 +1,9 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
+import { lab } from '../../setup';
 import { constructIAMObjFromRequest } from '../../../plugin/iam/utils';
 
-const lab = Lab.script();
-exports.lab = lab;
+exports.lab = Lab.script();
 
 lab.experiment('IAM Plugin Utils::constructIAMObjFromRequest', () => {
   lab.test(
