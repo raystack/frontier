@@ -6,7 +6,7 @@ import * as R from 'ramda';
 import CasbinSingleton from '../../lib/casbin';
 import { ConnectionConfig } from '../postgres';
 import { IAMRouteOptionsApp, IAMAuthorizeList, IAMAuthorize } from './types';
-import { constructIAMObjFromRequest } from './utils';
+import { getIAMAction, constructIAMResourceFromConfig } from './utils';
 
 export const plugin = {
   name: 'iam',
@@ -21,12 +21,13 @@ export const plugin = {
         const { iam } = <IAMRouteOptionsApp>route?.settings?.app || {};
 
         const createEnforcerPromise = (authorizeConfig: IAMAuthorize) => {
-          const { action, resource: resourceTransformConfig } = authorizeConfig;
-          const { username } = request.auth.credentials;
-          const resource = constructIAMObjFromRequest(
-            request,
-            resourceTransformConfig
+          const { resource: resourceTransformConfig } = authorizeConfig;
+          const resource = constructIAMResourceFromConfig(
+            resourceTransformConfig,
+            request
           );
+          const { username } = request.auth.credentials;
+          const action = getIAMAction(authorizeConfig.action, request.method);
 
           return enforcer.enforceJson({ username }, resource, {
             action
@@ -80,13 +81,13 @@ export const plugin = {
           const iamPolicyUpsertOperationList = _.map(
             iamUpsertConfigList,
             async function upsertIAMConfig(iamUpsertConfig) {
-              const resource = constructIAMObjFromRequest(
-                requestData,
-                iamUpsertConfig.resource
+              const resource = constructIAMResourceFromConfig(
+                iamUpsertConfig.resource,
+                requestData
               );
-              const resourceAttributes = constructIAMObjFromRequest(
-                requestData,
-                iamUpsertConfig.resourceAttributes
+              const resourceAttributes = constructIAMResourceFromConfig(
+                iamUpsertConfig.resourceAttributes,
+                requestData
               );
 
               if (!R.isEmpty(resource) && !R.isEmpty(resourceAttributes)) {

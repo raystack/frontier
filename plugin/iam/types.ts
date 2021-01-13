@@ -1,19 +1,22 @@
 import Hapi from '@hapi/hapi';
 
-export type RequestToIAMTransformObj = {
+export type RequestToIAMTransformConfig = {
   requestKey: string;
   iamKey: string;
 };
 
 export type RequestKeysForIAM = 'query' | 'params' | 'payload' | 'response';
 
-export type RequestToIAMTransformConfig = Partial<
-  Record<RequestKeysForIAM, RequestToIAMTransformObj[]>
->;
+export type IAMAuthorizeActionConfig = {
+  baseName: string;
+  operation?: string;
+};
+
+export type IAMAuthorizeAction = string | IAMAuthorizeActionConfig;
 
 export type IAMAuthorize = {
-  action: string;
-  resource: RequestToIAMTransformConfig;
+  action: IAMAuthorizeAction;
+  resource: RequestToIAMTransformConfig[];
 };
 
 export type IAMAuthorizeList = IAMAuthorize[];
@@ -24,8 +27,8 @@ export interface IAMRouteOptionsApp extends Hapi.RouteOptionsApp {
     manage?: {
       upsert?: {
         [index: number]: {
-          resource: RequestToIAMTransformConfig;
-          resourceAttributes: RequestToIAMTransformConfig;
+          resource: RequestToIAMTransformConfig[];
+          resourceAttributes: RequestToIAMTransformConfig[];
         };
       };
     };
