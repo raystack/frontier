@@ -1,32 +1,61 @@
 import * as R from 'ramda';
-import _ from 'lodash';
 import {
   RequestToIAMTransformConfig,
-  RequestToIAMTransformObj,
-  RequestKeysForIAM
+  RequestKeysForIAM,
+  IAMAuthorizeAction,
+  IAMAuthorizeActionConfig
 } from './types';
 
-export const constructIAMObjFromRequest = (
-  request: Record<RequestKeysForIAM, unknown>,
-  requestToIAMTransformConfig: RequestToIAMTransformConfig
+export const constructIAMResourceFromConfig = (
+  requestToIAMTransformObj: RequestToIAMTransformConfig[],
+  request: Partial<Record<RequestKeysForIAM, unknown>>
 ) => {
-  return _.reduce(
-    <Record<RequestKeysForIAM, RequestToIAMTransformObj[]>>(
-      requestToIAMTransformConfig
-    ),
-    (finalResource, transformConfig, key) => {
-      const requestData = R.pathOr({}, [key], request);
+  // ? This will contain query, params, payload, and response
+  const httpRequestKeys = Object.keys(request);
 
-      return transformConfig?.reduce((transformedObj, config) => {
-        const { requestKey, iamKey } = config;
-        const valueInRequestData = R.path([requestKey], requestData);
+  return requestToIAMTransformObj.reduce(
+    (resource, transformConfig: RequestToIAMTransformConfig) => {
+      const { requestKey, iamKey } = transformConfig;
 
-        if (valueInRequestData) {
-          return R.assocPath([iamKey], valueInRequestData, transformedObj);
-        }
-        return transformedObj;
-      }, finalResource);
+      const valueInRequest = httpRequestKeys.reduce(
+        (val, httpKey) => R.pathOr(val, [httpKey, requestKey], request),
+        undefined
+      );
+
+      if (valueInRequest) {
+        return R.assocPath([iamKey], valueInRequest, resource);
+      }
+
+      return resource;
     },
     {}
   );
+};
+
+const getIAMActionOperationByMethod = (method: string) =>
+  R.propOr('get', method.toLowerCase(), {
+    get: 'get',
+    post: 'create',
+    put: 'manage',
+    patch: 'manage',
+    delete: 'delete'
+  });
+
+export const contructIAMActionFromConfig = (
+  actionConfig: IAMAuthorizeActionConfig,
+  method: string
+) => {
+  if (R.has('operation', actionConfig)) {
+    return `${actionConfig.baseName.toLowerCase()}.${actionConfig.operation?.toLowerCase()}`;
+  }
+
+  return `${actionConfig.baseName.toLowerCase()}.${getIAMActionOperationByMethod(
+    method
+  )}`;
+};
+
+export const getIAMAction = (action: IAMAuthorizeAction, method: string) => {
+  if (typeof action === 'string') return action;
+
+  return contructIAMActionFromConfig(action, method);
 };
