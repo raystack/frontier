@@ -21,16 +21,16 @@ export type IAMAuthorize = {
 
 export type IAMAuthorizeList = IAMAuthorize[];
 
+export type IAMUpsertConfig = {
+  resource: RequestToIAMTransformConfig[];
+  resourceAttributes: RequestToIAMTransformConfig[];
+};
+
 export interface IAMRouteOptionsApp extends Hapi.RouteOptionsApp {
   iam?: {
     authorize?: IAMAuthorizeList;
     manage?: {
-      upsert?: {
-        [index: number]: {
-          resource: RequestToIAMTransformConfig[];
-          resourceAttributes: RequestToIAMTransformConfig[];
-        };
-      };
+      upsert?: IAMUpsertConfig[];
     };
   };
 }
