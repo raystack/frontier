@@ -21,6 +21,10 @@ exports.lab = Lab.script();
 
 const Sandbox = Sinon.createSandbox();
 
+lab.afterEach(() => {
+  Sandbox.restore();
+});
+
 lab.experiment('ProxyOptions', () => {
   lab.experiment('getProxyOptions', () => {
     let appendHeadersStub, appendProxyPayloadStub;
