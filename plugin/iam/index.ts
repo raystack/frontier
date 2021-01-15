@@ -90,7 +90,11 @@ export const plugin = {
                 requestData
               );
 
-              if (!R.isEmpty(resource) && !R.isEmpty(resourceAttributes)) {
+              if (
+                !R.isEmpty(resource) &&
+                !R.isEmpty(resourceAttributes) &&
+                ['post', 'put', 'patch'].includes(request.method.toLowerCase())
+              ) {
                 return enforcer.upsertResourceGroupingJsonPolicy(
                   resource,
                   resourceAttributes
