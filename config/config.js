@@ -1,12 +1,14 @@
-import Confidence from 'confidence';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+const Confidence = require('confidence');
 
-const internals: any = {
+const internals = {
   criteria: {
     env: process.env.NODE_ENV,
     ci: process.env.CI
   }
 };
 
+// @ts-ignore
 internals.config = {
   $meta: 'App configuration',
   env: {
@@ -78,9 +80,13 @@ internals.config = {
   }
 };
 
+// @ts-ignore
 internals.store = new Confidence.Store(internals.config);
 
-// eslint-disable-next-line import/prefer-default-export
-export const get = function (key: string) {
+// @ts-ignore
+const get = function (key) {
+  // @ts-ignore
   return internals.store.get(key, internals.criteria);
 };
+
+module.exports = { get };

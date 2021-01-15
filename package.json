@@ -122,6 +122,7 @@
       ],
       "prettier/prettier": "error",
       "no-unused-vars": "off",
+      "no-return-await": "off",
       "func-names": "off",
       "global-require": "off",
       "camelcase": "off",
