@@ -1,6 +1,9 @@
 import Lab from '@hapi/lab';
 import Sinon from 'sinon';
+import Code from 'code';
+import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
+import { User } from '../../../model/user';
 import * as Resource from '../../../app/user/resource';
 
 exports.lab = Lab.script();
@@ -12,10 +15,9 @@ lab.afterEach(() => {
 
 lab.experiment('User::resource', () => {
   lab.experiment('get user', () => {
-    let getUserByEmailStub;
-
+    let user;
     lab.beforeEach(async () => {
-      getUserByEmailStub = Sandbox.stub(Resource, 'getUserByEmail');
+      user = await factory(User)().create();
     });
 
     lab.afterEach(() => {
@@ -23,17 +25,18 @@ lab.experiment('User::resource', () => {
     });
 
     lab.test('should get user by email', async () => {
-      const email = 'demo@demo.com';
-      await Resource.getUserByEmail(email);
-      Sandbox.assert.calledWithExactly(getUserByEmailStub, email);
+      const response = await Resource.getUserByEmail(user.email);
+      Code.expect(response.username).to.equal(user.username);
+      Code.expect(response.email).to.equal(user.email);
+      Code.expect(response.designation).to.equal(user.designation);
     });
   });
 
   lab.experiment('update user', () => {
-    let updateUserByEmailStub;
+    let user;
 
     lab.beforeEach(async () => {
-      updateUserByEmailStub = Sandbox.stub(Resource, 'updateUserByEmail');
+      user = await factory(User)().create();
     });
 
     lab.afterEach(() => {
@@ -41,14 +44,16 @@ lab.experiment('User::resource', () => {
     });
 
     lab.test('should update user by email', async () => {
-      const email = 'demo@demo.com';
       const payload = {
-        name: 'User1',
-        email: 'demo@demo.com'
+        username: 'Demo username',
+        name: 'Demo user',
+        company: 'Demo company'
       };
 
-      await Resource.updateUserByEmail(email, payload);
-      Sandbox.assert.calledWithExactly(updateUserByEmailStub, email, payload);
+      const response = await Resource.updateUserByEmail(user.email, payload);
+      Code.expect(response.username).to.equal(payload.username);
+      Code.expect(response.name).to.equal(payload.name);
+      Code.expect(response.company).to.equal(payload.company);
     });
   });
 });
