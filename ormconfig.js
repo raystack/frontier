@@ -1,4 +1,4 @@
-const Config = require('./build/config/config');
+const Config = require('./config/config');
 
 const baseDir = Config.get('/typeormDir').dir;
 

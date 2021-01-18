@@ -49,6 +49,9 @@ internals.manifest = {
         plugin: '../app/ping/index'
       },
       {
+        plugin: '../app/user/index'
+      },
+      {
         plugin: '../app/proxy/index'
       },
       {
