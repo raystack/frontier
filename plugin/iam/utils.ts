@@ -34,7 +34,7 @@ export const constructIAMResourceFromConfig = (
 
 const getIAMActionOperationByMethod = (method: string) =>
   R.propOr('get', method.toLowerCase(), {
-    get: 'get',
+    get: 'read',
     post: 'create',
     put: 'manage',
     patch: 'manage',

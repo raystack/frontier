@@ -14,7 +14,7 @@ export const plugin = {
     server.ext({
       type: 'onPreResponse',
       async method(request, h) {
-        manageResourceAttributesMapping(server, request, h);
+        return manageResourceAttributesMapping(server, request, h);
       }
     });
   }
