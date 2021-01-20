@@ -3,7 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
+  BaseEntity
 } from 'typeorm';
 
 export enum PrivacyEnum {
@@ -12,7 +13,7 @@ export enum PrivacyEnum {
 }
 
 @Entity('groups')
-export class Group {
+export class Group extends BaseEntity {
   @PrimaryGeneratedColumn({
     type: 'bigint'
   })
