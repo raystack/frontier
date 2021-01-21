@@ -91,9 +91,8 @@ lab.experiment(
 );
 
 lab.experiment('ManageResourceAttributesMapping::getRequestData', () => {
-  let wreckStub;
   lab.before(() => {
-    wreckStub = Sandbox.stub(Wreck, 'read').resolves({ group: 'de' });
+    Sandbox.stub(Wreck, 'read').resolves({ group: 'de' });
   });
 
   lab.test('should return requestData from given request', async () => {
@@ -118,7 +117,6 @@ lab.experiment('ManageResourceAttributesMapping::getRequestData', () => {
 
     const requestData = await getRequestData(request);
     Code.expect(requestData).to.equal(expectedRequestData);
-    Sandbox.assert.calledOnce(wreckStub);
   });
 
   lab.test(
@@ -138,7 +136,6 @@ lab.experiment('ManageResourceAttributesMapping::getRequestData', () => {
 
       const requestData = await getRequestData(request);
       Code.expect(requestData).to.equal(expectedRequestData);
-      Sandbox.assert.calledOnce(wreckStub);
     }
   );
 });

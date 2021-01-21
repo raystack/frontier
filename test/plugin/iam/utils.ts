@@ -60,6 +60,50 @@ lab.experiment('IAMPluginUtils::constructIAMResourceFromConfig', () => {
       Code.expect(resource).to.equal(expectedResult);
     }
   );
+
+  lab.test(
+    'should construct the resource object for the given transformConfig and request even if iamKey is abset',
+    async () => {
+      const request = {
+        query: {
+          entity: 'platform',
+          landscape: 'id'
+        },
+        params: {
+          name: 'p-firehose-123'
+        },
+        payload: {
+          environment: 'integration'
+        }
+      };
+
+      const resourceTransformConfig = [
+        {
+          requestKey: 'entity'
+        },
+        {
+          requestKey: 'name'
+        },
+        {
+          requestKey: 'environment'
+        }
+      ];
+
+      const expectedResult = {
+        entity: 'platform',
+        name: 'p-firehose-123',
+        environment: 'integration'
+      };
+
+      const resource = constructIAMResourceFromConfig(
+        resourceTransformConfig,
+        request
+      );
+
+      Code.expect(resource).to.equal(expectedResult);
+    }
+  );
+
   lab.test(
     'should skip keys that are not present in request data',
     async () => {

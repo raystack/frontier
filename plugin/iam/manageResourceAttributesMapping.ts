@@ -56,12 +56,18 @@ export const checkIfShouldUpsertResourceAttributes = (
 
 export const getRequestData = async (request: Hapi.Request) => {
   const { response } = <any>request;
-  const body = response?.source
-    ? await Wreck.read(response?.source, {
+  let body = {};
+
+  if (response?.source) {
+    if (typeof response?.source === 'object') {
+      body = response?.source;
+    } else {
+      body = await Wreck.read(response?.source, {
         json: 'force',
         gunzip: true
-      })
-    : {};
+      });
+    }
+  }
 
   const requestData = R.assoc(
     'response',
