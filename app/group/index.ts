@@ -1,11 +1,12 @@
 import Hapi from '@hapi/hapi';
 import * as Handler from './handler';
+import { IAMRoute } from '../../plugin/iam/types';
 
 export const plugin = {
   name: 'group',
   dependencies: 'postgres',
   register(server: Hapi.Server) {
-    server.route([
+    const ROUTES: IAMRoute[] = [
       {
         method: 'POST',
         path: '/api/groups',
@@ -21,6 +22,8 @@ export const plugin = {
         path: '/api/groups/{id}',
         options: Handler.update
       }
-    ]);
+    ];
+
+    server.route(ROUTES);
   }
 };

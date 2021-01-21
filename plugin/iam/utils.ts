@@ -22,8 +22,10 @@ export const constructIAMResourceFromConfig = (
         undefined
       );
 
+      const resourceKey = iamKey || requestKey;
+
       if (valueInRequest) {
-        return R.assocPath([iamKey], valueInRequest, resource);
+        return R.assocPath([resourceKey], valueInRequest, resource);
       }
 
       return resource;

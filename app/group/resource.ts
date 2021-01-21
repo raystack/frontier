@@ -9,7 +9,6 @@ export const create = async (payload: any) => {
 };
 
 export const update = async (id: number, payload: any) => {
-  // TODO: Figure out if there is a way to return record in update command itself
-  await Group.update({ id }, payload);
-  return get(id);
+  const group = await get(id);
+  return Group.save({ ...group, ...payload, id });
 };

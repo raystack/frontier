@@ -37,7 +37,8 @@ lab.experiment('Group::Handler', () => {
         name: 'test',
         title: 'test title',
         email: 'test@go-jek.com',
-        privacy: 'public'
+        privacy: 'public',
+        entity: 'gojek'
       };
       request = {
         method: 'POST',
@@ -94,8 +95,10 @@ lab.experiment('Group::Handler', () => {
       group = await factory(Group)().create();
       updateStub = Sandbox.stub(Resource, 'update');
       payload = {
+        name: group.name,
         title: group.title,
-        email: group.email
+        email: group.email,
+        entity: 'gojek'
       };
       request = {
         method: 'PUT',

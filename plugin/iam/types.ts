@@ -2,7 +2,7 @@ import Hapi from '@hapi/hapi';
 
 export type RequestToIAMTransformConfig = {
   requestKey: string;
-  iamKey: string;
+  iamKey?: string;
 };
 
 export type RequestKeysForIAM = 'query' | 'params' | 'payload' | 'response';

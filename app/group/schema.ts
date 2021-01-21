@@ -8,6 +8,7 @@ export const createPayload = Joi.object()
   .keys({
     name: Joi.string().required(),
     title: Joi.string().required(),
+    entity: Joi.string().required(),
     privacy: Joi.string().required(),
     email: Joi.string().optional(),
     description: Joi.string().optional(),
@@ -19,7 +20,9 @@ export const createPayload = Joi.object()
 export const updatePayload = Joi.object()
   .label('GroupUpdatePayload')
   .keys({
+    name: Joi.string().required(),
     title: Joi.string().optional(),
+    entity: Joi.string().optional(),
     privacy: Joi.string().optional(),
     email: Joi.string().optional(),
     description: Joi.string().optional(),
