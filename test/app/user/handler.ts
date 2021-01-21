@@ -31,7 +31,7 @@ lab.experiment('User::Handler', () => {
     lab.beforeEach(async () => {
       request = {
         method: 'GET',
-        url: `/profile`,
+        url: `/api/profile`,
         headers: {
           'x-goog-authenticated-user-email': 'praveen.yadav@gojek.com'
         }
