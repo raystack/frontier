@@ -6,6 +6,7 @@ import H2o2 from '@hapi/h2o2';
 import HapiSwagger from 'hapi-swagger';
 import Qs from 'qs';
 import * as Config from './config';
+import Logging from '../plugin/logging';
 
 const internals: any = {
   criteria: {
@@ -71,7 +72,8 @@ internals.manifest = {
             version: '1.0.0'
           }
         }
-      }
+      },
+      { ...Logging }
     ]
   }
 };
