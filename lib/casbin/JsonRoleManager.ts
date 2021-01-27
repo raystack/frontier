@@ -3,44 +3,11 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 import { RoleManager, getLogger, logPrint } from 'casbin';
-import _ from 'lodash';
 
 // DEFAULT_DOMAIN defines the default domain space.
 const DEFAULT_DOMAIN = 'casbin::default';
 
 type MatchingFunc = (arg1: string, arg2: string) => boolean;
-
-const getCombinations = (chars: string[]) => {
-  const result: string[] = [];
-
-  const f = function (prefix: string, remChars: string[]) {
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < remChars.length; i++) {
-      const separator = prefix && remChars[i] ? '::' : '';
-      const strToPush = prefix + separator + remChars[i];
-      result.push(strToPush);
-      f(strToPush, remChars.slice(i + 1));
-    }
-  };
-  f('', chars);
-
-  return result.map((v) => v.split('::'));
-};
-
-const getStringifiedJSONSubsets: (str: string) => string[] = (str: string) => {
-  try {
-    const obj = JSON.parse(str);
-    const keyList: string[] = Object.keys(obj);
-    const combinations = getCombinations(keyList);
-    const stringifiedJsonSubsets = combinations.reduce((acc, keys) => {
-      const subObj = _.pick(obj, keys);
-      return [...acc, JSON.stringify(subObj)];
-    }, []);
-    return stringifiedJsonSubsets;
-    // eslint-disable-next-line no-empty
-  } catch (e) {}
-  return [];
-};
 
 // loadOrDefault returns the existing value for the key if present.
 // Otherwise, it stores and returns the given value.
@@ -52,6 +19,34 @@ function loadOrDefault<K, V>(map: Map<K, V>, key: K, value: V): V {
   }
   return read;
 }
+
+// subset json may contain array values whereas fullset will be flat for now
+// this is done to handle policies such as this: {landscape: [id, vn]}
+// fullset is present in resource mapping whereas subset will be present in policy
+const isJSONSubset = (fullset: string, subset: string) => {
+  try {
+    const fullsetJson = JSON.parse(fullset);
+    const subsetJson = JSON.parse(subset);
+
+    // start as true in the start and if falsified even once then shortcircuit and return false
+    return Object.keys(subsetJson).reduce((isSubset: boolean, key: string) => {
+      if (!isSubset) return false;
+
+      const fullsetVal = fullsetJson[key];
+      const subsetVal = subsetJson[key];
+
+      if (subsetVal === fullsetVal) return true;
+
+      if (typeof subsetVal === 'object') {
+        return subsetVal.includes(fullsetVal);
+      }
+
+      return false;
+    }, true);
+  } catch (e) {
+    return false;
+  }
+};
 
 /**
  * Role represents the data structure for a role in RBAC.
@@ -79,6 +74,9 @@ class Role {
 
   public hasRole(name: string, hierarchyLevel: number): boolean {
     if (this.name === name) {
+      return true;
+    }
+    if (isJSONSubset(this.name, name)) {
       return true;
     }
     if (hierarchyLevel <= 0) {
@@ -287,55 +285,6 @@ export class JsonRoleManager implements RoleManager {
     role1.deleteRole(role2);
   }
 
-  private addJSONSubsetsAsRoles(allRoles: Roles, roleName: string) {
-    // we need to dynamically add name1 and name2 so that we can compare attributes that are not present in the policy
-    if (!allRoles.get(roleName)) {
-      allRoles.set(roleName, new Role(roleName));
-    }
-
-    const roleToAddSubsetsTo = allRoles.get(roleName);
-
-    const getAllRelatedRoleNamesInHierarchy: (
-      role: Role,
-      result?: Set<string>
-    ) => Set<string> = (role: Role, result: Set<string> = new Set()) => {
-      if (result.has(role.name)) return result;
-      result.add(role.name);
-
-      const immediateRoleNames = role.getRoles();
-      immediateRoleNames.forEach((immediateRoleName) => {
-        const immediateRole = allRoles.get(immediateRoleName);
-        if (immediateRole) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          getAllRelatedRoleNamesInHierarchy(immediateRole, result);
-        }
-      });
-
-      return result;
-    };
-
-    if (roleToAddSubsetsTo) {
-      const relatedRolesNames = getAllRelatedRoleNamesInHierarchy(
-        roleToAddSubsetsTo
-      );
-      relatedRolesNames.forEach((relatedRoleName) => {
-        const relatedRole = allRoles.get(relatedRoleName);
-        if (relatedRole) {
-          const stringifiedJsonSubsets = getStringifiedJSONSubsets(
-            relatedRoleName
-          );
-          stringifiedJsonSubsets.forEach((jsonSubsetStr) => {
-            const jsonSubsetRole =
-              allRoles.get(jsonSubsetStr) || new Role(jsonSubsetStr);
-            relatedRole.addRole(jsonSubsetRole);
-            allRoles.set(jsonSubsetStr, jsonSubsetRole);
-          });
-        }
-      });
-    }
-    return allRoles;
-  }
-
   /**
    * hasLink determines whether role: name1 inherits role: name2.
    * domain is a prefix to the roles.
@@ -361,15 +310,6 @@ export class JsonRoleManager implements RoleManager {
       allRoles = this.generateTempRoles(domain[0]);
     } else {
       allRoles = loadOrDefault(this.allDomains, domain[0], new Roles());
-    }
-
-    allRoles = this.addJSONSubsetsAsRoles(allRoles, name1);
-
-    if (
-      !allRoles.hasRole(name1, this.matchingFunc) ||
-      !allRoles.hasRole(name2, this.matchingFunc)
-    ) {
-      return false;
     }
 
     const role1 = allRoles.createRole(name1, this.matchingFunc);

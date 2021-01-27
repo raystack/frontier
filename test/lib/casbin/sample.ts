@@ -5,7 +5,7 @@ const setupPolicies = async () => {
     { user: 'alice' },
     {
       entity: 'gojek',
-      landscape: 'id',
+      landscape: ['vn', 'id'],
       environment: 'production',
       team: 'transport'
     },
