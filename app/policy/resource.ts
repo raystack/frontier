@@ -1,21 +1,17 @@
 import CasbinSingleton from '../../lib/casbin';
 
-export interface Policy {
+export interface PolicyOperation {
+  operation: 'delete' | 'create';
   subject: Record<string, unknown>;
   resource: Record<string, unknown>;
   action: Record<string, unknown>;
-}
-
-export interface PolicyOperation {
-  operation: 'delete' | 'create';
-  policy: Policy;
 }
 
 export const bulkOperation = async (
   policyOperations: PolicyOperation[] = [],
   subject: Record<string, unknown>
 ) => {
-  const promiseList = policyOperations.map(async ({ operation, policy }) => {
+  const promiseList = policyOperations.map(async ({ operation, ...policy }) => {
     // ? the subject who is performing the action should have iam.manage permission
     const hasAccess = await CasbinSingleton.enforcer?.enforceJson(
       subject,
