@@ -2,7 +2,7 @@ import Hapi from '@hapi/hapi';
 import * as Schema from './schema';
 import * as Resource from './resource';
 
-const ACTION_BASE_NAME = 'group';
+const ACTION_BASE_NAME = 'iam';
 
 export const get = {
   description: 'get group by id',
@@ -37,7 +37,8 @@ export const create = {
     payload: Schema.createPayload
   },
   handler: async (request: Hapi.Request) => {
-    return Resource.create(request.payload);
+    const { username } = request?.auth?.credentials || {};
+    return Resource.create(request.payload, { username });
   }
 };
 
@@ -70,6 +71,7 @@ export const update = {
     payload: Schema.updatePayload
   },
   handler: async (request: Hapi.Request) => {
-    return Resource.update(request.params.id, request.payload);
+    const { username } = request?.auth?.credentials || {};
+    return Resource.update(request.params.id, request.payload, { username });
   }
 };

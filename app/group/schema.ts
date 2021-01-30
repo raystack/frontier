@@ -13,7 +13,8 @@ export const createPayload = Joi.object()
     email: Joi.string().optional(),
     description: Joi.string().optional(),
     slack: Joi.string().optional(),
-    product_group: Joi.string().optional()
+    product_group: Joi.string().optional(),
+    policies: Joi.array().optional()
   })
   .options(validationOptions);
 
@@ -27,6 +28,7 @@ export const updatePayload = Joi.object()
     email: Joi.string().optional(),
     description: Joi.string().optional(),
     slack: Joi.string().optional(),
-    product_group: Joi.string().optional()
+    product_group: Joi.string().optional(),
+    policies: Joi.array().optional()
   })
   .options(validationOptions);
