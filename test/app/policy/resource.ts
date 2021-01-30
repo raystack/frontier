@@ -40,11 +40,11 @@ lab.experiment('Policy::resource', () => {
         const policyOperations: Resource.PolicyOperation[] = [
           {
             operation: 'create',
-            policy: createPolicy
+            ...createPolicy
           },
           {
             operation: 'delete',
-            policy: deletePolicy
+            ...deletePolicy
           }
         ];
 
@@ -95,7 +95,7 @@ lab.experiment('Policy::resource', () => {
         const policyOperations: Resource.PolicyOperation[] = [
           {
             operation: 'delete',
-            policy: deletePolicy
+            ...deletePolicy
           }
         ];
 
