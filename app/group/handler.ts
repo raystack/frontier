@@ -8,7 +8,7 @@ export const get = {
   description: 'get group by id',
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
-    return Resource.get(request.params.id);
+    return Resource.get(request.params.id, request.query);
   }
 };
 

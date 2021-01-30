@@ -1,7 +1,9 @@
 import { CachedEnforcer, newEnforcerWithClass, Util } from 'casbin';
 import { JsonRoleManager } from './JsonRoleManager';
 
-const convertJSONToStringInOrder = (json: Record<string, unknown>): string => {
+export const convertJSONToStringInOrder = (
+  json: Record<string, unknown>
+): string => {
   const keys = Object.keys(json).sort((a, b) => a.localeCompare(b));
 
   const orderedJSON = keys.reduce((acc, key) => {
