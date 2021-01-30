@@ -47,6 +47,20 @@ export class JsonEnforcer extends CachedEnforcer {
     await this.invalidateCache();
   }
 
+  public async removeJsonPolicy(
+    subject: JsonAttributes,
+    resource: JsonAttributes,
+    action: JsonAttributes
+  ) {
+    await this.removePolicy(
+      convertJSONToStringInOrder(subject),
+      convertJSONToStringInOrder(resource),
+      convertJSONToStringInOrder(action)
+    );
+
+    await this.invalidateCache();
+  }
+
   public async addSubjectGroupingJsonPolicy<T extends string>(
     subject: OneKey<T>,
     jsonAttributes: JsonAttributes

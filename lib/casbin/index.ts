@@ -10,7 +10,7 @@ class CasbinSingleton {
   // eslint-disable-next-line no-useless-constructor
   private constructor() {}
 
-  public static enforcer: null | JsonEnforcer;
+  public static enforcer: null | JsonEnforcer = null;
 
   public static async create(dbConnectionUrl: string) {
     if (!this.enforcer) {

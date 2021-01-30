@@ -56,7 +56,8 @@ lab.experiment('Group::Handler', () => {
 
       const response = await server.inject(request);
 
-      Sandbox.assert.calledWithExactly(createStub, payload);
+      const subject = { username: undefined };
+      Sandbox.assert.calledWithExactly(createStub, payload, subject);
       Code.expect(response.result).to.equal(payload);
       Code.expect(response.statusCode).to.equal(200);
     });
@@ -115,11 +116,13 @@ lab.experiment('Group::Handler', () => {
       updateStub.resolves(group);
 
       const response = await server.inject(request);
+      const subject = { username: undefined };
 
       Sandbox.assert.calledWithExactly(
         updateStub,
         group.id.toString(),
-        payload
+        payload,
+        subject
       );
       Code.expect(response.result).to.equal(group);
       Code.expect(response.statusCode).to.equal(200);
