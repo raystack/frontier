@@ -4,6 +4,14 @@ import * as Resource from './resource';
 
 const ACTION_BASE_NAME = 'iam';
 
+export const list = {
+  description: 'get list of groups',
+  tags: ['api'],
+  handler: async (request: Hapi.Request) => {
+    return Resource.list(request.query);
+  }
+};
+
 export const get = {
   description: 'get group by id',
   tags: ['api'],

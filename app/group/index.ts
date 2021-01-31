@@ -8,6 +8,11 @@ export const plugin = {
   register(server: Hapi.Server) {
     const ROUTES: IAMRoute[] = [
       {
+        method: 'GET',
+        path: '/api/groups',
+        options: Handler.list
+      },
+      {
         method: 'POST',
         path: '/api/groups',
         options: Handler.create
