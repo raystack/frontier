@@ -11,6 +11,37 @@ export interface PolicyOperation {
   action: JSObj;
 }
 
+const toLikeQuery = (json: JSObj = {}) =>
+  `%${convertJSONToStringInOrder(json)
+    .replace('{', '')
+    .replace('}', '')
+    .replace(/:/g, ':%')
+    .replace(/,/g, '%,%')}%`;
+
+const parsePolicies = (rawPolicies: JSObj[]) => {
+  return rawPolicies.map(({ v0, v1, v2 }) => ({
+    subject: JSON.parse(<string>v0),
+    resource: JSON.parse(<string>v1),
+    action: JSON.parse(<string>v2)
+  }));
+};
+
+const extractResourceAction = (data: JSObj = {}) => {
+  const ACTION_KEYS = ['action', 'role'];
+  const action = R.pick(ACTION_KEYS, data);
+  const resource = R.omit(ACTION_KEYS, data);
+  return { resource, action };
+};
+
+const parsePoliciesWithSubject = (rawList: JSObj[] = []) => {
+  return rawList.map((rawObj: JSObj) => {
+    // ? group is a list here because of json_agg function, but the length of the array will always be 1
+    const groupList = <Array<JSObj>>R.propOr([{}], 'group', rawObj);
+    const policies = <Array<JSObj>>R.propOr([], 'policies', rawObj);
+    return { ...groupList.pop(), policies: parsePolicies(policies) };
+  });
+};
+
 export const bulkOperation = async (
   policyOperations: PolicyOperation[] = [],
   subject: JSObj
@@ -56,26 +87,12 @@ export const bulkOperation = async (
   }));
 };
 
-const toLikeQuery = (json: JSObj = {}) =>
-  `%${convertJSONToStringInOrder(json)
-    .replace('{', '')
-    .replace('}', '')
-    .replace(/:/g, ':%')
-    .replace(/,/g, '%,%')}%`;
-
-const parsePolicies = (rawPolicies: JSObj[]) => {
-  return rawPolicies.map(({ v0, v1, v2 }) => ({
-    subject: JSON.parse(<string>v0),
-    resource: JSON.parse(<string>v1),
-    action: JSON.parse(<string>v2)
-  }));
-};
-
-export const list = async (
+export const getPoliciesBySubject = async (
   subject: JSObj,
-  resource?: JSObj | null,
-  action?: JSObj | null
+  filters: JSObj = {}
 ) => {
+  const { resource, action } = extractResourceAction(filters);
+
   const cursor = createQueryBuilder()
     .select('*')
     .from('casbin_rule', 'casbin_rule')
@@ -96,4 +113,57 @@ export const list = async (
   }
   const rawResult = await cursor.getRawMany();
   return parsePolicies(rawResult);
+};
+
+const subjectTypeToTableNameMap = {
+  group: 'groups',
+  username: 'users'
+};
+
+const subjectTypeToTableColumnNameMap = {
+  group: 'name',
+  username: 'username'
+};
+
+export const getSubjecListWithPolicies = async (
+  subjectType: string,
+  filters: JSObj = {}
+) => {
+  const { resource, action } = extractResourceAction(filters);
+
+  const tableName = <string>R.path([subjectType], subjectTypeToTableNameMap);
+  const columnName = <string>(
+    R.path([subjectType], subjectTypeToTableColumnNameMap)
+  );
+  const joinMatchStr = `${tableName}.${columnName}`;
+
+  const cursor = createQueryBuilder()
+    .select(
+      `${joinMatchStr}, json_agg(casbin_rule.*) as policies, json_agg(DISTINCT ${tableName}.*) as ${subjectType}`
+    )
+    .from(tableName, tableName)
+    .where('casbin_rule.ptype = :type', { type: 'p' })
+    .andWhere('casbin_rule.v0 like :subject', {
+      subject: `%"${subjectType}"%`
+    })
+    .leftJoin(
+      'casbin_rule',
+      'casbin_rule',
+      `casbin_rule.v0 like '%"' || ${joinMatchStr} || '"%'`
+    )
+    .groupBy(joinMatchStr);
+
+  if (!R.isEmpty(resource)) {
+    cursor.andWhere('casbin_rule.v1 like :resource', {
+      resource: toLikeQuery(resource || {})
+    });
+  }
+  if (!R.isEmpty(action)) {
+    cursor.andWhere('casbin_rule.v2 like :action', {
+      action: toLikeQuery(action || {})
+    });
+  }
+
+  const rawResults = await cursor.getRawMany();
+  return parsePoliciesWithSubject(rawResults);
 };

@@ -1,21 +1,16 @@
-import * as R from 'ramda';
 import { Group } from '../../model/group';
 import * as PolicyResource from '../policy/resource';
 
 type JSObj = Record<string, unknown>;
 
-const extractResourceAction = (data: JSObj = {}) => {
-  const ACTION_KEYS = ['action', 'role'];
-  const action = R.pick(ACTION_KEYS, data);
-  const resource = R.omit(ACTION_KEYS, data);
-  return { resource, action };
+export const list = async (filters?: JSObj) => {
+  return PolicyResource.getSubjecListWithPolicies('group', filters);
 };
 
 export const get = async (id: number, filters?: JSObj) => {
   const group = await Group.findOne(id);
   const subject = { group: group?.name };
-  const { resource, action } = extractResourceAction(filters);
-  const policies = await PolicyResource.list(subject, resource, action);
+  const policies = await PolicyResource.getPoliciesBySubject(subject, filters);
   return { ...group, policies };
 };
 
