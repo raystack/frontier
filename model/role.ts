@@ -11,7 +11,6 @@ export class Role {
 
   @Column({
     type: 'varchar',
-    unique: true,
     nullable: false
   })
   displayName: string;

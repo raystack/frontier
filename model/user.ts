@@ -11,14 +11,12 @@ export class User {
 
   @Column({
     type: 'varchar',
-    unique: true,
     nullable: false
   })
   displayName: string;
 
   @Column({
-    type: 'jsonb',
-    nullable: true
+    type: 'jsonb'
   })
   metadata: Record<string, any>;
 

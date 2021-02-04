@@ -3,8 +3,8 @@ import { IAMRoute } from '../../../plugin/iam/types';
 
 export const GROUP_USER_ROUTES: IAMRoute[] = [
   {
-    method: ['POST', 'PUT', 'DELETE'],
-    path: '/api/groups/{groupIdentifier}/users/{userIdentifier}',
+    method: ['GET', 'POST', 'PUT', 'DELETE'],
+    path: '/api/groups/{groupId}/users/{userId}',
     options: Handler.operation
   }
 ];

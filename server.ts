@@ -12,6 +12,8 @@ const main = async () => {
       process.exit(0);
     });
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log('Exception on server start => ', err.stack);
     process.exit(1);
   }
 };
