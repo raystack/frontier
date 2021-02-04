@@ -7,9 +7,10 @@ define(Group, (faker: typeof Faker) => {
   const name = faker.name.firstName(randomNum);
 
   const group = new Group();
-  group.name = name.toLowerCase();
-  group.title = name;
-  group.email = `${name.toLowerCase()}@go-jek.com`;
-  group.privacy = 'public';
+  group.id = name.toLowerCase();
+  group.displayName = name;
+  group.metadata = {
+    email: `${name.toLowerCase()}@go-jek.com`
+  };
   return group;
 });
