@@ -6,11 +6,6 @@ import {
   BaseEntity
 } from 'typeorm';
 
-export enum PrivacyEnum {
-  PUBLIC = 'public',
-  PRIVATE = 'private'
-}
-
 @Entity('groups')
 export class Group extends BaseEntity {
   @Column({
@@ -22,7 +17,6 @@ export class Group extends BaseEntity {
 
   @Column({
     type: 'varchar',
-    unique: true,
     nullable: false
   })
   displayName: string;

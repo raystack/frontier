@@ -18,10 +18,10 @@ const authorizeRequest = (server: Hapi.Server) => {
           resourceTransformConfig,
           request
         );
-        const { username } = request.auth.credentials;
+        const { id: userId } = request.auth.credentials;
         const action = getIAMAction(authorizeConfig.action, request.method);
 
-        return enforcer?.enforceJson({ username }, resource, {
+        return enforcer?.enforceJson({ user: userId }, resource, {
           action
         });
       };
