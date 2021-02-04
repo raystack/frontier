@@ -1,6 +1,7 @@
 import Hapi from '@hapi/hapi';
 import * as Handler from './handler';
 import { IAMRoute } from '../../plugin/iam/types';
+import { GROUP_USER_ROUTES } from './user';
 
 export const plugin = {
   name: 'group',
@@ -29,6 +30,6 @@ export const plugin = {
       }
     ];
 
-    server.route(ROUTES);
+    server.route([...ROUTES, ...GROUP_USER_ROUTES]);
   }
 };
