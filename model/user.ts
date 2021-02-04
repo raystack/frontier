@@ -1,55 +1,26 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn
-} from 'typeorm';
+import { Entity, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn({
-    type: 'bigint'
+  @Column({
+    type: 'varchar',
+    unique: true,
+    nullable: false
   })
-  id: number;
+  id: string;
 
   @Column({
     type: 'varchar',
     unique: true,
     nullable: false
   })
-  username: string;
+  displayName: string;
 
   @Column({
-    type: 'varchar',
-    unique: true,
-    nullable: false
-  })
-  email: string;
-
-  @Column({
-    type: 'varchar',
+    type: 'jsonb',
     nullable: true
   })
-  name: string;
-
-  @Column({
-    type: 'varchar',
-    nullable: true
-  })
-  slack: string;
-
-  @Column({
-    type: 'varchar',
-    nullable: true
-  })
-  designation: string;
-
-  @Column({
-    type: 'varchar',
-    nullable: true
-  })
-  company: string;
+  metadata: Record<string, any>;
 
   @CreateDateColumn()
   created_at: string;

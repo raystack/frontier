@@ -9,7 +9,7 @@ export const list = async (filters?: JSObj) => {
 
 export const get = async (id: number, filters?: JSObj) => {
   const group = await Group.findOne(id);
-  const subject = { group: group?.name };
+  const subject = { group: group?.id };
   const policies = await PolicyResource.getPoliciesBySubject(subject, filters);
   return { ...group, policies };
 };

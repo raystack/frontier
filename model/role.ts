@@ -1,18 +1,7 @@
-import {
-  Entity,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  BaseEntity
-} from 'typeorm';
+import { Entity, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-export enum PrivacyEnum {
-  PUBLIC = 'public',
-  PRIVATE = 'private'
-}
-
-@Entity('groups')
-export class Group extends BaseEntity {
+@Entity('roles')
+export class Role {
   @Column({
     type: 'varchar',
     unique: true,
@@ -26,6 +15,12 @@ export class Group extends BaseEntity {
     nullable: false
   })
   displayName: string;
+
+  @Column({
+    type: 'jsonb',
+    array: true
+  })
+  attributes: Array<string>[];
 
   @Column({
     type: 'jsonb',
