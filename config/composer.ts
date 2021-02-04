@@ -56,6 +56,9 @@ internals.manifest = {
         plugin: '../app/group/index'
       },
       {
+        plugin: '../app/role/index'
+      },
+      {
         plugin: '../app/proxy/index'
       },
       {
