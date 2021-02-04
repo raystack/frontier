@@ -2,9 +2,12 @@ import Hapi from '@hapi/hapi';
 import * as Resource from './resource';
 
 export const get = {
-  description: 'fetch roles for user',
+  description: 'fetch roles based on attributes',
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
-    return Resource.get();
+    const { attributes } = request.params;
+    return Resource.get(
+      attributes.constructor === String ? [attributes] : attributes
+    );
   }
 };

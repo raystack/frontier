@@ -1,10 +1,11 @@
-export const get = async () => {
-  // mock data
-  return [
-    {
-      name: 'streaming.devs',
-      title: 'Streaming Devs',
-      attributes: ['entity', 'landscape', 'environment']
-    }
-  ];
+import { getManager } from 'typeorm';
+import { Role } from '../../model/role';
+
+export const get = async (attributes: string[]) => {
+  const RoleRepository = getManager().getRepository(Role);
+  return RoleRepository.createQueryBuilder('role')
+    .where('role.attributes @> :attributes', {
+      attributes: JSON.stringify(attributes)
+    })
+    .getMany();
 };
