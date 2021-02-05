@@ -1,12 +1,15 @@
-import { Entity, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BaseEntity,
+  PrimaryGeneratedColumn
+} from 'typeorm';
 
 @Entity('roles')
-export class Role {
-  @Column({
-    type: 'varchar',
-    unique: true,
-    nullable: false
-  })
+export class Role extends BaseEntity {
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
@@ -19,7 +22,7 @@ export class Role {
     type: 'jsonb',
     array: true
   })
-  attributes: Array<string>[];
+  attributes: string[];
 
   @Column({
     type: 'jsonb',

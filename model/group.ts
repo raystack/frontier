@@ -3,16 +3,13 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  BaseEntity
+  BaseEntity,
+  PrimaryGeneratedColumn
 } from 'typeorm';
 
 @Entity('groups')
 export class Group extends BaseEntity {
-  @Column({
-    type: 'varchar',
-    unique: true,
-    nullable: false
-  })
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
