@@ -1,5 +1,12 @@
+import Boom from '@hapi/boom';
+import * as R from 'ramda';
 import CasbinSingleton from '../../../lib/casbin';
-import { bulkOperation } from '../../policy/resource';
+import {
+  bulkOperation,
+  getPoliciesBySubject,
+  getGroupUserMapping,
+  PolicyOperation
+} from '../../policy/resource';
 
 export const create = async (
   groupId: string,
@@ -34,15 +41,36 @@ export const update = async (
 };
 
 export const remove = async (
-  groupIdentifier: string,
-  userIdentifier: string,
-  loggedInUserId: any,
-  payload: any
+  groupId: string,
+  userId: string,
+  loggedInUserId: any
 ) => {
-  const { policies = [] } = payload;
-  console.log('remove => ', groupIdentifier, userIdentifier, policies);
+  const userObj = { user: userId };
+  const groupObj = { group: groupId };
+
+  await CasbinSingleton.enforcer?.removeSubjectGroupingJsonPolicy(
+    userObj,
+    groupObj
+  );
+
+  const policies = (await getPoliciesBySubject(userObj, groupObj)).map(
+    R.assoc('operation', 'delete')
+  );
+  if (!R.isEmpty(policies)) {
+    await bulkOperation(<PolicyOperation[]>policies, { user: loggedInUserId });
+  }
+
+  return true;
 };
 
-export const get = async (groupIdentifier: string, userIdentifier: string) => {
-  console.log('get => ', groupIdentifier, userIdentifier);
+export const get = async (groupId: string, userId: string) => {
+  const userObj = { user: userId };
+  const groupObj = { group: groupId };
+
+  const groupUserMapping = await getGroupUserMapping(groupId, userId);
+  if (R.isNil(groupUserMapping)) {
+    return Boom.notFound('user not found in group');
+  }
+
+  return getPoliciesBySubject(userObj, groupObj);
 };

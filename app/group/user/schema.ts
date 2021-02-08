@@ -1,8 +1,7 @@
 import Joi from 'joi';
 import Config from '../../../config/config';
 
-export const payloadSchema = Joi.array()
-  .label('GroupUserMappingCreatePayload')
+export const policiesSchema = Joi.array()
   .items(
     Joi.object().keys({
       operation: Joi.string().required(),
@@ -11,4 +10,11 @@ export const payloadSchema = Joi.array()
       action: Joi.object().required()
     })
   )
+  .options(Config.get('/validationOptions'));
+
+export const payloadSchema = Joi.object()
+  .label('GroupUserMappingCreatePayload')
+  .keys({
+    policies: policiesSchema
+  })
   .options(Config.get('/validationOptions'));
