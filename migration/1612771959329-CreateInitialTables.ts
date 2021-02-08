@@ -1,8 +1,7 @@
-/* eslint-disable class-methods-use-this */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateInitialTables1612771017361 implements MigrationInterface {
-  name = 'CreateInitialTables1612771017361';
+export class CreateInitialTables1612771959329 implements MigrationInterface {
+  name = 'CreateInitialTables1612771959329';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
