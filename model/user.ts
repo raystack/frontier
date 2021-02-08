@@ -3,11 +3,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  BaseEntity,
   PrimaryGeneratedColumn
 } from 'typeorm';
 
 @Entity('users')
-export class User {
+export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
