@@ -7,6 +7,7 @@ import {
   getGroupUserMapping,
   PolicyOperation
 } from '../../policy/resource';
+import { User } from '../../../model/user';
 
 export const create = async (
   groupId: string,
@@ -72,5 +73,8 @@ export const get = async (groupId: string, userId: string) => {
     return Boom.notFound('user not found in group');
   }
 
-  return getPoliciesBySubject(userObj, groupObj);
+  const user = await User.findOne(userId);
+  const policies = await getPoliciesBySubject(userObj, groupObj);
+
+  return { ...user, policies };
 };
