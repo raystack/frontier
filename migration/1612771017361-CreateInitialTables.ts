@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateInitialTables1612771017361 implements MigrationInterface {
