@@ -48,7 +48,7 @@ lab.experiment('Role::Handler', () => {
       };
       getStub.resolves(roles);
       const response = await server.inject(request);
-      Sandbox.assert.calledWithExactly(getStub,['entity','landscape']);
+      Sandbox.assert.calledWithExactly(getStub, ['entity', 'landscape']);
       Code.expect(response.result).to.equal(roles);
       Code.expect(response.statusCode).to.equal(200);
     });
