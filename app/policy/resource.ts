@@ -167,3 +167,36 @@ export const getSubjecListWithPolicies = async (
   const rawResults = await cursor.getRawMany();
   return parsePoliciesWithSubject(rawResults);
 };
+
+export const getMapping = async (
+  first: JSObj,
+  second: JSObj,
+  type: string,
+  domain: string
+) => {
+  return createQueryBuilder()
+    .select('*')
+    .from('casbin_rule', 'casbin_rule')
+    .where('casbin_rule.ptype = :type', { type })
+    .andWhere('casbin_rule.v0 like :first', { first: toLikeQuery(first) })
+    .andWhere('casbin_rule.v1 like :second', { second: toLikeQuery(second) })
+    .andWhere('casbin_rule.v2 = :domain', {
+      domain
+    })
+    .getRawOne();
+};
+
+export const getGroupUserMapping = async (groupId: string, userId: string) => {
+  const rawResult = await getMapping(
+    { user: userId },
+    { group: groupId },
+    'g',
+    'subject'
+  );
+  if (!R.isNil(rawResult)) {
+    const { v0: userStr, v1: groupStr } = rawResult;
+    return R.mergeAll([JSON.parse(userStr), JSON.parse(groupStr)]);
+  }
+
+  return null;
+};

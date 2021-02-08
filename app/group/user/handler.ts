@@ -55,14 +55,10 @@ export const put = {
 export const remove = {
   description: 'delete group and user mapping',
   tags: ['api'],
-  validate: {
-    payload: Schema.payloadSchema
-  },
   app: iamConfig,
   handler: async (request: Hapi.Request) => {
-    const { payload } = request;
     const { groupId, userId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;
-    return Resource.remove(groupId, userId, loggedInUserId, payload);
+    return Resource.remove(groupId, userId, loggedInUserId);
   }
 };

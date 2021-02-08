@@ -77,6 +77,20 @@ export class JsonEnforcer extends CachedEnforcer {
     await this.invalidateCache();
   }
 
+  public async removeSubjectGroupingJsonPolicy<T extends string>(
+    subject: OneKey<T>,
+    jsonAttributes: JsonAttributes
+  ) {
+    await this.removeNamedGroupingPolicy(
+      'g',
+      convertJSONToStringInOrder(subject),
+      convertJSONToStringInOrder(jsonAttributes),
+      'subject'
+    );
+
+    await this.invalidateCache();
+  }
+
   public async addResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,
     jsonAttributes: JsonAttributes
