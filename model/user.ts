@@ -23,8 +23,8 @@ export class User {
   metadata: Record<string, any>;
 
   @CreateDateColumn()
-  created_at: string;
+  createdAt: string;
 
   @UpdateDateColumn()
-  updated_at: string;
+  updatedAt: string;
 }

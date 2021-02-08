@@ -30,8 +30,8 @@ export class Role extends BaseEntity {
   metadata: Record<string, any>;
 
   @CreateDateColumn()
-  created_at: string;
+  createdAt: string;
 
   @UpdateDateColumn()
-  updated_at: string;
+  updatedAt: string;
 }
