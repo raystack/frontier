@@ -16,8 +16,8 @@
     "test": "NODE_ENV=test node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l -v",
     "dev:migrate:run": "docker exec shield-js_server_1 sh -c 'NODE_ENV=dev npx typeorm migration:run'",
     "dev:migrate:revert": "docker exec shield-js_server_1 sh -c 'NODE_ENV=dev npx typeorm migration:revert'",
-    "test:migrate:run": "NODE_ENV=test npx typeorm migration:run",
-    "test:migrate:revert": "NODE_ENV=test npx typeorm migration:revert"
+    "test:migrate:run": "NODE_ENV=test-migrate typeorm migration:run",
+    "test:migrate:revert": "NODE_ENV=test-migrate typeorm migration:revert"
   },
   "dependencies": {
     "@hapi/boom": "^9.1.1",
