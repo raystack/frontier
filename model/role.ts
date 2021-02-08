@@ -19,8 +19,7 @@ export class Role extends BaseEntity {
   displayName: string;
 
   @Column({
-    type: 'jsonb',
-    array: true
+    type: 'jsonb'
   })
   attributes: string[];
 
