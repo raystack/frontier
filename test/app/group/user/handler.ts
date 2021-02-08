@@ -135,4 +135,79 @@ lab.experiment('Group:User::Handler', () => {
       Code.expect(response.statusCode).to.equal(200);
     });
   });
+
+  lab.experiment('get group and user mapping', () => {
+    let getStub: any;
+
+    lab.afterEach(() => {
+      getStub.restore();
+    });
+
+    lab.test('should get group and user mapping', async () => {
+      const GROUP_ID = 'test-group';
+      const USER_ID = 'test-user';
+      const request: any = {
+        method: 'GET',
+        url: `/api/groups/${GROUP_ID}/users/${USER_ID}`,
+        auth: TEST_AUTH
+      };
+
+      const result: any = {
+        policies: [
+          {
+            operation: 'create',
+            subject: { user: 'test_user' },
+            resource: {
+              group: 'test_group',
+              entity: 'gojek',
+              landscape: 'id',
+              environment: 'production'
+            },
+            action: { permission: 'test_permission' }
+          }
+        ]
+      };
+      getStub = Sandbox.stub(GroupUserResource, 'get').returns(result);
+
+      const response = await server.inject(request);
+
+      Sandbox.assert.calledWithExactly(getStub, GROUP_ID, USER_ID);
+      Code.expect(response.result).to.equal(result);
+      Code.expect(response.statusCode).to.equal(200);
+    });
+  });
+
+  lab.experiment('remove group and user mapping', () => {
+    let removeStub: any;
+
+    lab.afterEach(() => {
+      removeStub.restore();
+    });
+
+    lab.test('should remove group and user mapping', async () => {
+      const GROUP_ID = 'test-group';
+      const USER_ID = 'test-user';
+      const request: any = {
+        method: 'DELETE',
+        url: `/api/groups/${GROUP_ID}/users/${USER_ID}`,
+        auth: TEST_AUTH
+      };
+
+      const expectedResult: any = true;
+      removeStub = Sandbox.stub(GroupUserResource, 'remove').returns(
+        expectedResult
+      );
+
+      const response = await server.inject(request);
+
+      Sandbox.assert.calledWithExactly(
+        removeStub,
+        GROUP_ID,
+        USER_ID,
+        TEST_AUTH.credentials.id
+      );
+      Code.expect(response.result).to.equal(expectedResult);
+      Code.expect(response.statusCode).to.equal(200);
+    });
+  });
 });
