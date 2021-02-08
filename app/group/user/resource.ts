@@ -76,5 +76,5 @@ export const get = async (groupId: string, userId: string) => {
   const user = await User.findOne(userId);
   const policies = await getPoliciesBySubject(userObj, groupObj);
 
-  return { user, policies };
+  return { ...user, policies };
 };
