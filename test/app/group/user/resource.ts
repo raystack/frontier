@@ -20,7 +20,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
       Sandbox.restore();
     });
 
-    lab.test.only(
+    lab.test(
       'should update group user mapping based on group_id and user_id',
       async () => {
         const groupId = 'test_group';
