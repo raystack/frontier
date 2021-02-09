@@ -50,7 +50,7 @@ internals.manifest = {
         plugin: '../app/ping/index'
       },
       {
-        plugin: '../app/user/index'
+        plugin: '../app/profile/index'
       },
       {
         plugin: '../app/group/index'
