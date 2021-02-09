@@ -5,7 +5,7 @@ export const get = {
   description: 'fetch roles based on attributes',
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
-    const { attributes } = request.query;
+    const { attributes = [] } = request.query;
     return Resource.get(
       attributes.constructor === String ? [attributes] : attributes
     );

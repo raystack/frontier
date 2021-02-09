@@ -7,7 +7,7 @@ define(Group, (faker: typeof Faker) => {
   const name = faker.name.firstName(randomNum);
 
   const group = new Group();
-  group.id = name.toLowerCase();
+  group.id = faker.random.uuid();
   group.displayName = name;
   group.metadata = {
     email: `${name.toLowerCase()}@go-jek.com`

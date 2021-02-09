@@ -13,6 +13,11 @@ exports.lab = Lab.script();
 let server;
 const Sandbox = Sinon.createSandbox();
 
+const TEST_AUTH = {
+  strategy: 'test',
+  credentials: { id: 'dev.test' }
+};
+
 lab.before(async () => {
   const plugins = [groupPlugin];
   server = new Hapi.Server({ port: Config.get('/port/web'), debug: false });
@@ -34,16 +39,20 @@ lab.experiment('Group::Handler', () => {
     lab.beforeEach(async () => {
       createStub = Sandbox.stub(Resource, 'create');
       payload = {
-        name: 'test',
-        title: 'test title',
-        email: 'test@go-jek.com',
-        privacy: 'public',
-        entity: 'gojek'
+        displayName: 'test title',
+        metadata: {
+          name: 'test',
+          email: 'test@go-jek.com',
+          privacy: 'public'
+        },
+        attributes: [{ entity: 'gojek' }],
+        policies: []
       };
       request = {
         method: 'POST',
         url: `/api/groups`,
-        payload
+        payload,
+        auth: TEST_AUTH
       };
     });
 
@@ -56,8 +65,11 @@ lab.experiment('Group::Handler', () => {
 
       const response = await server.inject(request);
 
-      const subject = { username: undefined };
-      Sandbox.assert.calledWithExactly(createStub, payload, subject);
+      Sandbox.assert.calledWithExactly(
+        createStub,
+        payload,
+        TEST_AUTH.credentials.id
+      );
       Code.expect(response.result).to.equal(payload);
       Code.expect(response.statusCode).to.equal(200);
     });
@@ -71,7 +83,8 @@ lab.experiment('Group::Handler', () => {
       getStub = Sandbox.stub(Resource, 'get');
       request = {
         method: 'GET',
-        url: `/api/groups/${group.id}`
+        url: `/api/groups/${group.id}?test=123`,
+        auth: TEST_AUTH
       };
     });
 
@@ -83,7 +96,9 @@ lab.experiment('Group::Handler', () => {
       getStub.resolves(group);
       const response = await server.inject(request);
 
-      Sandbox.assert.calledWithExactly(getStub, group.id.toString());
+      Sandbox.assert.calledWithExactly(getStub, group.id.toString(), {
+        test: '123'
+      });
       Code.expect(response.result).to.equal(group);
       Code.expect(response.statusCode).to.equal(200);
     });
@@ -96,15 +111,20 @@ lab.experiment('Group::Handler', () => {
       group = await factory(Group)().create();
       updateStub = Sandbox.stub(Resource, 'update');
       payload = {
-        name: group.name,
-        title: group.title,
-        email: group.email,
-        entity: 'gojek'
+        displayName: 'test title',
+        metadata: {
+          name: 'test',
+          email: 'test@go-jek.com',
+          privacy: 'public'
+        },
+        attributes: [{ entity: 'gojek' }],
+        policies: []
       };
       request = {
         method: 'PUT',
         url: `/api/groups/${group.id}`,
-        payload
+        payload,
+        auth: TEST_AUTH
       };
     });
 
@@ -116,13 +136,12 @@ lab.experiment('Group::Handler', () => {
       updateStub.resolves(group);
 
       const response = await server.inject(request);
-      const subject = { username: undefined };
 
       Sandbox.assert.calledWithExactly(
         updateStub,
         group.id.toString(),
         payload,
-        subject
+        TEST_AUTH.credentials.id
       );
       Code.expect(response.result).to.equal(group);
       Code.expect(response.statusCode).to.equal(200);
