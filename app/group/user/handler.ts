@@ -1,6 +1,6 @@
 import Hapi from '@hapi/hapi';
-import * as Schema from './schema';
 import * as Resource from './resource';
+import * as PolicySchema from '../../policy/schema';
 
 const iamConfig = {
   iam: {
@@ -26,7 +26,7 @@ export const post = {
   description: 'create group and user mapping',
   tags: ['api'],
   validate: {
-    payload: Schema.payloadSchema
+    payload: PolicySchema.payloadSchema
   },
   app: iamConfig,
   handler: async (request: Hapi.Request) => {
@@ -41,7 +41,7 @@ export const put = {
   description: 'update group and user mapping',
   tags: ['api'],
   validate: {
-    payload: Schema.payloadSchema
+    payload: PolicySchema.payloadSchema
   },
   app: iamConfig,
   handler: async (request: Hapi.Request) => {

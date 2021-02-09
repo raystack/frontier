@@ -1,30 +1,149 @@
+import * as R from 'ramda';
+import Boom from '@hapi/boom';
 import { Group } from '../../model/group';
 import * as PolicyResource from '../policy/resource';
+import { PolicyOperation } from '../policy/resource';
+import CasbinSingleton from '../../lib/casbin';
 
 type JSObj = Record<string, unknown>;
+
+export const appendGroupIdWithPolicies = (
+  policies: PolicyOperation[],
+  groupId: string
+) => {
+  return policies.map((policy) => {
+    const NAMEPATHS_TO_CHECK = [
+      ['subject', 'group'],
+      ['resource', 'group']
+    ];
+
+    return NAMEPATHS_TO_CHECK.reduce(
+      (policyWithGroupId, namepath) => {
+        if (R.hasPath(namepath, policy)) {
+          return R.assocPath(namepath, groupId, policyWithGroupId);
+        }
+        return policyWithGroupId;
+      },
+      { ...policy }
+    );
+  });
+};
+
+export const checkSubjectHasAccessToCreateAttributesMapping = async (
+  subject: JSObj,
+  attributes: JSObj[]
+) => {
+  const IAM_ACTION = 'iam.create';
+  if (!R.isEmpty(attributes)) {
+    const results = await Promise.all(
+      attributes.map(async (attribute: JSObj) => {
+        return CasbinSingleton?.enforcer?.enforceJson(subject, attribute, {
+          action: IAM_ACTION
+        });
+      })
+    );
+    if (results.includes(false)) {
+      throw Boom.forbidden("Sorry you don't have access");
+    }
+  }
+  return true;
+};
+
+export const upsertGroupAndAttributesMapping = async (
+  groupId: string,
+  attributes: JSObj[]
+) => {
+  if (R.isEmpty(attributes)) {
+    return;
+  }
+
+  await CasbinSingleton?.enforcer?.removeAllResourceGroupingJsonPolicy({
+    group: groupId
+  });
+  await Promise.all(
+    attributes.map(async (attribute: JSObj) => {
+      await CasbinSingleton?.enforcer?.addResourceGroupingJsonPolicy(
+        { group: groupId },
+        attribute
+      );
+    })
+  );
+};
+
+export const bulkUpsertPoliciesForGroup = async (
+  groupId: string,
+  policies = [],
+  loggedInUserId: string
+) => {
+  const policiesWithGroupId = appendGroupIdWithPolicies(policies, groupId);
+  return PolicyResource.bulkOperation(policiesWithGroupId, {
+    user: loggedInUserId
+  });
+};
 
 export const list = async (filters?: JSObj) => {
   return PolicyResource.getSubjecListWithPolicies('group', filters);
 };
 
-export const get = async (id: number, filters?: JSObj) => {
-  const group = await Group.findOne(id);
+export const get = async (groupId: string, filters?: JSObj) => {
+  const group = await Group.findOne(groupId);
+  if (!group) throw Boom.notFound('group not found');
   const subject = { group: group?.id };
   const policies = await PolicyResource.getPoliciesBySubject(subject, filters);
-  return { ...group, policies };
+  const attributes = await PolicyResource.getAttributesForGroup(groupId);
+  return { ...group, policies, attributes };
 };
 
-export const create = async (payload: any, subject: JSObj) => {
-  const { policies = [], ...groupPayload } = payload;
+export const create = async (payload: any, loggedInUserId: string) => {
+  const { policies = [], attributes = [], ...groupPayload } = payload;
+  await checkSubjectHasAccessToCreateAttributesMapping(
+    {
+      user: loggedInUserId
+    },
+    attributes
+  );
+
   const groupResult = await Group.save(groupPayload);
-  const policyResult = await PolicyResource.bulkOperation(policies, subject);
-  return { ...groupResult, policies: policyResult };
+  const groupId = groupResult.id;
+
+  await upsertGroupAndAttributesMapping(groupId, attributes);
+
+  const policyOperationResult = await bulkUpsertPoliciesForGroup(
+    groupId,
+    policies,
+    loggedInUserId
+  );
+  const updatedGroup = await get(groupId);
+  return { ...updatedGroup, policyOperationResult };
 };
 
-export const update = async (id: number, payload: any, subject: JSObj) => {
-  const { policies = [], ...groupPayload } = payload;
-  const group = await get(id);
-  const groupResult = await Group.save({ ...group, ...groupPayload, id });
-  const policyResult = await PolicyResource.bulkOperation(policies, subject);
-  return { ...groupResult, policies: policyResult };
+export const update = async (
+  groupId: string,
+  payload: any,
+  loggedInUserId: string
+) => {
+  const { policies = [], attributes = [], ...groupPayload } = payload;
+  const { attributes: previousAttributes, ...groupWithPolicies } = await get(
+    groupId
+  );
+  const group = R.omit(['policies'], groupWithPolicies);
+
+  await checkSubjectHasAccessToCreateAttributesMapping(
+    {
+      user: loggedInUserId
+    },
+    [...attributes, ...previousAttributes]
+  );
+
+  await Group.save({ ...group, ...groupPayload });
+
+  await upsertGroupAndAttributesMapping(groupId, attributes);
+
+  const policyOperationResult = await bulkUpsertPoliciesForGroup(
+    groupId,
+    policies,
+    loggedInUserId
+  );
+  const updatedGroup = await get(groupId);
+  return { ...updatedGroup, policyOperationResult };
 };

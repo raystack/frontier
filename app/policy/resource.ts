@@ -169,34 +169,51 @@ export const getSubjecListWithPolicies = async (
 };
 
 export const getMapping = async (
-  first: JSObj,
-  second: JSObj,
   type: string,
-  domain: string
+  domain: string,
+  first: JSObj = {},
+  second: JSObj = {}
 ) => {
-  return createQueryBuilder()
+  const cursor = createQueryBuilder()
     .select('*')
     .from('casbin_rule', 'casbin_rule')
     .where('casbin_rule.ptype = :type', { type })
-    .andWhere('casbin_rule.v0 like :first', { first: toLikeQuery(first) })
-    .andWhere('casbin_rule.v1 like :second', { second: toLikeQuery(second) })
     .andWhere('casbin_rule.v2 = :domain', {
       domain
-    })
-    .getRawOne();
+    });
+
+  if (!R.isEmpty(first)) {
+    cursor.andWhere('casbin_rule.v0 like :first', {
+      first: toLikeQuery(first)
+    });
+  }
+
+  if (!R.isEmpty(second)) {
+    cursor.andWhere('casbin_rule.v1 like :second', {
+      second: toLikeQuery(second)
+    });
+  }
+
+  return cursor.getRawMany();
 };
 
 export const getGroupUserMapping = async (groupId: string, userId: string) => {
   const rawResult = await getMapping(
-    { user: userId },
-    { group: groupId },
     'g',
-    'subject'
+    'subject',
+    { user: userId },
+    { group: groupId }
   );
-  if (!R.isNil(rawResult)) {
-    const { v0: userStr, v1: groupStr } = rawResult;
+
+  if (!R.isEmpty(rawResult)) {
+    const { v0: userStr, v1: groupStr } = R.head(rawResult);
     return R.mergeAll([JSON.parse(userStr), JSON.parse(groupStr)]);
   }
 
   return null;
+};
+
+export const getAttributesForGroup = async (groupId: string) => {
+  const rawResult = await getMapping('g2', 'resource', { group: groupId });
+  return rawResult.map((rawObj) => JSON.parse(rawObj.v1));
 };

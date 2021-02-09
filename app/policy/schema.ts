@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import Config from '../../../config/config';
+import Config from '../../config/config';
 
 export const policiesSchema = Joi.array().items(
   Joi.object().keys({
@@ -11,7 +11,7 @@ export const policiesSchema = Joi.array().items(
 );
 
 export const payloadSchema = Joi.object()
-  .label('GroupUserMappingCreatePayload')
+  .label('PolciesPayload')
   .keys({
     policies: policiesSchema
   })
