@@ -6,6 +6,7 @@ export const get = {
   description: "get current user's profile",
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
+    // TODO: this should be based on id instead of email
     const { email }: any = request.auth?.credentials;
     return Resource.getUserByEmail(email);
   }
@@ -15,6 +16,7 @@ export const update = {
   description: 'update current user',
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
+    // TODO: this should be based on id instead of email
     const { email }: any = request.auth?.credentials;
     const allowedFields = ['slack', 'email', 'name', 'designation', 'company'];
 

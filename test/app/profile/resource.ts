@@ -4,7 +4,7 @@ import Code from 'code';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
 import { User } from '../../../model/user';
-import * as Resource from '../../../app/user/resource';
+import * as Resource from '../../../app/profile/resource';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();

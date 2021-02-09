@@ -6,9 +6,9 @@ import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
 import { User } from '../../../model/user';
 import * as Config from '../../../config/config';
-import * as userPlugin from '../../../app/user';
+import * as userPlugin from '../../../app/profile';
 import * as iapPlugin from '../../../plugin/iap';
-import * as Resource from '../../../app/user/resource';
+import * as Resource from '../../../app/profile/resource';
 
 exports.lab = Lab.script();
 let server;
