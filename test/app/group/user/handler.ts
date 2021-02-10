@@ -210,4 +210,48 @@ lab.experiment('Group:User::Handler', () => {
       Code.expect(response.statusCode).to.equal(200);
     });
   });
+
+  lab.experiment('get group and user mapping', () => {
+    let listStub: any;
+
+    lab.afterEach(() => {
+      listStub.restore();
+    });
+
+    lab.test('should get list of users of a group', async () => {
+      const GROUP_ID = 'test-group';
+      const request: any = {
+        method: 'GET',
+        url: `/api/groups/${GROUP_ID}/users?role=12334`,
+        auth: TEST_AUTH
+      };
+
+      const result: any = [
+        {
+          id: 'test_user',
+          displayName: 'Test User',
+          policies: [
+            {
+              operation: 'create',
+              subject: { user: 'test_user' },
+              resource: {
+                group: 'test_group',
+                entity: 'gojek',
+                landscape: 'id',
+                environment: 'production'
+              },
+              action: { permission: 'test_permission' }
+            }
+          ]
+        }
+      ];
+      listStub = Sandbox.stub(GroupUserResource, 'list').returns(result);
+
+      const response = await server.inject(request);
+
+      Sandbox.assert.calledWithExactly(listStub, GROUP_ID, { role: '12334' });
+      Code.expect(response.result).to.equal(result);
+      Code.expect(response.statusCode).to.equal(200);
+    });
+  });
 });
