@@ -81,6 +81,37 @@ export const bulkUpsertPoliciesForGroup = async (
   });
 };
 
+export const checkSubjectHasAccessToEditGroup = async (
+  group: JSObj,
+  attributes: JSObj[],
+  loggedInUserId: string
+) => {
+  const groupId = <string>group.id;
+  const prevAttributes = <JSObj[]>group.attributes;
+
+  // ? We need to check this only if the attributes change
+  if (!R.equals(attributes, prevAttributes)) {
+    await checkSubjectHasAccessToCreateAttributesMapping(
+      {
+        user: loggedInUserId
+      },
+      [...attributes, ...prevAttributes]
+    );
+    await upsertGroupAndAttributesMapping(groupId, attributes);
+  }
+
+  // ? the user needs access to the group if they need to edit it
+  const hasGroupAccess = await CasbinSingleton?.enforcer?.enforceJson(
+    { user: loggedInUserId },
+    { group: groupId },
+    { action: 'iam.manage' }
+  );
+
+  if (!hasGroupAccess) {
+    throw Boom.forbidden("Sorry you don't have access");
+  }
+};
+
 export const list = async (filters?: JSObj) => {
   return PolicyResource.getSubjecListWithPolicies('group', filters);
 };
@@ -123,21 +154,17 @@ export const update = async (
   loggedInUserId: string
 ) => {
   const { policies = [], attributes = [], ...groupPayload } = payload;
-  const { attributes: previousAttributes, ...groupWithPolicies } = await get(
-    groupId
-  );
-  const group = R.omit(['policies'], groupWithPolicies);
+  const groupWithExtraKeys = await get(groupId);
+  const group = R.omit(['policies', 'attributes'], groupWithExtraKeys);
 
-  await checkSubjectHasAccessToCreateAttributesMapping(
-    {
-      user: loggedInUserId
-    },
-    [...attributes, ...previousAttributes]
+  // ? We need to check this only if the attributes change
+  await checkSubjectHasAccessToEditGroup(
+    groupWithExtraKeys,
+    attributes,
+    loggedInUserId
   );
 
   await Group.save({ ...group, ...groupPayload });
-
-  await upsertGroupAndAttributesMapping(groupId, attributes);
 
   const policyOperationResult = await bulkUpsertPoliciesForGroup(
     groupId,
