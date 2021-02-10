@@ -24,9 +24,9 @@ lab.after(async () => {
   await server.stop();
 });
 
-lab.experiment('User::Handler', () => {
-  lab.experiment('get user', () => {
-    let request, user, getUserByEmailStub;
+lab.experiment('Profile::Handler', () => {
+  lab.experiment('get current user', () => {
+    let request, user, getUserByMetadataStub;
 
     lab.beforeEach(async () => {
       request = {
@@ -37,7 +37,7 @@ lab.experiment('User::Handler', () => {
         }
       };
       user = await factory(User)().create();
-      getUserByEmailStub = Sandbox.stub(Resource, 'getUserByEmail');
+      getUserByMetadataStub = Sandbox.stub(Resource, 'getUserByMetadata');
     });
 
     lab.afterEach(() => {
@@ -45,25 +45,24 @@ lab.experiment('User::Handler', () => {
     });
 
     lab.test('should return current profile', async () => {
-      const credentials = {
-        id: 1,
-        username: 'demo',
-        email: 'demo@demo.com'
-      };
-      await Resource.getUserByEmail(credentials.email);
-      Sandbox.assert.calledWithExactly(getUserByEmailStub, credentials.email);
+      const email = 'demo@demo.com';
 
-      getUserByEmailStub.resolves(user);
+      await Resource.getUserByMetadata({ email });
+      Sandbox.assert.calledWithExactly(getUserByMetadataStub, {
+        email
+      });
+
+      getUserByMetadataStub.resolves(user);
       const response = await server.inject(request);
       Code.expect(response.statusCode).to.equal(200);
     });
   });
 
-  lab.experiment('update user', () => {
-    let updateUserByEmailStub;
+  lab.experiment('update current user', () => {
+    let updateUserByMetadataStub;
 
     lab.beforeEach(async () => {
-      updateUserByEmailStub = Sandbox.stub(Resource, 'updateUserByEmail');
+      updateUserByMetadataStub = Sandbox.stub(Resource, 'updateUserByMetadata');
     });
 
     lab.afterEach(() => {
@@ -71,20 +70,19 @@ lab.experiment('User::Handler', () => {
     });
 
     lab.test('should update current profile', async () => {
-      const credentials = {
-        id: 1,
-        username: 'demo',
-        email: 'demo@demo.com'
-      };
+      const email = 'demo@demo.com';
       const payload = {
-        name: 'User1',
-        email: 'demo@demo.com'
+        displayName: 'demo',
+        metadata: {
+          username: 'demo',
+          email: 'demo@demo.com'
+        }
       };
 
-      await Resource.updateUserByEmail(credentials.email, payload);
+      await Resource.updateUserByMetadata({ email }, payload);
       Sandbox.assert.calledWithExactly(
-        updateUserByEmailStub,
-        credentials.email,
+        updateUserByMetadataStub,
+        { email },
         payload
       );
     });

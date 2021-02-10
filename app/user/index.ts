@@ -2,19 +2,14 @@ import Hapi from '@hapi/hapi';
 import * as Handler from './handler';
 
 export const plugin = {
-  name: 'profile',
+  name: 'user',
   dependencies: 'postgres',
   register(server: Hapi.Server) {
     server.route([
       {
-        method: 'GET',
-        path: '/api/profile',
-        options: Handler.get
-      },
-      {
-        method: 'PUT',
-        path: '/api/profile',
-        options: Handler.update
+        method: 'POST',
+        path: '/api/users',
+        options: Handler.create
       }
     ]);
   }

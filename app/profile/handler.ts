@@ -1,26 +1,24 @@
 import Hapi from '@hapi/hapi';
-import * as R from 'ramda';
+import * as Schema from './schema';
 import * as Resource from './resource';
 
 export const get = {
   description: "get current user's profile",
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
-    // TODO: this should be based on id instead of email
-    const { email }: any = request.auth?.credentials;
-    return Resource.getUserByEmail(email);
+    const { id }: any = request.auth?.credentials;
+    return Resource.getUserById(id);
   }
 };
 
 export const update = {
   description: 'update current user',
   tags: ['api'],
+  validate: {
+    payload: Schema.updatePayload
+  },
   handler: async (request: Hapi.Request) => {
-    // TODO: this should be based on id instead of email
-    const { email }: any = request.auth?.credentials;
-    const allowedFields = ['slack', 'email', 'name', 'designation', 'company'];
-
-    const user = R.pick(allowedFields, request.payload);
-    return Resource.updateUserByEmail(email, user);
+    const { id }: any = request.auth?.credentials;
+    return Resource.updateUserByID(id, request.payload);
   }
 };

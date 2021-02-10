@@ -53,6 +53,9 @@ internals.manifest = {
         plugin: '../app/profile/index'
       },
       {
+        plugin: '../app/user/index'
+      },
+      {
         plugin: '../app/group/index'
       },
       {
