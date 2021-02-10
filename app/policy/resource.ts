@@ -1,7 +1,9 @@
 import * as R from 'ramda';
+import * as _ from 'lodash';
 import { createQueryBuilder } from 'typeorm';
 import CasbinSingleton from '../../lib/casbin';
 import { convertJSONToStringInOrder } from '../../lib/casbin/JsonEnforcer';
+import { User } from '../../model/user';
 
 type JSObj = Record<string, unknown>;
 export interface PolicyOperation {
@@ -10,6 +12,9 @@ export interface PolicyOperation {
   resource: JSObj;
   action: JSObj;
 }
+
+const toCamelCase = (data: JSObj) =>
+  _.mapKeys(data, (value, key) => _.camelCase(key));
 
 const toLikeQuery = (json: JSObj = {}) =>
   `%${convertJSONToStringInOrder(json)
@@ -33,12 +38,16 @@ const extractResourceAction = (data: JSObj = {}) => {
   return { resource, action };
 };
 
-const parsePoliciesWithSubject = (rawList: JSObj[] = []) => {
+const parsePoliciesWithSubject = (
+  rawList: JSObj[] = [],
+  subjectType: string
+) => {
   return rawList.map((rawObj: JSObj) => {
     // ? group is a list here because of json_agg function, but the length of the array will always be 1
-    const groupList = <Array<JSObj>>R.propOr([{}], 'group', rawObj);
+    const subjectAgg = <Array<JSObj>>R.propOr([{}], subjectType, rawObj);
     const policies = <Array<JSObj>>R.propOr([], 'policies', rawObj);
-    return { ...groupList.pop(), policies: parsePolicies(policies) };
+    const subjectWithCamelKeys = toCamelCase(R.head(subjectAgg) || {});
+    return { ...subjectWithCamelKeys, policies: parsePolicies(policies) };
   });
 };
 
@@ -115,26 +124,14 @@ export const getPoliciesBySubject = async (
   return parsePolicies(rawResult);
 };
 
-const subjectTypeToTableNameMap = {
-  group: 'groups',
-  username: 'users'
-};
-
-const subjectTypeToTableColumnNameMap = {
-  group: 'name',
-  username: 'username'
-};
-
 export const getSubjecListWithPolicies = async (
-  subjectType: string,
+  subjectType: 'group' | 'user',
   filters: JSObj = {}
 ) => {
   const { resource, action } = extractResourceAction(filters);
 
-  const tableName = <string>R.path([subjectType], subjectTypeToTableNameMap);
-  const columnName = <string>(
-    R.path([subjectType], subjectTypeToTableColumnNameMap)
-  );
+  const tableName = `${subjectType}s`;
+  const columnName = 'id';
   const joinMatchStr = `${tableName}.${columnName}`;
 
   const cursor = createQueryBuilder()
@@ -165,7 +162,7 @@ export const getSubjecListWithPolicies = async (
   }
 
   const rawResults = await cursor.getRawMany();
-  return parsePoliciesWithSubject(rawResults);
+  return parsePoliciesWithSubject(rawResults, subjectType);
 };
 
 export const getMapping = async (
@@ -216,4 +213,48 @@ export const getGroupUserMapping = async (groupId: string, userId: string) => {
 export const getAttributesForGroup = async (groupId: string) => {
   const rawResult = await getMapping('g2', 'resource', { group: groupId });
   return rawResult.map((rawObj) => JSON.parse(rawObj.v1));
+};
+
+// TODO: fix filters not working issue
+export const getUsersOfGroupWithPolicies = async (
+  groupId: string,
+  filters: JSObj = {}
+) => {
+  const { resource = {}, action = {} } = extractResourceAction(filters);
+
+  const POLICY_AGGREGATE = `JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p' ) AS policies`;
+  const MAPPING_COUNT = `COUNT(*) FILTER (WHERE casbin_rule.ptype = 'g' )`;
+  const GET_USER_DOC = `JSON_AGG(DISTINCT users.*) AS user`;
+
+  // ? Join users table with casbin_rule table and groupBy user.id
+  // ? Aggregate all the policies
+  // ? Remove users that don't have a 'g' record with the groupId
+  const cursor = createQueryBuilder()
+    .select(`users.id, ${POLICY_AGGREGATE}, ${GET_USER_DOC}`)
+    .from(User, 'users')
+    .leftJoin(
+      'casbin_rule',
+      'casbin_rule',
+      `casbin_rule.v0 like '%"' || users.id || '"%'`
+    )
+    .where('casbin_rule.ptype IN (:...type)', { type: ['p', 'g'] })
+    .andWhere('casbin_rule.v0 like :subject', {
+      subject: `%user%`
+    })
+    .andWhere('casbin_rule.v1 like :resource', {
+      resource: toLikeQuery({ group: groupId, ...resource })
+    });
+
+  if (!R.isEmpty(action)) {
+    cursor.andWhere('casbin_rule.v2 like :action', {
+      action: toLikeQuery(action || {})
+    });
+  }
+
+  const rawResult = await cursor
+    .groupBy('users.id')
+    .having(`${MAPPING_COUNT} > 0`)
+    .getRawMany();
+
+  return parsePoliciesWithSubject(rawResult, 'user');
 };

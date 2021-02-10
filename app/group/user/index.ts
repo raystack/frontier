@@ -4,6 +4,11 @@ import { IAMRoute } from '../../../plugin/iam/types';
 export const GROUP_USER_ROUTES: IAMRoute[] = [
   {
     method: 'GET',
+    path: '/api/groups/{groupId}/users',
+    options: Handler.list
+  },
+  {
+    method: 'GET',
     path: '/api/groups/{groupId}/users/{userId}',
     options: Handler.get
   },

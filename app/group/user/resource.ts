@@ -5,6 +5,7 @@ import {
   bulkOperation,
   getPoliciesBySubject,
   getGroupUserMapping,
+  getUsersOfGroupWithPolicies,
   PolicyOperation
 } from '../../policy/resource';
 import { User } from '../../../model/user';
@@ -78,3 +79,5 @@ export const get = async (groupId: string, userId: string) => {
 
   return { ...user, policies };
 };
+
+export const list = getUsersOfGroupWithPolicies;

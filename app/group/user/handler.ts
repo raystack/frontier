@@ -13,6 +13,15 @@ const iamConfig = {
   }
 };
 
+export const list = {
+  description: 'fetch list of users of a group',
+  tags: ['api'],
+  handler: async (request: Hapi.Request) => {
+    const { groupId } = request.params;
+    return Resource.list(groupId, request.query);
+  }
+};
+
 export const get = {
   description: 'fetch user and group mapping',
   tags: ['api'],
