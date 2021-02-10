@@ -25,7 +25,7 @@ lab.experiment('User::resource', () => {
     });
 
     lab.test('should get user by email', async () => {
-      const response = await Resource.getUserByEmail(user.email);
+      const response = await Resource.getUserByMetadata({ email: user.email });
       Code.expect(response.username).to.equal(user.username);
       Code.expect(response.email).to.equal(user.email);
       Code.expect(response.designation).to.equal(user.designation);
@@ -50,7 +50,10 @@ lab.experiment('User::resource', () => {
         company: 'Demo company'
       };
 
-      const response = await Resource.updateUserByEmail(user.email, payload);
+      const response = await Resource.updateUserByMetadata(
+        { email: user.email },
+        payload
+      );
       Code.expect(response.username).to.equal(payload.username);
       Code.expect(response.name).to.equal(payload.name);
       Code.expect(response.company).to.equal(payload.company);
