@@ -162,14 +162,9 @@ lab.experiment('Group::resource', () => {
       };
       const groupId = Faker.random.uuid();
 
-      const checkSubjectHasAccessToCreateAttributesMappingStub = Sandbox.stub(
+      const checkSubjectHasAccessToEditGroupStub = Sandbox.stub(
         Resource,
-        'checkSubjectHasAccessToCreateAttributesMapping'
-      ).returns(<any>true);
-
-      const upsertGroupAndAttributesMappingStub = Sandbox.stub(
-        Resource,
-        'upsertGroupAndAttributesMapping'
+        'checkSubjectHasAccessToEditGroup'
       ).returns(<any>true);
 
       const groupSaveStub = Sandbox.stub(Group, 'save').returns(<any>{
@@ -187,23 +182,20 @@ lab.experiment('Group::resource', () => {
         }
       ]);
 
-      const getStub = Sandbox.stub(Resource, 'get').returns(<any>{
+      const group = {
         id: groupId,
         ...payload
-      });
+      };
+      const getStub = Sandbox.stub(Resource, 'get').returns(<any>group);
 
       const loggedInUserId = Faker.random.uuid();
       const response = await Resource.update(groupId, payload, loggedInUserId);
 
       Sandbox.assert.calledWithExactly(
-        checkSubjectHasAccessToCreateAttributesMappingStub,
-        { user: loggedInUserId },
-        [...payload.attributes, ...payload.attributes]
-      );
-      Sandbox.assert.calledWithExactly(
-        upsertGroupAndAttributesMappingStub,
-        groupId,
-        payload.attributes
+        checkSubjectHasAccessToEditGroupStub,
+        group,
+        payload.attributes,
+        loggedInUserId
       );
       Sandbox.assert.calledWithExactly(
         groupSaveStub,
