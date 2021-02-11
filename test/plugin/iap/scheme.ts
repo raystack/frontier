@@ -26,21 +26,12 @@ lab.afterEach(() => {
 });
 
 lab.experiment('IAPPlugin', () => {
-  let request, payload;
-
-  lab.beforeEach(async () => {
-    payload = {
-      message: 'pong',
-      status: 'ok',
-      statusCode: 200
-    };
-  });
+  let request;
 
   lab.test('should reject /api/profile on missing iap headers', async () => {
     request = {
       method: 'GET',
-      url: `/api/profile`,
-      payload
+      url: `/api/profile`
     };
     const response = await server.inject(request);
     Code.expect(response.statusCode).to.equal(401);
@@ -50,7 +41,6 @@ lab.experiment('IAPPlugin', () => {
     request = {
       method: 'GET',
       url: `/api/profile`,
-      payload,
       headers: {
         'x-goog-authenticated-user-email': 'praveen.yadav@gojek.com'
       }
