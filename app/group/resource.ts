@@ -112,8 +112,8 @@ export const checkSubjectHasAccessToEditGroup = async (
   }
 };
 
-export const list = async (filters?: JSObj) => {
-  return PolicyResource.getSubjecListWithPolicies('group', filters);
+export const list = async () => {
+  return PolicyResource.getSubjecListWithPolicies('group');
 };
 
 export const get = async (groupId: string, filters?: JSObj) => {

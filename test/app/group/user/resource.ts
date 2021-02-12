@@ -75,11 +75,6 @@ lab.experiment('Group:User:Mapping::resource', () => {
   });
 
   lab.experiment('create group user mapping', () => {
-    const addSubjectGroupingJsonPolicyStub = Sandbox.stub();
-    Sandbox.stub(CasbinSingleton, 'enforcer').value({
-      addSubjectGroupingJsonPolicy: addSubjectGroupingJsonPolicyStub
-    });
-
     lab.afterEach(() => {
       Sandbox.restore();
     });
@@ -87,6 +82,11 @@ lab.experiment('Group:User:Mapping::resource', () => {
     lab.test(
       'should create group user mapping based on group_id and user_id',
       async () => {
+        const addSubjectGroupingJsonPolicyStub = Sandbox.stub();
+        Sandbox.stub(CasbinSingleton, 'enforcer').value({
+          addSubjectGroupingJsonPolicy: addSubjectGroupingJsonPolicyStub
+        });
+
         const groupId = 'test_group';
         const userId = 'test_user';
         const loggedInUserId = 'test_logged_in_user';

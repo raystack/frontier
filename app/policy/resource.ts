@@ -1,9 +1,13 @@
 import * as R from 'ramda';
-import * as _ from 'lodash';
 import { createQueryBuilder } from 'typeorm';
 import CasbinSingleton from '../../lib/casbin';
-import { convertJSONToStringInOrder } from '../../lib/casbin/JsonEnforcer';
 import { User } from '../../model/user';
+import {
+  toLikeQuery,
+  parsePolicies,
+  parsePoliciesWithSubject,
+  extractResourceAction
+} from './util';
 
 type JSObj = Record<string, unknown>;
 export interface PolicyOperation {
@@ -12,44 +16,6 @@ export interface PolicyOperation {
   resource: JSObj;
   action: JSObj;
 }
-
-const toCamelCase = (data: JSObj) =>
-  _.mapKeys(data, (value, key) => _.camelCase(key));
-
-const toLikeQuery = (json: JSObj = {}) =>
-  `%${convertJSONToStringInOrder(json)
-    .replace('{', '')
-    .replace('}', '')
-    .replace(/:/g, ':%')
-    .replace(/,/g, '%,%')}%`;
-
-const parsePolicies = (rawPolicies: JSObj[]) => {
-  return rawPolicies.map(({ v0, v1, v2 }) => ({
-    subject: JSON.parse(<string>v0),
-    resource: JSON.parse(<string>v1),
-    action: JSON.parse(<string>v2)
-  }));
-};
-
-const extractResourceAction = (data: JSObj = {}) => {
-  const ACTION_KEYS = ['action', 'role'];
-  const action = R.pick(ACTION_KEYS, data);
-  const resource = R.omit(ACTION_KEYS, data);
-  return { resource, action };
-};
-
-const parsePoliciesWithSubject = (
-  rawList: JSObj[] = [],
-  subjectType: string
-) => {
-  return rawList.map((rawObj: JSObj) => {
-    // ? group is a list here because of json_agg function, but the length of the array will always be 1
-    const subjectAgg = <Array<JSObj>>R.propOr([{}], subjectType, rawObj);
-    const policies = <Array<JSObj>>R.propOr([], 'policies', rawObj);
-    const subjectWithCamelKeys = toCamelCase(R.head(subjectAgg) || {});
-    return { ...subjectWithCamelKeys, policies: parsePolicies(policies) };
-  });
-};
 
 export const bulkOperation = async (
   policyOperations: PolicyOperation[] = [],
@@ -125,43 +91,25 @@ export const getPoliciesBySubject = async (
 };
 
 export const getSubjecListWithPolicies = async (
-  subjectType: 'group' | 'user',
-  filters: JSObj = {}
+  subjectType: 'group' | 'user'
 ) => {
-  const { resource, action } = extractResourceAction(filters);
-
   const tableName = `${subjectType}s`;
   const columnName = 'id';
   const joinMatchStr = `${tableName}.${columnName}`;
 
-  const cursor = createQueryBuilder()
+  const rawResults = await createQueryBuilder()
     .select(
-      `${joinMatchStr}, json_agg(casbin_rule.*) as policies, json_agg(DISTINCT ${tableName}.*) as ${subjectType}`
+      `${joinMatchStr}, JSON_AGG(casbin_rule.*) FILTER (WHERE ptype = 'p') as policies, JSON_AGG(DISTINCT ${tableName}.*) AS ${subjectType}`
     )
     .from(tableName, tableName)
-    .where('casbin_rule.ptype = :type', { type: 'p' })
-    .andWhere('casbin_rule.v0 like :subject', {
-      subject: `%"${subjectType}"%`
-    })
     .leftJoin(
       'casbin_rule',
       'casbin_rule',
-      `casbin_rule.v0 like '%"' || ${joinMatchStr} || '"%'`
+      `casbin_rule.v0 LIKE '%"' || ${joinMatchStr} || '"%'`
     )
-    .groupBy(joinMatchStr);
+    .groupBy(joinMatchStr)
+    .getRawMany();
 
-  if (!R.isEmpty(resource)) {
-    cursor.andWhere('casbin_rule.v1 like :resource', {
-      resource: toLikeQuery(resource || {})
-    });
-  }
-  if (!R.isEmpty(action)) {
-    cursor.andWhere('casbin_rule.v2 like :action', {
-      action: toLikeQuery(action || {})
-    });
-  }
-
-  const rawResults = await cursor.getRawMany();
   return parsePoliciesWithSubject(rawResults, subjectType);
 };
 
