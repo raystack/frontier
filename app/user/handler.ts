@@ -12,3 +12,11 @@ export const create = {
     return Resource.create(request.payload);
   }
 };
+
+export const list = {
+  description: 'get list of users',
+  tags: ['api'],
+  handler: async (request: Hapi.Request) => {
+    return Resource.list(request.query);
+  }
+};

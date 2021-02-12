@@ -23,7 +23,7 @@ function loadOrDefault<K, V>(map: Map<K, V>, key: K, value: V): V {
 // subset json may contain array values whereas fullset will be flat for now
 // this is done to handle policies such as this: {landscape: [id, vn]}
 // fullset is present in resource mapping whereas subset will be present in policy
-const isJSONSubset = (fullset: string, subset: string) => {
+export const isJSONSubset = (fullset: string, subset: string) => {
   try {
     const fullsetJson = JSON.parse(fullset);
     const subsetJson = JSON.parse(subset);
