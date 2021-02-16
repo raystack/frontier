@@ -1,15 +1,10 @@
 import * as R from 'ramda';
 import Boom from '@hapi/boom';
 import { createQueryBuilder } from 'typeorm';
-import { ignore } from '@hapi/hoek';
 import { Group } from '../../model/group';
 import * as PolicyResource from '../policy/resource';
 import { PolicyOperation } from '../policy/resource';
-import {
-  extractResourceAction,
-  toLikeQuery,
-  parsePoliciesWithSubject
-} from '../policy/util';
+import { toLikeQuery } from '../policy/util';
 import CasbinSingleton from '../../lib/casbin';
 import { parseGroupListResult } from './util';
 
