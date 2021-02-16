@@ -5,8 +5,9 @@ import * as Resource from './resource';
 export const list = {
   description: 'get list of groups',
   tags: ['api'],
-  handler: async () => {
-    return Resource.list();
+  handler: async (request: Hapi.Request) => {
+    const { id: loggedInUserId } = request?.auth?.credentials || { id: '' };
+    return Resource.list(request.query, <string>loggedInUserId);
   }
 };
 

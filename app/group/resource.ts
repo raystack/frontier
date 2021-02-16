@@ -1,9 +1,17 @@
 import * as R from 'ramda';
 import Boom from '@hapi/boom';
+import { createQueryBuilder } from 'typeorm';
+import { ignore } from '@hapi/hoek';
 import { Group } from '../../model/group';
 import * as PolicyResource from '../policy/resource';
 import { PolicyOperation } from '../policy/resource';
+import {
+  extractResourceAction,
+  toLikeQuery,
+  parsePoliciesWithSubject
+} from '../policy/util';
 import CasbinSingleton from '../../lib/casbin';
+import { parseGroupListResult } from './util';
 
 type JSObj = Record<string, unknown>;
 
@@ -112,8 +120,50 @@ export const checkSubjectHasAccessToEditGroup = async (
   }
 };
 
-export const list = async () => {
-  return PolicyResource.getSubjecListWithPolicies('group');
+// ? /api/groups?entity=gojek&member_role=a4343590
+// ? 1) Check whether entity attribute and group mapping exists
+// ? 2) Count all members of a group
+// ? 3) Find all users with specified member_role as well
+// ? 4) Check whether current logged in user is mapped with the group
+export const list = async (filters: JSObj = {}, loggedInUserId: string) => {
+  const { member_role = '', ...resource } = filters;
+
+  const GET_GROUP_DOC = `JSON_AGG(DISTINCT groups.*) AS group_arr`;
+  const MEMBER_COUNT = `SUM(CASE WHEN casbin_rule.ptype = 'g' THEN 1 ELSE 0 END) AS member_count`;
+  const ATTRIBUTES_AGGREGATE = `JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'g2') AS raw_attributes`;
+  const IS_LOGGEDIN_USER_MEMBER = `BOOL_OR(CASE WHEN casbin_rule.ptype = 'g' AND casbin_rule.v0 = '{"user":"${loggedInUserId}"}' THEN true ELSE false END) AS is_member`;
+
+  const JOIN_WITH_RESOURCE_ATTRIBUTES_MAPPING = `casbin_rule.ptype = 'g2' AND casbin_rule.v0 like '%"' || groups.id || '"%'`;
+  const JOIN_WITH_USER_MAPPING = `casbin_rule.ptype = 'g' AND casbin_rule.v1 like '%"' || groups.id || '"%'`;
+  const JOIN_WITH_POLICIES = `casbin_rule.ptype = 'p' AND casbin_rule.v1 like '%"' || groups.id || '"%'`;
+
+  const roleQuery = toLikeQuery({ role: member_role });
+  const userQuery = `%user":%`;
+  const AGGREGATE_MEMBER_POLICIES = R.isEmpty(member_role)
+    ? ''
+    : `, JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p' AND casbin_rule.v0 like '${userQuery}' AND casbin_rule.v2 like '${roleQuery}') AS raw_member_policies`;
+
+  const cursor = createQueryBuilder()
+    .select(
+      `groups.id, ${GET_GROUP_DOC}, ${ATTRIBUTES_AGGREGATE}, ${MEMBER_COUNT}, ${IS_LOGGEDIN_USER_MEMBER} ${AGGREGATE_MEMBER_POLICIES}`
+    )
+    .from(Group, 'groups')
+    .leftJoin(
+      'casbin_rule',
+      'casbin_rule',
+      `(${JOIN_WITH_RESOURCE_ATTRIBUTES_MAPPING}) OR (${JOIN_WITH_USER_MAPPING}) OR (${JOIN_WITH_POLICIES})`
+    )
+    .groupBy('groups.id');
+
+  if (!R.isEmpty(resource)) {
+    const FILTER_BY_RESOURCE_ATTRIBUTES = `SUM(CASE WHEN casbin_rule.ptype = 'g2' AND casbin_rule.v1 like :attribute THEN 1 ELSE 0 END) > 0`;
+    cursor.having(FILTER_BY_RESOURCE_ATTRIBUTES, {
+      attribute: toLikeQuery(resource)
+    });
+  }
+
+  const rawResult = await cursor.getRawMany();
+  return parseGroupListResult(rawResult);
 };
 
 export const get = async (groupId: string, filters?: JSObj) => {
