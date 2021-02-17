@@ -65,6 +65,9 @@ internals.manifest = {
         plugin: '../app/proxy/index'
       },
       {
+        plugin: '../plugin/proxies'
+      },
+      {
         plugin: Inert
       },
       {

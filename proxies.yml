@@ -1,0 +1,28 @@
+- method: GET
+  path: /api/protos
+  redirect:
+    domain: ${APP_DOM:"http:google.com"}
+    path: /protos
+  authorize:
+    - action: protos.read
+      resource:
+        headers:
+          entity: entity
+          landscape: landscape
+        body:
+        params:
+        query:
+
+  # /api/firehose/:resource_name
+  upsert-mapping:
+    - resource:
+        headers:
+        body:
+        params:
+        query:
+
+      attributes:
+        headers:
+        body:
+        params:
+        query:
