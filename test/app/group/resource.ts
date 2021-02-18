@@ -371,7 +371,7 @@ lab.experiment('Group::resource', () => {
 
     lab.test('should get list of groups with filters', async () => {
       const result = await Resource.list(
-        { entity: 'gojek', member_role: 'team.admin' },
+        { entity: 'gojek', user_role: 'team.admin' },
         currentUser.id
       );
 

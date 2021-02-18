@@ -115,13 +115,13 @@ export const checkSubjectHasAccessToEditGroup = async (
   }
 };
 
-// ? /api/groups?entity=gojek&member_role=a4343590
+// ? /api/groups?entity=gojek&user_role=a4343590
 // ? 1) Check whether entity attribute and group mapping exists
 // ? 2) Count all members of a group
-// ? 3) Find all users with specified member_role as well
+// ? 3) Find all users with specified user_role as well
 // ? 4) Check whether current logged in user is mapped with the group
 export const list = async (filters: JSObj = {}, loggedInUserId: string) => {
-  const { member_role = '', ...resource } = filters;
+  const { user_role = '', ...resource } = filters;
 
   const GET_GROUP_DOC = `JSON_AGG(DISTINCT groups.*) AS group_arr`;
   const MEMBER_COUNT = `SUM(CASE WHEN casbin_rule.ptype = 'g' THEN 1 ELSE 0 END) AS member_count`;
@@ -132,9 +132,9 @@ export const list = async (filters: JSObj = {}, loggedInUserId: string) => {
   const JOIN_WITH_USER_MAPPING = `casbin_rule.ptype = 'g' AND casbin_rule.v1 like '%"' || groups.id || '"%'`;
   const JOIN_WITH_POLICIES = `casbin_rule.ptype = 'p' AND casbin_rule.v1 like '%"' || groups.id || '"%'`;
 
-  const roleQuery = toLikeQuery({ role: member_role });
+  const roleQuery = toLikeQuery({ role: user_role });
   const userQuery = `%user":%`;
-  const AGGREGATE_MEMBER_POLICIES = R.isEmpty(member_role)
+  const AGGREGATE_MEMBER_POLICIES = R.isEmpty(user_role)
     ? ''
     : `, JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p' AND casbin_rule.v0 like '${userQuery}' AND casbin_rule.v2 like '${roleQuery}') AS raw_member_policies`;
 
