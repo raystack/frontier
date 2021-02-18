@@ -230,8 +230,8 @@ lab.experiment('Group::resource', () => {
       const sortByUserId = R.sortBy(R.path(['subject', 'user']));
 
       return results.map((group) => {
-        const sortedPolicies = sortByUserId(group.memberPolicies);
-        return R.assoc('memberPolicies', sortedPolicies, group);
+        const sortedPolicies = sortByUserId(group.userPolicies);
+        return R.assoc('userPolicies', sortedPolicies, group);
       });
     };
 
@@ -332,35 +332,35 @@ lab.experiment('Group::resource', () => {
           isMember: true,
           memberCount: 2,
           attributes: gojekAttributes,
-          memberPolicies: []
+          userPolicies: []
         },
         {
           ...groups[1],
           isMember: true,
           memberCount: 4,
           attributes: gojekAttributes,
-          memberPolicies: []
+          userPolicies: []
         },
         {
           ...groups[2],
           isMember: true,
           memberCount: 1,
           attributes: gojekAttributes,
-          memberPolicies: []
+          userPolicies: []
         },
         {
           ...groups[3],
           isMember: false,
           memberCount: 0,
           attributes: gofinAttributes,
-          memberPolicies: []
+          userPolicies: []
         },
         {
           ...groups[4],
           isMember: false,
           memberCount: 0,
           attributes: gofinAttributes,
-          memberPolicies: []
+          userPolicies: []
         }
       ];
 
@@ -383,7 +383,7 @@ lab.experiment('Group::resource', () => {
           isMember: true,
           memberCount: 2,
           attributes: gojekAttributes,
-          memberPolicies: [
+          userPolicies: [
             getMemberPolicy(users[0], groups[0], 'team.admin'),
             getMemberPolicy(users[1], groups[0], 'team.admin')
           ]
@@ -393,7 +393,7 @@ lab.experiment('Group::resource', () => {
           isMember: true,
           memberCount: 4,
           attributes: gojekAttributes,
-          memberPolicies: [
+          userPolicies: [
             getMemberPolicy(users[7], groups[1], 'team.admin'),
             getMemberPolicy(users[8], groups[1], 'team.admin'),
             getMemberPolicy(users[9], groups[1], 'team.admin')
@@ -404,7 +404,7 @@ lab.experiment('Group::resource', () => {
           isMember: true,
           memberCount: 1,
           attributes: gojekAttributes,
-          memberPolicies: []
+          userPolicies: []
         }
       ];
       debugger;

@@ -11,7 +11,7 @@ type GroupRawResult = {
   displayName: string;
   metadata: JSObj;
   group_arr: JSObj[];
-  raw_member_policies?: JSObj[];
+  raw_user_policies?: JSObj[];
 };
 
 const parseGroupResult = (group: GroupRawResult) => {
@@ -20,7 +20,7 @@ const parseGroupResult = (group: GroupRawResult) => {
     is_member: isMember,
     member_count: memberCount,
     group_arr: groupArr,
-    raw_member_policies: rawMemberPolicies
+    raw_user_policies: rawUserPolicies
   } = group;
 
   const attributes = rawAttributes?.map(
@@ -31,7 +31,7 @@ const parseGroupResult = (group: GroupRawResult) => {
   return {
     ...toCamelCase(parsedGroup || {}),
     isMember,
-    memberPolicies: parsePolicies(rawMemberPolicies || []),
+    userPolicies: parsePolicies(rawUserPolicies || []),
     memberCount: +memberCount,
     attributes
   };
