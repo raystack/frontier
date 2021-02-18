@@ -136,7 +136,7 @@ export const list = async (filters: JSObj = {}, loggedInUserId: string) => {
   const userQuery = `%user":%`;
   const AGGREGATE_MEMBER_POLICIES = R.isEmpty(user_role)
     ? ''
-    : `, JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p' AND casbin_rule.v0 like '${userQuery}' AND casbin_rule.v2 like '${roleQuery}') AS raw_member_policies`;
+    : `, JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p' AND casbin_rule.v0 like '${userQuery}' AND casbin_rule.v2 like '${roleQuery}') AS raw_user_policies`;
 
   const cursor = createQueryBuilder()
     .select(
