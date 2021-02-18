@@ -6,7 +6,7 @@ type JSObj = Record<string, undefined>;
 type GroupRawResult = {
   is_member: string;
   member_count: string;
-  raw_attributes: JSObj[];
+  raw_attributes?: JSObj[];
   id: string;
   displayName: string;
   metadata: JSObj;
@@ -23,7 +23,7 @@ const parseGroupResult = (group: GroupRawResult) => {
     raw_member_policies: rawMemberPolicies
   } = group;
 
-  const attributes = rawAttributes.map(
+  const attributes = rawAttributes?.map(
     R.pipe(R.propOr('{}', 'v1'), JSON.parse)
   );
   const parsedGroup = R.head(groupArr);
