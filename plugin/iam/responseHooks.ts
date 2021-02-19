@@ -14,14 +14,13 @@ export const upsertResourceAttributesMapping = async (
   const iamPolicyUpsertOperationList = iamUpsertConfigList?.map(
     async (iamUpsertConfig: IAMUpsertConfig) => {
       const resource = constructIAMResourceFromConfig(
-        iamUpsertConfig.resource,
+        iamUpsertConfig.resources,
         requestData
       );
       const resourceAttributes = constructIAMResourceFromConfig(
-        iamUpsertConfig.resourceAttributes,
+        iamUpsertConfig.attributes,
         requestData
       );
-
       if (!R.isEmpty(resource) && !R.isEmpty(resourceAttributes)) {
         return enforcer?.upsertResourceGroupingJsonPolicy(
           resource,
@@ -45,7 +44,7 @@ export const checkIfShouldUpsertResourceAttributes = (
   // TODO: remove <any> if there is a better approach here. Not able to access response.source without this
   const { response } = <any>request || {};
   const ALLOWED_METHODS = ['post', 'put', 'patch'];
-  const hasUpsertConfig = iam?.manage?.upsert;
+  const hasUpsertConfig = iam?.hooks;
   const shouldUpsertResourceAttributes =
     hasUpsertConfig &&
     response?.source &&
@@ -90,7 +89,7 @@ const manageResourceAttributesMapping = async (
   );
   if (shouldUpsertResourceAttributes) {
     const { iam } = <IAMRouteOptionsApp>route?.settings?.app || {};
-    const iamUpsertConfigList = <IAMUpsertConfig[]>iam?.manage?.upsert || [];
+    const iamUpsertConfigList = <IAMUpsertConfig[]>iam?.hooks || [];
 
     const requestData = await getRequestData(request);
 
