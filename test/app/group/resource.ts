@@ -407,7 +407,6 @@ lab.experiment('Group::resource', () => {
           userPolicies: []
         }
       ];
-      debugger;
       const sortedResult = parseResults(result);
       const sortedExpectedResult = parseResults(expectedResult);
       Code.expect(sortedResult).to.equal(<any>sortedExpectedResult);

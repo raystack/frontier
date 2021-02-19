@@ -49,6 +49,10 @@ export class JsonEnforcer extends CachedEnforcer {
     await this.invalidateCache();
   }
 
+  public async addStrPolicy(subject: string, resource: string, action: string) {
+    await this.addPolicy(subject, resource, action);
+  }
+
   public async removeJsonPolicy(
     subject: JsonAttributes,
     resource: JsonAttributes,

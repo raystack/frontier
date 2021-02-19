@@ -98,7 +98,7 @@ const setupPolicies = async () => {
     { role: 'resource.viewer' }
   );
 
-  await CasbinSingleton.enforcer.addPolicy(
+  await CasbinSingleton.enforcer.addStrPolicy(
     JSON.stringify({ team: 'de' }),
     '*',
     JSON.stringify({ role: 'super.admin' })
