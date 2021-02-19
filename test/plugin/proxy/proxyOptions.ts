@@ -5,7 +5,7 @@ import Sinon from 'sinon';
 import { factory } from 'typeorm-seeding';
 import * as R from 'ramda';
 import { lab } from '../../setup';
-import * as ProxyOptions from '../../../app/proxy/proxyOptions';
+import * as ProxyOptions from '../../../plugin/proxy/proxyOptions';
 import { User } from '../../../model/user';
 import { Group } from '../../../model/group';
 

@@ -1,7 +1,7 @@
 import Hapi from '@hapi/hapi';
 import CasbinSingleton from '../../lib/casbin';
 import { ConnectionConfig } from '../postgres';
-import manageResourceAttributesMapping from './manageResourceAttributesMapping';
+import manageResourceAttributesMapping from './responseHooks';
 import authorizeRequest from './authorizeRequest';
 
 export const plugin = {
@@ -9,7 +9,13 @@ export const plugin = {
   dependencies: ['postgres', 'iap'],
   async register(server: Hapi.Server, options: ConnectionConfig) {
     await CasbinSingleton.create(options.uri);
-    authorizeRequest(server);
+
+    server.ext({
+      type: 'onPreHandler',
+      async method(request, h) {
+        return authorizeRequest(server, request, h);
+      }
+    });
 
     server.ext({
       type: 'onPreResponse',
