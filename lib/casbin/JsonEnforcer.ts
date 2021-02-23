@@ -12,8 +12,14 @@ export const convertJSONToStringInOrder = (
   return JSON.stringify(orderedJSON);
 };
 
-type OneKey<K extends string> = Record<K, unknown>;
-type JsonAttributes = Record<string, unknown>;
+export type OneKey<K extends string> = Record<K, unknown>;
+export type JsonAttributes = Record<string, unknown>;
+
+export type PolicyObj = {
+  subject: JsonAttributes;
+  resource: JsonAttributes;
+  action: JsonAttributes;
+};
 
 export class JsonEnforcer extends CachedEnforcer {
   constructor() {
@@ -33,6 +39,15 @@ export class JsonEnforcer extends CachedEnforcer {
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
     );
+  }
+
+  public async batchEnforceJson(policies: PolicyObj[]) {
+    const enforceBatchResult = await Promise.all(
+      policies.map(async (policy: PolicyObj) =>
+        this.enforceJson(policy.subject, policy.resource, policy.action)
+      )
+    );
+    return enforceBatchResult;
   }
 
   public async addJsonPolicy(

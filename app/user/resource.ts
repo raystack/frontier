@@ -20,18 +20,19 @@ export const getListWithFilters = async (policyFilters: JSObj) => {
   const { resource = {}, action = {} } = extractResourceAction(policyFilters);
 
   // 3) run each user through casbin enforcer based on the specifed params
-  const enforcedUsers = await Promise.all(
-    allUsersWithAllPolicies.map(async (user: any) => {
-      const hasAccess = await CasbinSingleton?.enforcer?.enforceJson(
-        { user: user.id },
-        resource,
-        action
-      );
-      return R.assoc('hasAccess', hasAccess, user);
-    })
+  const policiesToBatchEnforce = allUsersWithAllPolicies.map((user: any) => ({
+    subject: { user: user.id },
+    resource,
+    action
+  }));
+  const batchEnforceResults = await CasbinSingleton?.enforcer?.batchEnforceJson(
+    policiesToBatchEnforce
   );
 
-  const usersWithAccesss = enforcedUsers.filter((user: any) => user.hasAccess);
+  const usersWithAccesss = allUsersWithAllPolicies.filter(
+    (user: any, index: number) =>
+      batchEnforceResults && batchEnforceResults[index]
+  );
 
   if (R.isEmpty(resource)) return usersWithAccesss;
 

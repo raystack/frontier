@@ -110,9 +110,9 @@ lab.experiment('User::resource', () => {
       const result = (await Resource.list(filter)).map(removeTimestamps);
 
       const expectedResult = [
-        { ...users[0], policies: [], hasAccess: true },
-        { ...users[1], policies: [], hasAccess: true },
-        { ...users[2], policies: [userEntityPolicy], hasAccess: true }
+        { ...users[0], policies: [] },
+        { ...users[1], policies: [] },
+        { ...users[2], policies: [userEntityPolicy] }
       ].map(removeTimestamps);
 
       // ? We need to sort before checking because [1, 2, 3] != [2, 1, 3]
