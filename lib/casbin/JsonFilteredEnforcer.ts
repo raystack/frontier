@@ -1,25 +1,29 @@
 /* eslint-disable class-methods-use-this */
-/* eslint-disable max-classes-per-file */
 import { createQueryBuilder, In, Like } from 'typeorm';
 import { newEnforcerWithClass } from 'casbin';
-// eslint-disable-next-line import/no-cycle
 import { convertJSONToStringInOrder, JsonEnforcer } from './JsonEnforcer';
 
 type JsonAttributes = Record<string, unknown>;
 type OneKey<K extends string> = Record<K, unknown>;
 
 export class JsonFilteredEnforcer extends JsonEnforcer {
-  private static params: any[];
+  public static params: any[];
 
   public static setParams(params: any[]) {
     this.params = params;
   }
 
-  public static async getEnforcer() {
-    return newEnforcerWithClass(JsonEnforcer, ...JsonFilteredEnforcer.params);
+  private async getEnforcer() {
+    const enforcer = await newEnforcerWithClass(
+      JsonEnforcer,
+      ...JsonFilteredEnforcer.params
+    );
+    enforcer.enableAutoSave(true);
+    enforcer.enableLog(false);
+    return enforcer;
   }
 
-  public async loadPolicySubset(policyObj: any, enforcer: JsonEnforcer) {
+  private async loadPolicySubset(policyObj: any, enforcer: JsonEnforcer) {
     const rawSubjects = await createQueryBuilder()
       .select('casbin_rule.v1')
       .from('casbin_rule', 'casbin_rule')
@@ -51,8 +55,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     action: JsonAttributes
   ): Promise<boolean> {
     // intantiate new enforcer
-
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
+    const enforcer = await this.getEnforcer();
 
     // load filtered policy
     await this.loadPolicySubset({ subject, resource, action }, enforcer);
@@ -72,7 +75,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     resource: JsonAttributes,
     action: JsonAttributes
   ) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
+    const enforcer = await this.getEnforcer();
     await enforcer.addPolicy(
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(resource),
@@ -81,7 +84,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
   }
 
   public async addStrPolicy(subject: string, resource: string, action: string) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
+    const enforcer = await this.getEnforcer();
     await enforcer.addPolicy(subject, resource, action);
   }
 
@@ -90,8 +93,10 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     resource: JsonAttributes,
     action: JsonAttributes
   ) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
-    await enforcer.removePolicy(
+    const enforcer = await this.getEnforcer();
+    await enforcer.removeFilteredNamedPolicy(
+      'p',
+      0,
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
@@ -102,7 +107,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     subject: OneKey<T>,
     jsonAttributes: JsonAttributes
   ) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
+    const enforcer = await this.getEnforcer();
     await enforcer.addNamedGroupingPolicy(
       'g',
       convertJSONToStringInOrder(subject),
@@ -115,9 +120,10 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     subject: OneKey<T>,
     jsonAttributes: JsonAttributes
   ) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
-    await enforcer.removeNamedGroupingPolicy(
+    const enforcer = await this.getEnforcer();
+    await enforcer.removeFilteredNamedGroupingPolicy(
       'g',
+      0,
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(jsonAttributes),
       'subject'
@@ -128,7 +134,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     resource: OneKey<T>,
     jsonAttributes: JsonAttributes
   ) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
+    const enforcer = await this.getEnforcer();
     await enforcer.addNamedGroupingPolicy(
       'g2',
       convertJSONToStringInOrder(resource),
@@ -149,7 +155,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
   public async removeAllResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>
   ) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
+    const enforcer = await this.getEnforcer();
     await enforcer.removeFilteredNamedGroupingPolicy(
       'g2',
       0,
@@ -161,7 +167,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     action: OneKey<T>,
     jsonAttributes: JsonAttributes
   ) {
-    const enforcer = await JsonFilteredEnforcer.getEnforcer();
+    const enforcer = await this.getEnforcer();
     await enforcer.addNamedGroupingPolicy(
       'g3',
       convertJSONToStringInOrder(action),

@@ -42,8 +42,6 @@ class CasbinSingleton {
     policyAdapter: any
   ) {
     this.enforcer = await newJsonFilteredEnforcer(modelPath, policyAdapter);
-    this.enforcer.enableAutoSave(true);
-    this.enforcer.enableLog(false);
   }
 
   public static async create(dbConnectionUrl: string) {
