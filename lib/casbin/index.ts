@@ -16,18 +16,19 @@ class CasbinSingleton {
 
   public static enforcer: null | JsonFilteredEnforcer | JsonEnforcer = null;
 
+  public static policyAdapter: any = null;
+
   public static filtered = true;
 
   private static async initJsonEnforcer(
     modelPath: any,
-    policyAdapter: any,
     dbConnectionUrl: string
   ) {
     const policyWatcher = await newWatcher({
       connectionString: dbConnectionUrl
     });
 
-    this.enforcer = await newJsonEnforcer(modelPath, policyAdapter);
+    this.enforcer = await newJsonEnforcer(modelPath, this.policyAdapter);
 
     this.enforcer.setWatcher(policyWatcher);
     this.enforcer.enableAutoSave(true);
@@ -37,25 +38,28 @@ class CasbinSingleton {
     await this.enforcer.loadPolicy();
   }
 
-  private static async initJsonFilteredEnforcer(
-    modelPath: any,
-    policyAdapter: any
-  ) {
-    this.enforcer = await newJsonFilteredEnforcer(modelPath, policyAdapter);
+  private static async initJsonFilteredEnforcer(modelPath: any) {
+    this.enforcer = await newJsonFilteredEnforcer(
+      modelPath,
+      this.policyAdapter
+    );
   }
 
   public static async create(dbConnectionUrl: string) {
     if (!this.enforcer) {
-      const policyAdapter = await TypeORMAdapter.newAdapter({
-        type: 'postgres',
-        url: dbConnectionUrl
-      });
-      const modelPath = join(__dirname, 'model.conf');
+      // ? Doing this to run tests for both filtered=false/true
+      if (!this.policyAdapter) {
+        this.policyAdapter = await TypeORMAdapter.newAdapter({
+          type: 'postgres',
+          url: dbConnectionUrl
+        });
+      }
 
+      const modelPath = join(__dirname, 'model.conf');
       if (CasbinSingleton.filtered) {
-        await this.initJsonFilteredEnforcer(modelPath, policyAdapter);
+        await this.initJsonFilteredEnforcer(modelPath);
       } else {
-        await this.initJsonEnforcer(modelPath, policyAdapter, dbConnectionUrl);
+        await this.initJsonEnforcer(modelPath, dbConnectionUrl);
       }
     }
 
