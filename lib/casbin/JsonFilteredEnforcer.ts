@@ -1,10 +1,13 @@
 /* eslint-disable class-methods-use-this */
 import { createQueryBuilder, In, Like } from 'typeorm';
 import { newEnforcerWithClass } from 'casbin';
-import { convertJSONToStringInOrder, JsonEnforcer } from './JsonEnforcer';
-
-type JsonAttributes = Record<string, unknown>;
-type OneKey<K extends string> = Record<K, unknown>;
+import {
+  convertJSONToStringInOrder,
+  JsonEnforcer,
+  JsonAttributes,
+  OneKey,
+  PolicyObj
+} from './JsonEnforcer';
 
 export class JsonFilteredEnforcer extends JsonEnforcer {
   public static params: any[];
@@ -68,6 +71,15 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
     );
 
     return hasAccess;
+  }
+
+  public async batchEnforceJson(policies: PolicyObj[]) {
+    const enforceBatchResult = await Promise.all(
+      policies.map(async (policy: PolicyObj) =>
+        this.enforceJson(policy.subject, policy.resource, policy.action)
+      )
+    );
+    return enforceBatchResult;
   }
 
   public async addJsonPolicy(
