@@ -2,14 +2,9 @@
 import * as R from 'ramda';
 import { createQueryBuilder, In, Like, Raw } from 'typeorm';
 import { newEnforcerWithClass } from 'casbin';
-import {
-  convertJSONToStringInOrder,
-  JsonEnforcer,
-  JsonAttributes,
-  OneKey,
-  PolicyObj
-} from './JsonEnforcer';
+import { convertJSONToStringInOrder, JsonEnforcer } from './JsonEnforcer';
 import { toLikeQuery } from '../../app/policy/util';
+import IEnforcer, { JsonAttributes, OneKey, PolicyObj } from './IEnforcer';
 
 const groupPolicyParameters = (policies: PolicyObj[]) => {
   const res = policies.reduce(
@@ -28,7 +23,7 @@ const groupPolicyParameters = (policies: PolicyObj[]) => {
   };
 };
 
-export class JsonFilteredEnforcer extends JsonEnforcer {
+export class JsonFilteredEnforcer implements IEnforcer {
   public static params: any[];
 
   public static setParams(params: any[]) {
@@ -282,7 +277,7 @@ export class JsonFilteredEnforcer extends JsonEnforcer {
 
 export async function newJsonFilteredEnforcer(
   ...params: any[]
-): Promise<JsonEnforcer> {
+): Promise<JsonFilteredEnforcer> {
   JsonFilteredEnforcer.setParams(params);
-  return newEnforcerWithClass(JsonFilteredEnforcer, ...params);
+  return new JsonFilteredEnforcer();
 }
