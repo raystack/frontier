@@ -1,11 +1,13 @@
 import Hapi from '@hapi/hapi';
 
-export type RequestToIAMTransformConfig = {
-  requestKey: string;
-  iamKey?: string;
-};
-
-export type RequestKeysForIAM = 'query' | 'params' | 'payload' | 'response';
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type RequestToIAMTransformConfig = Record<string, any>;
+export type RequestKeysForIAM =
+  | 'query'
+  | 'params'
+  | 'payload'
+  | 'response'
+  | 'headers';
 
 export type IAMAuthorizeActionConfig = {
   baseName: string;
@@ -16,22 +18,20 @@ export type IAMAuthorizeAction = string | IAMAuthorizeActionConfig;
 
 export type IAMAuthorize = {
   action: IAMAuthorizeAction;
-  resource: RequestToIAMTransformConfig[];
+  attributes: RequestToIAMTransformConfig[];
 };
 
 export type IAMAuthorizeList = IAMAuthorize[];
 
 export type IAMUpsertConfig = {
-  resource: RequestToIAMTransformConfig[];
-  resourceAttributes: RequestToIAMTransformConfig[];
+  resources: RequestToIAMTransformConfig[];
+  attributes: RequestToIAMTransformConfig[];
 };
 
 export interface IAMRouteOptionsApp extends Hapi.RouteOptionsApp {
   iam?: {
-    authorize?: IAMAuthorizeList;
-    manage?: {
-      upsert?: IAMUpsertConfig[];
-    };
+    permissions?: IAMAuthorizeList;
+    hooks?: IAMUpsertConfig[];
   };
 }
 

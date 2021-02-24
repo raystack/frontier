@@ -5,7 +5,7 @@ import Wreck from '@hapi/wreck';
 import Lab from '@hapi/lab';
 import Sinon from 'sinon';
 import { lab } from '../../setup';
-import * as ManageResourceAttributesMapping from '../../../plugin/iam/manageResourceAttributesMapping';
+import * as ManageResourceAttributesMapping from '../../../plugin/iam/responseHooks';
 import * as IAMPluginUtils from '../../../plugin/iam/utils';
 import CasbinSingleton from '../../../lib/casbin';
 
@@ -28,11 +28,25 @@ lab.experiment(
   'ManageResourceAttributesMapping::checkIfShouldUpsertResourceAttributes',
   () => {
     const route = <Hapi.RequestRoute>R.assocPath(
-      ['settings', 'app', 'iam', 'manage', 'upsert'],
+      ['settings', 'app', 'iam', 'hooks'],
       [
         {
-          resource: [{ requestKey: 'test', iamKey: 'test' }],
-          resourceAttributes: [{ requestKey: 'entity', iamKey: 'entity' }]
+          resources: [
+            {
+              test: {
+                key: 'test',
+                type: 'params'
+              }
+            }
+          ],
+          attributes: [
+            {
+              entity: {
+                key: 'entity',
+                type: 'payload'
+              }
+            }
+          ]
         }
       ],
       {}
@@ -162,16 +176,20 @@ lab.experiment(
 
         const iamUpsertConfig = [
           {
-            resource: [
+            resources: [
               {
-                requestKey: 'resource',
-                iamKey: 'resource'
+                resource: {
+                  key: 'resource',
+                  type: 'query'
+                }
               }
             ],
-            resourceAttributes: [
+            attributes: [
               {
-                requestKey: 'entity',
-                iamKey: 'entity'
+                entity: {
+                  key: 'entity',
+                  type: 'payload'
+                }
               }
             ]
           }

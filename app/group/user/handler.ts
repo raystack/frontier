@@ -2,16 +2,16 @@ import Hapi from '@hapi/hapi';
 import * as Resource from './resource';
 import * as PolicySchema from '../../policy/schema';
 
-const iamConfig = {
+const iamConfig = (actionName: string) => ({
   iam: {
-    authorize: [
+    permissions: [
       {
-        action: { baseName: 'iam' },
-        resource: [{ requestKey: 'groupId', iamKey: 'group' }]
+        action: actionName,
+        attributes: [{ group: { key: 'groupId', type: 'params' } }]
       }
     ]
   }
-};
+});
 
 export const list = {
   description: 'fetch list of users of a group',
@@ -37,7 +37,7 @@ export const post = {
   validate: {
     payload: PolicySchema.payloadSchema
   },
-  app: iamConfig,
+  app: iamConfig('iam.create'),
   handler: async (request: Hapi.Request) => {
     const { payload } = request;
     const { groupId, userId } = request.params;
@@ -52,7 +52,7 @@ export const put = {
   validate: {
     payload: PolicySchema.payloadSchema
   },
-  app: iamConfig,
+  app: iamConfig('iam.manage'),
   handler: async (request: Hapi.Request) => {
     const { payload } = request;
     const { groupId, userId } = request.params;
@@ -64,7 +64,7 @@ export const put = {
 export const remove = {
   description: 'delete group and user mapping',
   tags: ['api'],
-  app: iamConfig,
+  app: iamConfig('iam.delete'),
   handler: async (request: Hapi.Request) => {
     const { groupId, userId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;

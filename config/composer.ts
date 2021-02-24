@@ -62,7 +62,7 @@ internals.manifest = {
         plugin: '../app/role/index'
       },
       {
-        plugin: '../app/proxy/index'
+        plugin: '../plugin/proxy'
       },
       {
         plugin: Inert
