@@ -1,5 +1,6 @@
 import { CachedEnforcer, newEnforcerWithClass, Util } from 'casbin';
 import { JsonRoleManager } from './JsonRoleManager';
+import IEnforcer, { JsonAttributes, OneKey, PolicyObj } from './IEnforcer';
 
 export const convertJSONToStringInOrder = (
   json: Record<string, unknown>
@@ -12,16 +13,7 @@ export const convertJSONToStringInOrder = (
   return JSON.stringify(orderedJSON);
 };
 
-export type OneKey<K extends string> = Record<K, unknown>;
-export type JsonAttributes = Record<string, unknown>;
-
-export type PolicyObj = {
-  subject: JsonAttributes;
-  resource: JsonAttributes;
-  action: JsonAttributes;
-};
-
-export class JsonEnforcer extends CachedEnforcer {
+export class JsonEnforcer extends CachedEnforcer implements IEnforcer {
   constructor() {
     super();
     const jsonRM = new JsonRoleManager(10);
