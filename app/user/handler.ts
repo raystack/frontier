@@ -20,3 +20,11 @@ export const list = {
     return Resource.list(request.query);
   }
 };
+
+export const get = {
+  description: 'get user by id',
+  tags: ['api'],
+  handler: async (request: Hapi.Request) => {
+    return Resource.get(request.params.userID);
+  }
+};

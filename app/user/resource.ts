@@ -54,3 +54,11 @@ export const list = async (policyFilters: JSObj = {}) => {
 
   return getListWithFilters(policyFilters);
 };
+
+export const get = async (id: string) => {
+  return User.findOne({
+    where: {
+      id
+    }
+  });
+};
