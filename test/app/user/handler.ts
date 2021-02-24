@@ -2,14 +2,15 @@ import Code from 'code';
 import Lab from '@hapi/lab';
 import Hapi from '@hapi/hapi';
 import Sinon from 'sinon';
+import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
 import * as Config from '../../../config/config';
 import * as userPlugin from '../../../app/user';
-
 import * as Resource from '../../../app/user/resource';
+import { User } from '../../../model/user';
 
 exports.lab = Lab.script();
-let server;
+let server: Hapi.Server;
 const Sandbox = Sinon.createSandbox();
 
 const TEST_AUTH = {
@@ -62,6 +63,31 @@ lab.experiment('User::Handler', () => {
 
       Sandbox.assert.calledWithExactly(createUserStub, payload);
       Code.expect(response.result).to.equal(payload);
+      Code.expect(response.statusCode).to.equal(200);
+    });
+  });
+
+  lab.experiment('get user by id', () => {
+    let request: any, getUserStub: any, user: any;
+
+    lab.beforeEach(async () => {
+      user = await factory(User)().create();
+      getUserStub = Sandbox.stub(Resource, 'get');
+      request = {
+        method: 'GET',
+        url: `/api/users/${user.id}`,
+        auth: TEST_AUTH
+      };
+    });
+    lab.afterEach(() => {
+      getUserStub.restore();
+    });
+
+    lab.test('should get user by id', async () => {
+      getUserStub.resolves(user);
+      const response = await server.inject(request);
+      Sandbox.assert.calledWithExactly(getUserStub, user.id);
+      Code.expect(response.result).to.equal(user);
       Code.expect(response.statusCode).to.equal(200);
     });
   });

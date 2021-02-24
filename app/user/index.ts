@@ -15,6 +15,11 @@ export const plugin = {
         method: 'GET',
         path: '/api/users',
         options: Handler.list
+      },
+      {
+        method: 'GET',
+        path: '/api/users/{userID}',
+        options: Handler.get
       }
     ]);
   }
