@@ -25,6 +25,6 @@ export const get = {
   description: 'get user by id',
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
-    return Resource.get(request.params.userID);
+    return Resource.get(request.params.userId);
   }
 };
