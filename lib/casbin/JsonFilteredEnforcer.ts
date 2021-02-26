@@ -63,15 +63,21 @@ export class JsonFilteredEnforcer implements IEnforcer {
       })
       .getRawMany();
 
-    const mergedResources = R.mergeAll(
+    const mergedResources = R.uniq(
       resourceMappings
         .map((rM) => rM.v1)
         .concat(resources)
         .map((str) => JSON.parse(str))
+        .reduce((res, obj) => {
+          R.keys(obj).forEach((key) => {
+            res.push({ [key]: obj[key] });
+          });
+          return res;
+        }, [])
     );
 
-    return Object.entries(mergedResources).map(([key, val]) => {
-      return toLikeQuery({ [key]: val });
+    return mergedResources.map((obj) => {
+      return toLikeQuery(<Record<string, unknown>>obj);
     });
   }
 
