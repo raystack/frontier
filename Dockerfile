@@ -4,8 +4,9 @@ RUN mkdir -p /opt/shield
 WORKDIR /opt/shield
 COPY package*.json ./
 COPY yarn.lock ./
-RUN yarn install --prod
+RUN yarn install
 COPY . .
+RUN yarn build
 
 FROM node:12.13.0-alpine
 WORKDIR /opt/shield

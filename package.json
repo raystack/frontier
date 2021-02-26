@@ -10,7 +10,7 @@
     "format": "node_modules/prettier/bin-prettier.js  --check '**/*.ts'",
     "format:fix": "yarn format --write",
     "build": "rm -rf ./build && tsc",
-    "postbuild": "cpy --parents '**/*.conf' ./build/ && cp -R proxies ./build/proxies",
+    "postbuild": "cpy --parents '**/*.conf' ./build/",
     "start": "node ./build/server.js",
     "dev": "nodemon --inspect=0.0.0.0:5858  -e ts --exec \"yarn build && yarn start\"",
     "test": "NODE_ENV=test node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l -v",
