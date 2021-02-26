@@ -15,12 +15,7 @@
     "start": "node ./build/server.js",
     "dev": "nodemon --inspect=0.0.0.0:5858  -e ts --exec \"yarn build && yarn start\"",
     "test": "NODE_ENV=test node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l -v",
-    "test:inspect": "NODE_ENV=test node inspect node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l -v",
-    "migrate:create": "docker exec shield-js_server_1 sh -c 'npx typeorm migration:generate -n CreateInitialTables -d migration'",
-    "dev:migrate:run": "docker exec shield-js_server_1 sh -c 'NODE_ENV=dev npx typeorm migration:run'",
-    "dev:migrate:revert": "docker exec shield-js_server_1 sh -c 'NODE_ENV=dev npx typeorm migration:revert'",
-    "test:migrate:run": "NODE_ENV=test-migrate typeorm migration:run",
-    "test:migrate:revert": "NODE_ENV=test-migrate typeorm migration:revert"
+    "test:inspect": "NODE_ENV=test node inspect node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript --shuffle -l -v"
   },
   "dependencies": {
     "@hapi/boom": "^9.1.1",
@@ -169,7 +164,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint && yarn format"
+      "pre-commit": "yarn lint && yarn format && yarn test"
     }
   }
 }

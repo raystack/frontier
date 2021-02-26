@@ -35,6 +35,7 @@ export const plugin = {
     };
 
     const connection: Connection = await tryConnectToPostgres();
+    await connection.runMigrations();
 
     server.events.on('stop', async () => {
       Logger.info('Closing Postgres connections on server stop');
