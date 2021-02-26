@@ -1,0 +1,29 @@
+name: Build and Release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get release tag
+        id: get_version
+        uses: battila7/get-version-action@v2
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.pkg.github.com
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            docker.pkg.github.com/${{ github.repository }}/shield:latest
+            docker.pkg.github.com/${{ github.repository }}/shield:${{ steps.get_version.outputs.version-without-v }}
