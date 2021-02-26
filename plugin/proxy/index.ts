@@ -17,7 +17,7 @@ export const plugin = {
   dependencies: [],
   async register(server: Hapi.Server) {
     const parser: Parser = YMLParser();
-    const contents = parser.parseFolder('proxies');
+    const contents = await parser.parseFolder('proxies');
 
     // expand with Node environment values
     const routesContent = JSON.parse(
