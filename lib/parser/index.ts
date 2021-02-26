@@ -2,6 +2,6 @@
 
 export type FileContent = object | string | number | null | undefined;
 export interface Parser {
-  parseFile: (file: string) => FileContent;
-  parseFolder: (folderName: string) => Array<FileContent>;
+  parseFile: (file: string) => Promise<FileContent>;
+  parseFolder: (folderName: string) => Promise<Array<FileContent>>;
 }

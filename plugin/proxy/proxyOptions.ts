@@ -12,7 +12,7 @@ const pipeWithPromise = R.pipeWith((fun, previousResult) =>
 
 export const checkAndAppendUserData = async (body: any) => {
   if (R.has('user_id', body)) {
-    const user = await User.findOne(body.user_id);
+    const user = await User.findOne(<string>body.user_id);
     return R.assocPath(['user'], user, body);
   }
 
@@ -21,7 +21,7 @@ export const checkAndAppendUserData = async (body: any) => {
 
 export const checkAndAppendGroupData = async (body: any) => {
   if (R.has('group_id', body)) {
-    const group = await Group.findOne(body.group_id);
+    const group = await Group.findOne(<string>body.group_id);
     return R.assocPath(['group'], group, body);
   }
 
