@@ -16,7 +16,7 @@ export class Role extends BaseEntity {
     type: 'varchar',
     nullable: false
   })
-  displayName: string;
+  displayname: string;
 
   @Column({
     type: 'jsonb'

@@ -72,7 +72,7 @@ lab.experiment('Profile::Handler', () => {
     lab.test('should update current profile', async () => {
       const email = 'demo@demo.com';
       const payload = {
-        displayName: 'demo',
+        displayname: 'demo',
         metadata: {
           username: 'demo',
           email: 'demo@demo.com'

@@ -14,9 +14,16 @@ export class User extends BaseEntity {
 
   @Column({
     type: 'varchar',
+    nullable: false,
+    unique: true
+  })
+  username: string;
+
+  @Column({
+    type: 'varchar',
     nullable: false
   })
-  displayName: string;
+  displayname: string;
 
   @Column({
     type: 'jsonb'

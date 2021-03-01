@@ -50,7 +50,7 @@ lab.experiment('UserGroup::Handler', () => {
       const result: any = [
         {
           id: GROUP_ID,
-          displayName: 'ABCD',
+          displayname: 'ABCD',
           metadata: {}
         }
       ];
@@ -75,7 +75,7 @@ lab.experiment('UserGroup::Handler', () => {
       const result: any = [
         {
           id: GROUP_ID,
-          displayName: 'ABCD',
+          displayname: 'ABCD',
           metadata: {}
         }
       ];

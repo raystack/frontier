@@ -8,9 +8,10 @@ define(User, (faker: typeof Faker) => {
 
   const user = new User();
   user.id = faker.random.uuid();
-  user.displayName = name;
+  user.username = name.toLowerCase();
+  user.displayname = name;
   user.metadata = {
-    email: `${name.toLowerCase()}@go-jek.com`
+    email: `${user.username}@go-jek.com`
   };
   return user;
 });
