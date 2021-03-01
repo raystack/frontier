@@ -229,7 +229,7 @@ lab.experiment('Group:User::Handler', () => {
       const result: any = [
         {
           id: 'test_user',
-          displayName: 'Test User',
+          displayname: 'Test User',
           policies: [
             {
               operation: 'create',

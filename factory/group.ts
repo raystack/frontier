@@ -8,9 +8,10 @@ define(Group, (faker: typeof Faker) => {
 
   const group = new Group();
   group.id = faker.random.uuid();
-  group.displayName = name;
+  group.groupname = name.toLowerCase();
+  group.displayname = name;
   group.metadata = {
-    email: `${name.toLowerCase()}@go-jek.com`
+    email: `${group.groupname}@go-jek.com`
   };
   return group;
 });

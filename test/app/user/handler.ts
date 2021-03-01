@@ -39,7 +39,7 @@ lab.experiment('User::Handler', () => {
     lab.beforeEach(async () => {
       createUserStub = Sandbox.stub(Resource, 'create');
       payload = {
-        displayName: 'test title',
+        displayname: 'test title',
         metadata: {
           name: 'test',
           email: 'test@go-jek.com'

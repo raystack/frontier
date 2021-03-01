@@ -5,6 +5,10 @@ export async function getUserById(id: number): Promise<any> {
   return await User.findOne(id);
 }
 
+export async function getUserByUsername(username: string) {
+  return User.findOne({ username });
+}
+
 export async function updateUserFromIAP(id: number, data: any): Promise<any> {
   const user = await User.findOne(id);
 
@@ -18,19 +22,19 @@ export async function updateUserFromIAP(id: number, data: any): Promise<any> {
   return await User.save(payload);
 }
 
-export async function updateUserByID(id: number, data: any): Promise<any> {
+export async function updateUserById(id: number, data: any): Promise<any> {
   const user = await User.findOne(id);
   const payload = Object.assign(user, {
     ...data,
     metadata: {
       ...user?.metadata,
-      ...data.metadata,
-      email: user?.metadata.email,
-      username: user?.metadata.username
+      ...data?.metadata,
+      email: user?.metadata.email
     }
   });
   return await User.save(payload);
 }
+
 export async function getUserByMetadata(
   metadataQuery: Record<string, any>
 ): Promise<any> {

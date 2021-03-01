@@ -19,6 +19,6 @@ export const update = {
   },
   handler: async (request: Hapi.Request) => {
     const { id }: any = request.auth?.credentials;
-    return Resource.updateUserByID(id, request.payload);
+    return Resource.updateUserById(id, request.payload);
   }
 };

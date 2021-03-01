@@ -39,7 +39,7 @@ lab.experiment('Group::Handler', () => {
     lab.beforeEach(async () => {
       createStub = Sandbox.stub(Resource, 'create');
       payload = {
-        displayName: 'test title',
+        displayname: 'test title',
         metadata: {
           name: 'test',
           email: 'test@go-jek.com',
@@ -111,7 +111,7 @@ lab.experiment('Group::Handler', () => {
       group = await factory(Group)().create();
       updateStub = Sandbox.stub(Resource, 'update');
       payload = {
-        displayName: 'test title',
+        displayname: 'test title',
         metadata: {
           name: 'test',
           email: 'test@go-jek.com',

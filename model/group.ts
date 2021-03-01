@@ -14,9 +14,16 @@ export class Group extends BaseEntity {
 
   @Column({
     type: 'varchar',
+    nullable: false,
+    unique: true
+  })
+  groupname: string;
+
+  @Column({
+    type: 'varchar',
     nullable: false
   })
-  displayName: string;
+  displayname: string;
 
   @Column({
     type: 'jsonb',

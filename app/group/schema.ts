@@ -7,7 +7,8 @@ const validationOptions = Config.get('/validationOptions');
 export const createPayload = Joi.object()
   .label('GroupCreatePayload')
   .keys({
-    displayName: Joi.string().required(),
+    groupname: Joi.string().optional(),
+    displayname: Joi.string().required(),
     policies: PolicySchema.policiesSchema,
     attributes: Joi.array().items(Joi.object()),
     metadata: Joi.object()
@@ -17,7 +18,7 @@ export const createPayload = Joi.object()
 export const updatePayload = Joi.object()
   .label('GroupUpdatePayload')
   .keys({
-    displayName: Joi.string().required(),
+    displayname: Joi.string().required(),
     policies: PolicySchema.policiesSchema,
     attributes: Joi.array().items(Joi.object()),
     metadata: Joi.object()

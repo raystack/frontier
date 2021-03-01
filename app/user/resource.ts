@@ -4,11 +4,14 @@ import { extractResourceAction } from '../policy/util';
 import { getSubjecListWithPolicies } from '../policy/resource';
 import CasbinSingleton from '../../lib/casbin';
 import { isJSONSubset } from '../../lib/casbin/JsonRoleManager';
+import getUniqName from '../../lib/getUniqName';
 
 type JSObj = Record<string, unknown>;
 
 export const create = async (payload: any) => {
-  return await User.save(payload);
+  const basename = payload?.username || payload?.displayname;
+  const username = await getUniqName(basename, 'username', User);
+  return await User.save({ ...payload, username });
 };
 
 // /api/users?entity=gojek&privacy=public&action=firehose.read

@@ -76,7 +76,8 @@ lab.experiment('Group::resource', () => {
 
     lab.test('should create group by id', async () => {
       const payload = <any>{
-        displayName: 'Data Engineering',
+        displayname: 'Data Engineering',
+        groupname: 'de',
         metadata: {
           name: 'Data Engineering',
           privacy: 'private'
@@ -155,7 +156,7 @@ lab.experiment('Group::resource', () => {
 
     lab.test('should create group by id', async () => {
       const payload = <any>{
-        displayName: 'Data Engineering',
+        displayname: 'Data Engineering',
         metadata: {
           name: 'Data Engineering',
           privacy: 'private'
@@ -223,7 +224,7 @@ lab.experiment('Group::resource', () => {
   lab.experiment('get list of groups', () => {
     let groups, users, currentUser;
 
-    const sortByDisplayName = R.sortBy(R.propOr(null, 'displayName'));
+    const sortByDisplayName = R.sortBy(R.propOr(null, 'displayname'));
     const removeExtraKeys = R.map(R.omit(['createdAt', 'updatedAt']));
 
     const sortMemberPolicies = (results) => {

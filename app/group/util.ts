@@ -8,7 +8,7 @@ type GroupRawResult = {
   member_count: string;
   raw_attributes?: JSObj[];
   id: string;
-  displayName: string;
+  displayname: string;
   metadata: JSObj;
   group_arr: JSObj[];
   raw_user_policies?: JSObj[];
