@@ -7,7 +7,7 @@ import { PolicyOperation } from '../policy/resource';
 import { toLikeQuery } from '../policy/util';
 import CasbinSingleton from '../../lib/casbin';
 import { parseGroupListResult } from './util';
-import getUniqName from '../../lib/getUniqName';
+import getUniqName, { validateUniqName } from '../../lib/getUniqName';
 
 type JSObj = Record<string, unknown>;
 
@@ -171,6 +171,15 @@ export const get = async (groupId: string, filters?: JSObj) => {
   return { ...group, policies, attributes };
 };
 
+const getValidGroupname = async (payload: any) => {
+  let groupname = payload?.groupname;
+  if (payload?.displayname && !groupname) {
+    groupname = await getUniqName(payload?.displayname, 'groupname', Group);
+  }
+  validateUniqName(groupname);
+  return groupname;
+};
+
 export const create = async (payload: any, loggedInUserId: string) => {
   const { policies = [], attributes = [], ...groupPayload } = payload;
   await checkSubjectHasAccessToCreateAttributesMapping(
@@ -180,8 +189,7 @@ export const create = async (payload: any, loggedInUserId: string) => {
     attributes
   );
 
-  const basename = groupPayload?.groupname || groupPayload?.displayname;
-  const groupname = await getUniqName(basename, 'groupname', Group);
+  const groupname = await getValidGroupname(groupPayload);
   const groupResult = await Group.save({ ...groupPayload, groupname });
   const groupId = groupResult.id;
 

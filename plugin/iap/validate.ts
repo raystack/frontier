@@ -25,7 +25,6 @@ const validateByEmail = async (request: Hapi.Request, email: string) => {
     });
   } else {
     credentials = await createUser({
-      username,
       displayname: username,
       metadata
     });
