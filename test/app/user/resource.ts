@@ -31,7 +31,7 @@ lab.experiment('User::resource', () => {
 
     lab.test('should update user by email', async () => {
       const response = await Resource.create(user);
-      Code.expect(response.displayName).to.equal(user.displayName);
+      Code.expect(response.displayname).to.equal(user.displayname);
       Code.expect(response.metadata.email).to.equal(user.metadata.email);
     });
   });

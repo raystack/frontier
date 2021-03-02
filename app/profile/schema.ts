@@ -6,7 +6,7 @@ const validationOptions = Config.get('/validationOptions');
 export const updatePayload = Joi.object()
   .label('ProfileUpdatePayload')
   .keys({
-    displayName: Joi.string().required(),
+    displayname: Joi.string().required(),
     metadata: Joi.object()
   })
   .options(validationOptions);
