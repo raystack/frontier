@@ -177,7 +177,7 @@ const getValidGroupname = async (payload: any) => {
     groupname = await getUniqName(payload?.displayname, 'groupname', Group);
   }
   validateUniqName(groupname);
-  return groupname;
+  return groupname.toLowerCase();
 };
 
 export const create = async (payload: any, loggedInUserId: string) => {
