@@ -62,6 +62,9 @@ internals.manifest = {
         plugin: '../app/role/index'
       },
       {
+        plugin: '../app/activity/index'
+      },
+      {
         plugin: '../plugin/proxy'
       },
       {

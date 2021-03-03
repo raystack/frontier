@@ -7,7 +7,11 @@ import {
   PrimaryGeneratedColumn
 } from 'typeorm';
 
-@Entity('users')
+// eslint-disable-next-line import/no-cycle
+// import { Activity } from './activity';
+import Constants from '../utils/constant';
+
+@Entity(Constants.MODEL.User)
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -29,6 +33,9 @@ export class User extends BaseEntity {
     type: 'jsonb'
   })
   metadata: Record<string, any>;
+
+  // @OneToMany(() => Activity, (activity) => activity.createdBy)
+  // activities: Activity[];
 
   @CreateDateColumn()
   createdAt: string;
