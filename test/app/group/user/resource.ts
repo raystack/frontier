@@ -197,7 +197,6 @@ lab.experiment('Group:User:Mapping::resource', () => {
       async () => {
         const groupId = 'test_group';
         const userId = 'test_user';
-        const loggedInUserId = 'test_logged_in_user';
         const payload: any = {
           policies: [
             {
@@ -214,8 +213,10 @@ lab.experiment('Group:User:Mapping::resource', () => {
           ]
         };
         const removeSubjectGroupingJsonPolicyStub = Sandbox.stub();
+        const removeJsonPolicyStub = Sandbox.stub();
         Sandbox.stub(CasbinSingleton, 'enforcer').value({
-          removeSubjectGroupingJsonPolicy: removeSubjectGroupingJsonPolicyStub
+          removeSubjectGroupingJsonPolicy: removeSubjectGroupingJsonPolicyStub,
+          removeJsonPolicy: removeJsonPolicyStub
         });
 
         const getPoliciesBySubjectStub = Sandbox.stub(
@@ -223,15 +224,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
           'getPoliciesBySubject'
         ).returns(payload.policies);
 
-        const result: any = payload.policies.map((policy) => {
-          return { ...policy, success: true };
-        });
-        const policyBulkoperationStub = Sandbox.stub(
-          PolicyResource,
-          'bulkOperation'
-        ).returns(result);
-
-        const response = await Resource.remove(groupId, userId, loggedInUserId);
+        const response = await Resource.remove(groupId, userId);
 
         Sandbox.assert.calledWithExactly(
           getPoliciesBySubjectStub,
@@ -243,11 +236,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
           { user: userId },
           { group: groupId }
         );
-        Sandbox.assert.calledWithExactly(
-          policyBulkoperationStub,
-          payload.policies,
-          { user: loggedInUserId }
-        );
+        Sandbox.assert.callCount(removeJsonPolicyStub, payload.policies.length);
         Code.expect(response).to.equal(true);
       }
     );
@@ -257,13 +246,14 @@ lab.experiment('Group:User:Mapping::resource', () => {
       async () => {
         const groupId = 'test_group';
         const userId = 'test_user';
-        const loggedInUserId = 'test_logged_in_user';
         const payload: any = {
           policies: []
         };
         const removeSubjectGroupingJsonPolicyStub = Sandbox.stub();
+        const removeJsonPolicyStub = Sandbox.stub();
         Sandbox.stub(CasbinSingleton, 'enforcer').value({
-          removeSubjectGroupingJsonPolicy: removeSubjectGroupingJsonPolicyStub
+          removeSubjectGroupingJsonPolicy: removeSubjectGroupingJsonPolicyStub,
+          removeJsonPolicy: removeJsonPolicyStub
         });
 
         const getPoliciesBySubjectStub = Sandbox.stub(
@@ -271,15 +261,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
           'getPoliciesBySubject'
         ).returns(payload.policies);
 
-        const result: any = payload.policies.map((policy) => {
-          return { ...policy, success: true };
-        });
-        const policyBulkoperationStub = Sandbox.stub(
-          PolicyResource,
-          'bulkOperation'
-        ).returns(result);
-
-        const response = await Resource.remove(groupId, userId, loggedInUserId);
+        const response = await Resource.remove(groupId, userId);
 
         Sandbox.assert.calledWithExactly(
           getPoliciesBySubjectStub,
@@ -291,7 +273,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
           { user: userId },
           { group: groupId }
         );
-        Sandbox.assert.notCalled(policyBulkoperationStub);
+        Sandbox.assert.notCalled(removeJsonPolicyStub);
         Code.expect(response).to.equal(true);
       }
     );
