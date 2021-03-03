@@ -92,13 +92,18 @@ lab.experiment('Group::Handler', () => {
       getStub.restore();
     });
 
-    lab.test('should return current profile', async () => {
+    lab.test('should return group by id', async () => {
       getStub.resolves(group);
       const response = await server.inject(request);
 
-      Sandbox.assert.calledWithExactly(getStub, group.id.toString(), {
-        test: '123'
-      });
+      Sandbox.assert.calledWithExactly(
+        getStub,
+        group.id.toString(),
+        TEST_AUTH.credentials.id,
+        {
+          test: '123'
+        }
+      );
       Code.expect(response.result).to.equal(group);
       Code.expect(response.statusCode).to.equal(200);
     });

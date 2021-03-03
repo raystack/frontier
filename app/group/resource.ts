@@ -121,8 +121,8 @@ export const checkSubjectHasAccessToEditGroup = async (
 // ? 2) Count all members of a group
 // ? 3) Find all users with specified user_role as well
 // ? 4) Check whether current logged in user is mapped with the group
-export const list = async (filters: JSObj = {}, loggedInUserId: string) => {
-  const { user_role = '', ...resource } = filters;
+export const list = async (filters: JSObj = {}, loggedInUserId = '') => {
+  const { user_role = '', group, ...attributes } = filters;
 
   const GET_GROUP_DOC = `JSON_AGG(DISTINCT groups.*) AS group_arr`;
   const MEMBER_COUNT = `SUM(CASE WHEN casbin_rule.ptype = 'g' THEN 1 ELSE 0 END) AS member_count`;
@@ -151,10 +151,15 @@ export const list = async (filters: JSObj = {}, loggedInUserId: string) => {
     )
     .groupBy('groups.id');
 
-  if (!R.isEmpty(resource)) {
+  // ? this is to filter single group query if passed in filters
+  if (!R.isNil(group)) {
+    cursor.where(`groups.id = :groupId`, { groupId: group });
+  }
+
+  if (!R.isEmpty(attributes)) {
     const FILTER_BY_RESOURCE_ATTRIBUTES = `SUM(CASE WHEN casbin_rule.ptype = 'g2' AND casbin_rule.v1 like :attribute THEN 1 ELSE 0 END) > 0`;
     cursor.having(FILTER_BY_RESOURCE_ATTRIBUTES, {
-      attribute: toLikeQuery(resource)
+      attribute: toLikeQuery(attributes)
     });
   }
 
@@ -162,13 +167,17 @@ export const list = async (filters: JSObj = {}, loggedInUserId: string) => {
   return parseGroupListResult(rawResult);
 };
 
-export const get = async (groupId: string, filters?: JSObj) => {
-  const group = await Group.findOne(groupId);
+export const get = async (
+  groupId: string,
+  loggedInUserId = '',
+  filters: JSObj = {}
+) => {
+  const groupList = await list({ group: groupId, ...filters }, loggedInUserId);
+  const group = R.head(groupList);
   if (!group) throw Boom.notFound('group not found');
-  const subject = { group: group?.id };
+  const subject = { group: R.path(['id'], group) };
   const policies = await PolicyResource.getPoliciesBySubject(subject, filters);
-  const attributes = await PolicyResource.getAttributesForGroup(groupId);
-  return { ...group, policies, attributes };
+  return { ...group, policies };
 };
 
 const getValidGroupname = async (payload: any) => {
@@ -200,7 +209,7 @@ export const create = async (payload: any, loggedInUserId: string) => {
     policies,
     loggedInUserId
   );
-  const updatedGroup = await get(groupId);
+  const updatedGroup = await get(groupId, loggedInUserId);
   return { ...updatedGroup, policyOperationResult };
 };
 
@@ -210,7 +219,7 @@ export const update = async (
   loggedInUserId: string
 ) => {
   const { policies = [], attributes = [], ...groupPayload } = payload;
-  const groupWithExtraKeys = await get(groupId);
+  const groupWithExtraKeys = await get(groupId, loggedInUserId);
   const group = R.omit(['policies', 'attributes'], groupWithExtraKeys);
 
   // ? We need to check this only if the attributes change
@@ -227,6 +236,6 @@ export const update = async (
     policies,
     loggedInUserId
   );
-  const updatedGroup = await get(groupId);
+  const updatedGroup = await get(groupId, loggedInUserId);
   return { ...updatedGroup, policyOperationResult };
 };

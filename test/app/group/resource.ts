@@ -38,22 +38,21 @@ lab.experiment('Group::resource', () => {
         const getPoliciesBySubjectStub = Sandbox.stub(
           PolicyResource,
           'getPoliciesBySubject'
-        ).returns(policies);
+        ).resolves(policies);
 
-        const attributes = <any>[{ entity: 'gojek' }];
-        const getAttributesForGroupStub = Sandbox.stub(
-          PolicyResource,
-          'getAttributesForGroup'
-        ).returns(attributes);
+        const groupList = [group];
+        const listStub = Sandbox.stub(Resource, 'list').resolves(groupList);
 
-        const response = await Resource.get(group.id, {});
-        Code.expect(response).to.equal({ ...group, policies, attributes });
+        const response = await Resource.get(group.id);
+        Code.expect(response).to.equal({ ...group, policies });
         Sandbox.assert.calledWithExactly(
           getPoliciesBySubjectStub,
-          { group: group.id },
+          {
+            group: group.id
+          },
           {}
         );
-        Sandbox.assert.calledWithExactly(getAttributesForGroupStub, group.id);
+        Sandbox.assert.calledWithExactly(listStub, { group: group.id }, '');
       }
     );
 
@@ -61,7 +60,9 @@ lab.experiment('Group::resource', () => {
       'should return undefined response if group is not found',
       async () => {
         try {
+          const listStub = Sandbox.stub(Resource, 'list').resolves([]);
           await Resource.get(Faker.random.uuid());
+          Sandbox.assert.calledOnce(listStub);
         } catch (e) {
           Code.expect(e.output.statusCode).to.equal(404);
         }
@@ -140,7 +141,7 @@ lab.experiment('Group::resource', () => {
         payload.policies,
         loggedInUserId
       );
-      Sandbox.assert.calledWithExactly(getStub, groupId);
+      Sandbox.assert.calledWithExactly(getStub, groupId, loggedInUserId);
       Code.expect(response).to.equal({
         id: groupId,
         ...payload,
@@ -154,7 +155,7 @@ lab.experiment('Group::resource', () => {
       Sandbox.restore();
     });
 
-    lab.test('should create group by id', async () => {
+    lab.test('should update group by id', async () => {
       const payload = <any>{
         displayname: 'Data Engineering',
         metadata: {
@@ -211,7 +212,7 @@ lab.experiment('Group::resource', () => {
         payload.policies,
         loggedInUserId
       );
-      Sandbox.assert.calledWithExactly(getStub, groupId);
+      Sandbox.assert.calledWithExactly(getStub, groupId, loggedInUserId);
       Sandbox.assert.callCount(getStub, 2);
       Code.expect(response).to.equal({
         id: groupId,
