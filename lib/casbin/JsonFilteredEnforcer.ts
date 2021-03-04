@@ -123,7 +123,10 @@ export class JsonFilteredEnforcer implements IEnforcer {
     const any = Like('%*%');
     const queryForPoliciesWithRegex = [{ v0: any }, { v1: any }, { v2: any }];
 
-    const allElementsAreNonEmpty = !R.all(R.isEmpty, [
+    const allElementsAreNonEmpty = R.all(R.complement(R.isEmpty), [
+      subjectsForPolicyFilter,
+      resourcesForPolicyFilter,
+      actionsForPolicyFilter,
       subjects,
       resources,
       actions
