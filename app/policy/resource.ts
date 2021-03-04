@@ -16,6 +16,7 @@ export interface PolicyOperation {
   resource: JSObj;
   action: JSObj;
 }
+let casbinPolicies: any[] = [];
 
 export const bulkOperation = async (
   policyOperations: PolicyOperation[] = [],
@@ -210,4 +211,12 @@ export const getUsersOfGroupWithPolicies = async (
   const rawResult = await cursor.andHaving(`${MAPPING_COUNT} > 0`).getRawMany();
 
   return parsePoliciesWithSubject(rawResult, 'user');
+};
+
+export const setPolicies = (policies: [] = []) => {
+  casbinPolicies = policies;
+};
+
+export const getPolicies = () => {
+  return casbinPolicies;
 };
