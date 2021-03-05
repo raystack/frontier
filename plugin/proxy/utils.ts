@@ -63,7 +63,8 @@ export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
           iam: {
             permissions: route?.permissions || [],
             hooks: route?.hooks || []
-          }
+          },
+          proxy: route?.proxy?.extraOptions
         }
       }
     };
