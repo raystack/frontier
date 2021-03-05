@@ -7,9 +7,7 @@ import {
 } from 'typeorm';
 
 import Constants from '../utils/constant';
-
-// eslint-disable-next-line import/no-cycle
-// import { User } from './user';
+import { User } from './user';
 
 @Entity(Constants.MODEL.Activity)
 export class Activity extends BaseEntity {
@@ -49,10 +47,9 @@ export class Activity extends BaseEntity {
   @CreateDateColumn()
   createdAt: string;
 
-  // @Column({
-  //   type: 'varchar',
-  //   nullable: false
-  // })
-  // @ManyToOne(() => User, (user) => user.activities)
-  // createdBy: User;
+  @Column({
+    type: 'jsonb',
+    nullable: false
+  })
+  createdBy: User;
 }
