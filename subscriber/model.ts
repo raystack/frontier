@@ -71,7 +71,8 @@ const storeActivityPayload = async (event: any, type: string) => {
         model: event.metadata.tableName,
         diffs: delta({}, event.entity || {}, {
           exclude: excludeFields
-        })
+        }),
+        createdBy: event.queryRunner.data.user
       });
       break;
     case actions.EDIT:
@@ -82,7 +83,8 @@ const storeActivityPayload = async (event: any, type: string) => {
         model: event.metadata.tableName,
         diffs: delta(event.databaseEntity || {}, event.entity || {}, {
           exclude: excludeFields
-        })
+        }),
+        createdBy: event.queryRunner.data.user
       });
       break;
     case actions.DELETE:
@@ -93,7 +95,8 @@ const storeActivityPayload = async (event: any, type: string) => {
         model: event.metadata.tableName,
         diffs: delta(event.databaseEntity || {}, event.entity || {}, {
           exclude: excludeFields
-        })
+        }),
+        createdBy: event.queryRunner.data.user
       });
       break;
     default:

@@ -12,6 +12,7 @@ export class CreateActivityTable1614858387492 implements MigrationInterface {
           document_id character varying not null,
           document jsonb,
           diffs jsonb,
+          created_by jsonb,
           created_at timestamp default now() not null );
     `);
   };
