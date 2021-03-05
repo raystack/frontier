@@ -12,6 +12,31 @@ const httpRequestClient = async (method: string, uri: string, options: any) => {
   return Wreck.request(method, uri, proxyOptions);
 };
 
+const onResponse = (route: any) => async (
+  err: any,
+  res: any,
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) => {
+  const payload = await Wreck.read(res, {
+    json: 'force',
+    gunzip: true
+  });
+
+  // only return the following key from the response
+  const responseKeyToReturn = R.pathOr(
+    '',
+    ['options', 'app', 'proxy', 'responseKeyToReturn'],
+    route
+  );
+  if (!R.hasPath(responseKeyToReturn.split('.'), payload)) {
+    return h.response(payload);
+  }
+
+  const payloadToReturn = R.pathOr({}, responseKeyToReturn.split('.'), payload);
+  return h.response(payloadToReturn);
+};
+
 export const plugin = {
   name: 'proxies',
   dependencies: [],
@@ -26,12 +51,15 @@ export const plugin = {
     const routes = generateRoutes(routesContent);
 
     const ROUTES: any[] = routes;
-    const ROUTES_WITH_PROXY_DATA = ROUTES.map(
-      R.assocPath(
-        ['handler', 'proxy', 'httpClient', 'request'],
-        httpRequestClient
-      )
-    );
+    const ROUTES_WITH_PROXY_DATA: any[] = ROUTES.map((route) => {
+      return R.pipe(
+        R.assocPath(
+          ['handler', 'proxy', 'httpClient', 'request'],
+          httpRequestClient
+        ),
+        R.assocPath(['handler', 'proxy', 'onResponse'], onResponse(route))
+      )(route);
+    });
 
     server.route(ROUTES_WITH_PROXY_DATA);
   }
