@@ -1,0 +1,21 @@
+---
+  - 
+    method: "GET"
+    path: "/api/incidents"
+    proxy: 
+      uri: "${HAWKEYE_URL}/incidents"
+  - 
+    method: "POST"
+    path: "/api/incidents"
+    proxy: 
+      uri: "${HAWKEYE_URL}/incidents"
+  - 
+    method: "GET"
+    path: "/api/statuses"
+    proxy: 
+      uri: "${HAWKEYE_URL}/statuses"
+  - 
+    method: "POST"
+    path: "/api/history/{urn}"
+    proxy: 
+      uri: "${HAWKEYE_URL}/history/{urn}"

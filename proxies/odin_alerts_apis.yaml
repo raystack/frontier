@@ -1,0 +1,1045 @@
+---
+  - 
+    method: "GET"
+    path: "/api/alerts/firehoses/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/firehoses/{urn}"
+    permissions: 
+      - 
+        action: "firehose.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/alerts/firehoses/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/firehoses/{urn}"
+    permissions: 
+      - 
+        action: "firehose.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "POST"
+    path: "/api/alerts/firehoses/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/firehoses/{urn}"
+    permissions: 
+      - 
+        action: "firehose.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/alerts/beast/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/beast/{urn}"
+    permissions: 
+      - 
+        action: "beast.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/alerts/beast/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/beast/{urn}"
+    permissions: 
+      - 
+        action: "beast.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "POST"
+    path: "/api/alerts/beast/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/beast/{urn}"
+    permissions: 
+      - 
+        action: "beast.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/alerts/sakaar/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/sakaar/{urn}"
+    permissions: 
+      - 
+        action: "sakaar.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/alerts/sakaar/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/sakaar/{urn}"
+    permissions: 
+      - 
+        action: "sakaar.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "POST"
+    path: "/api/alerts/sakaar/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/sakaar/{urn}"
+    permissions: 
+      - 
+        action: "sakaar.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/alerts/signal/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/signal/{urn}"
+    permissions: 
+      - 
+        action: "signal.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/alerts/signal/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/signal/{urn}"
+    permissions: 
+      - 
+        action: "signal.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "POST"
+    path: "/api/alerts/signal/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/signal/{urn}"
+    permissions: 
+      - 
+        action: "signal.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/alerts/dagger/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/dagger/{urn}"
+    permissions: 
+      - 
+        action: "dagger.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/alerts/dagger/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/dagger/{urn}"
+    permissions: 
+      - 
+        action: "dagger.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "POST"
+    path: "/api/alerts/dagger/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/dagger/{urn}"
+    permissions: 
+      - 
+        action: "dagger.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/alerts/pulse/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/pulse/{urn}"
+    permissions: 
+      - 
+        action: "pulse.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/alerts/pulse/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/pulse/{urn}"
+    permissions: 
+      - 
+        action: "pulse.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "POST"
+    path: "/api/alerts/pulse/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/alerts/pulse/{urn}"
+    permissions: 
+      - 
+        action: "pulse.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"

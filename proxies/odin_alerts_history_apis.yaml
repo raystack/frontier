@@ -1,0 +1,233 @@
+---
+  - 
+    method: "GET"
+    path: "/history/firehoses/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/history/firehoses/{urn}"
+    permissions: 
+      - 
+        action: "firehose.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/history/beast/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/history/beast/{urn}"
+    permissions: 
+      - 
+        action: "beast.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/history/sakaar/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/history/sakaar/{urn}"
+    permissions: 
+      - 
+        action: "sakaar.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/history/dagger/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/history/dagger/{urn}"
+    permissions: 
+      - 
+        action: "dagger.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"

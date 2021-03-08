@@ -1,6 +1,7 @@
 import Hapi from '@hapi/hapi';
 import Wreck from '@hapi/wreck';
 import * as R from 'ramda';
+import { getResourceAttributeMappingsByResources } from '../../app/policy/resource';
 import CasbinSingleton from '../../lib/casbin';
 import { IAMRouteOptionsApp, IAMUpsertConfig } from './types';
 import { constructIAMResourceFromConfig } from './utils';
@@ -35,7 +36,77 @@ export const upsertResourceAttributesMapping = async (
   await Promise.all(iamPolicyUpsertOperationList);
 };
 
-export const checkIfShouldUpsertResourceAttributes = (
+export const mergeResourceListWithAttributes = async (
+  resourceList: any,
+  hook: IAMUpsertConfig
+) => {
+  const {
+    resources: rawResourceConfig = [],
+    attributes: attributesConfig = []
+  } = hook;
+
+  const resourceConfig = rawResourceConfig.map((config) =>
+    R.assocPath([...R.keys(config), 'type'], 'response', config)
+  );
+
+  // query db to fetch all attributes of the given resource list
+  const iamResourceList = resourceList.map((res: any) =>
+    constructIAMResourceFromConfig(resourceConfig, { response: res })
+  );
+  const resouceAttributeMappings = await getResourceAttributeMappingsByResources(
+    iamResourceList
+  );
+
+  // merge it with resourceList by using hook config
+  const mergedResourceList = resourceList.map((res: any) => {
+    const iamResource = constructIAMResourceFromConfig(resourceConfig, {
+      response: res
+    });
+    const attributeMappingsForResource = R.filter(
+      R.pipe(R.prop('resource'), R.equals(iamResource)),
+      resouceAttributeMappings
+    );
+
+    return attributesConfig.reduce((mergedResource, iamAttributeConfig) => {
+      const [[iamAttributeKey, { key }]] = Object.entries(iamAttributeConfig);
+
+      const val = attributeMappingsForResource.reduce(
+        (attrVal: any, { attributes }) => {
+          if (!R.isEmpty(attrVal) && !R.isNil(attrVal)) return attrVal;
+
+          return R.pathOr('', [iamAttributeKey], attributes);
+        },
+        ''
+      );
+
+      if (!val) return mergedResource;
+      return R.assoc(key, val, mergedResource);
+    }, res);
+  });
+
+  return mergedResourceList;
+};
+
+const mergeResponseWithAttributes = async (
+  response: any,
+  hooks: IAMUpsertConfig[]
+) => {
+  const firstHook = R.head(hooks) || {};
+  let responseList = response;
+  const isResponseList = R.is(Array, response);
+  if (!isResponseList) {
+    responseList = [response];
+  }
+
+  const mergedResponseList = await mergeResourceListWithAttributes(
+    responseList,
+    <IAMUpsertConfig>firstHook
+  );
+
+  return isResponseList ? mergedResponseList : R.head(mergedResponseList);
+};
+
+export const checkIfShouldTriggerHooks = (
   route: Hapi.RequestRoute | null,
   request: Hapi.Request
 ) => {
@@ -43,12 +114,8 @@ export const checkIfShouldUpsertResourceAttributes = (
 
   // TODO: remove <any> if there is a better approach here. Not able to access response.source without this
   const { response } = <any>request || {};
-  const ALLOWED_METHODS = ['post', 'put', 'patch'];
   const hasUpsertConfig = iam?.hooks;
-  const shouldUpsertResourceAttributes =
-    hasUpsertConfig &&
-    response?.source &&
-    ALLOWED_METHODS.includes(request.method.toLowerCase());
+  const shouldUpsertResourceAttributes = hasUpsertConfig && response?.source;
 
   return !!shouldUpsertResourceAttributes;
 };
@@ -76,6 +143,10 @@ export const getRequestData = async (request: Hapi.Request) => {
   return requestData;
 };
 
+const isWriteMethod = (method = '') => {
+  return ['put', 'patch', 'post'].includes(method.toLowerCase());
+};
+
 const manageResourceAttributesMapping = async (
   server: Hapi.Server,
   request: Hapi.Request,
@@ -83,19 +154,24 @@ const manageResourceAttributesMapping = async (
 ) => {
   const route = server.match(request.method, request.path);
 
-  const shouldUpsertResourceAttributes = checkIfShouldUpsertResourceAttributes(
-    route,
-    request
-  );
-  if (shouldUpsertResourceAttributes) {
+  const shouldTriggerHooks = checkIfShouldTriggerHooks(route, request);
+  if (shouldTriggerHooks) {
     const { iam } = <IAMRouteOptionsApp>route?.settings?.app || {};
-    const iamUpsertConfigList = <IAMUpsertConfig[]>iam?.hooks || [];
+    const hooks = <IAMUpsertConfig[]>iam?.hooks || [];
 
     const requestData = await getRequestData(request);
 
-    await upsertResourceAttributesMapping(iamUpsertConfigList, requestData);
+    // only upsert for write based http methods
+    if (isWriteMethod(request.method)) {
+      await upsertResourceAttributesMapping(hooks, requestData);
+    }
+
     if (!R.isEmpty(requestData.response)) {
-      return h.response(requestData.response);
+      const mergedResponse = await mergeResponseWithAttributes(
+        requestData.response,
+        hooks
+      );
+      return h.response(mergedResponse);
     }
   }
   return h.continue;

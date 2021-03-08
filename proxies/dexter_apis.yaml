@@ -1,0 +1,991 @@
+---
+  - 
+    method: "GET"
+    path: "/api/dexter/table_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/table_definitions"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "POST"
+    path: "/api/dexter/table_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/table_definitions"
+    permissions: 
+      - 
+        action: "catalog.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/table_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/table_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "PUT"
+    path: "/api/dexter/table_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/table_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "PATCH"
+    path: "/api/dexter/table_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/table_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "DELETE"
+    path: "/api/dexter/table_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/table_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.delete"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/column_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/column_definitions"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "POST"
+    path: "/api/dexter/column_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/column_definitions"
+    permissions: 
+      - 
+        action: "catalog.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/column_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/column_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "PUT"
+    path: "/api/dexter/column_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/column_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "PATCH"
+    path: "/api/dexter/column_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/column_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "DELETE"
+    path: "/api/dexter/column_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/column_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.delete"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/class_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/class_definitions"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "POST"
+    path: "/api/dexter/class_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/class_definitions"
+    permissions: 
+      - 
+        action: "catalog.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/class_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/class_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "PUT"
+    path: "/api/dexter/class_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/class_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "PATCH"
+    path: "/api/dexter/class_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/class_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "DELETE"
+    path: "/api/dexter/class_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/class_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.delete"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/metric_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/metric_definitions"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "POST"
+    path: "/api/dexter/metric_definitions"
+    proxy: 
+      uri: "${DEXTER_URL}/metric_definitions"
+    permissions: 
+      - 
+        action: "catalog.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/metric_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/metric_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "PUT"
+    path: "/api/dexter/metric_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/metric_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "PATCH"
+    path: "/api/dexter/metric_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/metric_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "DELETE"
+    path: "/api/dexter/metric_definitions/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/metric_definitions/{id}"
+    permissions: 
+      - 
+        action: "catalog.delete"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/labels"
+    proxy: 
+      uri: "${DEXTER_URL}/labels"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "POST"
+    path: "/api/dexter/labels"
+    proxy: 
+      uri: "${DEXTER_URL}/labels"
+    permissions: 
+      - 
+        action: "catalog.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter/labels/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/labels/{id}"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "PUT"
+    path: "/api/dexter/labels/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/labels/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+  - 
+    method: "PATCH"
+    path: "/api/dexter/labels/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/labels/{id}"
+    permissions: 
+      - 
+        action: "catalog.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "DELETE"
+    path: "/api/dexter/labels/{id}"
+    proxy: 
+      uri: "${DEXTER_URL}/labels/{id}"
+    permissions: 
+      - 
+        action: "catalog.delete"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/dexter"
+    proxy: 
+      uri: "${DEXTER_URL}"
+    permissions: 
+      - 
+        action: "catalog.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "params"
+          - 
+            environment: 
+              key: "environment"
+              type: "params"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "params"
+          - 
+            group: 
+              key: "group_id"
+              type: "params"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "params"
+              defaultValue: "public"
+  - 
+    method: "POST"
+    path: "/api/dexter/table_schemas"
+    proxy: 
+      uri: "${DEXTER_URL}/table_schemas"
+    permissions: 
+      - 
+        action: "catalog.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "params"
+          - 
+            environment: 
+              key: "environment"
+              type: "params"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "params"
+          - 
+            group: 
+              key: "group_id"
+              type: "params"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "params"
+              defaultValue: "public"
+  - 
+    method: "POST"
+    path: "/api/dexter/table_schemas/search"
+    proxy: 
+      uri: "${DEXTER_URL}/table_schemas/search"
+    permissions: 
+      - 
+        action: "catalog.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "params"
+          - 
+            environment: 
+              key: "environment"
+              type: "params"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "params"
+          - 
+            group: 
+              key: "group_id"
+              type: "params"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "params"
+              defaultValue: "public"

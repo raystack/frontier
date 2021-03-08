@@ -1,0 +1,78 @@
+---
+  - 
+    method: "GET"
+    path: "/api/shenron/v1/search"
+    proxy: 
+      uri: "${SHENRON_URL}/v1/search"
+    permissions: 
+      - 
+        action: "discovery.read"
+        attributes: 
+          - 
+            entity: 
+              key: "filter.entity"
+              type: "query"
+          - 
+            environment: 
+              key: "filter.environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "filter.landscape"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/shenron/v1/entities/bqtable"
+    proxy: 
+      uri: "${SHENRON_URL}/v1/entities/bqtable"
+    permissions: 
+      - 
+        action: "warehouse.read"
+        attributes: 
+          - 
+            entity: 
+              key: "filter.entity"
+              type: "query"
+          - 
+            environment: 
+              key: "filter.environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "filter.landscape"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+  - 
+    method: "GET"
+    path: "/api/shenron/{path*}"
+    proxy: 
+      uri: "${SHENRON_URL}/{path}"
+  - 
+    method: "PUT"
+    path: "/api/shenron/{path*}"
+    proxy: 
+      uri: "${SHENRON_URL}/{path}"
+  - 
+    method: "POST"
+    path: "/api/shenron/{path*}"
+    proxy: 
+      uri: "${SHENRON_URL}/{path}"
+  - 
+    method: "PATCH"
+    path: "/api/shenron/{path*}"
+    proxy: 
+      uri: "${SHENRON_URL}/{path}"
+  - 
+    method: "DELETE"
+    path: "/api/shenron/{path*}"
+    proxy: 
+      uri: "${SHENRON_URL}/{path}"

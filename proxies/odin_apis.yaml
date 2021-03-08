@@ -1,0 +1,2532 @@
+---
+  - 
+    method: "GET"
+    path: "/api/firehoses"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses"
+      extraOptions: 
+        responseKeyToReturn: "firehose"
+    permissions: 
+      - 
+        action: "firehose.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "POST"
+    path: "/api/firehoses"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses"
+      extraOptions: 
+        responseKeyToReturn: "firehose"
+    permissions: 
+      - 
+        action: "firehose.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "response"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+  - 
+    method: "GET"
+    path: "/api/firehoses/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "firehose"
+    permissions: 
+      - 
+        action: "firehose.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/firehoses/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "firehose"
+    permissions: 
+      - 
+        action: "firehose.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "PATCH"
+    path: "/api/firehoses/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "firehose"
+    permissions: 
+      - 
+        action: "firehose.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/api/firehoses/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "firehose.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/firehoses/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "firehose.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/firehoses/verify/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/firehoses/verify/{urn}"
+  - 
+    method: "GET"
+    path: "/api/beast"
+    proxy: 
+      uri: "${ODIN_URL}/beast"
+      extraOptions: 
+        responseKeyToReturn: "beast"
+    permissions: 
+      - 
+        action: "beast.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "POST"
+    path: "/api/beast"
+    proxy: 
+      uri: "${ODIN_URL}/beast"
+      extraOptions: 
+        responseKeyToReturn: "beast"
+    permissions: 
+      - 
+        action: "beast.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "response"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+  - 
+    method: "GET"
+    path: "/api/beast/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/beast/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "beast"
+    permissions: 
+      - 
+        action: "beast.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/beast/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/beast/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "beast"
+    permissions: 
+      - 
+        action: "beast.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "PATCH"
+    path: "/api/beast/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/beast/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "beast"
+    permissions: 
+      - 
+        action: "beast.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/api/beast/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/beast/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "beast.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/beast/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/beast/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "beast.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/beast/verify/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/beast/verify/{urn}"
+  - 
+    method: "GET"
+    path: "/api/sakaar"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar"
+      extraOptions: 
+        responseKeyToReturn: "sakaar"
+    permissions: 
+      - 
+        action: "sakaar.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "POST"
+    path: "/api/sakaar"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar"
+      extraOptions: 
+        responseKeyToReturn: "sakaar"
+    permissions: 
+      - 
+        action: "sakaar.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "response"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+  - 
+    method: "GET"
+    path: "/api/sakaar/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "sakaar"
+    permissions: 
+      - 
+        action: "sakaar.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/sakaar/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "sakaar"
+    permissions: 
+      - 
+        action: "sakaar.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "PATCH"
+    path: "/api/sakaar/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "sakaar"
+    permissions: 
+      - 
+        action: "sakaar.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/api/sakaar/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "sakaar.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/sakaar/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "sakaar.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/sakaar/verify/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/sakaar/verify/{urn}"
+  - 
+    method: "GET"
+    path: "/api/bedrock"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock"
+      extraOptions: 
+        responseKeyToReturn: "bedrock"
+    permissions: 
+      - 
+        action: "bedrock.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "POST"
+    path: "/api/bedrock"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock"
+      extraOptions: 
+        responseKeyToReturn: "bedrock"
+    permissions: 
+      - 
+        action: "bedrock.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "response"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+  - 
+    method: "GET"
+    path: "/api/bedrock/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "bedrock"
+    permissions: 
+      - 
+        action: "bedrock.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/bedrock/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "bedrock"
+    permissions: 
+      - 
+        action: "bedrock.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "PATCH"
+    path: "/api/bedrock/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "bedrock"
+    permissions: 
+      - 
+        action: "bedrock.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/api/bedrock/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "bedrock.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/bedrock/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "bedrock.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/bedrock/verify/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/bedrock/verify/{urn}"
+  - 
+    method: "GET"
+    path: "/api/dagger"
+    proxy: 
+      uri: "${ODIN_URL}/dagger"
+      extraOptions: 
+        responseKeyToReturn: "dagger"
+    permissions: 
+      - 
+        action: "dagger.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "POST"
+    path: "/api/dagger"
+    proxy: 
+      uri: "${ODIN_URL}/dagger"
+      extraOptions: 
+        responseKeyToReturn: "dagger"
+    permissions: 
+      - 
+        action: "dagger.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "response"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+  - 
+    method: "GET"
+    path: "/api/dagger/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/dagger/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "dagger"
+    permissions: 
+      - 
+        action: "dagger.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/dagger/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/dagger/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "dagger"
+    permissions: 
+      - 
+        action: "dagger.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "PATCH"
+    path: "/api/dagger/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/dagger/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "dagger"
+    permissions: 
+      - 
+        action: "dagger.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/api/dagger/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/dagger/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "dagger.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/dagger/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/dagger/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "dagger.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/dagger/verify/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/dagger/verify/{urn}"
+  - 
+    method: "GET"
+    path: "/api/flink"
+    proxy: 
+      uri: "${ODIN_URL}/flink"
+      extraOptions: 
+        responseKeyToReturn: "flink"
+    permissions: 
+      - 
+        action: "flink.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "POST"
+    path: "/api/flink"
+    proxy: 
+      uri: "${ODIN_URL}/flink"
+      extraOptions: 
+        responseKeyToReturn: "flink"
+    permissions: 
+      - 
+        action: "flink.create"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "name"
+              type: "response"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "response"
+          - 
+            environment: 
+              key: "environment"
+              type: "response"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "response"
+          - 
+            group: 
+              key: "group_id"
+              type: "response"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "response"
+  - 
+    method: "GET"
+    path: "/api/flink/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/flink/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "flink"
+    permissions: 
+      - 
+        action: "flink.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/flink/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/flink/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "flink"
+    permissions: 
+      - 
+        action: "flink.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "PATCH"
+    path: "/api/flink/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/flink/{urn}"
+      extraOptions: 
+        responseKeyToReturn: "flink"
+    permissions: 
+      - 
+        action: "flink.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "GET"
+    path: "/api/flink/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/flink/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "flink.read"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "query"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "query"
+          - 
+            environment: 
+              key: "environment"
+              type: "query"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "query"
+          - 
+            group: 
+              key: "group_id"
+              type: "query"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "query"
+  - 
+    method: "PUT"
+    path: "/api/flink/{urn}/{action_type}"
+    proxy: 
+      uri: "${ODIN_URL}/flink/{urn}/{action_type}"
+    permissions: 
+      - 
+        action: "flink.manage"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+              defaultValue: "public"
+    hooks: 
+      - 
+        resources: 
+          - 
+            resource: 
+              key: "urn"
+              type: "payload"
+        attributes: 
+          - 
+            entity: 
+              key: "entity"
+              type: "payload"
+          - 
+            environment: 
+              key: "environment"
+              type: "payload"
+          - 
+            landscape: 
+              key: "landscape"
+              type: "payload"
+          - 
+            group: 
+              key: "group_id"
+              type: "payload"
+          - 
+            privacy: 
+              key: "privacy"
+              type: "payload"
+  - 
+    method: "GET"
+    path: "/api/flink/verify/{urn}"
+    proxy: 
+      uri: "${ODIN_URL}/flink/verify/{urn}"
+  - 
+    method: "GET"
+    path: "/api/odin/stats"
+    proxy: 
+      uri: "${ODIN_URL}/odin/stats"
