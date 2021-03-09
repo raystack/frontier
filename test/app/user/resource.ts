@@ -37,7 +37,7 @@ lab.experiment('User::resource', () => {
   });
 
   lab.experiment('list users', () => {
-    let users, groups, userEntityPolicy;
+    let users: any, groups, userEntityPolicy: any;
 
     lab.beforeEach(async () => {
       // setup data
@@ -46,58 +46,80 @@ lab.experiment('User::resource', () => {
 
       users = await factory(User)().createMany(5);
       groups = await factory(Group)().createMany(2);
+      const user = users[0];
 
       // user group mapping
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await enforcer.addSubjectGroupingJsonPolicy(
         { user: users[0].id },
-        { group: groups[0].id }
+        { group: groups[0].id },
+        { created_by: user }
       );
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await enforcer.addSubjectGroupingJsonPolicy(
         { user: users[1].id },
-        { group: groups[0].id }
+        { group: groups[0].id },
+        { created_by: user }
       );
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await enforcer.addSubjectGroupingJsonPolicy(
         { user: users[3].id },
-        { group: groups[1].id }
+        { group: groups[1].id },
+        { created_by: user }
       );
-      await enforcer.addSubjectGroupingJsonPolicy(
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      await enforcer?.addSubjectGroupingJsonPolicy(
         { user: users[2].id },
-        { group: groups[1].id }
+        { group: groups[1].id },
+        { created_by: user }
       );
 
       // create relavant policies
-      await enforcer.addJsonPolicy(
+      await enforcer?.addJsonPolicy(
         { group: groups[0].id },
         { entity: 'gojek', privacy: 'public' },
-        { action: 'firehose.read' }
+        { action: 'firehose.read' },
+        { created_by: user }
       );
       userEntityPolicy = {
         subject: { user: users[2].id },
         resource: { entity: 'gojek' },
         action: { action: 'firehose.read' }
       };
-      await enforcer.addJsonPolicy(
+      await enforcer?.addJsonPolicy(
         userEntityPolicy.subject,
         userEntityPolicy.resource,
-        userEntityPolicy.action
+        userEntityPolicy.action,
+        { created_by: user }
       );
-      await enforcer.addJsonPolicy(
+      await enforcer?.addJsonPolicy(
         { user: users[2].id },
         { group: groups[1].id },
-        { role: 'team.admin' }
+        { role: 'team.admin' },
+        { created_by: user }
       );
     });
 
-    lab.test('should return all users if no filters are specifed', async () => {
-      const getListWithFiltersStub = Sandbox.stub(
-        Resource,
-        'getListWithFilters'
-      ).returns(<any>[]);
+    lab.test(
+      'should return all users if no filters are specified',
+      async () => {
+        const getListWithFiltersStub = Sandbox.stub(
+          Resource,
+          'getListWithFilters'
+        ).returns(<any>users);
 
-      const result = await Resource.list();
-      Code.expect(result).to.equal(users);
-      Sandbox.assert.notCalled(getListWithFiltersStub);
-    });
+        const result = await Resource.list();
+        Code.expect(result).to.equal(users);
+        Sandbox.assert.notCalled(getListWithFiltersStub);
+      }
+    );
 
     lab.test('should return users that match the filter', async () => {
       const removeTimestamps = R.omit(['createdAt', 'updatedAt']);

@@ -1,16 +1,20 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
+import { factory } from 'typeorm-seeding';
 import * as Config from '../../../config/config';
 import setupSampleData from './sample';
 import CasbinSingleton from '../../../lib/casbin';
 import { lab } from '../../setup';
 import connection from '../../connection';
+import { User } from '../../../model/user';
 
 exports.lab = Lab.script();
 
 const testScenarios = () => {
+  let users: any[];
   lab.beforeEach(async () => {
-    await setupSampleData();
+    const response = await setupSampleData();
+    users = response.users;
   });
 
   lab.test(
@@ -34,6 +38,11 @@ const testScenarios = () => {
       const obj = {
         resource: 'p-gojek-id-firehose-transport-123'
       };
+      const user = await factory(User)().create();
+      user.id = 'alice';
+      user.username = 'alice';
+      user.displayname = 'alice';
+      const options = { created_by: user };
       const act = { action: 'firehose.write' };
       const res = await context.enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);

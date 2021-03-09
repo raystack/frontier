@@ -200,7 +200,12 @@ lab.experiment('Group:User::Handler', () => {
 
       const response = await server.inject(request);
 
-      Sandbox.assert.calledWithExactly(removeStub, GROUP_ID, USER_ID);
+      Sandbox.assert.calledWithExactly(
+        removeStub,
+        GROUP_ID,
+        USER_ID,
+        TEST_AUTH.credentials.id
+      );
       Code.expect(response.result).to.equal(expectedResult);
       Code.expect(response.statusCode).to.equal(200);
     });
@@ -233,6 +238,7 @@ lab.experiment('Group:User::Handler', () => {
         Sandbox.assert.calledWithExactly(
           removeStub,
           GROUP_ID,
+          TEST_AUTH.credentials.id,
           TEST_AUTH.credentials.id
         );
         Code.expect(response.result).to.equal(expectedResult);

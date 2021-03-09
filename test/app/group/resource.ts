@@ -118,8 +118,18 @@ lab.experiment('Group::resource', () => {
         ...payload
       });
 
-      const loggedInUserId = Faker.random.uuid();
+      const user = await factory(User)().create();
+      const loggedInUserId = user.id;
+
+      Sandbox.stub(User, 'findOne').resolves(<User>user);
+
       const response = await Resource.create(payload, loggedInUserId);
+
+      Sandbox.assert.calledWithExactly(
+        checkSubjectHasAccessToCreateAttributesMappingStub,
+        { user: loggedInUserId },
+        payload.attributes
+      );
 
       Sandbox.assert.calledWithExactly(
         checkSubjectHasAccessToCreateAttributesMappingStub,
@@ -129,11 +139,13 @@ lab.experiment('Group::resource', () => {
       Sandbox.assert.calledWithExactly(
         upsertGroupAndAttributesMappingStub,
         groupId,
-        payload.attributes
+        payload.attributes,
+        user
       );
       Sandbox.assert.calledWithExactly(
         groupSaveStub,
-        <any>R.omit(['attributes', 'policies'], payload)
+        <any>R.omit(['attributes', 'policies'], payload),
+        { data: { user } }
       );
       Sandbox.assert.calledWithExactly(
         bulkUpsertPoliciesForGroupStub,
@@ -142,6 +154,7 @@ lab.experiment('Group::resource', () => {
         loggedInUserId
       );
       Sandbox.assert.calledWithExactly(getStub, groupId, loggedInUserId);
+
       Code.expect(response).to.equal({
         id: groupId,
         ...payload,
@@ -191,9 +204,11 @@ lab.experiment('Group::resource', () => {
         id: groupId,
         ...payload
       };
+      const user = await factory(User)().create();
       const getStub = Sandbox.stub(Resource, 'get').returns(<any>group);
+      Sandbox.stub(User, 'findOne').returns(<any>user);
 
-      const loggedInUserId = Faker.random.uuid();
+      const loggedInUserId = user.id;
       const response = await Resource.update(groupId, payload, loggedInUserId);
 
       Sandbox.assert.calledWithExactly(
@@ -204,7 +219,8 @@ lab.experiment('Group::resource', () => {
       );
       Sandbox.assert.calledWithExactly(
         groupSaveStub,
-        <any>R.omit(['attributes', 'policies'], { ...payload, id: groupId })
+        <any>R.omit(['attributes', 'policies'], { ...payload, id: groupId }),
+        { data: { user } }
       );
       Sandbox.assert.calledWithExactly(
         bulkUpsertPoliciesForGroupStub,
@@ -223,7 +239,7 @@ lab.experiment('Group::resource', () => {
   });
 
   lab.experiment('get list of groups', () => {
-    let groups, users, currentUser;
+    let groups: any, users: any, currentUser: any;
 
     const sortByDisplayName = R.sortBy(R.propOr(null, 'displayname'));
     const removeExtraKeys = R.map(R.omit(['createdAt', 'updatedAt']));
@@ -243,7 +259,7 @@ lab.experiment('Group::resource', () => {
       sortMemberPolicies
     );
 
-    const getMemberPolicy = (user, group, role) => {
+    const getMemberPolicy = (user: any, group: any, role: any) => {
       return {
         subject: { user: user.id },
         resource: { group: group.id },
@@ -264,18 +280,22 @@ lab.experiment('Group::resource', () => {
 
       const getId = R.path(['id']);
 
-      const makeUserTeamAdmin = async (user, group) => {
+      const makeUserTeamAdmin = async (user: any, group: any) => {
         const groupId = getId(group);
         const userId = getId(user);
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         await enforcer?.addSubjectGroupingJsonPolicy(
           { user: userId },
-          { group: groupId }
+          { group: groupId },
+          { created_by: user }
         );
         await enforcer?.addJsonPolicy(
           { user: userId },
           { group: groupId },
-          { role: 'team.admin' }
+          { role: 'team.admin' },
+          { created_by: user }
         );
       };
 
@@ -283,14 +303,20 @@ lab.experiment('Group::resource', () => {
       await Promise.all(
         R.take(3, groups).map(async (group) => {
           const groupId = getId(group);
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           await enforcer?.addResourceGroupingJsonPolicy(
             { group: groupId },
-            { entity: 'gojek' }
+            { entity: 'gojek' },
+            { created_by: currentUser }
           );
 
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           await enforcer?.addSubjectGroupingJsonPolicy(
             { user: getId(currentUser) },
-            { group: groupId }
+            { group: groupId },
+            { created_by: currentUser }
           );
         })
       );
@@ -298,9 +324,12 @@ lab.experiment('Group::resource', () => {
       // map 2 groups with gofin
       await Promise.all(
         R.takeLast(2, groups).map(async (group) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           await enforcer?.addResourceGroupingJsonPolicy(
             { group: getId(group) },
-            { entity: 'gofin' }
+            { entity: 'gofin' },
+            { created_by: currentUser }
           );
         })
       );
