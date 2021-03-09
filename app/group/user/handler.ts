@@ -67,7 +67,8 @@ export const remove = {
   app: iamConfig('iam.delete'),
   handler: async (request: Hapi.Request) => {
     const { groupId, userId } = request.params;
-    return Resource.remove(groupId, userId);
+    const { id: loggedInUserId } = request.auth.credentials;
+    return Resource.remove(groupId, userId, <string>loggedInUserId);
   }
 };
 
@@ -77,6 +78,10 @@ export const removeSelf = {
   handler: async (request: Hapi.Request) => {
     const { groupId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;
-    return Resource.remove(groupId, <string>loggedInUserId);
+    return Resource.remove(
+      groupId,
+      <string>loggedInUserId,
+      <string>loggedInUserId
+    );
   }
 };

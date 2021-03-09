@@ -52,7 +52,11 @@ export const update = async (
   return await bulkOperation(policies, subject);
 };
 
-export const remove = async (groupId: string, userId: string) => {
+export const remove = async (
+  groupId: string,
+  userId: string,
+  loggedInUserId: string
+) => {
   const userObj = { user: userId };
   const groupObj = { group: groupId };
   const user = await User.findOne({
@@ -76,7 +80,8 @@ export const remove = async (groupId: string, userId: string) => {
       await CasbinSingleton.enforcer?.removeJsonPolicy(
         policy.subject,
         policy.resource,
-        policy.action
+        policy.action,
+        options
       );
     });
     await Promise.all(promiseList);
