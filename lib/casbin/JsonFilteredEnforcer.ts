@@ -409,7 +409,7 @@ export class JsonFilteredEnforcer implements IEnforcer {
     await sendLog(
       diff(previousPolicies, currentPolicies),
       ActivityActions.CREATE,
-      options.created_by
+      options?.created_by
     );
   }
 }
