@@ -84,6 +84,8 @@ export class JsonFilteredEnforcer implements IEnforcer {
   }
 
   private async getSubjectsForPolicySubset(subjects: string[]) {
+    if (R.isEmpty(subjects)) return [];
+
     const subjectMappings = await createQueryBuilder()
       .select('casbin_rule.v1')
       .from('casbin_rule', 'casbin_rule')
@@ -97,6 +99,8 @@ export class JsonFilteredEnforcer implements IEnforcer {
   }
 
   private async getResourcesForPolicySubset(resources: string[]) {
+    if (R.isEmpty(resources)) return [];
+
     const resourceMappings = await createQueryBuilder()
       .select('casbin_rule.v1')
       .from('casbin_rule', 'casbin_rule')
@@ -125,6 +129,8 @@ export class JsonFilteredEnforcer implements IEnforcer {
   }
 
   private async getActionsForPolicySubset(actions: string[]) {
+    if (R.isEmpty(actions)) return [];
+
     const actionMappings = await createQueryBuilder()
       .select('casbin_rule.v1')
       .from('casbin_rule', 'casbin_rule')
@@ -167,22 +173,32 @@ export class JsonFilteredEnforcer implements IEnforcer {
     const any = Like('%*%');
     const queryForPoliciesWithRegex = [{ v0: any }, { v1: any }, { v2: any }];
 
-    await enforcer.loadFilteredPolicy({
-      where: [
-        {
-          ptype: 'p',
-          v0: In(subjectsForPolicyFilter),
-          v1: Raw((alias) => `${alias} like any (array[:...resources])`, {
-            resources: resourcesForPolicyFilter
-          }),
-          v2: In(actionsForPolicyFilter)
-        },
-        { ptype: 'g', v0: In(subjects) },
-        { ptype: 'g2', v0: In(resources) },
-        { ptype: 'g3', v0: In(actions) },
-        ...queryForPoliciesWithRegex
-      ]
-    });
+    const allElementsAreNonEmpty = R.all(R.complement(R.isEmpty), [
+      subjectsForPolicyFilter,
+      resourcesForPolicyFilter,
+      actionsForPolicyFilter,
+      subjects,
+      resources,
+      actions
+    ]);
+    if (allElementsAreNonEmpty) {
+      await enforcer.loadFilteredPolicy({
+        where: [
+          {
+            ptype: 'p',
+            v0: In(subjectsForPolicyFilter),
+            v1: Raw((alias) => `${alias} like any (array[:...resources])`, {
+              resources: resourcesForPolicyFilter
+            }),
+            v2: In(actionsForPolicyFilter)
+          },
+          { ptype: 'g', v0: In(subjects) },
+          { ptype: 'g2', v0: In(resources) },
+          { ptype: 'g3', v0: In(actions) },
+          ...queryForPoliciesWithRegex
+        ]
+      });
+    }
 
     return enforcer;
   }
@@ -192,11 +208,9 @@ export class JsonFilteredEnforcer implements IEnforcer {
     resource: JsonAttributes,
     action: JsonAttributes
   ): Promise<boolean> {
-    // load filtered policy
     const enforcer = await this.getEnforcerWithPolicies([
       { subject, resource, action }
     ]);
-    // enforceJson
 
     const hasAccess = await enforcer.enforce(
       convertJSONToStringInOrder(subject),

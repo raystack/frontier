@@ -24,6 +24,11 @@ export const GROUP_USER_ROUTES: IAMRoute[] = [
   },
   {
     method: 'DELETE',
+    path: '/api/groups/{groupId}/users/self',
+    options: Handler.removeSelf
+  },
+  {
+    method: 'DELETE',
     path: '/api/groups/{groupId}/users/{userId}',
     options: Handler.remove
   }

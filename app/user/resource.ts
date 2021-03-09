@@ -4,13 +4,21 @@ import { extractResourceAction } from '../policy/util';
 import { getSubjecListWithPolicies } from '../policy/resource';
 import CasbinSingleton from '../../lib/casbin';
 import { isJSONSubset } from '../../lib/casbin/JsonRoleManager';
-import getUniqName from '../../lib/getUniqName';
+import getUniqName, { validateUniqName } from '../../lib/getUniqName';
 
 type JSObj = Record<string, unknown>;
 
+const getValidUsername = async (payload: any) => {
+  let username = payload?.username;
+  if (payload?.displayname && !username) {
+    username = await getUniqName(payload?.displayname, 'username', User);
+  }
+  validateUniqName(username);
+  return username;
+};
+
 export const create = async (payload: any) => {
-  const basename = payload?.username || payload?.displayname;
-  const username = await getUniqName(basename, 'username', User);
+  const username = await getValidUsername(payload);
   return await User.save({ ...payload, username });
 };
 

@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { createQueryBuilder } from 'typeorm';
 import CasbinSingleton from '../../lib/casbin';
+import { convertJSONToStringInOrder } from '../../lib/casbin/JsonEnforcer';
 import { User } from '../../model/user';
 import {
   toLikeQuery,
@@ -171,6 +172,7 @@ export const getAttributesForGroup = async (groupId: string) => {
   return rawResult.map((rawObj) => JSON.parse(rawObj.v1));
 };
 
+// TODO: Move this to the appropriate resource.ts file
 export const getUsersOfGroupWithPolicies = async (
   groupId: string,
   policyFilter: JSObj = {}
@@ -218,4 +220,31 @@ export const getUsersOfGroupWithPolicies = async (
   const rawResult = await cursor.andHaving(`${MAPPING_COUNT} > 0`).getRawMany();
 
   return parsePoliciesWithSubject(rawResult, 'user');
+};
+
+export const getResourceAttributeMappingsByResources = async (
+  resources: JSObj[] = []
+) => {
+  const stringifiedResources = resources.map((res: JSObj) =>
+    convertJSONToStringInOrder(res)
+  );
+
+  const rawResult = await createQueryBuilder()
+    .select('*')
+    .from('casbin_rule', 'casbin_rule')
+    .where('casbin_rule.ptype = :type', { type: 'g2' })
+    .andWhere('casbin_rule.v2 = :domain', {
+      domain: 'resource'
+    })
+    .andWhere('casbin_rule.v0 in (:...resources)', {
+      resources: stringifiedResources
+    })
+    .getRawMany();
+
+  const parsedResults = rawResult.map((res) => ({
+    resource: JSON.parse(R.propOr('{}', 'v0', res)),
+    attributes: JSON.parse(R.propOr('{}', 'v1', res))
+  }));
+
+  return parsedResults;
 };
