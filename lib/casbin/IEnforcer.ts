@@ -19,45 +19,58 @@ interface IEnforcer {
   addJsonPolicy(
     subject: JsonAttributes,
     resource: JsonAttributes,
-    action: JsonAttributes
+    action: JsonAttributes,
+    options: JsonAttributes
   ): void;
 
-  addStrPolicy(subject: string, resource: string, action: string): void;
+  addStrPolicy(
+    subject: string,
+    resource: string,
+    action: string,
+    options: JsonAttributes
+  ): void;
 
   removeJsonPolicy(
     subject: JsonAttributes,
     resource: JsonAttributes,
-    action: JsonAttributes
+    action: JsonAttributes,
+    options: JsonAttributes
   ): void;
 
   addSubjectGroupingJsonPolicy<T extends string>(
     subject: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ): void;
 
   removeSubjectGroupingJsonPolicy<T extends string>(
     subject: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ): void;
 
   addResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ): void;
 
   // ? Note: this will remove all policies by resource keys and then insert the new one
   upsertResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ): void;
 
   removeAllResourceGroupingJsonPolicy<T extends string>(
-    resource: OneKey<T>
+    resource: OneKey<T>,
+    options: JsonAttributes
   ): void;
 
   addActionGroupingJsonPolicy<T extends string>(
     action: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ): void;
 }
 
