@@ -200,15 +200,45 @@ lab.experiment('Group:User::Handler', () => {
 
       const response = await server.inject(request);
 
-      Sandbox.assert.calledWithExactly(
-        removeStub,
-        GROUP_ID,
-        USER_ID,
-        TEST_AUTH.credentials.id
-      );
+      Sandbox.assert.calledWithExactly(removeStub, GROUP_ID, USER_ID);
       Code.expect(response.result).to.equal(expectedResult);
       Code.expect(response.statusCode).to.equal(200);
     });
+  });
+
+  lab.experiment('remove group and user mapping for loggedin user', () => {
+    let removeStub: any;
+
+    lab.afterEach(() => {
+      removeStub.restore();
+    });
+
+    lab.test(
+      'should remove group and user mapping for loggedin user',
+      async () => {
+        const GROUP_ID = 'test-group';
+        const request: any = {
+          method: 'DELETE',
+          url: `/api/groups/${GROUP_ID}/users/self`,
+          auth: TEST_AUTH
+        };
+
+        const expectedResult: any = true;
+        removeStub = Sandbox.stub(GroupUserResource, 'remove').returns(
+          expectedResult
+        );
+
+        const response = await server.inject(request);
+
+        Sandbox.assert.calledWithExactly(
+          removeStub,
+          GROUP_ID,
+          TEST_AUTH.credentials.id
+        );
+        Code.expect(response.result).to.equal(expectedResult);
+        Code.expect(response.statusCode).to.equal(200);
+      }
+    );
   });
 
   lab.experiment('get group and user mapping', () => {

@@ -4,6 +4,7 @@ import * as Config from '../../../config/config';
 import setupSampleData from './sample';
 import CasbinSingleton from '../../../lib/casbin';
 import { lab } from '../../setup';
+import connection from '../../connection';
 
 exports.lab = Lab.script();
 
@@ -11,6 +12,20 @@ const testScenarios = () => {
   lab.beforeEach(async () => {
     await setupSampleData();
   });
+
+  lab.test(
+    'enforcer should work for empty policy list',
+    async ({ context }) => {
+      await connection.clear();
+      let error;
+      try {
+        await context.enforcer.batchEnforceJson([]);
+      } catch (e) {
+        error = e;
+      }
+      Code.expect(error).to.undefined();
+    }
+  );
 
   lab.test(
     'resource.manager(alice) of a team(transport) with particular project(gojek::production::id) access should have firehose.write access to the team resource(p-gojek-id-firehose-transport-123)',

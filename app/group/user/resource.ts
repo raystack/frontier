@@ -5,8 +5,7 @@ import {
   bulkOperation,
   getPoliciesBySubject,
   getGroupUserMapping,
-  getUsersOfGroupWithPolicies,
-  PolicyOperation
+  getUsersOfGroupWithPolicies
 } from '../../policy/resource';
 import { User } from '../../../model/user';
 
@@ -53,11 +52,7 @@ export const update = async (
   return await bulkOperation(policies, subject);
 };
 
-export const remove = async (
-  groupId: string,
-  userId: string,
-  loggedInUserId: any
-) => {
+export const remove = async (groupId: string, userId: string) => {
   const userObj = { user: userId };
   const groupObj = { group: groupId };
   const user = await User.findOne({
@@ -74,11 +69,17 @@ export const remove = async (
     options
   );
 
-  const policies = (await getPoliciesBySubject(userObj, groupObj)).map(
-    R.assoc('operation', 'delete')
-  );
+  const policies = await getPoliciesBySubject(userObj, groupObj);
+
   if (!R.isEmpty(policies)) {
-    await bulkOperation(<PolicyOperation[]>policies, { user: loggedInUserId });
+    const promiseList = policies.map(async (policy) => {
+      await CasbinSingleton.enforcer?.removeJsonPolicy(
+        policy.subject,
+        policy.resource,
+        policy.action
+      );
+    });
+    await Promise.all(promiseList);
   }
 
   return true;

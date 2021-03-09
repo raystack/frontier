@@ -17,7 +17,7 @@ export const constructIAMResourceFromConfig = (
     const requestType: string = requestObj.type;
 
     const valueInRequest = R.pathOr(
-      undefined,
+      requestObj.defaultValue,
       [requestType, requestKey],
       request
     );

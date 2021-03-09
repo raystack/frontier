@@ -15,7 +15,12 @@ export const get = {
   description: 'get group by id',
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
-    return Resource.get(request.params.id, request.query);
+    const { id: loggedInUserId } = request?.auth?.credentials || { id: '' };
+    return Resource.get(
+      request.params.id,
+      <string>loggedInUserId,
+      request.query
+    );
   }
 };
 
