@@ -23,8 +23,19 @@ export const create = async (
   const group = {
     group: groupId
   };
-
-  await CasbinSingleton.enforcer?.addSubjectGroupingJsonPolicy(subject, group);
+  const user = await User.findOne({
+    where: {
+      id: loggedInUserId
+    }
+  });
+  const options = { created_by: user };
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await CasbinSingleton.enforcer?.addSubjectGroupingJsonPolicy(
+    subject,
+    group,
+    options
+  );
   return await bulkOperation(policies, { user: loggedInUserId });
 };
 
@@ -49,10 +60,18 @@ export const remove = async (
 ) => {
   const userObj = { user: userId };
   const groupObj = { group: groupId };
-
+  const user = await User.findOne({
+    where: {
+      id: loggedInUserId
+    }
+  });
+  const options = { created_by: user };
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   await CasbinSingleton.enforcer?.removeSubjectGroupingJsonPolicy(
     userObj,
-    groupObj
+    groupObj,
+    options
   );
 
   const policies = (await getPoliciesBySubject(userObj, groupObj)).map(

@@ -22,6 +22,11 @@ export const bulkOperation = async (
   policyOperations: PolicyOperation[] = [],
   subject: JSObj
 ) => {
+  const user = await User.findOne({
+    where: {
+      id: subject.user
+    }
+  });
   const promiseList = policyOperations.map(async ({ operation, ...policy }) => {
     // ? the subject who is performing the action should have iam.manage permission
     const hasAccess = await CasbinSingleton.enforcer?.enforceJson(
@@ -31,12 +36,14 @@ export const bulkOperation = async (
     );
     if (!hasAccess) return false;
 
+    const options: JSObj = { created_by: user };
     switch (operation) {
       case 'create': {
         await CasbinSingleton.enforcer?.addJsonPolicy(
           policy.subject,
           policy.resource,
-          policy.action
+          policy.action,
+          options
         );
         break;
       }
@@ -44,7 +51,8 @@ export const bulkOperation = async (
         await CasbinSingleton.enforcer?.removeJsonPolicy(
           policy.subject,
           policy.resource,
-          policy.action
+          policy.action,
+          { created_by: user }
         );
         break;
       }

@@ -56,20 +56,29 @@ export const checkSubjectHasAccessToCreateAttributesMapping = async (
 
 export const upsertGroupAndAttributesMapping = async (
   groupId: string,
-  attributes: JSObj[]
+  attributes: JSObj[],
+  loggedInUser: User | undefined
 ) => {
   if (R.isEmpty(attributes)) {
     return;
   }
-
-  await CasbinSingleton?.enforcer?.removeAllResourceGroupingJsonPolicy({
-    group: groupId
-  });
+  const options = { created_by: loggedInUser };
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await CasbinSingleton?.enforcer?.removeAllResourceGroupingJsonPolicy(
+    {
+      group: groupId
+    },
+    options
+  );
   await Promise.all(
     attributes.map(async (attribute: JSObj) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await CasbinSingleton?.enforcer?.addResourceGroupingJsonPolicy(
         { group: groupId },
-        attribute
+        attribute,
+        options
       );
     })
   );
@@ -93,7 +102,11 @@ export const checkSubjectHasAccessToEditGroup = async (
 ) => {
   const groupId = <string>group.id;
   const prevAttributes = <JSObj[]>group.attributes;
-
+  const user = await User.findOne({
+    where: {
+      id: loggedInUserId
+    }
+  });
   // ? We need to check this only if the attributes change
   if (!R.equals(attributes, prevAttributes)) {
     await checkSubjectHasAccessToCreateAttributesMapping(
@@ -102,7 +115,7 @@ export const checkSubjectHasAccessToEditGroup = async (
       },
       [...attributes, ...prevAttributes]
     );
-    await upsertGroupAndAttributesMapping(groupId, attributes);
+    await upsertGroupAndAttributesMapping(groupId, attributes, user);
   }
 
   // ? the user needs access to the group if they need to edit it
@@ -194,7 +207,7 @@ export const create = async (payload: any, loggedInUserId: string) => {
   );
   const groupId = groupResult.id;
 
-  await upsertGroupAndAttributesMapping(groupId, attributes);
+  await upsertGroupAndAttributesMapping(groupId, attributes, user);
 
   const policyOperationResult = await bulkUpsertPoliciesForGroup(
     groupId,
