@@ -1,5 +1,8 @@
 /* eslint-disable no-template-curly-in-string */
 import Hapi from '@hapi/hapi';
+import Wreck from '@hapi/wreck';
+import * as R from 'ramda';
+import modifyRequest from './modifyRequest';
 
 interface YAMLRoute {
   method: string;
@@ -32,39 +35,74 @@ export const expand = (
   });
 };
 
+const onResponse = (extraOptions: any = {}) => async (
+  err: any,
+  res: any,
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) => {
+  const payload = await Wreck.read(res, {
+    json: 'force',
+    gunzip: true
+  });
+
+  // only return the following key from the response
+  const responseKeyToReturn = R.pathOr(
+    '',
+    ['responseKeyToReturn'],
+    extraOptions
+  );
+  if (!R.hasPath(responseKeyToReturn.split('.'), payload)) {
+    return h.response(payload);
+  }
+
+  const payloadToReturn = R.pathOr({}, responseKeyToReturn.split('.'), payload);
+  return h.response(payloadToReturn);
+};
+
 export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
   return contents.map((route: YAMLRoute) => {
+    const proxy = {
+      onResponse: onResponse(route?.proxy?.extraOptions),
+      async mapUri(request: Hapi.Request) {
+        const { uri, protocol, host, port, path } = route.proxy;
+        const queryParams = request.url.search || '';
+        const proxyURI = uri
+          ? `${expand(uri, request.params, PARAM_REGEX, 1)}${queryParams}`
+          : `${protocol}://${host}:${port}/${expand(
+              path,
+              request.params,
+              PARAM_REGEX,
+              1
+            )}${queryParams}'`;
+        return {
+          uri: proxyURI
+        };
+      },
+      passThrough: true
+    };
+
     return {
       method: route.method,
       path: route.path,
-      handler: {
-        proxy: {
-          async mapUri(request: Hapi.Request) {
-            const { uri, protocol, host, port, path } = route.proxy;
-            const queryParams = request.url.search || '';
-            const proxyURI = uri
-              ? `${expand(uri, request.params, PARAM_REGEX, 1)}${queryParams}`
-              : `${protocol}://${host}:${port}/${expand(
-                  path,
-                  request.params,
-                  PARAM_REGEX,
-                  1
-                )}${queryParams}'`;
-            return {
-              uri: proxyURI
-            };
-          },
-          passThrough: true
-        }
+      handler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
+        return h.proxy(proxy);
       },
       options: {
+        ext: {
+          onPreHandler: {
+            method: modifyRequest
+          }
+        },
         tags: ['api'],
+        ...(!['GET', 'HEAD'].includes(route.method) && {
+          payload: { parse: false }
+        }),
         app: {
           iam: {
             permissions: route?.permissions || [],
             hooks: route?.hooks || []
-          },
-          proxy: route?.proxy?.extraOptions
+          }
         }
       }
     };

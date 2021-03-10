@@ -138,7 +138,7 @@ export const getRequestData = async (request: Hapi.Request) => {
   const requestData = R.assoc(
     'response',
     body,
-    R.pick(['query', 'params', 'payload'], request)
+    R.pick(['query', 'params', 'payload', 'headers'], request)
   );
   return requestData;
 };
