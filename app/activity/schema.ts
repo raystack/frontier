@@ -8,9 +8,11 @@ export const ActivityPayload = Joi.object()
   .keys({
     id: Joi.string().required(),
     title: Joi.string().required(),
-    team: Joi.string().required(),
-    details: Joi.array().items(Joi.object().optional()),
-    createdAt: Joi.date().iso().required(),
-    createdBy: Joi.string().required()
+    model: Joi.string().required(),
+    documentId: Joi.string().required(),
+    document: Joi.object().required(),
+    diffs: Joi.array().items(Joi.object().optional()),
+    createdBy: Joi.string().required(),
+    createdAt: Joi.date().iso().required()
   })
   .options(validationOptions);

@@ -2,18 +2,18 @@ import { Activity } from '../../model/activity';
 import Constants from '../../utils/constant';
 import { delta } from '../../utils/deep-diff';
 
-export const get = async (team = '') => {
+export const get = async (group = '') => {
   let criteria: any = {
     order: {
       createdAt: 'DESC'
     }
   };
 
-  if (team.length !== 0) {
-    // fetch activities based on team
+  if (group.length !== 0) {
+    // fetch activities based on group
     criteria = Object.assign(criteria, {
       where: {
-        team
+        model: group
       }
     });
   }
