@@ -6,10 +6,10 @@ import * as Resource from './resource';
 // activities?{}
 
 export const get = {
-  description: 'get all activities or team activities',
+  description: 'get all activities or group activities',
   tags: ['api'],
   handler: async (request: Hapi.Request) => {
-    const { team } = request.query;
-    return Resource.get(team);
+    const { group } = request.query;
+    return Resource.get(group);
   }
 };
