@@ -115,8 +115,11 @@ export const checkIfShouldTriggerHooks = (
 
   // TODO: remove <any> if there is a better approach here. Not able to access response.source without this
   const { response } = <any>request || {};
+  const statusCode = R.pathOr(100, ['response', 'statusCode'], request);
+  const isSuccessStatusCode = statusCode >= 200 && statusCode <= 299;
   const hasUpsertConfig = !R.isEmpty(iam?.hooks) && !R.isNil(iam?.hooks);
-  const shouldUpsertResourceAttributes = hasUpsertConfig && response?.source;
+  const shouldUpsertResourceAttributes =
+    hasUpsertConfig && response?.source && isSuccessStatusCode;
 
   return !!shouldUpsertResourceAttributes;
 };
@@ -158,6 +161,7 @@ const manageResourceAttributesMapping = async (
 
   const shouldTriggerHooks = checkIfShouldTriggerHooks(route, request);
   if (shouldTriggerHooks) {
+    const statusCode = R.pathOr(200, ['response', 'statusCode'], request);
     const { iam } = <IAMRouteOptionsApp>route?.settings?.app || {};
     const hooks = <IAMUpsertConfig[]>iam?.hooks || [];
 
@@ -173,7 +177,7 @@ const manageResourceAttributesMapping = async (
         requestData.response,
         hooks
       );
-      return h.response(mergedResponse);
+      return h.response(mergedResponse).code(statusCode);
     }
   }
   return h.continue;
