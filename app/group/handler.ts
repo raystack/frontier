@@ -1,6 +1,7 @@
 import Hapi from '@hapi/hapi';
 import * as Schema from './schema';
 import * as Resource from './resource';
+import { get as ActivitiesByGroup } from '../activity/resource';
 
 export const list = {
   description: 'get list of groups',
@@ -49,5 +50,14 @@ export const update = {
       request.payload,
       <string>loggedInUserId
     );
+  }
+};
+
+export const getActivitiesByGroup = {
+  description: 'get activities by group',
+  tags: ['api'],
+  handler: async (request: Hapi.Request) => {
+    const { id: groupId } = request.params;
+    return ActivitiesByGroup(groupId);
   }
 };
