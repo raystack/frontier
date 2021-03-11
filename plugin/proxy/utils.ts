@@ -42,34 +42,38 @@ const onResponse = (extraOptions: any = {}) => async (
   request: Hapi.Request,
   h: Hapi.ResponseToolkit
 ) => {
-  try {
-    const payload = await Wreck.read(res, {
-      json: 'force',
-      gunzip: true
-    });
+  const { statusCode } = res;
 
-    // only return the following key from the response
-    const responseKeyToReturn = R.pathOr(
-      '',
-      ['responseKeyToReturn'],
-      extraOptions
-    );
-    if (R.hasPath(responseKeyToReturn.split('.'), payload)) {
-      const payloadToReturn = R.pathOr(
-        {},
-        responseKeyToReturn.split('.'),
-        payload
+  if (statusCode >= 200 && statusCode <= 299) {
+    try {
+      const payload = await Wreck.read(res, {
+        json: 'force',
+        gunzip: true
+      });
+
+      // only return the following key from the response
+      const responseKeyToReturn = R.pathOr(
+        '',
+        ['responseKeyToReturn'],
+        extraOptions
       );
-      return h.response(payloadToReturn);
-    }
+      if (R.hasPath(responseKeyToReturn.split('.'), payload)) {
+        const payloadToReturn = R.pathOr(
+          {},
+          responseKeyToReturn.split('.'),
+          payload
+        );
+        return h.response(payloadToReturn).code(statusCode);
+      }
 
-    return h.response(payload);
-    // eslint-disable-next-line no-empty
-  } catch (e) {
-    Logger.error(`Failed to parse proxy response: ${e}`);
+      return h.response(payload).code(statusCode);
+      // eslint-disable-next-line no-empty
+    } catch (e) {
+      Logger.error(`Failed to parse proxy response: ${e}`);
+    }
   }
 
-  return h.continue;
+  return h.response(res).code(statusCode);
 };
 
 export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
