@@ -2,6 +2,7 @@
 import Hapi from '@hapi/hapi';
 import Wreck from '@hapi/wreck';
 import * as R from 'ramda';
+import Logger from '../../lib/logger';
 import modifyRequest from './modifyRequest';
 
 interface YAMLRoute {
@@ -41,29 +42,42 @@ const onResponse = (extraOptions: any = {}) => async (
   request: Hapi.Request,
   h: Hapi.ResponseToolkit
 ) => {
-  const payload = await Wreck.read(res, {
-    json: 'force',
-    gunzip: true
-  });
+  try {
+    const payload = await Wreck.read(res, {
+      json: 'force',
+      gunzip: true
+    });
 
-  // only return the following key from the response
-  const responseKeyToReturn = R.pathOr(
-    '',
-    ['responseKeyToReturn'],
-    extraOptions
-  );
-  if (!R.hasPath(responseKeyToReturn.split('.'), payload)) {
+    // only return the following key from the response
+    const responseKeyToReturn = R.pathOr(
+      '',
+      ['responseKeyToReturn'],
+      extraOptions
+    );
+    if (R.hasPath(responseKeyToReturn.split('.'), payload)) {
+      const payloadToReturn = R.pathOr(
+        {},
+        responseKeyToReturn.split('.'),
+        payload
+      );
+      return h.response(payloadToReturn);
+    }
+
     return h.response(payload);
+    // eslint-disable-next-line no-empty
+  } catch (e) {
+    Logger.error(`Failed to parse proxy response: ${e}`);
   }
 
-  const payloadToReturn = R.pathOr({}, responseKeyToReturn.split('.'), payload);
-  return h.response(payloadToReturn);
+  return h.continue;
 };
 
 export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
   return contents.map((route: YAMLRoute) => {
     const proxy = {
-      onResponse: onResponse(route?.proxy?.extraOptions),
+      ...(route?.proxy?.extraOptions && {
+        onResponse: onResponse(route?.proxy?.extraOptions)
+      }),
       async mapUri(request: Hapi.Request) {
         const { uri, protocol, host, port, path } = route.proxy;
         const queryParams = request.url.search || '';
