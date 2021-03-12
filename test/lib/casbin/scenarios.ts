@@ -28,6 +28,19 @@ const testScenarios = () => {
   );
 
   lab.test(
+    'resource.manager(alice) of a team(transport) with particular project(gojek::production::id) access should have any access to the team resource(p-gojek-id-firehose-transport-123)',
+    async ({ context }) => {
+      const sub = { user: 'alice' };
+      const obj = {
+        resource: 'p-gojek-id-firehose-transport-123'
+      };
+      const act = { action: 'any' };
+      const res = await context.enforcer.enforceJson(sub, obj, act);
+      Code.expect(res).to.equal(true);
+    }
+  );
+
+  lab.test(
     'resource.manager(alice) of a team(transport) with particular project(gojek::production::id) access should have firehose.write access to the team resource(p-gojek-id-firehose-transport-123)',
     async ({ context }) => {
       const sub = { user: 'alice' };
