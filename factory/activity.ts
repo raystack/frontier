@@ -1,7 +1,6 @@
 import Faker from 'faker';
 import { define } from 'typeorm-seeding';
 import { Activity } from '../model/activity';
-// import { User } from '../model/user';
 
 define(Activity, (faker: typeof Faker) => {
   const activity = new Activity();
@@ -10,10 +9,6 @@ define(Activity, (faker: typeof Faker) => {
   activity.model = 'User';
   activity.document = {};
   activity.documentId = faker.random.uuid();
-  activity.diffs = [{}];
-  // const user = new User();
-  // user.id = faker.random.uuid();
-  // user.displayname = faker.random.word();
-  // activity.createdBy = user;
+  activity.diffs = [];
   return activity;
 });

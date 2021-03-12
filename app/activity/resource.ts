@@ -10,9 +10,7 @@ type ActivityType = {
   reason: string;
   createdAt: string;
   diff: {
-    created: string[] | undefined;
-    edited: string[] | undefined;
-    removed: string[] | undefined;
+    [key: string]: string[] | undefined;
   };
   user: string;
 };
@@ -79,19 +77,54 @@ const relationType = (diffs: Record<string, string>[]) => {
 const parseGroupActivity = async (activity: Activity) => {
   const output = activityResponsePayload(activity);
   const displayName = calcDiff(activity.diffs, 'displayname');
+  const metadata = calcDiff(activity.diffs, 'metadata');
+
   if (activity.documentId === '0') {
+    // created
     output.diff.created = [displayName[0].rhs];
-  } else if (
-    Object.prototype.hasOwnProperty.call(displayName[0], 'rhs') &&
-    Object.prototype.hasOwnProperty.call(displayName[0], 'lhs')
-  ) {
-    output.diff.edited = [displayName[0].lhs, displayName[0].rhs];
-  } else if (
-    !Object.prototype.hasOwnProperty.call(displayName[0], 'rhs') &&
-    Object.prototype.hasOwnProperty.call(displayName[0], 'lhs')
-  ) {
-    output.diff.removed = [displayName[0].lhs];
+    if (metadata.length > 0) {
+      Object.keys(metadata[0].rhs).forEach((key) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        output.diff[key] = [metadata[0].rhs[key]];
+      });
+    }
+  } else {
+    if (metadata.length > 0) {
+      metadata.forEach((meta) => {
+        output.diff[meta.path[1] || ''] = [meta.lhs, meta.rhs];
+      });
+    }
+
+    if (
+      displayName.length > 0 &&
+      Object.prototype.hasOwnProperty.call(displayName[0], 'lhs')
+    ) {
+      if (Object.prototype.hasOwnProperty.call(displayName[0], 'rhs')) {
+        output.diff.edited = [displayName[0].lhs, displayName[0].rhs];
+      } else {
+        output.diff.removed = [displayName[0].lhs];
+      }
+    }
   }
+
+  // else if (
+  //   displayName.length > 0 &&
+  //   Object.prototype.hasOwnProperty.call(displayName[0], 'lhs')
+  // ) {
+  //   if (Object.prototype.hasOwnProperty.call(displayName[0], 'rhs')) {
+  //     console.log('metadata => ', metadata);
+  //     if (metadata.length > 0) {
+  //       metadata.forEach((meta) => {
+  //         output.diff[meta.path[1] || ''] = [meta.lhs, meta.rhs];
+  //       });
+  //     }
+  //     output.diff.edited = [displayName[0].lhs, displayName[0].rhs];
+  //     console.log('output edited => ', output);
+  //   } else {
+  //     output.diff.removed = [displayName[0].lhs];
+  //   }
+  // }
   return output;
 };
 
@@ -148,30 +181,15 @@ export const get = async (groupId = '') => {
     userRoleGroupMap: '',
     groupId: ''
   };
+
   const ActivityRepository = getManager().getRepository(Activity);
   if (groupId) {
     whereClause +=
-      ' AND ( activity.diffs @> :createGroup OR activity.diffs ::jsonb @> :userRoleGroupMap ) ';
-    // whereClause +=
-    //   ' AND (activity.diffs ::jsonb @> \'[{"rhs": \\:groupId\\}]\' OR\n' +
-    //   '    activity.diffs ::jsonb @> \'[{"rhs": "{\\"group\\": \\:groupId\\}"}]\'\n' +
-    //   '    )';
-    //
-    // whereParameter.groupId = groupId;
-    // whereClause +=
-    //   ' AND (activity.diffs ::jsonb @> \'[{"rhs": "6ead8ac9-2f91-4ae4-a6a8-8e5d16dce53f"}]\' OR\n' +
-    //   '    activity.diffs ::jsonb @> \'[{"rhs": "{\\"group\\":\\"6ead8ac9-2f91-4ae4-a6a8-8e5d16dce53f\\"}"}]\'\n' +
-    //   '    )';
-
-    // whereClause +=
-    //   ' AND (activity.diffs ::jsonb @> :createGroup OR activity.diffs ::jsonb @> :userRoleGroupMap )';
-
-    whereParameter.createGroup = JSON.stringify([
-      { rhs: groupId, kind: 'N', path: ['id'] }
-    ]);
+      ' AND ( activity.diffs @> :createGroup OR activity.diffs @> :userRoleGroupMap ) ';
+    whereParameter.createGroup = JSON.stringify([{ rhs: groupId }]);
     whereParameter.userRoleGroupMap = JSON.stringify([
       {
-        rhs: { group: groupId, kind: 'N', path: ['v1'] }
+        rhs: JSON.stringify({ group: groupId })
       }
     ]);
   }

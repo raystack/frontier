@@ -42,7 +42,7 @@ export class Activity extends BaseEntity {
     type: 'jsonb',
     nullable: true
   })
-  diffs: Record<string, string>[];
+  diffs: Record<string, any>[];
 
   @CreateDateColumn()
   createdAt: string;
