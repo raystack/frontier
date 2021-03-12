@@ -3,6 +3,7 @@ import Wreck from '@hapi/wreck';
 import * as R from 'ramda';
 import { getResourceAttributeMappingsByResources } from '../../app/policy/resource';
 import CasbinSingleton from '../../lib/casbin';
+import Logger from '../../lib/logger';
 import { IAMRouteOptionsApp, IAMUpsertConfig } from './types';
 import { constructIAMResourceFromConfig } from './utils';
 
@@ -118,31 +119,35 @@ export const checkIfShouldTriggerHooks = (
 
   // TODO: remove <any> if there is a better approach here. Not able to access response.source without this
   const { response } = <any>request || {};
-  const hasUpsertConfig = iam?.hooks;
-  const shouldUpsertResourceAttributes = hasUpsertConfig && response?.source;
+  const statusCode = R.pathOr(100, ['response', 'statusCode'], request);
+  const isSuccessStatusCode = statusCode >= 200 && statusCode <= 299;
+  const hasUpsertConfig = !R.isEmpty(iam?.hooks) && !R.isNil(iam?.hooks);
+  const shouldUpsertResourceAttributes =
+    hasUpsertConfig && response?.source && isSuccessStatusCode;
 
   return !!shouldUpsertResourceAttributes;
 };
 
 export const getRequestData = async (request: Hapi.Request) => {
   const { response } = <any>request;
-  let body = {};
+  let body = response?.source;
 
-  if (response?.source) {
-    if (typeof response?.source === 'object') {
-      body = response?.source;
-    } else {
+  if (typeof body === 'object') {
+    try {
       body = await Wreck.read(response?.source, {
         json: 'force',
         gunzip: true
       });
+      // eslint-disable-next-line no-empty
+    } catch (e) {
+      Logger.error(`Failed to parse response: ${e}`);
     }
   }
 
   const requestData = R.assoc(
     'response',
-    body,
-    R.pick(['query', 'params', 'payload'], request)
+    body || {},
+    R.pick(['query', 'params', 'payload', 'headers'], request)
   );
   return requestData;
 };
@@ -160,6 +165,7 @@ const manageResourceAttributesMapping = async (
   const { user } = request.auth.credentials;
   const shouldTriggerHooks = checkIfShouldTriggerHooks(route, request);
   if (shouldTriggerHooks) {
+    const statusCode = R.pathOr(200, ['response', 'statusCode'], request);
     const { iam } = <IAMRouteOptionsApp>route?.settings?.app || {};
     const hooks = <IAMUpsertConfig[]>iam?.hooks || [];
 
@@ -175,7 +181,7 @@ const manageResourceAttributesMapping = async (
         requestData.response,
         hooks
       );
-      return h.response(mergedResponse);
+      return h.response(mergedResponse).code(statusCode);
     }
   }
   return h.continue;

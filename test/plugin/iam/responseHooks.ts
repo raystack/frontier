@@ -53,7 +53,7 @@ lab.experiment('ResponseHooks::checkIfShouldTriggerHooks', () => {
   lab.test('should return true when all conditions are met', () => {
     const request = <Hapi.Request>(<unknown>{
       method: 'POST',
-      response: { source: {} }
+      response: { source: {}, statusCode: 200 }
     });
 
     const shouldTriggerHooks = checkIfShouldTriggerHooks(route, request);
