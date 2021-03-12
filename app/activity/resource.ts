@@ -107,24 +107,6 @@ const parseGroupActivity = async (activity: Activity) => {
       }
     }
   }
-
-  // else if (
-  //   displayName.length > 0 &&
-  //   Object.prototype.hasOwnProperty.call(displayName[0], 'lhs')
-  // ) {
-  //   if (Object.prototype.hasOwnProperty.call(displayName[0], 'rhs')) {
-  //     console.log('metadata => ', metadata);
-  //     if (metadata.length > 0) {
-  //       metadata.forEach((meta) => {
-  //         output.diff[meta.path[1] || ''] = [meta.lhs, meta.rhs];
-  //       });
-  //     }
-  //     output.diff.edited = [displayName[0].lhs, displayName[0].rhs];
-  //     console.log('output edited => ', output);
-  //   } else {
-  //     output.diff.removed = [displayName[0].lhs];
-  //   }
-  // }
   return output;
 };
 
