@@ -50,7 +50,7 @@ lab.experiment('Group:User::Handler', () => {
               landscape: 'id',
               environment: 'production'
             },
-            action: { permission: 'test_permission' }
+            action: { action: 'test_action' }
           }
         ]
       };
@@ -97,7 +97,7 @@ lab.experiment('Group:User::Handler', () => {
               landscape: 'id',
               environment: 'production'
             },
-            action: { permission: 'test_permission' }
+            action: { action: 'test_action' }
           },
           {
             operation: 'delete',
@@ -108,7 +108,7 @@ lab.experiment('Group:User::Handler', () => {
               landscape: 'id',
               environment: 'production'
             },
-            action: { permission: 'delete_test_permission' }
+            action: { action: 'delete_test_action' }
           }
         ]
       };
@@ -163,7 +163,7 @@ lab.experiment('Group:User::Handler', () => {
               landscape: 'id',
               environment: 'production'
             },
-            action: { permission: 'test_permission' }
+            action: { action: 'test_action' }
           }
         ]
       };
@@ -276,7 +276,7 @@ lab.experiment('Group:User::Handler', () => {
                 landscape: 'id',
                 environment: 'production'
               },
-              action: { permission: 'test_permission' }
+              action: { action: 'test_action' }
             }
           ]
         }

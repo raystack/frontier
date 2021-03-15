@@ -65,6 +65,9 @@ internals.manifest = {
         plugin: '../app/activity/index'
       },
       {
+        plugin: '../app/access/index'
+      },
+      {
         plugin: '../plugin/proxy'
       },
       {
