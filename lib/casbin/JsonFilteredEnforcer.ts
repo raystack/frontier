@@ -27,43 +27,25 @@ const groupPolicyParameters = (policies: PolicyObj[]) => {
   };
 };
 
-const diff = (previous: JsonAttributes[], current: JsonAttributes[]) => {
-  return R.differenceWith(
-    (first, second) => {
-      return first.id === second?.id;
+const sendLog = async (policy: any, type: string, user: any) => {
+  const log = {
+    entity: policy || {},
+    databaseEntity: {},
+    metadata: {
+      tableName: 'casbin_rule'
     },
-    current,
-    previous
-  );
-};
-
-const sendLog = async (
-  policies: JsonAttributes[],
-  type: string,
-  user: unknown
-) => {
-  return Promise.all(
-    policies.map((policy: any) => {
-      const log = {
-        entity: policy,
-        databaseEntity: {},
-        metadata: {
-          tableName: 'casbin_rule'
-        },
-        queryRunner: {
-          data: {
-            user
-          }
-        }
-      };
-
-      if (type === ActivityActions.DELETE) {
-        log.databaseEntity = log.entity;
-        log.entity = {};
+    queryRunner: {
+      data: {
+        user
       }
-      return ActivityLog(log, type);
-    })
-  );
+    }
+  };
+
+  if (type === ActivityActions.DELETE) {
+    log.databaseEntity = log.entity;
+    log.entity = {};
+  }
+  return ActivityLog(log, type);
 };
 
 export class JsonFilteredEnforcer implements IEnforcer {
@@ -245,15 +227,13 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.addPolicy(
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
     );
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(previousPolicies, currentPolicies),
+      { ptype: 'p', subject, resource, action },
       ActivityActions.CREATE,
       options.created_by
     );
@@ -266,11 +246,9 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.addPolicy(subject, resource, action);
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(previousPolicies, currentPolicies),
+      { subject, resource, action },
       ActivityActions.CREATE,
       options.created_by
     );
@@ -283,7 +261,6 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.removeFilteredNamedPolicy(
       'p',
       0,
@@ -291,9 +268,8 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
     );
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(currentPolicies, previousPolicies),
+      { ptype: 'p', subject, resource, action },
       ActivityActions.DELETE,
       options.created_by
     );
@@ -305,16 +281,14 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.addNamedGroupingPolicy(
       'g',
       convertJSONToStringInOrder(subject),
       convertJSONToStringInOrder(jsonAttributes),
       'subject'
     );
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(previousPolicies, currentPolicies),
+      { ptype: 'g', subject, resource: jsonAttributes, action: 'subject' },
       ActivityActions.CREATE,
       options.created_by
     );
@@ -326,7 +300,6 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.removeFilteredNamedGroupingPolicy(
       'g',
       0,
@@ -334,9 +307,8 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(jsonAttributes),
       'subject'
     );
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(currentPolicies, previousPolicies),
+      { ptype: 'g', subject, resource: jsonAttributes, action: 'subject' },
       ActivityActions.DELETE,
       options.created_by
     );
@@ -348,16 +320,19 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.addNamedGroupingPolicy(
       'g2',
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(jsonAttributes),
       'resource'
     );
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(previousPolicies, currentPolicies),
+      {
+        ptype: 'g2',
+        subject: resource,
+        resource: jsonAttributes,
+        action: 'resource'
+      },
       ActivityActions.CREATE,
       options.created_by
     );
@@ -378,15 +353,18 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.removeFilteredNamedGroupingPolicy(
       'g2',
       0,
       convertJSONToStringInOrder(resource)
     );
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(currentPolicies, previousPolicies),
+      {
+        ptype: 'g2',
+        subject: resource,
+        resource: {},
+        action: 'resource'
+      },
       ActivityActions.DELETE,
       options.created_by
     );
@@ -398,16 +376,19 @@ export class JsonFilteredEnforcer implements IEnforcer {
     options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
-    const previousPolicies = await this.getAllPolicies();
     await enforcer.addNamedGroupingPolicy(
       'g3',
       convertJSONToStringInOrder(action),
       convertJSONToStringInOrder(jsonAttributes),
       'action'
     );
-    const currentPolicies = await this.getAllPolicies();
     await sendLog(
-      diff(previousPolicies, currentPolicies),
+      {
+        ptype: 'g3',
+        subject: action,
+        resource: jsonAttributes,
+        action: 'action'
+      },
       ActivityActions.CREATE,
       options?.created_by
     );

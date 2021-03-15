@@ -36,7 +36,7 @@ export class Activity extends BaseEntity {
     type: 'jsonb',
     nullable: false
   })
-  document: Record<string, string>;
+  document: Record<string, any>;
 
   @Column({
     type: 'jsonb',
