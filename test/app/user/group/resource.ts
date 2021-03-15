@@ -136,6 +136,8 @@ lab.experiment('UserGroup::resource', () => {
       async () => {
         const result = await Resource.list(users[1].id, {
           entity: 'gofin',
+          landscape: 'id',
+          environment: 'integration',
           action: 'firehose.read'
         });
         const expectedResult = [
