@@ -27,9 +27,11 @@ const getImplicitGroups = async (userId: string, filters: JSObj = {}) => {
     .groupBy('groups.id');
 
   if (!R.isEmpty(attributes)) {
-    const FILTER_BY_RESOURCE_ATTRIBUTES = `SUM(CASE WHEN casbin_rule.ptype = 'g2' AND casbin_rule.v1 like :attributes THEN 1 ELSE 0 END) > 0`;
+    const FILTER_BY_RESOURCE_ATTRIBUTES = `SUM(CASE WHEN casbin_rule.ptype = 'g2' AND casbin_rule.v1 like any (array[:...attributes]) THEN 1 ELSE 0 END) > 0`;
     cursor.having(FILTER_BY_RESOURCE_ATTRIBUTES, {
-      attributes: toLikeQuery(attributes)
+      attributes: R.keys(attributes).map((aKey) =>
+        toLikeQuery(R.pick([aKey], attributes))
+      )
     });
   }
 
@@ -39,7 +41,7 @@ const getImplicitGroups = async (userId: string, filters: JSObj = {}) => {
   // batchEnforce to check whether {user: userId}, {group: group.id}, {action}
   const groupPoliciesToEnforce = allGroups.map((group: any) => ({
     subject: { user: userId },
-    resource: { group: group.id },
+    resource: { group: group.id, ...attributes },
     action: { action }
   }));
 
