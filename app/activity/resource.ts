@@ -128,35 +128,35 @@ const parseCasbinActivity = async (activity: Activity) => {
   ]);
   const groupMap = mapData(groups, 'id');
   const roleMap = mapData(roles, 'id');
-
   const output = activityResponsePayload(activity);
   const relation = relationType(activity.diffs);
-  if (activity.documentId === '0') {
+  const isDocumentEmpty = Object.keys(activity.document).length === 0;
+  if (isDocumentEmpty) {
     if (relation.isRole) {
-      const userDiff = calcDiff(activity.diffs, 'v0');
-      const groupDiff = calcDiff(activity.diffs, 'v1');
-      const roleDiff = calcDiff(activity.diffs, 'v2');
-      const role = roleMap[JSON.parse(roleDiff[0].rhs).role || ''];
-      const group = groupMap[JSON.parse(groupDiff[0].rhs).group || ''];
+      const userDiff: any = calcDiff(activity.diffs, 'subject');
+      const groupDiff: any = calcDiff(activity.diffs, 'resource');
+      const roleDiff: any = calcDiff(activity.diffs, 'action');
+      const role = roleMap[roleDiff[0]?.rhs?.role || ''];
+      const group = groupMap[groupDiff[0]?.rhs?.group || ''];
       const user = await User.findOne({
         select: ['displayname'],
         where: {
-          id: JSON.parse(userDiff[0].rhs).user
+          id: userDiff[0]?.rhs?.user
         }
       });
       output.diff.created = [
-        `Assigned a role ${role?.displayname || ''} to user ${
-          user?.displayname || ''
+        `Assigned a role ${role?.displayname || ''} ${
+          user?.displayname ? `to user ${user?.displayname}` : ''
         } for team ${group?.displayname || ''}`
       ];
     } else if (relation.isUser) {
-      const userDiff = calcDiff(activity.diffs, 'v0');
-      const groupDiff = calcDiff(activity.diffs, 'v1');
-      const group = groupMap[JSON.parse(groupDiff[0].rhs).group || ''];
+      const userDiff: any = calcDiff(activity.diffs, 'subject');
+      const groupDiff: any = calcDiff(activity.diffs, 'resource');
+      const group = groupMap[groupDiff[0]?.rhs?.group || ''];
       const user = await User.findOne({
         select: ['displayname'],
         where: {
-          id: JSON.parse(userDiff[0].rhs).user
+          id: userDiff[0]?.rhs?.user
         }
       });
       output.diff.created = [
@@ -166,8 +166,8 @@ const parseCasbinActivity = async (activity: Activity) => {
       ];
     }
   } else if (relation.isRole) {
-    const { role } = JSON.parse(activity.document.v2);
-    const { group } = JSON.parse(activity.document.v0);
+    const { role } = activity.document.action;
+    const { group } = activity.document.subject;
     output.diff.removed = [
       `Removed a role ${roleMap[role]?.displayname || ''} from team ${
         groupMap[group]?.displayname || ''
@@ -178,10 +178,10 @@ const parseCasbinActivity = async (activity: Activity) => {
     const user = await User.findOne({
       select: ['displayname'],
       where: {
-        id: JSON.parse(activity.document.v0).user
+        id: activity.document?.subject?.user
       }
     });
-    const { group } = JSON.parse(activity.document.v1);
+    const { group } = activity.document?.resource;
     output.diff.removed = [
       `Remove a user ${user?.displayname || ''} from team ${
         groupMap[group]?.displayname || ''
@@ -210,7 +210,7 @@ export const get = async (groupId = '') => {
     whereParameter.createGroup = JSON.stringify([{ rhs: groupId }]);
     whereParameter.userRoleGroupMap = JSON.stringify([
       {
-        rhs: JSON.stringify({ group: groupId })
+        rhs: { group: groupId }
       }
     ]);
   }
@@ -243,7 +243,10 @@ export const get = async (groupId = '') => {
 };
 
 export const create = async (payload: any) => {
-  return await Activity.save({ ...payload });
+  if (payload?.diffs && payload.diffs.length > 0) {
+    return await Activity.save({ ...payload });
+  }
+  return null;
 };
 
 const getTitle = (event: any, type: string) => {
@@ -309,7 +312,7 @@ export const log = async (event: any, type: string) => {
       promise = create({
         document: event.databaseEntity,
         title,
-        documentId: event.databaseEntity.id,
+        documentId: event.databaseEntity?.id || '0',
         model: event.metadata.tableName,
         diffs: delta(event.databaseEntity || {}, event.entity || {}, {
           exclude: excludeFields
@@ -321,7 +324,7 @@ export const log = async (event: any, type: string) => {
       promise = create({
         document: event.databaseEntity,
         title,
-        documentId: event.databaseEntity.id,
+        documentId: event.databaseEntity?.id || '0',
         model: event.metadata.tableName,
         diffs: delta(event.databaseEntity || {}, event.entity || {}, {
           exclude: excludeFields

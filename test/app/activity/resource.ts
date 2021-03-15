@@ -22,10 +22,27 @@ lab.experiment('Activity::resource', () => {
       Sandbox.restore();
     });
 
-    lab.test('should create activity', async () => {
+    lab.test('should create activity with delta', async () => {
       const activity = {
         createdAt: 'Fri Mar 12 2021 13:24:53 GMT+0530 (India Standard Time)',
-        diffs: [],
+        diffs: [
+          { rhs: 'p', kind: 'N', path: ['ptype'] },
+          {
+            rhs: { group: '231d7c4c-d3c4-4bff-aacc-d7b0cf197edf' },
+            kind: 'N',
+            path: ['subject']
+          },
+          {
+            rhs: { group: '231d7c4c-d3c4-4bff-aacc-d7b0cf197edf' },
+            kind: 'N',
+            path: ['resource']
+          },
+          {
+            rhs: { role: 'd56e6288-6d67-43bc-8062-69bde9835312' },
+            kind: 'N',
+            path: ['action']
+          }
+        ],
         document: {},
         documentId: 'ba256f55-bfce-4d17-8174-a0abbf26ccd4',
         model: 'User',
@@ -39,6 +56,19 @@ lab.experiment('Activity::resource', () => {
       const response = await Resource.create(activity);
       Sandbox.assert.calledWithExactly(activitySaveStub, <any>activity);
       Code.expect(response).to.equal({ id: activityId, ...activity });
+    });
+
+    lab.test('should create activity without delta', async () => {
+      const activity = {
+        createdAt: 'Fri Mar 12 2021 13:24:53 GMT+0530 (India Standard Time)',
+        diffs: [],
+        document: {},
+        documentId: 'ba256f55-bfce-4d17-8174-a0abbf26ccd4',
+        model: 'User',
+        title: 'Bypass Chips heuristic'
+      };
+      const response = await Resource.create(activity);
+      Code.expect(response).to.equal(null);
     });
   });
 

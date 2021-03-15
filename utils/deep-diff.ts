@@ -5,7 +5,9 @@ export const delta = (
   current = {},
   options?: { exclude: string[] }
 ) => {
-  return diff(previous, current).filter((i: any) =>
-    (options?.exclude || []).every((x: any) => i.path.indexOf(x) === -1)
-  );
+  return diff(previous, current).filter((i: any) => {
+    return (options?.exclude || []).every(
+      (x: any) => i.path && i.path.indexOf(x) === -1
+    );
+  });
 };
