@@ -1,17 +1,30 @@
 import Joi from 'joi';
 import Config from '../../config/config';
 
+export const policySchema = Joi.object().keys({
+  subject: Joi.object({
+    user: Joi.string(),
+    group: Joi.string()
+  })
+    .xor('user', 'group')
+    .required(),
+  resource: Joi.object().required(),
+  action: Joi.object({
+    action: Joi.string(),
+    role: Joi.string()
+  })
+    .xor('action', 'role')
+    .required()
+});
+
 export const policiesSchema = Joi.array().items(
-  Joi.object().keys({
-    operation: Joi.string().required(),
-    subject: Joi.object().required(),
-    resource: Joi.object().required(),
-    action: Joi.object().required()
+  policySchema.keys({
+    operation: Joi.string().valid('create', 'delete').required()
   })
 );
 
 export const payloadSchema = Joi.object()
-  .label('PolciesPayload')
+  .label('PolciesOperationPayload')
   .keys({
     policies: policiesSchema
   })
