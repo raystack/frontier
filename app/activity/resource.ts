@@ -4,6 +4,7 @@ import Constants from '../../utils/constant';
 import { delta } from '../../utils/deep-diff';
 import { User } from '../../model/user';
 import { Role } from '../../model/role';
+import { Group } from '../../model/group';
 
 type ActivityType = {
   id: string;
@@ -30,6 +31,16 @@ const titleMap = {
   REMOVED_ROLE: 'Removed a role',
   REMOVED_USER: 'Removed a user',
   REMOVED_ATTRIBUTE_FROM_GROUP: 'Removed attribute from a team'
+};
+
+const mapData = (input: any[] = [], key: string) => {
+  return input.reduce((output, row) => {
+    if (!Object.prototype.hasOwnProperty.call(output, row[key])) {
+      // eslint-disable-next-line no-param-reassign
+      output[row[key]] = row;
+    }
+    return output;
+  }, {});
 };
 
 const activityResponsePayload = (activity: Activity) => {
@@ -111,36 +122,58 @@ const parseGroupActivity = async (activity: Activity) => {
 };
 
 const parseCasbinActivity = async (activity: Activity) => {
+  const [groups, roles] = await Promise.all([
+    await Group.find(),
+    await Role.find()
+  ]);
+  const groupMap = mapData(groups, 'id');
+  const roleMap = mapData(roles, 'id');
+
   const output = activityResponsePayload(activity);
   const relation = relationType(activity.diffs);
   if (activity.documentId === '0') {
     if (relation.isRole) {
-      const roleDiff = calcDiff(activity.diffs, 'v2');
-      const role = await Role.findOne({
-        select: ['displayname'],
-        where: {
-          id: JSON.parse(roleDiff[0].rhs).role
-        }
-      });
-      output.diff.created = [role?.displayname || ''];
-    } else if (relation.isUser) {
       const userDiff = calcDiff(activity.diffs, 'v0');
+      const groupDiff = calcDiff(activity.diffs, 'v1');
+      const roleDiff = calcDiff(activity.diffs, 'v2');
+      const role = roleMap[JSON.parse(roleDiff[0].rhs).role || ''];
+      const group = groupMap[JSON.parse(groupDiff[0].rhs).group || ''];
       const user = await User.findOne({
         select: ['displayname'],
         where: {
           id: JSON.parse(userDiff[0].rhs).user
         }
       });
-      output.diff.created = [user?.displayname || ''];
+      output.diff.created = [
+        `Assigned a role ${role?.displayname || ''} to user ${
+          user?.displayname || ''
+        } for team ${group?.displayname || ''}`
+      ];
+    } else if (relation.isUser) {
+      const userDiff = calcDiff(activity.diffs, 'v0');
+      const groupDiff = calcDiff(activity.diffs, 'v1');
+      const group = groupMap[JSON.parse(groupDiff[0].rhs).group || ''];
+      const user = await User.findOne({
+        select: ['displayname'],
+        where: {
+          id: JSON.parse(userDiff[0].rhs).user
+        }
+      });
+      output.diff.created = [
+        `Assigned a user ${user?.displayname || ''} to team ${
+          group?.displayname || ''
+        }`
+      ];
     }
   } else if (relation.isRole) {
-    const role = await Role.findOne({
-      select: ['displayname'],
-      where: {
-        id: JSON.parse(activity.document.v2).role
-      }
-    });
-    output.diff.removed = [role?.displayname || '', ''];
+    const { role } = JSON.parse(activity.document.v2);
+    const { group } = JSON.parse(activity.document.v0);
+    output.diff.removed = [
+      `Removed a role ${roleMap[role]?.displayname || ''} from team ${
+        groupMap[group]?.displayname || ''
+      }`,
+      ''
+    ];
   } else if (relation.isUser) {
     const user = await User.findOne({
       select: ['displayname'],
@@ -148,7 +181,13 @@ const parseCasbinActivity = async (activity: Activity) => {
         id: JSON.parse(activity.document.v0).user
       }
     });
-    output.diff.removed = [user?.displayname || '', ''];
+    const { group } = JSON.parse(activity.document.v1);
+    output.diff.removed = [
+      `Remove a user ${user?.displayname || ''} from team ${
+        groupMap[group]?.displayname || ''
+      }`,
+      ''
+    ];
   }
   return output;
 };
