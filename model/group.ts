@@ -6,8 +6,9 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn
 } from 'typeorm';
+import Constants from '../utils/constant';
 
-@Entity('groups')
+@Entity(Constants.MODEL.Group)
 export class Group extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -5,6 +5,10 @@ import { newEnforcerWithClass } from 'casbin';
 import { convertJSONToStringInOrder, JsonEnforcer } from './JsonEnforcer';
 import { toLikeQuery } from '../../app/policy/util';
 import IEnforcer, { JsonAttributes, OneKey, PolicyObj } from './IEnforcer';
+import {
+  log as ActivityLog,
+  actions as ActivityActions
+} from '../../app/activity/resource';
 
 const groupPolicyParameters = (policies: PolicyObj[]) => {
   const res = policies.reduce(
@@ -21,6 +25,27 @@ const groupPolicyParameters = (policies: PolicyObj[]) => {
     resources: <string[]>R.uniq(res.resources),
     actions: <string[]>R.uniq(res.actions)
   };
+};
+
+const sendLog = async (policy: any, type: string, user: any) => {
+  const log = {
+    entity: policy || {},
+    databaseEntity: {},
+    metadata: {
+      tableName: 'casbin_rule'
+    },
+    queryRunner: {
+      data: {
+        user
+      }
+    }
+  };
+
+  if (type === ActivityActions.DELETE) {
+    log.databaseEntity = log.entity;
+    log.entity = {};
+  }
+  return ActivityLog(log, type);
 };
 
 export class JsonFilteredEnforcer implements IEnforcer {
@@ -104,6 +129,13 @@ export class JsonFilteredEnforcer implements IEnforcer {
       .getRawMany();
 
     return R.uniq(actionMappings.map((aM) => aM.v1).concat(actions));
+  }
+
+  private async getAllPolicies() {
+    return await createQueryBuilder()
+      .select('*')
+      .from('casbin_rule', 'casbin_rule')
+      .getRawMany();
   }
 
   private async getEnforcerWithPolicies(policies: PolicyObj[]) {
@@ -191,7 +223,8 @@ export class JsonFilteredEnforcer implements IEnforcer {
   public async addJsonPolicy(
     subject: JsonAttributes,
     resource: JsonAttributes,
-    action: JsonAttributes
+    action: JsonAttributes,
+    options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
     await enforcer.addPolicy(
@@ -199,17 +232,33 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
     );
+    await sendLog(
+      { ptype: 'p', subject, resource, action },
+      ActivityActions.CREATE,
+      options.created_by
+    );
   }
 
-  public async addStrPolicy(subject: string, resource: string, action: string) {
+  public async addStrPolicy(
+    subject: string,
+    resource: string,
+    action: string,
+    options: JsonAttributes
+  ) {
     const enforcer = await this.getEnforcer();
     await enforcer.addPolicy(subject, resource, action);
+    await sendLog(
+      { subject, resource, action },
+      ActivityActions.CREATE,
+      options.created_by
+    );
   }
 
   public async removeJsonPolicy(
     subject: JsonAttributes,
     resource: JsonAttributes,
-    action: JsonAttributes
+    action: JsonAttributes,
+    options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
     await enforcer.removeFilteredNamedPolicy(
@@ -219,11 +268,17 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(resource),
       convertJSONToStringInOrder(action)
     );
+    await sendLog(
+      { ptype: 'p', subject, resource, action },
+      ActivityActions.DELETE,
+      options.created_by
+    );
   }
 
   public async addSubjectGroupingJsonPolicy<T extends string>(
     subject: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
     await enforcer.addNamedGroupingPolicy(
@@ -232,11 +287,17 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(jsonAttributes),
       'subject'
     );
+    await sendLog(
+      { ptype: 'g', subject, resource: jsonAttributes, action: 'subject' },
+      ActivityActions.CREATE,
+      options.created_by
+    );
   }
 
   public async removeSubjectGroupingJsonPolicy<T extends string>(
     subject: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
     await enforcer.removeFilteredNamedGroupingPolicy(
@@ -246,11 +307,17 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(jsonAttributes),
       'subject'
     );
+    await sendLog(
+      { ptype: 'g', subject, resource: jsonAttributes, action: 'subject' },
+      ActivityActions.DELETE,
+      options.created_by
+    );
   }
 
   public async addResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
     await enforcer.addNamedGroupingPolicy(
@@ -259,19 +326,31 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(jsonAttributes),
       'resource'
     );
+    await sendLog(
+      {
+        ptype: 'g2',
+        subject: resource,
+        resource: jsonAttributes,
+        action: 'resource'
+      },
+      ActivityActions.CREATE,
+      options.created_by
+    );
   }
 
   // ? Note: this will remove all policies by resource keys and then insert the new one
   public async upsertResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ) {
-    await this.removeAllResourceGroupingJsonPolicy(resource);
-    await this.addResourceGroupingJsonPolicy(resource, jsonAttributes);
+    await this.removeAllResourceGroupingJsonPolicy(resource, options);
+    await this.addResourceGroupingJsonPolicy(resource, jsonAttributes, options);
   }
 
   public async removeAllResourceGroupingJsonPolicy<T extends string>(
-    resource: OneKey<T>
+    resource: OneKey<T>,
+    options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
     await enforcer.removeFilteredNamedGroupingPolicy(
@@ -279,11 +358,22 @@ export class JsonFilteredEnforcer implements IEnforcer {
       0,
       convertJSONToStringInOrder(resource)
     );
+    await sendLog(
+      {
+        ptype: 'g2',
+        subject: resource,
+        resource: {},
+        action: 'resource'
+      },
+      ActivityActions.DELETE,
+      options.created_by
+    );
   }
 
   public async addActionGroupingJsonPolicy<T extends string>(
     action: OneKey<T>,
-    jsonAttributes: JsonAttributes
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
   ) {
     const enforcer = await this.getEnforcer();
     await enforcer.addNamedGroupingPolicy(
@@ -291,6 +381,16 @@ export class JsonFilteredEnforcer implements IEnforcer {
       convertJSONToStringInOrder(action),
       convertJSONToStringInOrder(jsonAttributes),
       'action'
+    );
+    await sendLog(
+      {
+        ptype: 'g3',
+        subject: action,
+        resource: jsonAttributes,
+        action: 'action'
+      },
+      ActivityActions.CREATE,
+      options?.created_by
     );
   }
 }

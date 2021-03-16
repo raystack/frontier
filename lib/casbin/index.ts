@@ -8,6 +8,10 @@ import {
   JsonFilteredEnforcer
 } from './JsonFilteredEnforcer';
 
+const Config = require('../../config/config');
+
+const baseDir = Config.get('/typeormDir').dir;
+
 const { newWatcher } = CasbinPgWatcher;
 
 class CasbinSingleton {
@@ -51,7 +55,8 @@ class CasbinSingleton {
       if (!this.policyAdapter) {
         this.policyAdapter = await TypeORMAdapter.newAdapter({
           type: 'postgres',
-          url: dbConnectionUrl
+          url: dbConnectionUrl,
+          subscribers: [`${baseDir}/subscriber/*{.ts,.js}`]
         });
       }
 
