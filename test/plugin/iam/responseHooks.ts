@@ -177,7 +177,7 @@ lab.experiment('ResponseHooks::upsertResourceAttributesMapping', () => {
         }
       };
 
-      await upsertResourceAttributesMapping(iamUpsertConfig, requestData);
+      await upsertResourceAttributesMapping(iamUpsertConfig, requestData, {});
 
       Sandbox.assert.called(constructIAMResourceFromConfigStub);
       // TODO: Check why this is not stubbing
@@ -187,7 +187,13 @@ lab.experiment('ResponseHooks::upsertResourceAttributesMapping', () => {
 });
 
 lab.experiment('ResponseHooks::mergeResourceListWithAttributes', () => {
-  let getResourceAttributeMappingsByResourcesStub;
+  let getResourceAttributeMappingsByResourcesStub:
+    | Sinon.SinonStub<
+        [resources?: Record<string, unknown>[] | undefined],
+        Promise<{ resource: any; attributes: any }[]>
+      >
+    | Sinon.SinonSpy<[{ name: string }[]], any>
+    | Sinon.SinonSpyCall<[{ name: string }[]], any>;
   const hook = {
     resources: [{ name: { key: 'name', type: 'response' } }],
     attributes: [

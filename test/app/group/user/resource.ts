@@ -1,6 +1,7 @@
 import Lab from '@hapi/lab';
 import Sinon from 'sinon';
 import Code from 'code';
+import { factory } from 'typeorm-seeding';
 import { lab } from '../../../setup';
 import * as Resource from '../../../../app/group/user/resource';
 import CasbinSingleton from '../../../../lib/casbin';
@@ -87,14 +88,15 @@ lab.experiment('Group:User:Mapping::resource', () => {
           addSubjectGroupingJsonPolicy: addSubjectGroupingJsonPolicyStub
         });
 
+        const user = await factory(User)().create();
         const groupId = 'test_group';
-        const userId = 'test_user';
-        const loggedInUserId = 'test_logged_in_user';
+        const userId = user.id;
+        const loggedInUserId = user.id;
         const payload = {
           policies: [
             {
               operation: 'create',
-              subject: { user: 'test_user' },
+              subject: { user: user.id },
               resource: {
                 group: 'test_group',
                 entity: 'gojek',
@@ -212,6 +214,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
             }
           ]
         };
+        const user = await factory(User)().create();
         const removeSubjectGroupingJsonPolicyStub = Sandbox.stub();
         const removeJsonPolicyStub = Sandbox.stub();
         Sandbox.stub(CasbinSingleton, 'enforcer').value({
@@ -224,7 +227,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
           'getPoliciesBySubject'
         ).returns(payload.policies);
 
-        const response = await Resource.remove(groupId, userId);
+        const response = await Resource.remove(groupId, userId, user.id);
 
         Sandbox.assert.calledWithExactly(
           getPoliciesBySubjectStub,
@@ -234,7 +237,8 @@ lab.experiment('Group:User:Mapping::resource', () => {
         Sandbox.assert.calledWithExactly(
           removeSubjectGroupingJsonPolicyStub,
           { user: userId },
-          { group: groupId }
+          { group: groupId },
+          { created_by: user }
         );
         Sandbox.assert.callCount(removeJsonPolicyStub, payload.policies.length);
         Code.expect(response).to.equal(true);
@@ -249,6 +253,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
         const payload: any = {
           policies: []
         };
+        const user = await factory(User)().create();
         const removeSubjectGroupingJsonPolicyStub = Sandbox.stub();
         const removeJsonPolicyStub = Sandbox.stub();
         Sandbox.stub(CasbinSingleton, 'enforcer').value({
@@ -261,7 +266,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
           'getPoliciesBySubject'
         ).returns(payload.policies);
 
-        const response = await Resource.remove(groupId, userId);
+        const response = await Resource.remove(groupId, userId, user.id);
 
         Sandbox.assert.calledWithExactly(
           getPoliciesBySubjectStub,
@@ -271,7 +276,8 @@ lab.experiment('Group:User:Mapping::resource', () => {
         Sandbox.assert.calledWithExactly(
           removeSubjectGroupingJsonPolicyStub,
           { user: userId },
-          { group: groupId }
+          { group: groupId },
+          { created_by: user }
         );
         Sandbox.assert.notCalled(removeJsonPolicyStub);
         Code.expect(response).to.equal(true);

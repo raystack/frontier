@@ -6,8 +6,9 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn
 } from 'typeorm';
+import Constants from '../utils/constant';
 
-@Entity('roles')
+@Entity(Constants.MODEL.Role)
 export class Role extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
