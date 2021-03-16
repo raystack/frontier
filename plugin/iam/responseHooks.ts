@@ -9,7 +9,8 @@ import { constructIAMResourceFromConfig } from './utils';
 
 export const upsertResourceAttributesMapping = async (
   iamUpsertConfigList: IAMUpsertConfig[],
-  requestData: Record<string, unknown>
+  requestData: Record<string, unknown>,
+  user: Hapi.UserCredentials | undefined
 ) => {
   const { enforcer } = CasbinSingleton;
 
@@ -24,9 +25,12 @@ export const upsertResourceAttributesMapping = async (
         requestData
       );
       if (!R.isEmpty(resource) && !R.isEmpty(resourceAttributes)) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return enforcer?.upsertResourceGroupingJsonPolicy(
           resource,
-          resourceAttributes
+          resourceAttributes,
+          { created_by: JSON.parse(JSON.stringify(user)) }
         );
       }
 
@@ -158,7 +162,7 @@ const manageResourceAttributesMapping = async (
   h: Hapi.ResponseToolkit
 ) => {
   const route = server.match(request.method, request.path);
-
+  const { user } = request.auth.credentials;
   const shouldTriggerHooks = checkIfShouldTriggerHooks(route, request);
   if (shouldTriggerHooks) {
     const statusCode = R.pathOr(200, ['response', 'statusCode'], request);
@@ -169,7 +173,7 @@ const manageResourceAttributesMapping = async (
 
     // only upsert for write based http methods
     if (isWriteMethod(request.method)) {
-      await upsertResourceAttributesMapping(hooks, requestData);
+      await upsertResourceAttributesMapping(hooks, requestData, user);
     }
 
     if (!R.isEmpty(requestData.response)) {

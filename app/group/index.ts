@@ -27,6 +27,11 @@ export const plugin = {
         method: 'PUT',
         path: '/api/groups/{id}',
         options: Handler.update
+      },
+      {
+        method: 'GET',
+        path: '/api/groups/{id}/activities',
+        options: Handler.getActivitiesByGroup
       }
     ];
 

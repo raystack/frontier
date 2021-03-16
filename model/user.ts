@@ -7,7 +7,9 @@ import {
   PrimaryGeneratedColumn
 } from 'typeorm';
 
-@Entity('users')
+import Constants from '../utils/constant';
+
+@Entity(Constants.MODEL.User)
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

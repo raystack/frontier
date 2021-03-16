@@ -23,7 +23,7 @@ lab.afterEach(() => {
 
 lab.experiment('UserGroup::resource', () => {
   lab.experiment('get groups of a user', () => {
-    let users, groups, enforcer;
+    let users: any, groups: any, enforcer: any;
 
     lab.before(async () => {
       const dbUri = Config.get('/postgres').uri;
@@ -33,52 +33,62 @@ lab.experiment('UserGroup::resource', () => {
     lab.beforeEach(async () => {
       users = await factory(User)().createMany(2);
       groups = await factory(Group)().createMany(3);
-
+      const user = users[0];
       await enforcer.addResourceGroupingJsonPolicy(
         { group: groups[0].id },
-        { entity: 'gojek' }
+        { entity: 'gojek' },
+        { created_by: user }
       );
       await enforcer.addResourceGroupingJsonPolicy(
         { group: groups[1].id },
-        { entity: 'gojek' }
+        { entity: 'gojek' },
+        { created_by: user }
       );
       await enforcer.addResourceGroupingJsonPolicy(
         { group: groups[2].id },
-        { entity: 'gofin' }
+        { entity: 'gofin' },
+        { created_by: user }
       );
 
       await enforcer.addSubjectGroupingJsonPolicy(
         { user: users[0].id },
-        { group: groups[0].id }
+        { group: groups[0].id },
+        { created_by: user }
       );
       await enforcer.addSubjectGroupingJsonPolicy(
         { user: users[0].id },
-        { group: groups[1].id }
+        { group: groups[1].id },
+        { created_by: user }
       );
       await enforcer.addSubjectGroupingJsonPolicy(
         { user: users[1].id },
-        { group: groups[0].id }
+        { group: groups[0].id },
+        { created_by: user }
       );
 
       await enforcer.addActionGroupingJsonPolicy(
         { action: '*' },
-        { role: 'entity.admin' }
+        { role: 'entity.admin' },
+        { created_by: user }
       );
 
       await enforcer.addJsonPolicy(
         { user: users[1].id },
         { entity: 'gofin' },
-        { role: 'entity.admin' }
+        { role: 'entity.admin' },
+        { created_by: user }
       );
       await enforcer.addJsonPolicy(
         { user: users[0].id },
         { group: groups[0].id },
-        { role: 'team.admin' }
+        { role: 'team.admin' },
+        { created_by: user }
       );
       await enforcer.addJsonPolicy(
         { user: users[1].id },
         { group: groups[0].id },
-        { role: 'team.admin' }
+        { role: 'team.admin' },
+        { created_by: user }
       );
     });
 
