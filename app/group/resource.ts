@@ -8,6 +8,7 @@ import { toLikeQuery } from '../policy/util';
 import CasbinSingleton from '../../lib/casbin';
 import { parseGroupListResult } from './util';
 import getUniqName, { validateUniqName } from '../../lib/getUniqName';
+import { User } from '../../model/user';
 
 type JSObj = Record<string, unknown>;
 
@@ -55,20 +56,29 @@ export const checkSubjectHasAccessToCreateAttributesMapping = async (
 
 export const upsertGroupAndAttributesMapping = async (
   groupId: string,
-  attributes: JSObj[]
+  attributes: JSObj[],
+  loggedInUser: User | undefined
 ) => {
   if (R.isEmpty(attributes)) {
     return;
   }
-
-  await CasbinSingleton?.enforcer?.removeAllResourceGroupingJsonPolicy({
-    group: groupId
-  });
+  const options = { created_by: loggedInUser };
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await CasbinSingleton?.enforcer?.removeAllResourceGroupingJsonPolicy(
+    {
+      group: groupId
+    },
+    options
+  );
   await Promise.all(
     attributes.map(async (attribute: JSObj) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       await CasbinSingleton?.enforcer?.addResourceGroupingJsonPolicy(
         { group: groupId },
-        attribute
+        attribute,
+        options
       );
     })
   );
@@ -92,7 +102,11 @@ export const checkSubjectHasAccessToEditGroup = async (
 ) => {
   const groupId = <string>group.id;
   const prevAttributes = <JSObj[]>group.attributes;
-
+  const user = await User.findOne({
+    where: {
+      id: loggedInUserId
+    }
+  });
   // ? We need to check this only if the attributes change
   if (!R.equals(attributes, prevAttributes)) {
     await checkSubjectHasAccessToCreateAttributesMapping(
@@ -101,7 +115,7 @@ export const checkSubjectHasAccessToEditGroup = async (
       },
       [...attributes, ...prevAttributes]
     );
-    await upsertGroupAndAttributesMapping(groupId, attributes);
+    await upsertGroupAndAttributesMapping(groupId, attributes, user);
   }
 
   // ? the user needs access to the group if they need to edit it
@@ -198,11 +212,19 @@ export const create = async (payload: any, loggedInUserId: string) => {
     attributes
   );
 
+  const user = await User.findOne({
+    where: {
+      id: loggedInUserId
+    }
+  });
   const groupname = await getValidGroupname(groupPayload);
-  const groupResult = await Group.save({ ...groupPayload, groupname });
+  const groupResult = await Group.save(
+    { ...groupPayload, groupname },
+    { data: { user } }
+  );
   const groupId = groupResult.id;
 
-  await upsertGroupAndAttributesMapping(groupId, attributes);
+  await upsertGroupAndAttributesMapping(groupId, attributes, user);
 
   const policyOperationResult = await bulkUpsertPoliciesForGroup(
     groupId,
@@ -221,6 +243,11 @@ export const update = async (
   const { policies = [], attributes = [], ...groupPayload } = payload;
   const groupWithExtraKeys = await get(groupId, loggedInUserId);
   const group = R.omit(['policies', 'attributes'], groupWithExtraKeys);
+  const user = await User.findOne({
+    where: {
+      id: loggedInUserId
+    }
+  });
 
   // ? We need to check this only if the attributes change
   await checkSubjectHasAccessToEditGroup(
@@ -229,7 +256,7 @@ export const update = async (
     loggedInUserId
   );
 
-  await Group.save({ ...group, ...groupPayload });
+  await Group.save({ ...group, ...groupPayload }, { data: { user } });
 
   const policyOperationResult = await bulkUpsertPoliciesForGroup(
     groupId,
