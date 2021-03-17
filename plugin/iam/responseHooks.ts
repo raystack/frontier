@@ -162,7 +162,7 @@ const manageResourceAttributesMapping = async (
   h: Hapi.ResponseToolkit
 ) => {
   const route = server.match(request.method, request.path);
-  const { user } = request.auth.credentials;
+  const user = request.auth.credentials;
   const shouldTriggerHooks = checkIfShouldTriggerHooks(route, request);
   if (shouldTriggerHooks) {
     const statusCode = R.pathOr(200, ['response', 'statusCode'], request);
