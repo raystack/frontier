@@ -7,9 +7,10 @@ import {
 } from '../../app/profile/resource';
 import { create as createUser } from '../../app/user/resource';
 
-const validateByEmail = async (request: Hapi.Request, email: string) => {
+const validateByEmail = async (request: Hapi.Request, rawEmail: string) => {
   let credentials;
-  const username = getUsernameFromEmail(email);
+  const email = rawEmail.toLowerCase();
+  const username = getUsernameFromEmail(rawEmail);
 
   if (!username) throw new Error('Username is required');
 
