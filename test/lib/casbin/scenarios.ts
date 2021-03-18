@@ -11,10 +11,8 @@ import { User } from '../../../model/user';
 exports.lab = Lab.script();
 
 const testScenarios = () => {
-  let users: any[];
   lab.beforeEach(async () => {
-    const response = await setupSampleData();
-    users = response.users;
+    await setupSampleData();
   });
 
   lab.test(
@@ -32,11 +30,38 @@ const testScenarios = () => {
   );
 
   lab.test(
-    'resource.manager(alice) of a team(transport) with particular project(gojek::production::id) access should have any access to the team resource(p-gojek-id-firehose-transport-123)',
+    'henry of a team(marketplace) should have default access to the team(marketplace)',
     async ({ context }) => {
-      const sub = { user: 'alice' };
+      const sub = { user: 'henry' };
       const obj = {
-        resource: 'p-gojek-id-firehose-transport-123'
+        team: 'marketplace'
+      };
+      const act = { action: 'dataaccess.manage' };
+      const res = await context.enforcer.enforceJson(sub, obj, act);
+      Code.expect(res).to.equal(true);
+    }
+  );
+
+  lab.test(
+    'henry of a team(marketplace) should not have default access to the team(augur)',
+    async ({ context }) => {
+      const sub = { user: 'henry' };
+      const obj = {
+        team: 'augur'
+      };
+      const act = { action: 'dataaccess.manage' };
+      const res = await context.enforcer.enforceJson(sub, obj, act);
+      Code.expect(res).to.equal(false);
+    }
+  );
+
+  lab.test(
+    'resource.manager(dave) of a team(augur) with particular project(gojek::prrivacy) access should have any access to it',
+    async ({ context }) => {
+      const sub = { user: 'dave' };
+      const obj = {
+        entity: 'gojek',
+        privacy: 'public'
       };
       const act = { action: 'any' };
       const res = await context.enforcer.enforceJson(sub, obj, act);
@@ -55,7 +80,6 @@ const testScenarios = () => {
       user.id = 'alice';
       user.username = 'alice';
       user.displayname = 'alice';
-      const options = { created_by: user };
       const act = { action: 'firehose.write' };
       const res = await context.enforcer.enforceJson(sub, obj, act);
       Code.expect(res).to.equal(true);

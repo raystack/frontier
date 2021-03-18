@@ -1,7 +1,12 @@
 import Hapi from '@hapi/hapi';
 import Joi from 'joi';
 import * as Resource from './resource';
-import { RolesResponse, Attributes } from './schema';
+import {
+  RolesResponse,
+  Attributes,
+  createPayload,
+  RoleResponse
+} from './schema';
 import {
   InternalServerErrorResponse,
   NotFoundResponse,
@@ -29,5 +34,25 @@ export const get = {
     return Resource.get(
       attributes.constructor === String ? [attributes] : attributes
     );
+  }
+};
+
+export const create = {
+  description: 'create roles along with action mapping',
+  tags: ['api', 'role'],
+  validate: {
+    payload: createPayload
+  },
+  response: {
+    status: {
+      200: RoleResponse,
+      401: UnauthorizedResponse,
+      404: NotFoundResponse,
+      500: InternalServerErrorResponse
+    }
+  },
+  handler: async (request: Hapi.Request) => {
+    const user: any = request.auth?.credentials;
+    return Resource.create(<any>request.payload, user);
   }
 };

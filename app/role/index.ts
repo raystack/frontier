@@ -10,6 +10,11 @@ export const plugin = {
         method: 'GET',
         path: '/api/roles',
         options: Handler.get
+      },
+      {
+        method: 'POST',
+        path: '/api/roles',
+        options: Handler.create
       }
     ]);
   }

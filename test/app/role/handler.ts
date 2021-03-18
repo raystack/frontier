@@ -13,6 +13,11 @@ exports.lab = Lab.script();
 let server: Hapi.Server;
 const Sandbox = Sinon.createSandbox();
 
+const TEST_AUTH = {
+  strategy: 'test',
+  credentials: { id: 'dev.test' }
+};
+
 lab.before(async () => {
   const plugins = [rolePlugin];
   server = new Hapi.Server({ port: Config.get('/port/web'), debug: false });
@@ -50,6 +55,42 @@ lab.experiment('Role::Handler', () => {
       const response = await server.inject(request);
       Sandbox.assert.calledWithExactly(getStub, ['entity', 'landscape']);
       Code.expect(response.result).to.equal(roles);
+      Code.expect(response.statusCode).to.equal(200);
+    });
+  });
+
+  lab.experiment('create role with actions', () => {
+    let request: any, role: Role, createStub: any;
+
+    lab.beforeEach(async () => {
+      role = await factory(Role)().create();
+      createStub = Sandbox.stub(Resource, 'create');
+    });
+
+    lab.afterEach(() => {
+      createStub.restore();
+    });
+
+    lab.test('should return roles based on attributes', async () => {
+      request = {
+        method: 'POST',
+        url: `/api/roles`,
+        payload: {
+          displayname: role.displayname,
+          attributes: role.attributes,
+          metadata: role.metadata,
+          actions: ['test1', 'test2']
+        },
+        auth: TEST_AUTH
+      };
+      createStub.resolves(role);
+      const response = await server.inject(request);
+      Sandbox.assert.calledWithExactly(
+        createStub,
+        request.payload,
+        request.auth.credentials
+      );
+      Code.expect(response.result).to.equal(role);
       Code.expect(response.statusCode).to.equal(200);
     });
   });

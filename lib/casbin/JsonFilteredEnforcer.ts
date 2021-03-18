@@ -1,14 +1,18 @@
 /* eslint-disable class-methods-use-this */
 import * as R from 'ramda';
 import { createQueryBuilder, In, Like, Raw } from 'typeorm';
-import { newEnforcerWithClass } from 'casbin';
-import { convertJSONToStringInOrder, JsonEnforcer } from './JsonEnforcer';
+import { CachedEnforcer, newEnforcerWithClass, Util } from 'casbin';
+import { convertJSONToStringInOrder } from './JsonEnforcer';
 import { toLikeQuery } from '../../app/policy/util';
 import IEnforcer, { JsonAttributes, OneKey, PolicyObj } from './IEnforcer';
+import { JsonRoleManager } from './JsonRoleManager';
 import {
   log as ActivityLog,
   actions as ActivityActions
 } from '../../app/activity/resource';
+
+const hasAnyAction = (actions: string[]) =>
+  actions.includes(JSON.stringify({ action: 'any' }));
 
 const groupPolicyParameters = (policies: PolicyObj[]) => {
   const res = policies.reduce(
@@ -57,9 +61,13 @@ export class JsonFilteredEnforcer implements IEnforcer {
 
   private async getEnforcer() {
     const enforcer = await newEnforcerWithClass(
-      JsonEnforcer,
+      CachedEnforcer,
       ...JsonFilteredEnforcer.params
     );
+    const jsonRM = new JsonRoleManager(10);
+    jsonRM.addMatchingFunc(Util.keyMatchFunc);
+    enforcer.setRoleManager(jsonRM);
+
     enforcer.enableAutoSave(true);
     enforcer.enableLog(false);
     return enforcer;
@@ -131,13 +139,6 @@ export class JsonFilteredEnforcer implements IEnforcer {
     return R.uniq(actionMappings.map((aM) => aM.v1).concat(actions));
   }
 
-  private async getAllPolicies() {
-    return await createQueryBuilder()
-      .select('*')
-      .from('casbin_rule', 'casbin_rule')
-      .getRawMany();
-  }
-
   private async getEnforcerWithPolicies(policies: PolicyObj[]) {
     const enforcer = await this.getEnforcer();
     const { subjects, resources, actions } = groupPolicyParameters(policies);
@@ -172,7 +173,9 @@ export class JsonFilteredEnforcer implements IEnforcer {
             v1: Raw((alias) => `${alias} like any (array[:...resources])`, {
               resources: resourcesForPolicyFilter
             }),
-            v2: In(actionsForPolicyFilter)
+            ...(!hasAnyAction(actions) && {
+              v2: In(actionsForPolicyFilter)
+            })
           },
           { ptype: 'g', v0: In(subjects) },
           { ptype: 'g2', v0: In(resources) },
