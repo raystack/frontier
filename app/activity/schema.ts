@@ -4,7 +4,7 @@ import Config from '../../config/config';
 const validationOptions = Config.get('/validationOptions');
 
 export const ActivityPayload = Joi.object()
-  .label('ActivityPayload')
+  .label('Activity')
   .keys({
     id: Joi.string().required(),
     title: Joi.string().required(),
@@ -16,3 +16,17 @@ export const ActivityPayload = Joi.object()
     createdAt: Joi.date().iso().required()
   })
   .options(validationOptions);
+
+const ActivityResponse = Joi.object()
+  .keys({
+    id: Joi.string().uuid(),
+    createdAt: Joi.date().iso(),
+    diff: Joi.object(),
+    reason: Joi.string(),
+    user: Joi.string()
+  })
+  .label('Activity');
+
+export const ActivityPayloadSuccessResponse = Joi.array()
+  .label('Activities')
+  .items(ActivityResponse);
