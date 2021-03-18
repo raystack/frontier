@@ -15,6 +15,7 @@ const Role = Joi.object()
   .label('Role')
   .options(validationOptions);
 
+export const RoleResponse = Role;
 export const RolesResponse = Joi.array()
   .items(Role)
   .label('Roles')
@@ -24,3 +25,13 @@ export const Attributes = Joi.alternatives().try(
   Joi.array().items(Joi.string().optional()).label('attributes').optional(),
   Joi.string().optional()
 );
+
+export const createPayload = Joi.object()
+  .label('RoleCreatePayload')
+  .keys({
+    displayname: Joi.string().required(),
+    attributes: Joi.array().items(Joi.string()),
+    actions: Joi.array().items(Joi.string()),
+    metadata: Joi.object()
+  })
+  .options(validationOptions);

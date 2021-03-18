@@ -159,6 +159,11 @@ const setupUserTeamMapping = async () => {
     { team: 'de' },
     { created_by: user }
   );
+  await CasbinSingleton.enforcer.addSubjectGroupingJsonPolicy(
+    { user: 'henry' },
+    { team: 'marketplace' },
+    { created_by: user }
+  );
 };
 
 const setupResourceProjectMapping = async () => {
@@ -292,7 +297,8 @@ const setupPermissionRoleMapping = async () => {
   );
   await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'dagger.read' },
-    { role: 'resource.viewer' }
+    { role: 'resource.viewer' },
+    { created_by: user }
   );
   await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'beast.read' },
@@ -319,6 +325,12 @@ const setupPermissionRoleMapping = async () => {
   await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
     { action: 'beast.*' },
     { role: 'dwh.manager' },
+    { created_by: user }
+  );
+
+  await CasbinSingleton.enforcer.addActionGroupingJsonPolicy(
+    { action: 'dataaccess.manage' },
+    { role: 'default' },
     { created_by: user }
   );
 };
