@@ -39,7 +39,6 @@ lab.experiment('UserGroup::Handler', () => {
     });
 
     lab.test('should get groups of a user by id', async () => {
-      const GROUP_ID = 'test-group';
       const USER_ID = 'test-user';
       const request: any = {
         method: 'GET',
@@ -49,9 +48,14 @@ lab.experiment('UserGroup::Handler', () => {
 
       const result: any = [
         {
-          id: GROUP_ID,
-          displayname: 'ABCD',
-          metadata: {}
+          policies: [
+            {
+              subject: { user: 'user' },
+              resource: { group: 'group' },
+              action: { role: 'role' }
+            }
+          ],
+          attributes: { group: 'group' }
         }
       ];
       getStub = Sandbox.stub(UserGroupResource, 'list').returns(result);
@@ -64,7 +68,6 @@ lab.experiment('UserGroup::Handler', () => {
     });
 
     lab.test('should get groups of logged in user', async () => {
-      const GROUP_ID = 'test-group';
       const USER_ID = TEST_AUTH.credentials.id;
       const request: any = {
         method: 'GET',
@@ -74,9 +77,14 @@ lab.experiment('UserGroup::Handler', () => {
 
       const result: any = [
         {
-          id: GROUP_ID,
-          displayname: 'ABCD',
-          metadata: {}
+          policies: [
+            {
+              subject: { user: 'user' },
+              resource: { group: 'group' },
+              action: { role: 'role' }
+            }
+          ],
+          attributes: { group: 'group' }
         }
       ];
       getStub = Sandbox.stub(UserGroupResource, 'list').returns(result);
