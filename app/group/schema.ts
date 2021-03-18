@@ -27,14 +27,15 @@ export const updatePayload = Joi.object()
 
 export const GroupPolicies = Joi.object()
   .keys({
+    id: Joi.string().required(),
     isMember: Joi.bool().required(),
     userPolicies: Joi.array()
       .items(
         Joi.object()
           .keys({
-            subject: Joi.string().required(),
-            resource: Joi.string().required(),
-            action: Joi.string().required()
+            subject: Joi.object().required(),
+            resource: Joi.object().required(),
+            action: Joi.object().required()
           })
           .label('Policy')
       )

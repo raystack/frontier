@@ -153,17 +153,17 @@ lab.experiment('Group:User::Handler', () => {
       };
 
       const result: any = {
+        id: '9efe854e-9f14-4fb0-b6be-6cbef8bbf540',
+        username: 'dev.test',
+        displayname: 'dev test',
+        metadata: { email: 'dev.test@test.com' },
+        createdAt: '2021-03-18T13:06:22.292Z',
+        updatedAt: '2021-03-18T13:06:22.292Z',
         policies: [
           {
-            operation: 'create',
-            subject: { user: 'test_user' },
-            resource: {
-              group: 'test_group',
-              entity: 'gojek',
-              landscape: 'id',
-              environment: 'production'
-            },
-            action: { action: 'test_action' }
+            subject: { user: 'user' },
+            resource: { group: 'group' },
+            action: { role: 'role' }
           }
         ]
       };
@@ -264,21 +264,17 @@ lab.experiment('Group:User::Handler', () => {
 
       const result: any = [
         {
-          id: 'test_user',
-          displayname: 'Test User',
-          policies: [
+          id: '382ce8be-54b8-4e16-96ba-acd5fffb4b7f',
+          isMember: true,
+          userPolicies: [
             {
-              operation: 'create',
-              subject: { user: 'test_user' },
-              resource: {
-                group: 'test_group',
-                entity: 'gojek',
-                landscape: 'id',
-                environment: 'production'
-              },
-              action: { action: 'test_action' }
+              subject: { user: 'user' },
+              resource: { group: 'group' },
+              action: { role: 'role' }
             }
-          ]
+          ],
+          memberCount: 1,
+          attributes: [{ subject: 'subject ' }]
         }
       ];
       listStub = Sandbox.stub(GroupUserResource, 'list').returns(result);
