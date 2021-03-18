@@ -10,6 +10,9 @@ import {
   actions as ActivityActions
 } from '../../app/activity/resource';
 
+const hasAnyAction = (actions: string[]) =>
+  actions.includes(JSON.stringify({ action: 'any' }));
+
 const groupPolicyParameters = (policies: PolicyObj[]) => {
   const res = policies.reduce(
     (result: any, policy: PolicyObj) => {
@@ -131,13 +134,6 @@ export class JsonFilteredEnforcer implements IEnforcer {
     return R.uniq(actionMappings.map((aM) => aM.v1).concat(actions));
   }
 
-  private async getAllPolicies() {
-    return await createQueryBuilder()
-      .select('*')
-      .from('casbin_rule', 'casbin_rule')
-      .getRawMany();
-  }
-
   private async getEnforcerWithPolicies(policies: PolicyObj[]) {
     const enforcer = await this.getEnforcer();
     const { subjects, resources, actions } = groupPolicyParameters(policies);
@@ -172,7 +168,9 @@ export class JsonFilteredEnforcer implements IEnforcer {
             v1: Raw((alias) => `${alias} like any (array[:...resources])`, {
               resources: resourcesForPolicyFilter
             }),
-            v2: In(actionsForPolicyFilter)
+            ...(!hasAnyAction(actions) && {
+              v2: In(actionsForPolicyFilter)
+            })
           },
           { ptype: 'g', v0: In(subjects) },
           { ptype: 'g2', v0: In(resources) },
