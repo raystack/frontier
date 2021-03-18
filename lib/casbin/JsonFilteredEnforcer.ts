@@ -1,10 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import * as R from 'ramda';
 import { createQueryBuilder, In, Like, Raw } from 'typeorm';
-import { newEnforcerWithClass } from 'casbin';
-import { convertJSONToStringInOrder, JsonEnforcer } from './JsonEnforcer';
+import { CachedEnforcer, newEnforcerWithClass, Util } from 'casbin';
+import { convertJSONToStringInOrder } from './JsonEnforcer';
 import { toLikeQuery } from '../../app/policy/util';
 import IEnforcer, { JsonAttributes, OneKey, PolicyObj } from './IEnforcer';
+import { JsonRoleManager } from './JsonRoleManager';
 import {
   log as ActivityLog,
   actions as ActivityActions
@@ -60,9 +61,13 @@ export class JsonFilteredEnforcer implements IEnforcer {
 
   private async getEnforcer() {
     const enforcer = await newEnforcerWithClass(
-      JsonEnforcer,
+      CachedEnforcer,
       ...JsonFilteredEnforcer.params
     );
+    const jsonRM = new JsonRoleManager(10);
+    jsonRM.addMatchingFunc(Util.keyMatchFunc);
+    enforcer.setRoleManager(jsonRM);
+
     enforcer.enableAutoSave(true);
     enforcer.enableLog(false);
     return enforcer;
