@@ -1,6 +1,6 @@
 {
   "name": "shield",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "private": "true",
   "description": "IAM with reverse proxy",
   "main": "server.js",
