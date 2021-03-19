@@ -40,6 +40,17 @@ export const get = {
 export const create = {
   description: 'create roles along with action mapping',
   tags: ['api', 'role'],
+
+  app: {
+    iam: {
+      permissions: [
+        {
+          action: 'role.create',
+          attributes: [{ '*': { defaultValue: '*' } }]
+        }
+      ]
+    }
+  },
   validate: {
     payload: createPayload
   },
@@ -54,5 +65,30 @@ export const create = {
   handler: async (request: Hapi.Request) => {
     const user: any = request.auth?.credentials;
     return Resource.create(<any>request.payload, user);
+  }
+};
+
+export const update = {
+  description: 'update roles along with action mapping',
+  tags: ['api'],
+  app: {
+    iam: {
+      permissions: [
+        {
+          action: 'role.manage',
+          attributes: [{ '*': { defaultValue: '*' } }]
+        }
+      ]
+    }
+  },
+  validate: {
+    params: Joi.object().keys({
+      id: Joi.string().required()
+    }),
+    payload: createPayload
+  },
+  handler: async (request: Hapi.Request) => {
+    const user: any = request.auth?.credentials;
+    return Resource.update(request.params.id, <any>request.payload, user);
   }
 };

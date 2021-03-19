@@ -1,5 +1,6 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
+import * as R from 'ramda';
 import Hapi from '@hapi/hapi';
 import Sinon from 'sinon';
 import { factory } from 'typeorm-seeding';
@@ -79,7 +80,10 @@ lab.experiment('Role::Handler', () => {
           displayname: role.displayname,
           attributes: role.attributes,
           metadata: role.metadata,
-          actions: ['test1', 'test2']
+          actions: [
+            { operation: 'create', action: 'test1' },
+            { operation: 'create', action: 'test2' }
+          ]
         },
         auth: TEST_AUTH
       };
@@ -91,6 +95,49 @@ lab.experiment('Role::Handler', () => {
         request.auth.credentials
       );
       Code.expect(response.result).to.equal(role);
+      Code.expect(response.statusCode).to.equal(200);
+    });
+  });
+
+  lab.experiment('update role by id with actions', () => {
+    let request: any, role: Role, updateStub: any;
+
+    lab.beforeEach(async () => {
+      role = await factory(Role)().create();
+      updateStub = Sandbox.stub(Resource, 'update');
+    });
+
+    lab.afterEach(() => {
+      updateStub.restore();
+    });
+
+    lab.test('should return roles based on attributes', async () => {
+      request = {
+        method: 'PUT',
+        url: `/api/roles/${role.id}`,
+        payload: {
+          displayname: `${role.displayname}1`,
+          actions: [
+            { operation: 'create', action: 'test1' },
+            { operation: 'create', action: 'test2' }
+          ]
+        },
+        auth: TEST_AUTH
+      };
+      updateStub.resolves({
+        ...role,
+        displayname: request.payload.displayname
+      });
+      const response = await server.inject(request);
+      Sandbox.assert.calledWithExactly(
+        updateStub,
+        role.id,
+        request.payload,
+        request.auth.credentials
+      );
+      Code.expect(R.path(['displayname'], response.result)).to.equal(
+        request.payload.displayname
+      );
       Code.expect(response.statusCode).to.equal(200);
     });
   });

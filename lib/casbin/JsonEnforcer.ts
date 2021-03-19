@@ -149,6 +149,20 @@ export class JsonEnforcer extends CachedEnforcer implements IEnforcer {
     await this.invalidateCache();
   }
 
+  public async removeActionGroupingJsonPolicy<T extends string>(
+    action: OneKey<T>,
+    jsonAttributes: JsonAttributes
+  ) {
+    await this.removeFilteredNamedGroupingPolicy(
+      'g3',
+      0,
+      convertJSONToStringInOrder(action),
+      convertJSONToStringInOrder(jsonAttributes),
+      'action'
+    );
+    await this.invalidateCache();
+  }
+
   public async setWatcher(watcher: any) {
     this.watcher = watcher;
     // eslint-disable-next-line no-return-await
