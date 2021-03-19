@@ -112,7 +112,7 @@ export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
             method: modifyRequest
           }
         },
-        tags: ['api'],
+        tags: ['api', 'proxy'],
         ...(!['GET', 'HEAD'].includes(route.method) && {
           payload: { parse: false }
         }),
