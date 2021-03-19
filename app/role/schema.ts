@@ -26,12 +26,19 @@ export const Attributes = Joi.alternatives().try(
   Joi.string().optional()
 );
 
+const actionOperationPayload = Joi.object()
+  .label('ActionOperation')
+  .keys({
+    operation: Joi.string().valid('create', 'delete').required(),
+    action: Joi.string().required()
+  });
+
 export const createPayload = Joi.object()
   .label('RoleCreatePayload')
   .keys({
     displayname: Joi.string().required(),
     attributes: Joi.array().items(Joi.string()),
-    actions: Joi.array().items(Joi.string()),
+    actions: Joi.array().items(actionOperationPayload),
     metadata: Joi.object()
   })
   .options(validationOptions);

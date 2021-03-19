@@ -15,6 +15,11 @@ export const plugin = {
         method: 'POST',
         path: '/api/roles',
         options: Handler.create
+      },
+      {
+        method: 'PUT',
+        path: '/api/roles/{id}',
+        options: Handler.update
       }
     ]);
   }

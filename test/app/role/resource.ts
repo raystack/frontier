@@ -5,7 +5,6 @@ import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
 import { Role } from '../../../model/role';
 import * as Resource from '../../../app/role/resource';
-import CasbinSingleton from '../../../lib/casbin';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();
@@ -52,13 +51,13 @@ lab.experiment('Role::resource', () => {
 
   lab.experiment('create role along with action mapping', () => {
     const loggedInUser = { username: 'test' };
-    const casbinStubs = {
-      addActionGroupingJsonPolicy: null
-    };
+    let mapActionRoleInBulkStub = null;
 
     lab.beforeEach(() => {
-      casbinStubs.addActionGroupingJsonPolicy = Sandbox.stub();
-      Sandbox.stub(CasbinSingleton, 'enforcer').value(casbinStubs);
+      mapActionRoleInBulkStub = Sandbox.stub(
+        Resource,
+        'mapActionRoleInBulk'
+      ).resolves([]);
     });
 
     lab.afterEach(() => {
@@ -75,7 +74,7 @@ lab.experiment('Role::resource', () => {
       const result = await Resource.create(payload, loggedInUser);
 
       Code.expect(result.displayname).to.equal(payload.displayname);
-      Sandbox.assert.notCalled(casbinStubs.addActionGroupingJsonPolicy);
+      Sandbox.assert.notCalled(mapActionRoleInBulkStub);
     });
 
     lab.test('should create role with action', async () => {
@@ -83,17 +82,67 @@ lab.experiment('Role::resource', () => {
         displayname: 'role',
         attributes: ['test'],
         metadata: {},
-        actions: ['test.action']
+        actions: [{ operation: 'create', action: 'test' }]
       };
 
-      const result = await Resource.create(payload, loggedInUser);
+      const result = await Resource.create(<any>payload, loggedInUser);
 
       Code.expect(result.displayname).to.equal(payload.displayname);
-      Sandbox.assert.calledWithExactly(
-        casbinStubs.addActionGroupingJsonPolicy,
-        { action: 'test.action' },
-        { role: result.id },
-        { created_by: loggedInUser }
+      Sandbox.assert.calledOnceWithExactly(
+        mapActionRoleInBulkStub,
+        result.id,
+        payload.actions,
+        loggedInUser
+      );
+    });
+  });
+
+  lab.experiment('update role by id along with action mapping', () => {
+    const loggedInUser = { username: 'test' };
+    let role,
+      mapActionRoleInBulkStub = null;
+
+    lab.beforeEach(async () => {
+      mapActionRoleInBulkStub = Sandbox.stub(
+        Resource,
+        'mapActionRoleInBulk'
+      ).resolves([]);
+      role = await factory(Role)().create();
+    });
+
+    lab.afterEach(() => {
+      Sandbox.restore();
+    });
+
+    lab.test('should update role even without actions', async () => {
+      const payload = {
+        displayname: 'role',
+        attributes: ['test'],
+        metadata: {}
+      };
+
+      const result = await Resource.update(role.id, payload, loggedInUser);
+
+      Code.expect(result.displayname).to.equal(payload.displayname);
+      Sandbox.assert.notCalled(mapActionRoleInBulkStub);
+    });
+
+    lab.test('should update role with action', async () => {
+      const payload = {
+        displayname: 'role',
+        attributes: ['test'],
+        metadata: {},
+        actions: [{ operation: 'create', action: 'test' }]
+      };
+
+      const result = await Resource.update(role.id, <any>payload, loggedInUser);
+
+      Code.expect(result.displayname).to.equal(payload.displayname);
+      Sandbox.assert.calledOnceWithExactly(
+        mapActionRoleInBulkStub,
+        result.id,
+        payload.actions,
+        loggedInUser
       );
     });
   });

@@ -72,6 +72,12 @@ interface IEnforcer {
     jsonAttributes: JsonAttributes,
     options: JsonAttributes
   ): void;
+
+  removeActionGroupingJsonPolicy<T extends string>(
+    action: OneKey<T>,
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
+  ): void;
 }
 
 export default IEnforcer;

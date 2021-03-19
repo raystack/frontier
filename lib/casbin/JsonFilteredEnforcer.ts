@@ -396,6 +396,31 @@ export class JsonFilteredEnforcer implements IEnforcer {
       options?.created_by
     );
   }
+
+  public async removeActionGroupingJsonPolicy<T extends string>(
+    action: OneKey<T>,
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
+  ) {
+    const enforcer = await this.getEnforcer();
+    await enforcer.removeFilteredNamedPolicy(
+      'g3',
+      0,
+      convertJSONToStringInOrder(action),
+      convertJSONToStringInOrder(jsonAttributes),
+      'action'
+    );
+    await sendLog(
+      {
+        ptype: 'g3',
+        subject: action,
+        resource: jsonAttributes,
+        action: 'action'
+      },
+      ActivityActions.DELETE,
+      options?.created_by
+    );
+  }
 }
 
 export async function newJsonFilteredEnforcer(
