@@ -70,7 +70,7 @@ export const create = {
 
 export const update = {
   description: 'update roles along with action mapping',
-  tags: ['api'],
+  tags: ['api', 'role'],
   app: {
     iam: {
       permissions: [
