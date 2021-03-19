@@ -34,7 +34,7 @@ lab.afterEach(() => {
 
 lab.experiment('User::Handler', () => {
   lab.experiment('create user', () => {
-    let request, createUserStub, payload;
+    let request, createUserStub, payload, result;
 
     lab.beforeEach(async () => {
       createUserStub = Sandbox.stub(Resource, 'create');
@@ -51,6 +51,14 @@ lab.experiment('User::Handler', () => {
         payload,
         auth: TEST_AUTH
       };
+      result = {
+        id: '9efe854e-9f14-4fb0-b6be-6cbef8bbf540',
+        username: payload.metadata.name,
+        displayname: payload.displayname,
+        metadata: payload.metadata,
+        createdAt: '2021-03-18T13:06:22.292Z',
+        updatedAt: '2021-03-18T13:06:22.292Z'
+      };
     });
     lab.afterEach(() => {
       Sandbox.restore();
@@ -58,11 +66,11 @@ lab.experiment('User::Handler', () => {
 
     lab.test('should update user', async () => {
       await Resource.create(payload);
-      createUserStub.resolves(payload);
+      createUserStub.resolves(result);
       const response = await server.inject(request);
 
       Sandbox.assert.calledWithExactly(createUserStub, payload);
-      Code.expect(response.result).to.equal(payload);
+      Code.expect(response.result).to.equal(result);
       Code.expect(response.statusCode).to.equal(200);
     });
   });

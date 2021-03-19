@@ -1,6 +1,14 @@
 import Hapi from '@hapi/hapi';
+import Joi from 'joi';
 import * as Resource from './resource';
 import * as PolicySchema from '../../policy/schema';
+import { GroupsPolicies } from '../schema';
+import {
+  InternalServerErrorResponse,
+  NotFoundResponse,
+  UnauthorizedResponse
+} from '../../../utils/schema';
+import { UserGroupMapping, UserWithPoliciesResponse } from './schema';
 
 const iamConfig = (actionName: string) => ({
   iam: {
@@ -15,7 +23,23 @@ const iamConfig = (actionName: string) => ({
 
 export const list = {
   description: 'fetch list of users of a group',
-  tags: ['api'],
+  tags: ['api', 'group'],
+  validate: {
+    query: Joi.object({
+      role: Joi.string().optional(),
+      action: Joi.string().optional()
+    }).unknown(true),
+    params: Joi.object({
+      groupId: Joi.string().required().description('group id')
+    })
+  },
+  response: {
+    status: {
+      200: GroupsPolicies,
+      401: UnauthorizedResponse,
+      500: InternalServerErrorResponse
+    }
+  },
   handler: async (request: Hapi.Request) => {
     const { groupId } = request.params;
     return Resource.list(groupId, request.query);
@@ -24,7 +48,25 @@ export const list = {
 
 export const get = {
   description: 'fetch user and group mapping',
-  tags: ['api'],
+  tags: ['api', 'group'],
+  validate: {
+    query: Joi.object({
+      role: Joi.string().optional(),
+      action: Joi.string().optional()
+    }).unknown(true),
+    params: Joi.object({
+      groupId: Joi.string().required().description('group id'),
+      userId: Joi.string().required().description('user id')
+    })
+  },
+  response: {
+    status: {
+      200: UserWithPoliciesResponse,
+      401: UnauthorizedResponse,
+      404: NotFoundResponse,
+      500: InternalServerErrorResponse
+    }
+  },
   handler: async (request: Hapi.Request) => {
     const { groupId, userId } = request.params;
     return Resource.get(groupId, userId);
@@ -33,9 +75,22 @@ export const get = {
 
 export const post = {
   description: 'create group and user mapping',
-  tags: ['api'],
+  tags: ['api', 'group'],
   validate: {
-    payload: PolicySchema.payloadSchema
+    payload: PolicySchema.payloadSchema,
+    params: Joi.object({
+      groupId: Joi.string().required().description('group id'),
+      userId: Joi.string().required().description('user id')
+    })
+  },
+  response: {
+    status: {
+      200: UserGroupMapping,
+      201: UserGroupMapping,
+      401: UnauthorizedResponse,
+      404: NotFoundResponse,
+      500: InternalServerErrorResponse
+    }
   },
   app: iamConfig('iam.create'),
   handler: async (request: Hapi.Request) => {
@@ -48,9 +103,22 @@ export const post = {
 
 export const put = {
   description: 'update group and user mapping',
-  tags: ['api'],
+  tags: ['api', 'group'],
   validate: {
-    payload: PolicySchema.payloadSchema
+    payload: PolicySchema.payloadSchema,
+    params: Joi.object({
+      groupId: Joi.string().required().description('group id'),
+      userId: Joi.string().required().description('user id')
+    })
+  },
+  response: {
+    status: {
+      200: UserGroupMapping,
+      201: UserGroupMapping,
+      401: UnauthorizedResponse,
+      404: NotFoundResponse,
+      500: InternalServerErrorResponse
+    }
   },
   app: iamConfig('iam.manage'),
   handler: async (request: Hapi.Request) => {
@@ -63,7 +131,22 @@ export const put = {
 
 export const remove = {
   description: 'delete group and user mapping',
-  tags: ['api'],
+  tags: ['api', 'group'],
+  validate: {
+    params: Joi.object({
+      groupId: Joi.string().required().description('group id'),
+      userId: Joi.string().required().description('user id')
+    })
+  },
+  response: {
+    status: {
+      200: Joi.bool(),
+      201: UserGroupMapping,
+      401: UnauthorizedResponse,
+      404: NotFoundResponse,
+      500: InternalServerErrorResponse
+    }
+  },
   app: iamConfig('iam.delete'),
   handler: async (request: Hapi.Request) => {
     const { groupId, userId } = request.params;
@@ -74,7 +157,21 @@ export const remove = {
 
 export const removeSelf = {
   description: 'delete group and loggedin user mapping',
-  tags: ['api'],
+  tags: ['api', 'group'],
+  validate: {
+    params: Joi.object({
+      groupId: Joi.string().required().description('group id')
+    })
+  },
+  response: {
+    status: {
+      200: Joi.bool(),
+      201: UserGroupMapping,
+      401: UnauthorizedResponse,
+      404: NotFoundResponse,
+      500: InternalServerErrorResponse
+    }
+  },
   handler: async (request: Hapi.Request) => {
     const { groupId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;

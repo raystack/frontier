@@ -79,11 +79,23 @@ lab.experiment('Group::Handler', () => {
     let request, group, getStub;
 
     lab.beforeEach(async () => {
-      group = await factory(Group)().create();
+      group = {
+        id: '382ce8be-54b8-4e16-96ba-acd5fffb4b7f',
+        isMember: true,
+        userPolicies: [
+          {
+            subject: { user: 'user' },
+            resource: { group: 'group' },
+            action: { role: 'role' }
+          }
+        ],
+        memberCount: 1,
+        attributes: [{ subject: 'subject ' }]
+      };
       getStub = Sandbox.stub(Resource, 'get');
       request = {
         method: 'GET',
-        url: `/api/groups/${group.id}?test=123`,
+        url: `/api/groups/${group.id}?group=123`,
         auth: TEST_AUTH
       };
     });
@@ -101,7 +113,7 @@ lab.experiment('Group::Handler', () => {
         group.id.toString(),
         TEST_AUTH.credentials.id,
         {
-          test: '123'
+          group: '123'
         }
       );
       Code.expect(response.result).to.equal(group);

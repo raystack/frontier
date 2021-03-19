@@ -82,7 +82,16 @@ internals.manifest = {
           info: {
             title: 'Shield API Documentation',
             version: '1.0.0'
-          }
+          },
+          securityDefinitions: {
+            AUTH_KEY: {
+              type: 'apiKey', // apiKey is defined by the Swagger spec
+              name: 'X-Goog-Authenticated-User-Email', // the name of the query parameter / header
+              in: 'header'
+            }
+          },
+          security: [{ AUTH_KEY: [] }],
+          grouping: 'tags'
         }
       },
       { ...Logging }
