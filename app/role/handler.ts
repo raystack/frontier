@@ -87,6 +87,14 @@ export const update = {
     }),
     payload: createPayload
   },
+  response: {
+    status: {
+      200: RoleResponse,
+      401: UnauthorizedResponse,
+      404: NotFoundResponse,
+      500: InternalServerErrorResponse
+    }
+  },
   handler: async (request: Hapi.Request) => {
     const user: any = request.auth?.credentials;
     return Resource.update(request.params.id, <any>request.payload, user);
