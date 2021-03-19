@@ -19,7 +19,7 @@ export const get = {
   validate: {
     query: Joi.object({
       attributes: Attributes
-    })
+    }).unknown(true)
   },
   response: {
     status: {

@@ -23,7 +23,7 @@ export const list = {
     query: Joi.object({
       user_role: Joi.string().optional().description('role id'),
       group: Joi.string().optional().description('group id')
-    })
+    }).unknown(true)
   },
   response: {
     status: {
@@ -42,10 +42,12 @@ export const get = {
   description: 'get group by id',
   tags: ['api', 'group'],
   validate: {
-    query: Joi.object().keys({
-      user_role: Joi.string().optional(),
-      group: Joi.string().optional()
-    }),
+    query: Joi.object()
+      .keys({
+        user_role: Joi.string().optional(),
+        group: Joi.string().optional()
+      })
+      .unknown(true),
     params: Joi.object().keys({
       id: Joi.string().required().description('group id')
     })

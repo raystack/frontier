@@ -14,7 +14,7 @@ export const selfList = {
   validate: {
     query: Joi.object({
       action: Joi.string().optional()
-    })
+    }).unknown(true)
   },
   response: {
     status: {
@@ -39,7 +39,7 @@ export const list = {
     }),
     query: Joi.object({
       action: Joi.string().optional()
-    })
+    }).unknown(true)
   },
   response: {
     status: {

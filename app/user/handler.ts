@@ -36,7 +36,7 @@ export const list = {
     query: Joi.object({
       action: Joi.string().optional(),
       role: Joi.string().optional()
-    })
+    }).unknown(true)
   },
   response: {
     status: {
