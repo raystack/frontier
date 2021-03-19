@@ -55,6 +55,12 @@ interface IEnforcer {
     options: JsonAttributes
   ): void;
 
+  removeResourceGroupingJsonPolicy<T extends string>(
+    resource: OneKey<T>,
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
+  ): void;
+
   // ? Note: this will remove all policies by resource keys and then insert the new one
   upsertResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,

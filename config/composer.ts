@@ -68,6 +68,9 @@ internals.manifest = {
         plugin: '../app/access/index'
       },
       {
+        plugin: '../app/resource/index'
+      },
+      {
         plugin: '../plugin/proxy'
       },
       {

@@ -116,6 +116,20 @@ export class JsonEnforcer extends CachedEnforcer implements IEnforcer {
     await this.invalidateCache();
   }
 
+  public async removeResourceGroupingJsonPolicy<T extends string>(
+    resource: OneKey<T>,
+    jsonAttributes: JsonAttributes
+  ) {
+    await this.removeFilteredNamedGroupingPolicy(
+      'g2',
+      0,
+      convertJSONToStringInOrder(resource),
+      convertJSONToStringInOrder(jsonAttributes),
+      'resource'
+    );
+    await this.invalidateCache();
+  }
+
   // ? Note: this will remove all policies by resource keys and then insert the new one
   public async upsertResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,

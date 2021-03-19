@@ -341,6 +341,31 @@ export class JsonFilteredEnforcer implements IEnforcer {
     );
   }
 
+  public async removeResourceGroupingJsonPolicy<T extends string>(
+    resource: OneKey<T>,
+    jsonAttributes: JsonAttributes,
+    options: JsonAttributes
+  ) {
+    const enforcer = await this.getEnforcer();
+    await enforcer.removeFilteredNamedGroupingPolicy(
+      'g2',
+      0,
+      convertJSONToStringInOrder(resource),
+      convertJSONToStringInOrder(jsonAttributes),
+      'resource'
+    );
+    await sendLog(
+      {
+        ptype: 'g2',
+        subject: resource,
+        resource: jsonAttributes,
+        action: 'resource'
+      },
+      ActivityActions.DELETE,
+      options.created_by
+    );
+  }
+
   // ? Note: this will remove all policies by resource keys and then insert the new one
   public async upsertResourceGroupingJsonPolicy<T extends string>(
     resource: OneKey<T>,
