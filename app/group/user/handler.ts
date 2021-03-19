@@ -28,7 +28,7 @@ export const list = {
     query: Joi.object({
       role: Joi.string().optional(),
       action: Joi.string().optional()
-    }),
+    }).unknown(true),
     params: Joi.object({
       groupId: Joi.string().required().description('group id')
     })
@@ -53,7 +53,7 @@ export const get = {
     query: Joi.object({
       role: Joi.string().optional(),
       action: Joi.string().optional()
-    }),
+    }).unknown(true),
     params: Joi.object({
       groupId: Joi.string().required().description('group id'),
       userId: Joi.string().required().description('user id')
