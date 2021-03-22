@@ -8,7 +8,7 @@ jobs:
       postgres:
         image: postgres:11.10
         ports:
-          - 5432:5432
+          - 4322:5432
         env:
           POSTGRES_USER: "shield_test"
           POSTGRES_DB: "shield_test"
@@ -33,7 +33,5 @@ jobs:
         run: yarn lint
       - name: Run Tests
         run: yarn test
-        env:
-          POSTGRES_HOST: postgresql://shield_test@postgres:5432/shield_test
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1

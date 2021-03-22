@@ -31,9 +31,6 @@ internals.config = {
     $filter: 'env',
     test: {
       $filter: 'ci',
-      true: {
-        uri: process.env.POSTGRES_HOST,
-      },
       gitlab: {
         uri: 'postgresql://shield_test@localhost:4322/shield_test'
       },
@@ -43,9 +40,6 @@ internals.config = {
     },
     'test-migrate': {
       $filter: 'ci',
-      true: {
-        uri: process.env.POSTGRES_HOST,
-      },
       gitlab: {
         uri: 'postgresql://shield_test@localhost:4322/shield_test'
       },
