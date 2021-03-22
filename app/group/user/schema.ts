@@ -10,13 +10,10 @@ const UserWithPolicies = UserResponse.append({
         resource: Joi.object(),
         action: Joi.object()
       })
+      .unknown(true)
       .label('Policy')
   )
 }).label('UserWithPolicies');
-
-export const UsersWithPoliciesResponse = Joi.array()
-  .items(UserWithPolicies)
-  .label('UsersWithPolicies');
 
 export const UserWithPoliciesResponse = UserWithPolicies;
 
