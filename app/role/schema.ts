@@ -7,8 +7,8 @@ const Role = Joi.object()
   .keys({
     id: Joi.string().uuid().required(),
     displayname: Joi.string().required(),
-    attributes: Joi.array().items(Joi.string()),
-    metadata: Joi.object().required(),
+    attributes: Joi.array().items(Joi.string()).allow(null),
+    metadata: Joi.object().required().allow(null),
     createdAt: Joi.date().iso().required(),
     updatedAt: Joi.date().iso().required()
   })

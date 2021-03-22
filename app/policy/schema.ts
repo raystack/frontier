@@ -17,9 +17,12 @@ export const policySchema = Joi.object()
       .xor('action', 'role')
       .required()
   })
+  .label('Policy')
   .unknown(true);
 
-export const policiesSchema = Joi.array().items(
+export const policiesSchema = Joi.array().items(policySchema).label('Policies');
+
+export const policiesOperationSchema = Joi.array().items(
   policySchema.keys({
     operation: Joi.string().valid('create', 'delete').required()
   })
@@ -28,6 +31,6 @@ export const policiesSchema = Joi.array().items(
 export const payloadSchema = Joi.object()
   .label('PolciesOperationPayload')
   .keys({
-    policies: policiesSchema
+    policies: policiesOperationSchema
   })
   .options(Config.get('/validationOptions'));

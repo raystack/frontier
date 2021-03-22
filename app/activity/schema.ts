@@ -22,7 +22,7 @@ const ActivityResponse = Joi.object()
     id: Joi.string().uuid(),
     createdAt: Joi.date().iso(),
     diff: Joi.object(),
-    reason: Joi.string(),
+    reason: Joi.string().allow(null).allow(''),
     user: Joi.string()
   })
   .label('Activity');

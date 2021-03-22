@@ -9,7 +9,7 @@ export const createPayload = Joi.object()
   .keys({
     groupname: Joi.string().optional(),
     displayname: Joi.string().required(),
-    policies: PolicySchema.policiesSchema,
+    policies: PolicySchema.policiesOperationSchema,
     attributes: Joi.array().items(Joi.object()),
     metadata: Joi.object()
   })
@@ -19,7 +19,7 @@ export const updatePayload = Joi.object()
   .label('GroupUpdatePayload')
   .keys({
     displayname: Joi.string().required(),
-    policies: PolicySchema.policiesSchema,
+    policies: PolicySchema.policiesOperationSchema,
     attributes: Joi.array().items(Joi.object()),
     metadata: Joi.object()
   })
@@ -28,20 +28,11 @@ export const updatePayload = Joi.object()
 export const GroupPolicies = Joi.object()
   .keys({
     id: Joi.string().required(),
-    isMember: Joi.bool().required(),
-    userPolicies: Joi.array()
-      .items(
-        Joi.object()
-          .keys({
-            subject: Joi.object().required(),
-            resource: Joi.object().required(),
-            action: Joi.object().required()
-          })
-          .unknown(true)
-          .label('Policy')
-      )
-      .label('Policies'),
-    memberCount: Joi.number().integer().required(),
+    displayname: Joi.string().optional(),
+    isMember: Joi.bool().optional(),
+    userPolicies: PolicySchema.policiesSchema.optional(),
+    policies: PolicySchema.policiesSchema.optional(),
+    memberCount: Joi.number().integer().optional(),
     attributes: Joi.array().items(Joi.object())
   })
   .unknown(true)

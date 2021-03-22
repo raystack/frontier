@@ -61,7 +61,8 @@ lab.experiment('Group::Handler', () => {
     });
 
     lab.test('should create group', async () => {
-      createStub.resolves(payload);
+      const group = { id: '123', ...payload };
+      createStub.resolves(group);
 
       const response = await server.inject(request);
 
@@ -70,7 +71,7 @@ lab.experiment('Group::Handler', () => {
         payload,
         TEST_AUTH.credentials.id
       );
-      Code.expect(response.result).to.equal(payload);
+      Code.expect(response.result).to.equal(group);
       Code.expect(response.statusCode).to.equal(200);
     });
   });
