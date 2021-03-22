@@ -4,10 +4,36 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:11.10
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: "shield_test"
+          POSTGRES_DB: "shield_test"
+          POSTGRES_HOST_AUTH_METHOD: "trust"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
         with:
           node-version: "12.x"
-      - run: yarn install --frozen-lockfile
-      - run: yarn lint
+        env:
+          RUNNER_TEMP: "/tmp/"
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Check Lint
+        run: yarn lint
+      - name: Run Tests
+        run: yarn test
+        env:
+          POSTGRES_HOST: postgresql://shield_test@postgres:5432/shield_test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
