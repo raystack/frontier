@@ -20,6 +20,7 @@ export const UserResponse = Joi.object()
     createdAt: Joi.date().iso().required(),
     updatedAt: Joi.date().iso().required()
   })
+  .unknown(true)
   .label('User');
 
 export const UsersResponse = Joi.alternatives().try(
@@ -39,11 +40,13 @@ export const GroupsPolicies = Joi.array()
                 resource: Joi.object().required(),
                 action: Joi.object().required()
               })
+              .unknown(true)
               .label('Policy')
           )
           .label('Policies'),
         attributes: Joi.object().optional()
       })
+      .unknown(true)
       .label('GroupPolicy')
   )
   .label('GroupPolicies');

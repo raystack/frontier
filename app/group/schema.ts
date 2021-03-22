@@ -37,12 +37,14 @@ export const GroupPolicies = Joi.object()
             resource: Joi.object().required(),
             action: Joi.object().required()
           })
+          .unknown(true)
           .label('Policy')
       )
       .label('Policies'),
     memberCount: Joi.number().integer().required(),
     attributes: Joi.array().items(Joi.object())
   })
+  .unknown(true)
   .label('GroupPolicy');
 
 export const GroupsPolicies = Joi.array()

@@ -12,6 +12,7 @@ const Role = Joi.object()
     createdAt: Joi.date().iso().required(),
     updatedAt: Joi.date().iso().required()
   })
+  .unknown(true)
   .label('Role')
   .options(validationOptions);
 
@@ -31,7 +32,8 @@ const actionOperationPayload = Joi.object()
   .keys({
     operation: Joi.string().valid('create', 'delete').required(),
     action: Joi.string().required()
-  });
+  })
+  .unknown(true);
 
 export const createPayload = Joi.object()
   .label('RoleCreatePayload')

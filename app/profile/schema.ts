@@ -9,4 +9,5 @@ export const updatePayload = Joi.object()
     displayname: Joi.string().required(),
     metadata: Joi.object()
   })
+  .unknown(true)
   .options(validationOptions);

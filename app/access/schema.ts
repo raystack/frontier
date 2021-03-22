@@ -11,8 +11,10 @@ export const checkAccessPayload = Joi.array()
 
 export const CheckAccessResponse = Joi.array()
   .items(
-    PolicySchema.policySchema.append({
-      hasAccess: Joi.bool().required()
-    })
+    PolicySchema.policySchema
+      .append({
+        hasAccess: Joi.bool().required()
+      })
+      .unknown(true)
   )
   .label('Accesses');
