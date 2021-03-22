@@ -125,6 +125,7 @@ lab.experiment('ModifyRequest', () => {
         const request = <any>{
           auth: {
             credentials: {
+              id: '345',
               username: 'test'
             }
           },
@@ -133,7 +134,11 @@ lab.experiment('ModifyRequest', () => {
           }
         };
         const result: any = await getModifiedHeaders(request);
-        const expectedResult = { ...request.headers, username: 'test' };
+        const expectedResult = {
+          ...request.headers,
+          username: 'test',
+          'user-id': '345'
+        };
         Code.expect(result).to.equal(expectedResult);
       }
     );

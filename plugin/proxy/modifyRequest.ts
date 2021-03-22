@@ -49,9 +49,12 @@ export const getModifiedPayload = async (request: Hapi.Request) => {
 };
 
 export const getModifiedHeaders = (request: Hapi.Request) => {
-  const { username } = request?.auth?.credentials || {};
+  const { username, id } = request?.auth?.credentials || {};
   if (username) {
-    return R.assocPath(['username'], username, request.headers);
+    return R.pipe(
+      R.assocPath(['username'], username),
+      R.assocPath(['user-id'], id)
+    )(request.headers);
   }
   return request.headers;
 };
