@@ -1,6 +1,9 @@
 # Shield
 
-Shield is an authorization aware proxy service 
+Shield is an authorization aware proxy service
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Code Style](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
 ## Table of contents
 * [Technologies](#technologies)
