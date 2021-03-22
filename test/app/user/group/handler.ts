@@ -48,6 +48,7 @@ lab.experiment('UserGroup::Handler', () => {
 
       const result: any = [
         {
+          id: '123',
           policies: [
             {
               subject: { user: 'user' },
@@ -55,7 +56,7 @@ lab.experiment('UserGroup::Handler', () => {
               action: { role: 'role' }
             }
           ],
-          attributes: { group: 'group' }
+          attributes: [{ group: 'group' }]
         }
       ];
       getStub = Sandbox.stub(UserGroupResource, 'list').returns(result);
@@ -77,6 +78,7 @@ lab.experiment('UserGroup::Handler', () => {
 
       const result: any = [
         {
+          id: '123',
           policies: [
             {
               subject: { user: 'user' },
@@ -84,7 +86,7 @@ lab.experiment('UserGroup::Handler', () => {
               action: { role: 'role' }
             }
           ],
-          attributes: { group: 'group' }
+          attributes: [{ group: 'group' }]
         }
       ];
       getStub = Sandbox.stub(UserGroupResource, 'list').returns(result);

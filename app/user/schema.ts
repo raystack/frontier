@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import Config from '../../config/config';
+import { policiesSchema } from '../policy/schema';
 
 const validationOptions = Config.get('/validationOptions');
 
@@ -32,19 +33,8 @@ export const GroupsPolicies = Joi.array()
   .items(
     Joi.object()
       .keys({
-        policies: Joi.array()
-          .items(
-            Joi.object()
-              .keys({
-                subject: Joi.object().required(),
-                resource: Joi.object().required(),
-                action: Joi.object().required()
-              })
-              .unknown(true)
-              .label('Policy')
-          )
-          .label('Policies'),
-        attributes: Joi.object().optional()
+        policies: policiesSchema,
+        attributes: Joi.array().items(Joi.object())
       })
       .unknown(true)
       .label('GroupPolicy')

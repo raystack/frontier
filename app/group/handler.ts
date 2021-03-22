@@ -78,7 +78,7 @@ export const create = {
   },
   response: {
     status: {
-      200: createPayload,
+      200: GroupPolicies,
       400: BadRequestResponse,
       401: UnauthorizedResponse,
       404: NotFoundResponse,
@@ -102,8 +102,8 @@ export const update = {
   },
   response: {
     status: {
-      200: updatePayload,
-      201: updatePayload,
+      200: GroupPolicies,
+      201: GroupPolicies,
       400: BadRequestResponse,
       401: UnauthorizedResponse,
       404: NotFoundResponse,
