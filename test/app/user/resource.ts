@@ -68,6 +68,14 @@ lab.experiment('User::resource', () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       await enforcer.addSubjectGroupingJsonPolicy(
+        { user: users[2].id },
+        { group: groups[0].id },
+        { created_by: user }
+      );
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      await enforcer.addSubjectGroupingJsonPolicy(
         { user: users[3].id },
         { group: groups[1].id },
         { created_by: user }
@@ -78,6 +86,22 @@ lab.experiment('User::resource', () => {
       await enforcer?.addSubjectGroupingJsonPolicy(
         { user: users[2].id },
         { group: groups[1].id },
+        { created_by: user }
+      );
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      await enforcer?.addResourceGroupingJsonPolicy(
+        { group: groups[0].id },
+        { entity: 'gojek' },
+        { created_by: user }
+      );
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      await enforcer?.addResourceGroupingJsonPolicy(
+        { group: groups[1].id },
+        { entity: 'gofin' },
         { created_by: user }
       );
 
@@ -125,9 +149,7 @@ lab.experiment('User::resource', () => {
       const removeTimestamps = R.omit(['createdAt', 'updatedAt']);
 
       const filter = {
-        entity: 'gojek',
-        privacy: 'public',
-        action: 'firehose.read'
+        entity: 'gojek'
       };
       const result = (await Resource.list(filter)).map(removeTimestamps);
 

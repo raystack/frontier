@@ -1,8 +1,7 @@
 import * as R from 'ramda';
+import { createQueryBuilder } from 'typeorm';
 import { User } from '../../model/user';
-import { extractResourceAction } from '../policy/util';
 import { getSubjecListWithPolicies } from '../policy/resource';
-import CasbinSingleton from '../../lib/casbin';
 import { isJSONSubset } from '../../lib/casbin/JsonRoleManager';
 import getUniqName, { validateUniqName } from '../../lib/getUniqName';
 
@@ -27,31 +26,52 @@ export const getListWithFilters = async (policyFilters: JSObj) => {
   // ? 1) Get all users with all policies
   const allUsersWithAllPolicies = await getSubjecListWithPolicies('user');
 
-  // 2) extract resource and action from policyFilters
-  const { resource = {}, action = {} } = extractResourceAction(policyFilters);
+  // 3) fetch all groups with the matching attributes
+  const rawGroupResult = await createQueryBuilder()
+    .select('*')
+    .from('casbin_rule', 'casbin_rule')
+    .where('casbin_rule.ptype = :type', { type: 'g2' })
+    .andWhere('casbin_rule.v1 = :filter', {
+      filter: JSON.stringify(policyFilters)
+    })
+    .getRawMany();
 
-  // 3) run each user through casbin enforcer based on the specifed params
-  const policiesToBatchEnforce = allUsersWithAllPolicies.map((user: any) => ({
-    subject: { user: user.id },
-    resource,
-    action
-  }));
-  const batchEnforceResults = await CasbinSingleton?.enforcer?.batchEnforceJson(
-    policiesToBatchEnforce
-  );
+  const groups = rawGroupResult.map((res) => res.v0);
 
-  const usersWithAccesss = allUsersWithAllPolicies.filter(
-    (user: any, index: number) =>
-      batchEnforceResults && batchEnforceResults[index]
-  );
+  if (groups.length === 0) return [];
 
-  if (R.isEmpty(resource)) return usersWithAccesss;
+  // 4) fetch all groups_users record based on above groups
+  const rawUserGroupResult = await createQueryBuilder()
+    .select('*')
+    .from('casbin_rule', 'casbin_rule')
+    .where('casbin_rule.ptype = :type', { type: 'g' })
+    .andWhere('casbin_rule.v1 in (:...groups)', {
+      groups
+    })
+    .getRawMany();
+
+  const userMap = rawUserGroupResult.reduce((uMap, rGUser) => {
+    const userDoc = JSON.parse(rGUser.v0);
+    // eslint-disable-next-line no-param-reassign
+    uMap[userDoc.user] = 1;
+    return uMap;
+  }, {});
+
+  // 5) only return users that match the users<->groups mapping
+  const usersWithAccesss = allUsersWithAllPolicies.filter((user: any) => {
+    return userMap[user.id];
+  });
+
+  if (R.isEmpty(policyFilters)) return usersWithAccesss;
 
   // 4) fetch policies of the selected users, filtered by either of the policyFilter
   const usersWithFilteredPolicies = usersWithAccesss.map((user: any) => {
     const { policies = [] } = user;
     const filteredPolicies = policies.filter((policy: JSObj) =>
-      isJSONSubset(JSON.stringify(resource), JSON.stringify(policy.resource))
+      isJSONSubset(
+        JSON.stringify(policyFilters),
+        JSON.stringify(policy.resource)
+      )
     );
     return R.assoc('policies', filteredPolicies, user);
   });

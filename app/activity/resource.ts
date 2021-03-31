@@ -215,7 +215,6 @@ export const get = async (groupId = '') => {
     ]);
   }
 
-  console.log('before resources ActivityRepository.createQueryBuilder');
   const activities = await ActivityRepository.createQueryBuilder('activity')
     .where(whereClause, whereParameter)
     .orderBy('activity.created_at', 'DESC')
