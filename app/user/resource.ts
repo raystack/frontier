@@ -57,26 +57,28 @@ export const getListWithFilters = async (policyFilters: JSObj) => {
     return uMap;
   }, {});
 
-  // 5) only return users that match the users<->groups mapping
-  const usersWithAccesss = allUsersWithAllPolicies.filter((user: any) => {
-    return userMap[user.id];
-  });
+  // 5) only return users that match the users<->groups mapping or with matching policy
+  const usersWithAccesss = allUsersWithAllPolicies.reduce(
+    (result: any, user: any) => {
+      const { policies = [] } = user;
+      const filteredPolicies = policies.filter((policy: JSObj) =>
+        isJSONSubset(
+          JSON.stringify(policyFilters),
+          JSON.stringify(policy.resource)
+        )
+      );
 
-  if (R.isEmpty(policyFilters)) return usersWithAccesss;
+      const userHasAccess = userMap[user.id] || !R.isEmpty(filteredPolicies);
+      if (userHasAccess) {
+        const userWithPolicy = R.assoc('policies', filteredPolicies, user);
+        result.push(userWithPolicy);
+      }
+      return result;
+    },
+    []
+  );
 
-  // 4) fetch policies of the selected users, filtered by either of the policyFilter
-  const usersWithFilteredPolicies = usersWithAccesss.map((user: any) => {
-    const { policies = [] } = user;
-    const filteredPolicies = policies.filter((policy: JSObj) =>
-      isJSONSubset(
-        JSON.stringify(policyFilters),
-        JSON.stringify(policy.resource)
-      )
-    );
-    return R.assoc('policies', filteredPolicies, user);
-  });
-
-  return usersWithFilteredPolicies;
+  return usersWithAccesss;
 };
 
 export const list = async (policyFilters: JSObj = {}) => {

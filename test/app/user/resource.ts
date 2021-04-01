@@ -83,14 +83,6 @@ lab.experiment('User::resource', () => {
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      await enforcer?.addSubjectGroupingJsonPolicy(
-        { user: users[2].id },
-        { group: groups[1].id },
-        { created_by: user }
-      );
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       await enforcer?.addResourceGroupingJsonPolicy(
         { group: groups[0].id },
         { entity: 'gojek' },
