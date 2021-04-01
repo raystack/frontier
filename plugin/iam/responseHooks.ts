@@ -58,8 +58,23 @@ export const mergeResourceListWithAttributes = async (
   const iamResourceList = resourceList.map((res: any) =>
     constructIAMResourceFromConfig(resourceConfig, { response: res })
   );
-  const resouceAttributeMappings = await getResourceAttributeMappingsByResources(
+  const resouceAttributeDBResults = await getResourceAttributeMappingsByResources(
     iamResourceList
+  );
+
+  // Map sample data => { "{urn: "resource"}": [{attribute1: '1', attribute2: '2'}, {attribute3: '3'}] }
+  const iamResourceToAttributesMap = resouceAttributeDBResults.reduce(
+    (raMap: any, { resource, attributes }: any) => {
+      const resourceStrKey = JSON.stringify(resource);
+
+      // eslint-disable-next-line no-param-reassign
+      raMap[resourceStrKey] = raMap[resourceStrKey] || [];
+
+      // eslint-disable-next-line no-param-reassign
+      raMap[resourceStrKey].push(attributes);
+      return raMap;
+    },
+    {}
   );
 
   // merge it with resourceList by using hook config
@@ -67,16 +82,14 @@ export const mergeResourceListWithAttributes = async (
     const iamResource = constructIAMResourceFromConfig(resourceConfig, {
       response: res
     });
-    const attributeMappingsForResource = R.filter(
-      R.pipe(R.prop('resource'), R.equals(iamResource)),
-      resouceAttributeMappings
-    );
+    const attributeMappingsForResource =
+      iamResourceToAttributesMap[JSON.stringify(iamResource)] || [];
 
     return attributesConfig.reduce((mergedResource, iamAttributeConfig) => {
       const [[iamAttributeKey, { key }]] = Object.entries(iamAttributeConfig);
 
       const val = attributeMappingsForResource.reduce(
-        (attrVal: any, { attributes }) => {
+        (attrVal: any, attributes: any) => {
           if (!R.isEmpty(attrVal) && !R.isNil(attrVal)) return attrVal;
 
           return R.pathOr('', [iamAttributeKey], attributes);
