@@ -114,7 +114,7 @@ export const getSubjecListWithPolicies = async (
     .leftJoin(
       'casbin_rule',
       'casbin_rule',
-      `casbin_rule.v0 LIKE '%"' || ${joinMatchStr} || '"%'`
+      `casbin_rule.v0 = '{"${subjectType}":"' || ${joinMatchStr} || '"}'`
     )
     .groupBy(joinMatchStr)
     .getRawMany();
