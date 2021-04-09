@@ -1,31 +1,34 @@
 # Shield
 
-Shield is an authorization aware proxy service
+Shield is a cloud native role-based authorization aware reverse-proxy service. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Code Style](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
 ## Table of contents
-* [Technologies](#technologies)
-* [Getting Started](#gettingstarted)
-* [Documentation](#documentation)
-* [Contributing](#contributing)
-    * [Using the issue tracker](#usingtheissuetracker)
-    * [Changing the code-base](#changingthecodebase)
-* [License](#license)    
 
+- [Technologies](#technologies)
+- [Getting Started](#gettingstarted)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+  - [Using the issue tracker](#usingtheissuetracker)
+  - [Changing the code-base](#changingthecodebase)
+- [License](#license)
 
 ## [Technologies](#technologies)
-Shield is developed with 
-* [node.js](https://nodejs.org/en/) - Javascript runtime 
-* [docker](https://www.docker.com/get-started) - container engine runs on top of operating system   
-* [@hapi](https://hapi.dev/) - Web application framework
-* [casbin](https://casbin.org/) - Access control library
-* [typeorm](https://typeorm.io/#/) - Database agnostic sql query builder
+
+Shield is developed with
+
+- [node.js](https://nodejs.org/en/) - Javascript runtime
+- [docker](https://www.docker.com/get-started) - container engine runs on top of operating system
+- [@hapi](https://hapi.dev/) - Web application framework
+- [casbin](https://casbin.org/) - Access control library
+- [typeorm](https://typeorm.io/#/) - Database agnostic sql query builder
 
 ## [Getting Started](#gettingstarted)
+
 In order to install this project locally, you can follow the instructions below:
- 
+
 ```shell
 
 $ git clone git@github.com:odpf/shield.git
@@ -33,14 +36,17 @@ $ cd shield
 $ npm install
 $ docker-compose up
 ```
+
 If application is running successfully [click me](http://localhost:5000/ping) will open success message on a browser.
 
 **Note** - before `docker-compose up` command run `docker` daemon locally.
 
 ## [Documentation](#documentation)
+
 You can find the Shield API documentation [on this link](http://localhost:5000/documentation)
 
 ## [Contributing](#contributing)
+
 Contribute to our source code and to make Shield even better. Here are the [contributing guidelines]() we'd like you to follow:
 
 ### [Using the issue tracker](#usingtheissuetracker)
@@ -61,5 +67,7 @@ unit tests that validate implemented features and the presence or lack of defect
 Additionally, the code should follow any stylistic and architectural guidelines
 prescribed by the project. In the absence of such guidelines, mimic the styles
 and patterns in the existing code-base.
+
 ## [License](#license)
+
 Shield is [Apache Licensed](LICENSE)
