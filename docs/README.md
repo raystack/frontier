@@ -15,7 +15,7 @@ Here's a list of all the key features of Shield
 
 ## How can I get started?
 
-- [Guides](#) provide guidance on how to use Shield and configure it to your needs
-- [Concepts](#) descibe the primary concepts and architecture behind Shield
-- [Reference](#) contains the list of all the APIs that Shield exposes
-- [Contributing](#) contains resources for anyone who wants to contribute to Shield
+- [Guides](guides/overview.md) provide guidance on how to use Shield and configure it to your needs
+- [Concepts](concepts/casbin.md) descibe the primary concepts and architecture behind Shield
+- [Reference](reference/api.md) contains the list of all the APIs that Shield exposes
+- [Contributing](contribute/contribution.md) contains resources for anyone who wants to contribute to Shield
