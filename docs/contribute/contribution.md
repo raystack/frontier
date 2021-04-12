@@ -2,7 +2,7 @@
 
 The following is a set of guidelines for contributing to Shield. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request. Here are some important resources:
 
-- [Concepts](../concepts/codebase.md) section will explain you about Shield codebase,
+- [Concepts](../concepts/structure.md) section will explain you about Shield codebase,
 - Github [issues](https://github.com/odpf/shield/issues) track the ongoing and reported issues.
 
 ## How can I contribute?
