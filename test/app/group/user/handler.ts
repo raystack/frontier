@@ -13,7 +13,7 @@ const Sandbox = Sinon.createSandbox();
 
 const TEST_AUTH = {
   strategy: 'test',
-  credentials: { id: 'dev.test' }
+  credentials: { id: 'demo' }
 };
 
 lab.before(async () => {
@@ -154,9 +154,9 @@ lab.experiment('Group:User::Handler', () => {
 
       const result: any = {
         id: '9efe854e-9f14-4fb0-b6be-6cbef8bbf540',
-        username: 'dev.test',
+        username: 'demo',
         displayname: 'dev test',
-        metadata: { email: 'dev.test@test.com' },
+        metadata: { email: 'demo@demo.com' },
         createdAt: '2021-03-18T13:06:22.292Z',
         updatedAt: '2021-03-18T13:06:22.292Z',
         policies: [

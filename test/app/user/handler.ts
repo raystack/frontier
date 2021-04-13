@@ -15,7 +15,7 @@ const Sandbox = Sinon.createSandbox();
 
 const TEST_AUTH = {
   strategy: 'test',
-  credentials: { id: 'dev.test' }
+  credentials: { id: 'demo' }
 };
 
 lab.before(async () => {

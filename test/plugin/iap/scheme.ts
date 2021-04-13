@@ -42,7 +42,7 @@ lab.experiment('IAPPlugin', () => {
       method: 'GET',
       url: `/api/profile`,
       headers: {
-        'x-goog-authenticated-user-email': 'praveen.yadav@gojek.com'
+        'x-goog-authenticated-user-email': 'demo@demo.com'
       }
     };
     const response = await server.inject(request);

@@ -13,7 +13,7 @@ const Sandbox = Sinon.createSandbox();
 
 const TEST_AUTH = {
   strategy: 'test',
-  credentials: { id: 'dev.test' }
+  credentials: { id: 'demo' }
 };
 
 lab.before(async () => {
@@ -43,7 +43,7 @@ lab.experiment('Activity::Handler', () => {
           },
           id: '1149e63d-2c93-4ea7-acf7-809803536bcb',
           reason: 'Cheese Union PNG',
-          user: 'dev.test'
+          user: 'demo'
         }
       ];
       getStub = Sandbox.stub(Resource, 'get');
