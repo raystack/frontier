@@ -24,7 +24,7 @@ internals.config = {
       test: 9000,
       production: process.env.PORT,
       integration: process.env.PORT,
-      $default: process.env.PORT || 8000
+      $default: process.env.PORT || 8080
     }
   },
   postgres: {
@@ -71,8 +71,7 @@ internals.config = {
       prefix: 't'
     },
     $default: {
-      name: { $env: 'ENVIRONMENT_NAME', $default: 'local' },
-      prefix: { $env: 'ENVIRONMENT_PREFIX', $default: 'g' }
+      name: { $env: 'NODE_ENV', $default: 'local' }
     }
   },
   new_relic: {
@@ -81,7 +80,7 @@ internals.config = {
     enabled: {
       $filter: 'env',
       test: 'false',
-      $default: { $env: 'ENABLE_NEW_RELIC', $default: 'true' }
+      $default: { $env: 'ENABLE_NEW_RELIC', $default: 'false' }
     }
   },
 

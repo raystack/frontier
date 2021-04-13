@@ -43,6 +43,9 @@ internals.manifest = {
         plugin: '../plugin/iap'
       },
       {
+        plugin: '../plugin/events'
+      },
+      {
         plugin: '../plugin/iam/index',
         options: Config.get('/postgres')
       },
