@@ -19,6 +19,11 @@ jobs:
           registry: docker.pkg.github.com
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and Push
         uses: docker/build-push-action@v2
         with:
@@ -27,3 +32,5 @@ jobs:
           tags: |
             docker.pkg.github.com/${{ github.repository }}/shield:latest
             docker.pkg.github.com/${{ github.repository }}/shield:${{ steps.get_version.outputs.version-without-v }}
+            odpf/shield:latest
+            odpf/shield:${{ steps.get_version.outputs.version-without-v }}
