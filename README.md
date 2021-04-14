@@ -1,31 +1,42 @@
 # Shield
 
-Shield is a cloud native role-based authorization aware reverse-proxy service. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+![build workflow](https://github.com/odpf/shield/actions/workflows/test.yml/badge.svg)
+![package workflow](https://github.com/odpf/shield/actions/workflows/release.yml/badge.svg)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/odpf/shield?logo=semantic-release)](Version)
 [![Code Style](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
-## Table of contents
+Shield is a cloud native role-based authorization aware reverse-proxy service. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
 
-- [Technologies](#technologies)
-- [Getting Started](#gettingstarted)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-  - [Using the issue tracker](#usingtheissuetracker)
-  - [Changing the code-base](#changingthecodebase)
-- [License](#license)
+## Key Features
+Discover why users choose Shield as their authorization proxy
 
-## [Technologies](#technologies)
+- **Policy Management**: Policies help you assign various roles to users/groups that determine their access to various resources
+- **Group Management**: Group is nothing but another word for team. Shield provides APIs to add/remove users to/from a group, fetch list of users in a group along with their roles in the group, and fetch list of groups a user is part of.
+- **Activity Logs**: Shield has APIs that store and retrieve all the access related logs. You can see who added/removed a user to/from group in these logs.
+- **Reverse Proxy**: In addition to configuring access management, you can also use Shield as a reverse proxy to directly protect your endpoints by configuring appropriate permissions for them.
+- **Google IAP**: Shield also utilizes Google IAP as an authentication mechanism. So if your services are behind a Google IAP, Shield will seemlessly integrate with it.
+- **Runtime**: Shield can run inside containers or VMs in a fully managed runtime environment like Kubernetes. Shield also depends on a Postgres server to store data.
+
+## How can I get started?
+
+- [Guides](guides/overview.md) provide guidance on how to use Shield and configure it to your needs
+- [Concepts](concepts/casbin.md) descibe the primary concepts and architecture behind Shield
+- [Reference](reference/api.md) contains the list of all the APIs that Shield exposes
+- [Contributing](contribute/contribution.md) contains resources for anyone who wants to contribute to Shield
+
+
+## Technologies
 
 Shield is developed with
 
 - [node.js](https://nodejs.org/en/) - Javascript runtime
 - [docker](https://www.docker.com/get-started) - container engine runs on top of operating system
-- [@hapi](https://hapi.dev/) - Web application framework
+- [hapi](https://hapi.dev/) - Web application framework
 - [casbin](https://casbin.org/) - Access control library
 - [typeorm](https://typeorm.io/#/) - Database agnostic sql query builder
 
-## [Getting Started](#gettingstarted)
+## Running locally
 
 In order to install this project locally, you can follow the instructions below:
 
@@ -41,33 +52,19 @@ If application is running successfully [click me](http://localhost:5000/ping) wi
 
 **Note** - before `docker-compose up` command run `docker` daemon locally.
 
-## [Documentation](#documentation)
+Once running, you can find the Shield API documentation [on this link](http://localhost:5000/documentation)
 
-You can find the Shield API documentation [on this link](http://localhost:5000/documentation)
+## Contribute
 
-## [Contributing](#contributing)
+Development of Shield happens in the open on GitHub, and we are grateful to the community for contributing bugfixes and improvements. Read below to learn how you can take part in improving Shield.
 
-Contribute to our source code and to make Shield even better. Here are the [contributing guidelines]() we'd like you to follow:
+Read our [contributing guide](docs/contribute/contribution.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Shield.
 
-### [Using the issue tracker](#usingtheissuetracker)
+To help you get your feet wet and get you familiar with our contribution process, we have a list of [good first issues](https://github.com/odpf/shield/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started.
 
-Use the issue tracker to suggest feature requests, report bugs, and ask questions.
-This is also a great way to connect with the developers of the project as well
-as others who are interested in this solution.
+This project exists thanks to all the [contributors](https://github.com/odpf/shield/graphs/contributors).
 
-Use the issue tracker to find ways to contribute. Find a bug or a feature, mention in
-the issue that you will take on that effort, then follow the _Changing the code-base_
-guidance below.
 
-### [Changing the code-base](#changingthecodebase)
-
-Generally speaking, you should fork this repository, make changes in your
-own fork, and then submit a pull request. All new code should have associated
-unit tests that validate implemented features and the presence or lack of defects.
-Additionally, the code should follow any stylistic and architectural guidelines
-prescribed by the project. In the absence of such guidelines, mimic the styles
-and patterns in the existing code-base.
-
-## [License](#license)
+## License
 
 Shield is [Apache Licensed](LICENSE)
