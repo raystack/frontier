@@ -80,7 +80,7 @@ internals.config = {
     enabled: {
       $filter: 'env',
       test: 'false',
-      $default: { $env: 'ENABLE_NEW_RELIC', $default: 'false' }
+      $default: { $env: 'NEW_RELIC_ENABLED', $default: 'false' }
     }
   },
 
