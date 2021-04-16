@@ -48,6 +48,8 @@ $ npm install
 $ docker-compose up
 ```
 
+Please refer [guides](guides/usage-reverse-proxy.md) section to know more about proxies.
+
 If application is running successfully [click me](http://localhost:5000/ping) will open success message on a browser.
 
 **Note** - before `docker-compose up` command run `docker` daemon locally.
