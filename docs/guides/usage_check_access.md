@@ -13,6 +13,8 @@ Here is a brief description of all the components of a policy. These definitions
 - **Resources**: Resources are the assets you would like to protect via authorization.
 - **Attributes**: Resources get mapped with attributes that can be turn used while creating policies. Policies can get defined on attributes rather than individual resources to create better access management.
 
+Please check the [Glossary](../reference/glossary.md) section to understand the definitions in detail.
+
 ## Example
 
 Let us take an example of a Library Management Application. It has users and groups that manage books and e-books for a library based on the roles assigned to them.
