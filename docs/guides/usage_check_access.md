@@ -256,7 +256,7 @@ Now that we have setup our policies, we can check whether a user has the necessa
 Let's say Einstein tries edit to edit the book `relativity-the-special-general-theory` by calling the following endpoint:
 
 ```
-PUT /api/book/relativity-the-special-general-theory
+PUT /api/books/relativity-the-special-general-theory
 ```
 
 Then within your service you can call the `check-access` endpoint of Shield to check whether Einstein has access.

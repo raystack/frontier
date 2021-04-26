@@ -21,7 +21,7 @@
 ## Reference
 
 - [API](reference/api.md)
-- [Glossory](reference/glossary.md)
+- [Glossary](reference/glossary.md)
 
 ## Contribute
 
