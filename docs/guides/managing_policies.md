@@ -2,26 +2,26 @@
 
 Shield lets you control who \(users\) has what access \(roles\) to which resources by setting IAM policies. IAM policies grant specific role\(s\) to a user giving the user certain permissions.
 
-## Components of a policy
+## Components
 
 Here is a brief description of all the components of a policy. These definitions will help you understand the below example better.
 
 * **Users**: Users of your application.
-* **Groups**: Groups are just collections of users. Groups can also be used as attributes\(see below\) to map with resources.
-* **Actions**: Actions are representation of your endpoints. For example: action name for `POST /books` would be `book.create`, similarly for `GET /books/:id` would be `book.read`, etc.
-* **Roles**: Roles are nothing but collections of actions. Example: someone with a `Viewer` role can only perform `book.read`, whereas a `Manager` can perform both `book.read` and `book.create`.
+* **Groups**: Groups are collections of users. Groups can also be used as attributes\(see below\) to map with resources.
+* **Actions**: Actions are a representation of your endpoints. For example, action name for `POST /books` could be `book.create`, similarly for `GET /books/:id` could be `book.read`, etc.
+* **Roles**: Roles are collections of actions. Example: someone with a `Viewer` role can only perform `book.read`, whereas a `Manager` can perform both `book.read` and `book.create`.
 * **Resources**: Resources are the assets you would like to protect via authorization.
-* **Attributes**: Resources get mapped with attributes that can be turn used while creating policies. Policies can get defined on attributes rather than individual resources to create better access management.
+* **Attributes**: Resources get mapped with attributes that can be used while creating policies. Policies can also be defined on attributes rather than individual resources to create better access management.
 
 Please check the [Glossary](../reference/glossary.md) section to understand the definitions in detail.
 
 ## Example
 
-Let us take an example of a Library Management Application. It has users and groups that manage books and e-books for a library based on the roles assigned to them.
+Let us take an example of a Library Management Application. It has users and groups that manage books and e-books for a library based on their assigned roles.
 
 ### Application endpoints to protect
 
-The following are the endpoints of the Library Management App that we would like to protect
+The following are the endpoints of the Library Management App that we would like to protect.
 
 ```text
 POST /books => Corresponding action = book.create
@@ -41,7 +41,7 @@ As defined earlier, actions are representations of your endpoints, and roles are
 
 #### Group Admin
 
-* Description: Users with this role can add users to a group and manage all resources all resources of that group
+* Description: Users with this role can add users to a group and manage all resources of that group
 * Actions: `["*"]`
 
 #### Book Manager
@@ -59,7 +59,7 @@ As defined earlier, actions are representations of your endpoints, and roles are
 * Description: Users with this role can only read `books` and `e-books` endpoint
 * Actions: `["book.read", "e-book.read"]`
 
-To create a Role, and Role&lt;-&gt;Action Mapping call the following API:
+To create a Role, and `Role<->Action` Mapping call the following API:
 
 ```text
 POST /api/roles
@@ -136,7 +136,7 @@ Response:
 
 ### Resources and Attributes
 
-We have the following books and e-books with certain attributes in our library
+We have the following books and e-books with certain attributes in our library.
 
 * Note: the value of the group attribute below is the group id of the respective group.
 * Group Id for Mathematicians group = 90663880-43c8-5073-1094-7f059avf6ftz
@@ -257,7 +257,7 @@ Let's say Einstein tries edit to edit the book `relativity-the-special-general-t
 PUT /api/books/relativity-the-special-general-theory
 ```
 
-Then within your service you can call the `check-access` endpoint of Shield to check whether Einstein has access.
+Then within your service, you can call the `check-access` endpoint of Shield to check whether Einstein has access.
 
 ```text
 POST /api/check-access
