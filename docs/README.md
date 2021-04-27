@@ -2,6 +2,9 @@
 
 Shield is a cloud native role-based authorization aware reverse-proxy service. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
 
+
+![](./assets/overview.svg)
+
 ## Key Features
 
 Here's a list of all the key features of Shield
