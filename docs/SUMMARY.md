@@ -7,8 +7,8 @@
 ## Guides
 
 * [Overview](guides/overview.md)
-* [Managing Policies](guides/managing_policies.md)
-* [Configuring Reverse Proxy](guides/usage_reverse_proxy.md)
+* [Managing policies](guides/managing_policies.md)
+* [Using reverse proxy](guides/usage_reverse_proxy.md)
 * [Deployment](guides/deployment.md)
 
 ## Concepts

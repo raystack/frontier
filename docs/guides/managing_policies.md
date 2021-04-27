@@ -1,4 +1,4 @@
-# Managing Policies
+# Managing policies
 
 Shield lets you control who \(users\) has what access \(roles\) to which resources by setting IAM policies. IAM policies grant specific role\(s\) to a user giving the user certain permissions.
 
