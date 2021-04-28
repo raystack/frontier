@@ -20,8 +20,8 @@ This section explains the structure of the entire codebase.
 
 {% page-ref page="structure.md" %}
 
-## Casbin RBAC
+## Role-based Access Control
 
 Shield uses [casbin](https://casbin.org/) for its RBAC policy management. This section will explain the `PERM` model used by Shield.
 
-{% page-ref page="casbin.md" %}
+{% page-ref page="rbac.md" %}

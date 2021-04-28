@@ -17,6 +17,7 @@
 * [Architecture](concepts/architecture.md)
 * [Schema](concepts/schema.md)
 * [Structure](concepts/structure.md)
+* [RBAC](concepts/rbac.md)
 
 ## Reference
 
