@@ -24,4 +24,5 @@ This section explains the structure of the entire codebase.
 
 Shield uses [casbin](https://casbin.org/) for its RBAC policy management. This section will explain the `PERM` model used by Shield.
 
-{% page-ref page="rbac.md" %}
+{% page-ref page="authz\_model.md" %}
+

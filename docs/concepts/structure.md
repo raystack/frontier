@@ -19,3 +19,4 @@ Acts as a controller that validates and also calls the appropriate methods to ha
 ### resource.ts
 
 Contains all the business logic to handle a request
+

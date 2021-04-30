@@ -15,9 +15,9 @@
 
 * [Overview](concepts/overview.md)
 * [Architecture](concepts/architecture.md)
+* [Auth model](concepts/authz_model.md)
 * [Schema](concepts/schema.md)
 * [Structure](concepts/structure.md)
-* [RBAC](concepts/rbac.md)
 
 ## Reference
 
