@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Introduction](README.md)
+* [Quickstart](quickstart.md)
 * [Roadmap](roadmap.md)
 * [Changelog](https://github.com/odpf/shield/blob/main/CHANGELOG.md)
 
