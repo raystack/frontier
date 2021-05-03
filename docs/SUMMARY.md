@@ -9,6 +9,7 @@
 
 * [Overview](guides/overview.md)
 * [Managing policies](guides/managing_policies.md)
+* [Using auth server](guides/using_auth_server.md)
 * [Using reverse proxy](guides/usage_reverse_proxy.md)
 * [Deployment](guides/deployment.md)
 
