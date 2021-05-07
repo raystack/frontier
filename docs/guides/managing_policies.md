@@ -6,12 +6,12 @@ Shield lets you control who \(users\) has what access \(roles\) to which resourc
 
 Here is a brief description of all the components of a policy. These definitions will help you understand the below example better.
 
-* **Users**: Users of your application.
-* **Groups**: Groups are collections of users. Groups can also be used as attributes\(see below\) to map with resources.
-* **Actions**: Actions are a representation of your endpoints. For example, action name for `POST /books` could be `book.create`, similarly for `GET /books/:id` could be `book.read`, etc.
-* **Roles**: Roles are collections of actions. Example: someone with a `Viewer` role can only perform `book.read`, whereas a `Manager` can perform both `book.read` and `book.create`.
-* **Resources**: Resources are the assets you would like to protect via authorization.
-* **Attributes**: Resources get mapped with attributes that can be used while creating policies. Policies can also be defined on attributes rather than individual resources to create better access management.
+- **Users**: Users of your application.
+- **Groups**: Groups are collections of users. Groups can also be used as attributes\(see below\) to map with resources.
+- **Actions**: Actions are a representation of your endpoints. For example, action name for `POST /books` could be `book.create`, similarly for `GET /books/:id` could be `book.read`, etc.
+- **Roles**: Roles are collections of actions. Example: someone with a `Viewer` role can only perform `book.read`, whereas a `Manager` can perform both `book.read` and `book.create`.
+- **Resources**: Resources are the assets you would like to protect via authorization.
+- **Attributes**: Resources get mapped with attributes that can be used while creating policies. Policies can also be defined on attributes rather than individual resources to create better access management.
 
 Please check the [Glossary](../reference/glossary.md) section to understand the definitions in detail.
 
@@ -41,23 +41,23 @@ As defined earlier, actions are representations of your endpoints, and roles are
 
 #### Group Admin
 
-* Description: Users with this role can add users to a group and manage all resources of that group
-* Actions: `["*"]`
+- Description: Users with this role can add users to a group and manage all resources of that group
+- Actions: `["*"]`
 
 #### Book Manager
 
-* Description: Users with this role can perform all actions of the `books` endpoints.
-* Actions: `["book.read", "book.create", "book.update", "book.delete"]`
+- Description: Users with this role can perform all actions of the `books` endpoints.
+- Actions: `["book.read", "book.create", "book.update", "book.delete"]`
 
 #### E-Book Manager
 
-* Description: Users with this role can perform all actions of the `e-books` endpoints.
-* Actions: `["e-book.read", "e-book.create", "e-book.update", "e-book.delete"]`
+- Description: Users with this role can perform all actions of the `e-books` endpoints.
+- Actions: `["e-book.read", "e-book.create", "e-book.update", "e-book.delete"]`
 
 #### Viewer
 
-* Description: Users with this role can only read `books` and `e-books` endpoint
-* Actions: `["book.read", "e-book.read"]`
+- Description: Users with this role can only read `books` and `e-books` endpoint
+- Actions: `["book.read", "e-book.read"]`
 
 To create a Role, and `Role<->Action` Mapping call the following API:
 
@@ -84,17 +84,17 @@ Request Body:
 
 #### List of users of the Library App:
 
-* Name: Einstein
-* Name: Newton
-* Name: Feynman
-* Name: Darwin
-* Name: Ramanujan
-* Name: Leibniz
+- Name: Einstein
+- Name: Newton
+- Name: Feynman
+- Name: Darwin
+- Name: Ramanujan
+- Name: Leibniz
 
 #### List of Groups in the Library App:
 
-* Name: Scientists
-* Name: Mathematicians
+- Name: Scientists
+- Name: Mathematicians
 
 You can create users and groups using the following APIs:
 
@@ -138,9 +138,9 @@ Response:
 
 We have the following books and e-books with certain attributes in our library.
 
-* Note: the value of the group attribute below is the group id of the respective group.
-* Group Id for Mathematicians group = 90663880-43c8-5073-1094-7f059avf6ftz
-* Group Id for Scientists group = 80553880-23c8-4073-9094-7f059avf6ftp
+- Note: the value of the group attribute below is the group id of the respective group.
+- Group Id for Mathematicians group = 90663880-43c8-5073-1094-7f059avf6ftz
+- Group Id for Scientists group = 80553880-23c8-4073-9094-7f059avf6ftp
 
 ```text
 Resource => {"urn": "relativity-the-special-general-theory"}
@@ -189,10 +189,10 @@ With users, groups, roles, actions, resources, and attributes setup, we can crea
 
 Let's say we want the following roles for users in the Scientists Group:
 
-* Newton =&gt; `Group Admin` role for the Scientists Group
-* Einstein =&gt; `Book Manager` role, but only for books tagged with `{"category": "physics"}`
-* Feynman =&gt; `E-book Manager` role, but only for e-books tagged with `{"category": "physics"}`
-* Charles Darwin =&gt; `Book Manager` and `E-book Manager` role but only for e-books and books tagged with `{"category": "biology"}`
+- Newton =&gt; `Group Admin` role for the Scientists Group
+- Einstein =&gt; `Book Manager` role, but only for books tagged with `{"category": "physics"}`
+- Feynman =&gt; `E-book Manager` role, but only for e-books tagged with `{"category": "physics"}`
+- Charles Darwin =&gt; `Book Manager` and `E-book Manager` role but only for e-books and books tagged with `{"category": "biology"}`
 
 We can call the following API to setup the above Policies:
 
@@ -299,5 +299,20 @@ Response:
 
 The above response will return `hasAccess:true` since `Einstein` is permitted to `book.update` for the Book `relativity-the-special-general-theory` as he was assigned `Book Manager` role for `{"group": "80553880-23c8-4073-9094-7f059avf6ftp", "category": "physics"}`
 
-Based on this APIs response, you can decide within your application to either forbid or allow the user.
+Based on this API's response, you can decide within your application to either forbid or allow the user.
 
+### Access Management for Shield's APIs
+
+You need correct permissions to access every API in Shield, even the native ones such as creating roles, groups, etc. You can find all the native APIs of Shield along with their permissions [here](https://odpf.gitbook.io/shield/reference/api)
+
+#### Make yourself a Super Admin
+
+One way to get around this issue is to give yourself all access using the following DB entry in `casbin_rule` table:
+
+| v0                       | v1           | v2               |
+| ------------------------ | ------------ | ---------------- |
+| {"user": "your_user_id"} | {"\*": "\*"} | {"action": "\*"} |
+
+#### Create specific Roles
+
+Another way to solve this issue is to create roles for each of the endpoints/actions and assign them to appropriate users. However, you may still need a super admin user to create these roles.
