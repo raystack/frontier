@@ -21,16 +21,10 @@ COPY .env .env
 
 You can also use [Shield's helm chart](https://github.com/odpf/charts/tree/main/stable/shield) to deploy it on a K8 cluster.
 
-## Usage Strategies
+You can use these commands to install Shield using helm chart:
 
-### Using Shield as a reverse proxy
-
-As described [here](https://odpf.gitbook.io/shield/guides/usage_reverse_proxy), you can also use Shield as a reverse proxy, which either forwards or forbids requests based on authorization checks.
-
-![](../.gitbook/assets/overview.svg)
-
-### Using Shield as an external Authorization microservice
-
-As described [here](https://odpf.gitbook.io/shield/guides/managing_policies#checking-access), you can use Shield as an external authorization microservice, which authorizes calls made from your service.
-
-![](../.gitbook/assets/service.png)
+```
+helm repo add odpf https://odpf.github.io/charts/
+helm search repo odpf
+helm install my-release odpf/shield
+```

@@ -245,61 +245,12 @@ Request Body
 }
 ```
 
-### Checking Access
+### Protecting Endpoints
 
-Now that we have setup our policies, we can check whether a user has the necessary permissions to perform actions on a resource.
+Once the policies have been added, you can protect your endpoints in two ways:
 
-#### Scenario 1
-
-Let's say Einstein tries edit to edit the book `relativity-the-special-general-theory` by calling the following endpoint:
-
-```text
-PUT /api/books/relativity-the-special-general-theory
-```
-
-Then within your service, you can call the `check-access` endpoint of Shield to check whether Einstein has access.
-
-```text
-POST /api/check-access
-
-
-Request Body:
-
-[
-    {
-        "suject": {
-            "user": "10253480-2ac8-4073-9084-5f059dbf6fae"
-        },
-        "resource": {
-            "urn": "relativity-the-special-general-theory"
-        },
-        "action": {
-            "action: "book.update"
-        }
-    }
-]
-
-Response:
-
-[
-    {
-        "suject": {
-            "user": "10253480-2ac8-4073-9084-5f059dbf6fae"
-        },
-        "resource": {
-            "urn": "relativity-the-special-general-theory"
-        },
-        "action": {
-            "action: "book.update"
-        },
-        "hasAccess": true
-    }
-]
-```
-
-The above response will return `hasAccess:true` since `Einstein` is permitted to `book.update` for the Book `relativity-the-special-general-theory` as he was assigned `Book Manager` role for `{"group": "80553880-23c8-4073-9094-7f059avf6ftp", "category": "physics"}`
-
-Based on this API's response, you can decide within your application to either forbid or allow the user.
+- [Using Shield as an external authorization service](./using_auth_server.md)
+- [Using Shield as a reverse proxy](./usage_reverse_proxy.md)
 
 ### Access Management for Shield's APIs
 
