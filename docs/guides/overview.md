@@ -25,3 +25,9 @@ Another way to protect your endpoints is to use Shield as a reverse proxy by con
 This section contains guides, best practices, and advice related to deploying Shield in production.
 
 {% page-ref page="deployment.md" %}
+
+## Authentication
+
+This section describes how Shield authenticates a request.
+
+{% page-ref page="authentication.md" %}
