@@ -30,4 +30,6 @@
 ## Contribute
 
 * [Contribution Process](contribute/contribution.md)
+* [Development Guide](contribute/development_guide.md)
+* [Release Process](contribute/release_process.md)
 
