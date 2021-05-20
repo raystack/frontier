@@ -1,0 +1,27 @@
+---
+  -
+    method: "PUT"
+    path: "/api/books/{urn}"
+    proxy:
+      uri: "http://library:4000/books/{urn}"
+    permissions:
+      -
+        action: "book.update"
+        attributes:
+          -
+            urn:
+              type: "params"
+              key: urn
+  -
+    method: "GET"
+    path: "/api/books/{urn}"
+    proxy:
+      uri: "http://library:4000/books/{urn}"
+    permissions:
+      -
+        action: "book.read"
+        attributes:
+          -
+            urn:
+              type: "params"
+              key: urn

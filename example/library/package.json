@@ -1,0 +1,21 @@
+{
+  "name": "library",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node setup & node index"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.6.0",
+    "print-message": "^3.0.1",
+    "ramda": "^0.27.1",
+    "wreck": "^14.2.0"
+  },
+  "devDependencies": {
+    "@types/wreck": "^14.0.0"
+  }
+}
