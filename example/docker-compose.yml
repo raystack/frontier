@@ -19,16 +19,12 @@ services:
       - shield
   shield:
     build:
-      context: ../
+      context: ./
       dockerfile: Dockerfile
-    volumes:
-      - '../:/opt/shield'
-      - ./proxies:/opt/shield/proxies
-      - ./.env.sample:/opt/shield/.env
-    ports:
-      - '5000:5000'
     env_file:
       - .env.sample
+    ports:
+      - '5000:5000'
     networks:
       - backend
     depends_on:

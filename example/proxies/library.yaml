@@ -11,7 +11,7 @@
           -
             urn:
               type: "params"
-              key: urn
+              key: "urn"
   -
     method: "GET"
     path: "/api/books/{urn}"
@@ -24,4 +24,4 @@
           -
             urn:
               type: "params"
-              key: urn
+              key: "urn"

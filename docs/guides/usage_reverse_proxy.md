@@ -24,6 +24,7 @@ Create an `api.yaml` file with the configuration mentioned below.
           -
             urn:
               type: "params"
+              key: "urn"
   -
     method: "GET"
     path: "/api/books/{urn}"
@@ -36,6 +37,7 @@ Create an `api.yaml` file with the configuration mentioned below.
           -
             urn:
               type: "params"
+              key: "urn"
 ```
 
 ### Explanation
@@ -69,19 +71,23 @@ When using Shield as a reverse proxy you might also want to store your resources
           -
             urn:
               type: "params"
+              key: "urn"
     hooks:
       -
         resources:
           -
             urn:
               type: "params"
+              key: "urn"
         attributes:
           -
             group:
               type: "payload"
+              key: "group"
           -
             category:
               type: "payload"
+              key: "category"
 ```
 
 Configuring hooks is similar to using the [resources](https://github.com/odpf/shield/tree/e4adf59ae35efc5bd3c615068932e1d780037f13/docs/guides/usage_check_access/README.md#resources-and-attributes) API but here you are able to create the resource and attributes mapping on the fly.

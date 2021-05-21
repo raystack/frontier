@@ -1,3 +1,2 @@
-FROM docker.pkg.github.com/odpf/shield/shield:0.1.15
+FROM odpf/shield
 COPY proxies proxies
-COPY .env.sample .env
