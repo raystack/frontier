@@ -2,13 +2,16 @@ import Hapi from '@hapi/hapi';
 import Joi from 'joi';
 import * as Resource from './resource';
 import * as PolicySchema from '../../policy/schema';
-import { GroupsPolicies } from '../schema';
 import {
   InternalServerErrorResponse,
   NotFoundResponse,
   UnauthorizedResponse
 } from '../../../utils/schema';
-import { UserGroupMapping, UserWithPoliciesResponse } from './schema';
+import {
+  UserGroupMapping,
+  UserWithPoliciesResponse,
+  UsersWithPoliciesResponse
+} from './schema';
 
 const iamConfig = (actionName: string) => ({
   iam: {
@@ -35,7 +38,7 @@ export const list = {
   },
   response: {
     status: {
-      200: GroupsPolicies,
+      200: UsersWithPoliciesResponse,
       401: UnauthorizedResponse,
       500: InternalServerErrorResponse
     }

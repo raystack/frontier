@@ -21,7 +21,7 @@ export const create = async (payload: any) => {
   return await User.save({ ...payload, username });
 };
 
-// /api/users?entity=gojek&privacy=public&action=firehose.read
+// /api/users?entity=gojek
 export const getListWithFilters = async (policyFilters: JSObj) => {
   // ? 1) Get all users with all policies
   const allUsersWithAllPolicies = await getSubjecListWithPolicies('user');

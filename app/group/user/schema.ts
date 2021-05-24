@@ -17,6 +17,10 @@ const UserWithPolicies = UserResponse.append({
 
 export const UserWithPoliciesResponse = UserWithPolicies;
 
+export const UsersWithPoliciesResponse = Joi.array()
+  .items(UserWithPolicies)
+  .label('UsersWithPolicies');
+
 export const UserGroupMapping = Joi.array()
   .items(
     policySchema.keys({

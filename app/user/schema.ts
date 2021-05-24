@@ -18,8 +18,8 @@ export const UserResponse = Joi.object()
     username: Joi.string().required(),
     displayname: Joi.string().required(),
     metadata: Joi.object(),
-    createdAt: Joi.date().iso().required(),
-    updatedAt: Joi.date().iso().required()
+    createdAt: Joi.date().iso().optional(),
+    updatedAt: Joi.date().iso().optional()
   })
   .unknown(true)
   .label('User');

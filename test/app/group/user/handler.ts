@@ -265,16 +265,15 @@ lab.experiment('Group:User::Handler', () => {
       const result: any = [
         {
           id: '382ce8be-54b8-4e16-96ba-acd5fffb4b7f',
-          isMember: true,
-          userPolicies: [
+          displayname: 'ABCD',
+          username: 'abcd',
+          policies: [
             {
               subject: { user: 'user' },
               resource: { group: 'group' },
               action: { role: 'role' }
             }
-          ],
-          memberCount: 1,
-          attributes: [{ subject: 'subject ' }]
+          ]
         }
       ];
       listStub = Sandbox.stub(GroupUserResource, 'list').returns(result);

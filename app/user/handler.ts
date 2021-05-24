@@ -32,12 +32,6 @@ export const create = {
 export const list = {
   description: 'get list of users',
   tags: ['api', 'user'],
-  validate: {
-    query: Joi.object({
-      action: Joi.string().optional(),
-      role: Joi.string().optional()
-    }).unknown(true)
-  },
   response: {
     status: {
       200: UsersResponse,

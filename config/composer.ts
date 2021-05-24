@@ -86,8 +86,8 @@ internals.manifest = {
         plugin: HapiSwagger,
         options: {
           info: {
-            title: 'Shield API Documentation',
-            version: '1.0.0'
+            title: 'API',
+            version: '0.1.0'
           },
           securityDefinitions: {
             AUTH_KEY: {

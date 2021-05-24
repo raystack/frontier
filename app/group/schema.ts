@@ -36,8 +36,6 @@ export const GroupPolicies = Joi.object()
     attributes: Joi.array().items(Joi.object())
   })
   .unknown(true)
-  .label('GroupPolicy');
+  .label('Group');
 
-export const GroupsPolicies = Joi.array()
-  .items(GroupPolicies)
-  .label('GroupsPolicies');
+export const GroupsPolicies = Joi.array().items(GroupPolicies).label('Groups');

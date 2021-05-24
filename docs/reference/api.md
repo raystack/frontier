@@ -1,917 +1,897 @@
 # API
 
-## Version: 1.0.0
+## Version: 0.1.0
 
 ### Security
 
-**AUTH\_KEY**
+**AUTH_KEY**
 
-| apiKey | _API Key_ |
-| :--- | :--- |
-| Name | X-Goog-Authenticated-User-Email |
-| In | header |
+| apiKey | _API Key_                       |
+| ------ | ------------------------------- |
+| Name   | X-Goog-Authenticated-User-Email |
+| In     | header                          |
 
 ### /ping
 
 #### GET
 
-**Summary**
+##### Summary
 
 pong the request
 
-**Parameters**
+##### Responses
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-
-
-**Responses**
-
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [PingPong](api.md#pingpong) |
+| Code | Description | Schema                |
+| ---- | ----------- | --------------------- |
+| 200  | Successful  | [PingPong](#pingpong) |
 
 ### /api/activities
 
 #### GET
 
-**Summary**
+##### Summary
 
 get all activities
 
-**Parameters**
+##### Responses
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-
-
-**Responses**
-
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [Activities](api.md#activities) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Activities](#activities)                                   |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/groups
 
 #### GET
 
-**Summary**
+##### Summary
 
 get list of groups
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| user\_role | query | role id | No | string |
-| group | query | group id | No | string |
+| Name      | Located in | Description | Required | Schema |
+| --------- | ---------- | ----------- | -------- | ------ |
+| user_role | query      | role id     | No       | string |
+| group     | query      | group id    | No       | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [GroupsPolicies](api.md#groupspolicies) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Groups](#groups)                                           |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 #### POST
 
-**Summary**
+##### Summary
 
 create group
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| body | body |  | No | [GroupCreatePayload](api.md#groupcreatepayload) |
+| Name | Located in | Description | Required | Schema                                    |
+| ---- | ---------- | ----------- | -------- | ----------------------------------------- |
+| body | body       |             | No       | [GroupCreatePayload](#groupcreatepayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [GroupPolicy](api.md#grouppolicy) |
-| 400 | Bad Request | [BadRequestResponse](api.md#badrequestresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Group](#group)                                             |
+| 400  | Bad Request           | [BadRequestResponse](#badrequestresponse)                   |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/profile
 
 #### GET
 
-**Summary**
+##### Summary
 
 get current user's profile
 
-**Parameters**
+##### Responses
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-
-
-**Responses**
-
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [User](api.md#user) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [User](#user)                                               |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 #### PUT
 
-**Summary**
+##### Summary
 
 update current user
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| body | body |  | No | [ProfileUpdatePayload](api.md#profileupdatepayload) |
+| Name | Located in | Description | Required | Schema                                        |
+| ---- | ---------- | ----------- | -------- | --------------------------------------------- |
+| body | body       |             | No       | [ProfileUpdatePayload](#profileupdatepayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [User](api.md#user) |
-| 201 | Created | [User](api.md#user) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [User](#user)                                               |
+| 201  | Created               | [User](#user)                                               |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/roles
 
 #### GET
 
-**Summary**
+##### Summary
 
 get roles based on attributes
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| attributes | query |  | No | \[ string \] |
+| Name       | Located in | Description | Required | Schema     |
+| ---------- | ---------- | ----------- | -------- | ---------- |
+| attributes | query      |             | No       | [ string ] |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [Roles](api.md#roles) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Roles](#roles)                                             |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 #### POST
 
-**Summary**
+##### Summary
 
 create roles along with action mapping
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| body | body |  | No | [RoleCreatePayload](api.md#rolecreatepayload) |
+| Name | Located in | Description | Required | Schema                                  |
+| ---- | ---------- | ----------- | -------- | --------------------------------------- |
+| body | body       |             | No       | [RoleCreatePayload](#rolecreatepayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [Role](api.md#role) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Role](#role)                                               |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/users
 
 #### GET
 
-**Summary**
+##### Summary
 
 get list of users
 
-**Parameters**
+##### Responses
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| action | query |  | No | string |
-| role | query |  | No | string |
-
-**Responses**
-
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [Users](api.md#users) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Users](#users)                                             |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 #### POST
 
-**Summary**
+##### Summary
 
 create user
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| body | body |  | No | [ProfileUpdatePayload](api.md#profileupdatepayload) |
+| Name | Located in | Description | Required | Schema                                        |
+| ---- | ---------- | ----------- | -------- | --------------------------------------------- |
+| body | body       |             | No       | [ProfileUpdatePayload](#profileupdatepayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [User](api.md#user) |
-| 400 | Bad Request | [BadRequestResponse](api.md#badrequestresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [User](#user)                                               |
+| 400  | Bad Request           | [BadRequestResponse](#badrequestresponse)                   |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/groups/{id}
 
 #### GET
 
-**Summary**
+##### Summary
 
 get group by id
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| id | path | group id | Yes | string |
-| user\_role | query |  | No | string |
-| group | query |  | No | string |
+| Name      | Located in | Description | Required | Schema |
+| --------- | ---------- | ----------- | -------- | ------ |
+| id        | path       | group id    | Yes      | string |
+| user_role | query      |             | No       | string |
+| group     | query      |             | No       | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [GroupPolicy](api.md#grouppolicy) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Group](#group)                                             |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 #### PUT
 
-**Summary**
+##### Summary
 
 update group by id
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| id | path | group id | Yes | string |
-| body | body |  | No | [GroupUpdatePayload](api.md#groupupdatepayload) |
+| Name | Located in | Description | Required | Schema                                    |
+| ---- | ---------- | ----------- | -------- | ----------------------------------------- |
+| id   | path       | group id    | Yes      | string                                    |
+| body | body       |             | No       | [GroupUpdatePayload](#groupupdatepayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [GroupPolicy](api.md#grouppolicy) |
-| 201 | Created | [GroupPolicy](api.md#grouppolicy) |
-| 400 | Bad Request | [BadRequestResponse](api.md#badrequestresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Group](#group)                                             |
+| 201  | Created               | [Group](#group)                                             |
+| 400  | Bad Request           | [BadRequestResponse](#badrequestresponse)                   |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/users/{userId}
 
 #### GET
 
-**Summary**
+##### Summary
 
 get user by id
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| userId | path | user id | Yes | string |
+| Name   | Located in | Description | Required | Schema |
+| ------ | ---------- | ----------- | -------- | ------ |
+| userId | path       | user id     | Yes      | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [User](api.md#user) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [User](#user)                                               |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/groups/{groupId}/users
 
 #### GET
 
-**Summary**
+##### Summary
 
 fetch list of users of a group
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| groupId | path | group id | Yes | string |
-| role | query |  | No | string |
-| action | query |  | No | string |
+| Name    | Located in | Description | Required | Schema |
+| ------- | ---------- | ----------- | -------- | ------ |
+| groupId | path       | group id    | Yes      | string |
+| role    | query      |             | No       | string |
+| action  | query      |             | No       | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [GroupsPolicies](api.md#groupspolicies) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [UsersWithPolicies](#userswithpolicies)                     |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/groups/{id}/activities
 
 #### GET
 
-**Summary**
+##### Summary
 
 get activities by group
 
-**Parameters**
+##### Parameters
 
 | Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| id | path | group id | Yes | string |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id   | path       | group id    | Yes      | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [Activities](api.md#activities) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Activities](#activities)                                   |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/users/self/groups
 
 #### GET
 
-**Summary**
+##### Summary
 
 fetch list of groups of the loggedIn user
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| action | query |  | No | string |
+| Name   | Located in | Description | Required | Schema |
+| ------ | ---------- | ----------- | -------- | ------ |
+| action | query      |             | No       | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [GroupPolicies](api.md#grouppolicies) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [GroupPolicies](#grouppolicies)                             |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/users/{userId}/groups
 
 #### GET
 
-**Summary**
+##### Summary
 
 fetch list of groups of a user
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| userId | path | user id | Yes | string |
-| action | query |  | No | string |
+| Name   | Located in | Description | Required | Schema |
+| ------ | ---------- | ----------- | -------- | ------ |
+| userId | path       | user id     | Yes      | string |
+| action | query      |             | No       | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [GroupPolicies](api.md#grouppolicies) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [GroupPolicies](#grouppolicies)                             |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/groups/{groupId}/users/{userId}
 
 #### GET
 
-**Summary**
+##### Summary
 
 fetch user and group mapping
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| groupId | path | group id | Yes | string |
-| userId | path | user id | Yes | string |
-| role | query |  | No | string |
-| action | query |  | No | string |
+| Name    | Located in | Description | Required | Schema |
+| ------- | ---------- | ----------- | -------- | ------ |
+| groupId | path       | group id    | Yes      | string |
+| userId  | path       | user id     | Yes      | string |
+| role    | query      |             | No       | string |
+| action  | query      |             | No       | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [UserWithPolicies](api.md#userwithpolicies) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
-
-#### POST
-
-**Summary**
-
-create group and user mapping
-
-**Parameters**
-
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| groupId | path | group id | Yes | string |
-| userId | path | user id | Yes | string |
-| body | body |  | No | [PolciesOperationPayload](api.md#polciesoperationpayload) |
-
-**Responses**
-
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [UserGroupResponse](api.md#usergroupresponse) |
-| 201 | Created | [UserGroupResponse](api.md#usergroupresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [UserWithPolicies](#userwithpolicies)                       |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 #### PUT
 
-**Summary**
+##### Summary
 
 update group and user mapping
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| groupId | path | group id | Yes | string |
-| userId | path | user id | Yes | string |
-| body | body |  | No | [PolciesOperationPayload](api.md#polciesoperationpayload) |
+| Name    | Located in | Description | Required | Schema                                              |
+| ------- | ---------- | ----------- | -------- | --------------------------------------------------- |
+| groupId | path       | group id    | Yes      | string                                              |
+| userId  | path       | user id     | Yes      | string                                              |
+| body    | body       |             | No       | [PolciesOperationPayload](#polciesoperationpayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [UserGroupResponse](api.md#usergroupresponse) |
-| 201 | Created | [UserGroupResponse](api.md#usergroupresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [UserGroupResponse](#usergroupresponse)                     |
+| 201  | Created               | [UserGroupResponse](#usergroupresponse)                     |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
+
+#### POST
+
+##### Summary
+
+create group and user mapping
+
+##### Parameters
+
+| Name    | Located in | Description | Required | Schema                                              |
+| ------- | ---------- | ----------- | -------- | --------------------------------------------------- |
+| groupId | path       | group id    | Yes      | string                                              |
+| userId  | path       | user id     | Yes      | string                                              |
+| body    | body       |             | No       | [PolciesOperationPayload](#polciesoperationpayload) |
+
+##### Responses
+
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [UserGroupResponse](#usergroupresponse)                     |
+| 201  | Created               | [UserGroupResponse](#usergroupresponse)                     |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 #### DELETE
 
-**Summary**
+##### Summary
 
 delete group and user mapping
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| groupId | path | group id | Yes | string |
-| userId | path | user id | Yes | string |
+| Name    | Located in | Description | Required | Schema |
+| ------- | ---------- | ----------- | -------- | ------ |
+| groupId | path       | group id    | Yes      | string |
+| userId  | path       | user id     | Yes      | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | boolean |
-| 201 | Created | [UserGroupResponse](api.md#usergroupresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | boolean                                                     |
+| 201  | Created               | [UserGroupResponse](#usergroupresponse)                     |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/roles/{id}
 
 #### PUT
 
-**Summary**
+##### Summary
 
 update roles along with action mapping
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| id | path |  | Yes | string |
-| body | body |  | No | [RoleCreatePayload](api.md#rolecreatepayload) |
+| Name | Located in | Description | Required | Schema                                  |
+| ---- | ---------- | ----------- | -------- | --------------------------------------- |
+| id   | path       |             | Yes      | string                                  |
+| body | body       |             | No       | [RoleCreatePayload](#rolecreatepayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [Role](api.md#role) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Role](#role)                                               |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/check-access
 
 #### POST
 
-**Summary**
+##### Summary
 
 checks whether subject has access to perform action on a given resource/attributes
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| body | body |  | No | [Policies](api.md#policies) |
+| Name | Located in | Description | Required | Schema                |
+| ---- | ---------- | ----------- | -------- | --------------------- |
+| body | body       |             | No       | [Policies](#policies) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [Accesses](api.md#accesses) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | [Accesses](#accesses)                                       |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### /api/resources
 
 #### POST
 
-**Summary**
+##### Summary
 
 create resource and attributes mapping
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| body | body |  | No | [ResourceAttributesMappingPayload](api.md#resourceattributesmappingpayload) |
+| Name | Located in | Description | Required | Schema                                                                |
+| ---- | ---------- | ----------- | -------- | --------------------------------------------------------------------- |
+| body | body       |             | No       | [ResourceAttributesMappingPayload](#resourceattributesmappingpayload) |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | [ResourceAttributesMappingPayloadResponse](api.md#resourceattributesmappingpayloadresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                                                |
+| ---- | --------------------- | ------------------------------------------------------------------------------------- |
+| 200  | Successful            | [ResourceAttributesMappingPayloadResponse](#resourceattributesmappingpayloadresponse) |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)                                         |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                                                 |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse)                           |
 
 ### /api/groups/{groupId}/users/self
 
 #### DELETE
 
-**Summary**
+##### Summary
 
 delete group and loggedin user mapping
 
-**Parameters**
+##### Parameters
 
-| Name | Located in | Description | Required | Schema |
-| :--- | :--- | :--- | :--- | :--- |
-| groupId | path | group id | Yes | string |
+| Name    | Located in | Description | Required | Schema |
+| ------- | ---------- | ----------- | -------- | ------ |
+| groupId | path       | group id    | Yes      | string |
 
-**Responses**
+##### Responses
 
-| Code | Description | Schema |
-| :--- | :--- | :--- |
-| 200 | Successful | boolean |
-| 201 | Created | [UserGroupResponse](api.md#usergroupresponse) |
-| 401 | Unauthorized | [UnauthorizedResponse](api.md#unauthorizedresponse) |
-| 404 | Not Found | [NotFoundResponse](api.md#notfoundresponse) |
-| 500 | Internal Server Error | [InternalServerErrorResponse](api.md#internalservererrorresponse) |
+| Code | Description           | Schema                                                      |
+| ---- | --------------------- | ----------------------------------------------------------- |
+| 200  | Successful            | boolean                                                     |
+| 201  | Created               | [UserGroupResponse](#usergroupresponse)                     |
+| 401  | Unauthorized          | [UnauthorizedResponse](#unauthorizedresponse)               |
+| 404  | Not Found             | [NotFoundResponse](#notfoundresponse)                       |
+| 500  | Internal Server Error | [InternalServerErrorResponse](#internalservererrorresponse) |
 
 ### Models
 
 #### PingPong
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| statusCode | integer |  | Yes |
-| status | string | _Enum:_ `"ok"` | Yes |
-| message | string |  | Yes |
+| Name       | Type    | Description    | Required |
+| ---------- | ------- | -------------- | -------- |
+| statusCode | integer | _Enum:_ `200`  | Yes      |
+| status     | string  | _Enum:_ `"ok"` | Yes      |
+| message    | string  |                | Yes      |
 
 #### diff
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| diff | object |  |  |
+| Name | Type   | Description | Required |
+| ---- | ------ | ----------- | -------- |
+| diff | object |             |          |
 
 #### Activity
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| id | string |  | No |
-| createdAt | date |  | No |
-| diff | [diff](api.md#diff) |  | No |
-| reason | string |  | No |
-| user | string |  | No |
+| Name      | Type          | Description | Required |
+| --------- | ------------- | ----------- | -------- |
+| id        | string        |             | No       |
+| createdAt | date          |             | No       |
+| diff      | [diff](#diff) |             | No       |
+| reason    | string        |             | No       |
+| user      | string        |             | No       |
 
 #### Activities
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| Activities | array |  |  |
+| Name       | Type  | Description | Required |
+| ---------- | ----- | ----------- | -------- |
+| Activities | array |             |          |
 
 #### UnauthorizedResponse
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| error | string |  | Yes |
-| message | string |  | Yes |
-| statusCode | integer |  | Yes |
+| Name       | Type    | Description   | Required |
+| ---------- | ------- | ------------- | -------- |
+| error      | string  |               | Yes      |
+| message    | string  |               | Yes      |
+| statusCode | integer | _Enum:_ `401` | Yes      |
 
 #### NotFoundResponse
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| error | string |  | Yes |
-| message | string |  | Yes |
-| statusCode | integer |  | Yes |
+| Name       | Type    | Description   | Required |
+| ---------- | ------- | ------------- | -------- |
+| error      | string  |               | Yes      |
+| message    | string  |               | Yes      |
+| statusCode | integer | _Enum:_ `404` | Yes      |
 
 #### InternalServerErrorResponse
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| error | string |  | Yes |
-| message | string |  | Yes |
-| statusCode | integer |  | Yes |
+| Name       | Type    | Description   | Required |
+| ---------- | ------- | ------------- | -------- |
+| error      | string  |               | Yes      |
+| message    | string  |               | Yes      |
+| statusCode | integer | _Enum:_ `500` | Yes      |
 
 #### subject
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| user | string |  | No |
-| group | string |  | No |
+| Name  | Type   | Description | Required |
+| ----- | ------ | ----------- | -------- |
+| user  | string |             | No       |
+| group | string |             | No       |
 
 #### action
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| action | string |  | No |
-| role | string |  | No |
+| Name   | Type   | Description | Required |
+| ------ | ------ | ----------- | -------- |
+| action | string |             | No       |
+| role   | string |             | No       |
 
 #### Policy
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| subject | [subject](api.md#subject) |  | Yes |
-| resource | [diff](api.md#diff) |  | Yes |
-| action | [action](api.md#action) |  | Yes |
+| Name     | Type                | Description | Required |
+| -------- | ------------------- | ----------- | -------- |
+| subject  | [subject](#subject) |             | Yes      |
+| resource | [diff](#diff)       |             | Yes      |
+| action   | [action](#action)   |             | Yes      |
 
 #### Policies
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| Policies | array |  |  |
+| Name     | Type  | Description | Required |
+| -------- | ----- | ----------- | -------- |
+| Policies | array |             |          |
 
 #### attributes
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| attributes | array |  |  |
+| Name       | Type  | Description | Required |
+| ---------- | ----- | ----------- | -------- |
+| attributes | array |             |          |
 
-#### GroupPolicy
+#### Group
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| id | string |  | Yes |
-| displayname | string |  | No |
-| isMember | boolean |  | No |
-| userPolicies | [Policies](api.md#policies) |  | No |
-| policies | [Policies](api.md#policies) |  | No |
-| memberCount | integer |  | No |
-| attributes | [attributes](api.md#attributes) |  | No |
+| Name         | Type                      | Description | Required |
+| ------------ | ------------------------- | ----------- | -------- |
+| id           | string                    |             | Yes      |
+| displayname  | string                    |             | No       |
+| isMember     | boolean                   |             | No       |
+| userPolicies | [Policies](#policies)     |             | No       |
+| policies     | [Policies](#policies)     |             | No       |
+| memberCount  | integer                   |             | No       |
+| attributes   | [attributes](#attributes) |             | No       |
 
-#### GroupsPolicies
+#### Groups
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| GroupsPolicies | array |  |  |
+| Name   | Type  | Description | Required |
+| ------ | ----- | ----------- | -------- |
+| Groups | array |             |          |
 
 #### User
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| id | string |  | Yes |
-| username | string |  | Yes |
-| displayname | string |  | Yes |
-| metadata | [diff](api.md#diff) |  | No |
-| createdAt | date |  | Yes |
-| updatedAt | date |  | Yes |
+| Name        | Type          | Description | Required |
+| ----------- | ------------- | ----------- | -------- |
+| id          | string        |             | Yes      |
+| username    | string        |             | Yes      |
+| displayname | string        |             | Yes      |
+| metadata    | [diff](#diff) |             | No       |
+| createdAt   | date          |             | Yes      |
+| updatedAt   | date          |             | Yes      |
 
 #### Model1
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| Model1 | array |  |  |
+| Name   | Type  | Description | Required |
+| ------ | ----- | ----------- | -------- |
+| Model1 | array |             |          |
 
 #### Role
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| id | string |  | Yes |
-| displayname | string |  | Yes |
-| attributes | [Model1](api.md#model1) |  | No |
-| metadata | [diff](api.md#diff) |  | Yes |
-| createdAt | date |  | Yes |
-| updatedAt | date |  | Yes |
+| Name        | Type              | Description | Required |
+| ----------- | ----------------- | ----------- | -------- |
+| id          | string            |             | Yes      |
+| displayname | string            |             | Yes      |
+| attributes  | [Model1](#model1) |             | No       |
+| metadata    | [diff](#diff)     |             | Yes      |
+| createdAt   | date              |             | Yes      |
+| updatedAt   | date              |             | Yes      |
 
 #### Roles
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| Roles | array |  |  |
+| Name  | Type  | Description | Required |
+| ----- | ----- | ----------- | -------- |
+| Roles | array |             |          |
 
 #### Users
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| Users | array |  |  |
+| Name  | Type  | Description | Required |
+| ----- | ----- | ----------- | -------- |
+| Users | array |             |          |
 
 #### Model2
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| policies | [Policies](api.md#policies) |  | No |
-| attributes | [attributes](api.md#attributes) |  | No |
-
-#### GroupPolicies
-
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| GroupPolicies | array |  |  |
-
-#### Model3
-
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| subject | [diff](api.md#diff) |  | No |
-| resource | [diff](api.md#diff) |  | No |
-| action | [diff](api.md#diff) |  | No |
+| Name     | Type          | Description | Required |
+| -------- | ------------- | ----------- | -------- |
+| subject  | [diff](#diff) |             | No       |
+| resource | [diff](#diff) |             | No       |
+| action   | [diff](#diff) |             | No       |
 
 #### policies
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| policies | array |  |  |
+| Name     | Type  | Description | Required |
+| -------- | ----- | ----------- | -------- |
+| policies | array |             |          |
 
 #### UserWithPolicies
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| id | string |  | Yes |
-| username | string |  | Yes |
-| displayname | string |  | Yes |
-| metadata | [diff](api.md#diff) |  | No |
-| createdAt | date |  | Yes |
-| updatedAt | date |  | Yes |
-| policies | [policies](api.md#policies) |  | No |
+| Name        | Type                  | Description | Required |
+| ----------- | --------------------- | ----------- | -------- |
+| id          | string                |             | Yes      |
+| username    | string                |             | Yes      |
+| displayname | string                |             | Yes      |
+| metadata    | [diff](#diff)         |             | No       |
+| createdAt   | date                  |             | Yes      |
+| updatedAt   | date                  |             | Yes      |
+| policies    | [policies](#policies) |             | No       |
+
+#### UsersWithPolicies
+
+| Name              | Type  | Description | Required |
+| ----------------- | ----- | ----------- | -------- |
+| UsersWithPolicies | array |             |          |
+
+#### GroupPolicy
+
+| Name       | Type                      | Description | Required |
+| ---------- | ------------------------- | ----------- | -------- |
+| policies   | [Policies](#policies)     |             | No       |
+| attributes | [attributes](#attributes) |             | No       |
+
+#### GroupPolicies
+
+| Name          | Type  | Description | Required |
+| ------------- | ----- | ----------- | -------- |
+| GroupPolicies | array |             |          |
 
 #### ProfileUpdatePayload
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| displayname | string |  | Yes |
-| metadata | [diff](api.md#diff) |  | No |
+| Name        | Type          | Description | Required |
+| ----------- | ------------- | ----------- | -------- |
+| displayname | string        |             | Yes      |
+| metadata    | [diff](#diff) |             | No       |
+
+#### Model3
+
+| Name      | Type                | Description                    | Required |
+| --------- | ------------------- | ------------------------------ | -------- |
+| subject   | [subject](#subject) |                                | No       |
+| resource  | [diff](#diff)       |                                | No       |
+| action    | [action](#action)   |                                | No       |
+| operation | string              | _Enum:_ `"create"`, `"delete"` | Yes      |
 
 #### Model4
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| subject | [subject](api.md#subject) |  | No |
-| resource | [diff](api.md#diff) |  | No |
-| action | [action](api.md#action) |  | No |
-| operation | string | _Enum:_ `"create"`, `"delete"` | Yes |
-
-#### Model5
-
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| Model5 | array |  |  |
+| Name   | Type  | Description | Required |
+| ------ | ----- | ----------- | -------- |
+| Model4 | array |             |          |
 
 #### GroupUpdatePayload
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| displayname | string |  | Yes |
-| policies | [Model5](api.md#model5) |  | No |
-| attributes | [attributes](api.md#attributes) |  | No |
-| metadata | [diff](api.md#diff) |  | No |
+| Name        | Type                      | Description | Required |
+| ----------- | ------------------------- | ----------- | -------- |
+| displayname | string                    |             | Yes      |
+| policies    | [Model4](#model4)         |             | No       |
+| attributes  | [attributes](#attributes) |             | No       |
+| metadata    | [diff](#diff)             |             | No       |
 
 #### BadRequestResponse
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| error | string |  | Yes |
-| message | string |  | Yes |
-| statusCode | integer |  | Yes |
+| Name       | Type    | Description   | Required |
+| ---------- | ------- | ------------- | -------- |
+| error      | string  |               | Yes      |
+| message    | string  |               | Yes      |
+| statusCode | integer | _Enum:_ `400` | Yes      |
 
 #### ActionOperation
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| operation | string | _Enum:_ `"create"`, `"delete"` | Yes |
-| action | string |  | Yes |
+| Name      | Type   | Description                    | Required |
+| --------- | ------ | ------------------------------ | -------- |
+| operation | string | _Enum:_ `"create"`, `"delete"` | Yes      |
+| action    | string |                                | Yes      |
 
 #### actions
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| actions | array |  |  |
+| Name    | Type  | Description | Required |
+| ------- | ----- | ----------- | -------- |
+| actions | array |             |          |
 
 #### RoleCreatePayload
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| displayname | string |  | Yes |
-| attributes | [Model1](api.md#model1) |  | No |
-| actions | [actions](api.md#actions) |  | No |
-| metadata | [diff](api.md#diff) |  | No |
+| Name        | Type                | Description | Required |
+| ----------- | ------------------- | ----------- | -------- |
+| displayname | string              |             | Yes      |
+| attributes  | [Model1](#model1)   |             | No       |
+| actions     | [actions](#actions) |             | No       |
+| metadata    | [diff](#diff)       |             | No       |
 
 #### PolciesOperationPayload
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| policies | [Model5](api.md#model5) |  | No |
+| Name     | Type              | Description | Required |
+| -------- | ----------------- | ----------- | -------- |
+| policies | [Model4](#model4) |             | No       |
 
-#### Model6
+#### Model5
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| subject | [subject](api.md#subject) |  | No |
-| resource | [diff](api.md#diff) |  | No |
-| action | [action](api.md#action) |  | No |
-| operation | string | _Enum:_ `"create"`, `"delete"` | Yes |
-| success | boolean |  | Yes |
+| Name      | Type                | Description                    | Required |
+| --------- | ------------------- | ------------------------------ | -------- |
+| subject   | [subject](#subject) |                                | No       |
+| resource  | [diff](#diff)       |                                | No       |
+| action    | [action](#action)   |                                | No       |
+| operation | string              | _Enum:_ `"create"`, `"delete"` | Yes      |
+| success   | boolean             |                                | Yes      |
 
 #### UserGroupResponse
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| UserGroupResponse | array |  |  |
+| Name              | Type  | Description | Required |
+| ----------------- | ----- | ----------- | -------- |
+| UserGroupResponse | array |             |          |
 
-#### Model7
+#### Model6
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| subject | [subject](api.md#subject) |  | No |
-| resource | [diff](api.md#diff) |  | No |
-| action | [action](api.md#action) |  | No |
-| hasAccess | boolean |  | Yes |
+| Name      | Type                | Description | Required |
+| --------- | ------------------- | ----------- | -------- |
+| subject   | [subject](#subject) |             | No       |
+| resource  | [diff](#diff)       |             | No       |
+| action    | [action](#action)   |             | No       |
+| hasAccess | boolean             |             | Yes      |
 
 #### Accesses
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| Accesses | array |  |  |
+| Name     | Type  | Description | Required |
+| -------- | ----- | ----------- | -------- |
+| Accesses | array |             |          |
 
 #### GroupCreatePayload
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| groupname | string |  | No |
-| displayname | string |  | Yes |
-| policies | [Model5](api.md#model5) |  | No |
-| attributes | [attributes](api.md#attributes) |  | No |
-| metadata | [diff](api.md#diff) |  | No |
+| Name        | Type                      | Description | Required |
+| ----------- | ------------------------- | ----------- | -------- |
+| groupname   | string                    |             | No       |
+| displayname | string                    |             | Yes      |
+| policies    | [Model4](#model4)         |             | No       |
+| attributes  | [attributes](#attributes) |             | No       |
+| metadata    | [diff](#diff)             |             | No       |
 
-#### Model8
+#### Model7
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| operation | string | _Enum:_ `"create"`, `"delete"` | Yes |
-| resource | [diff](api.md#diff) |  | No |
-| attributes | [diff](api.md#diff) |  | No |
+| Name       | Type          | Description                    | Required |
+| ---------- | ------------- | ------------------------------ | -------- |
+| operation  | string        | _Enum:_ `"create"`, `"delete"` | Yes      |
+| resource   | [diff](#diff) |                                | No       |
+| attributes | [diff](#diff) |                                | No       |
 
 #### ResourceAttributesMappingPayload
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| ResourceAttributesMappingPayload | array |  |  |
+| Name                             | Type  | Description | Required |
+| -------------------------------- | ----- | ----------- | -------- |
+| ResourceAttributesMappingPayload | array |             |          |
 
-#### Model9
+#### Model8
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| operation | string | _Enum:_ `"create"`, `"delete"` | Yes |
-| resource | [diff](api.md#diff) |  | No |
-| attributes | [diff](api.md#diff) |  | No |
-| success | boolean |  | No |
+| Name       | Type          | Description                    | Required |
+| ---------- | ------------- | ------------------------------ | -------- |
+| operation  | string        | _Enum:_ `"create"`, `"delete"` | Yes      |
+| resource   | [diff](#diff) |                                | No       |
+| attributes | [diff](#diff) |                                | No       |
+| success    | boolean       |                                | No       |
 
 #### ResourceAttributesMappingPayloadResponse
 
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| ResourceAttributesMappingPayloadResponse | array |  |  |
-
+| Name                                     | Type  | Description | Required |
+| ---------------------------------------- | ----- | ----------- | -------- |
+| ResourceAttributesMappingPayloadResponse | array |             |          |
