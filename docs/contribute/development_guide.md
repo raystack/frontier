@@ -24,6 +24,22 @@ Commits have to be signed before they are allowed to be merged into the codebase
 git commit -s -m "My first commit"
 ```
 
+#### Release a tag
+
+##### Pre-requisites
+
+- [standard-version](https://github.com/conventional-changelog/standard-version)
+- [gh cli](https://cli.github.com/manual/gh_release_create)
+
+Run the following commands step by step to release a tag
+
+```bash
+npm run release -- --sign
+git push --follow-tags origin main
+gh release create <tag-version> -F CHANGELOG.md
+
+```
+
 #### Good practices to keep in mind
 
 - Follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) while composing our commit messages.
