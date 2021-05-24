@@ -48,7 +48,7 @@ internals.config = {
       }
     },
     $default: {
-      uri: process.env.POSTGRES_HOST,
+      uri: process.env.DB_URI,
       options: {}
     }
   },
