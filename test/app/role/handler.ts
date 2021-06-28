@@ -117,6 +117,7 @@ lab.experiment('Role::Handler', () => {
         url: `/api/roles/${role.id}`,
         payload: {
           displayname: `${role.displayname}1`,
+          tags: ['tag'],
           actions: [
             { operation: 'create', action: 'test1' },
             { operation: 'create', action: 'test2' }

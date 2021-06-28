@@ -93,7 +93,7 @@ export const update = async (
   if (!role) return Boom.notFound('Role not found');
 
   const rolePayloadToUpdate: any = {
-    id: role?.id,
+    ...role,
     ...rolePayload
   };
   const updatedRole = await Role.save(rolePayloadToUpdate, {

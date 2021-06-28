@@ -30,6 +30,9 @@ export class Role extends BaseEntity {
   })
   metadata: Record<string, any>;
 
+  @Column('varchar', { array: true, default: () => 'array[]::text[]' })
+  tags: string[];
+
   @CreateDateColumn()
   createdAt: string;
 

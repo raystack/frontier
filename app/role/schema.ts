@@ -10,7 +10,8 @@ const Role = Joi.object()
     attributes: Joi.array().items(Joi.string()).allow(null),
     metadata: Joi.object().required().allow(null),
     createdAt: Joi.date().iso().required(),
-    updatedAt: Joi.date().iso().required()
+    updatedAt: Joi.date().iso().required(),
+    tags: Joi.array().items(Joi.string())
   })
   .unknown(true)
   .label('Role')
@@ -41,6 +42,7 @@ export const createPayload = Joi.object()
     displayname: Joi.string().required(),
     attributes: Joi.array().items(Joi.string()),
     actions: Joi.array().items(actionOperationPayload),
-    metadata: Joi.object()
+    metadata: Joi.object(),
+    tags: Joi.array().items(Joi.string())
   })
   .options(validationOptions);

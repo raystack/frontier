@@ -68,7 +68,8 @@ lab.experiment('Role::resource', () => {
       const payload = {
         displayname: 'role',
         attributes: ['test'],
-        metadata: {}
+        metadata: {},
+        tags: ['tag']
       };
 
       const result = await Resource.create(payload, loggedInUser);

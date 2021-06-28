@@ -99,6 +99,9 @@
     "singleQuote": true,
     "printWidth": 80
   },
+  "eslintIgnore": [
+    "migration/*.ts"
+  ],
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
     "env": {
