@@ -28,10 +28,7 @@ export const list = {
   description: 'fetch list of users of a group',
   tags: ['api', 'group'],
   validate: {
-    query: Joi.object({
-      role: Joi.string().optional(),
-      action: Joi.string().optional()
-    }).unknown(true),
+    query: Joi.object({}).unknown(true),
     params: Joi.object({
       groupId: Joi.string().required().description('group id')
     })

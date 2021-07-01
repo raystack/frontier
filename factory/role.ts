@@ -11,5 +11,6 @@ define(Role, (faker: typeof Faker) => {
     username: 'dev.team',
     email: `dev.team@go-jek.com`
   };
+  role.tags = [];
   return role;
 });
