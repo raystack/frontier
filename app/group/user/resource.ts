@@ -9,6 +9,7 @@ import {
 } from '../../policy/resource';
 import { toLikeQuery, parsePoliciesWithSubject } from '../../policy/util';
 import { User } from '../../../model/user';
+import { extractRoleTagFilter } from '../../../utils/queryParams';
 
 export const create = async (
   groupId: string,
@@ -110,13 +111,7 @@ export const list = async (
   groupId: string,
   options: Record<string, unknown> = {}
 ) => {
-  const roleTag = R.pathOr(null, [
-    'fields',
-    'policies',
-    '$filter',
-    'role',
-    'tag'
-  ])(options);
+  const roleTag = extractRoleTagFilter(options);
 
   const POLICY_AGGREGATE = `JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p') AS policies`;
   const GET_USER_DOC = `JSON_AGG(DISTINCT users.*) AS user`;
@@ -142,7 +137,7 @@ export const list = async (
       }
     );
 
-  if (roleTag) {
+  if (!R.isNil(roleTag)) {
     cursor
       .leftJoin(
         'roles',
@@ -150,10 +145,11 @@ export const list = async (
         `casbin_rule.v2 like '%"' || roles.id || '"%'`
       )
       .orWhere(
-        `(casbin_rule.ptype = 'p' AND casbin_rule.v0 like :psubject AND casbin_rule.v1 like :resource AND '${roleTag}' = ANY(roles.tags))`,
+        `(casbin_rule.ptype = 'p' AND casbin_rule.v0 like :psubject AND casbin_rule.v1 like :resource AND :roleTag = ANY(roles.tags))`,
         {
           psubject: `%user%`,
-          resource: toLikeQuery({ group: groupId })
+          resource: toLikeQuery({ group: groupId }),
+          roleTag
         }
       );
   } else {

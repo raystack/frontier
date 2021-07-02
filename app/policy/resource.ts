@@ -3,6 +3,7 @@ import { createQueryBuilder } from 'typeorm';
 import CasbinSingleton from '../../lib/casbin';
 import { convertJSONToStringInOrder } from '../../lib/casbin/JsonEnforcer';
 import { User } from '../../model/user';
+import { extractRoleTagFilter } from '../../utils/queryParams';
 import {
   toLikeQuery,
   parsePolicies,
@@ -75,10 +76,12 @@ export const getPoliciesBySubject = async (
   subject: JSObj,
   filters: JSObj = {}
 ) => {
-  const { resource, action } = extractResourceAction(filters);
+  const resourceActionFilter = R.omit(['fields'], filters);
+  const { resource, action } = extractResourceAction(resourceActionFilter);
+  const roleTag = extractRoleTagFilter(filters);
 
   const cursor = createQueryBuilder()
-    .select('*')
+    .select('casbin_rule.*')
     .from('casbin_rule', 'casbin_rule')
     .where('casbin_rule.ptype = :type', { type: 'p' })
     .andWhere('casbin_rule.v0 like :subject', {
@@ -94,6 +97,18 @@ export const getPoliciesBySubject = async (
     cursor.andWhere('casbin_rule.v2 like :action', {
       action: toLikeQuery(action || {})
     });
+  }
+
+  if (!R.isNil(roleTag)) {
+    cursor
+      .leftJoin(
+        'roles',
+        'roles',
+        `casbin_rule.v2 like '%"' || roles.id || '"%'`
+      )
+      .andWhere(`:roleTag = ANY(roles.tags)`, {
+        roleTag
+      });
   }
   const rawResult = await cursor.getRawMany();
   return parsePolicies(rawResult);
