@@ -18,8 +18,11 @@ export const get = {
   tags: ['api', 'role'],
   validate: {
     query: Joi.object({
-      attributes: Attributes
-    }).unknown(true)
+      attributes: Attributes,
+      tags: Joi.array().single().items(Joi.string())
+    })
+      .rename('tags[]', 'tags', { ignoreUndefined: true })
+      .unknown(true)
   },
   response: {
     status: {
@@ -30,9 +33,10 @@ export const get = {
     }
   },
   handler: async (request: Hapi.Request) => {
-    const { attributes = [] } = request.query;
+    const { attributes = [], ...query } = request.query;
     return Resource.get(
-      attributes.constructor === String ? [attributes] : attributes
+      attributes.constructor === String ? [attributes] : attributes,
+      query
     );
   }
 };

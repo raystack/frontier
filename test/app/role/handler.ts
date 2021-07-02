@@ -54,9 +54,31 @@ lab.experiment('Role::Handler', () => {
       };
       getStub.resolves(roles);
       const response = await server.inject(request);
-      Sandbox.assert.calledWithExactly(getStub, ['entity', 'landscape']);
+      Sandbox.assert.calledWithExactly(getStub, ['entity', 'landscape'], {});
       Code.expect(response.result).to.equal(roles);
       Code.expect(response.statusCode).to.equal(200);
+    });
+
+    lab.test('should return roles based on tags', async () => {
+      const roles: Role[] = [role];
+      request = {
+        method: 'GET',
+        url: `/api/roles?tags=abc`
+      };
+      getStub.resolves(roles);
+      const response = await server.inject(request);
+      Sandbox.assert.calledWithExactly(getStub, [], { tags: ['abc'] });
+      Code.expect(response.result).to.equal(roles);
+      Code.expect(response.statusCode).to.equal(200);
+    });
+
+    lab.test('should pass multiple tags', async () => {
+      request = {
+        method: 'GET',
+        url: `/api/roles?tags=abc&tags=def`
+      };
+      await server.inject(request);
+      Sandbox.assert.calledWithExactly(getStub, [], { tags: ['abc', 'def'] });
     });
   });
 
