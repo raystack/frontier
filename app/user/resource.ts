@@ -4,7 +4,7 @@ import { User } from '../../model/user';
 import { getSubjecListWithPolicies } from '../policy/resource';
 import { isJSONSubset } from '../../lib/casbin/JsonRoleManager';
 import getUniqName, { validateUniqName } from '../../lib/getUniqName';
-
+import { extractRoleTagFilter } from '../../utils/queryParams';
 type JSObj = Record<string, unknown>;
 
 const getValidUsername = async (payload: any) => {
@@ -25,14 +25,7 @@ export const create = async (payload: any) => {
 export const getListWithFilters = async (query: JSObj) => {
   // ? 1) Get all users with all policies
 
-  const roleTagFilter = R.pathOr(null, [
-    'fields',
-    'policies',
-    '$filter',
-    'role',
-    'tag'
-  ])(query);
-
+  const roleTagFilter = extractRoleTagFilter(query);
   const policyFilters = R.omit(['fields'], query);
 
   const allUsersWithAllPolicies = await getSubjecListWithPolicies(

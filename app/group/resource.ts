@@ -9,6 +9,7 @@ import CasbinSingleton from '../../lib/casbin';
 import { parseGroupListResult } from './util';
 import getUniqName, { validateUniqName } from '../../lib/getUniqName';
 import { User } from '../../model/user';
+import { extractRoleTagFilter } from '../../utils/queryParams';
 
 type JSObj = Record<string, unknown>;
 
@@ -138,13 +139,7 @@ export const checkSubjectHasAccessToEditGroup = async (
 export const list = async (filters: JSObj = {}, loggedInUserId = '') => {
   const { user_role = '', group, ...attributes } = R.omit(['fields'], filters);
 
-  const roleTag = R.pathOr(null, [
-    'fields',
-    'policies',
-    '$filter',
-    'role',
-    'tag'
-  ])(filters);
+  const roleTag = extractRoleTagFilter(filters);
 
   const GET_GROUP_DOC = `JSON_AGG(DISTINCT groups.*) AS group_arr`;
   const MEMBER_COUNT = `SUM(CASE WHEN casbin_rule.ptype = 'g' THEN 1 ELSE 0 END) AS member_count`;
