@@ -115,13 +115,14 @@ export const getPoliciesBySubject = async (
 };
 
 export const getSubjecListWithPolicies = async (
-  subjectType: 'group' | 'user'
+  subjectType: 'group' | 'user',
+  roleTag?: string | null
 ) => {
   const tableName = `${subjectType}s`;
   const columnName = 'id';
   const joinMatchStr = `${tableName}.${columnName}`;
 
-  const rawResults = await createQueryBuilder()
+  const cursor = createQueryBuilder()
     .select(
       `${joinMatchStr}, JSON_AGG(casbin_rule.*) FILTER (WHERE ptype = 'p') as policies, JSON_AGG(DISTINCT ${tableName}.*) AS ${subjectType}`
     )
@@ -130,10 +131,21 @@ export const getSubjecListWithPolicies = async (
       'casbin_rule',
       'casbin_rule',
       `casbin_rule.v0 = '{"${subjectType}":"' || ${joinMatchStr} || '"}'`
-    )
-    .groupBy(joinMatchStr)
-    .getRawMany();
+    );
 
+  if (!R.isNil(roleTag)) {
+    cursor
+      .leftJoin(
+        'roles',
+        'roles',
+        `casbin_rule.v2 like '%"' || roles.id || '"%'`
+      )
+      .where(`:roleTag = ANY(roles.tags)`, {
+        roleTag
+      });
+  }
+
+  const rawResults = await cursor.groupBy(joinMatchStr).getRawMany();
   return parsePoliciesWithSubject(rawResults, subjectType);
 };
 

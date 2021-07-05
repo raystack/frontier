@@ -136,7 +136,15 @@ export const checkSubjectHasAccessToEditGroup = async (
 // ? 3) Find all users with specified user_role as well
 // ? 4) Check whether current logged in user is mapped with the group
 export const list = async (filters: JSObj = {}, loggedInUserId = '') => {
-  const { user_role = '', group, ...attributes } = filters;
+  const { user_role = '', group, ...attributes } = R.omit(['fields'], filters);
+
+  const roleTag = R.pathOr(null, [
+    'fields',
+    'policies',
+    '$filter',
+    'role',
+    'tag'
+  ])(filters);
 
   const GET_GROUP_DOC = `JSON_AGG(DISTINCT groups.*) AS group_arr`;
   const MEMBER_COUNT = `SUM(CASE WHEN casbin_rule.ptype = 'g' THEN 1 ELSE 0 END) AS member_count`;
@@ -164,6 +172,18 @@ export const list = async (filters: JSObj = {}, loggedInUserId = '') => {
       `(${JOIN_WITH_RESOURCE_ATTRIBUTES_MAPPING}) OR (${JOIN_WITH_USER_MAPPING}) OR (${JOIN_WITH_POLICIES})`
     )
     .groupBy('groups.id');
+
+  if (!R.isNil(roleTag)) {
+    cursor
+      .leftJoin(
+        'roles',
+        'roles',
+        `casbin_rule.v2 like '%"' || roles.id || '"%'`
+      )
+      .where(`:roleTag = ANY(roles.tags)`, {
+        roleTag
+      });
+  }
 
   // ? this is to filter single group query if passed in filters
   if (!R.isNil(group)) {

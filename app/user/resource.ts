@@ -22,23 +22,42 @@ export const create = async (payload: any) => {
 };
 
 // /api/users?entity=gojek
-export const getListWithFilters = async (policyFilters: JSObj) => {
+export const getListWithFilters = async (query: JSObj) => {
   // ? 1) Get all users with all policies
-  const allUsersWithAllPolicies = await getSubjecListWithPolicies('user');
+
+  const roleTagFilter = R.pathOr(null, [
+    'fields',
+    'policies',
+    '$filter',
+    'role',
+    'tag'
+  ])(query);
+
+  const policyFilters = R.omit(['fields'], query);
+
+  const allUsersWithAllPolicies = await getSubjecListWithPolicies(
+    'user',
+    roleTagFilter
+  );
 
   // 3) fetch all groups with the matching attributes
-  const rawGroupResult = await createQueryBuilder()
+  const rawGroupResultCursor = createQueryBuilder()
     .select('*')
-    .from('casbin_rule', 'casbin_rule')
-    .where('casbin_rule.ptype = :type', { type: 'g2' })
-    .andWhere('casbin_rule.v1 = :filter', {
-      filter: JSON.stringify(policyFilters)
-    })
-    .getRawMany();
+    .from('casbin_rule', 'casbin_rule');
+
+  if (!R.isEmpty(policyFilters)) {
+    rawGroupResultCursor
+      .where('casbin_rule.ptype = :type', { type: 'g2' })
+      .andWhere('casbin_rule.v1 = :filter', {
+        filter: JSON.stringify(policyFilters)
+      });
+  }
+
+  const rawGroupResult = await rawGroupResultCursor.getRawMany();
 
   const groups = rawGroupResult.map((res) => res.v0);
 
-  if (groups.length === 0) return [];
+  if (R.isEmpty(policyFilters) && R.isNil(roleTagFilter)) return [];
 
   // 4) fetch all groups_users record based on above groups
   const rawUserGroupResult = await createQueryBuilder()
@@ -62,10 +81,12 @@ export const getListWithFilters = async (policyFilters: JSObj) => {
     (result: any, user: any) => {
       const { policies = [] } = user;
       const filteredPolicies = policies.filter((policy: JSObj) =>
-        isJSONSubset(
-          JSON.stringify(policyFilters),
-          JSON.stringify(policy.resource)
-        )
+        !R.isEmpty(policyFilters)
+          ? isJSONSubset(
+              JSON.stringify(policyFilters),
+              JSON.stringify(policy.resource)
+            )
+          : policies
       );
 
       const userHasAccess = userMap[user.id] || !R.isEmpty(filteredPolicies);

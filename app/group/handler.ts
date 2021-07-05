@@ -22,7 +22,8 @@ export const list = {
   validate: {
     query: Joi.object({
       user_role: Joi.string().optional().description('role id'),
-      group: Joi.string().optional().description('group id')
+      group: Joi.string().optional().description('group id'),
+      fields: Joi.object()
     }).unknown(true)
   },
   response: {
