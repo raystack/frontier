@@ -92,7 +92,11 @@ export const remove = async (
   return true;
 };
 
-export const get = async (groupId: string, userId: string) => {
+export const get = async (
+  groupId: string,
+  userId: string,
+  filters: Record<string, unknown> = {}
+) => {
   const userObj = { user: userId };
   const groupObj = { group: groupId };
 
@@ -102,16 +106,19 @@ export const get = async (groupId: string, userId: string) => {
   }
 
   const user = await User.findOne(userId);
-  const policies = await getPoliciesBySubject(userObj, groupObj);
+  const policies = await getPoliciesBySubject(userObj, {
+    ...groupObj,
+    ...filters
+  });
 
   return { ...user, policies };
 };
 
 export const list = async (
   groupId: string,
-  options: Record<string, unknown> = {}
+  filters: Record<string, unknown> = {}
 ) => {
-  const roleTag = extractRoleTagFilter(options);
+  const roleTag = extractRoleTagFilter(filters);
 
   const POLICY_AGGREGATE = `JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p') AS policies`;
   const GET_USER_DOC = `JSON_AGG(DISTINCT users.*) AS user`;

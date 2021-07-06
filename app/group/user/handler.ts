@@ -72,7 +72,7 @@ export const get = {
   },
   handler: async (request: Hapi.Request) => {
     const { groupId, userId } = request.params;
-    return Resource.get(groupId, userId);
+    return Resource.get(groupId, userId, request.query);
   }
 };
 
