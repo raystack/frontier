@@ -34,8 +34,8 @@ export const list = {
   tags: ['api', 'user'],
   validate: {
     query: Joi.object({
-      fields: Joi.object()
-    })
+      fields: Joi.object().optional()
+    }).unknown(true)
   },
   response: {
     status: {

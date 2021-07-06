@@ -45,7 +45,8 @@ export const get = {
     query: Joi.object()
       .keys({
         user_role: Joi.string().optional(),
-        group: Joi.string().optional()
+        group: Joi.string().optional(),
+        fields: Joi.object().optional()
       })
       .unknown(true),
     params: Joi.object().keys({
