@@ -6,3 +6,4 @@ build
 package-lock.json
 proxies/*.yaml
 proxies/*.yml
+.temp

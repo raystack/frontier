@@ -10,10 +10,12 @@
     "lint": "./node_modules/.bin/eslint **/*.ts",
     "format": "node_modules/prettier/bin-prettier.js  --check '**/*.ts'",
     "format:fix": "yarn format --write",
-    "build": "rm -rf ./build && tsc",
+    "clean": "rm -rf ./build",
+    "prebuild": "yarn clean",
+    "build": "tsc",
     "postbuild": "cpy --parents '**/*.conf' ./build/",
     "start": "node ./build/server.js",
-    "dev": "nodemon --inspect=0.0.0.0:5858  -e ts --exec \"yarn build && yarn start\"",
+    "dev": "nodemon --inspect=0.0.0.0:5858",
     "start:postgres": "docker start shield_postgres-test_1",
     "test": "NODE_ENV=test node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript -l -v",
     "test:local": "yarn start:postgres && yarn test",
@@ -90,7 +92,19 @@
     "rosie": "^2.0.1",
     "sinon": "^9.2.1",
     "standard-version": "^9.3.0",
-    "typescript": "^4.1.2"
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.5"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "app",
+      "config",
+      "model",
+      "utils",
+      "types"
+    ],
+    "ext": "ts",
+    "exec": "ts-node server.ts"
   },
   "prettier": {
     "trailingComma": "none",
