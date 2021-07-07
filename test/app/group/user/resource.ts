@@ -374,7 +374,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
       'should return users of a group with role filtered policies for abc tag',
       async () => {
         const groupId = groups[0].id;
-        const path = ['fields', 'policies', '$filter', 'role', 'tag'];
+        const path = ['fields', 'policies', '$filter', 'role', 'tags'];
 
         const filter = R.assocPath(path, ABC_TAG, {});
         const result = await Resource.list(groupId, filter);
@@ -391,7 +391,7 @@ lab.experiment('Group:User:Mapping::resource', () => {
       'should return users of a group with role filtered policies for def tag',
       async () => {
         const groupId = groups[0].id;
-        const path = ['fields', 'policies', '$filter', 'role', 'tag'];
+        const path = ['fields', 'policies', '$filter', 'role', 'tags'];
 
         const filter = R.assocPath(path, DEF_TAG, {});
         const result = await Resource.list(groupId, filter);
