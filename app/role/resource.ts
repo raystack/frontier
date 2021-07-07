@@ -30,8 +30,8 @@ export const get = async (attributes: string[], query: GetQuery = {}) => {
   );
 
   if (tags.length > 0) {
-    cursor.where('role.tags @> :tags', {
-      tags: tags
+    cursor.andWhere('role.tags @> :tags', {
+      tags
     });
   }
   return cursor.getMany();
