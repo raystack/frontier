@@ -186,7 +186,11 @@ export const get = async (
   loggedInUserId = '',
   filters: JSObj = {}
 ) => {
-  const groupList = await list({ group: groupId, ...filters }, loggedInUserId);
+  const filtersWithoutFields = R.omit(['fields'], filters);
+  const groupList = await list(
+    { group: groupId, ...filtersWithoutFields },
+    loggedInUserId
+  );
   const group = R.head(groupList);
   if (!group) throw Boom.notFound('group not found');
   const subject = { group: R.path(['id'], group) };

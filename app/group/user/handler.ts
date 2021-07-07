@@ -29,8 +29,7 @@ export const list = {
   tags: ['api', 'group'],
   validate: {
     query: Joi.object({
-      role: Joi.string().optional(),
-      action: Joi.string().optional()
+      fields: Joi.object()
     }).unknown(true),
     params: Joi.object({
       groupId: Joi.string().required().description('group id')
@@ -55,7 +54,8 @@ export const get = {
   validate: {
     query: Joi.object({
       role: Joi.string().optional(),
-      action: Joi.string().optional()
+      action: Joi.string().optional(),
+      fields: Joi.object().optional()
     }).unknown(true),
     params: Joi.object({
       groupId: Joi.string().required().description('group id'),
@@ -72,7 +72,7 @@ export const get = {
   },
   handler: async (request: Hapi.Request) => {
     const { groupId, userId } = request.params;
-    return Resource.get(groupId, userId);
+    return Resource.get(groupId, userId, request.query);
   }
 };
 

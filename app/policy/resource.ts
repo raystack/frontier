@@ -3,6 +3,7 @@ import { createQueryBuilder } from 'typeorm';
 import CasbinSingleton from '../../lib/casbin';
 import { convertJSONToStringInOrder } from '../../lib/casbin/JsonEnforcer';
 import { User } from '../../model/user';
+import { extractRoleTagFilter } from '../../utils/queryParams';
 import {
   toLikeQuery,
   parsePolicies,
@@ -75,10 +76,12 @@ export const getPoliciesBySubject = async (
   subject: JSObj,
   filters: JSObj = {}
 ) => {
-  const { resource, action } = extractResourceAction(filters);
+  const resourceActionFilter = R.omit(['fields'], filters);
+  const { resource, action } = extractResourceAction(resourceActionFilter);
+  const roleTag = extractRoleTagFilter(filters);
 
   const cursor = createQueryBuilder()
-    .select('*')
+    .select('casbin_rule.*')
     .from('casbin_rule', 'casbin_rule')
     .where('casbin_rule.ptype = :type', { type: 'p' })
     .andWhere('casbin_rule.v0 like :subject', {
@@ -95,18 +98,31 @@ export const getPoliciesBySubject = async (
       action: toLikeQuery(action || {})
     });
   }
+
+  if (!R.isNil(roleTag)) {
+    cursor
+      .leftJoin(
+        'roles',
+        'roles',
+        `casbin_rule.v2 like '%"' || roles.id || '"%'`
+      )
+      .andWhere(`:roleTag = ANY(roles.tags)`, {
+        roleTag
+      });
+  }
   const rawResult = await cursor.getRawMany();
   return parsePolicies(rawResult);
 };
 
 export const getSubjecListWithPolicies = async (
-  subjectType: 'group' | 'user'
+  subjectType: 'group' | 'user',
+  roleTag?: string | null
 ) => {
   const tableName = `${subjectType}s`;
   const columnName = 'id';
   const joinMatchStr = `${tableName}.${columnName}`;
 
-  const rawResults = await createQueryBuilder()
+  const cursor = createQueryBuilder()
     .select(
       `${joinMatchStr}, JSON_AGG(casbin_rule.*) FILTER (WHERE ptype = 'p') as policies, JSON_AGG(DISTINCT ${tableName}.*) AS ${subjectType}`
     )
@@ -115,10 +131,21 @@ export const getSubjecListWithPolicies = async (
       'casbin_rule',
       'casbin_rule',
       `casbin_rule.v0 = '{"${subjectType}":"' || ${joinMatchStr} || '"}'`
-    )
-    .groupBy(joinMatchStr)
-    .getRawMany();
+    );
 
+  if (!R.isNil(roleTag)) {
+    cursor
+      .leftJoin(
+        'roles',
+        'roles',
+        `casbin_rule.v2 like '%"' || roles.id || '"%'`
+      )
+      .where(`:roleTag = ANY(roles.tags)`, {
+        roleTag
+      });
+  }
+
+  const rawResults = await cursor.groupBy(joinMatchStr).getRawMany();
   return parsePoliciesWithSubject(rawResults, subjectType);
 };
 
@@ -170,56 +197,6 @@ export const getGroupUserMapping = async (groupId: string, userId: string) => {
 export const getAttributesForGroup = async (groupId: string) => {
   const rawResult = await getMapping('g2', 'resource', { group: groupId });
   return rawResult.map((rawObj) => JSON.parse(rawObj.v1));
-};
-
-// TODO: Move this to the appropriate resource.ts file
-export const getUsersOfGroupWithPolicies = async (
-  groupId: string,
-  policyFilter: JSObj = {}
-) => {
-  const { resource = {}, action = {} } = extractResourceAction(policyFilter);
-
-  const POLICY_AGGREGATE = `JSON_AGG(casbin_rule.*) FILTER (WHERE casbin_rule.ptype = 'p') AS policies`;
-  const GET_USER_DOC = `JSON_AGG(DISTINCT users.*) AS user`;
-
-  // ! We need COUNT and SUM separate here because postgres doesn't support using COUNT twice on the same column
-  const POLICY_COUNT = `COUNT(1) FILTER (WHERE casbin_rule.ptype = 'p')`;
-  const MAPPING_COUNT = `SUM(CASE WHEN casbin_rule.ptype = 'g' THEN 1 ELSE 0 END)`;
-
-  // ? Join users table with casbin_rule table and groupBy user.id
-  // ? Aggregate all the policies
-  // ? Remove users that don't have a 'g' record with the groupId
-  const cursor = createQueryBuilder()
-    .select(`users.id, ${POLICY_AGGREGATE}, ${GET_USER_DOC}`)
-    .from(User, 'users')
-    .leftJoin(
-      'casbin_rule',
-      'casbin_rule',
-      `casbin_rule.v0 like '%"' || users.id || '"%'`
-    )
-    .where(
-      `(casbin_rule.ptype = 'g' AND casbin_rule.v0 like :gsubject AND casbin_rule.v1 like :group)`,
-      {
-        gsubject: `%user%`,
-        group: toLikeQuery({ group: groupId })
-      }
-    )
-    .orWhere(
-      `(casbin_rule.ptype = 'p' AND casbin_rule.v0 like :psubject AND casbin_rule.v1 like :resource AND casbin_rule.v2 like :action)`,
-      {
-        psubject: `%user%`,
-        resource: toLikeQuery({ group: groupId, ...resource }),
-        action: toLikeQuery(action)
-      }
-    )
-    .groupBy('users.id');
-
-  if (!R.isEmpty(policyFilter)) {
-    cursor.having(`${POLICY_COUNT} > 0`);
-  }
-  const rawResult = await cursor.andHaving(`${MAPPING_COUNT} > 0`).getRawMany();
-
-  return parsePoliciesWithSubject(rawResult, 'user');
 };
 
 export const getResourceAttributeMappingsByResources = async (

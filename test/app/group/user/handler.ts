@@ -171,7 +171,7 @@ lab.experiment('Group:User::Handler', () => {
 
       const response = await server.inject(request);
 
-      Sandbox.assert.calledWithExactly(getStub, GROUP_ID, USER_ID);
+      Sandbox.assert.calledWithExactly(getStub, GROUP_ID, USER_ID, {});
       Code.expect(response.result).to.equal(result);
       Code.expect(response.statusCode).to.equal(200);
     });

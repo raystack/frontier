@@ -19,7 +19,8 @@ internals.manifest = {
   server: {
     port: Config.get('/port/web'),
     query: {
-      parser: (query: string) => Qs.parse(query, { comma: true })
+      parser: (query: string) =>
+        Qs.parse(query, { comma: true, allowDots: true })
     },
     router: {
       stripTrailingSlash: true,

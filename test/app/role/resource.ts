@@ -49,6 +49,34 @@ lab.experiment('Role::resource', () => {
     }
   );
 
+  lab.experiment('get role by tags', () => {
+    let role: Role;
+
+    lab.afterEach(() => {
+      Sandbox.restore();
+    });
+
+    lab.test('should get role by tags', async () => {
+      role = await factory(Role)().create({ tags: ['abc'] });
+      const response = await Resource.get([], { tags: ['abc'] });
+      Code.expect(response).to.equal([role]);
+    });
+
+    lab.test('should ignore unmatching tags', async () => {
+      role = await factory(Role)().create({ tags: ['abc'] });
+      const response = await Resource.get([], { tags: ['def'] });
+      Code.expect(response).to.not.equal([role]);
+    });
+
+    lab.test('should match multiple tags', async () => {
+      const roles = await factory(Role)().createMany(5, {
+        tags: ['abc', 'def']
+      });
+      const response = await Resource.get([], { tags: ['def', 'abc'] });
+      Code.expect(response).to.equal(roles);
+    });
+  });
+
   lab.experiment('create role along with action mapping', () => {
     const loggedInUser = { username: 'test' };
     let mapActionRoleInBulkStub = null;
@@ -68,7 +96,8 @@ lab.experiment('Role::resource', () => {
       const payload = {
         displayname: 'role',
         attributes: ['test'],
-        metadata: {}
+        metadata: {},
+        tags: ['tag']
       };
 
       const result = await Resource.create(payload, loggedInUser);

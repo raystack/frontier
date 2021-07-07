@@ -16,13 +16,25 @@ interface RolePayload {
   actions?: ActionOperation[];
 }
 
-export const get = async (attributes: string[]) => {
+interface GetQuery {
+  tags?: string[];
+}
+export const get = async (attributes: string[], query: GetQuery = {}) => {
   const RoleRepository = getManager().getRepository(Role);
-  return RoleRepository.createQueryBuilder('role')
-    .where('role.attributes @> :attributes', {
+  const { tags = [] } = query;
+  const cursor = RoleRepository.createQueryBuilder('role').where(
+    'role.attributes @> :attributes',
+    {
       attributes: JSON.stringify(attributes)
-    })
-    .getMany();
+    }
+  );
+
+  if (tags.length > 0) {
+    cursor.andWhere('role.tags @> :tags', {
+      tags
+    });
+  }
+  return cursor.getMany();
 };
 
 export const mapActionRoleInBulk = async (
@@ -93,7 +105,7 @@ export const update = async (
   if (!role) return Boom.notFound('Role not found');
 
   const rolePayloadToUpdate: any = {
-    id: role?.id,
+    ...role,
     ...rolePayload
   };
   const updatedRole = await Role.save(rolePayloadToUpdate, {
