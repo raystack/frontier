@@ -5,5 +5,5 @@ export const extractRoleTagFilter = R.pathOr(null, [
   'policies',
   '$filter',
   'role',
-  'tag'
+  'tags'
 ]);
