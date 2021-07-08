@@ -57,6 +57,9 @@ internals.config = {
     test: {
       dir: '.'
     },
+    dev: {
+      dir: '.'
+    },
     'test-migrate': {
       dir: './build'
     },
