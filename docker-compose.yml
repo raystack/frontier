@@ -34,7 +34,7 @@ services:
       POSTGRES_DB: 'shield_dev'
       POSTGRES_HOST_AUTH_METHOD: 'trust'
     volumes:
-      - shield_postgres:/data/db
+      - ./temp/postgres:/data/db
     networks:
       - backend
     ports:
@@ -46,11 +46,8 @@ services:
       POSTGRES_DB: 'shield_test'
       POSTGRES_HOST_AUTH_METHOD: 'trust'
     volumes:
-      - shield_postgres:/data/testdb
+      - ./temp/postgres-test:/data/testdb
     networks:
       - backend
     ports:
       - 4322:5432
-
-volumes:
-  shield_postgres:
