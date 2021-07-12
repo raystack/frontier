@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/odpf/shield/compare/v0.1.0...v0.1.1) (2021-07-12)
+
+
+### Features
+
+* add tags filtering for roles ([#10](https://github.com/odpf/shield/issues/10)) ([85ca9fa](https://github.com/odpf/shield/commit/85ca9fa43c7b1fa9ff2737dcd575daad2c02b837))
+
 ## 0.1.0 (2021-05-24)
 
 
@@ -49,5 +56,3 @@ All notable changes to this project will be documented in this file. See [standa
 * resolve merge conflicts ([9a06f56](https://github.com/odpf/shield/commit/9a06f569ec7470a728523c3beea18f4c435a99c5))
 * return downstream error response in proxy ([b1eb689](https://github.com/odpf/shield/commit/b1eb68959ce9b047ae0a757c486a18a452c738bd))
 * swagger documentation for shield apis ([b7120e6](https://github.com/odpf/shield/commit/b7120e6045c63b968c795e169c326a6aa4a3b2b6))
-
-

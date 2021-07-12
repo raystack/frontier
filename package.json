@@ -1,6 +1,6 @@
 {
   "name": "shield",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": "true",
   "description": "IAM with reverse proxy",
   "main": "server.js",
@@ -188,7 +188,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint && yarn format && yarn test:local"
+      "pre-commit": "yarn lint --quiet && yarn format && yarn test:local"
     }
   }
 }
