@@ -6,12 +6,16 @@ networks:
 
 services:
   server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     volumes:
       - './:/opt/shield'
       - ./node_modules:/opt/shield/node_modules
     ports:
       - 5000:5000
+    environment:
+      DB_URI: postgresql://shield_dev@postgres:5432/shield_dev
     env_file:
       - ./.env
     networks:
@@ -23,7 +27,6 @@ services:
       interval: 20s
       timeout: 5s
       retries: 12
-    command: yarn dev
   postgres:
     image: 'postgres:11.10'
     environment:

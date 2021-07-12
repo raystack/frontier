@@ -1,0 +1,8 @@
+FROM node:12.13
+WORKDIR /opt/shield
+COPY package*.json ./
+COPY yarn.lock ./
+RUN yarn install
+COPY . .
+EXPOSE 5000
+CMD ["npm", "run", "dev"]
