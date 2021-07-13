@@ -1,6 +1,6 @@
 import Faker from 'faker';
 import { define } from 'typeorm-seeding';
-import { Activity } from '../model/activity';
+import { Activity } from '../../src/model/activity';
 
 define(Activity, (faker: typeof Faker) => {
   const activity = new Activity();

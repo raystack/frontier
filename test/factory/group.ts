@@ -1,6 +1,6 @@
 import Faker from 'faker';
 import { define } from 'typeorm-seeding';
-import { Group } from '../model/group';
+import { Group } from '../../src/model/group';
 
 define(Group, (faker: typeof Faker) => {
   const randomNum = faker.random.number(100);

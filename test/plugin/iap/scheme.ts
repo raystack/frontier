@@ -3,9 +3,9 @@ import Lab from '@hapi/lab';
 import Hapi from '@hapi/hapi';
 import Sinon from 'sinon';
 import { lab } from '../../setup';
-import * as iapPlugin from '../../../plugin/iap';
-import * as profilePlugin from '../../../app/profile';
-import * as Config from '../../../config/config';
+import * as iapPlugin from '../../../src/plugin/iap';
+import * as profilePlugin from '../../../src/app/profile';
+import * as Config from '../../../src/config/config';
 
 exports.lab = Lab.script();
 let server: Hapi.Server;

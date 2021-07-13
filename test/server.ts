@@ -2,7 +2,7 @@
 
 import Code from 'code';
 import Lab from '@hapi/lab';
-import Composer from '../config/composer';
+import Composer from '../src/config/composer';
 
 const lab = Lab.script();
 exports.lab = lab;

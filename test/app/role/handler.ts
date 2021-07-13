@@ -5,10 +5,10 @@ import Hapi from '@hapi/hapi';
 import Sinon from 'sinon';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
-import { Role } from '../../../model/role';
-import * as Config from '../../../config/config';
-import * as rolePlugin from '../../../app/role';
-import * as Resource from '../../../app/role/resource';
+import { Role } from '../../../src/model/role';
+import * as Config from '../../../src/config/config';
+import * as rolePlugin from '../../../src/app/role';
+import * as Resource from '../../../src/app/role/resource';
 
 exports.lab = Lab.script();
 let server: Hapi.Server;

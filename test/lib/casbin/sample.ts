@@ -1,6 +1,6 @@
 import { factory } from 'typeorm-seeding';
-import CasbinSingleton from '../../../lib/casbin';
-import { User } from '../../../model/user';
+import CasbinSingleton from '../../../src/lib/casbin';
+import { User } from '../../../src/model/user';
 
 const users: any[] = [];
 const createUser = async () => {

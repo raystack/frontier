@@ -1,12 +1,12 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
 import { factory } from 'typeorm-seeding';
-import * as Config from '../../../config/config';
+import * as Config from '../../../src/config/config';
 import setupSampleData from './sample';
-import CasbinSingleton from '../../../lib/casbin';
+import CasbinSingleton from '../../../src/lib/casbin';
 import { lab } from '../../setup';
 import connection from '../../connection';
-import { User } from '../../../model/user';
+import { User } from '../../../src/model/user';
 
 exports.lab = Lab.script();
 

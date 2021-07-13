@@ -5,12 +5,12 @@ import Code from 'code';
 import Faker from 'faker';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
-import { Group } from '../../../model/group';
-import { User } from '../../../model/user';
-import * as Resource from '../../../app/group/resource';
-import * as PolicyResource from '../../../app/policy/resource';
-import CasbinSingleton from '../../../lib/casbin';
-import * as Config from '../../../config/config';
+import { Group } from '../../../src/model/group';
+import { User } from '../../../src/model/user';
+import * as Resource from '../../../src/app/group/resource';
+import * as PolicyResource from '../../../src/app/policy/resource';
+import CasbinSingleton from '../../../src/lib/casbin';
+import * as Config from '../../../src/config/config';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();

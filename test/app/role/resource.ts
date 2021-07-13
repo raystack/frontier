@@ -3,8 +3,8 @@ import Sinon from 'sinon';
 import Code from 'code';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
-import { Role } from '../../../model/role';
-import * as Resource from '../../../app/role/resource';
+import { Role } from '../../../src/model/role';
+import * as Resource from '../../../src/app/role/resource';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();

@@ -4,10 +4,10 @@ import Code from 'code';
 import * as Faker from 'faker';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
-import { Activity } from '../../../model/activity';
-import * as Resource from '../../../app/activity/resource';
-import { User } from '../../../model/user';
-import { delta } from '../../../utils/deep-diff';
+import { Activity } from '../../../src/model/activity';
+import * as Resource from '../../../src/app/activity/resource';
+import { User } from '../../../src/model/user';
+import { delta } from '../../../src/utils/deep-diff';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();

@@ -3,12 +3,12 @@ import Sinon from 'sinon';
 import * as R from 'ramda';
 import Code from 'code';
 import { factory } from 'typeorm-seeding';
-import * as Config from '../../../../config/config';
+import * as Config from '../../../../src/config/config';
 import { lab } from '../../../setup';
-import { User } from '../../../../model/user';
-import { Group } from '../../../../model/group';
-import * as Resource from '../../../../app/user/group/resource';
-import CasbinSingleton from '../../../../lib/casbin';
+import { User } from '../../../../src/model/user';
+import { Group } from '../../../../src/model/group';
+import * as Resource from '../../../../src/app/user/group/resource';
+import CasbinSingleton from '../../../../src/lib/casbin';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();

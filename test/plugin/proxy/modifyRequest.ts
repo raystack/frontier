@@ -3,9 +3,9 @@ import Lab from '@hapi/lab';
 import Sinon from 'sinon';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
-import * as ModifyRequest from '../../../plugin/proxy/modifyRequest';
-import { User } from '../../../model/user';
-import { Group } from '../../../model/group';
+import * as ModifyRequest from '../../../src/plugin/proxy/modifyRequest';
+import { User } from '../../../src/model/user';
+import { Group } from '../../../src/model/group';
 
 const {
   checkAndAppendUserData,

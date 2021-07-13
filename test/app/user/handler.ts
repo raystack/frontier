@@ -4,10 +4,10 @@ import Hapi from '@hapi/hapi';
 import Sinon from 'sinon';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
-import * as Config from '../../../config/config';
-import * as userPlugin from '../../../app/user';
-import * as Resource from '../../../app/user/resource';
-import { User } from '../../../model/user';
+import * as Config from '../../../src/config/config';
+import * as userPlugin from '../../../src/app/user';
+import * as Resource from '../../../src/app/user/resource';
+import { User } from '../../../src/model/user';
 
 exports.lab = Lab.script();
 let server: Hapi.Server;
