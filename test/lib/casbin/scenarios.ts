@@ -474,18 +474,3 @@ lab.experiment('IAM load filtered policies:', () => {
 
   testScenarios();
 });
-
-lab.experiment('IAM load all policies:', () => {
-  lab.before(async ({ context }) => {
-    CasbinSingleton.filtered = false;
-    const dbUri = Config.get('/postgres').uri;
-    context.enforcer = await CasbinSingleton.create(dbUri);
-  });
-
-  lab.after(() => {
-    CasbinSingleton.filtered = true;
-    CasbinSingleton.enforcer = null;
-  });
-
-  testScenarios();
-});

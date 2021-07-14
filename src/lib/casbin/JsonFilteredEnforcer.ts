@@ -2,7 +2,7 @@
 import * as R from 'ramda';
 import { createQueryBuilder, In, Like, Raw } from 'typeorm';
 import { CachedEnforcer, newEnforcerWithClass, Util } from 'casbin';
-import { convertJSONToStringInOrder } from './JsonEnforcer';
+// eslint-disable-next-line import/no-cycle
 import { toLikeQuery } from '../../app/policy/util';
 import IEnforcer, { JsonAttributes, OneKey, PolicyObj } from './IEnforcer';
 import { JsonRoleManager } from './JsonRoleManager';
@@ -10,6 +10,17 @@ import {
   log as ActivityLog,
   actions as ActivityActions
 } from '../../app/activity/resource';
+
+export const convertJSONToStringInOrder = (
+  json: Record<string, unknown>
+): string => {
+  const keys = Object.keys(json).sort((a, b) => a.localeCompare(b));
+
+  const orderedJSON = keys.reduce((acc, key) => {
+    return { ...acc, [key]: json[key] };
+  }, {});
+  return JSON.stringify(orderedJSON);
+};
 
 const hasAnyAction = (actions: string[]) =>
   actions.includes(JSON.stringify({ action: 'any' }));
