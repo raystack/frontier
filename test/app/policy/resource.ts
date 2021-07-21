@@ -2,8 +2,8 @@ import Lab from '@hapi/lab';
 import Sinon from 'sinon';
 import Code from 'code';
 import { lab } from '../../setup';
-import * as Resource from '../../../app/policy/resource';
-import CasbinSingleton from '../../../lib/casbin';
+import * as Resource from '../../../src/app/policy/resource';
+import CasbinSingleton from '../../../src/lib/casbin';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();

@@ -3,8 +3,8 @@ import * as R from 'ramda';
 import Sinon from 'sinon';
 import Code from 'code';
 import { lab } from '../../setup';
-import * as Resource from '../../../app/access/resource';
-import CasbinSingleton from '../../../lib/casbin';
+import * as Resource from '../../../src/app/access/resource';
+import CasbinSingleton from '../../../src/lib/casbin';
 
 exports.lab = Lab.script();
 const Sandbox = Sinon.createSandbox();

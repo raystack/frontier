@@ -5,10 +5,10 @@ import Wreck from '@hapi/wreck';
 import Lab from '@hapi/lab';
 import Sinon from 'sinon';
 import { lab } from '../../setup';
-import * as ResponseHooks from '../../../plugin/iam/responseHooks';
-import * as IAMPluginUtils from '../../../plugin/iam/utils';
-import CasbinSingleton from '../../../lib/casbin';
-import * as PolicyResource from '../../../app/policy/resource';
+import * as ResponseHooks from '../../../src/plugin/iam/responseHooks';
+import * as IAMPluginUtils from '../../../src/plugin/iam/utils';
+import CasbinSingleton from '../../../src/lib/casbin';
+import * as PolicyResource from '../../../src/app/policy/resource';
 
 exports.lab = Lab.script();
 

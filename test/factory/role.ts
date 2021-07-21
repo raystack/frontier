@@ -1,6 +1,6 @@
 import Faker from 'faker';
 import { define } from 'typeorm-seeding';
-import { Role } from '../model/role';
+import { Role } from '../../src/model/role';
 
 define(Role, (faker: typeof Faker) => {
   const role = new Role();

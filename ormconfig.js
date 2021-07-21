@@ -1,5 +1,5 @@
 const { SnakeNamingStrategy } = require('typeorm-naming-strategies');
-const Config = require('./config/config');
+const Config = require('./src/config/config');
 
 const baseDir = Config.get('/typeormDir').dir;
 
@@ -8,12 +8,12 @@ module.exports = {
   url: Config.get('/postgres').uri,
   logging: false,
   synchronize: false,
-  entities: [`${baseDir}/model/*{.ts,.js}`],
-  migrations: [`${baseDir}/migration/*{.ts,.js}`],
-  factories: [`${baseDir}/factory/*{.ts,.js}`],
-  subscribers: [`${baseDir}/subscriber/*{.ts,.js}`],
+  entities: [`${baseDir}/src/model/*{.ts,.js}`],
+  migrations: [`${baseDir}/src/migration/*{.ts,.js}`],
+  factories: [`${baseDir}/src/factory/*{.ts,.js}`],
+  subscribers: [`${baseDir}/src/subscriber/*{.ts,.js}`],
   cli: {
-    migrationsDir: 'migration'
+    migrationsDir: 'src/migration'
   },
   namingStrategy: new SnakeNamingStrategy()
 };

@@ -14,7 +14,7 @@
     "prebuild": "yarn clean",
     "build": "tsc",
     "postbuild": "cpy --parents '**/*.conf' ./build/",
-    "start": "node ./build/server.js",
+    "start": "node ./build/src/server.js",
     "dev": "nodemon --inspect=0.0.0.0:5858",
     "start:postgres": "docker compose up postgres-test -d",
     "test": "NODE_ENV=test node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript -l -v",
@@ -104,7 +104,7 @@
       "types"
     ],
     "ext": "ts",
-    "exec": "ts-node server.ts"
+    "exec": "ts-node ./src/server.ts"
   },
   "prettier": {
     "trailingComma": "none",

@@ -55,10 +55,10 @@ internals.config = {
   typeormDir: {
     $filter: 'env',
     test: {
-      dir: '.'
+      dir: './'
     },
     dev: {
-      dir: '.'
+      dir: './'
     },
     'test-migrate': {
       dir: './build'

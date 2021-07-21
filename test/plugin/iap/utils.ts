@@ -1,7 +1,7 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
 import { lab } from '../../setup';
-import * as IAPPluginUtils from '../../../plugin/iap/utils';
+import * as IAPPluginUtils from '../../../src/plugin/iap/utils';
 
 exports.lab = Lab.script();
 

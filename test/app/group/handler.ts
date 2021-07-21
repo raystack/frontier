@@ -4,10 +4,10 @@ import Hapi from '@hapi/hapi';
 import Sinon from 'sinon';
 import { factory } from 'typeorm-seeding';
 import { lab } from '../../setup';
-import { Group } from '../../../model/group';
-import * as Config from '../../../config/config';
-import * as groupPlugin from '../../../app/group';
-import * as Resource from '../../../app/group/resource';
+import { Group } from '../../../src/model/group';
+import * as Config from '../../../src/config/config';
+import * as groupPlugin from '../../../src/app/group';
+import * as Resource from '../../../src/app/group/resource';
 
 exports.lab = Lab.script();
 let server;

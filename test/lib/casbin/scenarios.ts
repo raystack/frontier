@@ -1,12 +1,12 @@
 import Code from 'code';
 import Lab from '@hapi/lab';
 import { factory } from 'typeorm-seeding';
-import * as Config from '../../../config/config';
+import * as Config from '../../../src/config/config';
 import setupSampleData from './sample';
-import CasbinSingleton from '../../../lib/casbin';
+import CasbinSingleton from '../../../src/lib/casbin';
 import { lab } from '../../setup';
 import connection from '../../connection';
-import { User } from '../../../model/user';
+import { User } from '../../../src/model/user';
 
 exports.lab = Lab.script();
 
@@ -469,21 +469,6 @@ lab.experiment('IAM load filtered policies:', () => {
   });
 
   lab.after(() => {
-    CasbinSingleton.enforcer = null;
-  });
-
-  testScenarios();
-});
-
-lab.experiment('IAM load all policies:', () => {
-  lab.before(async ({ context }) => {
-    CasbinSingleton.filtered = false;
-    const dbUri = Config.get('/postgres').uri;
-    context.enforcer = await CasbinSingleton.create(dbUri);
-  });
-
-  lab.after(() => {
-    CasbinSingleton.filtered = true;
     CasbinSingleton.enforcer = null;
   });
 

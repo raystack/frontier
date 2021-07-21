@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { createQueryBuilder } from 'typeorm';
 import CasbinSingleton from '../../lib/casbin';
-import { convertJSONToStringInOrder } from '../../lib/casbin/JsonEnforcer';
+import { convertJSONToStringInOrder } from '../../lib/casbin/JsonFilteredEnforcer';
 import { User } from '../../model/user';
 import { extractRoleTagFilter } from '../../utils/queryParams';
 import {

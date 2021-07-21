@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import * as _ from 'lodash';
-import { convertJSONToStringInOrder } from '../../lib/casbin/JsonEnforcer';
+// eslint-disable-next-line import/no-cycle
+import { convertJSONToStringInOrder } from '../../lib/casbin/JsonFilteredEnforcer';
 
 type JSObj = Record<string, unknown>;
 

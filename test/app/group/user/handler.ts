@@ -3,9 +3,9 @@ import Lab from '@hapi/lab';
 import Hapi from '@hapi/hapi';
 import Sinon from 'sinon';
 import { lab } from '../../../setup';
-import * as Config from '../../../../config/config';
-import * as groupPlugin from '../../../../app/group';
-import * as GroupUserResource from '../../../../app/group/user/resource';
+import * as Config from '../../../../src/config/config';
+import * as groupPlugin from '../../../../src/app/group';
+import * as GroupUserResource from '../../../../src/app/group/user/resource';
 
 exports.lab = Lab.script();
 let server: Hapi.Server;
