@@ -6,12 +6,16 @@ networks:
 
 services:
   server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     volumes:
       - './:/opt/shield'
       - ./node_modules:/opt/shield/node_modules
     ports:
       - 5000:5000
+    environment:
+      DB_URI: postgresql://shield_dev@postgres:5432/shield_dev
     env_file:
       - ./.env
     networks:
@@ -23,7 +27,6 @@ services:
       interval: 20s
       timeout: 5s
       retries: 12
-    command: yarn dev
   postgres:
     image: 'postgres:11.10'
     environment:
@@ -31,7 +34,7 @@ services:
       POSTGRES_DB: 'shield_dev'
       POSTGRES_HOST_AUTH_METHOD: 'trust'
     volumes:
-      - shield_postgres:/data/db
+      - ./temp/postgres:/data/db
     networks:
       - backend
     ports:
@@ -43,11 +46,8 @@ services:
       POSTGRES_DB: 'shield_test'
       POSTGRES_HOST_AUTH_METHOD: 'trust'
     volumes:
-      - shield_postgres:/data/testdb
+      - ./temp/postgres-test:/data/testdb
     networks:
       - backend
     ports:
       - 4322:5432
-
-volumes:
-  shield_postgres:
