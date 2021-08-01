@@ -1,5 +1,6 @@
 FROM node:12.13
-WORKDIR /opt/shield
+ENV NEW_RELIC_HOME ./src
+WORKDIR /app
 COPY package*.json ./
 COPY yarn.lock ./
 RUN yarn install
