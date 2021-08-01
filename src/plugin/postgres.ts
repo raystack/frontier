@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { Connection, createConnection } from 'typeorm';
 import Hapi from '@hapi/hapi';
 import Logger from '../lib/logger';
+import ormConfig from '../config/ormconfig';
 
 export interface ConnectionConfig {
   uri: string;
@@ -15,7 +16,7 @@ export const plugin = {
   async register(server: Hapi.Server) {
     const tryConnectToPostgres: () => Promise<Connection> = async () => {
       try {
-        return createConnection();
+        return createConnection(ormConfig);
       } catch (e) {
         return postgresConnectionErrorHandler(e);
       }

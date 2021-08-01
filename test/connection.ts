@@ -1,8 +1,9 @@
 import { createConnection, getConnection, getManager } from 'typeorm';
+import ormConfig from '../src/config/ormconfig';
 
 const connectionWrapper = {
   async create() {
-    await createConnection();
+    await createConnection(ormConfig);
   },
 
   async close() {
