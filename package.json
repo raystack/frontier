@@ -13,8 +13,9 @@
     "clean": "rm -rf ./build",
     "prebuild": "yarn clean",
     "build": "tsc",
-    "postbuild": "cpy --parents '**/*.conf' ./build/",
-    "start": "node ./build/src/server.js",
+    "postbuild": "yarn copy:conf",
+    "copy:conf": "cpy --parents --cwd=src '**/*.conf' ./build/",
+    "start": "node ./build/server.js",
     "dev": "nodemon --inspect=0.0.0.0:5858",
     "start:postgres": "docker compose up postgres-test -d",
     "stop:postgres": "docker compose down postgres-test",
@@ -102,11 +103,7 @@
   },
   "nodemonConfig": {
     "watch": [
-      "app",
-      "config",
-      "model",
-      "utils",
-      "types"
+      "src"
     ],
     "ext": "ts",
     "exec": "ts-node ./src/server.ts"
