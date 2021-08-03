@@ -5,10 +5,7 @@ import {
   newJsonFilteredEnforcer,
   JsonFilteredEnforcer
 } from './JsonFilteredEnforcer';
-
-const Config = require('../../config/config');
-
-const baseDir = Config.get('/typeormDir').dir;
+import ormConfig from '../../config/ormconfig';
 
 class CasbinSingleton {
   // eslint-disable-next-line no-useless-constructor
@@ -30,9 +27,9 @@ class CasbinSingleton {
       // ? Doing this to run tests for both filtered=false/true
       if (!this.policyAdapter) {
         this.policyAdapter = await TypeORMAdapter.newAdapter({
-          type: 'postgres',
-          url: dbConnectionUrl,
-          subscribers: [`${baseDir}/subscriber/*{.ts,.js}`]
+          type: ormConfig.type,
+          url: ormConfig.url,
+          subscribers: ormConfig.subscribers
         });
       }
 

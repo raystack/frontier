@@ -13,14 +13,20 @@
     "clean": "rm -rf ./build",
     "prebuild": "yarn clean",
     "build": "tsc",
-    "postbuild": "cpy --parents '**/*.conf' ./build/",
-    "start": "node ./build/src/server.js",
+    "postbuild": "yarn copy:conf",
+    "copy:conf": "cpy --parents --cwd=src '**/*.conf' ./build/",
+    "start": "node ./build/server.js",
     "dev": "nodemon --inspect=0.0.0.0:5858",
     "start:postgres": "docker compose up postgres-test -d",
+    "stop:postgres": "docker compose down postgres-test",
     "test": "NODE_ENV=test node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript -l -v",
     "test:local": "yarn start:postgres && yarn test",
+    "posttest:local": "yarn stop:postgres",
     "test:inspect": "yarn start:postgres && NODE_ENV=test node inspect node_modules/.bin/lab --sourcemaps --transform node_modules/lab-transform-typescript -l -v",
-    "release": "standard-version"
+    "release": "standard-version",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm --config src/config/ormconfig.ts",
+    "migration:generate": "npm run typeorm -- migration:generate -n",
+    "migration:run": "npm run typeorm -- migration:run"
   },
   "dependencies": {
     "@hapi/boom": "^9.1.1",
@@ -97,11 +103,7 @@
   },
   "nodemonConfig": {
     "watch": [
-      "app",
-      "config",
-      "model",
-      "utils",
-      "types"
+      "src"
     ],
     "ext": "ts",
     "exec": "ts-node ./src/server.ts"
