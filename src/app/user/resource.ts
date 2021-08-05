@@ -25,12 +25,12 @@ export const create = async (payload: any) => {
 export const getListWithFilters = async (query: JSObj) => {
   // ? 1) Get all users with all policies
 
-  const roleTagFilter = extractRoleTagFilter(query);
+  const roleTagFilter = extractRoleTagFilter(query) || [];
   const policyFilters = R.omit(['fields'], query);
 
   const allUsersWithAllPolicies = await getSubjecListWithPolicies(
     'user',
-    roleTagFilter
+    [].concat(roleTagFilter)
   );
 
   // 3) fetch all groups with the matching attributes
@@ -50,7 +50,12 @@ export const getListWithFilters = async (query: JSObj) => {
 
   const groups = rawGroupResult.map((res) => res.v0);
 
-  if (R.isEmpty(policyFilters) && R.isNil(roleTagFilter)) return [];
+  if (
+    R.isEmpty(policyFilters) &&
+    R.isNil(roleTagFilter) &&
+    R.isEmpty(roleTagFilter)
+  )
+    return [];
 
   // 4) fetch all groups_users record based on above groups
   const rawUserGroupResult = await createQueryBuilder()
@@ -70,36 +75,27 @@ export const getListWithFilters = async (query: JSObj) => {
   }, {});
 
   // 5) only return users that match the users<->groups mapping or with matching policy
-  const usersWithAccesss = allUsersWithAllPolicies.reduce(
-    (result: any, user: any) => {
+  return allUsersWithAllPolicies
+    .map((user: any) => {
       const { policies = [] } = user;
-      const filteredPolicies = policies.filter((policy: JSObj) =>
-        !R.isEmpty(policyFilters)
-          ? isJSONSubset(
+      const filteredPolicies = !R.isEmpty(policyFilters)
+        ? policies.filter((policy: JSObj) =>
+            isJSONSubset(
               JSON.stringify(policyFilters),
               JSON.stringify(policy.resource)
             )
-          : policies
-      );
-
-      const userHasAccess = userMap[user.id] || !R.isEmpty(filteredPolicies);
-      if (userHasAccess) {
-        const userWithPolicy = R.assoc('policies', filteredPolicies, user);
-        result.push(userWithPolicy);
-      }
-      return result;
-    },
-    []
-  );
-
-  return usersWithAccesss;
+          )
+        : policies;
+      const userWithPolicy = R.assoc('policies', filteredPolicies, user);
+      return userWithPolicy;
+    })
+    .filter((user) => {
+      const userHasAccess = userMap[user.id] || !R.isEmpty(user.policies);
+      return R.isEmpty(policyFilters) ? true : userHasAccess;
+    });
 };
 
 export const list = async (policyFilters: JSObj = {}) => {
-  if (R.isEmpty(policyFilters)) {
-    return User.find();
-  }
-
   return getListWithFilters(policyFilters);
 };
 
