@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/odpf/shield/compare/v0.1.2...v0.1.3) (2021-08-06)
+
+
+### Bug Fixes
+
+* typo in conf file destination postbuild ([89c455c](https://github.com/odpf/shield/commit/89c455c0618f844c2431b2a9fafbc0f5a85b0d24))
+
 ### [0.1.2](https://github.com/odpf/shield/compare/v0.1.1...v0.1.2) (2021-08-06)
 
 
