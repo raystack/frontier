@@ -133,7 +133,7 @@ lab.experiment('User::resource', () => {
 
         const result = await Resource.list();
         Code.expect(result).to.equal(users);
-        Sandbox.assert.notCalled(getListWithFiltersStub);
+        Sandbox.assert.calledWith(getListWithFiltersStub, {});
       }
     );
 

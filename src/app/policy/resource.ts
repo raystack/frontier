@@ -116,35 +116,27 @@ export const getPoliciesBySubject = async (
 
 export const getSubjecListWithPolicies = async (
   subjectType: 'group' | 'user',
-  roleTag?: string | null
+  roleTags: string[] = []
 ) => {
   const tableName = `${subjectType}s`;
   const columnName = 'id';
   const joinMatchStr = `${tableName}.${columnName}`;
-
+  const roleTagQuery =
+    roleTags.length > 1
+      ? `AND "roles"."tags" @> '{${roleTags.join(',')}}'`
+      : '';
+  const policyAggregateStr = `JSON_AGG(casbin_rule.*) FILTER (WHERE ptype = 'p' ${roleTagQuery}) as policies`;
   const cursor = createQueryBuilder()
     .select(
-      `${joinMatchStr}, JSON_AGG(casbin_rule.*) FILTER (WHERE ptype = 'p') as policies, JSON_AGG(DISTINCT ${tableName}.*) AS ${subjectType}`
+      `${joinMatchStr}, ${policyAggregateStr}, JSON_AGG(DISTINCT ${tableName}.*) AS ${subjectType}`
     )
     .from(tableName, tableName)
     .leftJoin(
       'casbin_rule',
       'casbin_rule',
       `casbin_rule.v0 = '{"${subjectType}":"' || ${joinMatchStr} || '"}'`
-    );
-
-  if (!R.isNil(roleTag)) {
-    cursor
-      .leftJoin(
-        'roles',
-        'roles',
-        `casbin_rule.v2 like '%"' || roles.id || '"%'`
-      )
-      .where(`:roleTag = ANY(roles.tags)`, {
-        roleTag
-      });
-  }
-
+    )
+    .leftJoin('roles', 'roles', `casbin_rule.v2 like '%"' || roles.id || '"%'`);
   const rawResults = await cursor.groupBy(joinMatchStr).getRawMany();
   return parsePoliciesWithSubject(rawResults, subjectType);
 };
