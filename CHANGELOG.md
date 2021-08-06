@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/odpf/shield/compare/v0.1.1...v0.1.2) (2021-08-06)
+
+
+### Bug Fixes
+
+* build folder structure ([ea3f9cc](https://github.com/odpf/shield/commit/ea3f9cce164a71a0b4866b6de818b89cc9af9be0))
+* policy filter in get all user api ([#16](https://github.com/odpf/shield/issues/16)) ([37e6911](https://github.com/odpf/shield/commit/37e69115942c2c0284aa5fec5559a3edafc9c6f2))
+
 ### [0.1.1](https://github.com/odpf/shield/compare/v0.1.0...v0.1.1) (2021-07-12)
 
 
