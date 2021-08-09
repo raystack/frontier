@@ -6,13 +6,8 @@ const config = {
   options: {
     colored: true,
     hapiPino: {
+      logQueryParams: true,
       ignorePaths: ['/ping']
-    },
-    tokens: {
-      path: (data: any) => {
-        const { url } = data.req;
-        return `${url.pathname}${url.search}${url.hash}`;
-      }
     },
     preformatter: (data: any) => {
       const statusCode = R.pathOr(null, ['res', 'statusCode'], data);
@@ -29,11 +24,11 @@ const config = {
       log: ':time[iso] [:level] :tags :message',
       request: ':time[iso] [:level] :message',
       response:
-        ':time[iso] [:level] :method :path :status :payload (:responseTime ms)',
+        ':time[iso] [:level] :method :url :get[queryParams] :status :payload (:responseTime ms)',
       uncaught:
-        ':time[iso] [:level] :method :path :payload :error[source] :error[stack]',
+        ':time[iso] [:level] :method :url :get[queryParams] :payload :error[source] :error[stack]',
       'request-error':
-        ':time[iso] [:level] :method :path :payload :error[message] :error[stack]'
+        ':time[iso] [:level] :method :url :get[queryParams] :payload :error[message] :error[stack]'
     }
   }
 };
