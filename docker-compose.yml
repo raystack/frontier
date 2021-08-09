@@ -10,8 +10,8 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     volumes:
-      - './:/opt/shield'
-      - ./node_modules:/opt/shield/node_modules
+      - './src:/app/src'
+      - ./node_modules:/app/node_modules
     ports:
       - 5000:5000
     environment:
