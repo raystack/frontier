@@ -122,8 +122,8 @@ export const getSubjecListWithPolicies = async (
   const columnName = 'id';
   const joinMatchStr = `${tableName}.${columnName}`;
   const roleTagQuery =
-    roleTags.length > 1
-      ? `AND "roles"."tags" @> '{${roleTags.join(',')}}'`
+    roleTags.length > 0
+      ? `AND "roles"."tags" <@ '{${roleTags.join(',')}}'`
       : '';
   const policyAggregateStr = `JSON_AGG(casbin_rule.*) FILTER (WHERE ptype = 'p' ${roleTagQuery}) as policies`;
   const cursor = createQueryBuilder()
