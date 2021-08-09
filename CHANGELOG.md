@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/odpf/shield/compare/v0.1.3...v0.1.4) (2021-08-09)
+
+
+### Bug Fixes
+
+* check for more than 0 role tags for filter ([4ae69b1](https://github.com/odpf/shield/commit/4ae69b15eecfedf86cdd64f03f8d2de0b1c08b43))
+
 ### [0.1.3](https://github.com/odpf/shield/compare/v0.1.2...v0.1.3) (2021-08-06)
 
 
