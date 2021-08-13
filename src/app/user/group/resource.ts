@@ -35,7 +35,7 @@ const getImplicitGroups = async (userId: string, filters: JSObj = {}) => {
     });
   }
 
-  const rawResult = await cursor.getRawMany();
+  const rawResult = await cursor.cache(true).getRawMany();
   const allGroups = parseGroupListResult(rawResult);
 
   // batchEnforce to check whether {user: userId}, {group: group.id}, {action}
@@ -84,7 +84,7 @@ const getExplicitGroups = async (userId: string, attributes: JSObj = {}) => {
     });
   }
 
-  const rawResult = await cursor.getRawMany();
+  const rawResult = await cursor.cache(true).getRawMany();
   return parseGroupListResult(rawResult);
 };
 
