@@ -176,8 +176,7 @@ export const list = async (filters: JSObj = {}, loggedInUserId = '') => {
       attribute: toLikeQuery(attributes)
     });
   }
-
-  const rawResult = await cursor.getRawMany();
+  const rawResult = await cursor.cache(true).getRawMany();
   return parseGroupListResult(rawResult);
 };
 
