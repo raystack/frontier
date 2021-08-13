@@ -16,6 +16,15 @@ const ormConfig: PostgresConnectionOptions = {
   cli: {
     migrationsDir: 'src/migration'
   },
+  cache: Config.get('/redis_cache').url
+    ? {
+        type: 'redis',
+        options: {
+          url: Config.get('/redis_cache').url
+        },
+        duration: Config.get('/redis_cache').duration
+      }
+    : false,
   namingStrategy: new SnakeNamingStrategy()
 };
 
