@@ -58,14 +58,14 @@ lab.experiment('Cache::createCacheId', () => {
     );
   });
 
-  lab.test('should add prefix to cacheId', () => {
+  lab.test('should add name to cacheId', () => {
     const obj = {
       entity: 'entity1',
       filters: [{ id: 'filter1' }, { id: 'filter2' }]
     };
     const cacheId = createCacheId(obj, 'user1', 'group');
     Code.expect(cacheId).to.equal(
-      'group::user1::entity=entity1&filters[0].id=filter1&filters[1].id=filter2'
+      'user1::group::entity=entity1&filters[0].id=filter1&filters[1].id=filter2'
     );
   });
 });

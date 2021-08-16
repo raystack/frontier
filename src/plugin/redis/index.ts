@@ -1,11 +1,22 @@
 import redis, { ClientOpts } from 'redis';
 import Hapi from '@hapi/hapi';
 
-class RedisConnection {
+export class RedisConnection {
   client: redis.RedisClient;
   constructor(options: ClientOpts) {
     this.client = redis.createClient(options);
   }
+
+  getKeys = (pattern: string): Promise<string[]> =>
+    new Promise((resolve, reject) => {
+      this.client.keys(pattern, function (err, keys) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(keys);
+        }
+      });
+    });
 }
 
 interface RedisConfig {
@@ -19,14 +30,15 @@ exports.plugin = {
   async register(server: Hapi.Server, options: RedisConfig) {
     const url = options?.url;
     if (url) {
-      const redisClient = new RedisConnection({ url }).client;
-      redisClient.on('ready', function () {
+      const { client, getKeys } = new RedisConnection({ url });
+      client.on('ready', function () {
         server.log('info', 'Connected to redis!');
       });
-      redisClient.on('error', (err) => {
+      client.on('error', (err) => {
         server.log('error', 'Redis Error ' + err);
       });
-      server.expose('client', redisClient);
+      server.expose('getKeys', getKeys);
+      server.expose('client', client);
     }
   }
 };
