@@ -4,6 +4,7 @@ import { Group } from '../../../model/group';
 import { toLikeQuery } from '../../policy/util';
 import { parseGroupListResult } from './util';
 import CasbinSingleton from '../../../lib/casbin/index';
+import { createCacheId } from '../../../utils/cache';
 
 type JSObj = Record<string, unknown>;
 
@@ -35,7 +36,8 @@ const getImplicitGroups = async (userId: string, filters: JSObj = {}) => {
     });
   }
 
-  const rawResult = await cursor.cache(true).getRawMany();
+  const cacheId = createCacheId(filters, userId, 'usergroup');
+  const rawResult = await cursor.cache(cacheId).getRawMany();
   const allGroups = parseGroupListResult(rawResult);
 
   // batchEnforce to check whether {user: userId}, {group: group.id}, {action}
@@ -84,7 +86,8 @@ const getExplicitGroups = async (userId: string, attributes: JSObj = {}) => {
     });
   }
 
-  const rawResult = await cursor.cache(true).getRawMany();
+  const cacheId = createCacheId(attributes, userId, 'usergroup');
+  const rawResult = await cursor.cache(cacheId).getRawMany();
   return parseGroupListResult(rawResult);
 };
 
