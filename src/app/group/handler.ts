@@ -15,6 +15,7 @@ import {
   NotFoundResponse,
   UnauthorizedResponse
 } from '../../utils/schema';
+import { clearQueryCache } from '../../utils/cache';
 
 export const list = {
   description: 'get list of groups',
@@ -88,6 +89,7 @@ export const create = {
   },
   handler: async (request: Hapi.Request) => {
     const { id: loggedInUserId } = request?.auth?.credentials || { id: '' };
+    await clearQueryCache(request, <string>loggedInUserId);
     return Resource.create(request.payload, <string>loggedInUserId);
   }
 };
@@ -113,6 +115,7 @@ export const update = {
   },
   handler: async (request: Hapi.Request) => {
     const { id: loggedInUserId } = request?.auth?.credentials || { id: '' };
+    await clearQueryCache(request, <string>loggedInUserId);
     return Resource.update(
       request.params.id,
       request.payload,

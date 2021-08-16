@@ -12,6 +12,7 @@ import {
   UserWithPoliciesResponse,
   UsersWithPoliciesResponse
 } from './schema';
+import { clearQueryCache } from '../../../utils/cache';
 
 const iamConfig = (actionName: string) => ({
   iam: {
@@ -100,6 +101,10 @@ export const post = {
     const { payload } = request;
     const { groupId, userId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;
+    await Promise.all([
+      clearQueryCache(request, <string>loggedInUserId),
+      clearQueryCache(request, <string>userId)
+    ]);
     return Resource.create(groupId, userId, loggedInUserId, payload);
   }
 };
@@ -128,6 +133,11 @@ export const put = {
     const { payload } = request;
     const { groupId, userId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;
+    await Promise.all([
+      clearQueryCache(request, <string>loggedInUserId),
+      clearQueryCache(request, <string>userId)
+    ]);
+
     return Resource.update(groupId, userId, loggedInUserId, payload);
   }
 };
@@ -154,6 +164,10 @@ export const remove = {
   handler: async (request: Hapi.Request) => {
     const { groupId, userId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;
+    await Promise.all([
+      clearQueryCache(request, <string>loggedInUserId),
+      clearQueryCache(request, <string>userId)
+    ]);
     return Resource.remove(groupId, userId, <string>loggedInUserId);
   }
 };
@@ -178,6 +192,7 @@ export const removeSelf = {
   handler: async (request: Hapi.Request) => {
     const { groupId } = request.params;
     const { id: loggedInUserId } = request.auth.credentials;
+    await clearQueryCache(request, <string>loggedInUserId);
     return Resource.remove(
       groupId,
       <string>loggedInUserId,

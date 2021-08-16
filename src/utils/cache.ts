@@ -30,8 +30,11 @@ export async function clearQueryCache(
   name?: string
 ): Promise<void> {
   // @ts-ignore
-  const getKeys = request.server.plugins.redis.getKeys;
-  const pattern = name ? `${id}::${name}::*` : `${id}::*`;
-  const cacheIds = getKeys ? await getKeys(pattern) : [];
-  await getConnection().queryResultCache?.remove(cacheIds);
+  if (request?.server?.plugins?.redis?.getKeys && id) {
+    // @ts-ignore
+    const getKeys = request.server.plugins.redis.getKeys;
+    const pattern = name ? `${id}::${name}::*` : `${id}::*`;
+    const cacheIds = getKeys ? await getKeys(pattern) : [];
+    await getConnection().queryResultCache?.remove(cacheIds);
+  }
 }
