@@ -38,6 +38,10 @@ internals.manifest = {
         plugin: '../plugin/postgres'
       },
       {
+        plugin: '../plugin/redis/index',
+        options: Config.get('/redis_cache')
+      },
+      {
         plugin: H2o2
       },
       {

@@ -81,6 +81,7 @@
     "@types/node": "^14.14.11",
     "@types/qs": "^6.9.5",
     "@types/ramda": "^0.27.34",
+    "@types/redis": "^2.8.31",
     "@types/sinon": "^9.0.10",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^4.9.1",
