@@ -32,7 +32,8 @@ export async function updateUserById(id: number, data: any): Promise<any> {
       email: user?.metadata.email
     }
   });
-  return await User.save(payload);
+
+  return User.save(payload);
 }
 
 export async function getUserByMetadata(
