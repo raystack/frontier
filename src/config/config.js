@@ -81,7 +81,7 @@ internals.config = {
     url: {
       $env: 'REDIS_URL'
     },
-    duration: { $env: 'REDIS_CACHE_TTL', $default: 30 * 1000 }
+    duration: { $env: 'REDIS_CACHE_TTL', $default: 30 }
   },
   new_relic: {
     APP_NAME: { $env: 'APP_NAME' },
