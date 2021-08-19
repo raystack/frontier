@@ -20,7 +20,6 @@ export function createCacheId(
   if (userId) {
     objString = `${userId}::${objString}`;
   }
-  console.log('cacheId:', objString);
   return objString;
 }
 
