@@ -22,7 +22,7 @@ const ormConfig: PostgresConnectionOptions = {
         options: {
           url: Config.get('/redis_cache').url
         },
-        duration: Config.get('/redis_cache').duration
+        duration: Number(Config.get('/redis_cache').duration || '0') * 1000
       }
     : false,
   namingStrategy: new SnakeNamingStrategy()
