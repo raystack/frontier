@@ -54,7 +54,7 @@
     "redis": "^3.1.2",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.29",
-    "typeorm-adapter": "^1.2.0",
+    "typeorm-adapter": "1.2.0",
     "typeorm-naming-strategies": "^2.0.0",
     "typeorm-seeding": "^1.6.1",
     "winston": "^3.3.3"
