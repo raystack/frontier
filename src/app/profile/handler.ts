@@ -1,5 +1,4 @@
 import Hapi from '@hapi/hapi';
-import Joi from 'joi';
 import * as Schema from './schema';
 import * as Resource from './resource';
 import { UserResponse } from '../user/schema';
@@ -8,6 +7,7 @@ import {
   NotFoundResponse,
   UnauthorizedResponse
 } from '../../utils/schema';
+import { clearQueryCache } from '../../utils/cache';
 
 export const get = {
   description: "get current user's profile",
@@ -43,6 +43,7 @@ export const update = {
   },
   handler: async (request: Hapi.Request) => {
     const { id }: any = request.auth?.credentials;
+    await clearQueryCache(request, id);
     return Resource.updateUserById(id, request.payload);
   }
 };

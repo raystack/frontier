@@ -9,7 +9,7 @@ import CasbinSingleton from '../../lib/casbin';
 import { parseGroupListResult } from './util';
 import getUniqName, { validateUniqName } from '../../lib/getUniqName';
 import { User } from '../../model/user';
-
+import { createCacheId } from '../../utils/cache';
 type JSObj = Record<string, unknown>;
 
 export const appendGroupIdWithPolicies = (
@@ -176,8 +176,8 @@ export const list = async (filters: JSObj = {}, loggedInUserId = '') => {
       attribute: toLikeQuery(attributes)
     });
   }
-
-  const rawResult = await cursor.getRawMany();
+  const cacheId = createCacheId(filters, loggedInUserId, 'group');
+  const rawResult = await cursor.cache(cacheId).getRawMany();
   return parseGroupListResult(rawResult);
 };
 

@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.5-rc.4](https://github.com/odpf/shield/compare/v0.1.5-rc.3...v0.1.5-rc.4) (2021-08-19)
+
+### [0.1.5-rc.3](https://github.com/odpf/shield/compare/v0.1.5-rc.1...v0.1.5-rc.3) (2021-08-17)
+
+### [0.1.5-rc.2](https://github.com/odpf/shield/compare/v0.1.5-rc.1...v0.1.5-rc.2) (2021-08-17)
+
+### [0.1.5-rc.1](https://github.com/odpf/shield/compare/v0.1.5-rc.0...v0.1.5-rc.1) (2021-08-13)
+
+
+### Features
+
+* add redis caching for user groups api ([70cefd2](https://github.com/odpf/shield/commit/70cefd297fbc68e17390fc3bba37dde74c75b96e))
+
+### [0.1.5-rc.0](https://github.com/odpf/shield/compare/v0.1.4...v0.1.5-rc.0) (2021-08-13)
+
+
+### Features
+
+* add redis caching for group list api ([d53b7d6](https://github.com/odpf/shield/commit/d53b7d657cf432831457e6c37b31c037b9e23818))
+
+
+### Bug Fixes
+
+* logs for http request ([b2a9fc6](https://github.com/odpf/shield/commit/b2a9fc6bf94ec30cc865c24be3e1ba86f6f338c0))
+
 ### [0.1.4](https://github.com/odpf/shield/compare/v0.1.3...v0.1.4) (2021-08-09)
 
 

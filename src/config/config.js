@@ -77,6 +77,12 @@ internals.config = {
       name: { $env: 'NODE_ENV', $default: 'local' }
     }
   },
+  redis_cache: {
+    url: {
+      $env: 'REDIS_URL'
+    },
+    duration: { $env: 'REDIS_CACHE_TTL', $default: 30 }
+  },
   new_relic: {
     APP_NAME: { $env: 'APP_NAME' },
     KEY: { $env: 'NEW_RELIC_KEY' },

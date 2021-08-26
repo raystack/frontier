@@ -1,6 +1,6 @@
 {
   "name": "shield",
-  "version": "0.1.4",
+  "version": "0.1.5-rc.4",
   "private": "true",
   "description": "IAM with reverse proxy",
   "main": "server.js",
@@ -51,9 +51,10 @@
     "pg": "^8.5.1",
     "qs": "^6.9.4",
     "ramda": "^0.27.1",
+    "redis": "^3.1.2",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.29",
-    "typeorm-adapter": "^1.2.0",
+    "typeorm-adapter": "1.2.0",
     "typeorm-naming-strategies": "^2.0.0",
     "typeorm-seeding": "^1.6.1",
     "winston": "^3.3.3"
@@ -80,6 +81,7 @@
     "@types/node": "^14.14.11",
     "@types/qs": "^6.9.5",
     "@types/ramda": "^0.27.34",
+    "@types/redis": "^2.8.31",
     "@types/sinon": "^9.0.10",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^4.9.1",
