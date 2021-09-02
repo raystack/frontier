@@ -194,6 +194,7 @@ export const getAttributesForGroup = async (groupId: string) => {
 export const getResourceAttributeMappingsByResources = async (
   resources: JSObj[] = []
 ) => {
+  if (!resources.length) return [];
   const stringifiedResources = resources.map((res: JSObj) =>
     convertJSONToStringInOrder(res)
   );

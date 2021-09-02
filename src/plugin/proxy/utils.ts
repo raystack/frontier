@@ -11,6 +11,7 @@ interface YAMLRoute {
   proxy: Record<string, string>;
   permissions?: Array<Record<string, any>>;
   hooks?: Array<Record<string, any>>;
+  jsonpath?: string;
 }
 
 const PARAM_REGEX = '{(.*?)}';
@@ -120,7 +121,8 @@ export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
           iam: {
             permissions: route?.permissions || [],
             hooks: route?.hooks || []
-          }
+          },
+          jsonpath: route?.jsonpath
         }
       }
     };

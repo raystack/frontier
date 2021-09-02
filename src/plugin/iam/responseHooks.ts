@@ -106,22 +106,34 @@ export const mergeResourceListWithAttributes = async (
 };
 
 const mergeResponseWithAttributes = async (
-  response: any,
-  hooks: IAMUpsertConfig[]
+  rawResponse: any,
+  hooks: IAMUpsertConfig[],
+  jsonpath = ''
 ) => {
   const firstHook = R.head(hooks) || {};
-  let responseList = response;
-  const isResponseList = R.is(Array, response);
-  if (!isResponseList) {
-    responseList = [response];
+  let response = rawResponse;
+  const JSONPathList = jsonpath ? jsonpath.split('.') : [];
+
+  if (JSONPathList.length) {
+    response = R.pathOr(rawResponse, JSONPathList, rawResponse);
   }
+
+  const isResponseList = R.is(Array, response);
+  const responseList = isResponseList ? response : [response];
 
   const mergedResponseList = await mergeResourceListWithAttributes(
     responseList,
     <IAMUpsertConfig>firstHook
   );
 
-  return isResponseList ? mergedResponseList : R.head(mergedResponseList);
+  const responseData = isResponseList
+    ? mergedResponseList
+    : R.head(mergedResponseList);
+
+  if (JSONPathList.length) {
+    return R.assocPath(JSONPathList, responseData, rawResponse);
+  }
+  return responseData;
 };
 
 export const checkIfShouldTriggerHooks = (
@@ -179,7 +191,7 @@ const manageResourceAttributesMapping = async (
   const shouldTriggerHooks = checkIfShouldTriggerHooks(route, request);
   if (shouldTriggerHooks) {
     const statusCode = R.pathOr(200, ['response', 'statusCode'], request);
-    const { iam } = <IAMRouteOptionsApp>route?.settings?.app || {};
+    const { iam, jsonpath } = <IAMRouteOptionsApp>route?.settings?.app || {};
     const hooks = <IAMUpsertConfig[]>iam?.hooks || [];
 
     const requestData = await getRequestData(request);
@@ -192,7 +204,8 @@ const manageResourceAttributesMapping = async (
     if (!R.isEmpty(requestData.response)) {
       const mergedResponse = await mergeResponseWithAttributes(
         requestData.response,
-        hooks
+        hooks,
+        jsonpath
       );
       return h.response(mergedResponse).code(statusCode);
     }

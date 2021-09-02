@@ -33,6 +33,7 @@ export interface IAMRouteOptionsApp extends Hapi.RouteOptionsApp {
     permissions?: IAMAuthorizeList;
     hooks?: IAMUpsertConfig[];
   };
+  jsonpath?: string;
 }
 
 export interface IAMRouteOptions extends Hapi.RouteOptions {
