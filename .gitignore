@@ -1,9 +1,8 @@
-node_modules
 build
 .env
 .DS_Store
 .idea/
-package-lock.json
 proxies/*.yaml
 proxies/*.yml
 .temp
+shield

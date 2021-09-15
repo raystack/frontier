@@ -1,0 +1,18 @@
+name: test
+rules:
+  - method: "GET"
+    frontend:
+      url: "/ping"
+    backend:
+      url: "http://localhost:8080/"
+  - method: "POST"
+    frontend:
+      url: "/proto.v1.RuntimeService/Ping"
+    backend:
+      url: "http://localhost:8080/"
+    permissions:
+      - action: "ping"
+        attributes:
+          client:
+            type: "grpc_payload"
+            index: 1
