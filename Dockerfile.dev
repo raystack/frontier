@@ -1,9 +1,0 @@
-FROM node:12.13
-ENV NEW_RELIC_HOME ./src
-WORKDIR /app
-COPY package*.json ./
-COPY yarn.lock ./
-RUN yarn install
-COPY . .
-EXPOSE 5000
-CMD ["npm", "run", "dev"]

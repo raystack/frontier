@@ -1,0 +1,25 @@
+run:
+  timeout: 5m
+output:
+  format: colored-line-number
+linters:
+  enable-all: false
+  disable-all: true
+  enable:
+    - vet
+    - goimports
+    - thelper
+    - tparallel
+    - unconvert
+    - wastedassign
+    - revive
+    - unused
+    - gofmt
+    - whitespace
+    - misspell
+linters-settings:
+  revive:
+    ignore-generated-header: true
+    severity: warning
+severity:
+  default-severity: error
