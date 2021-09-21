@@ -1,21 +1,20 @@
-package pipeline
+package middleware
 
 import (
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/jhump/protoreflect/dynamic"
-	"github.com/odpf/shield/structs"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"strings"
 )
 
 // GRPCPayloadCompressionFormat tells by reading the first byte compressed or not
@@ -27,46 +26,21 @@ const (
 	maxInt                                       = int(^uint(0) >> 1)
 )
 
-type BasicGRPCPayloadAuthorizer struct {}
+type GRPCPayloadHandler struct{}
 
-func (b BasicGRPCPayloadAuthorizer) Do(req *http.Request, rule *structs.Rule) error {
+func (b GRPCPayloadHandler) Extract(req *http.Request, protoIndex int) (string, error) {
 	reqBody, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer req.Body.Close()
 	// repopulate body
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
 
-	for _, perm := range rule.Permissions {
-		// TODO: check if action matchers user capabilities
-		// perm.Action
-
-		for _, attr := range perm.Attributes {
-			if attr.Type == structs.AttributeTypeGRPCPayload {
-				// check if grpc request
-				if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
-					return errors.New("not a grpc request")
-				}
-
-				field, err := b.extractFromRequest(reqBody, attr.Index)
-				if err != nil {
-					return err
-				}
-				fmt.Println("extracted field:", field)
-
-				// TODO: check if field matches capabilities
-				if field != DebugMatchString {
-					return ErrAuthFails
-				}
-			}
-		}
-	}
-
-	return nil
+	return b.extractFromRequest(reqBody, protoIndex)
 }
 
-func (b BasicGRPCPayloadAuthorizer) extractFromRequest(body []byte, protoIndex int) (string, error) {
+func (b GRPCPayloadHandler) extractFromRequest(body []byte, protoIndex int) (string, error) {
 	reqParser := grpcRequestParser{
 		r:      bytes.NewBuffer(body),
 		header: [5]byte{},
@@ -132,7 +106,7 @@ func (p *grpcRequestParser) Parse() (pf GRPCPayloadCompressionFormat, msg []byte
 }
 
 func fieldFromProtoMessage(msg []byte, tagIndex int) (string, error) {
-	desc, err := buildProto()
+	desc, err := buildPayloadGenericProto()
 	if err != nil {
 		return "", err
 	}
@@ -150,11 +124,11 @@ func fieldFromProtoMessage(msg []byte, tagIndex int) (string, error) {
 }
 
 // should only be built once
-var protoCache *desc.MessageDescriptor
+var genericProtoCache *desc.MessageDescriptor
 
-func buildProto() (*desc.MessageDescriptor, error) {
-	if protoCache != nil {
-		return protoCache, nil
+func buildPayloadGenericProto() (*desc.MessageDescriptor, error) {
+	if genericProtoCache != nil {
+		return genericProtoCache, nil
 	}
 
 	builderMsg := builder.NewMessage("optimus")
@@ -166,6 +140,6 @@ func buildProto() (*desc.MessageDescriptor, error) {
 	if err != nil {
 		return nil, err
 	}
-	protoCache = desc
-	return protoCache, nil
+	genericProtoCache = desc
+	return genericProtoCache, nil
 }

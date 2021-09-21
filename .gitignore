@@ -6,3 +6,6 @@ proxies/*.yaml
 proxies/*.yml
 .temp
 shield
+.shield.yaml
+dist
+coverage.txt

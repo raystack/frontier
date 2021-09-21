@@ -1,8 +1,11 @@
 package store
 
 import (
+	"context"
 	"errors"
+
 	"github.com/odpf/shield/structs"
+	"gocloud.dev/blob"
 )
 
 var (
@@ -10,5 +13,13 @@ var (
 )
 
 type RuleRepository interface {
-	GetAll() ([]structs.Service, error)
+	GetAll(ctx context.Context) ([]structs.Ruleset, error)
+}
+
+type Bucket interface {
+	WriteAll(ctx context.Context, key string, p []byte, opts *blob.WriterOptions) error
+	ReadAll(ctx context.Context, key string) ([]byte, error)
+	List(opts *blob.ListOptions) *blob.ListIterator
+	Delete(ctx context.Context, key string) error
+	Close() error
 }

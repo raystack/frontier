@@ -1,0 +1,57 @@
+rules:
+  - frontend:
+      url: "sample/"
+      methods: ["GET", "POST"]
+    backend:
+      url: "http://localhost:8080/"
+    middlewares:
+      - name: prefix
+        config:
+          # should be prefixed with a slash almost always
+          strip: "/sample"
+
+      # not supported at the moment
+      - name: request_headers
+        config:
+          allow: ["foo", "bar"]
+
+  - frontend:
+      url: "sample-auth/"
+      methods: ["GET", "POST"]
+    backend:
+      url: "http://localhost:8080/"
+    middlewares:
+      - name: prefix
+        config:
+          strip: "/sample-auth"
+
+      - name: basic_auth
+        config:
+          users:
+            - user: user
+              # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
+              password: $2y$10$F814ZwQPt8VHYIayIqeEReSeZz8dDCNX93/rKI82SqJu9I2Bn6Hau # password
+
+  - frontend:
+      url: "sample-authz/"
+      methods: ["POST"]
+    backend:
+      url: "http://localhost:8080/"
+    middlewares:
+      - name: prefix
+        config:
+          strip: "/sample-authz"
+
+      - name: basic_auth
+        config:
+          users:
+            - user: user
+              # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
+              password: $2y$10$F814ZwQPt8VHYIayIqeEReSeZz8dDCNX93/rKI82SqJu9I2Bn6Hau # password
+              capabilities: ["ping:foo", "do:bar"]
+          scope:
+            action: "ping:{{.project}}"
+            attributes:
+              project:
+                type: json_payload
+                key: project

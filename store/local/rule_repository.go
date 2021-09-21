@@ -1,19 +1,21 @@
 package local
 
 import (
-	"github.com/ghodss/yaml"
+	"os"
+
 	"github.com/odpf/shield/store"
 	"github.com/odpf/shield/structs"
 	"github.com/spf13/afero"
-	"os"
+	"gopkg.in/yaml.v3"
 )
 
+// TODO: might delete this
 type RuleRepository struct {
-	fs    afero.Fs
+	fs afero.Fs
 }
 
-func (repo *RuleRepository) GetAll() ([]structs.Service, error) {
-	var services []structs.Service
+func (repo *RuleRepository) GetAll() ([]structs.Ruleset, error) {
+	var rulesets []structs.Ruleset
 
 	dirItems, err := afero.ReadDir(repo.fs, ".")
 	if err != nil {
@@ -29,22 +31,22 @@ func (repo *RuleRepository) GetAll() ([]structs.Service, error) {
 		if err != nil {
 			return nil, err
 		}
-		services = append(services, rule)
+		rulesets = append(rulesets, rule)
 	}
-	return services, nil
+	return rulesets, nil
 }
 
-func (repo *RuleRepository) readRule(itemName string) (structs.Service, error) {
+func (repo *RuleRepository) readRule(itemName string) (structs.Ruleset, error) {
 	fileBytes, err := afero.ReadFile(repo.fs, itemName)
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = store.ErrResourceNotFound
 		}
-		return structs.Service{}, err
+		return structs.Ruleset{}, err
 	}
-	var s structs.Service
+	var s structs.Ruleset
 	if err := yaml.Unmarshal(fileBytes, &s); err != nil {
-		return structs.Service{}, err
+		return structs.Ruleset{}, err
 	}
 	return s, err
 }

@@ -5,44 +5,39 @@ import (
 	"net/url"
 )
 
-type Service struct {
-	Name string
-	Rules []Rule
+type Ruleset struct {
+	Rules []Rule `yaml:"rules"`
 }
 
-type Rule struct{
-	Method string `yaml:"method"`
-	Frontend Frontend `yaml:"frontend"`
-	Backend Backend `yaml:"backend"`
-	Permissions []Permission `yaml:"permissions"`
+type Rule struct {
+	Frontend    Frontend        `yaml:"frontend"`
+	Backend     Backend         `yaml:"backend"`
+	Middlewares MiddlewareSpecs `yaml:"middlewares"`
+}
+
+type MiddlewareSpec struct {
+	Name   string                 `yaml:"name"`
+	Config map[string]interface{} `yaml:"config"`
+}
+
+type MiddlewareSpecs []MiddlewareSpec
+
+func (m MiddlewareSpecs) Get(name string) (MiddlewareSpec, bool) {
+	for _, n := range m {
+		if n.Name == name {
+			return n, true
+		}
+	}
+	return MiddlewareSpec{}, false
 }
 
 type Frontend struct {
-	URL string `yaml:"url"`
+	URL     string   `yaml:"url"`
+	Methods []string `yaml:"methods"`
 }
 
 type Backend struct {
 	URL string `yaml:"url"`
-}
-
-type Permission struct {
-	Action string `yaml:"action"`
-	Attributes map[string]Attribute `yaml:"attributes"` // auth field -> Attribute
-}
-
-const (
-	AttributeTypeQuery AttributeType = "query"
-	AttributeTypeHeader AttributeType = "header"
-	AttributeTypeJSONPayload AttributeType = "json_payload"
-	AttributeTypeGRPCPayload AttributeType = "grpc_payload"
-)
-
-type AttributeType string
-
-type Attribute struct {
-	Name string `yaml:"name"`
-	Type AttributeType `yaml:"type"`
-	Index int `yaml:"index"` // proto index
 }
 
 type RuleMatcher interface {

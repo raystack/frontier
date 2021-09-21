@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	cli "github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"net"
@@ -11,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	cli "github.com/spf13/cobra"
 )
 
 var (
