@@ -2,54 +2,38 @@ package proxy
 
 import (
 	"context"
-	"github.com/odpf/shield/structs"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/odpf/shield/middleware"
 )
 
 const (
-	RequestErrorKey = "proxy_err"
+	CtxRequestErrorKey = "proxy_err"
 )
 
-type Handler struct {
-	ruleMatcher structs.RuleMatcher
-	authorizers []structs.Authorizer
+type Director struct {
 }
 
-func NewHandler(ruleMatcher structs.RuleMatcher, authz []structs.Authorizer) *Handler {
-	return &Handler{
-		ruleMatcher: ruleMatcher,
-		authorizers: authz,
-	}
+func NewDirector() *Director {
+	return &Director{}
 }
 
-func (b Handler) Direct(req *http.Request)  {
-	// find matched rule
-	matchedRule, err := b.ruleMatcher.Match(req.Context(), req.Method, req.URL)
-	if err != nil {
-		// we failed to match any rule, don't apply the request any more
-		*req = *req.WithContext(context.WithValue(req.Context(), RequestErrorKey, err))
-		return
-	}
-
-	// apply rules
-	if err := b.apply(req, matchedRule); err != nil {
-		// we failed to apply matched rule, don't apply the request any more
-		*req = *req.WithContext(context.WithValue(req.Context(), RequestErrorKey, err))
-		return
-	}
+func (h Director) Direct(req *http.Request) {
+	matchedRule, _ := middleware.ExtractRule(req)
 
 	// update backend request to match rules
 	target, err := url.Parse(matchedRule.Backend.URL)
 	if err != nil {
 		// backend is not configured properly
-		*req = *req.WithContext(context.WithValue(req.Context(), RequestErrorKey, err))
+		*req = *req.WithContext(context.WithValue(req.Context(), CtxRequestErrorKey, err))
 		return
 	}
 	req.URL.Scheme = target.Scheme
 	req.URL.Host = target.Host
 	req.URL.Path, req.URL.RawPath = joinURLPath(target, req.URL)
+
 	if target.RawQuery == "" || req.URL.RawQuery == "" {
 		req.URL.RawQuery = target.RawQuery + req.URL.RawQuery
 	} else {
@@ -60,16 +44,6 @@ func (b Handler) Direct(req *http.Request)  {
 		req.Header.Set("User-Agent", "")
 	}
 	req.Header.Set("proxy-by", "shield")
-}
-
-// apply make sure the request is allowed & ready to be sent to backend
-func (h Handler) apply(req *http.Request, rule *structs.Rule) (error) {
-	for _, auth := range h.authorizers {
-		if err := auth.Do(req, rule); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func joinURLPath(a, b *url.URL) (path, rawpath string) {

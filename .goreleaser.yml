@@ -1,0 +1,58 @@
+project_name: shield
+
+before:
+  hooks:
+    - make test
+builds:
+  - main: ./main.go
+    id: "shield"
+    binary: shield
+    flags:
+      - -a
+    ldflags:
+      - -s -w -X github.com/odpf/shield/config.Version={{.Tag}} -X github.com/odpf/shield/config.BuildCommit={{.FullCommit}} -X github.com/odpf/shield/config.BuildDate={{.Date}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    env:
+      - CGO_ENABLED=0
+archives:
+  - replacements:
+      darwin: macos
+      linux: linux
+      windows: windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+release:
+  draft: true
+  prerelease: auto
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^build:'
+dockers:
+  -
+    goos: linux
+    goarch: amd64
+    ids:
+      - shield
+    dockerfile: Dockerfile
+    image_templates:
+      - 'docker.io/odpf/{{.ProjectName}}:latest'
+      - 'docker.io/odpf/{{.ProjectName}}:{{ .Version }}'
+      - 'docker.io/odpf/{{.ProjectName}}:{{ .Tag }}-amd64'

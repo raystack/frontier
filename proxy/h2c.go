@@ -18,14 +18,14 @@ type H2c struct {
 
 func NewH2c(roundTripper http.RoundTripper, director RequestDirector) *H2c {
 	return &H2c{
-		proxy: &httputil.ReverseProxy{},
-		bufferPool: newBufferPool(),
+		proxy:        &httputil.ReverseProxy{},
+		bufferPool:   newBufferPool(),
 		roundTripper: roundTripper,
-		director: director,
+		director:     director,
 	}
 }
 
-func (p *H2c) Handle(w http.ResponseWriter, r *http.Request) {
+func (p *H2c) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Forwarded-For", r.Host)
 
 	p.proxy.Transport = p.roundTripper

@@ -1,0 +1,14 @@
+version: 1
+
+# logging configuration
+log:
+  # debug, info, warning, error, fatal - default 'info'
+  level: debug
+
+# proxy configuration
+proxy:
+  services:
+    - host: 0.0.0.0
+      port: 5556
+      # directory full path where rules yaml files are kept
+      ruleset: file://absolute_path_to_rules_directory

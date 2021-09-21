@@ -2,9 +2,10 @@ package proxy
 
 import (
 	"crypto/tls"
-	"golang.org/x/net/http2"
 	"net"
 	"net/http"
+
+	"golang.org/x/net/http2"
 )
 
 type h2cTransportWrapper struct {
@@ -13,9 +14,8 @@ type h2cTransportWrapper struct {
 
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
 	// we need to apply errors if it failed in Director
-	reqErr := req.Context().Value(RequestErrorKey)
-	if reqErr != nil {
-		return nil, reqErr.(error)
+	if err, ok := req.Context().Value(CtxRequestErrorKey).(error); ok {
+		return nil, err
 	}
 	return t.transport.RoundTrip(req)
 }

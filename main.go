@@ -2,12 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/odpf/shield/cmd"
 	"os"
+
+	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/cmd"
+	"github.com/odpf/shield/config"
 )
 
 func main() {
-	if err := cmd.New().Execute(); err != nil {
+	logger := log.NewLogrus()
+	appConfig := config.Load()
+
+	if err := cmd.New(logger, appConfig).Execute(); err != nil {
 		fmt.Printf("%+v", err)
 		os.Exit(1)
 	}
