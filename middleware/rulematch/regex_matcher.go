@@ -3,7 +3,6 @@ package rulematch
 import (
 	"context"
 	"net/url"
-	"regexp"
 
 	"github.com/odpf/shield/store"
 	"github.com/odpf/shield/structs"
@@ -14,7 +13,6 @@ type RegexMatcher struct {
 }
 
 func (m RegexMatcher) Match(ctx context.Context, reqMethod string, reqURL *url.URL) (*structs.Rule, error) {
-	// TODO: make sure this call is properly cached
 	ruleset, err := m.ruleRepo.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -33,14 +31,7 @@ func (m RegexMatcher) Match(ctx context.Context, reqMethod string, reqURL *url.U
 				continue
 			}
 
-			// TODO: we should check if the frontend url is a valid regex when reading
-			// the spec so it fails early
-			exp, err := regexp.Compile(rule.Frontend.URL)
-			if err != nil {
-				return nil, err
-			}
-
-			if exp.MatchString(reqURL.String()) {
+			if rule.Frontend.URLRx.MatchString(reqURL.String()) {
 				return &rule, nil
 			}
 		}

@@ -36,7 +36,10 @@ type Service struct {
 
 	// RulesPath is a directory path where ruleset is defined
 	// that this service should implement
-	RulesPath string `mapstructure:"ruleset"`
+	RulesPath string `yaml:"ruleset" mapstructure:"ruleset"`
+	// RulesPathSecret could be a env name, file path or actual value required
+	// to access RulesPath files
+	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
 }
 
 func Load() *Shield {
