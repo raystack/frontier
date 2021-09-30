@@ -428,6 +428,8 @@ github.com/newrelic/go-agent v3.15.0+incompatible h1:BQ5+6vIgNtnv8jFET8CMjY7u7o+
 github.com/newrelic/go-agent v3.15.0+incompatible/go.mod h1:a8Fv1b/fYhFSReoTU6HDkTYIMZeSVNffmoS726Y0LzQ=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nishanths/predeclared v0.0.0-20200524104333-86fad755b4d3/go.mod h1:nt3d53pc1VYcphSCIaYAJtnPYnr3Zyn8fMq2wvPGPso=
+github.com/odpf/salt v0.0.0-20210929215807-5e1f68b4ec91 h1:UTUhSKe9J+xJHGSJAiGh6zNvZUEKkGkPtRcPvsGKenc=
+github.com/odpf/salt v0.0.0-20210929215807-5e1f68b4ec91/go.mod h1:2RzZihKtzPWS5/kMB+h4c/4rbm3hqGKmyuCIXcHFW2I=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
