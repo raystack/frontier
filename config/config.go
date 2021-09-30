@@ -9,9 +9,11 @@ import (
 
 type Shield struct {
 	// configuration version
-	Version int         `yaml:"version"`
-	Proxy   ProxyConfig `yaml:"proxy"`
-	Log     LogConfig   `yaml:"log"`
+	Version  int         `yaml:"version"`
+	Proxy    ProxyConfig `yaml:"proxy"`
+	Log      LogConfig   `yaml:"log"`
+	NewRelic NewRelic    `yaml:"new_relic"`
+	App      Service     `yaml:"app"`
 }
 
 type LogConfig struct {
@@ -40,6 +42,12 @@ type Service struct {
 	// RulesPathSecret could be a env name, file path or actual value required
 	// to access RulesPath files
 	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
+}
+
+type NewRelic struct {
+	AppName string `yaml:"app_name" mapstructure:"app_name"`
+	License string `yaml:"license" mapstructure:"license"`
+	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
 }
 
 func Load() *Shield {
