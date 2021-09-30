@@ -13,5 +13,6 @@ func serveCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 	c.AddCommand(proxyCommand(logger, appConfig))
 	c.AddCommand(adminCommand())
+	c.AddCommand(apiCommand())
 	return c
 }
