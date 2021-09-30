@@ -1,0 +1,327 @@
+syntax = "proto3";
+package odpf.shield.v1;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/odpf/proton/shield/v1;shieldv1";
+option java_package = "io.odpf.proton.shield.v1";
+option java_outer_classname = "Shield";
+
+
+// These annotations are used when generating the OpenAPI file.
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Shield",
+    version: "0.1.0";
+  };
+  schemes: HTTP;
+};
+
+service Shield {
+  // Users
+  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/users"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "User";
+      summary: "Get All Users";
+    };
+  }
+  rpc CreateUser(CreateUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      post: "/v1/users",
+      body: "body";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "User";
+      summary: "Create User";
+    };
+  }
+
+  rpc GetUserByID(GetUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{id}",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "User";
+      summary: "Get a User by id";
+    };
+  }
+
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/self",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "User";
+      summary: "Get current user";
+    };
+  }
+
+  rpc UpdateUserByID(UpdateUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/v1/users/{id}",
+      body: "body";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "User";
+      summary: "Update User by ID";
+    };
+  }
+
+  rpc UpdateCurrentUser(UpdateCurrentUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/v1/users/self",
+      body: "body";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "User";
+      summary: "Update current User";
+    };
+  }
+
+  // Group
+  rpc GetAllGroups(GetAllGroupsRequest) returns (GetAllGroupsResponse) {
+    option (google.api.http) = {
+      get: "/v1/groups",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Group";
+      summary: "Get all Groups";
+    };
+  }
+
+  rpc CreateGroup(CreateGroupRequest) returns (GroupResponse) {
+    option (google.api.http) = {
+      post: "/v1/groups",
+      body: "body";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Group";
+      summary: "Create Group";
+    };
+  }
+
+  rpc GetGroupByID(GetGroupRequest) returns (GroupResponse) {
+    option (google.api.http) = {
+      get: "/v1/groups/{id}",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Group";
+      summary: "Get Group by ID";
+    };
+  }
+
+  rpc GetGroupUsers(GetGroupRequest) returns (GetGroupUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/groups/{id}/users",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Group";
+      summary: "Get all Users in a Group";
+    };
+  }
+
+  rpc UpdateGroupByID(UpdateGroupRequest) returns (GroupResponse) {
+    option (google.api.http) = {
+      put: "/v1/groups/{id}",
+      body: "body";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Group";
+      summary: "Update Group by ID";
+    };
+  }
+
+  // Roles
+  rpc GetAllRoles(GetAllRolesRequest) returns (GetAllRolesResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Role";
+      summary: "Get all Roles";
+    };
+  }
+
+  rpc CreateRole(CreateRoleRequest) returns (RoleResponse) {
+    option (google.api.http) = {
+      post: "/v1/roles",
+      body: "body";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Role";
+      summary: "Create Role";
+    };
+  }
+
+  rpc GetRole(GetRoleRequest) returns (RoleResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles/{id}",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Role";
+      summary: "Get Role by ID";
+    };
+  }
+
+  rpc UpdateRole(UpdateRoleRequest) returns (RoleResponse) {
+    option (google.api.http) = {
+      put: "/v1/roles/{id}",
+      body: "body";
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: "Role";
+      summary: "Update Role by ID";
+    };
+  }
+}
+
+message CreateUserRequestBody {
+  string name = 1;
+  string email = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message CreateUserRequest {
+  CreateUserRequestBody body = 1;
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string email = 4;
+  google.protobuf.Struct metadata = 5;
+  google.protobuf.Timestamp createdAt = 6;
+  google.protobuf.Timestamp updatedAt = 7;
+}
+
+message UserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  CreateUserRequestBody body = 2;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetCurrentUserRequest {
+}
+
+message GetAllUsersRequest {
+  google.protobuf.Struct fields = 1;
+}
+
+message GetAllUsersResponse {
+  repeated User users = 1;
+}
+
+
+message CreateGroupRequestBody {
+  string name = 1;
+  string slug = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message CreateGroupRequest {
+  CreateGroupRequestBody body = 1;
+}
+
+message Admin {
+  string id = 1;
+  string name = 2;
+}
+
+message Group {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  repeated Admin admins = 4;
+  bool isMember = 5;
+  int32 memberCount = 6;
+  string orgId = 7;
+  google.protobuf.Struct metadata = 8;
+  google.protobuf.Timestamp createdAt = 9;
+  google.protobuf.Timestamp updatedAt = 10;
+}
+
+message GroupResponse {
+  Group group = 1;
+}
+
+message GetGroupUsersResponse {
+  repeated User users = 1;
+}
+
+message UpdateGroupRequest {
+  string id = 1;
+  CreateGroupRequestBody body = 2;
+}
+
+message UpdateCurrentUserRequest {
+  CreateGroupRequestBody body = 1;
+}
+
+message GetGroupRequest {
+  string id = 1;
+}
+
+message GetAllGroupsRequest {
+  string userId = 1;
+//  string orgId = 2;
+//  string org = 3;
+}
+
+message GetAllGroupsResponse {
+  repeated Group groups = 1;
+}
+
+message Role {
+  string id = 1;
+  string name = 2;
+  repeated string tags = 3;
+  repeated string actions = 4;
+  google.protobuf.Struct metadata = 5;
+  google.protobuf.Timestamp createdAt = 6;
+  google.protobuf.Timestamp updatedAt = 7;
+}
+
+message CreateRoleBody {
+  string name = 1;
+  repeated string tags = 2;
+  repeated string actions = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message CreateRoleRequest {
+  CreateRoleBody body = 1;
+}
+
+message RoleResponse {
+  Role role = 1;
+}
+
+message GetRoleRequest {
+  string id = 1;
+}
+
+message UpdateRoleRequest {
+  string id = 1;
+  CreateRoleBody body = 2;
+}
+
+message GetAllRolesRequest {
+}
+
+message GetAllRolesResponse {
+  repeated Role roles = 1;
+}
