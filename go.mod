@@ -2,8 +2,6 @@ module github.com/odpf/shield
 
 go 1.16
 
-replace github.com/odpf/salt => /Users/kartik/go/src/github.com/odpf/salt
-
 require (
 	github.com/abbot/go-http-auth v0.4.0
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
