@@ -2,66 +2,44 @@ package cmd
 
 import (
 	"context"
-	"fmt"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/odpf/salt/server"
-	"github.com/odpf/shield/echo"
-	"github.com/odpf/shield/gen/go/protos"
-	cli "github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"net/http"
 	"time"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/odpf/salt/log"
+	"github.com/odpf/salt/server"
+	"github.com/odpf/shield/api/handler"
+	v1 "github.com/odpf/shield/api/handler/v1"
+	"github.com/odpf/shield/config"
+	cli "github.com/spf13/cobra"
 )
 
-var GRPCMiddlewaresInterceptor = grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-	grpc_recovery.UnaryServerInterceptor(),
-	grpc_ctxtags.UnaryServerInterceptor(),
-	grpc_zap.UnaryServerInterceptor(zap.NewExample()),
-	//nrgrpc.UnaryServerInterceptor(app),
-))
-
-func apiCommand() *cli.Command {
+func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	c := &cli.Command{
 		Use:     "api",
-		Short:   "Start serving admin endpoint",
-		Example: "shield serve admin",
+		Short:   "Start shield api server",
+		Example: "shield serve api",
 		RunE: func(c *cli.Command, args []string) error {
 			ctx, cancelFunc := context.WithCancel(server.HandleSignals(context.Background()))
 			defer cancelFunc()
 
 			s, err := server.NewMux(server.Config{
-				Port: 8000,
-			}, server.WithMuxGRPCServerOptions(GRPCMiddlewaresInterceptor))
+				Port: appConfig.App.Port,
+			}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(appConfig, logger)))
 			if err != nil {
 				panic(err)
 			}
 
-			gatewayClientPort := 8000
-			gw, err := server.NewGateway("", gatewayClientPort)
+			gw, err := server.NewGateway("", appConfig.App.Port)
 			if err != nil {
 				panic(err)
 			}
-			//gw.RegisterHandler(ctx, commonv1.RegisterCommonServiceHandlerFromEndpoint)
-			gw.RegisterHandler(ctx, protos.RegisterYourServiceHandlerFromEndpoint)
 
-			s.SetGateway("/api", gw)
-
-			s.RegisterHandler("/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprintf(w, "pong")
-			}))
-
-			s.RegisterService(&protos.YourService_ServiceDesc,
-				&echo.SimpleServer{},
-			)
+			handler.Register(ctx, s, gw, handler.Deps{
+				V1: v1.Dep{},
+			})
 
 			go s.Serve()
 			<-ctx.Done()
-			// clean anything that needs to be closed etc like common server implementation etc
+
 			shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer shutdownCancel()
 

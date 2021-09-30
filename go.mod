@@ -13,6 +13,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0
 	github.com/jhump/protoreflect v1.9.0
 	github.com/mitchellh/mapstructure v1.4.1
+	github.com/newrelic/go-agent v3.15.0+incompatible
 	github.com/odpf/salt v0.0.0-20210929215807-5e1f68b4ec91
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.6.0
