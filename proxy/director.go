@@ -33,6 +33,10 @@ func (h Director) Direct(req *http.Request) {
 	req.URL.Scheme = target.Scheme
 	req.URL.Host = target.Host
 	req.URL.Path, req.URL.RawPath = joinURLPath(target, req.URL)
+	req.Host = target.Host
+	if req.URL.Scheme == "" {
+		req.URL.Scheme = "http"
+	}
 
 	if target.RawQuery == "" || req.URL.RawQuery == "" {
 		req.URL.RawQuery = target.RawQuery + req.URL.RawQuery

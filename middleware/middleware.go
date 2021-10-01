@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/odpf/shield/structs"
 )
@@ -41,4 +43,11 @@ type Attribute struct {
 	Key   string        `yaml:"key" mapstructure:"key"`
 	Type  AttributeType `yaml:"type" mapstructure:"type"`
 	Index int           `yaml:"index" mapstructure:"index"` // proto index
+}
+
+func Elapsed(what string) func() {
+	start := time.Now()
+	return func() {
+		fmt.Printf("%s took %v\n", what, time.Since(start))
+	}
 }

@@ -19,6 +19,6 @@ jobs:
         with:
           go-version: '1.16'
       - name: install dependencies
-        run: make install
+        run: go mod tidy
       - name: test binaries
         run: make test

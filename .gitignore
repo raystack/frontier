@@ -5,7 +5,10 @@ build
 proxies/*.yaml
 proxies/*.yml
 .temp
+temp
 shield
 .shield.yaml
 dist
 coverage.txt
+rules/test.yaml
+*.pprof
