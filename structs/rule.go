@@ -3,6 +3,7 @@ package structs
 import (
 	"context"
 	"net/url"
+	"regexp"
 )
 
 type Ruleset struct {
@@ -32,7 +33,9 @@ func (m MiddlewareSpecs) Get(name string) (MiddlewareSpec, bool) {
 }
 
 type Frontend struct {
-	URL     string   `yaml:"url"`
+	URL   string         `yaml:"url"`
+	URLRx *regexp.Regexp `yaml:"-"`
+
 	Methods []string `yaml:"methods"`
 }
 

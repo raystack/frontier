@@ -3,6 +3,7 @@ package basic_auth
 import (
 	"bytes"
 	"net/http"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -11,6 +12,10 @@ import (
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/structs"
+)
+
+const (
+	RegexPrefix = "r#"
 )
 
 // BasicAuth make sure the request is allowed to be sent to backend
@@ -26,6 +31,9 @@ type BasicAuth struct {
 type Config struct {
 	Users []Credentials `yaml:"users" mapstructure:"users"`
 
+	// TODO take a file instead of embedded users in yaml
+	UserDB string `yaml:"userdb" mapstructure:"userdb"`
+
 	// Scope is optional and used for additional policy based
 	// authorization over user
 	Scope Scope `yaml:"scope" mapstructure:"scope"`
@@ -38,6 +46,7 @@ type Credentials struct {
 	Password string `yaml:"password" mapstructure:"password"`
 
 	// Capabilities are optional and used with scope for applying authz
+	// Supports regular expr if marked with r# as a prefix
 	Capabilities []string `yaml:"capabilities" mapstructure:"capabilities"`
 }
 
@@ -144,7 +153,7 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 			}
 
 			templateMap[res] = payloadField
-			w.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			w.log.Debug("middleware: extracted", "field", payloadField, "attr", attr)
 		case middleware.AttributeTypeJSONPayload:
 			if attr.Key == "" {
 				w.log.Error("middleware: payload key field empty")
@@ -157,27 +166,42 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 			}
 
 			templateMap[res] = payloadField
-			w.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			w.log.Debug("middleware: extracted", "field", payloadField, "attr", attr)
 		default:
 			w.log.Error("middleware: unknown attribute type", "attr", attr)
 			return false
 		}
 	}
 
+	var isAllowed = false
 	compiledAction, err := CompileString(conf.Scope.Action, templateMap)
 	if err != nil {
 		w.log.Error("middleware: action parsing failed", "err", err)
 		return false
 	}
-
-	var isAllowed = false
 	for _, userCap := range userCapabilities {
-		if userCap == compiledAction {
+		if w.matchAction(userCap, compiledAction) {
 			isAllowed = true
 			break
 		}
 	}
 	return isAllowed
+}
+
+func (w BasicAuth) matchAction(cap, action string) bool {
+	// do regex compare if required
+	if strings.HasPrefix(cap, RegexPrefix) {
+		cap = strings.TrimPrefix(cap, RegexPrefix)
+		rxAction, err := regexp.Compile(cap)
+		if err != nil {
+			w.log.Warn("failed to compile regex", "exp", cap, "err", err)
+			return false
+		}
+		if rxAction.MatchString(action) {
+			return true
+		}
+	}
+	return cap == action
 }
 
 func CompileString(input string, context map[string]interface{}) (string, error) {

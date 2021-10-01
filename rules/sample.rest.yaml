@@ -1,3 +1,10 @@
+basic_auth_user_db: &USER_DB
+  - user: user
+    # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
+    # Note: hashing via bcrypt do add additional ~50ms to each request
+    # password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0 # password via md5
+    password: $2y$10$F814ZwQPt8VHYIayIqeEReSeZz8dDCNX93/rKI82SqJu9I2Bn6Hau # password via bcrypt
+    capabilities: [ "ping:foo", "do:bar" ]
 rules:
   - frontend:
       url: "sample/"
@@ -27,11 +34,7 @@ rules:
 
       - name: basic_auth
         config:
-          users:
-            - user: user
-              # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
-              password: $2y$10$F814ZwQPt8VHYIayIqeEReSeZz8dDCNX93/rKI82SqJu9I2Bn6Hau # password
-
+          users: *USER_DB
   - frontend:
       url: "sample-authz/"
       methods: ["POST"]
@@ -44,11 +47,7 @@ rules:
 
       - name: basic_auth
         config:
-          users:
-            - user: user
-              # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
-              password: $2y$10$F814ZwQPt8VHYIayIqeEReSeZz8dDCNX93/rKI82SqJu9I2Bn6Hau # password
-              capabilities: ["ping:foo", "do:bar"]
+          users: *USER_DB
           scope:
             action: "ping:{{.project}}"
             attributes:

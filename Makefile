@@ -9,8 +9,12 @@ build: ## build all
 lint: ## Run linters
 	golangci-lint run
 
+# TODO: create seperate command for integration tests
 test: ## Run tests
 	go test -race ./...
+
+benchmark: ## Run benchmarks
+	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/integration
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.txt -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.txt

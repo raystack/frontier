@@ -1,0 +1,62 @@
+rules:
+  - frontend:
+      url: "basic/"
+      methods: [ "GET" ]
+    backend:
+      url: "http://127.0.0.1:13777/"
+
+  - frontend:
+      url: "basic-authn/"
+      methods: [ "GET" ]
+    backend:
+      url: "http://127.0.0.1:13777/"
+    middlewares:
+      - name: prefix
+        config:
+          strip: "/basic-authn"
+
+      - name: basic_auth
+        config:
+          users:
+            - user: user
+              # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
+              password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0 # md5: password
+
+  - frontend:
+      url: "basic-authn-bcrypt/"
+      methods: [ "GET" ]
+    backend:
+      url: "http://127.0.0.1:13777/"
+    middlewares:
+      - name: prefix
+        config:
+          strip: "/basic-authn-bcrypt"
+
+      - name: basic_auth
+        config:
+          users:
+            - user: user
+              # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
+              password: $2y$10$F814ZwQPt8VHYIayIqeEReSeZz8dDCNX93/rKI82SqJu9I2Bn6Hau # BCrypt: password
+  - frontend:
+      url: "basic-authz/"
+      methods: [ "POST" ]
+    backend:
+      url: "http://127.0.0.1:13777/"
+    middlewares:
+      - name: prefix
+        config:
+          strip: "/basic-authz"
+
+      - name: basic_auth
+        config:
+          users:
+            - user: user
+              password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0
+              capabilities: [ "ping:foo", "do:bar" ]
+          scope:
+            action: "ping:{{.project}}"
+            attributes:
+              project:
+                type: json_payload
+                key: project
