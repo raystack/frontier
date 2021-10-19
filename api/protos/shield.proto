@@ -21,9 +21,9 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   schemes: HTTP;
 };
 
-service Shield {
+service ShieldService {
   // Users
-  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
     option (google.api.http) = {
       get: "/v1/users"
     };
@@ -32,7 +32,7 @@ service Shield {
       summary: "Get All Users";
     };
   }
-  rpc CreateUser(CreateUserRequest) returns (UserResponse) {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
     option (google.api.http) = {
       post: "/v1/users",
       body: "body";
@@ -43,7 +43,7 @@ service Shield {
     };
   }
 
-  rpc GetUserByID(GetUserRequest) returns (UserResponse) {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
     option (google.api.http) = {
       get: "/v1/users/{id}",
     };
@@ -53,7 +53,7 @@ service Shield {
     };
   }
 
-  rpc GetCurrentUser(GetCurrentUserRequest) returns (UserResponse) {
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse) {
     option (google.api.http) = {
       get: "/v1/users/self",
     };
@@ -63,7 +63,7 @@ service Shield {
     };
   }
 
-  rpc UpdateUserByID(UpdateUserRequest) returns (UserResponse) {
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
     option (google.api.http) = {
       put: "/v1/users/{id}",
       body: "body";
@@ -74,7 +74,7 @@ service Shield {
     };
   }
 
-  rpc UpdateCurrentUser(UpdateCurrentUserRequest) returns (UserResponse) {
+  rpc UpdateCurrentUser(UpdateCurrentUserRequest) returns (UpdateCurrentUserResponse) {
     option (google.api.http) = {
       put: "/v1/users/self",
       body: "body";
@@ -86,7 +86,7 @@ service Shield {
   }
 
   // Group
-  rpc GetAllGroups(GetAllGroupsRequest) returns (GetAllGroupsResponse) {
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse) {
     option (google.api.http) = {
       get: "/v1/groups",
     };
@@ -96,7 +96,7 @@ service Shield {
     };
   }
 
-  rpc CreateGroup(CreateGroupRequest) returns (GroupResponse) {
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse) {
     option (google.api.http) = {
       post: "/v1/groups",
       body: "body";
@@ -107,7 +107,7 @@ service Shield {
     };
   }
 
-  rpc GetGroupByID(GetGroupRequest) returns (GroupResponse) {
+  rpc GetGroup(GetGroupRequest) returns (GetGroupResponse) {
     option (google.api.http) = {
       get: "/v1/groups/{id}",
     };
@@ -117,7 +117,7 @@ service Shield {
     };
   }
 
-  rpc GetGroupUsers(GetGroupRequest) returns (GetGroupUsersResponse) {
+  rpc ListGroupUsers(ListGroupUsersRequest) returns (ListGroupUsersResponse) {
     option (google.api.http) = {
       get: "/v1/groups/{id}/users",
     };
@@ -127,7 +127,7 @@ service Shield {
     };
   }
 
-  rpc UpdateGroupByID(UpdateGroupRequest) returns (GroupResponse) {
+  rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse) {
     option (google.api.http) = {
       put: "/v1/groups/{id}",
       body: "body";
@@ -139,7 +139,7 @@ service Shield {
   }
 
   // Roles
-  rpc GetAllRoles(GetAllRolesRequest) returns (GetAllRolesResponse) {
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
     option (google.api.http) = {
       get: "/v1/roles",
     };
@@ -149,7 +149,7 @@ service Shield {
     };
   }
 
-  rpc CreateRole(CreateRoleRequest) returns (RoleResponse) {
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse) {
     option (google.api.http) = {
       post: "/v1/roles",
       body: "body";
@@ -160,7 +160,7 @@ service Shield {
     };
   }
 
-  rpc GetRole(GetRoleRequest) returns (RoleResponse) {
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse) {
     option (google.api.http) = {
       get: "/v1/roles/{id}",
     };
@@ -170,7 +170,7 @@ service Shield {
     };
   }
 
-  rpc UpdateRole(UpdateRoleRequest) returns (RoleResponse) {
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
     option (google.api.http) = {
       put: "/v1/roles/{id}",
       body: "body";
@@ -182,7 +182,7 @@ service Shield {
   }
 
   // Organizations
-  rpc GetAllOrganizations(GetAllOrganizationsRequest) returns (GetAllOrganizationsResponse) {
+  rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
     option (google.api.http) = {
       get: "/v1/organizations"
     };
@@ -192,7 +192,7 @@ service Shield {
     };
   }
 
-  rpc CreateOrganization(CreateOrganizationRequest) returns (OrganizationResponse) {
+  rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
     option (google.api.http) = {
       post: "/v1/organizations",
       body: "body"
@@ -203,7 +203,7 @@ service Shield {
     };
   }
 
-  rpc GetOrganizationByID(GetOrganizationRequest) returns (OrganizationResponse) {
+  rpc GetOrganization(GetOrganizationRequest) returns (GetOrganizationResponse) {
     option (google.api.http) = {
       get: "/v1/organizations/{id}",
     };
@@ -213,7 +213,7 @@ service Shield {
     };
   }
 
-  rpc UpdateOrganizationByID(UpdateOrganizationRequest) returns (OrganizationResponse) {
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (UpdateOrganizationResponse) {
     option (google.api.http) = {
       put: "/v1/organizations/{id}",
       body: "body"
@@ -225,7 +225,7 @@ service Shield {
   }
 
   // Projects
-  rpc GetAllProjects(GetAllProjectsRequest) returns (GetAllProjectsResponse) {
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse) {
     option (google.api.http) = {
       get: "/v1/projects"
     };
@@ -235,7 +235,7 @@ service Shield {
     };
   }
 
-  rpc CreateProject(CreateProjectRequest) returns (ProjectResponse) {
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {
     option (google.api.http) = {
       post: "/v1/projects",
       body: "body"
@@ -246,7 +246,7 @@ service Shield {
     };
   }
 
-  rpc GetProjectByID(GetProjectRequest) returns (ProjectResponse) {
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {
     option (google.api.http) = {
       get: "/v1/projects/{id}",
     };
@@ -256,7 +256,7 @@ service Shield {
     };
   }
 
-  rpc UpdateProjectByID(UpdateProjectRequest) returns (ProjectResponse) {
+  rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse) {
     option (google.api.http) = {
       put: "/v1/projects/{id}",
       body: "body"
@@ -269,14 +269,14 @@ service Shield {
 
 }
 
-message CreateUserRequestBody {
+message UserRequestBody {
   string name = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   string email = 2 [(validate.rules).string.email = true];
   google.protobuf.Struct metadata = 3;
 }
 
 message CreateUserRequest {
-  CreateUserRequestBody body = 1;
+  UserRequestBody body = 1;
 }
 
 message User {
@@ -285,17 +285,33 @@ message User {
   string slug = 3;
   string email = 4 [(validate.rules).string.email = true];
   google.protobuf.Struct metadata = 5;
-  google.protobuf.Timestamp createdAt = 6;
-  google.protobuf.Timestamp updatedAt = 7;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
 }
 
-message UserResponse {
+message CreateUserResponse {
+  User user = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message GetCurrentUserResponse {
+  User user = 1;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message UpdateCurrentUserResponse {
   User user = 1;
 }
 
 message UpdateUserRequest {
   string id = 1;
-  CreateUserRequestBody body = 2;
+  UserRequestBody body = 2;
 }
 
 message GetUserRequest {
@@ -305,71 +321,75 @@ message GetUserRequest {
 message GetCurrentUserRequest {
 }
 
-message GetAllUsersRequest {
+message ListUsersRequest {
   google.protobuf.Struct fields = 1;
 }
 
-message GetAllUsersResponse {
+message ListUsersResponse {
   repeated User users = 1;
 }
 
-
-message CreateGroupRequestBody {
+message GroupRequestBody {
   string name = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   string slug = 2;
   google.protobuf.Struct metadata = 3;
 }
 
 message CreateGroupRequest {
-  CreateGroupRequestBody body = 1;
-}
-
-message Admin {
-  string id = 1;
-  string name = 2;
+  GroupRequestBody body = 1;
 }
 
 message Group {
   string id = 1;
   string name = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   string slug = 3;
-  repeated Admin admins = 4;
-  bool isMember = 5;
-  int32 memberCount = 6;
-  string orgId = 7;
+  repeated User admins = 4;
+  bool is_member = 5;
+  int32 member_count = 6;
+  string org_id = 7;
   google.protobuf.Struct metadata = 8;
-  google.protobuf.Timestamp createdAt = 9;
-  google.protobuf.Timestamp updatedAt = 10;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
 }
 
-message GroupResponse {
+message CreateGroupResponse {
   Group group = 1;
 }
 
-message GetGroupUsersResponse {
+message GetGroupResponse {
+  Group group = 1;
+}
+
+message UpdateGroupResponse {
+  Group group = 1;
+}
+
+message ListGroupUsersResponse {
   repeated User users = 1;
 }
 
 message UpdateGroupRequest {
   string id = 1;
-  CreateGroupRequestBody body = 2;
+  GroupRequestBody body = 2;
 }
 
 message UpdateCurrentUserRequest {
-  CreateGroupRequestBody body = 1;
+  GroupRequestBody body = 1;
 }
 
 message GetGroupRequest {
   string id = 1;
 }
 
-message GetAllGroupsRequest {
-  string userId = 1;
-  //  string orgId = 2;
-  //  string org = 3;
+message ListGroupUsersRequest {
+  string id = 1;
 }
 
-message GetAllGroupsResponse {
+message ListGroupsRequest {
+  string user_id = 1;
+}
+
+message ListGroupsResponse {
   repeated Group groups = 1;
 }
 
@@ -379,11 +399,11 @@ message Role {
   repeated string tags = 3;
   repeated string actions = 4;
   google.protobuf.Struct metadata = 5;
-  google.protobuf.Timestamp createdAt = 6;
-  google.protobuf.Timestamp updatedAt = 7;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
 }
 
-message CreateRoleBody {
+message RoleRequestBody {
   string name = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   repeated string tags = 2;
   repeated string actions = 3;
@@ -391,10 +411,18 @@ message CreateRoleBody {
 }
 
 message CreateRoleRequest {
-  CreateRoleBody body = 1;
+  RoleRequestBody body = 1;
 }
 
-message RoleResponse {
+message CreateRoleResponse {
+  Role role = 1;
+}
+
+message GetRoleResponse {
+  Role role = 1;
+}
+
+message UpdateRoleResponse {
   Role role = 1;
 }
 
@@ -404,26 +432,24 @@ message GetRoleRequest {
 
 message UpdateRoleRequest {
   string id = 1;
-  CreateRoleBody body = 2;
+  RoleRequestBody body = 2;
 }
 
-message GetAllRolesRequest {
+message ListRolesRequest {
 }
 
-message GetAllRolesResponse {
+message ListRolesResponse {
   repeated Role roles = 1;
 }
 
-
-
-message CreateOrganizationBody {
+message OrganizationRequestBody {
   string name = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   string slug = 2;
   google.protobuf.Struct metadata = 3;
 }
 
 message CreateOrganizationRequest {
-  CreateOrganizationBody body = 1;
+  OrganizationRequestBody body = 1;
 }
 
 message Organization {
@@ -431,18 +457,26 @@ message Organization {
   string name = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   string slug = 3;
   google.protobuf.Struct metadata = 4;
-  google.protobuf.Timestamp createdAt = 5;
-  google.protobuf.Timestamp updatedAt = 6;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
 }
 
-message OrganizationResponse {
+message CreateOrganizationResponse {
   Organization organization = 1;
 }
 
-message GetAllOrganizationsRequest {
+message GetOrganizationResponse {
+  Organization organization = 1;
 }
 
-message GetAllOrganizationsResponse {
+message UpdateOrganizationResponse {
+  Organization organization = 1;
+}
+
+message ListOrganizationsRequest {
+}
+
+message ListOrganizationsResponse {
   repeated Organization organizations = 1;
 }
 
@@ -452,18 +486,17 @@ message GetOrganizationRequest {
 
 message UpdateOrganizationRequest {
   string id = 1;
-  CreateOrganizationBody body = 2;
+  OrganizationRequestBody body = 2;
 }
 
-
-message CreateProjectBody {
+message ProjectRequestBody {
   string name = 1 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   string slug = 2;
   google.protobuf.Struct metadata = 3;
 }
 
 message CreateProjectRequest {
-  CreateProjectBody body = 1;
+  ProjectRequestBody body = 1;
 }
 
 message Project {
@@ -471,18 +504,26 @@ message Project {
   string name = 2 [(validate.rules).string.pattern = "^[A-Za-z0-9_-]+$"];
   string slug = 3;
   google.protobuf.Struct metadata = 4;
-  google.protobuf.Timestamp createdAt = 5;
-  google.protobuf.Timestamp updatedAt = 6;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
 }
 
-message ProjectResponse {
+message CreateProjectResponse {
   Project project = 1;
 }
 
-message GetAllProjectsRequest {
+message GetProjectResponse {
+  Project project = 1;
 }
 
-message GetAllProjectsResponse {
+message UpdateProjectResponse {
+  Project project = 1;
+}
+
+message ListProjectsRequest {
+}
+
+message ListProjectsResponse {
   repeated Project projects = 1;
 }
 
@@ -492,5 +533,5 @@ message GetProjectRequest {
 
 message UpdateProjectRequest {
   string id = 1;
-  CreateProjectBody body = 2;
+  ProjectRequestBody body = 2;
 }
