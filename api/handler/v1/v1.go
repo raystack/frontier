@@ -8,14 +8,14 @@ import (
 )
 
 type Dep struct {
-	shieldv1.UnimplementedShieldServer
+	shieldv1.UnimplementedShieldServiceServer
 }
 
 func RegisterV1(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, dep Dep) {
-	gw.RegisterHandler(ctx, shieldv1.RegisterShieldHandlerFromEndpoint)
+	gw.RegisterHandler(ctx, shieldv1.RegisterShieldServiceHandlerFromEndpoint)
 
 	s.RegisterService(
-		&shieldv1.Shield_ServiceDesc,
+		&shieldv1.ShieldService_ServiceDesc,
 		&dep,
 	)
 }

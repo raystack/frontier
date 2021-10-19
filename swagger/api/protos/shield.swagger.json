@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "Shield"
+      "name": "ShieldService"
     }
   ],
   "schemes": [
@@ -22,12 +22,12 @@
     "/v1/groups": {
       "get": {
         "summary": "Get all Groups",
-        "operationId": "Shield_GetAllGroups",
+        "operationId": "ShieldService_ListGroups",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetAllGroupsResponse"
+              "$ref": "#/definitions/v1ListGroupsResponse"
             }
           },
           "default": {
@@ -51,12 +51,12 @@
       },
       "post": {
         "summary": "Create Group",
-        "operationId": "Shield_CreateGroup",
+        "operationId": "ShieldService_CreateGroup",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GroupResponse"
+              "$ref": "#/definitions/v1CreateGroupResponse"
             }
           },
           "default": {
@@ -72,7 +72,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateGroupRequestBody"
+              "$ref": "#/definitions/v1GroupRequestBody"
             }
           }
         ],
@@ -84,12 +84,12 @@
     "/v1/groups/{id}": {
       "get": {
         "summary": "Get Group by ID",
-        "operationId": "Shield_GetGroupByID",
+        "operationId": "ShieldService_GetGroup",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GroupResponse"
+              "$ref": "#/definitions/v1GetGroupResponse"
             }
           },
           "default": {
@@ -113,12 +113,12 @@
       },
       "put": {
         "summary": "Update Group by ID",
-        "operationId": "Shield_UpdateGroupByID",
+        "operationId": "ShieldService_UpdateGroup",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GroupResponse"
+              "$ref": "#/definitions/v1UpdateGroupResponse"
             }
           },
           "default": {
@@ -140,7 +140,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateGroupRequestBody"
+              "$ref": "#/definitions/v1GroupRequestBody"
             }
           }
         ],
@@ -152,12 +152,12 @@
     "/v1/groups/{id}/users": {
       "get": {
         "summary": "Get all Users in a Group",
-        "operationId": "Shield_GetGroupUsers",
+        "operationId": "ShieldService_ListGroupUsers",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetGroupUsersResponse"
+              "$ref": "#/definitions/v1ListGroupUsersResponse"
             }
           },
           "default": {
@@ -183,12 +183,12 @@
     "/v1/organizations": {
       "get": {
         "summary": "Get all Organization",
-        "operationId": "Shield_GetAllOrganizations",
+        "operationId": "ShieldService_ListOrganizations",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetAllOrganizationsResponse"
+              "$ref": "#/definitions/v1ListOrganizationsResponse"
             }
           },
           "default": {
@@ -204,12 +204,12 @@
       },
       "post": {
         "summary": "Create Organization",
-        "operationId": "Shield_CreateOrganization",
+        "operationId": "ShieldService_CreateOrganization",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1OrganizationResponse"
+              "$ref": "#/definitions/v1CreateOrganizationResponse"
             }
           },
           "default": {
@@ -225,7 +225,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateOrganizationBody"
+              "$ref": "#/definitions/v1OrganizationRequestBody"
             }
           }
         ],
@@ -237,12 +237,12 @@
     "/v1/organizations/{id}": {
       "get": {
         "summary": "Get Organization by ID",
-        "operationId": "Shield_GetOrganizationByID",
+        "operationId": "ShieldService_GetOrganization",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1OrganizationResponse"
+              "$ref": "#/definitions/v1GetOrganizationResponse"
             }
           },
           "default": {
@@ -266,12 +266,12 @@
       },
       "put": {
         "summary": "Update Organization by ID",
-        "operationId": "Shield_UpdateOrganizationByID",
+        "operationId": "ShieldService_UpdateOrganization",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1OrganizationResponse"
+              "$ref": "#/definitions/v1UpdateOrganizationResponse"
             }
           },
           "default": {
@@ -293,7 +293,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateOrganizationBody"
+              "$ref": "#/definitions/v1OrganizationRequestBody"
             }
           }
         ],
@@ -305,12 +305,12 @@
     "/v1/projects": {
       "get": {
         "summary": "Get all Project",
-        "operationId": "Shield_GetAllProjects",
+        "operationId": "ShieldService_ListProjects",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetAllProjectsResponse"
+              "$ref": "#/definitions/v1ListProjectsResponse"
             }
           },
           "default": {
@@ -326,12 +326,12 @@
       },
       "post": {
         "summary": "Create Project",
-        "operationId": "Shield_CreateProject",
+        "operationId": "ShieldService_CreateProject",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ProjectResponse"
+              "$ref": "#/definitions/v1CreateProjectResponse"
             }
           },
           "default": {
@@ -347,7 +347,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateProjectBody"
+              "$ref": "#/definitions/v1ProjectRequestBody"
             }
           }
         ],
@@ -359,12 +359,12 @@
     "/v1/projects/{id}": {
       "get": {
         "summary": "Get Project by ID",
-        "operationId": "Shield_GetProjectByID",
+        "operationId": "ShieldService_GetProject",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ProjectResponse"
+              "$ref": "#/definitions/v1GetProjectResponse"
             }
           },
           "default": {
@@ -388,12 +388,12 @@
       },
       "put": {
         "summary": "Update Project by ID",
-        "operationId": "Shield_UpdateProjectByID",
+        "operationId": "ShieldService_UpdateProject",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ProjectResponse"
+              "$ref": "#/definitions/v1UpdateProjectResponse"
             }
           },
           "default": {
@@ -415,7 +415,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateProjectBody"
+              "$ref": "#/definitions/v1ProjectRequestBody"
             }
           }
         ],
@@ -427,12 +427,12 @@
     "/v1/roles": {
       "get": {
         "summary": "Get all Roles",
-        "operationId": "Shield_GetAllRoles",
+        "operationId": "ShieldService_ListRoles",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetAllRolesResponse"
+              "$ref": "#/definitions/v1ListRolesResponse"
             }
           },
           "default": {
@@ -448,12 +448,12 @@
       },
       "post": {
         "summary": "Create Role",
-        "operationId": "Shield_CreateRole",
+        "operationId": "ShieldService_CreateRole",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1RoleResponse"
+              "$ref": "#/definitions/v1CreateRoleResponse"
             }
           },
           "default": {
@@ -469,7 +469,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateRoleBody"
+              "$ref": "#/definitions/v1RoleRequestBody"
             }
           }
         ],
@@ -481,12 +481,12 @@
     "/v1/roles/{id}": {
       "get": {
         "summary": "Get Role by ID",
-        "operationId": "Shield_GetRole",
+        "operationId": "ShieldService_GetRole",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1RoleResponse"
+              "$ref": "#/definitions/v1GetRoleResponse"
             }
           },
           "default": {
@@ -510,12 +510,12 @@
       },
       "put": {
         "summary": "Update Role by ID",
-        "operationId": "Shield_UpdateRole",
+        "operationId": "ShieldService_UpdateRole",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1RoleResponse"
+              "$ref": "#/definitions/v1UpdateRoleResponse"
             }
           },
           "default": {
@@ -537,7 +537,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateRoleBody"
+              "$ref": "#/definitions/v1RoleRequestBody"
             }
           }
         ],
@@ -549,12 +549,12 @@
     "/v1/users": {
       "get": {
         "summary": "Get All Users",
-        "operationId": "Shield_GetAllUsers",
+        "operationId": "ShieldService_ListUsers",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetAllUsersResponse"
+              "$ref": "#/definitions/v1ListUsersResponse"
             }
           },
           "default": {
@@ -570,12 +570,12 @@
       },
       "post": {
         "summary": "Create User",
-        "operationId": "Shield_CreateUser",
+        "operationId": "ShieldService_CreateUser",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserResponse"
+              "$ref": "#/definitions/v1CreateUserResponse"
             }
           },
           "default": {
@@ -591,7 +591,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateUserRequestBody"
+              "$ref": "#/definitions/v1UserRequestBody"
             }
           }
         ],
@@ -603,12 +603,12 @@
     "/v1/users/self": {
       "get": {
         "summary": "Get current user",
-        "operationId": "Shield_GetCurrentUser",
+        "operationId": "ShieldService_GetCurrentUser",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserResponse"
+              "$ref": "#/definitions/v1GetCurrentUserResponse"
             }
           },
           "default": {
@@ -624,12 +624,12 @@
       },
       "put": {
         "summary": "Update current User",
-        "operationId": "Shield_UpdateCurrentUser",
+        "operationId": "ShieldService_UpdateCurrentUser",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserResponse"
+              "$ref": "#/definitions/v1UpdateCurrentUserResponse"
             }
           },
           "default": {
@@ -645,7 +645,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateGroupRequestBody"
+              "$ref": "#/definitions/v1GroupRequestBody"
             }
           }
         ],
@@ -657,12 +657,12 @@
     "/v1/users/{id}": {
       "get": {
         "summary": "Get a User by id",
-        "operationId": "Shield_GetUserByID",
+        "operationId": "ShieldService_GetUser",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserResponse"
+              "$ref": "#/definitions/v1GetUserResponse"
             }
           },
           "default": {
@@ -686,12 +686,12 @@
       },
       "put": {
         "summary": "Update User by ID",
-        "operationId": "Shield_UpdateUserByID",
+        "operationId": "ShieldService_UpdateUser",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1UserResponse"
+              "$ref": "#/definitions/v1UpdateUserResponse"
             }
           },
           "default": {
@@ -713,7 +713,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1CreateUserRequestBody"
+              "$ref": "#/definitions/v1UserRequestBody"
             }
           }
         ],
@@ -759,159 +759,91 @@
         }
       }
     },
-    "v1Admin": {
+    "v1CreateGroupResponse": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
+        "group": {
+          "$ref": "#/definitions/v1Group"
         }
       }
     },
-    "v1CreateGroupRequestBody": {
+    "v1CreateOrganizationResponse": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "slug": {
-          "type": "string"
-        },
-        "metadata": {
-          "type": "object"
+        "organization": {
+          "$ref": "#/definitions/v1Organization"
         }
       }
     },
-    "v1CreateOrganizationBody": {
+    "v1CreateProjectResponse": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "slug": {
-          "type": "string"
-        },
-        "metadata": {
-          "type": "object"
+        "project": {
+          "$ref": "#/definitions/v1Project"
         }
       }
     },
-    "v1CreateProjectBody": {
+    "v1CreateRoleResponse": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "slug": {
-          "type": "string"
-        },
-        "metadata": {
-          "type": "object"
+        "role": {
+          "$ref": "#/definitions/v1Role"
         }
       }
     },
-    "v1CreateRoleBody": {
+    "v1CreateUserResponse": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "actions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "metadata": {
-          "type": "object"
+        "user": {
+          "$ref": "#/definitions/v1User"
         }
       }
     },
-    "v1CreateUserRequestBody": {
+    "v1GetCurrentUserResponse": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "metadata": {
-          "type": "object"
+        "user": {
+          "$ref": "#/definitions/v1User"
         }
       }
     },
-    "v1GetAllGroupsResponse": {
+    "v1GetGroupResponse": {
       "type": "object",
       "properties": {
-        "groups": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Group"
-          }
+        "group": {
+          "$ref": "#/definitions/v1Group"
         }
       }
     },
-    "v1GetAllOrganizationsResponse": {
+    "v1GetOrganizationResponse": {
       "type": "object",
       "properties": {
-        "organizations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Organization"
-          }
+        "organization": {
+          "$ref": "#/definitions/v1Organization"
         }
       }
     },
-    "v1GetAllProjectsResponse": {
+    "v1GetProjectResponse": {
       "type": "object",
       "properties": {
-        "projects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Project"
-          }
+        "project": {
+          "$ref": "#/definitions/v1Project"
         }
       }
     },
-    "v1GetAllRolesResponse": {
+    "v1GetRoleResponse": {
       "type": "object",
       "properties": {
-        "roles": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Role"
-          }
+        "role": {
+          "$ref": "#/definitions/v1Role"
         }
       }
     },
-    "v1GetAllUsersResponse": {
+    "v1GetUserResponse": {
       "type": "object",
       "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1User"
-          }
-        }
-      }
-    },
-    "v1GetGroupUsersResponse": {
-      "type": "object",
-      "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1User"
-          }
+        "user": {
+          "$ref": "#/definitions/v1User"
         }
       }
     },
@@ -930,7 +862,7 @@
         "admins": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Admin"
+            "$ref": "#/definitions/v1User"
           }
         },
         "isMember": {
@@ -956,11 +888,83 @@
         }
       }
     },
-    "v1GroupResponse": {
+    "v1GroupRequestBody": {
       "type": "object",
       "properties": {
-        "group": {
-          "$ref": "#/definitions/v1Group"
+        "name": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "v1ListGroupUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1User"
+          }
+        }
+      }
+    },
+    "v1ListGroupsResponse": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Group"
+          }
+        }
+      }
+    },
+    "v1ListOrganizationsResponse": {
+      "type": "object",
+      "properties": {
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Organization"
+          }
+        }
+      }
+    },
+    "v1ListProjectsResponse": {
+      "type": "object",
+      "properties": {
+        "projects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Project"
+          }
+        }
+      }
+    },
+    "v1ListRolesResponse": {
+      "type": "object",
+      "properties": {
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Role"
+          }
+        }
+      }
+    },
+    "v1ListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1User"
+          }
         }
       }
     },
@@ -989,11 +993,17 @@
         }
       }
     },
-    "v1OrganizationResponse": {
+    "v1OrganizationRequestBody": {
       "type": "object",
       "properties": {
-        "organization": {
-          "$ref": "#/definitions/v1Organization"
+        "name": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
         }
       }
     },
@@ -1022,11 +1032,17 @@
         }
       }
     },
-    "v1ProjectResponse": {
+    "v1ProjectRequestBody": {
       "type": "object",
       "properties": {
-        "project": {
-          "$ref": "#/definitions/v1Project"
+        "name": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
         }
       }
     },
@@ -1064,11 +1080,74 @@
         }
       }
     },
-    "v1RoleResponse": {
+    "v1RoleRequestBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "v1UpdateCurrentUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    },
+    "v1UpdateGroupResponse": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "$ref": "#/definitions/v1Group"
+        }
+      }
+    },
+    "v1UpdateOrganizationResponse": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "$ref": "#/definitions/v1Organization"
+        }
+      }
+    },
+    "v1UpdateProjectResponse": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "$ref": "#/definitions/v1Project"
+        }
+      }
+    },
+    "v1UpdateRoleResponse": {
       "type": "object",
       "properties": {
         "role": {
           "$ref": "#/definitions/v1Role"
+        }
+      }
+    },
+    "v1UpdateUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1User"
         }
       }
     },
@@ -1100,11 +1179,17 @@
         }
       }
     },
-    "v1UserResponse": {
+    "v1UserRequestBody": {
       "type": "object",
       "properties": {
-        "user": {
-          "$ref": "#/definitions/v1User"
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
         }
       }
     }
