@@ -13,5 +13,7 @@ func New(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 
 	cmd.AddCommand(serveCommand(logger, appConfig))
+	cmd.AddCommand(migrationsCommand(logger, appConfig))
+	cmd.AddCommand(migrationsRollbackCommand(logger, appConfig))
 	return cmd
 }
