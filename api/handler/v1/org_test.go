@@ -66,7 +66,7 @@ func TestListOrganizations(t *testing.T) {
 	}{
 		{
 			title: "error in fetching org list",
-			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func() (organizations []org.Organization, err error) {
+			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []org.Organization, err error) {
 				return []org.Organization{}, errors.New("some error")
 			}},
 			want: nil,
@@ -95,7 +95,7 @@ func TestCreateOrganization(t *testing.T) {
 	}{
 		{
 			title: "error in fetching org list",
-			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func() (organizations []org.Organization, err error) {
+			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []org.Organization, err error) {
 				return []org.Organization{}, errors.New("some error")
 			}},
 			want: nil,
@@ -114,19 +114,24 @@ func TestCreateOrganization(t *testing.T) {
 }
 
 type mockOrgSrv struct {
-	GetOrganizationFunc    func(id string) (org.Organization, error)
-	CreateOrganizationFunc func(org org.Organization) (org.Organization, error)
-	ListOrganizationsFunc  func() ([]org.Organization, error)
+	GetOrganizationFunc    func(ctx context.Context, id string) (org.Organization, error)
+	CreateOrganizationFunc func(ctx context.Context, org org.Organization) (org.Organization, error)
+	ListOrganizationsFunc  func(ctx context.Context) ([]org.Organization, error)
+	UpdateOrganizationFunc func(ctx context.Context, toUpdate org.Organization) ([]org.Organization, error)
 }
 
 func (m mockOrgSrv) GetOrganization(ctx context.Context, id string) (org.Organization, error) {
-	return m.GetOrganizationFunc(id)
+	return m.GetOrganizationFunc(ctx, id)
 }
 
 func (m mockOrgSrv) CreateOrganization(ctx context.Context, org org.Organization) (org.Organization, error) {
-	return m.CreateOrganizationFunc(org)
+	return m.CreateOrganizationFunc(ctx, org)
 }
 
-func (m mockOrgSrv) ListOrganizations(context.Context) ([]org.Organization, error) {
-	return m.ListOrganizationsFunc()
+func (m mockOrgSrv) ListOrganizations(ctx context.Context) ([]org.Organization, error) {
+	return m.ListOrganizationsFunc(ctx)
+}
+
+func (m mockOrgSrv) UpdateOrganization(ctx context.Context, toUpdate org.Organization) ([]org.Organization, error) {
+	return m.UpdateOrganizationFunc(ctx, toUpdate)
 }

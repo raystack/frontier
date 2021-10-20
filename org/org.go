@@ -28,6 +28,7 @@ type Store interface {
 	GetOrg(ctx context.Context, id string) (Organization, error)
 	CreateOrg(ctx context.Context, org Organization) (Organization, error)
 	ListOrg(ctx context.Context) ([]Organization, error)
+	UpdateOrg(ctx context.Context, toUpdate Organization) (Organization, error)
 }
 
 func (s Service) GetOrganization(ctx context.Context, id string) (Organization, error) {
@@ -48,6 +49,10 @@ func (s Service) CreateOrganization(ctx context.Context, org Organization) (Orga
 	return newOrg, nil
 }
 
-func (s Service) ListOrganizations(context.Context) ([]Organization, error) {
-	return s.Store.ListOrg(nil)
+func (s Service) ListOrganizations(ctx context.Context) ([]Organization, error) {
+	return s.Store.ListOrg(ctx)
+}
+
+func (s Service) UpdateOrganization(ctx context.Context, toUpdate Organization) (Organization, error) {
+	return s.Store.UpdateOrg(ctx, toUpdate)
 }

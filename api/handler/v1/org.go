@@ -19,22 +19,31 @@ type OrganizationService interface {
 	GetOrganization(ctx context.Context, id string) (org.Organization, error)
 	CreateOrganization(ctx context.Context, org org.Organization) (org.Organization, error)
 	ListOrganizations(ctx context.Context) ([]org.Organization, error)
+	UpdateOrganization(ctx context.Context, toUpdate org.Organization) (org.Organization, error)
 }
+
+var (
+	grpcInternalServerError = status.Errorf(codes.Internal, internalServerError.Error())
+)
 
 // HTTP Codes defined here:
 // https://github.com/grpc-ecosystem/grpc-gateway/blob/master/runtime/errors.go#L36
 
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrganizationsRequest) (*shieldv1.ListOrganizationsResponse, error) {
+	logger := grpczap.Extract(ctx)
 	var orgs []*shieldv1.Organization
+
 	orgList, err := v.OrgService.ListOrganizations(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, internalServerError.Error())
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
 	}
 
 	for _, v := range orgList {
 		orgPB, err := transformOrgToPB(v)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, err.Error())
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
 		}
 
 		orgs = append(orgs, &orgPB)
@@ -46,6 +55,8 @@ func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrgani
 }
 
 func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrganizationRequest) (*shieldv1.CreateOrganizationResponse, error) {
+	logger := grpczap.Extract(ctx)
+
 	newOrg, err := v.OrgService.CreateOrganization(ctx, org.Organization{
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
@@ -53,12 +64,14 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 	})
 
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
 	}
 
 	metaData, err := structpb.NewStruct(newOrg.Metadata)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
 	}
 
 	return &shieldv1.CreateOrganizationResponse{Organization: &shieldv1.Organization{
@@ -73,6 +86,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 
 func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizationRequest) (*shieldv1.GetOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
+
 	fetchedOrg, err := v.OrgService.GetOrganization(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
@@ -82,7 +96,7 @@ func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizat
 		//case errors.Is(err, org.InvalidUUID):
 		//	return nil, status.Errorf(codes.Internal, "organization not found")
 		default:
-			return nil, status.Errorf(codes.Internal, internalServerError.Error())
+			return nil, grpcInternalServerError
 		}
 	}
 
@@ -98,13 +112,32 @@ func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizat
 }
 
 func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrganizationRequest) (*shieldv1.UpdateOrganizationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
+	logger := grpczap.Extract(ctx)
+	updatedOrg, err := v.OrgService.UpdateOrganization(ctx, org.Organization{
+		Id:       request.GetId(),
+		Name:     request.GetBody().Name,
+		Slug:     request.GetBody().Slug,
+		Metadata: request.GetBody().Metadata.AsMap(),
+	})
+
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, internalServerError
+	}
+
+	orgPB, err := transformOrgToPB(updatedOrg)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, internalServerError
+	}
+
+	return &shieldv1.UpdateOrganizationResponse{Organization: &orgPB}, nil
 }
 
 func transformOrgToPB(org org.Organization) (shieldv1.Organization, error) {
 	metaData, err := structpb.NewStruct(org.Metadata)
 	if err != nil {
-		return shieldv1.Organization{}, status.Errorf(codes.Internal, err.Error())
+		return shieldv1.Organization{}, err
 	}
 
 	return shieldv1.Organization{

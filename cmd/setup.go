@@ -1,21 +1,19 @@
 package cmd
 
 import (
-	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"github.com/jmoiron/sqlx"
-	"github.com/odpf/shield/pkg/sql"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpcctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/pkg/sql"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func setupNewRelic(cfg config.NewRelic, logger log.Logger) newrelic.Application {
@@ -47,7 +45,7 @@ func getGRPCMiddleware(cfg *config.Shield, logger log.Logger) grpc.ServerOption 
 		))
 }
 
-func setupDB(cfg config.DBConfig, logger log.Logger) (*sqlx.DB, func()) {
+func setupDB(cfg config.DBConfig, logger log.Logger) (*sql.SQL, func()) {
 	db, err := sql.New(sql.Config{
 		Driver:          cfg.Driver,
 		URL:             cfg.URL,
