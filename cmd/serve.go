@@ -12,7 +12,6 @@ func serveCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		Short: "Start server and proxy default on port 8080",
 	}
 	c.AddCommand(proxyCommand(logger, appConfig))
-	c.AddCommand(adminCommand())
 	c.AddCommand(apiCommand(logger, appConfig))
 	return c
 }
