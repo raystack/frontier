@@ -21,4 +21,3 @@ func NewStore(db *sql.SQL) Store {
 		DB: db,
 	}
 }
-
