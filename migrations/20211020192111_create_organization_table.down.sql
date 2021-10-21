@@ -1,1 +1,1 @@
-DROP TABLE organizations;
+DROP TABLE IF EXISTS organizations ;

@@ -2,8 +2,11 @@ package sql
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -42,7 +45,7 @@ func getMigrationInstance(config Config, path []string) (*migrate.Migrate, error
 		return nil, err
 	}
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	driver, err := getDatabaseAccessObject(db, config.Driver)
 	if err != nil {
 		return nil, err
 	}
@@ -58,4 +61,15 @@ func getMigrationInstance(config Config, path []string) (*migrate.Migrate, error
 	}
 
 	return m, nil
+}
+
+func getDatabaseAccessObject(db *sql.DB, driver string) (database.Driver, error) {
+	switch driver {
+	case "postgres":
+		return postgres.WithInstance(db, &postgres.Config{})
+	case "mysql":
+		return mysql.WithInstance(db, &mysql.Config{})
+	default:
+		return nil, errors.New("driver not found")
+	}
 }
