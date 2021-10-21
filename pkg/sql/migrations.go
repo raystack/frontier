@@ -12,7 +12,7 @@ import (
 )
 
 func RunMigrations(config Config, path ...string) error {
-	m, err := getMigrationInstance(config, path)
+	m, err := getMigrationInstance(config, path...)
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func RunMigrations(config Config, path ...string) error {
 }
 
 func RunRollback(config Config, path ...string) error {
-	m, err := getMigrationInstance(config, path)
+	m, err := getMigrationInstance(config, path...)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func RunRollback(config Config, path ...string) error {
 	return err
 }
 
-func getMigrationInstance(config Config, path []string) (*migrate.Migrate, error) {
+func getMigrationInstance(config Config, path ...string) (*migrate.Migrate, error) {
 	db, err := sql.Open(config.Driver, config.URL)
 	if err != nil {
 		return nil, err
