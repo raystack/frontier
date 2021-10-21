@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS organizations
     slug       varchar     NOT NULL,
     metadata   jsonb,
     created_at timestamptz NOT NULL DEFAULT NOW(),
-    updated_at timestamptz NOT NULL DEFAULT NOW()
+    updated_at timestamptz NOT NULL DEFAULT NOW(),
+    deleted_at timestamptz
 );
