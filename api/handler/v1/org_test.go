@@ -5,12 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	shieldv1 "github.com/odpf/shield/api/protos/github.com/odpf/proton/shield/v1"
 	"github.com/odpf/shield/org"
 	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
 )
 
 //var testOrgMap = map[string]org.Organization{
