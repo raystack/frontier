@@ -5,7 +5,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 install:
 	@echo "Clean up imports..."
-	@go mod tidy -v
+	@go mod download
 
 build: ## build all
 	CGO_ENABLED=0 go build -o shield .
