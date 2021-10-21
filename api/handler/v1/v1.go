@@ -2,9 +2,10 @@ package v1
 
 import (
 	"context"
+
 	"github.com/odpf/salt/server"
 
-	shieldv1 "github.com/odpf/shield/api/protos/github.com/odpf/proton/shield/v1"
+	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
 )
 
 type Dep struct {

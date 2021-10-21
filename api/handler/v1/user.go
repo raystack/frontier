@@ -2,7 +2,8 @@ package v1
 
 import (
 	"context"
-	shieldv1 "github.com/odpf/shield/api/protos/github.com/odpf/proton/shield/v1"
+
+	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
 )
 
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1.ListUsersRequest) (*shieldv1.ListUsersResponse, error) {
