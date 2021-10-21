@@ -58,5 +58,5 @@ func setupDB(cfg config.DBConfig, logger log.Logger) (*sql.SQL, func()) {
 		logger.Fatal("failed to setup db: %s", err.Error())
 	}
 
-	return db, func() {db.Close()}
+	return db, func() { db.Close() }
 }

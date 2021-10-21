@@ -9,8 +9,8 @@ import (
 
 func migrationsCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	c := &cli.Command{
-		Use:   "migrate",
-		Short: "Run DB Schema Migrations",
+		Use:     "migrate",
+		Short:   "Run DB Schema Migrations",
 		Example: "shield migrate",
 		RunE: func(c *cli.Command, args []string) error {
 			return sql.RunMigrations(sql.Config{
@@ -24,8 +24,8 @@ func migrationsCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 func migrationsRollbackCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	c := &cli.Command{
-		Use:   "migration-rollback",
-		Short: "Run DB Schema Migrations Rollback to last state",
+		Use:     "migration-rollback",
+		Short:   "Run DB Schema Migrations Rollback to last state",
 		Example: "shield migration-rollback",
 		RunE: func(c *cli.Command, args []string) error {
 			return sql.RunRollback(sql.Config{

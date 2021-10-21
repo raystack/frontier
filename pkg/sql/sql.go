@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/pkg/errors"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 type Config struct {

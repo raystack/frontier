@@ -109,7 +109,6 @@ func (s Store) ListOrg(ctx context.Context) ([]org.Organization, error) {
 		}
 
 		transformedOrgs = append(transformedOrgs, transformedOrg)
-
 	}
 
 	return transformedOrgs, nil
@@ -120,7 +119,6 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Or
 	var isModified bool
 
 	err := s.DB.WithTxn(ctx, sql.TxOptions{Isolation: sql.LevelReadCommitted}, func(tx *sqlx.Tx) error {
-
 		fetchedOrg, err := s.selectOrg(ctx, toUpdate.Id, true, tx)
 		if err != nil {
 			return err
