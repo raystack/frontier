@@ -22,9 +22,3 @@ func NewStore(db *sql.SQL) Store {
 	}
 }
 
-//func (s Store) WithTx(ctx context.Context, txFunc func(context.Context) error) (err error) {
-//	txOptions := &sql.TxOptions{
-//		Isolation: sql.LevelReadCommitted,
-//	}
-//	return db.Transact(ctx, s.DB, txOptions, txFunc)
-//}

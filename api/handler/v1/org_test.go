@@ -29,36 +29,6 @@ var testOrgMap = map[string]org.Organization{
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
 	},
-	//}, "a755e76c-31a3-11ec-8d3d-0242ac130003": {
-	//	Id:   "a755e76c-31a3-11ec-8d3d-0242ac130003",
-	//	Name: "Org 2",
-	//	Slug: "org-2",
-	//	Metadata: map[string]interface{}{
-	//		"email":       "org2@org2.com",
-	//		"admin_count": 2,
-	//	},
-	//	CreatedAt: time.Time{},
-	//	UpdatedAt: time.Time{},
-	//}, "b07131f8-31a3-11ec-8d3d-0242ac130003": {
-	//	Id:   "b07131f8-31a3-11ec-8d3d-0242ac130003",
-	//	Name: "Org 3",
-	//	Slug: "org-3",
-	//	Metadata: map[string]interface{}{
-	//		"email": "org3@org3.com",
-	//	},
-	//	CreatedAt: time.Time{},
-	//	UpdatedAt: time.Time{},
-	//}, "bb97e9e6-31a3-11ec-8d3d-0242ac130003": {
-	//	Id:   "bb97e9e6-31a3-11ec-8d3d-0242ac130003",
-	//	Name: "Org 4",
-	//	Slug: "org-4",
-	//	Metadata: map[string]interface{}{
-	//		"Project": "Project 1",
-	//	},
-	//	CreatedAt: time.Time{},
-	//	UpdatedAt: time.Time{},
-	//},
-
 }
 
 func TestListOrganizations(t *testing.T) {
