@@ -116,6 +116,7 @@ func (s Store) ListOrg(ctx context.Context) ([]org.Organization, error) {
 
 func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Organization, error) {
 	var updateSet org.Organization
+	var updatedOrg Organization
 	var isModified bool
 
 	err := s.DB.WithTxn(ctx, sql.TxOptions{Isolation: sql.LevelReadCommitted}, func(tx *sqlx.Tx) error {
@@ -134,15 +135,9 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Or
 			return fmt.Errorf("%w: %s", parseErr, err)
 		}
 
-		var updatedOrg Organization
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 			return tx.GetContext(ctx, &updatedOrg, updateOrganizationQuery, updateSet.Id, updateSet.Name, updateSet.Slug, marshaledMetadata)
 		})
-		if err != nil {
-			return err
-		}
-
-		updateSet, err = transformToOrg(updatedOrg)
 		if err != nil {
 			return err
 		}
@@ -152,6 +147,11 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Or
 
 	if err != nil {
 		return org.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+	}
+
+	updateSet, err = transformToOrg(updatedOrg)
+	if err != nil {
+		return org.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return updateSet, nil
