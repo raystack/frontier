@@ -1,18 +1,24 @@
 package sql
 
 import (
-	"database/sql"
-	"errors"
+	"embed"
+	"fmt"
+	"net/http"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/httpfs"
 )
 
-func RunMigrations(config Config, path ...string) error {
-	m, err := getMigrationInstance(config, path...)
+const (
+	resourcePath = "migrations"
+)
+
+func RunMigrations(config Config, embeddedMigrations embed.FS) error {
+	m, err := getMigrationInstance(config, embeddedMigrations)
 	if err != nil {
 		return err
 	}
@@ -25,8 +31,8 @@ func RunMigrations(config Config, path ...string) error {
 	return err
 }
 
-func RunRollback(config Config, path ...string) error {
-	m, err := getMigrationInstance(config, path...)
+func RunRollback(config Config, embeddedMigrations embed.FS) error {
+	m, err := getMigrationInstance(config, embeddedMigrations)
 	if err != nil {
 		return err
 	}
@@ -39,37 +45,10 @@ func RunRollback(config Config, path ...string) error {
 	return err
 }
 
-func getMigrationInstance(config Config, path ...string) (*migrate.Migrate, error) {
-	db, err := sql.Open(config.Driver, config.URL)
+func getMigrationInstance(config Config, embeddedMigrations embed.FS) (*migrate.Migrate, error) {
+	src, err := httpfs.New(http.FS(embeddedMigrations), resourcePath)
 	if err != nil {
-		return nil, err
+		return &migrate.Migrate{}, fmt.Errorf("db migrator: %v", err)
 	}
-
-	driver, err := getDatabaseAccessObject(db, config.Driver)
-	if err != nil {
-		return nil, err
-	}
-
-	migrationPath := "file://./migrations"
-	if len(path) >= 1 && path[0] != "" {
-		migrationPath = path[0]
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(migrationPath, config.Driver, driver)
-	if err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
-
-func getDatabaseAccessObject(db *sql.DB, driver string) (database.Driver, error) {
-	switch driver {
-	case "postgres":
-		return postgres.WithInstance(db, &postgres.Config{})
-	case "mysql":
-		return mysql.WithInstance(db, &mysql.Config{})
-	default:
-		return nil, errors.New("driver not found")
-	}
+	return migrate.NewWithSourceInstance("httpfs", src, config.URL)
 }
