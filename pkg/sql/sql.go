@@ -63,6 +63,7 @@ func (s SQL) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc func(
 				err = errors.Errorf("%s", p)
 			}
 			err = txn.Rollback()
+			panic(p)
 		} else if err != nil {
 			if rlbErr := txn.Rollback(); err != nil {
 				err = fmt.Errorf("rollback error: %s while executing: %w", rlbErr, err)
