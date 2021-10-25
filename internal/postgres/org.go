@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/internal/org"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/jmoiron/sqlx"
-	"github.com/odpf/shield/org"
 )
 
 type Organization struct {

@@ -3,10 +3,9 @@ package v1
 import (
 	"context"
 	"errors"
+	"github.com/odpf/shield/internal/org"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/org"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"

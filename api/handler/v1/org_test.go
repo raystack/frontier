@@ -3,10 +3,10 @@ package v1
 import (
 	"context"
 	"errors"
+	"github.com/odpf/shield/internal/org"
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/org"
 	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/grpc/codes"
