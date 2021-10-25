@@ -13,12 +13,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 )
 
-const (
-	resourcePath = "migrations"
-)
-
-func RunMigrations(config Config, embeddedMigrations embed.FS) error {
-	m, err := getMigrationInstance(config, embeddedMigrations)
+func RunMigrations(config Config, embeddedMigrations embed.FS, resourcePath string) error {
+	m, err := getMigrationInstance(config, embeddedMigrations, resourcePath)
 	if err != nil {
 		return err
 	}
@@ -31,8 +27,8 @@ func RunMigrations(config Config, embeddedMigrations embed.FS) error {
 	return err
 }
 
-func RunRollback(config Config, embeddedMigrations embed.FS) error {
-	m, err := getMigrationInstance(config, embeddedMigrations)
+func RunRollback(config Config, embeddedMigrations embed.FS, resourcePath string) error {
+	m, err := getMigrationInstance(config, embeddedMigrations, resourcePath)
 	if err != nil {
 		return err
 	}
@@ -45,8 +41,8 @@ func RunRollback(config Config, embeddedMigrations embed.FS) error {
 	return err
 }
 
-func getMigrationInstance(config Config, embeddedMigrations embed.FS) (*migrate.Migrate, error) {
-	src, err := httpfs.New(http.FS(embeddedMigrations), ".")
+func getMigrationInstance(config Config, embeddedMigrations embed.FS, resourcePath string) (*migrate.Migrate, error) {
+	src, err := httpfs.New(http.FS(embeddedMigrations), resourcePath)
 	if err != nil {
 		return &migrate.Migrate{}, fmt.Errorf("db migrator: %v", err)
 	}

@@ -4,3 +4,5 @@ import "embed"
 
 //go:embed *.sql
 var MigrationFs embed.FS
+
+const ResourcePath = "."

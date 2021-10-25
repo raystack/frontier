@@ -17,7 +17,7 @@ func migrationsCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			return sql.RunMigrations(sql.Config{
 				Driver: appConfig.DB.Driver,
 				URL:    appConfig.DB.URL,
-			}, migrations.MigrationFs)
+			}, migrations.MigrationFs, migrations.ResourcePath)
 		},
 	}
 	return c
@@ -32,7 +32,7 @@ func migrationsRollbackCommand(logger log.Logger, appConfig *config.Shield) *cli
 			return sql.RunRollback(sql.Config{
 				Driver: appConfig.DB.Driver,
 				URL:    appConfig.DB.URL,
-			}, migrations.MigrationFs)
+			}, migrations.MigrationFs, migrations.ResourcePath)
 		},
 	}
 	return c
