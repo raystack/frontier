@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"context"
-	"github.com/odpf/shield/internal/org"
-	"github.com/odpf/shield/store/postgres"
 	"time"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/salt/server"
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/internal/org"
+	"github.com/odpf/shield/store/postgres"
+
+	"github.com/odpf/salt/log"
+	"github.com/odpf/salt/server"
 	cli "github.com/spf13/cobra"
 )
 
