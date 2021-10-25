@@ -57,9 +57,7 @@ func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrgani
 func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrganizationRequest) (*shieldv1.CreateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request == nil {
-		// return some error
-	}
+	// TODO (@krtkvrm): Add validations using Proto
 
 	newOrg, err := v.OrgService.CreateOrganization(ctx, org.Organization{
 		Name:     request.GetBody().Name,
