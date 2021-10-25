@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/embeds"
 	"github.com/odpf/shield/pkg/sql"
+	"github.com/odpf/shield/store/postgres/migrations"
 	cli "github.com/spf13/cobra"
 )
 
@@ -17,7 +17,7 @@ func migrationsCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			return sql.RunMigrations(sql.Config{
 				Driver: appConfig.DB.Driver,
 				URL:    appConfig.DB.URL,
-			}, embeds.MigrationFs)
+			}, migrations.MigrationFs)
 		},
 	}
 	return c
@@ -32,7 +32,7 @@ func migrationsRollbackCommand(logger log.Logger, appConfig *config.Shield) *cli
 			return sql.RunRollback(sql.Config{
 				Driver: appConfig.DB.Driver,
 				URL:    appConfig.DB.URL,
-			}, embeds.MigrationFs)
+			}, migrations.MigrationFs)
 		},
 	}
 	return c

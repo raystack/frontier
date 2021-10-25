@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 	"github.com/odpf/shield/internal/org"
-	"github.com/odpf/shield/internal/postgres"
+	"github.com/odpf/shield/store/postgres"
 	"time"
 
 	"github.com/odpf/salt/log"

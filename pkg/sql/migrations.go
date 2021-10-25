@@ -46,7 +46,7 @@ func RunRollback(config Config, embeddedMigrations embed.FS) error {
 }
 
 func getMigrationInstance(config Config, embeddedMigrations embed.FS) (*migrate.Migrate, error) {
-	src, err := httpfs.New(http.FS(embeddedMigrations), resourcePath)
+	src, err := httpfs.New(http.FS(embeddedMigrations), ".")
 	if err != nil {
 		return &migrate.Migrate{}, fmt.Errorf("db migrator: %v", err)
 	}
