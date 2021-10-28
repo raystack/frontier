@@ -10,7 +10,7 @@ type Organization struct {
 	Id        string
 	Name      string
 	Slug      string
-	Metadata  map[string]interface{}
+	Metadata  map[string]string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

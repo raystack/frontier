@@ -125,7 +125,7 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Or
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return  s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
 	})
 
 	if err != nil {
@@ -141,7 +141,7 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Or
 }
 
 func transformToOrg(from Organization) (org.Organization, error) {
-	var unmarshalledMetadata map[string]interface{}
+	var unmarshalledMetadata map[string]string
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 		return org.Organization{}, err
 	}

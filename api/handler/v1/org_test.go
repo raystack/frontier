@@ -23,9 +23,8 @@ var testOrgMap = map[string]org.Organization{
 		Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name: "Org 1",
 		Slug: "org-1",
-		Metadata: map[string]interface{}{
+		Metadata: map[string]string{
 			"email": "org1@org1.com",
-			"count": 10,
 		},
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
@@ -65,7 +64,6 @@ func TestListOrganizations(t *testing.T) {
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
-							"count": structpb.NewNumberValue(10),
 						},
 					},
 					CreatedAt: timestamppb.New(time.Time{}),
@@ -112,6 +110,20 @@ func TestCreateOrganization(t *testing.T) {
 			err:  grpcInternalServerError,
 		},
 		{
+			title: "int values in metadata map",
+			req: &shieldv1.CreateOrganizationRequest{Body: &shieldv1.OrganizationRequestBody{
+				Name: "some org",
+				Slug: "abc",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"count": structpb.NewNumberValue(10),
+					},
+				},
+			}},
+			want: nil,
+			err:  grpcBadBodyError,
+		},
+		{
 			title: "success",
 			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o org.Organization) (org.Organization, error) {
 				return org.Organization{
@@ -122,9 +134,13 @@ func TestCreateOrganization(t *testing.T) {
 				}, nil
 			}},
 			req: &shieldv1.CreateOrganizationRequest{Body: &shieldv1.OrganizationRequestBody{
-				Name:     "some org",
-				Slug:     "abc",
-				Metadata: &structpb.Struct{},
+				Name: "some org",
+				Slug: "abc",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"email": structpb.NewStringValue("a"),
+					},
+				},
 			}},
 			want: &shieldv1.CreateOrganizationResponse{Organization: &shieldv1.Organization{
 				Id:        "new-abc",

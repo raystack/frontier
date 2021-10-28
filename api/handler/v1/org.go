@@ -3,9 +3,12 @@ package v1
 import (
 	"context"
 	"errors"
+	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+
 	"github.com/odpf/shield/internal/org"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -23,6 +26,7 @@ type OrganizationService interface {
 
 var (
 	grpcInternalServerError = status.Errorf(codes.Internal, internalServerError.Error())
+	grpcBadBodyError        = status.Error(codes.InvalidArgument, badRequestError.Error())
 )
 
 // HTTP Codes defined here:
@@ -57,11 +61,25 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 	logger := grpczap.Extract(ctx)
 
 	// TODO (@krtkvrm): Add validations using Proto
+	if request.Body == nil {
+		return nil, grpcBadBodyError
+	}
+
+	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyError
+	}
+
+	slug := request.GetBody().Slug
+	if strings.TrimSpace(slug) == "" {
+		slug = generateSlug(request.GetBody().Name)
+	}
 
 	newOrg, err := v.OrgService.CreateOrganization(ctx, org.Organization{
 		Name:     request.GetBody().Name,
-		Slug:     request.GetBody().Slug,
-		Metadata: request.GetBody().Metadata.AsMap(),
+		Slug:     slug,
+		Metadata: metaDataMap,
 	})
 
 	if err != nil {
@@ -69,7 +87,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 		return nil, grpcInternalServerError
 	}
 
-	metaData, err := structpb.NewStruct(newOrg.Metadata)
+	metaData, err := structpb.NewStruct(mapOfInterfaceValues(newOrg.Metadata))
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -94,8 +112,8 @@ func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizat
 		switch {
 		case errors.Is(err, org.OrgDoesntExist):
 			return nil, status.Errorf(codes.NotFound, "organization not found")
-		//case errors.Is(err, org.InvalidUUID):
-		//	return nil, status.Errorf(codes.Internal, "organization not found")
+		case errors.Is(err, org.InvalidUUID):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -114,11 +132,21 @@ func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizat
 
 func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrganizationRequest) (*shieldv1.UpdateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
+
+	if request.Body == nil {
+		return nil, grpcBadBodyError
+	}
+
+	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
+
 	updatedOrg, err := v.OrgService.UpdateOrganization(ctx, org.Organization{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
-		Metadata: request.GetBody().Metadata.AsMap(),
+		Metadata: metaDataMap,
 	})
 
 	if err != nil {
@@ -136,7 +164,7 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrg
 }
 
 func transformOrgToPB(org org.Organization) (shieldv1.Organization, error) {
-	metaData, err := structpb.NewStruct(org.Metadata)
+	metaData, err := structpb.NewStruct(mapOfInterfaceValues(org.Metadata))
 	if err != nil {
 		return shieldv1.Organization{}, err
 	}
