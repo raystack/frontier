@@ -10,7 +10,6 @@ import (
 
 	"github.com/odpf/shield/internal/org"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -29,7 +28,7 @@ const (
 	createOrganizationQuery          = `INSERT INTO organizations(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
 	listOrganizationsQuery           = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
 	selectOrganizationForUpdateQuery = `SELECT id, name, slug, metadata, version, updated_at from organizations where id=$1;`
-	updateOrganizationQuery          = `UPDATE organizations set name = $3, slug = $4, metadata = $5, updated_at = now(), version=$2+1 where id = $1 AND version=$2 RETURNING id, name, slug, metadata, created_at, updated_at;`
+	updateOrganizationQuery          = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (org.Organization, error) {
@@ -118,46 +117,27 @@ func (s Store) ListOrg(ctx context.Context) ([]org.Organization, error) {
 }
 
 func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Organization, error) {
-	var updateSet org.Organization
 	var updatedOrg Organization
-	var isModified bool
 
-	err := s.DB.WithTxn(ctx, sql.TxOptions{Isolation: sql.LevelReadCommitted}, func(tx *sqlx.Tx) error {
-		fetchedOrg, version, err := s.selectOrg(ctx, toUpdate.Id, true, tx)
-		if err != nil {
-			return err
-		}
+	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+	if err != nil {
+		return org.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
 
-		updateSet, isModified = getUpdatedOrganizationObj(fetchedOrg, toUpdate)
-		if !isModified {
-			return nil
-		}
-
-		marshaledMetadata, err := json.Marshal(updateSet.Metadata)
-		if err != nil {
-			return fmt.Errorf("%w: %s", parseErr, err)
-		}
-
-		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return tx.GetContext(ctx, &updatedOrg, updateOrganizationQuery, updateSet.Id, version, updateSet.Name, updateSet.Slug, marshaledMetadata)
-		})
-		if err != nil {
-			return err
-		}
-
-		return nil
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return  s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
 	})
 
 	if err != nil {
 		return org.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
 	}
 
-	updateSet, err = transformToOrg(updatedOrg)
+	toUpdate, err = transformToOrg(updatedOrg)
 	if err != nil {
 		return org.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
-	return updateSet, nil
+	return toUpdate, nil
 }
 
 func transformToOrg(from Organization) (org.Organization, error) {
@@ -174,26 +154,4 @@ func transformToOrg(from Organization) (org.Organization, error) {
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,
 	}, nil
-}
-
-func getUpdatedOrganizationObj(existing, req org.Organization) (org.Organization, bool) {
-	var isModified bool
-
-	if req.Name != "" && req.Name != existing.Name {
-		existing.Name = req.Name
-		isModified = true
-	}
-
-	if req.Slug != "" && req.Slug != existing.Slug {
-		existing.Slug = req.Slug
-		isModified = true
-	}
-
-	// TODO: Check if "This can also clear the metadata" requirement
-	if !cmp.Equal(req.Metadata, existing.Metadata) {
-		existing.Metadata = req.Metadata
-		isModified = true
-	}
-
-	return existing, isModified
 }
