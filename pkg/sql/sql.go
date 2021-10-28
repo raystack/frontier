@@ -37,7 +37,7 @@ func New(config Config) (*SQL, error) {
 	d.SetMaxOpenConns(config.MaxOpenConns)
 	d.SetConnMaxLifetime(config.ConnMaxLifeTime)
 
-	return &SQL{DB: d, queryTimeOut: 10 * time.Millisecond}, err // TODO: queryTimeOut configurable
+	return &SQL{DB: d, queryTimeOut: 100 * time.Millisecond}, err // TODO: queryTimeOut configurable
 }
 
 func (s SQL) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {

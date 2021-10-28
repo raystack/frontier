@@ -19,6 +19,7 @@ type Organization struct {
 	Name      string    `db:"name"`
 	Slug      string    `db:"slug"`
 	Metadata  []byte    `db:"metadata"`
+	Version   int       `db:"version"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -27,15 +28,16 @@ const (
 	getOrganizationsQuery            = `SELECT id, name, slug, metadata, created_at, updated_at from organizations where id=$1;`
 	createOrganizationQuery          = `INSERT INTO organizations(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
 	listOrganizationsQuery           = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
-	selectOrganizationForUpdateQuery = `SELECT id, name, slug, metadata, created_at, updated_at from organizations where id=$1 FOR UPDATE;`
-	updateOrganizationQuery          = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
+	selectOrganizationForUpdateQuery = `SELECT id, name, slug, metadata, version, updated_at from organizations where id=$1;`
+	updateOrganizationQuery          = `UPDATE organizations set name = $3, slug = $4, metadata = $5, updated_at = now(), version=$2+1 where id = $1 AND version=$2 RETURNING id, name, slug, metadata, created_at, updated_at;`
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (org.Organization, error) {
-	return s.selectOrg(ctx, id, false, nil)
+	fetchedOrg, _, err := s.selectOrg(ctx, id, false, nil)
+	return fetchedOrg, err
 }
 
-func (s Store) selectOrg(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (org.Organization, error) {
+func (s Store) selectOrg(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (org.Organization, int, error) {
 	var fetchedOrg Organization
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -47,34 +49,34 @@ func (s Store) selectOrg(ctx context.Context, id string, forUpdate bool, txn *sq
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return org.Organization{}, org.OrgDoesntExist
+		return org.Organization{}, -1, org.OrgDoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return org.Organization{}, org.InvalidUUID
+		return org.Organization{}, -1, org.InvalidUUID
 	} else if err != nil {
-		return org.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
+		return org.Organization{}, -1, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := transformToOrg(fetchedOrg)
 	if err != nil {
-		return org.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+		return org.Organization{}, -1, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	return transformedOrg, nil
+	return transformedOrg, fetchedOrg.Version, nil
 }
 
 func (s Store) CreateOrg(ctx context.Context, orgToCreate org.Organization) (org.Organization, error) {
-	var newOrg Organization
-
 	marshaledMetadata, err := json.Marshal(orgToCreate.Metadata)
 	if err != nil {
 		return org.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	var newOrg Organization
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newOrg, createOrganizationQuery, orgToCreate.Name, orgToCreate.Slug, marshaledMetadata)
 	})
+
 	if err != nil {
 		return org.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -121,7 +123,7 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Or
 	var isModified bool
 
 	err := s.DB.WithTxn(ctx, sql.TxOptions{Isolation: sql.LevelReadCommitted}, func(tx *sqlx.Tx) error {
-		fetchedOrg, err := s.selectOrg(ctx, toUpdate.Id, true, tx)
+		fetchedOrg, version, err := s.selectOrg(ctx, toUpdate.Id, true, tx)
 		if err != nil {
 			return err
 		}
@@ -137,7 +139,7 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate org.Organization) (org.Or
 		}
 
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return tx.GetContext(ctx, &updatedOrg, updateOrganizationQuery, updateSet.Id, updateSet.Name, updateSet.Slug, marshaledMetadata)
+			return tx.GetContext(ctx, &updatedOrg, updateOrganizationQuery, updateSet.Id, version, updateSet.Name, updateSet.Slug, marshaledMetadata)
 		})
 		if err != nil {
 			return err
