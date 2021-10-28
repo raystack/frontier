@@ -4,11 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/salt/server"
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/internal/org"
+	"github.com/odpf/shield/store/postgres"
+
+	"github.com/odpf/salt/log"
+	"github.com/odpf/salt/server"
 	cli "github.com/spf13/cobra"
 )
 
@@ -20,6 +23,9 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		RunE: func(c *cli.Command, args []string) error {
 			ctx, cancelFunc := context.WithCancel(server.HandleSignals(context.Background()))
 			defer cancelFunc()
+
+			db, dbShutdown := setupDB(appConfig.DB, logger)
+			defer dbShutdown()
 
 			s, err := server.NewMux(server.Config{
 				Port: appConfig.App.Port,
@@ -34,7 +40,11 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			}
 
 			handler.Register(ctx, s, gw, handler.Deps{
-				V1: v1.Dep{},
+				V1: v1.Dep{
+					OrgService: org.Service{
+						Store: postgres.NewStore(db),
+					},
+				},
 			})
 
 			go s.Serve()

@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/odpf/salt/config"
 )
@@ -14,6 +15,7 @@ type Shield struct {
 	Log      LogConfig   `yaml:"log"`
 	NewRelic NewRelic    `yaml:"new_relic"`
 	App      Service     `yaml:"app"`
+	DB       DBConfig    `yaml:"db"`
 }
 
 type LogConfig struct {
@@ -48,6 +50,14 @@ type NewRelic struct {
 	AppName string `yaml:"app_name" mapstructure:"app_name"`
 	License string `yaml:"license" mapstructure:"license"`
 	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
+}
+
+type DBConfig struct {
+	Driver          string        `yaml:"driver" mapstructure:"driver"`
+	URL             string        `yaml:"url" mapstructure:"url"`
+	MaxIdleConns    int           `yaml:"max_idle_conns" mapstructure:"max_idle_conns" default:"10"`
+	MaxOpenConns    int           `yaml:"max_open_conns" mapstructure:"max_open_conns" default:"10"`
+	ConnMaxLifeTime time.Duration `yaml:"conn_max_life_time" mapstructure:"conn_max_life_time" default:"10ms"`
 }
 
 func Load() *Shield {
