@@ -3,6 +3,17 @@ package v1
 import (
 	"fmt"
 	"strings"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+// HTTP Codes defined here:
+// https://github.com/grpc-ecosystem/grpc-gateway/blob/master/runtime/errors.go#L36
+
+var (
+	grpcInternalServerError = status.Errorf(codes.Internal, internalServerError.Error())
+	grpcBadBodyError        = status.Error(codes.InvalidArgument, badRequestError.Error())
 )
 
 func mapOfStringValues(m map[string]interface{}) (map[string]string, error) {

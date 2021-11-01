@@ -1,1 +1,153 @@
 package postgres
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/odpf/shield/internal/project"
+)
+
+type Project struct {
+	Id        string    `db:"id"`
+	Name      string    `db:"name"`
+	Slug      string    `db:"slug"`
+	Metadata  []byte    `db:"metadata"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+const (
+	getProjectsQuery   = `SELECT id, name, slug, metadata, created_at, updated_at from projects where id=$1;`
+	createProjectQuery = `INSERT INTO projects(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
+	listProjectQuery   = `SELECT id, name, slug, metadata, created_at, updated_at from projects;`
+	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
+)
+
+func (s Store) GetProject(ctx context.Context, id string) (project.Project, error) {
+	var fetchedProject Project
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return project.Project{}, project.ProjectDoesntExist
+	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+		// TODO: this uuid syntax is a error defined in db, not in library
+		// need to look into better ways to implement this
+		return project.Project{}, project.InvalidUUID
+	} else if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	if err != nil {
+		return project.Project{}, err
+	}
+
+	transformedProject, err := transformToProject(fetchedProject)
+	if err != nil {
+		return project.Project{}, err
+	}
+
+	return transformedProject, nil
+}
+
+func (s Store) CreateProject(ctx context.Context, projectToCreate project.Project) (project.Project, error) {
+	marshaledMetadata, err := json.Marshal(projectToCreate.Metadata)
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	var newProject Project
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, marshaledMetadata)
+	})
+
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	transformedOrg, err := transformToProject(newProject)
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	return transformedOrg, nil
+}
+
+func (s Store) ListProject(ctx context.Context) ([]project.Project, error) {
+	var fetchedProjects []Project
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedProjects, listProjectQuery)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []project.Project{}, project.ProjectDoesntExist
+	}
+
+	if err != nil {
+		return []project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedProjects []project.Project
+
+	for _, o := range fetchedProjects {
+		transformedOrg, err := transformToProject(o)
+		if err != nil {
+			return []project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedProjects = append(transformedProjects, transformedOrg)
+	}
+
+	return transformedProjects, nil
+}
+
+func (s Store) UpdateProject(ctx context.Context, toUpdate project.Project) (project.Project, error) {
+	var updatedProject Project
+
+	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return project.Project{}, project.ProjectDoesntExist
+	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+		// TODO: this uuid syntax is a error defined in db, not in library
+		// need to look into better ways to implement this
+		return project.Project{}, project.InvalidUUID
+	} else if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	toUpdate, err = transformToProject(updatedProject)
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
+	return toUpdate, nil
+}
+
+func transformToProject(from Project) (project.Project, error) {
+	var unmarshalledMetadata map[string]string
+	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+		return project.Project{}, err
+	}
+
+	return project.Project{
+		Id:        from.Id,
+		Name:      from.Name,
+		Slug:      from.Slug,
+		Metadata:  unmarshalledMetadata,
+		CreatedAt: from.CreatedAt,
+		UpdatedAt: from.UpdatedAt,
+	}, nil
+}

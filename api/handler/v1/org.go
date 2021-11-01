@@ -24,14 +24,6 @@ type OrganizationService interface {
 	UpdateOrganization(ctx context.Context, toUpdate org.Organization) (org.Organization, error)
 }
 
-var (
-	grpcInternalServerError = status.Errorf(codes.Internal, internalServerError.Error())
-	grpcBadBodyError        = status.Error(codes.InvalidArgument, badRequestError.Error())
-)
-
-// HTTP Codes defined here:
-// https://github.com/grpc-ecosystem/grpc-gateway/blob/master/runtime/errors.go#L36
-
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrganizationsRequest) (*shieldv1.ListOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var orgs []*shieldv1.Organization

@@ -8,6 +8,7 @@ import (
 	v1 "github.com/odpf/shield/api/handler/v1"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/org"
+	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/store/postgres"
 
 	"github.com/odpf/salt/log"
@@ -42,6 +43,9 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			handler.Register(ctx, s, gw, handler.Deps{
 				V1: v1.Dep{
 					OrgService: org.Service{
+						Store: postgres.NewStore(db),
+					},
+					ProjectService: project.Service{
 						Store: postgres.NewStore(db),
 					},
 				},
