@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/odpf/shield/internal/group"
 	"time"
 
 	"github.com/odpf/shield/api/handler"
@@ -46,6 +47,9 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 						Store: postgres.NewStore(db),
 					},
 					ProjectService: project.Service{
+						Store: postgres.NewStore(db),
+					},
+					GroupService: group.Service{
 						Store: postgres.NewStore(db),
 					},
 				},
