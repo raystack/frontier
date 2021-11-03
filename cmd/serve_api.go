@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"context"
-	"github.com/odpf/shield/internal/group"
 	"time"
 
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/store/postgres"

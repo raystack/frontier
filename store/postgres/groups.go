@@ -2,40 +2,56 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/odpf/shield/internal/group"
 	"time"
+
+	"github.com/odpf/shield/internal/group"
+	"github.com/odpf/shield/internal/org"
 )
 
 type Group struct {
-	Id           string    `db:"id"`
-	Name         string    `db:"name"`
-	Slug         string    `db:"slug"`
-	Metadata     []byte    `db:"metadata"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
-	Organization `db:"organizations"`
+	Id        string    `db:"id"`
+	Name      string    `db:"name"`
+	Slug      string    `db:"slug"`
+	OrgID     string    `db:"org_id"`
+	Metadata  []byte    `db:"metadata"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 const (
-	createGroupsQuery = `
-			WITH insert_into_groups AS (
-				INSERT INTO groups(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at
-			)
-			SELECT 
-			    insert_into_groups.id, insert_into_groups.name, insert_into_groups.slug, insert_into_groups.metadata, insert_into_groups.created_at, insert_into_groups.updated_at,
-				organizations.id as "organizations.id",
-			    organizations.name as "organizations.name",
-			    organizations.slug as "organizations.slug",
-			    organizations.metadata as "organizations.metadata",
-			    organizations.created_at as "organizations.created_at",
-			    organizations.updated_at as "organizations.updated_at"
-			FROM 
-			    insert_into_groups, organizations
-			WHERE 
-			    insert_into_groups.org_id = organizations.id;`
+	createGroupsQuery = `INSERT INTO groups(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
+	getGroupsQuery    = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups where id=$1;`
+	listGroupsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups;`
+	updateGroupQuery  = `UPDATE groups set name = $2, slug = $3, org_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 )
+
+func (s Store) GetGroup(ctx context.Context, id string) (group.Group, error) {
+	var fetchedGroup Group
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return group.Group{}, group.GroupDoesntExist
+	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+		// TODO: this uuid syntax is a error defined in db, not in library
+		// need to look into better ways to implement this
+		return group.Group{}, group.InvalidUUID
+	} else if err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	transformedGroup, err := transformToGroup(fetchedGroup)
+	if err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	return transformedGroup, nil
+}
 
 func (s Store) CreateGroup(ctx context.Context, grp group.Group) (group.Group, error) {
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
@@ -52,12 +68,65 @@ func (s Store) CreateGroup(ctx context.Context, grp group.Group) (group.Group, e
 		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedOrg, err := transformToGroup(newGroup)
+	transformedGroup, err := transformToGroup(newGroup)
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	return transformedOrg, nil
+	return transformedGroup, nil
+}
+
+func (s Store) ListGroups(ctx context.Context) ([]group.Group, error) {
+	var fetchedGroups []Group
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedGroups, listGroupsQuery)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []group.Group{}, group.GroupDoesntExist
+	}
+
+	if err != nil {
+		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedGroups []group.Group
+
+	for _, v := range fetchedGroups {
+		transformedGroup, err := transformToGroup(v)
+		if err != nil {
+			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedGroups = append(transformedGroups, transformedGroup)
+	}
+
+	return transformedGroups, nil
+}
+
+func (s Store) UpdateGroup(ctx context.Context, toUpdate group.Group) (group.Group, error) {
+	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+	if err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	var updatedGroup Group
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return group.Group{}, group.GroupDoesntExist
+	} else if err != nil {
+		return group.Group{}, fmt.Errorf("%s: %w", dbErr, err)
+	}
+
+	updated, err := transformToGroup(updatedGroup)
+	if err != nil {
+		return group.Group{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
+	return updated, nil
 }
 
 func transformToGroup(from Group) (group.Group, error) {
@@ -66,16 +135,11 @@ func transformToGroup(from Group) (group.Group, error) {
 		return group.Group{}, err
 	}
 
-	transformedOrg, err := transformToOrg(from.Organization)
-	if err != nil {
-		return group.Group{}, err
-	}
-
 	return group.Group{
 		Id:           from.Id,
 		Name:         from.Name,
 		Slug:         from.Slug,
-		Organization: transformedOrg,
+		Organization: org.Organization{Id: from.OrgID},
 		Metadata:     unmarshalledMetadata,
 		CreatedAt:    from.CreatedAt,
 		UpdatedAt:    from.UpdatedAt,

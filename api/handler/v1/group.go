@@ -2,24 +2,58 @@ package v1
 
 import (
 	"context"
+	"errors"
+	"strings"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+
 	"github.com/odpf/shield/internal/group"
+	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/model"
+
+	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"strings"
-
-	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
 )
 
 type GroupService interface {
 	CreateGroup(ctx context.Context, grp group.Group) (group.Group, error)
+	GetGroup(ctx context.Context, id string) (group.Group, error)
+	ListGroups(ctx context.Context) ([]group.Group, error)
+	UpdateGroup(ctx context.Context, grp group.Group) (group.Group, error)
 }
 
+var (
+	grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
+)
+
 func (v Dep) ListGroups(ctx context.Context, request *shieldv1.ListGroupsRequest) (*shieldv1.ListGroupsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
+	logger := grpczap.Extract(ctx)
+
+	var groups []*shieldv1.Group
+
+	groupList, err := v.GroupService.ListGroups(ctx)
+	if errors.Is(err, group.GroupDoesntExist) {
+		return nil, nil
+	} else if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, v := range groupList {
+		groupPB, err := transformGroupToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+
+		groups = append(groups, &groupPB)
+	}
+
+	return &shieldv1.ListGroupsResponse{Groups: groups}, nil
 }
 
 func (v Dep) CreateGroup(ctx context.Context, request *shieldv1.CreateGroupRequest) (*shieldv1.CreateGroupResponse, error) {
@@ -66,7 +100,28 @@ func (v Dep) CreateGroup(ctx context.Context, request *shieldv1.CreateGroupReque
 }
 
 func (v Dep) GetGroup(ctx context.Context, request *shieldv1.GetGroupRequest) (*shieldv1.GetGroupResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
+	logger := grpczap.Extract(ctx)
+
+	fetchedGroup, err := v.GroupService.GetGroup(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.GroupDoesntExist):
+			return nil, grpcGroupNotFoundErr
+		case errors.Is(err, group.InvalidUUID):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	groupPB, err := transformGroupToPB(fetchedGroup)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &shieldv1.GetGroupResponse{Group: &groupPB}, nil
 }
 
 func (v Dep) ListGroupUsers(ctx context.Context, request *shieldv1.ListGroupUsersRequest) (*shieldv1.ListGroupUsersResponse, error) {
@@ -74,5 +129,55 @@ func (v Dep) ListGroupUsers(ctx context.Context, request *shieldv1.ListGroupUser
 }
 
 func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1.UpdateGroupRequest) (*shieldv1.UpdateGroupResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
+	logger := grpczap.Extract(ctx)
+
+	if request.Body == nil {
+		return nil, grpcBadBodyError
+	}
+
+	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
+
+	updatedGroup, err := v.GroupService.UpdateGroup(ctx, group.Group{
+		Id:           request.GetId(),
+		Name:         request.GetBody().GetName(),
+		Slug:         request.GetBody().GetSlug(),
+		Organization: org.Organization{Id: request.GetBody().OrgId},
+		Metadata:     metaDataMap,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.GroupDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	groupPB, err := transformGroupToPB(updatedGroup)
+	if err != nil {
+		return nil, grpcInternalServerError
+	}
+
+	return &shieldv1.UpdateGroupResponse{Group: &groupPB}, nil
+}
+
+func transformGroupToPB(grp group.Group) (shieldv1.Group, error) {
+	metaData, err := structpb.NewStruct(mapOfInterfaceValues(grp.Metadata))
+	if err != nil {
+		return shieldv1.Group{}, err
+	}
+
+	return shieldv1.Group{
+		Id:        grp.Id,
+		Name:      grp.Name,
+		Slug:      grp.Slug,
+		OrgId:     grp.Organization.Id,
+		Metadata:  metaData,
+		CreatedAt: timestamppb.New(grp.CreatedAt),
+		UpdatedAt: timestamppb.New(grp.UpdatedAt),
+	}, nil
 }
