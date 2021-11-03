@@ -15,6 +15,7 @@ type Dep struct {
 	ProjectService ProjectService
 	GroupService   GroupService
 	RoleService    RoleService
+	UserService    UserService
 }
 
 var (
