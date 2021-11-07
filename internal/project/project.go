@@ -3,8 +3,9 @@ package project
 import (
 	"context"
 	"errors"
-	"github.com/odpf/shield/internal/org"
 	"time"
+
+	"github.com/odpf/shield/internal/org"
 )
 
 type Project struct {
