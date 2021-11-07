@@ -20,7 +20,7 @@ type Service struct {
 }
 
 var (
-	ProjectDoesntExist = errors.New("org doesn't exist")
+	ProjectDoesntExist = errors.New("project doesn't exist")
 	InvalidUUID        = errors.New("invalid syntax of uuid")
 )
 
