@@ -3,16 +3,18 @@ package project
 import (
 	"context"
 	"errors"
+	"github.com/odpf/shield/internal/org"
 	"time"
 )
 
 type Project struct {
-	Id        string
-	Name      string
-	Slug      string
-	Metadata  map[string]string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id           string
+	Name         string
+	Slug         string
+	Organization org.Organization
+	Metadata     map[string]string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type Service struct {
@@ -37,9 +39,10 @@ func (s Service) GetProject(ctx context.Context, id string) (Project, error) {
 
 func (s Service) CreateProject(ctx context.Context, project Project) (Project, error) {
 	newOrg, err := s.Store.CreateProject(ctx, Project{
-		Name:     project.Name,
-		Slug:     project.Slug,
-		Metadata: project.Metadata,
+		Name:         project.Name,
+		Slug:         project.Slug,
+		Metadata:     project.Metadata,
+		Organization: project.Organization,
 	})
 
 	if err != nil {

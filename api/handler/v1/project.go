@@ -65,6 +65,7 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
+		//Organization: org.Organization{Id: "ACCEPT"},
 	})
 
 	if err != nil {

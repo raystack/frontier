@@ -15,16 +15,17 @@ type Project struct {
 	Id        string    `db:"id"`
 	Name      string    `db:"name"`
 	Slug      string    `db:"slug"`
+	OrgId     string    `db:"org_id"`
 	Metadata  []byte    `db:"metadata"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
 const (
-	getProjectsQuery   = `SELECT id, name, slug, metadata, created_at, updated_at from projects where id=$1;`
-	createProjectQuery = `INSERT INTO projects(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
-	listProjectQuery   = `SELECT id, name, slug, metadata, created_at, updated_at from projects;`
-	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
+	getProjectsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects where id=$1;`
+	createProjectQuery = `INSERT INTO projects(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
+	listProjectQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects;`
+	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, org_id=$4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
 )
 
 func (s Store) GetProject(ctx context.Context, id string) (project.Project, error) {
@@ -63,7 +64,7 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate project.Projec
 
 	var newProject Project
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, projectToCreate.Organization.Id, marshaledMetadata)
 	})
 
 	if err != nil {
@@ -115,7 +116,7 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate project.Project) (pro
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -123,7 +124,7 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate project.Project) (pro
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return project.Project{}, project.InvalidUUID
+		return project.Project{}, fmt.Errorf("%w: %s", project.InvalidUUID, err)
 	} else if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
