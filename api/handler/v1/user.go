@@ -150,7 +150,6 @@ func (v Dep) UpdateUser(ctx context.Context, request *shieldv1.UpdateUserRequest
 	}
 
 	return &shieldv1.UpdateUserResponse{User: &userPB}, nil
-
 }
 
 func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1.UpdateCurrentUserRequest) (*shieldv1.UpdateCurrentUserResponse, error) {
