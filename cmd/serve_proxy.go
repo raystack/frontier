@@ -135,7 +135,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRep
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
 	return matchWare
-}
+}cmd/serve_api.go
 
 type blobFactory struct{}
 

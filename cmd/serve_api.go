@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"context"
-	"time"
-
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1"
 	"github.com/odpf/shield/config"
@@ -11,7 +9,9 @@ import (
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
+	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/store/postgres"
+	"time"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/server"
@@ -54,6 +54,9 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 						Store: postgres.NewStore(db),
 					},
 					RoleService: roles.Service{
+						Store: postgres.NewStore(db),
+					},
+					UserService: user.Service{
 						Store: postgres.NewStore(db),
 					},
 				},
