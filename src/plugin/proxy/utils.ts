@@ -8,7 +8,7 @@ import modifyRequest from './modifyRequest';
 interface YAMLRoute {
   method: string;
   path: string;
-  proxy: Record<string, string>;
+  proxy: Record<string, any>;
   permissions?: Array<Record<string, any>>;
   hooks?: Array<Record<string, any>>;
 }
@@ -20,7 +20,8 @@ export const expand = (
   string: string,
   envs: NodeJS.ProcessEnv,
   regexString = NODE_ENV_REGEX,
-  stripFromCharIndex = 2
+  stripFromCharIndex = 2,
+  encodeParams: boolean = false
 ) => {
   // eslint-disable-next-line no-template-curly-in-string
   const valuesRegex = new RegExp(regexString, 'g');
@@ -31,7 +32,10 @@ export const expand = (
 
     // varName format "ENVIRONMENT_NAME:defaultvalue"
     const [environmentName, ...rest] = varName.split(':');
-    const envVariable = envs[environmentName];
+    let envVariable = encodeParams
+      ? encodeURIComponent(envs[environmentName] as string)
+      : envs[environmentName];
+
     return envVariable !== undefined ? envVariable : rest.join(':');
   });
 };
@@ -83,15 +87,22 @@ export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
         onResponse: onResponse(route?.proxy?.extraOptions)
       }),
       async mapUri(request: Hapi.Request) {
-        const { uri, protocol, host, port, path } = route.proxy;
+        const { uri, protocol, host, port, path, encodeParams } = route.proxy;
         const queryParams = request.url.search || '';
         const proxyURI = uri
-          ? `${expand(uri, request.params, PARAM_REGEX, 1)}${queryParams}`
+          ? `${expand(
+              uri,
+              request.params,
+              PARAM_REGEX,
+              1,
+              encodeParams
+            )}${queryParams}`
           : `${protocol}://${host}:${port}/${expand(
               path,
               request.params,
               PARAM_REGEX,
-              1
+              1,
+              encodeParams
             )}${queryParams}'`;
         return {
           uri: proxyURI
