@@ -87,7 +87,8 @@ export const generateRoutes = (contents: Array<YAMLRoute> = []) => {
         onResponse: onResponse(route?.proxy?.extraOptions)
       }),
       async mapUri(request: Hapi.Request) {
-        const { uri, protocol, host, port, path, encodeParams } = route.proxy;
+        const { uri, protocol, host, port, path, extraOptions } = route.proxy;
+        const encodeParams = extraOptions?.encodeParams || false;
         const queryParams = request.url.search || '';
         const proxyURI = uri
           ? `${expand(
