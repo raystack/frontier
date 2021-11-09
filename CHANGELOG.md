@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.5-rc.5](https://github.com/odpf/shield/compare/v0.1.5-rc.4...v0.1.5-rc.5) (2021-11-09)
+
+
+### Features
+
+* **proxy:** add encodeParams to encode parameter variables ([98057d2](https://github.com/odpf/shield/commit/98057d2ff04f4595bbbb78fc44cce436d1a48834))
+* **proxy:** put encodeParams inside extraOptions ([baa256d](https://github.com/odpf/shield/commit/baa256d66d61eb4a35f91d6c10e8a9c839d5e1f0))
+
 ### [0.1.5-rc.4](https://github.com/odpf/shield/compare/v0.1.5-rc.3...v0.1.5-rc.4) (2021-08-19)
 
 ### [0.1.5-rc.3](https://github.com/odpf/shield/compare/v0.1.5-rc.1...v0.1.5-rc.3) (2021-08-17)
