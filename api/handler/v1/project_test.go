@@ -270,18 +270,18 @@ type mockProject struct {
 	UpdateProjectFunc func(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error)
 }
 
-func (m mockProject) ListProject(ctx context.Context) ([]modelv1.Project, error) {
+func (m mockProject) List(ctx context.Context) ([]modelv1.Project, error) {
 	return m.ListProjectFunc(ctx)
 }
 
-func (m mockProject) CreateProject(ctx context.Context, project modelv1.Project) (modelv1.Project, error) {
+func (m mockProject) Create(ctx context.Context, project modelv1.Project) (modelv1.Project, error) {
 	return m.CreateProjectFunc(ctx, project)
 }
 
-func (m mockProject) GetProject(ctx context.Context, id string) (modelv1.Project, error) {
+func (m mockProject) Get(ctx context.Context, id string) (modelv1.Project, error) {
 	return m.GetProjectFunc(ctx, id)
 }
 
-func (m mockProject) UpdateProject(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error) {
+func (m mockProject) Update(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error) {
 	return m.UpdateProjectFunc(ctx, toUpdate)
 }

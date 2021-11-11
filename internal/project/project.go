@@ -23,11 +23,11 @@ type Store interface {
 	UpdateProject(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error)
 }
 
-func (s Service) GetProject(ctx context.Context, id string) (modelv1.Project, error) {
+func (s Service) Get(ctx context.Context, id string) (modelv1.Project, error) {
 	return s.Store.GetProject(ctx, id)
 }
 
-func (s Service) CreateProject(ctx context.Context, project modelv1.Project) (modelv1.Project, error) {
+func (s Service) Create(ctx context.Context, project modelv1.Project) (modelv1.Project, error) {
 	newOrg, err := s.Store.CreateProject(ctx, modelv1.Project{
 		Name:         project.Name,
 		Slug:         project.Slug,
@@ -42,10 +42,10 @@ func (s Service) CreateProject(ctx context.Context, project modelv1.Project) (mo
 	return newOrg, nil
 }
 
-func (s Service) ListProject(ctx context.Context) ([]modelv1.Project, error) {
+func (s Service) List(ctx context.Context) ([]modelv1.Project, error) {
 	return s.Store.ListProject(ctx)
 }
 
-func (s Service) UpdateProject(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error) {
+func (s Service) Update(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error) {
 	return s.Store.UpdateProject(ctx, toUpdate)
 }

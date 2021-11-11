@@ -21,17 +21,17 @@ import (
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
 
 type ProjectService interface {
-	GetProject(ctx context.Context, id string) (modelv1.Project, error)
-	CreateProject(ctx context.Context, project modelv1.Project) (modelv1.Project, error)
-	ListProject(ctx context.Context) ([]modelv1.Project, error)
-	UpdateProject(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error)
+	Get(ctx context.Context, id string) (modelv1.Project, error)
+	Create(ctx context.Context, project modelv1.Project) (modelv1.Project, error)
+	List(ctx context.Context) ([]modelv1.Project, error)
+	Update(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error)
 }
 
 func (v Dep) ListProjects(ctx context.Context, request *shieldv1.ListProjectsRequest) (*shieldv1.ListProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var projects []*shieldv1.Project
 
-	projectList, err := v.ProjectService.ListProject(ctx)
+	projectList, err := v.ProjectService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -63,7 +63,7 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newProject, err := v.ProjectService.CreateProject(ctx, modelv1.Project{
+	newProject, err := v.ProjectService.Create(ctx, modelv1.Project{
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
@@ -94,7 +94,7 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 func (v Dep) GetProject(ctx context.Context, request *shieldv1.GetProjectRequest) (*shieldv1.GetProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedProject, err := v.ProjectService.GetProject(ctx, request.GetId())
+	fetchedProject, err := v.ProjectService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -124,7 +124,7 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectR
 		return nil, grpcBadBodyError
 	}
 
-	updatedProject, err := v.ProjectService.UpdateProject(ctx, modelv1.Project{
+	updatedProject, err := v.ProjectService.Update(ctx, modelv1.Project{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
