@@ -6,23 +6,25 @@ import (
 	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/internal/project"
 
-	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
+	"github.com/odpf/shield/internal/project"
+	modelv1 "github.com/odpf/shield/model/v1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
 )
 
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
 
 type ProjectService interface {
-	GetProject(ctx context.Context, id string) (project.Project, error)
-	CreateProject(ctx context.Context, project project.Project) (project.Project, error)
-	ListProject(ctx context.Context) ([]project.Project, error)
-	UpdateProject(ctx context.Context, toUpdate project.Project) (project.Project, error)
+	GetProject(ctx context.Context, id string) (modelv1.Project, error)
+	CreateProject(ctx context.Context, project modelv1.Project) (modelv1.Project, error)
+	ListProject(ctx context.Context) ([]modelv1.Project, error)
+	UpdateProject(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error)
 }
 
 func (v Dep) ListProjects(ctx context.Context, request *shieldv1.ListProjectsRequest) (*shieldv1.ListProjectsResponse, error) {
@@ -61,7 +63,7 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newProject, err := v.ProjectService.CreateProject(ctx, project.Project{
+	newProject, err := v.ProjectService.CreateProject(ctx, modelv1.Project{
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
@@ -122,7 +124,7 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectR
 		return nil, grpcBadBodyError
 	}
 
-	updatedProject, err := v.ProjectService.UpdateProject(ctx, project.Project{
+	updatedProject, err := v.ProjectService.UpdateProject(ctx, modelv1.Project{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
@@ -142,7 +144,7 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectR
 	return &shieldv1.UpdateProjectResponse{Project: &projectPB}, nil
 }
 
-func transformProjectToPB(prj project.Project) (shieldv1.Project, error) {
+func transformProjectToPB(prj modelv1.Project) (shieldv1.Project, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(prj.Metadata))
 	if err != nil {
 		return shieldv1.Project{}, err

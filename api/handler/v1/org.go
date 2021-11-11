@@ -8,6 +8,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/org"
+	modelv1 "github.com/odpf/shield/model/v1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,10 +19,10 @@ import (
 )
 
 type OrganizationService interface {
-	GetOrganization(ctx context.Context, id string) (org.Organization, error)
-	CreateOrganization(ctx context.Context, org org.Organization) (org.Organization, error)
-	ListOrganizations(ctx context.Context) ([]org.Organization, error)
-	UpdateOrganization(ctx context.Context, toUpdate org.Organization) (org.Organization, error)
+	GetOrganization(ctx context.Context, id string) (modelv1.Organization, error)
+	CreateOrganization(ctx context.Context, org modelv1.Organization) (modelv1.Organization, error)
+	ListOrganizations(ctx context.Context) ([]modelv1.Organization, error)
+	UpdateOrganization(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error)
 }
 
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrganizationsRequest) (*shieldv1.ListOrganizationsResponse, error) {
@@ -68,7 +69,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newOrg, err := v.OrgService.CreateOrganization(ctx, org.Organization{
+	newOrg, err := v.OrgService.CreateOrganization(ctx, modelv1.Organization{
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
@@ -134,7 +135,7 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrg
 		return nil, grpcBadBodyError
 	}
 
-	updatedOrg, err := v.OrgService.UpdateOrganization(ctx, org.Organization{
+	updatedOrg, err := v.OrgService.UpdateOrganization(ctx, modelv1.Organization{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
@@ -155,7 +156,7 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrg
 	return &shieldv1.UpdateOrganizationResponse{Organization: &orgPB}, nil
 }
 
-func transformOrgToPB(org org.Organization) (shieldv1.Organization, error) {
+func transformOrgToPB(org modelv1.Organization) (shieldv1.Organization, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(org.Metadata))
 	if err != nil {
 		return shieldv1.Organization{}, err
