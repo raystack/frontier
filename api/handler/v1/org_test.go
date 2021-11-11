@@ -173,18 +173,18 @@ type mockOrgSrv struct {
 	UpdateOrganizationFunc func(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error)
 }
 
-func (m mockOrgSrv) GetOrganization(ctx context.Context, id string) (modelv1.Organization, error) {
+func (m mockOrgSrv) Get(ctx context.Context, id string) (modelv1.Organization, error) {
 	return m.GetOrganizationFunc(ctx, id)
 }
 
-func (m mockOrgSrv) CreateOrganization(ctx context.Context, org modelv1.Organization) (modelv1.Organization, error) {
+func (m mockOrgSrv) Create(ctx context.Context, org modelv1.Organization) (modelv1.Organization, error) {
 	return m.CreateOrganizationFunc(ctx, org)
 }
 
-func (m mockOrgSrv) ListOrganizations(ctx context.Context) ([]modelv1.Organization, error) {
+func (m mockOrgSrv) List(ctx context.Context) ([]modelv1.Organization, error) {
 	return m.ListOrganizationsFunc(ctx)
 }
 
-func (m mockOrgSrv) UpdateOrganization(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error) {
+func (m mockOrgSrv) Update(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error) {
 	return m.UpdateOrganizationFunc(ctx, toUpdate)
 }

@@ -19,17 +19,17 @@ import (
 )
 
 type OrganizationService interface {
-	GetOrganization(ctx context.Context, id string) (modelv1.Organization, error)
-	CreateOrganization(ctx context.Context, org modelv1.Organization) (modelv1.Organization, error)
-	ListOrganizations(ctx context.Context) ([]modelv1.Organization, error)
-	UpdateOrganization(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error)
+	Get(ctx context.Context, id string) (modelv1.Organization, error)
+	Create(ctx context.Context, org modelv1.Organization) (modelv1.Organization, error)
+	List(ctx context.Context) ([]modelv1.Organization, error)
+	Update(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error)
 }
 
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrganizationsRequest) (*shieldv1.ListOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var orgs []*shieldv1.Organization
 
-	orgList, err := v.OrgService.ListOrganizations(ctx)
+	orgList, err := v.OrgService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -69,7 +69,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newOrg, err := v.OrgService.CreateOrganization(ctx, modelv1.Organization{
+	newOrg, err := v.OrgService.Create(ctx, modelv1.Organization{
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
@@ -99,7 +99,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizationRequest) (*shieldv1.GetOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedOrg, err := v.OrgService.GetOrganization(ctx, request.GetId())
+	fetchedOrg, err := v.OrgService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -135,7 +135,7 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrg
 		return nil, grpcBadBodyError
 	}
 
-	updatedOrg, err := v.OrgService.UpdateOrganization(ctx, modelv1.Organization{
+	updatedOrg, err := v.OrgService.Update(ctx, modelv1.Organization{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,

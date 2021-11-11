@@ -23,11 +23,11 @@ type Store interface {
 	UpdateOrg(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error)
 }
 
-func (s Service) GetOrganization(ctx context.Context, id string) (modelv1.Organization, error) {
+func (s Service) Get(ctx context.Context, id string) (modelv1.Organization, error) {
 	return s.Store.GetOrg(ctx, id)
 }
 
-func (s Service) CreateOrganization(ctx context.Context, org modelv1.Organization) (modelv1.Organization, error) {
+func (s Service) Create(ctx context.Context, org modelv1.Organization) (modelv1.Organization, error) {
 	newOrg, err := s.Store.CreateOrg(ctx, modelv1.Organization{
 		Name:     org.Name,
 		Slug:     org.Slug,
@@ -41,10 +41,10 @@ func (s Service) CreateOrganization(ctx context.Context, org modelv1.Organizatio
 	return newOrg, nil
 }
 
-func (s Service) ListOrganizations(ctx context.Context) ([]modelv1.Organization, error) {
+func (s Service) List(ctx context.Context) ([]modelv1.Organization, error) {
 	return s.Store.ListOrg(ctx)
 }
 
-func (s Service) UpdateOrganization(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error) {
+func (s Service) Update(ctx context.Context, toUpdate modelv1.Organization) (modelv1.Organization, error) {
 	return s.Store.UpdateOrg(ctx, toUpdate)
 }
