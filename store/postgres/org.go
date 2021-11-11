@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/model"
 )
@@ -19,7 +17,6 @@ type Organization struct {
 	Name      string    `db:"name"`
 	Slug      string    `db:"slug"`
 	Metadata  []byte    `db:"metadata"`
-	Version   int       `db:"version"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -28,42 +25,33 @@ const (
 	getOrganizationsQuery            = `SELECT id, name, slug, metadata, created_at, updated_at from organizations where id=$1;`
 	createOrganizationQuery          = `INSERT INTO organizations(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
 	listOrganizationsQuery           = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
-	selectOrganizationForUpdateQuery = `SELECT id, name, slug, metadata, version, updated_at from organizations where id=$1;`
 	updateOrganizationQuery          = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
-	fetchedOrg, _, err := s.selectOrg(ctx, id, false, nil)
-	return fetchedOrg, err
-}
-
-func (s Store) selectOrg(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (model.Organization, int, error) {
 	var fetchedOrg Organization
-
+	//fetchedOrg, _, err := s.selectOrg(ctx, id, false, nil)
+	//return fetchedOrg, err
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		if forUpdate {
-			return txn.GetContext(ctx, &fetchedOrg, selectOrganizationForUpdateQuery, id)
-		} else {
-			return s.DB.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id)
-		}
+		return s.DB.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Organization{}, -1, org.OrgDoesntExist
+		return model.Organization{}, org.OrgDoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Organization{}, -1, org.InvalidUUID
+		return model.Organization{}, org.InvalidUUID
 	} else if err != nil {
-		return model.Organization{}, -1, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := transformToOrg(fetchedOrg)
 	if err != nil {
-		return model.Organization{}, -1, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	return transformedOrg, fetchedOrg.Version, nil
+	return transformedOrg, nil
 }
 
 func (s Store) CreateOrg(ctx context.Context, orgToCreate model.Organization) (model.Organization, error) {
