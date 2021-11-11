@@ -8,7 +8,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/project"
-	modelv1 "github.com/odpf/shield/model/v1"
+	"github.com/odpf/shield/model"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,10 +21,10 @@ import (
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
 
 type ProjectService interface {
-	Get(ctx context.Context, id string) (modelv1.Project, error)
-	Create(ctx context.Context, project modelv1.Project) (modelv1.Project, error)
-	List(ctx context.Context) ([]modelv1.Project, error)
-	Update(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error)
+	Get(ctx context.Context, id string) (model.Project, error)
+	Create(ctx context.Context, project model.Project) (model.Project, error)
+	List(ctx context.Context) ([]model.Project, error)
+	Update(ctx context.Context, toUpdate model.Project) (model.Project, error)
 }
 
 func (v Dep) ListProjects(ctx context.Context, request *shieldv1.ListProjectsRequest) (*shieldv1.ListProjectsResponse, error) {
@@ -63,7 +63,7 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newProject, err := v.ProjectService.Create(ctx, modelv1.Project{
+	newProject, err := v.ProjectService.Create(ctx, model.Project{
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
@@ -124,7 +124,7 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectR
 		return nil, grpcBadBodyError
 	}
 
-	updatedProject, err := v.ProjectService.Update(ctx, modelv1.Project{
+	updatedProject, err := v.ProjectService.Update(ctx, model.Project{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
@@ -144,7 +144,7 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectR
 	return &shieldv1.UpdateProjectResponse{Project: &projectPB}, nil
 }
 
-func transformProjectToPB(prj modelv1.Project) (shieldv1.Project, error) {
+func transformProjectToPB(prj model.Project) (shieldv1.Project, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(prj.Metadata))
 	if err != nil {
 		return shieldv1.Project{}, err

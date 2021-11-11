@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/internal/project"
-
-	modelv1 "github.com/odpf/shield/model/v1"
+	"github.com/odpf/shield/model"
 )
 
 type Project struct {
@@ -30,38 +29,38 @@ const (
 	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, org_id=$4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
 )
 
-func (s Store) GetProject(ctx context.Context, id string) (modelv1.Project, error) {
+func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
 	var fetchedProject Project
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return modelv1.Project{}, project.ProjectDoesntExist
+		return model.Project{}, project.ProjectDoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return modelv1.Project{}, project.InvalidUUID
+		return model.Project{}, project.InvalidUUID
 	} else if err != nil {
-		return modelv1.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	if err != nil {
-		return modelv1.Project{}, err
+		return model.Project{}, err
 	}
 
 	transformedProject, err := transformToProject(fetchedProject)
 	if err != nil {
-		return modelv1.Project{}, err
+		return model.Project{}, err
 	}
 
 	return transformedProject, nil
 }
 
-func (s Store) CreateProject(ctx context.Context, projectToCreate modelv1.Project) (modelv1.Project, error) {
+func (s Store) CreateProject(ctx context.Context, projectToCreate model.Project) (model.Project, error) {
 	marshaledMetadata, err := json.Marshal(projectToCreate.Metadata)
 	if err != nil {
-		return modelv1.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var newProject Project
@@ -70,37 +69,37 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate modelv1.Projec
 	})
 
 	if err != nil {
-		return modelv1.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := transformToProject(newProject)
 	if err != nil {
-		return modelv1.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedOrg, nil
 }
 
-func (s Store) ListProject(ctx context.Context) ([]modelv1.Project, error) {
+func (s Store) ListProject(ctx context.Context) ([]model.Project, error) {
 	var fetchedProjects []Project
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedProjects, listProjectQuery)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []modelv1.Project{}, project.ProjectDoesntExist
+		return []model.Project{}, project.ProjectDoesntExist
 	}
 
 	if err != nil {
-		return []modelv1.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []model.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedProjects []modelv1.Project
+	var transformedProjects []model.Project
 
 	for _, o := range fetchedProjects {
 		transformedOrg, err := transformToProject(o)
 		if err != nil {
-			return []modelv1.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedProjects = append(transformedProjects, transformedOrg)
@@ -109,12 +108,12 @@ func (s Store) ListProject(ctx context.Context) ([]modelv1.Project, error) {
 	return transformedProjects, nil
 }
 
-func (s Store) UpdateProject(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error) {
+func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model.Project, error) {
 	var updatedProject Project
 
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return modelv1.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -122,30 +121,30 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate modelv1.Project) (mod
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return modelv1.Project{}, project.ProjectDoesntExist
+		return model.Project{}, project.ProjectDoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return modelv1.Project{}, fmt.Errorf("%w: %s", project.InvalidUUID, err)
+		return model.Project{}, fmt.Errorf("%w: %s", project.InvalidUUID, err)
 	} else if err != nil {
-		return modelv1.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	toUpdate, err = transformToProject(updatedProject)
 	if err != nil {
-		return modelv1.Project{}, fmt.Errorf("%s: %w", parseErr, err)
+		return model.Project{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return toUpdate, nil
 }
 
-func transformToProject(from Project) (modelv1.Project, error) {
+func transformToProject(from Project) (model.Project, error) {
 	var unmarshalledMetadata map[string]string
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return modelv1.Project{}, err
+		return model.Project{}, err
 	}
 
-	return modelv1.Project{
+	return model.Project{
 		Id:        from.Id,
 		Name:      from.Name,
 		Slug:      from.Slug,

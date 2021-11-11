@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	modelv1 "github.com/odpf/shield/model/v1"
+	"github.com/odpf/shield/model"
 )
 
 type Service struct {
@@ -17,18 +17,18 @@ var (
 )
 
 type Store interface {
-	GetProject(ctx context.Context, id string) (modelv1.Project, error)
-	CreateProject(ctx context.Context, org modelv1.Project) (modelv1.Project, error)
-	ListProject(ctx context.Context) ([]modelv1.Project, error)
-	UpdateProject(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error)
+	GetProject(ctx context.Context, id string) (model.Project, error)
+	CreateProject(ctx context.Context, org model.Project) (model.Project, error)
+	ListProject(ctx context.Context) ([]model.Project, error)
+	UpdateProject(ctx context.Context, toUpdate model.Project) (model.Project, error)
 }
 
-func (s Service) Get(ctx context.Context, id string) (modelv1.Project, error) {
+func (s Service) Get(ctx context.Context, id string) (model.Project, error) {
 	return s.Store.GetProject(ctx, id)
 }
 
-func (s Service) Create(ctx context.Context, project modelv1.Project) (modelv1.Project, error) {
-	newOrg, err := s.Store.CreateProject(ctx, modelv1.Project{
+func (s Service) Create(ctx context.Context, project model.Project) (model.Project, error) {
+	newOrg, err := s.Store.CreateProject(ctx, model.Project{
 		Name:         project.Name,
 		Slug:         project.Slug,
 		Metadata:     project.Metadata,
@@ -36,16 +36,16 @@ func (s Service) Create(ctx context.Context, project modelv1.Project) (modelv1.P
 	})
 
 	if err != nil {
-		return modelv1.Project{}, err
+		return model.Project{}, err
 	}
 
 	return newOrg, nil
 }
 
-func (s Service) List(ctx context.Context) ([]modelv1.Project, error) {
+func (s Service) List(ctx context.Context) ([]model.Project, error) {
 	return s.Store.ListProject(ctx)
 }
 
-func (s Service) Update(ctx context.Context, toUpdate modelv1.Project) (modelv1.Project, error) {
+func (s Service) Update(ctx context.Context, toUpdate model.Project) (model.Project, error) {
 	return s.Store.UpdateProject(ctx, toUpdate)
 }
