@@ -30,8 +30,6 @@ const (
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
 	var fetchedOrg Organization
-	//fetchedOrg, _, err := s.selectOrg(ctx, id, false, nil)
-	//return fetchedOrg, err
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id)
 	})
