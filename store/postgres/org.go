@@ -22,10 +22,10 @@ type Organization struct {
 }
 
 const (
-	getOrganizationsQuery            = `SELECT id, name, slug, metadata, created_at, updated_at from organizations where id=$1;`
-	createOrganizationQuery          = `INSERT INTO organizations(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
-	listOrganizationsQuery           = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
-	updateOrganizationQuery          = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
+	getOrganizationsQuery   = `SELECT id, name, slug, metadata, created_at, updated_at from organizations where id=$1;`
+	createOrganizationQuery = `INSERT INTO organizations(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
+	listOrganizationsQuery  = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
+	updateOrganizationQuery = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
