@@ -3,17 +3,9 @@ package org
 import (
 	"context"
 	"errors"
-	"time"
-)
 
-type Organization struct {
-	Id        string
-	Name      string
-	Slug      string
-	Metadata  map[string]string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
+	"github.com/odpf/shield/model"
+)
 
 type Service struct {
 	Store Store
@@ -25,34 +17,34 @@ var (
 )
 
 type Store interface {
-	GetOrg(ctx context.Context, id string) (Organization, error)
-	CreateOrg(ctx context.Context, org Organization) (Organization, error)
-	ListOrg(ctx context.Context) ([]Organization, error)
-	UpdateOrg(ctx context.Context, toUpdate Organization) (Organization, error)
+	GetOrg(ctx context.Context, id string) (model.Organization, error)
+	CreateOrg(ctx context.Context, org model.Organization) (model.Organization, error)
+	ListOrg(ctx context.Context) ([]model.Organization, error)
+	UpdateOrg(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 }
 
-func (s Service) GetOrganization(ctx context.Context, id string) (Organization, error) {
+func (s Service) Get(ctx context.Context, id string) (model.Organization, error) {
 	return s.Store.GetOrg(ctx, id)
 }
 
-func (s Service) CreateOrganization(ctx context.Context, org Organization) (Organization, error) {
-	newOrg, err := s.Store.CreateOrg(ctx, Organization{
+func (s Service) Create(ctx context.Context, org model.Organization) (model.Organization, error) {
+	newOrg, err := s.Store.CreateOrg(ctx, model.Organization{
 		Name:     org.Name,
 		Slug:     org.Slug,
 		Metadata: org.Metadata,
 	})
 
 	if err != nil {
-		return Organization{}, err
+		return model.Organization{}, err
 	}
 
 	return newOrg, nil
 }
 
-func (s Service) ListOrganizations(ctx context.Context) ([]Organization, error) {
+func (s Service) List(ctx context.Context) ([]model.Organization, error) {
 	return s.Store.ListOrg(ctx)
 }
 
-func (s Service) UpdateOrganization(ctx context.Context, toUpdate Organization) (Organization, error) {
+func (s Service) Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error) {
 	return s.Store.UpdateOrg(ctx, toUpdate)
 }

@@ -8,6 +8,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/org"
+	"github.com/odpf/shield/model"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,25 +19,17 @@ import (
 )
 
 type OrganizationService interface {
-	GetOrganization(ctx context.Context, id string) (org.Organization, error)
-	CreateOrganization(ctx context.Context, org org.Organization) (org.Organization, error)
-	ListOrganizations(ctx context.Context) ([]org.Organization, error)
-	UpdateOrganization(ctx context.Context, toUpdate org.Organization) (org.Organization, error)
+	Get(ctx context.Context, id string) (model.Organization, error)
+	Create(ctx context.Context, org model.Organization) (model.Organization, error)
+	List(ctx context.Context) ([]model.Organization, error)
+	Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 }
-
-var (
-	grpcInternalServerError = status.Errorf(codes.Internal, internalServerError.Error())
-	grpcBadBodyError        = status.Error(codes.InvalidArgument, badRequestError.Error())
-)
-
-// HTTP Codes defined here:
-// https://github.com/grpc-ecosystem/grpc-gateway/blob/master/runtime/errors.go#L36
 
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrganizationsRequest) (*shieldv1.ListOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var orgs []*shieldv1.Organization
 
-	orgList, err := v.OrgService.ListOrganizations(ctx)
+	orgList, err := v.OrgService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -76,7 +69,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newOrg, err := v.OrgService.CreateOrganization(ctx, org.Organization{
+	newOrg, err := v.OrgService.Create(ctx, model.Organization{
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
@@ -106,7 +99,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizationRequest) (*shieldv1.GetOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedOrg, err := v.OrgService.GetOrganization(ctx, request.GetId())
+	fetchedOrg, err := v.OrgService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -142,7 +135,7 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrg
 		return nil, grpcBadBodyError
 	}
 
-	updatedOrg, err := v.OrgService.UpdateOrganization(ctx, org.Organization{
+	updatedOrg, err := v.OrgService.Update(ctx, model.Organization{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
@@ -163,7 +156,7 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrg
 	return &shieldv1.UpdateOrganizationResponse{Organization: &orgPB}, nil
 }
 
-func transformOrgToPB(org org.Organization) (shieldv1.Organization, error) {
+func transformOrgToPB(org model.Organization) (shieldv1.Organization, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(org.Metadata))
 	if err != nil {
 		return shieldv1.Organization{}, err
