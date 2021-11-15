@@ -30,7 +30,7 @@ type Store interface {
 }
 
 var (
-	GroupDoesntExist = errors.New("org doesn't exist")
+	GroupDoesntExist = errors.New("group doesn't exist")
 	InvalidUUID      = errors.New("invalid syntax of uuid")
 )
 
