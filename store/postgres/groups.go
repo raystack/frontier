@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/odpf/shield/model"
 	"time"
 
 	"github.com/odpf/shield/internal/group"
-	"github.com/odpf/shield/internal/org"
 )
 
 type Group struct {
@@ -139,7 +139,7 @@ func transformToGroup(from Group) (group.Group, error) {
 		Id:           from.Id,
 		Name:         from.Name,
 		Slug:         from.Slug,
-		Organization: org.Organization{Id: from.OrgID},
+		Organization: model.Organization{Id: from.OrgID},
 		Metadata:     unmarshalledMetadata,
 		CreatedAt:    from.CreatedAt,
 		UpdatedAt:    from.UpdatedAt,

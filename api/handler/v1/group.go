@@ -8,7 +8,6 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/group"
-	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/model"
 
 	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
@@ -144,7 +143,7 @@ func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1.UpdateGroupReque
 		Id:           request.GetId(),
 		Name:         request.GetBody().GetName(),
 		Slug:         request.GetBody().GetSlug(),
-		Organization: org.Organization{Id: request.GetBody().OrgId},
+		Organization: model.Organization{Id: request.GetBody().OrgId},
 		Metadata:     metaDataMap,
 	})
 	if err != nil {
