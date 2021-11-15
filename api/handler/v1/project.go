@@ -64,10 +64,10 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 	}
 
 	newProject, err := v.ProjectService.Create(ctx, model.Project{
-		Name:     request.GetBody().Name,
-		Slug:     slug,
-		Metadata: metaDataMap,
-		//Organization: org.Organization{Id: "ACCEPT"},
+		Name:         request.GetBody().Name,
+		Slug:         slug,
+		Metadata:     metaDataMap,
+		Organization: model.Organization{Id: request.GetBody().OrgId},
 	})
 
 	if err != nil {
@@ -125,10 +125,11 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectR
 	}
 
 	updatedProject, err := v.ProjectService.Update(ctx, model.Project{
-		Id:       request.GetId(),
-		Name:     request.GetBody().Name,
-		Slug:     request.GetBody().Slug,
-		Metadata: metaDataMap,
+		Id:           request.GetId(),
+		Name:         request.GetBody().Name,
+		Slug:         request.GetBody().Slug,
+		Organization: model.Organization{Id: request.GetBody().OrgId},
+		Metadata:     metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
