@@ -30,3 +30,13 @@ type Group struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
+
+type Role struct {
+	Id              string
+	Name            string
+	Types           []string
+	DefinitionLevel string
+	Metadata        map[string]string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
