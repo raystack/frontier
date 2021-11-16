@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/odpf/shield/model"
 	"time"
 
 	"github.com/odpf/shield/internal/group"
+	"github.com/odpf/shield/model"
 )
 
 type Group struct {
@@ -29,34 +29,34 @@ const (
 	updateGroupQuery  = `UPDATE groups set name = $2, slug = $3, org_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 )
 
-func (s Store) GetGroup(ctx context.Context, id string) (group.Group, error) {
+func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return group.Group{}, group.GroupDoesntExist
+		return model.Group{}, group.GroupDoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return group.Group{}, group.InvalidUUID
+		return model.Group{}, group.InvalidUUID
 	} else if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedGroup, err := transformToGroup(fetchedGroup)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedGroup, nil
 }
 
-func (s Store) CreateGroup(ctx context.Context, grp group.Group) (group.Group, error) {
+func (s Store) CreateGroup(ctx context.Context, grp model.Group) (model.Group, error) {
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var newGroup Group
@@ -65,37 +65,37 @@ func (s Store) CreateGroup(ctx context.Context, grp group.Group) (group.Group, e
 	})
 
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedGroup, err := transformToGroup(newGroup)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedGroup, nil
 }
 
-func (s Store) ListGroups(ctx context.Context) ([]group.Group, error) {
+func (s Store) ListGroups(ctx context.Context) ([]model.Group, error) {
 	var fetchedGroups []Group
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedGroups, listGroupsQuery)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []group.Group{}, group.GroupDoesntExist
+		return []model.Group{}, group.GroupDoesntExist
 	}
 
 	if err != nil {
-		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []model.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedGroups []group.Group
+	var transformedGroups []model.Group
 
 	for _, v := range fetchedGroups {
 		transformedGroup, err := transformToGroup(v)
 		if err != nil {
-			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedGroups = append(transformedGroups, transformedGroup)
@@ -104,10 +104,10 @@ func (s Store) ListGroups(ctx context.Context) ([]group.Group, error) {
 	return transformedGroups, nil
 }
 
-func (s Store) UpdateGroup(ctx context.Context, toUpdate group.Group) (group.Group, error) {
+func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Group, error) {
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var updatedGroup Group
@@ -116,26 +116,26 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate group.Group) (group.Gro
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return group.Group{}, group.GroupDoesntExist
+		return model.Group{}, group.GroupDoesntExist
 	} else if err != nil {
-		return group.Group{}, fmt.Errorf("%s: %w", dbErr, err)
+		return model.Group{}, fmt.Errorf("%s: %w", dbErr, err)
 	}
 
 	updated, err := transformToGroup(updatedGroup)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%s: %w", parseErr, err)
+		return model.Group{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return updated, nil
 }
 
-func transformToGroup(from Group) (group.Group, error) {
+func transformToGroup(from Group) (model.Group, error) {
 	var unmarshalledMetadata map[string]string
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return group.Group{}, err
+		return model.Group{}, err
 	}
 
-	return group.Group{
+	return model.Group{
 		Id:           from.Id,
 		Name:         from.Name,
 		Slug:         from.Slug,

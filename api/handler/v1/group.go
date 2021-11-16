@@ -19,10 +19,10 @@ import (
 )
 
 type GroupService interface {
-	CreateGroup(ctx context.Context, grp group.Group) (group.Group, error)
-	GetGroup(ctx context.Context, id string) (group.Group, error)
-	ListGroups(ctx context.Context) ([]group.Group, error)
-	UpdateGroup(ctx context.Context, grp group.Group) (group.Group, error)
+	CreateGroup(ctx context.Context, grp model.Group) (model.Group, error)
+	GetGroup(ctx context.Context, id string) (model.Group, error)
+	ListGroups(ctx context.Context) ([]model.Group, error)
+	UpdateGroup(ctx context.Context, grp model.Group) (model.Group, error)
 }
 
 var (
@@ -69,7 +69,7 @@ func (v Dep) CreateGroup(ctx context.Context, request *shieldv1.CreateGroupReque
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newGroup, err := v.GroupService.CreateGroup(ctx, group.Group{
+	newGroup, err := v.GroupService.CreateGroup(ctx, model.Group{
 		Name:         request.Body.Name,
 		Slug:         slug,
 		Organization: model.Organization{Id: "23cb5c8f-859f-43ad-ae2b-47fae181bd8a"},
@@ -139,7 +139,7 @@ func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1.UpdateGroupReque
 		return nil, grpcBadBodyError
 	}
 
-	updatedGroup, err := v.GroupService.UpdateGroup(ctx, group.Group{
+	updatedGroup, err := v.GroupService.UpdateGroup(ctx, model.Group{
 		Id:           request.GetId(),
 		Name:         request.GetBody().GetName(),
 		Slug:         request.GetBody().GetSlug(),
@@ -164,7 +164,7 @@ func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1.UpdateGroupReque
 	return &shieldv1.UpdateGroupResponse{Group: &groupPB}, nil
 }
 
-func transformGroupToPB(grp group.Group) (shieldv1.Group, error) {
+func transformGroupToPB(grp model.Group) (shieldv1.Group, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(grp.Metadata))
 	if err != nil {
 		return shieldv1.Group{}, err
