@@ -35,3 +35,118 @@ func TestBuildSchema(t *testing.T) {
 }`, build_schema(d))
 	})
 }
+
+func TestBuildPolicyDefinitions(t *testing.T) {
+	t.Run("return policy definitions", func(t *testing.T) {
+		policies := []Policy{
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "read",
+			},
+		}
+		def := build_policy_definitions(policies)
+		expected_def := []definition{
+			{
+				Name: "Project",
+				Roles: []role{
+					{
+						Name:       "Admin",
+						Type:       "User",
+						Permission: []string{"read"},
+					},
+				},
+			},
+		}
+
+		assert.Equal(t, expected_def, def)
+	})
+
+	t.Run("merge roles in policy definitions", func(t *testing.T) {
+		policies := []Policy{
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "read",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "write",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "delete",
+			},
+		}
+		def := build_policy_definitions(policies)
+		expected_def := []definition{
+			{
+				Name: "Project",
+				Roles: []role{
+					{
+						Name:       "Admin",
+						Type:       "User",
+						Permission: []string{"read", "write", "delete"},
+					},
+				},
+			},
+		}
+
+		assert.Equal(t, expected_def, def)
+	})
+
+	t.Run("create multiple roles in policy definitions", func(t *testing.T) {
+		policies := []Policy{
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "read",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "write",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "delete",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Reader",
+				RoleType:   "User",
+				Permission: "read",
+			},
+		}
+		def := build_policy_definitions(policies)
+		expected_def := []definition{
+			{
+				Name: "Project",
+				Roles: []role{
+					{
+						Name:       "Admin",
+						Type:       "User",
+						Permission: []string{"read", "write", "delete"},
+					},
+					{
+						Name:       "Reader",
+						Type:       "User",
+						Permission: []string{"read"},
+					},
+				},
+			},
+		}
+
+		assert.Equal(t, expected_def, def)
+	})
+}
