@@ -6,21 +6,22 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
+	"github.com/odpf/shield/internal/user"
+	"github.com/odpf/shield/model"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/odpf/shield/internal/user"
-
 	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 )
 
 type UserService interface {
-	GetUser(ctx context.Context, id string) (user.User, error)
-	CreateUser(ctx context.Context, user user.User) (user.User, error)
-	ListUsers(ctx context.Context) ([]user.User, error)
-	UpdateUser(ctx context.Context, toUpdate user.User) (user.User, error)
+	GetUser(ctx context.Context, id string) (model.User, error)
+	CreateUser(ctx context.Context, user model.User) (model.User, error)
+	ListUsers(ctx context.Context) ([]model.User, error)
+	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 }
 
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1.ListUsersRequest) (*shieldv1.ListUsersResponse, error) {
@@ -61,7 +62,7 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1.CreateUserRequest
 		return nil, grpcBadBodyError
 	}
 
-	newUser, err := v.UserService.CreateUser(ctx, user.User{
+	newUser, err := v.UserService.CreateUser(ctx, model.User{
 		Name:     request.GetBody().Name,
 		Email:    request.GetBody().Email,
 		Metadata: metaDataMap,
@@ -131,7 +132,7 @@ func (v Dep) UpdateUser(ctx context.Context, request *shieldv1.UpdateUserRequest
 		return nil, grpcBadBodyError
 	}
 
-	updatedUser, err := v.UserService.UpdateUser(ctx, user.User{
+	updatedUser, err := v.UserService.UpdateUser(ctx, model.User{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Email:    request.GetBody().Email,
@@ -156,7 +157,7 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1.UpdateCurr
 	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
 }
 
-func transformUserToPB(user user.User) (shieldv1.User, error) {
+func transformUserToPB(user model.User) (shieldv1.User, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(user.Metadata))
 	if err != nil {
 		return shieldv1.User{}, err

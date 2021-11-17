@@ -6,16 +6,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/internal/user"
+	"github.com/odpf/shield/model"
+
 	"github.com/stretchr/testify/assert"
-	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 )
 
-var testUserMap = map[string]user.User{
+var testUserMap = map[string]model.User{
 	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 		Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name:  "User 1",
@@ -39,15 +42,15 @@ func TestListUsers(t *testing.T) {
 	}{
 		{
 			title: "error in User Service",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context) (users []user.User, err error) {
-				return []user.User{}, errors.New("some error")
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context) (users []model.User, err error) {
+				return []model.User{}, errors.New("some error")
 			}},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		}, {
 			title: "success",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context) (users []user.User, err error) {
-				var testUserList []user.User
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context) (users []model.User, err error) {
+				var testUserList []model.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
@@ -95,8 +98,8 @@ func TestCreateUser(t *testing.T) {
 	}{
 		{
 			title: "error in fetching user list",
-			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u user.User) (user.User, error) {
-				return user.User{}, errors.New("some error")
+			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u model.User) (model.User, error) {
+				return model.User{}, errors.New("some error")
 			}},
 			req: &shieldv1.CreateUserRequest{Body: &shieldv1.UserRequestBody{
 				Name:     "some user",
@@ -122,8 +125,8 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u user.User) (user.User, error) {
-				return user.User{
+			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u model.User) (model.User, error) {
+				return model.User{
 					Id:       "new-abc",
 					Name:     "some user",
 					Email:    "abc@test.com",
@@ -164,24 +167,24 @@ func TestCreateUser(t *testing.T) {
 }
 
 type mockUserSrv struct {
-	GetUserFunc    func(ctx context.Context, id string) (user.User, error)
-	CreateUserFunc func(ctx context.Context, user user.User) (user.User, error)
-	ListUsersFunc  func(ctx context.Context) ([]user.User, error)
-	UpdateUserFunc func(ctx context.Context, toUpdate user.User) (user.User, error)
+	GetUserFunc    func(ctx context.Context, id string) (model.User, error)
+	CreateUserFunc func(ctx context.Context, user model.User) (model.User, error)
+	ListUsersFunc  func(ctx context.Context) ([]model.User, error)
+	UpdateUserFunc func(ctx context.Context, toUpdate model.User) (model.User, error)
 }
 
-func (m mockUserSrv) GetUser(ctx context.Context, id string) (user.User, error) {
+func (m mockUserSrv) GetUser(ctx context.Context, id string) (model.User, error) {
 	return m.GetUserFunc(ctx, id)
 }
 
-func (m mockUserSrv) CreateUser(ctx context.Context, user user.User) (user.User, error) {
+func (m mockUserSrv) CreateUser(ctx context.Context, user model.User) (model.User, error) {
 	return m.CreateUserFunc(ctx, user)
 }
 
-func (m mockUserSrv) ListUsers(ctx context.Context) ([]user.User, error) {
+func (m mockUserSrv) ListUsers(ctx context.Context) ([]model.User, error) {
 	return m.ListUsersFunc(ctx)
 }
 
-func (m mockUserSrv) UpdateUser(ctx context.Context, toUpdate user.User) (user.User, error) {
+func (m mockUserSrv) UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error) {
 	return m.UpdateUserFunc(ctx, toUpdate)
 }

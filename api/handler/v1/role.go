@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"errors"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/roles"
