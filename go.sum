@@ -1134,8 +1134,8 @@ go.buf.build/odpf/gw/grpc-ecosystem/grpc-gateway v1.1.35/go.mod h1:/LuddrGPi0fwj
 go.buf.build/odpf/gw/grpc-ecosystem/grpc-gateway v1.1.37 h1:u/tZ2IoAtxrulhyX6rzqBaMnU2YRjqhEYbFgLFUGrgI=
 go.buf.build/odpf/gw/grpc-ecosystem/grpc-gateway v1.1.37/go.mod h1:/LuddrGPi0fwj7ay6Orutt8oFfPz8Y3c8qdBkacJq1A=
 go.buf.build/odpf/gw/odpf/proton v1.1.9/go.mod h1:I9E8CF7w/690vRNWqBU6qDcUbi3Pi2THdn1yycBVTDQ=
-go.buf.build/odpf/gw/odpf/proton v1.1.20 h1:vEHnWe4EBYOBxhnL0/1GFtWDAaG/CszZwqn7emTrz8Y=
-go.buf.build/odpf/gw/odpf/proton v1.1.20/go.mod h1:IVEuU2JefIqAUECe/Xp1sQVrkAbYVKOatGKMuVtGAK4=
+go.buf.build/odpf/gw/odpf/proton v1.1.25 h1:lOoFqOi+G4Vvkrq5NPtwOvbZMgMjrkm2D+sei9kBfzs=
+go.buf.build/odpf/gw/odpf/proton v1.1.25/go.mod h1:IVEuU2JefIqAUECe/Xp1sQVrkAbYVKOatGKMuVtGAK4=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.5/go.mod h1:G5EMThwa9y8QZGBClrRx5EY+Yw9kAhnjy3bSjsnlVTQ=
