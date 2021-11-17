@@ -2,6 +2,7 @@ package schema_generator
 
 import (
 	"fmt"
+	"strings"
 
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	"github.com/authzed/spicedb/pkg/namespace"
@@ -11,6 +12,7 @@ import (
 type role struct {
 	Name       string
 	Type       string
+	Subtype    string
 	Namespace  string
 	Permission []string
 }
@@ -33,14 +35,22 @@ func build_schema(d definition) string {
 	permissions := make(map[string][]*v0.SetOperation_Child)
 
 	for _, r := range d.Roles {
-		relations = append(relations, namespace.Relation(
-			r.Name,
-			nil,
-			&v0.RelationReference{
-				Namespace: r.Type,
-				Relation:  "...",
-			},
-		))
+		subType := "..."
+		if r.Subtype != "" {
+			subType = r.Subtype
+		}
+
+		if r.Namespace == "" {
+			relations = append(relations, namespace.Relation(
+				r.Name,
+				nil,
+				&v0.RelationReference{
+					Namespace: r.Type,
+					Relation:  subType,
+				},
+			))
+		}
+
 		for _, p := range r.Permission {
 			perm := namespace.ComputedUserset(r.Name)
 			if r.Namespace != "" {
@@ -96,9 +106,16 @@ func build_policy_definitions(policies []Policy) []definition {
 			def[keyName] = r
 		}
 
+		roleType := strings.Split(p.RoleType, "#")
+		subType := ""
+		if len(roleType) > 1 {
+			subType = roleType[1]
+		}
+
 		def[keyName] = append(r, role{
 			Name:       p.Role,
-			Type:       p.RoleType,
+			Type:       roleType[0],
+			Subtype:    subType,
 			Namespace:  p.RoleNamespace,
 			Permission: []string{p.Permission},
 		})
@@ -121,6 +138,7 @@ func build_policy_definitions(policies []Policy) []definition {
 			roles = append(roles, role{
 				Name:       r[0].Name,
 				Type:       r[0].Type,
+				Subtype:    r[0].Subtype,
 				Namespace:  role_namespace,
 				Permission: permissions,
 			})
