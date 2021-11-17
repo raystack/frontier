@@ -42,22 +42,23 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				panic(err)
 			}
 
+			serviceStore := postgres.NewStore(db)
 			handler.Register(ctx, s, gw, handler.Deps{
 				V1: v1.Dep{
 					OrgService: org.Service{
-						Store: postgres.NewStore(db),
+						Store: serviceStore,
 					},
 					UserService: user.Service{
-						Store: postgres.NewStore(db),
+						Store: serviceStore,
 					},
 					ProjectService: project.Service{
-						Store: postgres.NewStore(db),
+						Store: serviceStore,
 					},
 					RoleService: roles.Service{
 						Store: postgres.NewStore(db),
 					},
 					GroupService: group.Service{
-						Store: postgres.NewStore(db),
+						Store: serviceStore,
 					},
 				},
 			})
