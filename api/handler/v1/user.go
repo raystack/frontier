@@ -13,7 +13,7 @@ import (
 
 	"github.com/odpf/shield/internal/user"
 
-	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
+	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 )
 
 type UserService interface {

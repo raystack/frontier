@@ -10,7 +10,7 @@ import (
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/model"
 
-	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
+	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

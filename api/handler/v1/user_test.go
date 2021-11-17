@@ -8,7 +8,7 @@ import (
 
 	"github.com/odpf/shield/internal/user"
 	"github.com/stretchr/testify/assert"
-	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
+	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
