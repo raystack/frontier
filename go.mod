@@ -7,7 +7,6 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-cmp v0.5.6
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/jhump/protoreflect v1.9.0
 	github.com/jmoiron/sqlx v1.3.4
@@ -21,7 +20,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.9.1
-	go.buf.build/odpf/gw/odpf/proton v1.1.20 // indirect
+	go.buf.build/odpf/gw/odpf/proton v1.1.20
 	go.uber.org/zap v1.19.0
 	gocloud.dev v0.24.0
 	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e

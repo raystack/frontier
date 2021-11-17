@@ -13,6 +13,7 @@ type Dep struct {
 	shieldv1.UnimplementedShieldServiceServer
 	OrgService     OrganizationService
 	ProjectService ProjectService
+	GroupService   GroupService
 }
 
 var (

@@ -20,3 +20,13 @@ type Organization struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type Group struct {
+	Id           string
+	Name         string
+	Slug         string
+	Organization Organization
+	Metadata     map[string]string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
