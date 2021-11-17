@@ -1,6 +1,8 @@
 package schema_generator
 
 import (
+	"fmt"
+
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	"github.com/authzed/spicedb/pkg/namespace"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
@@ -9,6 +11,7 @@ import (
 type role struct {
 	Name       string
 	Type       string
+	Namespace  string
 	Permission []string
 }
 
@@ -18,10 +21,11 @@ type definition struct {
 }
 
 type Policy struct {
-	Namespace  string
-	Role       string
-	RoleType   string
-	Permission string
+	Namespace     string
+	Role          string
+	RoleType      string
+	RoleNamespace string
+	Permission    string
 }
 
 func build_schema(d definition) string {
@@ -38,8 +42,19 @@ func build_schema(d definition) string {
 			},
 		))
 		for _, p := range r.Permission {
-			permissions[p] = append(permissions[p], namespace.ComputedUserset(r.Name))
-
+			perm := namespace.ComputedUserset(r.Name)
+			if r.Namespace != "" {
+				perm = namespace.TupleToUserset(r.Namespace, r.Name)
+				relations = append(relations, namespace.Relation(
+					r.Namespace,
+					nil,
+					&v0.RelationReference{
+						Namespace: r.Namespace,
+						Relation:  "...",
+					},
+				))
+			}
+			permissions[p] = append(permissions[p], perm)
 		}
 	}
 
@@ -73,14 +88,18 @@ func build_policy_definitions(policies []Policy) []definition {
 			def_map[p.Namespace] = def
 		}
 
-		r, ok := def[p.Role]
+		keyName := fmt.Sprintf("%s_%s_%s", p.RoleNamespace, p.Role, p.RoleType)
+
+		r, ok := def[keyName]
 		if !ok {
 			r = []role{}
-			def[p.Role] = r
+			def[keyName] = r
 		}
-		def[p.Role] = append(r, role{
+
+		def[keyName] = append(r, role{
 			Name:       p.Role,
 			Type:       p.RoleType,
+			Namespace:  p.RoleNamespace,
 			Permission: []string{p.Permission},
 		})
 	}
@@ -92,9 +111,17 @@ func build_policy_definitions(policies []Policy) []definition {
 			for _, p := range r {
 				permissions = append(permissions, p.Permission...)
 			}
+
+			role_namespace := namespace
+
+			if r[0].Namespace != "" {
+				role_namespace = r[0].Namespace
+			}
+
 			roles = append(roles, role{
 				Name:       r[0].Name,
 				Type:       r[0].Type,
+				Namespace:  role_namespace,
 				Permission: permissions,
 			})
 		}
