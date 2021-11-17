@@ -47,16 +47,16 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 					OrgService: org.Service{
 						Store: postgres.NewStore(db),
 					},
-					ProjectService: project.Service{
+					UserService: user.Service{
 						Store: postgres.NewStore(db),
 					},
-					GroupService: group.Service{
+					ProjectService: project.Service{
 						Store: postgres.NewStore(db),
 					},
 					RoleService: roles.Service{
 						Store: postgres.NewStore(db),
 					},
-					UserService: user.Service{
+					GroupService: group.Service{
 						Store: postgres.NewStore(db),
 					},
 				},
