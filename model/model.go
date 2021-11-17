@@ -32,11 +32,11 @@ type Group struct {
 }
 
 type Role struct {
-	Id              string
-	Name            string
-	Types           []string
-	DefinitionLevel string
-	Metadata        map[string]string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	Id        string
+	Name      string
+	Types     []string
+	Namespace string
+	Metadata  map[string]string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

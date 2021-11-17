@@ -54,11 +54,11 @@ func (v Dep) CreateRole(ctx context.Context, request *shieldv1.CreateRoleRequest
 	}
 
 	newRole, err := v.RoleService.Create(ctx, model.Role{
-		Id:       request.GetBody().Name, //<- this to change
-		Name:     request.GetBody().Name,
-		Types:    request.GetBody().Tags,
-		Metadata: metaDataMap,
-		//DefinitionLevel:
+		Id:        request.GetBody().Id,
+		Name:      request.GetBody().Name,
+		Types:     request.GetBody().Types,
+		Namespace: request.GetBody().Namespace,
+		Metadata:  metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -108,11 +108,11 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1.UpdateRoleRequest
 	}
 
 	updatedRole, err := v.RoleService.Update(ctx, model.Role{
-		Id:       request.GetBody().Name, //<- this to change
-		Name:     request.GetBody().Name,
-		Types:    request.GetBody().Tags,
-		Metadata: metaDataMap,
-		//DefinitionLevel:
+		Id:        request.GetBody().Id,
+		Name:      request.GetBody().Name,
+		Types:     request.GetBody().Types,
+		Namespace: request.GetBody().Namespace,
+		Metadata:  metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())

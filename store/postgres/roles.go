@@ -14,20 +14,20 @@ import (
 )
 
 type Role struct {
-	Id              string    `db:"id"`
-	Name            string    `db:"name"`
-	Types           []string  `db:"types"`
-	DefinitionLevel string    `db:"definition_level"`
-	Metadata        []byte    `db:"metadata"`
-	CreatedAt       time.Time `db:"created_at"`
-	UpdatedAt       time.Time `db:"updated_at"`
+	Id        string    `db:"id"`
+	Name      string    `db:"name"`
+	Types     []string  `db:"types"`
+	Namespace string    `db:"namespace"`
+	Metadata  []byte    `db:"metadata"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 const (
-	createRoleQuery = `INSERT into roles(id, name, types, definition_level, metadata) values($1, $2, $3, $4, $5) RETURNING id, name, types, definition_level, metadata, created_at, updated_at;`
-	getRoleQuery    = `SELECT id, name, types, definition_level, metadata, created_at, updated_at from roles where id=$1;`
-	listRolesQuery  = `SELECT id, name, types, definition_level, metadata, created_at, updated_at from roles;`
-	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, definition_level = $4, metadata = $5, updated_at = now() where id = $1;`
+	createRoleQuery = `INSERT into roles(id, name, types, namespace, metadata) values($1, $2, $3, $4, $5) RETURNING id, name, types, namespace, metadata, created_at, updated_at;`
+	getRoleQuery    = `SELECT id, name, types, namespace, metadata, created_at, updated_at from roles where id=$1;`
+	listRolesQuery  = `SELECT id, name, types, namespace, metadata, created_at, updated_at from roles;`
+	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, namespace = $4, metadata = $5, updated_at = now() where id = $1;`
 )
 
 func (s Store) GetRole(ctx context.Context, id string) (model.Role, error) {
@@ -105,7 +105,7 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.Id, toUpdate.Name, toUpdate.Types, toUpdate.DefinitionLevel, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.Id, toUpdate.Name, toUpdate.Types, toUpdate.Namespace, marshaledMetadata)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -129,12 +129,12 @@ func transformToRole(from Role) (model.Role, error) {
 	}
 
 	return model.Role{
-		Id:              from.Id,
-		Name:            from.Name,
-		Types:           from.Types,
-		DefinitionLevel: from.DefinitionLevel,
-		Metadata:        unmarshalledMetadata,
-		CreatedAt:       from.CreatedAt,
-		UpdatedAt:       from.UpdatedAt,
+		Id:        from.Id,
+		Name:      from.Name,
+		Types:     from.Types,
+		Namespace: from.Namespace,
+		Metadata:  unmarshalledMetadata,
+		CreatedAt: from.CreatedAt,
+		UpdatedAt: from.UpdatedAt,
 	}, nil
 }
