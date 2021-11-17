@@ -3,6 +3,7 @@ module github.com/odpf/shield
 go 1.16
 
 require (
+	cloud.google.com/go/storage v1.18.2 // indirect
 	github.com/abbot/go-http-auth v0.4.0
 	github.com/authzed/authzed-go v0.3.0
 	github.com/authzed/spicedb v1.1.0
@@ -26,7 +27,7 @@ require (
 	go.uber.org/zap v1.19.0
 	gocloud.dev v0.24.0
 	golang.org/x/net v0.0.0-20211020060615-d418f374d309
-	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
+	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
 	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
