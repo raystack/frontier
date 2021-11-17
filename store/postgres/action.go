@@ -20,7 +20,7 @@ type Action struct {
 }
 
 const (
-	getActionsQuery            = `SELECT id, name, slug, created_at, updated_at from actions where id=$1;`
+	getActionQuery             = `SELECT id, name, slug, created_at, updated_at from actions where id=$1;`
 	createActionQuery          = `INSERT INTO actions(name, slug) values($1, $2) RETURNING id, name, slug, created_at, updated_at;`
 	listActionsQuery           = `SELECT id, name, slug, created_at, updated_at from actions;`
 	selectActionForUpdateQuery = `SELECT id, name, slug, version, updated_at from actions where id=$1;`
@@ -39,7 +39,7 @@ func (s Store) selectAction(ctx context.Context, id string, forUpdate bool, txn 
 		if forUpdate {
 			return txn.GetContext(ctx, &fetchedAction, selectActionForUpdateQuery, id)
 		} else {
-			return s.DB.GetContext(ctx, &fetchedAction, getActionsQuery, id)
+			return s.DB.GetContext(ctx, &fetchedAction, getActionQuery, id)
 		}
 	})
 
