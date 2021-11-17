@@ -11,8 +11,7 @@ import (
 
 type role struct {
 	Name       string
-	Type       string
-	Subtype    string
+	Types      []string
 	Namespace  string
 	Permission []string
 }
@@ -25,7 +24,7 @@ type definition struct {
 type Policy struct {
 	Namespace     string
 	Role          string
-	RoleType      string
+	RoleTypes     []string
 	RoleNamespace string
 	Permission    string
 }
@@ -35,19 +34,25 @@ func build_schema(d definition) string {
 	permissions := make(map[string][]*v0.SetOperation_Child)
 
 	for _, r := range d.Roles {
-		subType := "..."
-		if r.Subtype != "" {
-			subType = r.Subtype
-		}
 
 		if r.Namespace == "" {
+			relationReference := []*v0.RelationReference{}
+			for _, t := range r.Types {
+				roleType := strings.Split(t, "#")
+				subType := "..."
+				if len(roleType) > 1 {
+					subType = roleType[1]
+				}
+				relationReference = append(relationReference, &v0.RelationReference{
+					Namespace: roleType[0],
+					Relation:  subType,
+				})
+			}
+
 			relations = append(relations, namespace.Relation(
 				r.Name,
 				nil,
-				&v0.RelationReference{
-					Namespace: r.Type,
-					Relation:  subType,
-				},
+				relationReference...,
 			))
 		}
 
@@ -98,7 +103,7 @@ func build_policy_definitions(policies []Policy) []definition {
 			def_map[p.Namespace] = def
 		}
 
-		keyName := fmt.Sprintf("%s_%s_%s", p.RoleNamespace, p.Role, p.RoleType)
+		keyName := fmt.Sprintf("%s_%s", p.RoleNamespace, p.Role)
 
 		r, ok := def[keyName]
 		if !ok {
@@ -106,16 +111,9 @@ func build_policy_definitions(policies []Policy) []definition {
 			def[keyName] = r
 		}
 
-		roleType := strings.Split(p.RoleType, "#")
-		subType := ""
-		if len(roleType) > 1 {
-			subType = roleType[1]
-		}
-
 		def[keyName] = append(r, role{
 			Name:       p.Role,
-			Type:       roleType[0],
-			Subtype:    subType,
+			Types:      p.RoleTypes,
 			Namespace:  p.RoleNamespace,
 			Permission: []string{p.Permission},
 		})
@@ -137,8 +135,7 @@ func build_policy_definitions(policies []Policy) []definition {
 
 			roles = append(roles, role{
 				Name:       r[0].Name,
-				Type:       r[0].Type,
-				Subtype:    r[0].Subtype,
+				Types:      r[0].Types,
 				Namespace:  role_namespace,
 				Permission: permissions,
 			})
