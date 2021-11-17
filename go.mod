@@ -4,12 +4,11 @@ go 1.16
 
 require (
 	github.com/abbot/go-http-auth v0.4.0
-	github.com/authzed/authzed-go v0.3.0 // indirect
+	github.com/authzed/authzed-go v0.3.0
 	github.com/authzed/spicedb v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-cmp v0.5.6
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/jhump/protoreflect v1.9.0
 	github.com/jmoiron/sqlx v1.3.4
