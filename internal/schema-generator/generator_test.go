@@ -44,10 +44,8 @@ func TestBuildSchema(t *testing.T) {
 			},
 		}
 		assert.Equal(t, `definition Test {
-	relation Admin: User
-	relation Member: User
-	relation Group: Group
 	relation Project: Project
+	relation Group: Group
 	permission read = Project->Admin + Group->Member
 }`, build_schema(d))
 	})
@@ -207,6 +205,65 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 					{
 						Name:       "Admin",
 						Type:       "User",
+						Namespace:  "Org",
+						Permission: []string{"read"},
+					},
+					{
+						Name:       "Admin",
+						Type:       "User",
+						Namespace:  "Project",
+						Permission: []string{"write", "delete"},
+					},
+					{
+						Name:       "Reader",
+						Type:       "User",
+						Namespace:  "Project",
+						Permission: []string{"read"},
+					},
+				},
+			},
+		}
+
+		assert.Equal(t, expected_def, def)
+	})
+
+	t.Run("should add the role subtype", func(t *testing.T) {
+		policies := []Policy{
+			{
+				Namespace:     "Project",
+				RoleNamespace: "Org",
+				Role:          "Admin",
+				RoleType:      "Group#members",
+				Permission:    "read",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "write",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Admin",
+				RoleType:   "User",
+				Permission: "delete",
+			},
+			{
+				Namespace:  "Project",
+				Role:       "Reader",
+				RoleType:   "User",
+				Permission: "read",
+			},
+		}
+		def := build_policy_definitions(policies)
+		expected_def := []definition{
+			{
+				Name: "Project",
+				Roles: []role{
+					{
+						Name:       "Admin",
+						Type:       "Group",
+						Subtype:    "members",
 						Namespace:  "Org",
 						Permission: []string{"read"},
 					},
