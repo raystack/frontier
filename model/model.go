@@ -40,3 +40,28 @@ type Role struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type Action struct {
+	Id        string
+	Name      string
+	Slug      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Namespace struct {
+	Id        string
+	Name      string
+	Slug      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Policy struct {
+	Id        string
+	Role      Role
+	Namespace Namespace
+	Action    Action
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

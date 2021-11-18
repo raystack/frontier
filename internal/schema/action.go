@@ -3,36 +3,29 @@ package schema
 import (
 	"context"
 	"errors"
-	"time"
-)
 
-type Action struct {
-	Id        string
-	Name      string
-	Slug      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
+	"github.com/odpf/shield/model"
+)
 
 var ActionDoesntExist = errors.New("actions doesn't exist")
 
-func (s Service) GetAction(ctx context.Context, id string) (Action, error) {
+func (s Service) GetAction(ctx context.Context, id string) (model.Action, error) {
 	return s.Store.GetAction(ctx, id)
 }
 
-func (s Service) CreateAction(ctx context.Context, org Action) (Action, error) {
-	newAction, err := s.Store.CreateAction(ctx, Action{
+func (s Service) CreateAction(ctx context.Context, org model.Action) (model.Action, error) {
+	newAction, err := s.Store.CreateAction(ctx, model.Action{
 		Name: org.Name,
 		Slug: org.Slug,
 	})
 
 	if err != nil {
-		return Action{}, err
+		return model.Action{}, err
 	}
 
 	return newAction, nil
 }
 
-func (s Service) ListActions(ctx context.Context) ([]Action, error) {
+func (s Service) ListActions(ctx context.Context) ([]model.Action, error) {
 	return s.Store.ListActions(ctx)
 }

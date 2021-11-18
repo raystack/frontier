@@ -9,6 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/model"
 )
 
 type Action struct {
@@ -27,12 +28,12 @@ const (
 	updateActionQuery          = `UPDATE actions set name = $2, slug = $3 updated_at = now() where id = $1 RETURNING id, name, slug, created_at, updated_at;`
 )
 
-func (s Store) GetAction(ctx context.Context, id string) (schema.Action, error) {
+func (s Store) GetAction(ctx context.Context, id string) (model.Action, error) {
 	fetchedAction, err := s.selectAction(ctx, id, false, nil)
 	return fetchedAction, err
 }
 
-func (s Store) selectAction(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (schema.Action, error) {
+func (s Store) selectAction(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (model.Action, error) {
 	var fetchedAction Action
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -44,24 +45,24 @@ func (s Store) selectAction(ctx context.Context, id string, forUpdate bool, txn 
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return schema.Action{}, schema.ActionDoesntExist
+		return model.Action{}, schema.ActionDoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return schema.Action{}, schema.InvalidUUID
+		return model.Action{}, schema.InvalidUUID
 	} else if err != nil {
-		return schema.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedAction, err := transformToAction(fetchedAction)
 	if err != nil {
-		return schema.Action{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Action{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedAction, nil
 }
 
-func (s Store) CreateAction(ctx context.Context, actionToCreate schema.Action) (schema.Action, error) {
+func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (model.Action, error) {
 
 	var newAction Action
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -69,37 +70,37 @@ func (s Store) CreateAction(ctx context.Context, actionToCreate schema.Action) (
 	})
 
 	if err != nil {
-		return schema.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedAction, err := transformToAction(newAction)
 	if err != nil {
-		return schema.Action{}, fmt.Errorf("%w: %s", parseErr, err)
+		return model.Action{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedAction, nil
 }
 
-func (s Store) ListActions(ctx context.Context) ([]schema.Action, error) {
+func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 	var fetchedActions []Action
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedActions, listActionsQuery)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []schema.Action{}, schema.ActionDoesntExist
+		return []model.Action{}, schema.ActionDoesntExist
 	}
 
 	if err != nil {
-		return []schema.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedActions []schema.Action
+	var transformedActions []model.Action
 
 	for _, o := range fetchedActions {
 		transformedAction, err := transformToAction(o)
 		if err != nil {
-			return []schema.Action{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []model.Action{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedActions = append(transformedActions, transformedAction)
@@ -108,9 +109,9 @@ func (s Store) ListActions(ctx context.Context) ([]schema.Action, error) {
 	return transformedActions, nil
 }
 
-func transformToAction(from Action) (schema.Action, error) {
+func transformToAction(from Action) (model.Action, error) {
 
-	return schema.Action{
+	return model.Action{
 		Id:        from.Id,
 		Name:      from.Name,
 		Slug:      from.Slug,

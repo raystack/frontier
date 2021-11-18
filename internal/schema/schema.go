@@ -3,6 +3,8 @@ package schema
 import (
 	"context"
 	"errors"
+
+	"github.com/odpf/shield/model"
 )
 
 type Service struct {
@@ -12,10 +14,10 @@ type Service struct {
 var InvalidUUID = errors.New("invalid syntax of uuid")
 
 type Store interface {
-	GetAction(ctx context.Context, id string) (Action, error)
-	CreateAction(ctx context.Context, action Action) (Action, error)
-	ListActions(ctx context.Context) ([]Action, error)
-	GetNamespace(ctx context.Context, id string) (Namespace, error)
-	CreateNamespace(ctx context.Context, namespace Namespace) (Namespace, error)
-	ListNamespaces(ctx context.Context) ([]Namespace, error)
+	GetAction(ctx context.Context, id string) (model.Action, error)
+	CreateAction(ctx context.Context, action model.Action) (model.Action, error)
+	ListActions(ctx context.Context) ([]model.Action, error)
+	GetNamespace(ctx context.Context, id string) (model.Namespace, error)
+	CreateNamespace(ctx context.Context, namespace model.Namespace) (model.Namespace, error)
+	ListNamespaces(ctx context.Context) ([]model.Namespace, error)
 }
