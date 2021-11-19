@@ -2,6 +2,7 @@ package schema_generator
 
 import (
 	"fmt"
+	"github.com/odpf/shield/model"
 	"strings"
 
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
@@ -19,14 +20,6 @@ type role struct {
 type definition struct {
 	Name  string
 	Roles []role
-}
-
-type Policy struct {
-	Namespace     string
-	Role          string
-	RoleTypes     []string
-	RoleNamespace string
-	Permission    string
 }
 
 func build_schema(d definition) string {
@@ -92,18 +85,18 @@ func build_schema(d definition) string {
 	return schema_defintion
 }
 
-func build_policy_definitions(policies []Policy) []definition {
+func build_policy_definitions(policies []model.Policy) []definition {
 	definitions := []definition{}
 	def_map := make(map[string]map[string][]role)
 
 	for _, p := range policies {
-		def, ok := def_map[p.Namespace]
+		def, ok := def_map[p.Namespace.Slug]
 		if !ok {
 			def = make(map[string][]role)
-			def_map[p.Namespace] = def
+			def_map[p.Namespace.Slug] = def
 		}
 
-		keyName := fmt.Sprintf("%s_%s", p.RoleNamespace, p.Role)
+		keyName := fmt.Sprintf("%s_%s", p.Role.Namespace, p.Role.Id)
 
 		r, ok := def[keyName]
 		if !ok {
@@ -112,14 +105,14 @@ func build_policy_definitions(policies []Policy) []definition {
 		}
 
 		def[keyName] = append(r, role{
-			Name:       p.Role,
-			Types:      p.RoleTypes,
-			Namespace:  p.RoleNamespace,
-			Permission: []string{p.Permission},
+			Name:       p.Role.Id,
+			Types:      p.Role.Types,
+			Namespace:  p.Role.Namespace,
+			Permission: []string{p.Action.Slug},
 		})
 	}
 
-	for namespace, def := range def_map {
+	for ns, def := range def_map {
 		roles := []role{}
 		for _, r := range def {
 			permissions := []string{}
@@ -127,7 +120,7 @@ func build_policy_definitions(policies []Policy) []definition {
 				permissions = append(permissions, p.Permission...)
 			}
 
-			role_namespace := namespace
+			role_namespace := ns
 
 			if r[0].Namespace != "" {
 				role_namespace = r[0].Namespace
@@ -141,7 +134,7 @@ func build_policy_definitions(policies []Policy) []definition {
 			})
 		}
 		definition := definition{
-			Name:  namespace,
+			Name:  ns,
 			Roles: roles,
 		}
 

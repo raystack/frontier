@@ -1,6 +1,7 @@
 package schema_generator
 
 import (
+	"github.com/odpf/shield/model"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,23 +76,22 @@ func TestBuildSchema(t *testing.T) {
 
 func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("return policy definitions", func(t *testing.T) {
-		policies := []Policy{
+		policies := []model.Policy{
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "read",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
 		def := build_policy_definitions(policies)
 		expected_def := []definition{
 			{
-				Name: "Project",
+				Name: "project",
 				Roles: []role{
 					{
-						Name:       "Admin",
+						Name:       "admin",
 						Types:      []string{"User"},
-						Namespace:  "Project",
+						Namespace:  "project",
 						Permission: []string{"read"},
 					},
 				},
@@ -102,35 +102,32 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	})
 
 	t.Run("merge roles in policy definitions", func(t *testing.T) {
-		policies := []Policy{
+		policies := []model.Policy{
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "read",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "write",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Write", Slug: "write"},
 			},
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "delete",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Delete", Slug: "delete"},
 			},
 		}
 		def := build_policy_definitions(policies)
 		expected_def := []definition{
 			{
-				Name: "Project",
+				Name: "project",
 				Roles: []role{
 					{
-						Name:       "Admin",
+						Name:       "admin",
 						Types:      []string{"User"},
-						Namespace:  "Project",
+						Namespace:  "project",
 						Permission: []string{"read", "write", "delete"},
 					},
 				},
@@ -141,47 +138,43 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	})
 
 	t.Run("create multiple roles in policy definitions", func(t *testing.T) {
-		policies := []Policy{
+		policies := []model.Policy{
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "read",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "write",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Write", Slug: "write"},
 			},
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "delete",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Delete", Slug: "delete"},
 			},
 			{
-				Namespace:  "Project",
-				Role:       "Reader",
-				RoleTypes:  []string{"User"},
-				Permission: "read",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Reader", Id: "reader", Types: []string{"User"}},
+				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
 		def := build_policy_definitions(policies)
 		expected_def := []definition{
 			{
-				Name: "Project",
+				Name: "project",
 				Roles: []role{
 					{
-						Name:       "Admin",
+						Name:       "admin",
 						Types:      []string{"User"},
-						Namespace:  "Project",
+						Namespace:  "project",
 						Permission: []string{"read", "write", "delete"},
 					},
 					{
-						Name:       "Reader",
+						Name:       "reader",
 						Types:      []string{"User"},
-						Namespace:  "Project",
+						Namespace:  "project",
 						Permission: []string{"read"},
 					},
 				},
@@ -192,54 +185,50 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	})
 
 	t.Run("should add roles namespace", func(t *testing.T) {
-		policies := []Policy{
+		policies := []model.Policy{
 			{
-				Namespace:     "Project",
-				RoleNamespace: "Org",
-				Role:          "Admin",
-				RoleTypes:     []string{"User"},
-				Permission:    "read",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Namespace: "Org", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Read", Slug: "read"},
+			},
+
+			{
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Write", Slug: "write"},
 			},
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "write",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Delete", Slug: "delete"},
 			},
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User"},
-				Permission: "delete",
-			},
-			{
-				Namespace:  "Project",
-				Role:       "Reader",
-				RoleTypes:  []string{"User"},
-				Permission: "read",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Reader", Id: "reader", Types: []string{"User"}},
+				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
 		def := build_policy_definitions(policies)
 		expected_def := []definition{
 			{
-				Name: "Project",
+				Name: "project",
 				Roles: []role{
 					{
-						Name:       "Admin",
+						Name:       "admin",
 						Types:      []string{"User"},
 						Namespace:  "Org",
 						Permission: []string{"read"},
 					},
 					{
-						Name:       "Admin",
+						Name:       "admin",
 						Types:      []string{"User"},
-						Namespace:  "Project",
+						Namespace:  "project",
 						Permission: []string{"write", "delete"},
 					},
 					{
-						Name:       "Reader",
+						Name:       "reader",
 						Types:      []string{"User"},
-						Namespace:  "Project",
+						Namespace:  "project",
 						Permission: []string{"read"},
 					},
 				},
@@ -250,23 +239,22 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	})
 
 	t.Run("should support multiple role types", func(t *testing.T) {
-		policies := []Policy{
+		policies := []model.Policy{
 			{
-				Namespace:  "Project",
-				Role:       "Admin",
-				RoleTypes:  []string{"User", "Team#members"},
-				Permission: "read",
+				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User", "Team#members"}},
+				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
 		def := build_policy_definitions(policies)
 		expected_def := []definition{
 			{
-				Name: "Project",
+				Name: "project",
 				Roles: []role{
 					{
-						Name:       "Admin",
+						Name:       "admin",
 						Types:      []string{"User", "Team#members"},
-						Namespace:  "Project",
+						Namespace:  "project",
 						Permission: []string{"read"},
 					},
 				},
