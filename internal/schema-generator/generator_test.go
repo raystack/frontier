@@ -10,67 +10,67 @@ import (
 func TestBuildSchema(t *testing.T) {
 	t.Run("Generate Empty schema with name ", func(t *testing.T) {
 		d := definition{
-			Name: "Test",
+			name: "Test",
 		}
-		assert.Equal(t, "definition Test {}", build_schema(d))
+		assert.Equal(t, "definition Test {}", buildSchema(d))
 	})
 
 	t.Run("Generate Empty schema with name and role ", func(t *testing.T) {
 		d := definition{
-			Name:  "Test",
-			Roles: []role{{Name: "Admin", Types: []string{"User"}}},
+			name:  "Test",
+			roles: []role{{name: "Admin", types: []string{"User"}}},
 		}
 		assert.Equal(t, `definition Test {
 	relation Admin: User
-}`, build_schema(d))
+}`, buildSchema(d))
 	})
 
 	t.Run("Generate Empty schema with name, role and permission ", func(t *testing.T) {
 		d := definition{
-			Name:  "Test",
-			Roles: []role{{Name: "Admin", Types: []string{"User"}, Permission: []string{"read"}}},
+			name:  "Test",
+			roles: []role{{name: "Admin", types: []string{"User"}, permissions: []string{"read"}}},
 		}
 		assert.Equal(t, `definition Test {
 	relation Admin: User
 	permission read = Admin
-}`, build_schema(d))
+}`, buildSchema(d))
 	})
 
 	t.Run("Add role name and children", func(t *testing.T) {
 		d := definition{
-			Name: "Test",
-			Roles: []role{
-				{Name: "Admin", Types: []string{"User"}, Permission: []string{"read"}, Namespace: "Project"},
-				{Name: "Member", Types: []string{"User"}, Namespace: "Group", Permission: []string{"read"}},
+			name: "Test",
+			roles: []role{
+				{name: "Admin", types: []string{"User"}, permissions: []string{"read"}, namespace: "Project"},
+				{name: "Member", types: []string{"User"}, namespace: "Group", permissions: []string{"read"}},
 			},
 		}
 		assert.Equal(t, `definition Test {
 	relation Project: Project
 	relation Group: Group
 	permission read = Project->Admin + Group->Member
-}`, build_schema(d))
+}`, buildSchema(d))
 	})
 
 	t.Run("Should add role subtype", func(t *testing.T) {
 		d := definition{
-			Name:  "Test",
-			Roles: []role{{Name: "Admin", Types: []string{"User#member"}, Permission: []string{"read"}}},
+			name:  "Test",
+			roles: []role{{name: "Admin", types: []string{"User#member"}, permissions: []string{"read"}}},
 		}
 		assert.Equal(t, `definition Test {
 	relation Admin: User#member
 	permission read = Admin
-}`, build_schema(d))
+}`, buildSchema(d))
 	})
 
 	t.Run("Should add multiple role types", func(t *testing.T) {
 		d := definition{
-			Name:  "Test",
-			Roles: []role{{Name: "Admin", Types: []string{"User", "Team#member"}, Permission: []string{"read"}}},
+			name:  "Test",
+			roles: []role{{name: "Admin", types: []string{"User", "Team#member"}, permissions: []string{"read"}}},
 		}
 		assert.Equal(t, `definition Test {
 	relation Admin: User | Team#member
 	permission read = Admin
-}`, build_schema(d))
+}`, buildSchema(d))
 	})
 }
 
@@ -83,22 +83,22 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
-		def := build_policy_definitions(policies)
-		expected_def := []definition{
+		def := buildPolicyDefinitions(policies)
+		expectedDef := []definition{
 			{
-				Name: "project",
-				Roles: []role{
+				name: "project",
+				roles: []role{
 					{
-						Name:       "admin",
-						Types:      []string{"User"},
-						Namespace:  "project",
-						Permission: []string{"read"},
+						name:        "admin",
+						types:       []string{"User"},
+						namespace:   "project",
+						permissions: []string{"read"},
 					},
 				},
 			},
 		}
 
-		assert.Equal(t, expected_def, def)
+		assert.Equal(t, expectedDef, def)
 	})
 
 	t.Run("merge roles in policy definitions", func(t *testing.T) {
@@ -119,22 +119,22 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Delete", Slug: "delete"},
 			},
 		}
-		def := build_policy_definitions(policies)
-		expected_def := []definition{
+		def := buildPolicyDefinitions(policies)
+		expectedDef := []definition{
 			{
-				Name: "project",
-				Roles: []role{
+				name: "project",
+				roles: []role{
 					{
-						Name:       "admin",
-						Types:      []string{"User"},
-						Namespace:  "project",
-						Permission: []string{"read", "write", "delete"},
+						name:        "admin",
+						types:       []string{"User"},
+						namespace:   "project",
+						permissions: []string{"read", "write", "delete"},
 					},
 				},
 			},
 		}
 
-		assert.Equal(t, expected_def, def)
+		assert.Equal(t, expectedDef, def)
 	})
 
 	t.Run("create multiple roles in policy definitions", func(t *testing.T) {
@@ -160,28 +160,28 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
-		def := build_policy_definitions(policies)
-		expected_def := []definition{
+		def := buildPolicyDefinitions(policies)
+		expectedDef := []definition{
 			{
-				Name: "project",
-				Roles: []role{
+				name: "project",
+				roles: []role{
 					{
-						Name:       "admin",
-						Types:      []string{"User"},
-						Namespace:  "project",
-						Permission: []string{"read", "write", "delete"},
+						name:        "admin",
+						types:       []string{"User"},
+						namespace:   "project",
+						permissions: []string{"read", "write", "delete"},
 					},
 					{
-						Name:       "reader",
-						Types:      []string{"User"},
-						Namespace:  "project",
-						Permission: []string{"read"},
+						name:        "reader",
+						types:       []string{"User"},
+						namespace:   "project",
+						permissions: []string{"read"},
 					},
 				},
 			},
 		}
 
-		assert.Equal(t, expected_def, def)
+		assert.Equal(t, expectedDef, def)
 	})
 
 	t.Run("should add roles namespace", func(t *testing.T) {
@@ -208,34 +208,34 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
-		def := build_policy_definitions(policies)
-		expected_def := []definition{
+		def := buildPolicyDefinitions(policies)
+		expectedDef := []definition{
 			{
-				Name: "project",
-				Roles: []role{
+				name: "project",
+				roles: []role{
 					{
-						Name:       "admin",
-						Types:      []string{"User"},
-						Namespace:  "Org",
-						Permission: []string{"read"},
+						name:        "admin",
+						types:       []string{"User"},
+						namespace:   "Org",
+						permissions: []string{"read"},
 					},
 					{
-						Name:       "admin",
-						Types:      []string{"User"},
-						Namespace:  "project",
-						Permission: []string{"write", "delete"},
+						name:        "admin",
+						types:       []string{"User"},
+						namespace:   "project",
+						permissions: []string{"write", "delete"},
 					},
 					{
-						Name:       "reader",
-						Types:      []string{"User"},
-						Namespace:  "project",
-						Permission: []string{"read"},
+						name:        "reader",
+						types:       []string{"User"},
+						namespace:   "project",
+						permissions: []string{"read"},
 					},
 				},
 			},
 		}
 
-		assert.Equal(t, expected_def, def)
+		assert.Equal(t, expectedDef, def)
 	})
 
 	t.Run("should support multiple role types", func(t *testing.T) {
@@ -246,22 +246,22 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Slug: "read"},
 			},
 		}
-		def := build_policy_definitions(policies)
-		expected_def := []definition{
+		def := buildPolicyDefinitions(policies)
+		expectedDef := []definition{
 			{
-				Name: "project",
-				Roles: []role{
+				name: "project",
+				roles: []role{
 					{
-						Name:       "admin",
-						Types:      []string{"User", "Team#members"},
-						Namespace:  "project",
-						Permission: []string{"read"},
+						name:        "admin",
+						types:       []string{"User", "Team#members"},
+						namespace:   "project",
+						permissions: []string{"read"},
 					},
 				},
 			},
 		}
 
-		assert.Equal(t, expected_def, def)
+		assert.Equal(t, expectedDef, def)
 	})
 
 }

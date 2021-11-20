@@ -11,53 +11,42 @@ import (
 )
 
 type role struct {
-	Name       string
-	Types      []string
-	Namespace  string
-	Permission []string
+	name        string
+	types       []string
+	namespace   string
+	permissions []string
 }
 
 type definition struct {
-	Name  string
-	Roles []role
+	name  string
+	roles []role
 }
 
-func build_schema(d definition) string {
-	relations := []*v0.Relation{}
+func buildSchema(d definition) string {
+	var relations []*v0.Relation
 	permissions := make(map[string][]*v0.SetOperation_Child)
 
-	for _, r := range d.Roles {
+	for _, r := range d.roles {
 
-		if r.Namespace == "" {
-			relationReference := []*v0.RelationReference{}
-			for _, t := range r.Types {
-				roleType := strings.Split(t, "#")
-				subType := "..."
-				if len(roleType) > 1 {
-					subType = roleType[1]
-				}
-				relationReference = append(relationReference, &v0.RelationReference{
-					Namespace: roleType[0],
-					Relation:  subType,
-				})
-			}
+		if r.namespace == "" {
+			relationReference := buildRelationReference(r)
 
 			relations = append(relations, namespace.Relation(
-				r.Name,
+				r.name,
 				nil,
 				relationReference...,
 			))
 		}
 
-		for _, p := range r.Permission {
-			perm := namespace.ComputedUserset(r.Name)
-			if r.Namespace != "" {
-				perm = namespace.TupleToUserset(r.Namespace, r.Name)
+		for _, p := range r.permissions {
+			perm := namespace.ComputedUserset(r.name)
+			if r.namespace != "" {
+				perm = namespace.TupleToUserset(r.namespace, r.name)
 				relations = append(relations, namespace.Relation(
-					r.Namespace,
+					r.namespace,
 					nil,
 					&v0.RelationReference{
-						Namespace: r.Namespace,
+						Namespace: r.namespace,
 						Relation:  "...",
 					},
 				))
@@ -79,21 +68,37 @@ func build_schema(d definition) string {
 		))
 	}
 
-	n := namespace.Namespace(d.Name, relations...)
+	n := namespace.Namespace(d.name, relations...)
 
-	schema_defintion, _ := generator.GenerateSource(n)
-	return schema_defintion
+	schemaDefinition, _ := generator.GenerateSource(n)
+	return schemaDefinition
 }
 
-func build_policy_definitions(policies []model.Policy) []definition {
-	definitions := []definition{}
-	def_map := make(map[string]map[string][]role)
+func buildRelationReference(r role) []*v0.RelationReference {
+	var relationReference []*v0.RelationReference
+	for _, t := range r.types {
+		roleType := strings.Split(t, "#")
+		subType := "..."
+		if len(roleType) > 1 {
+			subType = roleType[1]
+		}
+		relationReference = append(relationReference, &v0.RelationReference{
+			Namespace: roleType[0],
+			Relation:  subType,
+		})
+	}
+	return relationReference
+}
+
+func buildPolicyDefinitions(policies []model.Policy) []definition {
+	var definitions []definition
+	defMap := make(map[string]map[string][]role)
 
 	for _, p := range policies {
-		def, ok := def_map[p.Namespace.Slug]
+		def, ok := defMap[p.Namespace.Slug]
 		if !ok {
 			def = make(map[string][]role)
-			def_map[p.Namespace.Slug] = def
+			defMap[p.Namespace.Slug] = def
 		}
 
 		keyName := fmt.Sprintf("%s_%s", p.Role.Namespace, p.Role.Id)
@@ -105,37 +110,37 @@ func build_policy_definitions(policies []model.Policy) []definition {
 		}
 
 		def[keyName] = append(r, role{
-			Name:       p.Role.Id,
-			Types:      p.Role.Types,
-			Namespace:  p.Role.Namespace,
-			Permission: []string{p.Action.Slug},
+			name:        p.Role.Id,
+			types:       p.Role.Types,
+			namespace:   p.Role.Namespace,
+			permissions: []string{p.Action.Slug},
 		})
 	}
 
-	for ns, def := range def_map {
-		roles := []role{}
+	for ns, def := range defMap {
+		var roles []role
 		for _, r := range def {
-			permissions := []string{}
+			var permissions []string
 			for _, p := range r {
-				permissions = append(permissions, p.Permission...)
+				permissions = append(permissions, p.permissions...)
 			}
 
-			role_namespace := ns
+			roleNamespace := ns
 
-			if r[0].Namespace != "" {
-				role_namespace = r[0].Namespace
+			if r[0].namespace != "" {
+				roleNamespace = r[0].namespace
 			}
 
 			roles = append(roles, role{
-				Name:       r[0].Name,
-				Types:      r[0].Types,
-				Namespace:  role_namespace,
-				Permission: permissions,
+				name:        r[0].name,
+				types:       r[0].types,
+				namespace:   roleNamespace,
+				permissions: permissions,
 			})
 		}
 		definition := definition{
-			Name:  ns,
-			Roles: roles,
+			name:  ns,
+			roles: roles,
 		}
 
 		definitions = append(definitions, definition)
