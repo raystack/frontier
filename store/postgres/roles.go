@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/lib/pq"
 	"time"
 
 	"github.com/odpf/shield/internal/project"
@@ -14,18 +15,18 @@ import (
 )
 
 type Role struct {
-	Id          string    `db:"id"`
-	Name        string    `db:"name"`
-	Types       []string  `db:"types"`
-	Namespace   string    `db:"namespace"`
-	NamespaceID string    `db:"namespace_id"`
-	Metadata    []byte    `db:"metadata"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	Id          string         `db:"id"`
+	Name        string         `db:"name"`
+	Types       pq.StringArray `db:"types"`
+	Namespace   string         `db:"namespace"`
+	NamespaceID string         `db:"namespace_id"`
+	Metadata    []byte         `db:"metadata"`
+	CreatedAt   time.Time      `db:"created_at"`
+	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
 const (
-	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, metadata) values($1, $2, $3, $4, $5) RETURNING id, name, types, namespace_id, metadata, created_at, updated_at;`
+	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, namespac, metadata) values($1, $2, $3, $4, $4, $5) RETURNING id, name, types, namespace_id, metadata, created_at, updated_at;`
 	getRoleQuery    = `SELECT id, name, types, namespace_id, metadata, created_at, updated_at from roles where id=$1;`
 	listRolesQuery  = `SELECT id, name, types, namespace_id, metadata, created_at, updated_at from roles;`
 	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, namespace_id = $4, metadata = $5, updated_at = now() where id = $1;`
@@ -59,7 +60,7 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate model.Role) (model.R
 
 	var newRole Role
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newRole, createRoleQuery, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.Id, roleToCreate.Name, pq.StringArray(roleToCreate.Types), roleToCreate.Namespace, marshaledMetadata)
 	})
 	if err != nil {
 		return model.Role{}, fmt.Errorf("%w: %s", dbErr, err)

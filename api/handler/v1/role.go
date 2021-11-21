@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"errors"
-
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/roles"
@@ -135,8 +134,10 @@ func transformRoleToPB(from model.Role) (shieldv1.Role, error) {
 	}
 
 	return shieldv1.Role{
-		Id:   from.Id,
-		Name: from.Name,
+		Id:        from.Id,
+		Name:      from.Name,
+		Types:     from.Types,
+		Namespace: from.NamespaceId,
 		//Tags:      nil,
 		//Actions:   nil,
 		Metadata:  metaData,

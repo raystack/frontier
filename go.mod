@@ -13,6 +13,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/jhump/protoreflect v1.9.0
 	github.com/jmoiron/sqlx v1.3.4
+	github.com/lib/pq v1.10.4 // indirect
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/newrelic/go-agent v3.15.0+incompatible
 	github.com/odpf/salt v0.0.0-20210929215807-5e1f68b4ec91
