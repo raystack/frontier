@@ -83,7 +83,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def, _ := buildPolicyDefinitions(policies)
+		def, _ := BuildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -119,7 +119,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Delete", Id: "delete"},
 			},
 		}
-		def, _ := buildPolicyDefinitions(policies)
+		def, _ := BuildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -160,7 +160,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def, _ := buildPolicyDefinitions(policies)
+		def, _ := BuildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -207,7 +207,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def, _ := buildPolicyDefinitions(policies)
+		def, _ := BuildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -245,7 +245,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def, _ := buildPolicyDefinitions(policies)
+		def, _ := BuildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -271,7 +271,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read", NamespaceId: "org"},
 			},
 		}
-		def, err := buildPolicyDefinitions(policies)
+		def, err := BuildPolicyDefinitions(policies)
 		expectedDef := []definition{}
 
 		assert.Equal(t, expectedDef, def)

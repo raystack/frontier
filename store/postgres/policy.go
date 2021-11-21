@@ -89,6 +89,35 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	return transformedPolicies, nil
 }
 
+func (s Store) ListPoliciesWithFilters(ctx context.Context, filters schema.PolicyFilters) ([]model.Policy, error) {
+	var fetchedPolicies []Policy
+	query := listPolicyQuery
+
+	if filters.NamespaceId != "" {
+		query = fmt.Sprintf("%s %s", listPolicyQuery, fmt.Sprintf("WHERE namespace_id=%s", filters.NamespaceId))
+	}
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedPolicies, query)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.Policy{}, project.ProjectDoesntExist
+	} else if err != nil {
+		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedPolicies []model.Policy
+	for _, p := range fetchedPolicies {
+		transformedPolicy, err := transformToPolicy(p)
+		if err != nil {
+			return []model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+		transformedPolicies = append(transformedPolicies, transformedPolicy)
+	}
+
+	return transformedPolicies, nil
+}
+
 func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) (model.Policy, error) {
 	var newPolicy Policy
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {

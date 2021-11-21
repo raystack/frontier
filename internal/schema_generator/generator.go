@@ -23,6 +23,14 @@ type definition struct {
 	roles []role
 }
 
+func BuildSchema(def []definition) []string {
+	var schema []string
+	for _, d := range def {
+		schema = append(schema, buildSchema(d))
+	}
+	return schema
+}
+
 func buildSchema(d definition) string {
 	var relations []*v0.Relation
 	permissions := make(map[string][]*v0.SetOperation_Child)
@@ -91,7 +99,7 @@ func buildRelationReference(r role) []*v0.RelationReference {
 	return relationReference
 }
 
-func buildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
+func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 	var definitions []definition
 	defMap := make(map[string]map[string][]role)
 
