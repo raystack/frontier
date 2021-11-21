@@ -32,27 +32,27 @@ type Group struct {
 }
 
 type Role struct {
-	Id        string
-	Name      string
-	Types     []string
-	Namespace string
-	Metadata  map[string]string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id          string
+	Name        string
+	Types       []string
+	Namespace   string
+	NamespaceId string
+	Metadata    map[string]string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Action struct {
-	Id        string
-	Name      string
-	Slug      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id          string
+	Name        string
+	NamespaceId string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Namespace struct {
 	Id        string
 	Name      string
-	Slug      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

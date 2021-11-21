@@ -78,9 +78,9 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("return policy definitions", func(t *testing.T) {
 		policies := []model.Policy{
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Read", Slug: "read"},
+				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
 		def := buildPolicyDefinitions(policies)
@@ -104,19 +104,19 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("merge roles in policy definitions", func(t *testing.T) {
 		policies := []model.Policy{
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Read", Slug: "read"},
+				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Write", Slug: "write"},
+				Action:    model.Action{Name: "Write", Id: "write"},
 			},
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Delete", Slug: "delete"},
+				Action:    model.Action{Name: "Delete", Id: "delete"},
 			},
 		}
 		def := buildPolicyDefinitions(policies)
@@ -140,24 +140,24 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("create multiple roles in policy definitions", func(t *testing.T) {
 		policies := []model.Policy{
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Read", Slug: "read"},
+				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Write", Slug: "write"},
+				Action:    model.Action{Name: "Write", Id: "write"},
 			},
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Delete", Slug: "delete"},
+				Action:    model.Action{Name: "Delete", Id: "delete"},
 			},
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Reader", Id: "reader", Types: []string{"User"}},
-				Action:    model.Action{Name: "Read", Slug: "read"},
+				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
 		def := buildPolicyDefinitions(policies)
@@ -187,25 +187,24 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("should add roles namespace", func(t *testing.T) {
 		policies := []model.Policy{
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
-				Role:      model.Role{Name: "Admin", Namespace: "Org", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Read", Slug: "read"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
+				Role:      model.Role{Name: "Admin", NamespaceId: "Org", Id: "admin", Types: []string{"User"}},
+				Action:    model.Action{Name: "Read", Id: "read"},
 			},
-
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Write", Slug: "write"},
+				Action:    model.Action{Name: "Write", Id: "write"},
 			},
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User"}},
-				Action:    model.Action{Name: "Delete", Slug: "delete"},
+				Action:    model.Action{Name: "Delete", Id: "delete"},
 			},
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Reader", Id: "reader", Types: []string{"User"}},
-				Action:    model.Action{Name: "Read", Slug: "read"},
+				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
 		def := buildPolicyDefinitions(policies)
@@ -241,9 +240,9 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("should support multiple role types", func(t *testing.T) {
 		policies := []model.Policy{
 			{
-				Namespace: model.Namespace{Name: "Project", Slug: "project"},
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
 				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User", "Team#members"}},
-				Action:    model.Action{Name: "Read", Slug: "read"},
+				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
 		def := buildPolicyDefinitions(policies)

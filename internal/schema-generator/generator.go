@@ -95,13 +95,14 @@ func buildPolicyDefinitions(policies []model.Policy) []definition {
 	defMap := make(map[string]map[string][]role)
 
 	for _, p := range policies {
-		def, ok := defMap[p.Namespace.Slug]
+		namespaceId := p.Namespace.Id
+		def, ok := defMap[namespaceId]
 		if !ok {
 			def = make(map[string][]role)
-			defMap[p.Namespace.Slug] = def
+			defMap[namespaceId] = def
 		}
 
-		keyName := fmt.Sprintf("%s_%s", p.Role.Namespace, p.Role.Id)
+		keyName := fmt.Sprintf("%s_%s_%s", p.Role.Id, p.Role.NamespaceId, namespaceId)
 
 		r, ok := def[keyName]
 		if !ok {
@@ -112,8 +113,8 @@ func buildPolicyDefinitions(policies []model.Policy) []definition {
 		def[keyName] = append(r, role{
 			name:        p.Role.Id,
 			types:       p.Role.Types,
-			namespace:   p.Role.Namespace,
-			permissions: []string{p.Action.Slug},
+			namespace:   p.Role.NamespaceId,
+			permissions: []string{p.Action.Id},
 		})
 	}
 
