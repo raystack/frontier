@@ -6,7 +6,7 @@ import (
 	"github.com/odpf/shield/model"
 )
 
-var PolicyDoesntExist = errors.New("actions doesn't exist")
+var PolicyDoesntExist = errors.New("policies doesn't exist")
 
 func (s Service) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
 	return s.Store.GetPolicy(ctx, id)
@@ -14,4 +14,8 @@ func (s Service) GetPolicy(ctx context.Context, id string) (model.Policy, error)
 
 func (s Service) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	return s.Store.ListPolicies(ctx)
+}
+
+func (s Service) CreatePolicy(ctx context.Context, policy model.Policy) (model.Policy, error) {
+	return s.Store.CreatePolicy(ctx, policy)
 }

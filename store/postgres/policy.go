@@ -29,8 +29,9 @@ const selectStatement = `p.id, roles.id "role.id",roles.name "role.name", roles.
 const joinStatement = `JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id`
 
 var (
-	getPolicyQuery  = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
-	listPolicyQuery = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
+	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) values($1, $2, $3) RETURNING id`)
+	getPolicyQuery    = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
+	listPolicyQuery   = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
 )
 
 func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
@@ -85,6 +86,27 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	}
 
 	return transformedPolicies, nil
+}
+
+func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) (model.Policy, error) {
+	var newPolicy Policy
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, policyToCreate.ActionId)
+	})
+	if err != nil {
+		return model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &newPolicy, getPolicyQuery, newPolicy.Id)
+	})
+	if err != nil {
+		return model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+	transformedPolicy, err := transformToPolicy(newPolicy)
+	if err != nil {
+		return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+	return transformedPolicy, nil
 }
 
 func transformToPolicy(from Policy) (model.Policy, error) {

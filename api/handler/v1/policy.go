@@ -10,12 +10,17 @@ import (
 type PolicyService interface {
 	GetPolicy(ctx context.Context, id string) (model.Policy, error)
 	ListPolicies(ctx context.Context) ([]model.Policy, error)
+	CreatePolicy(ctx context.Context, policy model.Policy) (model.Policy, error)
 }
 
-func (v Dep) GetPolicy() {
+func (v Dep) GetPolicy(ctx context.Context) {
 	fmt.Println("GetPolicy")
 }
 
-func (v Dep) ListPolicies() {
+func (v Dep) ListPolicies(ctx context.Context) {
 	fmt.Println("ListPolicies")
+}
+
+func (v Dep) CreatePolicy(ctx context.Context, policy model.Policy) {
+	fmt.Println("Create Policy")
 }

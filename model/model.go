@@ -58,10 +58,13 @@ type Namespace struct {
 }
 
 type Policy struct {
-	Id        string
-	Role      Role
-	Namespace Namespace
-	Action    Action
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id          string
+	Role        Role
+	RoleId      string `json:"role_id"`
+	Namespace   Namespace
+	NamespaceId string `json:"namespace_id"`
+	Action      Action
+	ActionId    string `json:"action_id"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
