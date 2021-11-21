@@ -1,6 +1,7 @@
 package schema_generator
 
 import (
+	"errors"
 	"fmt"
 	"github.com/odpf/shield/model"
 	"strings"
@@ -90,7 +91,7 @@ func buildRelationReference(r role) []*v0.RelationReference {
 	return relationReference
 }
 
-func buildPolicyDefinitions(policies []model.Policy) []definition {
+func buildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 	var definitions []definition
 	defMap := make(map[string]map[string][]role)
 
@@ -108,6 +109,10 @@ func buildPolicyDefinitions(policies []model.Policy) []definition {
 		if !ok {
 			r = []role{}
 			def[keyName] = r
+		}
+
+		if p.Action.NamespaceId != "" && p.Action.NamespaceId != namespaceId {
+			return []definition{}, errors.New("actions namespace doesnt match")
 		}
 
 		def[keyName] = append(r, role{
@@ -147,5 +152,5 @@ func buildPolicyDefinitions(policies []model.Policy) []definition {
 		definitions = append(definitions, definition)
 	}
 
-	return definitions
+	return definitions, nil
 }

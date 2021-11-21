@@ -83,7 +83,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def := buildPolicyDefinitions(policies)
+		def, _ := buildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -119,7 +119,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Delete", Id: "delete"},
 			},
 		}
-		def := buildPolicyDefinitions(policies)
+		def, _ := buildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -160,7 +160,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def := buildPolicyDefinitions(policies)
+		def, _ := buildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -207,7 +207,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def := buildPolicyDefinitions(policies)
+		def, _ := buildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -245,7 +245,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 				Action:    model.Action{Name: "Read", Id: "read"},
 			},
 		}
-		def := buildPolicyDefinitions(policies)
+		def, _ := buildPolicyDefinitions(policies)
 		expectedDef := []definition{
 			{
 				name: "project",
@@ -261,6 +261,22 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 		}
 
 		assert.Equal(t, expectedDef, def)
+	})
+
+	t.Run("should throw error if action namespace is different", func(t *testing.T) {
+		policies := []model.Policy{
+			{
+				Namespace: model.Namespace{Name: "Project", Id: "project"},
+				Role:      model.Role{Name: "Admin", Id: "admin", Types: []string{"User", "Team#members"}},
+				Action:    model.Action{Name: "Read", Id: "read", NamespaceId: "org"},
+			},
+		}
+		def, err := buildPolicyDefinitions(policies)
+		expectedDef := []definition{}
+
+		assert.Equal(t, expectedDef, def)
+		assert.Errorf(t, err, "actions namespace doesnt match")
+
 	})
 
 }
