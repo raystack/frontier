@@ -11,6 +11,7 @@ import (
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/store/postgres"
 
 	"github.com/odpf/salt/log"
@@ -54,6 +55,9 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 						Store: postgres.NewStore(db),
 					},
 					RoleService: roles.Service{
+						Store: postgres.NewStore(db),
+					},
+					PolicyService: schema.Service{
 						Store: postgres.NewStore(db),
 					},
 				},
