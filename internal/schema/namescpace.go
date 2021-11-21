@@ -13,10 +13,10 @@ func (s Service) GetNamespace(ctx context.Context, id string) (model.Namespace, 
 	return s.Store.GetNamespace(ctx, id)
 }
 
-func (s Service) CreateNamespace(ctx context.Context, org model.Namespace) (model.Namespace, error) {
+func (s Service) CreateNamespace(ctx context.Context, ns model.Namespace) (model.Namespace, error) {
 	newNamespace, err := s.Store.CreateNamespace(ctx, model.Namespace{
-		Name: org.Name,
-		Slug: org.Slug,
+		Name: ns.Name,
+		Id:   ns.Id,
 	})
 
 	if err != nil {

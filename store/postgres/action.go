@@ -13,35 +13,30 @@ import (
 )
 
 type Action struct {
-	Id        string    `db:"id"`
-	Name      string    `db:"name"`
-	Slug      string    `db:"slug"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id          string    `db:"id"`
+	Name        string    `db:"name"`
+	NamespaceID string    `db:"namespace_id"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 const (
-	getActionQuery             = `SELECT id, name, slug, created_at, updated_at from actions where id=$1;`
-	createActionQuery          = `INSERT INTO actions(name, slug) values($1, $2) RETURNING id, name, slug, created_at, updated_at;`
-	listActionsQuery           = `SELECT id, name, slug, created_at, updated_at from actions;`
-	selectActionForUpdateQuery = `SELECT id, name, slug, version, updated_at from actions where id=$1;`
-	updateActionQuery          = `UPDATE actions set name = $2, slug = $3 updated_at = now() where id = $1 RETURNING id, name, slug, created_at, updated_at;`
+	getActionQuery    = `SELECT id, name, namespace_id, created_at, updated_at from actions where id=$1;`
+	createActionQuery = `INSERT INTO actions(id, name, namespace_id) values($1, $2, $3) RETURNING id, name, namespace_id, created_at, updated_at;`
+	listActionsQuery  = `SELECT id, name, namespace_id, created_at, updated_at from actions;`
+	updateActionQuery = `UPDATE actions set name = $2, namespace_id = $3, updated_at = now() where id = $1 RETURNING id, name, namespace_id, created_at, updated_at;`
 )
 
 func (s Store) GetAction(ctx context.Context, id string) (model.Action, error) {
-	fetchedAction, err := s.selectAction(ctx, id, false, nil)
+	fetchedAction, err := s.selectAction(ctx, id, nil)
 	return fetchedAction, err
 }
 
-func (s Store) selectAction(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (model.Action, error) {
+func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model.Action, error) {
 	var fetchedAction Action
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		if forUpdate {
-			return txn.GetContext(ctx, &fetchedAction, selectActionForUpdateQuery, id)
-		} else {
-			return s.DB.GetContext(ctx, &fetchedAction, getActionQuery, id)
-		}
+		return s.DB.GetContext(ctx, &fetchedAction, getActionQuery, id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -66,7 +61,7 @@ func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (m
 
 	var newAction Action
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Name, actionToCreate.Slug)
+		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, actionToCreate.NamespaceId)
 	})
 
 	if err != nil {
@@ -112,10 +107,10 @@ func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 func transformToAction(from Action) (model.Action, error) {
 
 	return model.Action{
-		Id:        from.Id,
-		Name:      from.Name,
-		Slug:      from.Slug,
-		CreatedAt: from.CreatedAt,
-		UpdatedAt: from.UpdatedAt,
+		Id:          from.Id,
+		Name:        from.Name,
+		NamespaceId: from.NamespaceID,
+		CreatedAt:   from.CreatedAt,
+		UpdatedAt:   from.UpdatedAt,
 	}, nil
 }
