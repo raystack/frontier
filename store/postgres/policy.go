@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/odpf/shield/internal/project"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -13,17 +14,23 @@ import (
 )
 
 type Policy struct {
-	Id        string    `db:"id"`
-	RoleID    string    `db:"role_id"`
-	Role      Role      `db:"roles"`
-	Namespace Namespace `db:"namespaces"`
-	Action    Action    `db:"actions"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id          string    `db:"id"`
+	Role        Role      `db:"role"`
+	RoleID      string    `db:"role_id"`
+	Namespace   Namespace `db:"namespace"`
+	NamespaceID string    `db:"namespace_id"`
+	Action      Action    `db:"action"`
+	ActionID    string    `db:"action_id"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
-const (
-	getPolicyQuery = `SELECT p.id, p.namespace_id, p.role_id, p.action_id, p.created_at, p.updated_at, roles, actions, namespaces FROM policies p JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id WHERE p.id = $1`
+const selectStatement = `p.id, roles.id "role.id",roles.name "role.name", roles.namespace_id "role.namespace_id", roles.metadata "role.metadata", namespaces.id "namespace.id", namespaces.name "namespace.name", actions.id "action.id", actions.name "action.name", actions.namespace_id "action.namespace_id"`
+const joinStatement = `JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id`
+
+var (
+	getPolicyQuery  = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
+	listPolicyQuery = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
 )
 
 func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
@@ -54,6 +61,30 @@ func (s Store) selectPolicy(ctx context.Context, id string, txn *sqlx.Tx) (model
 	}
 
 	return transformedPolicy, nil
+}
+
+func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
+	var fetchedPolicies []Policy
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedPolicies, listPolicyQuery)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.Policy{}, project.ProjectDoesntExist
+	} else if err != nil {
+		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedPolicies []model.Policy
+	for _, p := range fetchedPolicies {
+		transformedPolicy, err := transformToPolicy(p)
+		if err != nil {
+			return []model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+		transformedPolicies = append(transformedPolicies, transformedPolicy)
+	}
+
+	return transformedPolicies, nil
 }
 
 func transformToPolicy(from Policy) (model.Policy, error) {
