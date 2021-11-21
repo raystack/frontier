@@ -32,6 +32,7 @@ var (
 	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) values($1, $2, $3) RETURNING id`)
 	getPolicyQuery    = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
 	listPolicyQuery   = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
+	updatePolicyQuery = fmt.Sprintf(`UPDATE policies SET namespace_id = $2, role_id = $3, action_id = $4, updated_at = now() where id = $1 RETURNING id;`)
 )
 
 func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
@@ -106,6 +107,31 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) (m
 	if err != nil {
 		return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+	return transformedPolicy, nil
+}
+
+func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Policy) (model.Policy, error) {
+	var updatedPolicy Policy
+
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, toUpdate.ActionId)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Policy{}, schema.PolicyDoesntExist
+	} else if err != nil {
+		return model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &updatedPolicy, getPolicyQuery, updatedPolicy.Id)
+	})
+
+	transformedPolicy, err := transformToPolicy(updatedPolicy)
+	if err != nil {
+		return model.Policy{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
 	return transformedPolicy, nil
 }
 

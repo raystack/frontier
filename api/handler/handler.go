@@ -64,6 +64,22 @@ func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
 			json.NewEncoder(w).Encode(policy)
+		case "PUT":
+			params := strings.Split(r.URL.Path, "/")
+			var payload model.Policy
+			err := json.NewDecoder(r.Body).Decode(&payload)
+			if err != nil {
+				w.WriteHeader(400)
+				fmt.Fprintf(w, "Decode error! please check your JSON formating.")
+				return
+			}
+			policy, err := deps.V1.PolicyService.UpdatePolicy(context.Background(), params[2], payload)
+			if err != nil {
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(policy)
 		default:
 			fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 		}

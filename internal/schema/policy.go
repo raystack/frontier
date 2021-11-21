@@ -19,3 +19,7 @@ func (s Service) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 func (s Service) CreatePolicy(ctx context.Context, policy model.Policy) (model.Policy, error) {
 	return s.Store.CreatePolicy(ctx, policy)
 }
+
+func (s Service) UpdatePolicy(ctx context.Context, id string, policy model.Policy) (model.Policy, error) {
+	return s.Store.UpdatePolicy(ctx, id, policy)
+}
