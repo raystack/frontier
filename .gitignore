@@ -12,3 +12,4 @@ dist
 coverage.txt
 rules/test.yaml
 *.pprof
+ignore/

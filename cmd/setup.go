@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -8,9 +10,12 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/odpf/salt/log"
+
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/pkg/sql"
+
 	"go.uber.org/zap"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -55,7 +60,7 @@ func setupDB(cfg config.DBConfig, logger log.Logger) (*sql.SQL, func()) {
 	})
 
 	if err != nil {
-		logger.Fatal("failed to setup db: %s", err.Error())
+		logger.Fatal(fmt.Sprintf("failed to setup db: %s", err.Error()))
 	}
 
 	return db, func() { db.Close() }

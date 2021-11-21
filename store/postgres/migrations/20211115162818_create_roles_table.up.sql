@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS roles
     id                      varchar         PRIMARY KEY,
     name                    varchar         UNIQUE NOT NULL,
     types                   varchar[]       NOT NULL ,
-    namespac                varchar         NOT NULL,
+    namespace               varchar         NOT NULL,
     metadata                jsonb,
     created_at              timestamptz     NOT NULL            DEFAULT NOW(),
     updated_at              timestamptz     NOT NULL            DEFAULT NOW(),
