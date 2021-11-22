@@ -19,6 +19,33 @@ import (
 	"gocloud.dev/blob"
 )
 
+type Ruleset struct {
+	Rules []Rule `yaml:"rules"`
+}
+
+type Rule struct {
+	Backends []Backend `yaml:"backends"`
+}
+
+type Backend struct {
+	Name      string     `yaml:"name"`
+	Target    string     `yaml:"target"`
+	Methods   []string   `yaml:"methods"`
+	Frontends []Frontend `yaml:"frontends"`
+}
+
+type Frontend struct {
+	Action      string       `yaml:"action"`
+	Path        string       `yaml:"path"`
+	Method      string       `yaml:"method"`
+	Middlewares []Middleware `yaml:"middlewares"`
+}
+
+type Middleware struct {
+	Name   string                 `yaml:"name"`
+	Config map[string]interface{} `yaml:"config"`
+}
+
 type RuleRepository struct {
 	log log.Logger
 	mu  *sync.Mutex
@@ -66,7 +93,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
 		}
 
-		var s structs.Ruleset
+		var s Ruleset
 		if err := yaml.Unmarshal(fileBytes, &s); err != nil {
 			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
@@ -74,11 +101,37 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 			continue
 		}
 
+		// transforming yaml parse ruleset to clearer iterable ruleset
+		targetRuleSet := structs.Ruleset{}
+		for _, rule := range s.Rules {
+			for _, backend := range rule.Backends {
+				for _, frontend := range backend.Frontends {
+					middlewares := structs.MiddlewareSpecs{}
+					for _, middleware := range frontend.Middlewares {
+						middlewares = append(middlewares, structs.MiddlewareSpec{
+							Name:   middleware.Name,
+							Config: middleware.Config,
+						})
+					}
+
+					targetRuleSet.Rules = append(targetRuleSet.Rules, structs.Rule{
+						Frontend: structs.Frontend{
+							URL:    frontend.Path,
+							Method: frontend.Method,
+						},
+						Backend:     structs.Backend{URL: backend.Target},
+						Middlewares: middlewares,
+					})
+
+				}
+			}
+		}
+
 		// parse all urls at this time only to avoid doing it usage
 		var rxParsingSuccess = true
-		for ruleIdx, rule := range s.Rules {
+		for ruleIdx, rule := range targetRuleSet.Rules {
 			// TODO: only compile between delimiter, maybe angular brackets
-			s.Rules[ruleIdx].Frontend.URLRx, err = regexp.Compile(rule.Frontend.URL)
+			targetRuleSet.Rules[ruleIdx].Frontend.URLRx, err = regexp.Compile(rule.Frontend.URL)
 			if err != nil {
 				rxParsingSuccess = false
 				repo.log.Error("failed to parse rule frontend as a valid regular expression",
@@ -87,7 +140,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 		}
 
 		if rxParsingSuccess {
-			ruleset = append(ruleset, s)
+			ruleset = append(ruleset, targetRuleSet)
 		} else {
 			repo.log.Warn("skipping rule set due to parsing errors", "content", string(fileBytes))
 		}

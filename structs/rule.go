@@ -36,7 +36,7 @@ type Frontend struct {
 	URL   string         `yaml:"url"`
 	URLRx *regexp.Regexp `yaml:"-"`
 
-	Methods []string `yaml:"methods"`
+	Method string `yaml:"method"`
 }
 
 type Backend struct {
