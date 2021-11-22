@@ -101,7 +101,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 			continue
 		}
 
-		// transforming yaml parse ruleset to clearer iterable ruleset
+		// transforming yaml parse ruleset to clean iterable ruleset in middlewares
 		targetRuleSet := structs.Ruleset{}
 		for _, rule := range s.Rules {
 			for _, backend := range rule.Backends {
@@ -122,7 +122,6 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 						Backend:     structs.Backend{URL: backend.Target},
 						Middlewares: middlewares,
 					})
-
 				}
 			}
 		}
