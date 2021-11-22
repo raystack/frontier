@@ -13,8 +13,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/odpf/shield/middleware/basic_auth"
 	"github.com/odpf/shield/middleware/authz"
+	"github.com/odpf/shield/middleware/basic_auth"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
@@ -74,7 +74,7 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 					return err
 				}
 				cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-				pipeline := buildPipeline(logger, h2cProxy, ruleRepo)
+				pipeline := buildPipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader)
 				go func(thisService config.Service, handler http.Handler) {
 					proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 					logger.Info("starting h2c proxy", "url", proxyURL)
@@ -128,10 +128,10 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 // buildPipeline builds middleware sequence
-func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
+func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository, identityProxyHeader string) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, prefixWare)
+	casbinAuthz := authz.New(logger, identityProxyHeader, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
 	return matchWare

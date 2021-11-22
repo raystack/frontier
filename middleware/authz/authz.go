@@ -14,9 +14,10 @@ import (
 )
 
 // make sure the request is allowed & ready to be sent to backend
-type CasbinAuthz struct {
-	log  log.Logger
-	next http.Handler
+type Authz struct {
+	log                 log.Logger
+	identityProxyHeader string
+	next                http.Handler
 }
 
 type Config struct {
@@ -24,18 +25,18 @@ type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, next http.Handler) *CasbinAuthz {
-	return &CasbinAuthz{log: log, next: next}
+func New(log log.Logger, identityProxyHeader string, next http.Handler) *Authz {
+	return &Authz{log: log, identityProxyHeader: identityProxyHeader, next: next}
 }
 
-func (c CasbinAuthz) Info() *structs.MiddlewareInfo {
+func (c Authz) Info() *structs.MiddlewareInfo {
 	return &structs.MiddlewareInfo{
 		Name:        "authz",
 		Description: "rule based authorization using casbin",
 	}
 }
 
-func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	wareSpec, ok := middleware.ExtractMiddleware(req, c.Info().Name)
 	if !ok {
 		c.next.ServeHTTP(rw, req)
@@ -50,10 +51,14 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	permissionAttributes := map[string]string{}
+
+
 	// TODO: check if action matchers user capabilities
 	// config.Action
 
-	permissionAttributes := map[string]string{}
+	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
+
 	for res, attr := range config.Attributes {
 		// TODO: do something about this
 		_ = res
@@ -163,7 +168,7 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	c.next.ServeHTTP(rw, req)
 }
 
-func (w CasbinAuthz) notAllowed(rw http.ResponseWriter) {
+func (w Authz) notAllowed(rw http.ResponseWriter) {
 	rw.WriteHeader(http.StatusUnauthorized)
 	return
 }
