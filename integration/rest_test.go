@@ -12,7 +12,7 @@ import (
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/casbin_authz"
+	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
 	"github.com/odpf/shield/proxy"
@@ -251,7 +251,7 @@ func BenchmarkProxyOverHttp1(b *testing.B) {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := casbin_authz.New(logger, prefixWare)
+	casbinAuthz := authz.New(logger, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
 	return matchWare

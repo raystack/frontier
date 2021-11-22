@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/casbin_authz"
+	"github.com/odpf/shield/middleware/authz"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
@@ -131,7 +131,7 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := casbin_authz.New(logger, prefixWare)
+	casbinAuthz := authz.New(logger, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
 	return matchWare

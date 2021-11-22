@@ -1,6 +1,7 @@
-package casbin_authz
+package authz
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -50,6 +51,8 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// TODO: check if action matchers user capabilities
 	// config.Action
 
+
+	permissionAttributes := map[string]string{}
 	for res, attr := range config.Attributes {
 		// TODO: do something about this
 		_ = res
@@ -70,9 +73,7 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			// do something about it
-			_ = payloadField
-
+			permissionAttributes[attr.Key] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 		case middleware.AttributeTypeJSONPayload:
 			if attr.Key == "" {
@@ -87,7 +88,39 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			permissionAttributes[attr.Key] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+
+		case middleware.AttributeTypeHeader:
+			if attr.Key == "" {
+				c.log.Error("middleware: header key field empty")
+				c.notAllowed(rw)
+				return
+			}
+			headerAttr := req.Header.Get(attr.Key)
+			if headerAttr == "" {
+				c.log.Error(fmt.Sprintf("middleware: header %s is empty", attr.Key))
+				c.notAllowed(rw)
+				return
+			}
+
+			c.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
+
+		case middleware.AttributeTypeQuery:
+			if attr.Key == "" {
+				c.log.Error("middleware: header key field empty")
+				c.notAllowed(rw)
+				return
+			}
+			queryAttr := req.URL.Query().Get(attr.Key)
+			if queryAttr == "" {
+				c.log.Error(fmt.Sprintf("middleware: query %s is empty", attr.Key))
+				c.notAllowed(rw)
+				return
+			}
+
+			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
+
 		default:
 			c.log.Error("middleware: unknown attribute type", "attr", attr)
 			c.notAllowed(rw)
