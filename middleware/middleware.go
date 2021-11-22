@@ -35,14 +35,17 @@ const (
 	AttributeTypeHeader      AttributeType = "header"
 	AttributeTypeJSONPayload AttributeType = "json_payload"
 	AttributeTypeGRPCPayload AttributeType = "grpc_payload"
+	AttributeTypePathParam   AttributeType = "path_param"
 )
 
 type AttributeType string
 
 type Attribute struct {
-	Key   string        `yaml:"key" mapstructure:"key"`
-	Type  AttributeType `yaml:"type" mapstructure:"type"`
-	Index int           `yaml:"index" mapstructure:"index"` // proto index
+	Key    string        `yaml:"key" mapstructure:"key"`
+	Type   AttributeType `yaml:"type" mapstructure:"type"`
+	Index  int           `yaml:"index" mapstructure:"index"` // proto index
+	Path   string        `yaml:"path" mapstructure:"path"`
+	Params []string      `yaml:"params" mapstructure:"params"`
 }
 
 func Elapsed(what string) func() {

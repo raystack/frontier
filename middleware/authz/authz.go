@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/structs"
+
+	"github.com/gorilla/mux"
+	"github.com/mitchellh/mapstructure"
+	"github.com/odpf/salt/log"
 )
 
 // make sure the request is allowed & ready to be sent to backend
@@ -51,7 +53,6 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// TODO: check if action matchers user capabilities
 	// config.Action
 
-
 	permissionAttributes := map[string]string{}
 	for res, attr := range config.Attributes {
 		// TODO: do something about this
@@ -73,8 +74,9 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			permissionAttributes[attr.Key] = payloadField
+			permissionAttributes[res] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+
 		case middleware.AttributeTypeJSONPayload:
 			if attr.Key == "" {
 				c.log.Error("middleware: payload key field empty")
@@ -88,7 +90,7 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			permissionAttributes[attr.Key] = payloadField
+			permissionAttributes[res] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 
 		case middleware.AttributeTypeHeader:
@@ -104,11 +106,12 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			permissionAttributes[res] = headerAttr
 			c.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
 
 		case middleware.AttributeTypeQuery:
 			if attr.Key == "" {
-				c.log.Error("middleware: header key field empty")
+				c.log.Error("middleware: query key field empty")
 				c.notAllowed(rw)
 				return
 			}
@@ -119,7 +122,36 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			permissionAttributes[res] = queryAttr
 			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
+
+		case middleware.AttributeTypePathParam:
+			if attr.Path == "" {
+				c.log.Error("middleware: path_param path empty")
+				c.notAllowed(rw)
+				return
+			}
+
+			route := new(mux.Route)
+			route.Path(attr.Path)
+			routeMatcher := mux.RouteMatch{}
+			if !route.Match(req, &routeMatcher) {
+				c.log.Error(fmt.Sprintf("middleware: path param %s not matching with incoming request %s", attr.Key, req.URL))
+				c.notAllowed(rw)
+				return
+			}
+
+			for _, paramName := range attr.Params {
+				paramAttr, ok := routeMatcher.Vars[paramName]
+				if !ok {
+					c.log.Error(fmt.Sprintf("middleware: path param %s not found", attr.Key))
+					c.notAllowed(rw)
+					return
+				}
+
+				permissionAttributes[res] = paramAttr
+				c.log.Info("middleware: extracted", "field", paramAttr, "attr", attr)
+			}
 
 		default:
 			c.log.Error("middleware: unknown attribute type", "attr", attr)
