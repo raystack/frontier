@@ -53,7 +53,6 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	permissionAttributes := map[string]string{}
 
-
 	// TODO: check if action matchers user capabilities
 	// config.Action
 
