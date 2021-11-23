@@ -13,6 +13,7 @@ type Rule struct {
 	Frontend    Frontend        `yaml:"frontend"`
 	Backend     Backend         `yaml:"backend"`
 	Middlewares MiddlewareSpecs `yaml:"middlewares"`
+	Hooks       HookSpecs       `yaml:"hooks"`
 }
 
 type MiddlewareSpec struct {
@@ -22,6 +23,13 @@ type MiddlewareSpec struct {
 
 type MiddlewareSpecs []MiddlewareSpec
 
+type HookSpec struct {
+	Name   string                 `yaml:"name"`
+	Config map[string]interface{} `yaml:"config"`
+}
+
+type HookSpecs []HookSpec
+
 func (m MiddlewareSpecs) Get(name string) (MiddlewareSpec, bool) {
 	for _, n := range m {
 		if n.Name == name {
@@ -29,6 +37,15 @@ func (m MiddlewareSpecs) Get(name string) (MiddlewareSpec, bool) {
 		}
 	}
 	return MiddlewareSpec{}, false
+}
+
+func (m HookSpecs) Get(name string) (HookSpec, bool) {
+	for _, n := range m {
+		if n.Name == name {
+			return n, true
+		}
+	}
+	return HookSpec{}, false
 }
 
 type Frontend struct {

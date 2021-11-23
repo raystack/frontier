@@ -46,7 +46,7 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 		return res, err
 	}
 
-	return t.hook.ServeHook(res)
+	return t.hook.ServeHook(res, nil)
 }
 
 func NewH2cRoundTripper(log log.Logger, hook hook.Service) http.RoundTripper {
