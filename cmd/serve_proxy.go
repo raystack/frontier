@@ -3,18 +3,17 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/odpf/shield/middleware/authz"
+	"github.com/odpf/shield/middleware/basic_auth"
+	"github.com/odpf/shield/middleware/prefix"
+	"github.com/odpf/shield/middleware/rulematch"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
-	"github.com/odpf/shield/middleware/authz"
-	"github.com/odpf/shield/middleware/basic_auth"
-
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/middleware/prefix"
-	"github.com/odpf/shield/middleware/rulematch"
 	"github.com/odpf/shield/store"
 	"github.com/pkg/errors"
 	"gocloud.dev/blob"

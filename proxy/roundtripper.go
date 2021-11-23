@@ -8,6 +8,8 @@ import (
 
 	"github.com/odpf/salt/log"
 
+	"github.com/odpf/shield/hook"
+
 	"golang.org/x/net/http2"
 )
 
@@ -22,7 +24,8 @@ type h2cTransportWrapper struct {
 	httpTransport *http.Transport
 	grpcTransport *http2.Transport
 
-	log log.Logger
+	log  log.Logger
+	hook hook.Service
 }
 
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -38,10 +41,15 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 		transport = t.grpcTransport
 	}
 
-	return transport.RoundTrip(req)
+	res, err := transport.RoundTrip(req)
+	if err != nil {
+		return res, err
+	}
+
+	return t.hook.ServeHook(res)
 }
 
-func NewH2cRoundTripper(log log.Logger) http.RoundTripper {
+func NewH2cRoundTripper(log log.Logger, hook hook.Service) http.RoundTripper {
 	return &h2cTransportWrapper{
 		httpTransport: &http.Transport{
 			DialContext: (&net.Dialer{
@@ -55,6 +63,7 @@ func NewH2cRoundTripper(log log.Logger) http.RoundTripper {
 			},
 			AllowHTTP: true,
 		},
-		log: log,
+		log:  log,
+		hook: hook,
 	}
 }
