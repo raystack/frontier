@@ -6,7 +6,7 @@ import (
 
 	"github.com/odpf/salt/server"
 
-	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
+	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 )
 
 type Dep struct {
@@ -15,6 +15,7 @@ type Dep struct {
 	ProjectService ProjectService
 	GroupService   GroupService
 	RoleService    RoleService
+	UserService    UserService
 }
 
 var (

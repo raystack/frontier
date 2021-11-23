@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "go.buf.build/odpf/gw/odpf/proton/odpf/shield/v1"
+	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 )
 
 var testProjectID = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
