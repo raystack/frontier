@@ -1,18 +1,17 @@
 package proxy
 
 import (
-	"crypto/tls"
-	"net"
 	"net/http"
 
-	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/hook"
 
-	"golang.org/x/net/http2"
+	"github.com/odpf/salt/log"
 )
 
 type h2cTransportWrapper struct {
-	transport *http2.Transport
+	transport *http.Transport
 	log       log.Logger
+	hook      hook.Service
 }
 
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -22,18 +21,21 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 	}
 	t.log.Debug("proxy request", "host", req.URL.Host, "path", req.URL.Path,
 		"scheme", req.URL.Scheme, "protocol", req.Proto)
-	return t.transport.RoundTrip(req)
+
+	res, err := t.transport.RoundTrip(req)
+	if err != nil {
+		return res, err
+	}
+
+	return t.hook.ServeHook(res)
 }
 
-func NewH2cRoundTripper(log log.Logger) http.RoundTripper {
-	transport := &http2.Transport{
-		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-			return net.Dial(network, addr)
-		},
-		AllowHTTP: true,
-	}
+func NewH2cRoundTripper(log log.Logger, hook hook.Service) http.RoundTripper {
+	transport := &http.Transport{}
+
 	return &h2cTransportWrapper{
 		transport: transport,
 		log:       log,
+		hook:      hook,
 	}
 }

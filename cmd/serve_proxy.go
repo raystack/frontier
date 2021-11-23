@@ -13,6 +13,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/hook"
+	authz_hook "github.com/odpf/shield/hook/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
 	"github.com/odpf/shield/middleware/casbin_authz"
 
@@ -67,14 +69,14 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				}
 
 				// TODO: option to use default http round tripper for http1.1 backends
-				h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger), proxy.NewDirector())
+				h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, hookPipeline(logger)), proxy.NewDirector())
 
 				ruleRepo := blobstore.NewRuleRepository(logger, blobFS)
 				if err := ruleRepo.InitCache(baseCtx, ruleCacheRefreshDelay); err != nil {
 					return err
 				}
 				cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-				pipeline := buildPipeline(logger, h2cProxy, ruleRepo)
+				middlewarePipeline := middlewarePipeline(logger, h2cProxy, ruleRepo)
 				go func(thisService config.Service, handler http.Handler) {
 					proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 					logger.Info("starting h2c proxy", "url", proxyURL)
@@ -99,7 +101,7 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 						logger.Fatal("failed to serve", "err", err)
 					}
 					cleanUpProxies = append(cleanUpProxies, proxySrv.Shutdown)
-				}(service, pipeline)
+				}(service, middlewarePipeline)
 			}
 
 			// we'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
@@ -128,13 +130,18 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 // buildPipeline builds middleware sequence
-func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
+func middlewarePipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
 	casbinAuthz := casbin_authz.New(logger, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
 	return matchWare
+}
+
+func hookPipeline(log log.Logger) hook.Service {
+	rootHook := hook.New()
+	return authz_hook.New(log, rootHook)
 }
 
 type blobFactory struct{}
