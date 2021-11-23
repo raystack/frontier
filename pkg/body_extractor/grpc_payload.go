@@ -1,4 +1,4 @@
-package middleware
+package body_extractor
 
 import (
 	"bytes"
@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/jhump/protoreflect/dynamic"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -28,14 +29,14 @@ const (
 
 type GRPCPayloadHandler struct{}
 
-func (b GRPCPayloadHandler) Extract(req *http.Request, protoIndex int) (string, error) {
-	reqBody, err := ioutil.ReadAll(req.Body)
+func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex int) (string, error) {
+	reqBody, err := ioutil.ReadAll(*body)
 	if err != nil {
 		return "", err
 	}
-	defer req.Body.Close()
+	defer (*body).Close()
 	// repopulate body
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+	*body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
 
 	return b.extractFromRequest(reqBody, protoIndex)
 }

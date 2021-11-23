@@ -41,7 +41,8 @@ func TestGRPCProxyHelloWorld(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), hook.New()), proxy.NewDirector())
+	responseHooks := hookPipeline(log.NewNoop())
+	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), responseHooks), proxy.NewDirector())
 	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		t.Fatal(err)

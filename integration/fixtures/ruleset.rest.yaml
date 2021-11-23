@@ -21,6 +21,17 @@ rules:
             - user: user
               # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
               password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0 # md5: password
+#    hooks:
+#      - name: authz
+#        config:
+#          action: authz_action
+#          attributes:
+#            project:
+#              key: data.project
+#              type: json_payload
+#            group:
+#              key: data.group
+#              type: json_payload
 
   - frontend:
       url: "basic-authn-bcrypt/"

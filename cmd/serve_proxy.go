@@ -141,7 +141,7 @@ func middlewarePipeline(logger log.Logger, proxy http.Handler, ruleRepo store.Ru
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook)
+	return authz_hook.New(log, rootHook, rootHook)
 }
 
 type blobFactory struct{}
