@@ -61,6 +61,7 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 					GroupService: group.Service{
 						Store: serviceStore,
 					},
+					IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 				},
 			})
 

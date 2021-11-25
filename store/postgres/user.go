@@ -25,10 +25,12 @@ type User struct {
 
 const (
 	getUsersQuery            = `SELECT id, name,  email, metadata, created_at, updated_at from users where id=$1;`
+	getCurrentUserQuery      = `SELECT id, name, email, metadata, created_at, updated_at from users where email=$1;`
 	createUserQuery          = `INSERT INTO users(name, email, metadata) values($1, $2, $3) RETURNING id, name, email, metadata, created_at, updated_at;`
 	listUsersQuery           = `SELECT id, name, email, metadata, created_at, updated_at from users;`
 	selectUserForUpdateQuery = `SELECT id, name, email, metadata, version, updated_at from users where id=$1;`
 	updateUserQuery          = `UPDATE users set name = $2, email = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
+	updateCurrentUserQuery   = `UPDATE users set name = $2, metadata = $3, updated_at = now() where email = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
 )
 
 func (s Store) GetUser(ctx context.Context, id string) (model.User, error) {
@@ -126,6 +128,55 @@ func (s Store) UpdateUser(ctx context.Context, toUpdate model.User) (model.User,
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedUser, updateUserQuery, toUpdate.Id, toUpdate.Name, toUpdate.Email, marshaledMetadata)
+	})
+
+	if err != nil {
+		return model.User{}, fmt.Errorf("%s: %w", txnErr, err)
+	}
+
+	transformedUser, err := transformToUser(updatedUser)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
+	return transformedUser, nil
+}
+
+func (s Store) GetCurrentUser(ctx context.Context, email string) (model.User, error) {
+	self, err := s.getUserWithEmailID(ctx, email)
+	return self, err
+}
+
+func (s Store) getUserWithEmailID(ctx context.Context, email string) (model.User, error) {
+	var userSelf User
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &userSelf, getCurrentUserQuery, email)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.User{}, user.UserDoesntExist
+	} else if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	transformedUser, err := transformToUser(userSelf)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	return transformedUser, nil
+}
+
+func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error) {
+	var updatedUser User
+
+	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &updatedUser, updateCurrentUserQuery, toUpdate.Email, toUpdate.Name, marshaledMetadata)
 	})
 
 	if err != nil {
