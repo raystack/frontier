@@ -53,13 +53,9 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	permissionAttributes := map[string]string{}
 
-	// TODO: check if action matchers user capabilities
-	// config.Action
-
 	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
 
 	for res, attr := range config.Attributes {
-		// TODO: do something about this
 		_ = res
 
 		switch attr.Type {
@@ -163,6 +159,8 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+
+	// use permissionAttributes &config.Action here
 
 	c.next.ServeHTTP(rw, req)
 }
