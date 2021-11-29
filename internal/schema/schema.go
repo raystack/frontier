@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"errors"
+	"github.com/odpf/shield/internal/authz"
 
 	"github.com/odpf/shield/model"
 )
@@ -13,6 +14,7 @@ type PolicyFilters struct {
 
 type Service struct {
 	Store Store
+	Authz *authz.Authz
 }
 
 var InvalidUUID = errors.New("invalid syntax of uuid")

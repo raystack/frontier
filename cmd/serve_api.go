@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/odpf/shield/internal/authz"
 	"time"
 
 	"github.com/odpf/shield/api/handler"
@@ -45,6 +46,7 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			}
 
 			serviceStore := postgres.NewStore(db)
+			authzService := authz.New(appConfig, logger)
 			handler.Register(ctx, s, gw, handler.Deps{
 				V1: v1.Dep{
 					OrgService: org.Service{
@@ -61,6 +63,7 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 					},
 					PolicyService: schema.Service{
 						Store: postgres.NewStore(db),
+						Authz: authzService,
 					},
 					GroupService: group.Service{
 						Store: serviceStore,
