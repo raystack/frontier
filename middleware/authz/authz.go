@@ -8,7 +8,6 @@ import (
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/structs"
 
-	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
 )
@@ -125,34 +124,6 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = queryAttr
 			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
-		case middleware.AttributeTypePathParam:
-			if attr.Path == "" {
-				c.log.Error("middleware: path_param path empty")
-				c.notAllowed(rw)
-				return
-			}
-
-			route := new(mux.Route)
-			route.Path(attr.Path)
-			routeMatcher := mux.RouteMatch{}
-			if !route.Match(req, &routeMatcher) {
-				c.log.Error(fmt.Sprintf("middleware: path param %s not matching with incoming request %s", attr.Key, req.URL))
-				c.notAllowed(rw)
-				return
-			}
-
-			for _, paramName := range attr.Params {
-				paramAttr, ok := routeMatcher.Vars[paramName]
-				if !ok {
-					c.log.Error(fmt.Sprintf("middleware: path param %s not found", attr.Key))
-					c.notAllowed(rw)
-					return
-				}
-
-				permissionAttributes[res] = paramAttr
-				c.log.Info("middleware: extracted", "field", paramAttr, "attr", attr)
-			}
-
 		default:
 			c.log.Error("middleware: unknown attribute type", "attr", attr)
 			c.notAllowed(rw)
@@ -160,7 +131,12 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// use permissionAttributes &config.Action here
+	paramMap, _ := middleware.ExtractPathParams(req)
+	for key, value := range paramMap {
+		permissionAttributes[key] = value
+	}
+
+	// use permissionAttributes & config.Action here
 
 	c.next.ServeHTTP(rw, req)
 }

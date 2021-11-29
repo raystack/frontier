@@ -2,6 +2,7 @@ package blob
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -95,6 +96,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 
 		var s Ruleset
 		if err := yaml.Unmarshal(fileBytes, &s); err != nil {
+			fmt.Println(err)
 			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
 		if len(s.Rules) == 0 {

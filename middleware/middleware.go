@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	ctxRuleKey = "middleware_rule"
+	ctxRuleKey       = "middleware_rule"
+	ctxPathParamsKey = "path_params"
 )
 
 func EnrichRule(r *http.Request, rule *structs.Rule) {
@@ -28,6 +29,18 @@ func ExtractMiddleware(r *http.Request, name string) (structs.MiddlewareSpec, bo
 		return structs.MiddlewareSpec{}, false
 	}
 	return rl.Middlewares.Get(name)
+}
+
+func EnrichPathParams(r *http.Request, params map[string]string) {
+	*r = *r.WithContext(context.WithValue(r.Context(), ctxPathParamsKey, params))
+}
+
+func ExtractPathParams(r *http.Request) (map[string]string, bool) {
+	params, ok := r.Context().Value(ctxPathParamsKey).(map[string]string)
+	if !ok {
+		return nil, false
+	}
+	return params, true
 }
 
 const (

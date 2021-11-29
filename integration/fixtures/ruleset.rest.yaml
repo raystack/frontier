@@ -5,10 +5,10 @@ rules:
       target: "http://127.0.0.1:13777/"
       frontends:
       - name: some_rest_1
-        path: "basic/"
+        path: "/basic"
         method: "GET"
       - name: some_rest_2
-        path: "basic-authn/"
+        path: "/basic-authn"
         method: "GET"
         middlewares:
         - name: prefix
@@ -21,7 +21,7 @@ rules:
                 # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
                 password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0 # md5: password
       - name: some_rest_3
-        path: "basic-authn-bcrypt/"
+        path: "/basic-authn-bcrypt"
         method: "GET"
         middlewares:
           - name: prefix
@@ -34,7 +34,7 @@ rules:
                   # password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
                   password: $2y$10$F814ZwQPt8VHYIayIqeEReSeZz8dDCNX93/rKI82SqJu9I2Bn6Hau # BCrypt: password
       - name: some_rest_4
-        path: "basic-authz/"
+        path: "/basic-authz"
         method: "POST"
         middlewares:
           - name: prefix

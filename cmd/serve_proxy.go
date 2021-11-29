@@ -133,7 +133,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRep
 	prefixWare := prefix.New(logger, proxy)
 	casbinAuthz := authz.New(logger, identityProxyHeader, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
+	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
 }
 

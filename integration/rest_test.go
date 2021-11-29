@@ -79,7 +79,7 @@ func TestREST(t *testing.T) {
 			// wait for proxy to start
 			time.Sleep(time.Second * 1)
 			t.Run("should handle GET request with 200", func(t *testing.T) {
-				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn/", restProxyPort), nil)
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn", restProxyPort), nil)
 				if err != nil {
 					assert.Nil(t, err)
 				}
@@ -89,6 +89,30 @@ func TestREST(t *testing.T) {
 					assert.Nil(t, err)
 				}
 				assert.Equal(t, 200, resp.StatusCode)
+				resp.Body.Close()
+			})
+			t.Run("should handle valid method request with 200", func(t *testing.T) {
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic/", restProxyPort), nil)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 200, resp.StatusCode)
+				resp.Body.Close()
+			})
+			t.Run("should handle invalid method request with 400", func(t *testing.T) {
+				backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic/", restProxyPort), nil)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 400, resp.StatusCode)
 				resp.Body.Close()
 			})
 			t.Run("should give 401 if authn fails", func(t *testing.T) {
@@ -261,7 +285,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRep
 	prefixWare := prefix.New(logger, proxy)
 	casbinAuthz := authz.New(logger, "", prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
+	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
 }
 
