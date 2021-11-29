@@ -11,8 +11,8 @@ rules:
                 config:
                   action: abc
                   attributes:
-                    project:
-                      key: id.project
+                    group:
+                      key: id.group
                       type: json_payload
           - name: some_rest_1
             path: "/basic1/{project:(?:.*\\/.*)}"
