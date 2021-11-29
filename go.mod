@@ -20,7 +20,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.9.1
-	go.buf.build/odpf/gwv/odpf/proton v1.1.25
+	go.buf.build/odpf/gwv/odpf/proton v1.1.27
 	go.uber.org/zap v1.19.0
 	gocloud.dev v0.24.0
 	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e

@@ -10,6 +10,7 @@ import (
 	"github.com/odpf/shield/model"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -19,9 +20,11 @@ import (
 
 type UserService interface {
 	GetUser(ctx context.Context, id string) (model.User, error)
+	GetCurrentUser(ctx context.Context, email string) (model.User, error)
 	CreateUser(ctx context.Context, user model.User) (model.User, error)
 	ListUsers(ctx context.Context) ([]model.User, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
+	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
 }
 
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1.ListUsersRequest) (*shieldv1.ListUsersResponse, error) {
@@ -61,12 +64,12 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1.CreateUserRequest
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
-
-	newUser, err := v.UserService.CreateUser(ctx, model.User{
+	userT := model.User{
 		Name:     request.GetBody().Name,
 		Email:    request.GetBody().Email,
 		Metadata: metaDataMap,
-	})
+	}
+	newUser, err := v.UserService.CreateUser(ctx, userT)
 
 	if err != nil {
 		logger.Error(err.Error())
@@ -117,7 +120,35 @@ func (v Dep) GetUser(ctx context.Context, request *shieldv1.GetUserRequest) (*sh
 }
 
 func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1.GetCurrentUserRequest) (*shieldv1.GetCurrentUserResponse, error) {
-	panic("get CURRENT user was called")
+	logger := grpczap.Extract(ctx)
+
+	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
+
+	fetchedUser, err := v.UserService.GetCurrentUser(ctx, email)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.UserDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "user not found")
+		case errors.Is(err, user.InvalidUUID):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	userPB, err := transformUserToPB(fetchedUser)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &shieldv1.GetCurrentUserResponse{
+		User: &userPB,
+	}, nil
 }
 
 func (v Dep) UpdateUser(ctx context.Context, request *shieldv1.UpdateUserRequest) (*shieldv1.UpdateUserResponse, error) {
@@ -154,7 +185,44 @@ func (v Dep) UpdateUser(ctx context.Context, request *shieldv1.UpdateUserRequest
 }
 
 func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1.UpdateCurrentUserRequest) (*shieldv1.UpdateCurrentUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
+	logger := grpczap.Extract(ctx)
+
+	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
+
+	if request.Body == nil {
+		return nil, grpcBadBodyError
+	}
+
+	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
+
+	// if email in request body is different from the email in the header
+	if request.GetBody().Email != email {
+		return nil, grpcBadBodyError
+	}
+
+	updatedUser, err := v.UserService.UpdateCurrentUser(ctx, model.User{
+		Name:     request.GetBody().Name,
+		Metadata: metaDataMap,
+	})
+
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	userPB, err := transformUserToPB(updatedUser)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &shieldv1.UpdateCurrentUserResponse{User: &userPB}, nil
 }
 
 func transformUserToPB(user model.User) (shieldv1.User, error) {
@@ -171,4 +239,18 @@ func transformUserToPB(user model.User) (shieldv1.User, error) {
 		CreatedAt: timestamppb.New(user.CreatedAt),
 		UpdatedAt: timestamppb.New(user.UpdatedAt),
 	}, nil
+}
+
+func fetchEmailFromMetadata(ctx context.Context, headerKey string) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", grpcBadBodyError
+	}
+
+	var email string
+	metadataValues := md.Get(headerKey)
+	if len(metadataValues) > 0 {
+		email = metadataValues[0]
+	}
+	return email, nil
 }

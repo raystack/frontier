@@ -19,6 +19,8 @@ import (
 
 var testProjectID = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
 
+var testProjectIDList = []string{"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", "c7772c63-fca4-4c7c-bf93-c8f85115de4b"}
+
 var testProjectMap = map[string]model.Project{
 	"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
 		Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
@@ -139,7 +141,8 @@ func TestListProjects(t *testing.T) {
 			mockProjectSrv: mockProject{ListProjectFunc: func(ctx context.Context) ([]model.Project, error) {
 				return []model.Project{}, errors.New("some store error")
 			}},
-			err: grpcInternalServerError,
+			want: nil,
+			err:  grpcInternalServerError,
 		},
 		{
 			title: "success",
@@ -147,8 +150,8 @@ func TestListProjects(t *testing.T) {
 			mockProjectSrv: mockProject{ListProjectFunc: func(ctx context.Context) ([]model.Project, error) {
 				var prjs []model.Project
 
-				for _, v := range testProjectMap {
-					prjs = append(prjs, v)
+				for _, projectID := range testProjectIDList {
+					prjs = append(prjs, testProjectMap[projectID])
 				}
 
 				return prjs, nil
