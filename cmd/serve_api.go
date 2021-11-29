@@ -12,6 +12,7 @@ import (
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/store/postgres"
 
 	"github.com/odpf/salt/log"
@@ -43,22 +44,26 @@ func apiCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				panic(err)
 			}
 
+			serviceStore := postgres.NewStore(db)
 			handler.Register(ctx, s, gw, handler.Deps{
 				V1: v1.Dep{
 					OrgService: org.Service{
-						Store: postgres.NewStore(db),
+						Store: serviceStore,
+					},
+					UserService: user.Service{
+						Store: serviceStore,
 					},
 					ProjectService: project.Service{
-						Store: postgres.NewStore(db),
-					},
-					GroupService: group.Service{
-						Store: postgres.NewStore(db),
+						Store: serviceStore,
 					},
 					RoleService: roles.Service{
 						Store: postgres.NewStore(db),
 					},
 					PolicyService: schema.Service{
 						Store: postgres.NewStore(db),
+					},
+					GroupService: group.Service{
+						Store: serviceStore,
 					},
 				},
 			})

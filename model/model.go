@@ -68,3 +68,12 @@ type Policy struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type User struct {
+	Id        string
+	Name      string
+	Email     string
+	Metadata  map[string]string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
