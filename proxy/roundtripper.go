@@ -28,6 +28,7 @@ type h2cTransportWrapper struct {
 	hook hook.Service
 }
 
+
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
 	// we need to apply errors if it failed in Director
 	if err, ok := req.Context().Value(CtxRequestErrorKey).(error); ok {
