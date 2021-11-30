@@ -131,9 +131,9 @@ func buildPayloadGenericProto() (*desc.MessageDescriptor, error) {
 		return genericProtoCache, nil
 	}
 
-	builderMsg := builder.NewMessage("optimus")
+	builderMsg := builder.NewMessage("message")
 	for i := 1; i < 100; i++ {
-		builderMsg.AddField(builder.NewField(fmt.Sprintf("optimus_field_%d", i),
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field_%d", i),
 			builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(i)))
 	}
 	desc, err := builderMsg.Build()
