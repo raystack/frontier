@@ -131,7 +131,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	paramMap, _ := middleware.ExtractPathParams(req)
+	paramMap, mapExists := middleware.ExtractPathParams(req)
+	if !mapExists {
+		c.log.Error("middleware: path param map doesn't exist")
+		c.notAllowed(rw)
+		return
+	}
+
 	for key, value := range paramMap {
 		permissionAttributes[key] = value
 	}
