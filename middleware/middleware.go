@@ -1,8 +1,11 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -11,10 +14,32 @@ import (
 
 const (
 	ctxRuleKey = "middleware_rule"
+	ctxBodyKey = "body_ctx"
 )
 
 func EnrichRule(r *http.Request, rule *structs.Rule) {
 	*r = *r.WithContext(context.WithValue(r.Context(), ctxRuleKey, rule))
+}
+
+func EnrichRequestBody(r *http.Request) error {
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	defer (r.Body).Close()
+
+	// repopulate body
+	(*r).Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+	*r = *r.WithContext(context.WithValue(r.Context(), ctxBodyKey, reqBody))
+	return nil
+}
+
+func ExtractRequestBody(r *http.Request) (io.ReadCloser, bool) {
+	body, ok := r.Context().Value(ctxBodyKey).([]byte)
+	if !ok {
+		return nil, false
+	}
+	return ioutil.NopCloser(bytes.NewBuffer(body)), true
 }
 
 func ExtractRule(r *http.Request) (*structs.Rule, bool) {

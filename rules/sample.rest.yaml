@@ -8,23 +8,36 @@ basic_auth_user_db: &USER_DB
 rules:
   - frontend:
       url: "sample/"
-      methods: ["GET", "POST"]
+      methods: [ "GET", "POST" ]
     backend:
-      url: "http://localhost:8080/"
-    middlewares:
-      - name: prefix
+      url: "http://localhost:3030/"
+#    middlewares:
+#      - name: authz
+#        config:
+#          action: abc
+#          attributes:
+#            project:
+#              key: data.project
+#              type: json_payload
+    hooks:
+      - name: authz
         config:
-          # should be prefixed with a slash almost always
-          strip: "/sample"
-
-      # not supported at the moment
-      - name: request_headers
-        config:
-          allow: ["foo", "bar"]
+          action: authz_action
+          attributes:
+            project:
+              key: host.ip
+              type: json_payload
+#            group1:
+#              key: group
+#              type: json_payload
+#              source: request
+            group2:
+              key: host.hostname
+              type: json_payload
 
   - frontend:
       url: "sample-auth/"
-      methods: ["GET", "POST"]
+      methods: [ "GET", "POST" ]
     backend:
       url: "http://localhost:8080/"
     middlewares:
@@ -37,7 +50,7 @@ rules:
           users: *USER_DB
   - frontend:
       url: "sample-authz/"
-      methods: ["POST"]
+      methods: [ "POST" ]
     backend:
       url: "http://localhost:8080/"
     middlewares:

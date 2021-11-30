@@ -43,5 +43,12 @@ func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	middleware.EnrichRule(req, matchedRule)
+
+	// enriching context with request body to use it in hooks
+	if err := middleware.EnrichRequestBody(req); err != nil {
+		m.log.Info("middleware: failed to enrich ctx with request body", "err", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	m.next.ServeHTTP(rw, req)
 }
