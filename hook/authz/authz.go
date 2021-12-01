@@ -2,11 +2,11 @@ package authz
 
 import (
 	"fmt"
-	"github.com/odpf/shield/middleware"
 	"net/http"
 	"strings"
 
 	"github.com/odpf/shield/hook"
+	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
 
 	"github.com/mitchellh/mapstructure"

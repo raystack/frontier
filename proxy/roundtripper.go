@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/odpf/shield/hook"
+
 	"github.com/odpf/salt/log"
 
 	"github.com/odpf/shield/hook"
@@ -28,7 +30,6 @@ type h2cTransportWrapper struct {
 	hook hook.Service
 }
 
-
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
 	// we need to apply errors if it failed in Director
 	if err, ok := req.Context().Value(CtxRequestErrorKey).(error); ok {
@@ -41,7 +42,6 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 	if req.Header.Get("Content-Type") == "application/grpc" {
 		transport = t.grpcTransport
 	}
-
 	res, err := transport.RoundTrip(req)
 	if err != nil {
 		return res, err
