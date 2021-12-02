@@ -58,7 +58,6 @@ func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model
 }
 
 func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (model.Action, error) {
-
 	var newAction Action
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, actionToCreate.NamespaceId)
@@ -105,7 +104,6 @@ func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 }
 
 func transformToAction(from Action) (model.Action, error) {
-
 	return model.Action{
 		Id:          from.Id,
 		Name:        from.Name,

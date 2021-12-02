@@ -58,7 +58,6 @@ func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (mo
 }
 
 func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Namespace) (model.Namespace, error) {
-
 	var newNamespace Namespace
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.Id, namespaceToCreate.Name)
@@ -105,7 +104,6 @@ func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
 }
 
 func transformToNamespace(from Namespace) (model.Namespace, error) {
-
 	return model.Namespace{
 		Id:        from.Id,
 		Name:      from.Name,

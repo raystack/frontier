@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/odpf/shield/model"
 	"net/http"
 	"strings"
 
 	"github.com/odpf/salt/server"
 	v1 "github.com/odpf/shield/api/handler/v1"
+	"github.com/odpf/shield/model"
 )
 
 type Deps struct {
@@ -43,6 +43,8 @@ func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, 
 			}
 			policy, err := deps.V1.PolicyService.CreatePolicy(context.Background(), payload)
 			if err != nil {
+				w.WriteHeader(500)
+				fmt.Fprintf(w, "Internal Server Error")
 				return
 			}
 			w.Header().Set("Content-Type", "application/json")

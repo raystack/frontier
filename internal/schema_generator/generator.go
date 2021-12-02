@@ -3,12 +3,12 @@ package schema_generator
 import (
 	"errors"
 	"fmt"
-	"github.com/odpf/shield/model"
 	"strings"
 
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	"github.com/authzed/spicedb/pkg/namespace"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
+	"github.com/odpf/shield/model"
 )
 
 type role struct {
@@ -36,10 +36,8 @@ func buildSchema(d definition) string {
 	permissions := make(map[string][]*v0.SetOperation_Child)
 
 	for _, r := range d.roles {
-
 		if r.namespace == "" {
 			relationReference := buildRelationReference(r)
-
 			relations = append(relations, namespace.Relation(
 				r.name,
 				nil,

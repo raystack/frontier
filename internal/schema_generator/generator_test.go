@@ -1,9 +1,9 @@
 package schema_generator
 
 import (
-	"github.com/odpf/shield/model"
 	"testing"
 
+	"github.com/odpf/shield/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -276,7 +276,5 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 
 		assert.Equal(t, expectedDef, def)
 		assert.Errorf(t, err, "actions namespace doesnt match")
-
 	})
-
 }

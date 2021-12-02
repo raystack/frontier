@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/lib/pq"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/model"
@@ -126,8 +126,10 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 
 func transformToRole(from Role) (model.Role, error) {
 	var unmarshalledMetadata map[string]string
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return model.Role{}, err
+	if len(from.Metadata) > 0 {
+		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+			return model.Role{}, err
+		}
 	}
 
 	return model.Role{
