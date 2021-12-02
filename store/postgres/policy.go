@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/odpf/shield/internal/project"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
 )
@@ -29,10 +29,10 @@ const selectStatement = `p.id, roles.id "role.id",roles.name "role.name", roles.
 const joinStatement = `JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id`
 
 var (
-	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) values($1, $2, $3) RETURNING id`)
+	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) values($1, $2, $3) RETURNING id, namespace_id, role_id, action_id`)
 	getPolicyQuery    = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
 	listPolicyQuery   = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
-	updatePolicyQuery = fmt.Sprintf(`UPDATE policies SET namespace_id = $2, role_id = $3, action_id = $4, updated_at = now() where id = $1 RETURNING id;`)
+	updatePolicyQuery = fmt.Sprintf(`UPDATE policies SET namespace_id = $2, role_id = $3, action_id = $4, updated_at = now() where id = $1 RETURNING id, namespace_id, role_id, action_id;`)
 )
 
 func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
@@ -89,19 +89,17 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	return transformedPolicies, nil
 }
 
-func (s Store) ListPoliciesWithFilters(ctx context.Context, filters schema.PolicyFilters) ([]model.Policy, error) {
+func (s Store) fetchNamespacePolicies(ctx context.Context, namespaceId string) ([]model.Policy, error) {
 	var fetchedPolicies []Policy
-	query := listPolicyQuery
 
-	if filters.NamespaceId != "" {
-		query = fmt.Sprintf("%s %s", listPolicyQuery, fmt.Sprintf("WHERE namespace_id=%s", filters.NamespaceId))
-	}
+	query := fmt.Sprintf("%s %s", listPolicyQuery, fmt.Sprintf("WHERE p.namespace_id='%s'", namespaceId))
+
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedPolicies, query)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Policy{}, project.ProjectDoesntExist
+		return []model.Policy{}, schema.PolicyDoesntExist
 	} else if err != nil {
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -118,56 +116,46 @@ func (s Store) ListPoliciesWithFilters(ctx context.Context, filters schema.Polic
 	return transformedPolicies, nil
 }
 
-func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) (model.Policy, error) {
+func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([]model.Policy, error) {
 	var newPolicy Policy
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, policyToCreate.ActionId)
-	})
+
+	tx, err := s.DB.BeginTxx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
+
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newPolicy, getPolicyQuery, newPolicy.Id)
+		return tx.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, policyToCreate.ActionId)
 	})
 	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
-	transformedPolicy, err := transformToPolicy(newPolicy)
-	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-	return transformedPolicy, nil
+	return s.fetchNamespacePolicies(ctx, newPolicy.NamespaceID)
 }
 
-func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Policy) (model.Policy, error) {
+func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Policy) ([]model.Policy, error) {
 	var updatedPolicy Policy
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, toUpdate.ActionId)
 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return model.Policy{}, schema.PolicyDoesntExist
-	} else if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedPolicy, getPolicyQuery, updatedPolicy.Id)
-	})
-
-	transformedPolicy, err := transformToPolicy(updatedPolicy)
 	if err != nil {
-		return model.Policy{}, fmt.Errorf("%s: %w", parseErr, err)
+		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return transformedPolicy, nil
+	return s.fetchNamespacePolicies(ctx, updatedPolicy.NamespaceID)
 }
 
 func transformToPolicy(from Policy) (model.Policy, error) {
-	role, err := transformToRole(from.Role)
-	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+	var role model.Role
+	var err error
+
+	if from.Role.Id != "" {
+		role, err = transformToRole(from.Role)
+		if err != nil {
+			return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
 	}
 
 	action, err := transformToAction(from.Action)
@@ -181,11 +169,14 @@ func transformToPolicy(from Policy) (model.Policy, error) {
 	}
 
 	return model.Policy{
-		Id:        from.Id,
-		Role:      role,
-		Action:    action,
-		Namespace: namespace,
-		CreatedAt: from.CreatedAt,
-		UpdatedAt: from.UpdatedAt,
+		Id:          from.Id,
+		Role:        role,
+		RoleId:      from.RoleID,
+		Action:      action,
+		ActionId:    from.ActionID,
+		Namespace:   namespace,
+		NamespaceId: from.NamespaceID,
+		CreatedAt:   from.CreatedAt,
+		UpdatedAt:   from.UpdatedAt,
 	}, nil
 }
