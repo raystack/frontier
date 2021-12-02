@@ -6,12 +6,12 @@ import (
 	"github.com/odpf/shield/internal/authz/spicedb"
 )
 
-type Permission interface {
-	Check() bool
+type Policy interface {
+	AddPolicy(schema string) error
 }
 
 type Authz struct {
-	Permission
+	Policy
 }
 
 func New(config *config.Shield, logger log.Logger) *Authz {
@@ -21,6 +21,6 @@ func New(config *config.Shield, logger log.Logger) *Authz {
 		logger.Fatal(err.Error())
 	}
 	return &Authz{
-		spice,
+		spice.Policy,
 	}
 }
