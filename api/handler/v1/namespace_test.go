@@ -171,7 +171,7 @@ func (m mockNamespaceSrv) ListNamespaces(ctx context.Context) ([]model.Namespace
 }
 
 func (m mockNamespaceSrv) CreateNamespace(ctx context.Context, ns model.Namespace) (model.Namespace, error) {
-	return m.CreateNamespace(ctx, ns)
+	return m.CreateNamespaceFunc(ctx, ns)
 }
 
 func (m mockNamespaceSrv) UpdateNamespace(ctx context.Context, id string, ns model.Namespace) (model.Namespace, error) {

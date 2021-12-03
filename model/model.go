@@ -46,6 +46,7 @@ type Action struct {
 	Id          string
 	Name        string
 	NamespaceId string
+	Namespace   Namespace
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

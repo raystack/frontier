@@ -18,6 +18,7 @@ type Dep struct {
 	PolicyService    PolicyService
 	UserService      UserService
 	NamespaceService NamespaceService
+	ActionService    ActionService
 }
 
 var (
