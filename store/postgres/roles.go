@@ -18,7 +18,7 @@ type Role struct {
 	Id          string         `db:"id"`
 	Name        string         `db:"name"`
 	Types       pq.StringArray `db:"types"`
-	Namespace   string         `db:"namespace"`
+	Namespace   Namespace      `db:"namespace"`
 	NamespaceID string         `db:"namespace_id"`
 	Metadata    []byte         `db:"metadata"`
 	CreatedAt   time.Time      `db:"created_at"`
@@ -132,11 +132,15 @@ func transformToRole(from Role) (model.Role, error) {
 		}
 	}
 
+	namespace, err := transformToNamespace(from.Namespace)
+	if err != nil {
+		return model.Role{}, err
+	}
 	return model.Role{
 		Id:          from.Id,
 		Name:        from.Name,
 		Types:       from.Types,
-		Namespace:   from.Namespace,
+		Namespace:   namespace,
 		NamespaceId: from.NamespaceID,
 		Metadata:    unmarshalledMetadata,
 		CreatedAt:   from.CreatedAt,

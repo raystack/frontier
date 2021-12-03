@@ -51,11 +51,11 @@ func (v Dep) CreateRole(ctx context.Context, request *shieldv1.CreateRoleRequest
 	}
 
 	newRole, err := v.RoleService.Create(ctx, model.Role{
-		Id:        request.GetBody().Id,
-		Name:      request.GetBody().Name,
-		Types:     request.GetBody().Types,
-		Namespace: request.GetBody().Namespace,
-		Metadata:  metaDataMap,
+		Id:          request.GetBody().Id,
+		Name:        request.GetBody().Name,
+		Types:       request.GetBody().Types,
+		NamespaceId: request.GetBody().NamespaceId,
+		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -105,11 +105,11 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1.UpdateRoleRequest
 	}
 
 	updatedRole, err := v.RoleService.Update(ctx, model.Role{
-		Id:        request.GetBody().Id,
-		Name:      request.GetBody().Name,
-		Types:     request.GetBody().Types,
-		Namespace: request.GetBody().Namespace,
-		Metadata:  metaDataMap,
+		Id:          request.GetBody().Id,
+		Name:        request.GetBody().Name,
+		Types:       request.GetBody().Types,
+		NamespaceId: request.GetBody().NamespaceId,
+		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -131,11 +131,16 @@ func transformRoleToPB(from model.Role) (shieldv1.Role, error) {
 		return shieldv1.Role{}, err
 	}
 
+	namespace, err := transformNamespaceToPB(from.Namespace)
+	if err != nil {
+		return shieldv1.Role{}, err
+	}
+
 	return shieldv1.Role{
 		Id:        from.Id,
 		Name:      from.Name,
 		Types:     from.Types,
-		Namespace: from.NamespaceId,
+		Namespace: &namespace,
 		//Tags:      nil,
 		//Actions:   nil,
 		Metadata:  metaData,

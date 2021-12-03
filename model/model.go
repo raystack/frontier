@@ -35,7 +35,7 @@ type Role struct {
 	Id          string
 	Name        string
 	Types       []string
-	Namespace   string
+	Namespace   Namespace
 	NamespaceId string
 	Metadata    map[string]string
 	CreatedAt   time.Time
