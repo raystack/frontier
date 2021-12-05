@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"errors"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"testing"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var testPolicyMap = map[string]model.Policy{

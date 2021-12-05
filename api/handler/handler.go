@@ -3,9 +3,10 @@ package handler
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/odpf/salt/server"
 	v1 "github.com/odpf/shield/api/handler/v1"
-	"net/http"
 )
 
 type Deps struct {
