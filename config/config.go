@@ -51,6 +51,9 @@ type Service struct {
 	// RulesPathSecret could be a env name, file path or actual value required
 	// to access RulesPath files
 	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
+
+	// Headers which will have user's email id
+	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header"`
 }
 
 type NewRelic struct {

@@ -11,14 +11,15 @@ import (
 
 type Dep struct {
 	shieldv1.UnimplementedShieldServiceServer
-	OrgService       OrganizationService
-	ProjectService   ProjectService
-	GroupService     GroupService
-	RoleService      RoleService
-	PolicyService    PolicyService
-	UserService      UserService
-	NamespaceService NamespaceService
-	ActionService    ActionService
+	OrgService          OrganizationService
+	ProjectService      ProjectService
+	GroupService        GroupService
+	RoleService         RoleService
+	PolicyService       PolicyService
+	UserService         UserService
+	NamespaceService    NamespaceService
+	ActionService       ActionService
+	IdentityProxyHeader string
 }
 
 var (
