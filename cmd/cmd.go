@@ -8,7 +8,7 @@ import (
 
 func New(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var cmd = &cli.Command{
-		Use:          "proxy",
+		Use:          "shield",
 		SilenceUsage: true,
 	}
 
