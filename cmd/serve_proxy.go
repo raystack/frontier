@@ -3,13 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/casbin_authz"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/odpf/shield/middleware/basic_auth"
+	"github.com/odpf/shield/middleware/casbin_authz"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware/prefix"

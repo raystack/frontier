@@ -3,6 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/server"
 	"github.com/odpf/shield/api/handler"
@@ -22,12 +30,6 @@ import (
 	cli "github.com/spf13/cobra"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"net"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 var (
@@ -48,7 +50,6 @@ func serveCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func serve(logger log.Logger, appConfig *config.Shield) error {
-
 	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}
