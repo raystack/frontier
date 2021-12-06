@@ -57,16 +57,78 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 	ctx, cancelFunc := context.WithCancel(server.HandleSignals(context.Background()))
 	defer cancelFunc()
 
-	// set up shield proxy - h2c reverse proxy
+	db, dbShutdown := setupDB(appConfig.DB, logger)
+	defer dbShutdown()
+
 	var cleanUpFunc []func() error
 	var cleanUpProxies []func(ctx context.Context) error
+	cleanUpFunc, cleanUpProxies, err := startProxy(logger, appConfig, ctx, cleanUpFunc, cleanUpProxies)
+	if err != nil {
+		return err
+	}
+
+	muxServer := startServer(logger, appConfig, err, ctx, db)
+
+	waitForTermSignal(ctx)
+	cleanup(logger, ctx, cleanUpFunc, cleanUpProxies, muxServer)
+
+	return nil
+}
+
+func cleanup(logger log.Logger, ctx context.Context, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error, s *server.MuxServer) {
+	for _, f := range cleanUpFunc {
+		if err := f(); err != nil {
+			logger.Warn("error occurred during shutdown", "err", err)
+		}
+	}
+	for _, f := range cleanUpProxies {
+		shutdownCtx, shutdownCancel := context.WithTimeout(ctx, time.Second*20)
+		if err := f(shutdownCtx); err != nil {
+			shutdownCancel()
+			logger.Warn("error occurred during shutdown", "err", err)
+			continue
+		}
+		shutdownCancel()
+	}
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer shutdownCancel()
+
+	s.Shutdown(shutdownCtx)
+}
+
+func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx context.Context, db *sql.SQL) *server.MuxServer {
+	s, err := server.NewMux(server.Config{
+		Port: appConfig.App.Port,
+	}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(appConfig, logger)))
+	if err != nil {
+		panic(err)
+	}
+
+	gw, err := server.NewGateway("", appConfig.App.Port)
+	if err != nil {
+		panic(err)
+	}
+
+	handler.Register(ctx, s, gw, apiDependencies(db, appConfig))
+
+	go s.Serve()
+
+	logger.Info("[shield] api is up", "port", appConfig.App.Port)
+
+	// we'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	signal.Notify(proxyTermChan, os.Interrupt, os.Kill, syscall.SIGTERM)
+	return s
+}
+
+func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
 	for _, service := range appConfig.Proxy.Services {
 		if service.RulesPath == "" {
-			return errors.New("ruleset field cannot be left empty")
+			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
 		blobFS, err := (&blobFactory{}).New(ctx, service.RulesPath, service.RulesPathSecret)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 
 		// TODO: option to use default http round tripper for http1.1 backends
@@ -74,7 +136,7 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 
 		ruleRepo := blobstore.NewRuleRepository(logger, blobFS)
 		if err := ruleRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
-			return err
+			return nil, nil, err
 		}
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
 		pipeline := buildPipeline(logger, h2cProxy, ruleRepo)
@@ -110,58 +172,7 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 	}
 	time.Sleep(100 * time.Millisecond)
 	logger.Info("[shield] proxy is up")
-
-	// set up shield api
-
-	db, dbShutdown := setupDB(appConfig.DB, logger)
-	defer dbShutdown()
-
-	s, err := server.NewMux(server.Config{
-		Port: appConfig.App.Port,
-	}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(appConfig, logger)))
-	if err != nil {
-		panic(err)
-	}
-
-	gw, err := server.NewGateway("", appConfig.App.Port)
-	if err != nil {
-		panic(err)
-	}
-
-	handler.Register(ctx, s, gw, apiDependencies(db, appConfig))
-
-	go s.Serve()
-
-	logger.Info("[shield] api is up")
-
-	// we'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-	signal.Notify(proxyTermChan, os.Interrupt, os.Kill, syscall.SIGTERM)
-
-	// block until we receive our signal
-	waitForTermSignal(ctx)
-
-	// cleanup proxy stuff before shutdown
-	for _, f := range cleanUpFunc {
-		if err := f(); err != nil {
-			logger.Warn("error occurred during shutdown", "err", err)
-		}
-	}
-	for _, f := range cleanUpProxies {
-		shutdownCtx, shutdownCancel := context.WithTimeout(ctx, time.Second*20)
-		if err := f(shutdownCtx); err != nil {
-			shutdownCancel()
-			logger.Warn("error occurred during shutdown", "err", err)
-			continue
-		}
-		shutdownCancel()
-	}
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer shutdownCancel()
-
-	s.Shutdown(shutdownCtx)
-
-	return nil
+	return cleanUpFunc, cleanUpProxies, nil
 }
 
 func waitForTermSignal(ctx context.Context) {
@@ -173,7 +184,6 @@ func waitForTermSignal(ctx context.Context) {
 		case <-proxyTermChan:
 			fmt.Printf("process: kill signal received. bye \n")
 			return
-		case <-time.After(time.Second * 5):
 		}
 	}
 }

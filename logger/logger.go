@@ -13,7 +13,7 @@ func InitLogger(appConfig *config.Shield) *log.Zap {
 	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	cfg.DisableCaller = true
 
-	opt := log.ZapWithConfig(cfg)
+	opt := log.ZapWithConfig(cfg, zap.AddCallerSkip(1)) // <---- @TODO to remove this
 	logger := log.NewZap(opt)
 	return logger
 }
