@@ -1,0 +1,19 @@
+#!/usr/bin/env -S buf generate buf.build/odpf/proton:a8cab31fdc5f4d75fabbbf109f69a8c5f754c1c2 --path odpf/shield --template
+---
+version: "v1"
+plugins:
+  - remote: "buf.build/library/plugins/go:v1.27.1-1"
+    out: "proto"
+    opt: "paths=source_relative"
+  - remote: "buf.build/library/plugins/go-grpc:v1.1.0-2"
+    out: "proto"
+    opt: "paths=source_relative"
+  - name: "validate"
+    out: "proto"
+    opt: "paths=source_relative,lang=go"
+  - remote: "buf.build/grpc-ecosystem/plugins/grpc-gateway:v2.5.0-1"
+    out: "proto"
+    opt: "paths=source_relative"
+  - remote: "buf.build/grpc-ecosystem/plugins/openapiv2:v2.6.0-1"
+    out: "proto"
+    opt: "allow_merge=true"

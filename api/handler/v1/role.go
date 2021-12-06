@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
+	shieldv1 "github.com/odpf/shield/proto/odpf/shield/v1"
 )
 
 type RoleService interface {
@@ -57,7 +57,7 @@ func (v Dep) CreateRole(ctx context.Context, request *shieldv1.CreateRoleRequest
 		Id:        request.GetBody().Id,
 		Name:      request.GetBody().Name,
 		Types:     request.GetBody().Types,
-		Namespace: request.GetBody().Namespace,
+		Namespace: request.GetBody().NamespaceId,
 		Metadata:  metaDataMap,
 	})
 	if err != nil {
@@ -111,7 +111,7 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1.UpdateRoleRequest
 		Id:        request.GetBody().Id,
 		Name:      request.GetBody().Name,
 		Types:     request.GetBody().Types,
-		Namespace: request.GetBody().Namespace,
+		Namespace: request.GetBody().NamespaceId,
 		Metadata:  metaDataMap,
 	})
 	if err != nil {
