@@ -61,7 +61,7 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				if service.ResourcesConfigPath == "" {
 					return errors.New("ruleset field cannot be left empty")
 				}
-				resoucesConfigFS, err := (&blobFactory{}).New(baseCtx, service.RulesPath, service.RulesPathSecret)
+				resoucesConfigFS, err := (&blobFactory{}).New(baseCtx, service.ResourcesConfigPath, service.ResourcesConfigPathSecret)
 				if err != nil {
 					return err
 				}
@@ -69,6 +69,12 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				resoucesRepo := blobstore.NewResourcesRepository(logger, resoucesConfigFS)
 
 				if err := resoucesRepo.InitCache(baseCtx, ruleCacheRefreshDelay); err != nil {
+					return err
+				}
+
+				// @TODO: Use this to get resources config
+				_, err = resoucesRepo.GetAll(baseCtx)
+				if err != nil {
 					return err
 				}
 

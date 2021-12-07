@@ -18,16 +18,25 @@ import (
 	"gocloud.dev/blob"
 )
 
+type Resources struct {
+	Resources []Resource `json:"resources" yaml:"resources"`
+}
+
+type Resource struct {
+	Name    string              `json:"name" yaml:"name"`
+	Actions map[string][]string `json:"actions" yaml:"actions"`
+}
+
 type ResourcesRepository struct {
 	log log.Logger
 	mu  *sync.Mutex
 
 	cron   *cron.Cron
 	bucket store.Bucket
-	cached []structs.Resources
+	cached []structs.Resource
 }
 
-func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]structs.Resources, error) {
+func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]structs.Resource, error) {
 	repo.mu.Lock()
 	currentCache := repo.cached
 	repo.mu.Unlock()
@@ -41,7 +50,7 @@ func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]structs.Resource
 }
 
 func (repo *ResourcesRepository) refresh(ctx context.Context) error {
-	var resources []structs.Resources
+	var resources []structs.Resource
 
 	// get all items
 	it := repo.bucket.List(&blob.ListOptions{})
@@ -65,15 +74,20 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
 		}
 
-		var resource structs.Resources
+		var resource Resources
 		if err := yaml.Unmarshal(fileBytes, &resource); err != nil {
 			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
-		if len(resource) == 0 {
+		if len(resource.Resources) == 0 {
 			continue
 		}
 
-		resources = append(resources, resource)
+		for _, res := range resource.Resources {
+			resources = append(resources, structs.Resource{
+				Name:    res.Name,
+				Actions: res.Actions,
+			})
+		}
 	}
 
 	repo.mu.Lock()
