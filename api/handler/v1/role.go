@@ -7,9 +7,10 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/model"
-	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	shieldv1 "github.com/odpf/shield/proto/odpf/shield/v1"
 )
 
 type RoleService interface {
@@ -51,11 +52,11 @@ func (v Dep) CreateRole(ctx context.Context, request *shieldv1.CreateRoleRequest
 	}
 
 	newRole, err := v.RoleService.Create(ctx, model.Role{
-		Id:          request.GetBody().Id,
-		Name:        request.GetBody().Name,
-		Types:       request.GetBody().Types,
-		NamespaceId: request.GetBody().NamespaceId,
-		Metadata:    metaDataMap,
+		Id:        request.GetBody().Id,
+		Name:      request.GetBody().Name,
+		Types:     request.GetBody().Types,
+		Namespace: request.GetBody().NamespaceId,
+		Metadata:  metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -105,11 +106,11 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1.UpdateRoleRequest
 	}
 
 	updatedRole, err := v.RoleService.Update(ctx, model.Role{
-		Id:          request.GetBody().Id,
-		Name:        request.GetBody().Name,
-		Types:       request.GetBody().Types,
-		NamespaceId: request.GetBody().NamespaceId,
-		Metadata:    metaDataMap,
+		Id:        request.GetBody().Id,
+		Name:      request.GetBody().Name,
+		Types:     request.GetBody().Types,
+		Namespace: request.GetBody().NamespaceId,
+		Metadata:  metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())

@@ -1222,12 +1222,6 @@ github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxt
 gitlab.com/nyarla/go-crypt v0.0.0-20160106005555-d9a5dc2b789b/go.mod h1:T3BPAOm2cqquPa0MKWeNkmOM5RQsRhkrwMWonFMN7fE=
 go.buf.build/odpf/gw/grpc-ecosystem/grpc-gateway v1.1.35/go.mod h1:/LuddrGPi0fwj7ay6Orutt8oFfPz8Y3c8qdBkacJq1A=
 go.buf.build/odpf/gw/odpf/proton v1.1.9/go.mod h1:I9E8CF7w/690vRNWqBU6qDcUbi3Pi2THdn1yycBVTDQ=
-go.buf.build/odpf/gwv/envoyproxy/protoc-gen-validate v1.1.3 h1:NHgRDs5DCVsj1x6YhdrnrNenOYs/V21BobZ/kfgOYCc=
-go.buf.build/odpf/gwv/envoyproxy/protoc-gen-validate v1.1.3/go.mod h1:2Tg6rYIoDhpl39Zd2+WBOF9uG4XxAOs0bK2Z2/bwTOc=
-go.buf.build/odpf/gwv/grpc-ecosystem/grpc-gateway v1.1.37 h1:425QybFclMMSugHAqOmPFPbWKWHDx6bO75EziZ4GvWU=
-go.buf.build/odpf/gwv/grpc-ecosystem/grpc-gateway v1.1.37/go.mod h1:UrBCdmHgaY/pLapYUMOq01c1yuzwT8AEBTsgpmzq2zo=
-go.buf.build/odpf/gwv/odpf/proton v1.1.30 h1:JIjB85XkK/yBWLajNfAghJMWOYgzB619zPQOsUJXqYo=
-go.buf.build/odpf/gwv/odpf/proton v1.1.30/go.mod h1:3VlD6BkZ7cmhyEb+pOdyjier/UO5QNT5rfBIgHyWzLM=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.5/go.mod h1:G5EMThwa9y8QZGBClrRx5EY+Yw9kAhnjy3bSjsnlVTQ=

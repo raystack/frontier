@@ -7,6 +7,8 @@ import (
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/cmd"
 	"github.com/odpf/shield/config"
+
+	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 )
 
 func main() {
