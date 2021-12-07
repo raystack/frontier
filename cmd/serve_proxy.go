@@ -58,10 +58,24 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			var cleanUpFunc []func() error
 			var cleanUpProxies []func(ctx context.Context) error
 			for _, service := range appConfig.Proxy.Services {
+				if service.ResourcesConfigPath == "" {
+					return errors.New("ruleset field cannot be left empty")
+				}
+				resoucesConfigFS, err := (&blobFactory{}).New(baseCtx, service.RulesPath, service.RulesPathSecret)
+				if err != nil {
+					return err
+				}
+
+				resoucesRepo := blobstore.NewResourcesRepository(logger, resoucesConfigFS)
+
+				if err := resoucesRepo.InitCache(baseCtx, ruleCacheRefreshDelay); err != nil {
+					return err
+				}
+
 				if service.RulesPath == "" {
 					return errors.New("ruleset field cannot be left empty")
 				}
-				blobFS, err := (&blobFactory{}).New(baseCtx, service.RulesPath, service.RulesPathSecret)
+				ruleFS, err := (&blobFactory{}).New(baseCtx, service.RulesPath, service.RulesPathSecret)
 				if err != nil {
 					return err
 				}
@@ -69,7 +83,7 @@ func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				// TODO: option to use default http round tripper for http1.1 backends
 				h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger), proxy.NewDirector())
 
-				ruleRepo := blobstore.NewRuleRepository(logger, blobFS)
+				ruleRepo := blobstore.NewRuleRepository(logger, ruleFS)
 				if err := ruleRepo.InitCache(baseCtx, ruleCacheRefreshDelay); err != nil {
 					return err
 				}
