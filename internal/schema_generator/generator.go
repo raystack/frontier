@@ -3,6 +3,7 @@ package schema_generator
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
@@ -158,5 +159,8 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 		definitions = append(definitions, definition)
 	}
 
+	sort.Slice(definitions[:], func(i, j int) bool {
+		return strings.Compare(definitions[i].name, definitions[j].name) < 1
+	})
 	return definitions, nil
 }
