@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -37,8 +38,9 @@ var testPolicyMap = map[string]model.Policy{
 			UpdatedAt: time.Time{},
 		},
 		Role: model.Role{
-			Id:   "reader",
-			Name: "Reader",
+			Id:       "reader",
+			Name:     "Reader",
+			Metadata: map[string]string{},
 			Namespace: model.Namespace{
 				Id:        "resource-1",
 				Name:      "Resource 1",
@@ -97,15 +99,20 @@ func TestListPolicies(t *testing.T) {
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
 					Role: &shieldv1.Role{
-						Id:   "reader",
-						Name: "Reader",
+						Id:       "reader",
+						Name:     "Reader",
+						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
 						Namespace: &shieldv1.Namespace{
 							Id:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: timestamppb.New(time.Time{}),
 							UpdatedAt: timestamppb.New(time.Time{}),
 						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
 					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
 				},
 			}},
 			err: nil,
@@ -173,8 +180,9 @@ func TestCreatePolicy(t *testing.T) {
 							UpdatedAt: time.Time{},
 						},
 						Role: model.Role{
-							Id:   "reader",
-							Name: "Reader",
+							Id:       "reader",
+							Name:     "Reader",
+							Metadata: map[string]string{},
 							Namespace: model.Namespace{
 								Id:        "resource-1",
 								Name:      "Resource 1",
@@ -212,15 +220,20 @@ func TestCreatePolicy(t *testing.T) {
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
 					Role: &shieldv1.Role{
-						Id:   "reader",
-						Name: "Reader",
+						Id:       "reader",
+						Name:     "Reader",
+						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
 						Namespace: &shieldv1.Namespace{
 							Id:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: timestamppb.New(time.Time{}),
 							UpdatedAt: timestamppb.New(time.Time{}),
 						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
 					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
 				},
 			}},
 			err: nil,
