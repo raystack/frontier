@@ -98,7 +98,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expectedDef, def)
+		assert.EqualValues(t, expectedDef, def)
 	})
 
 	t.Run("merge roles in policy definitions", func(t *testing.T) {
@@ -134,7 +134,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expectedDef, def)
+		assert.EqualValues(t, expectedDef, def)
 	})
 
 	t.Run("create multiple roles in policy definitions", func(t *testing.T) {
@@ -181,7 +181,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expectedDef, def)
+		assert.EqualValues(t, expectedDef, def)
 	})
 
 	t.Run("should add roles namespace", func(t *testing.T) {
@@ -234,7 +234,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expectedDef, def)
+		assert.EqualValues(t, expectedDef, def)
 	})
 
 	t.Run("should support multiple role types", func(t *testing.T) {
@@ -260,7 +260,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 			},
 		}
 
-		assert.Equal(t, expectedDef, def)
+		assert.EqualValues(t, expectedDef, def)
 	})
 
 	t.Run("should throw error if action namespace is different", func(t *testing.T) {
@@ -274,7 +274,7 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 		def, err := BuildPolicyDefinitions(policies)
 		expectedDef := []definition{}
 
-		assert.Equal(t, expectedDef, def)
+		assert.EqualValues(t, expectedDef, def)
 		assert.Errorf(t, err, "actions namespace doesnt match")
 	})
 }
