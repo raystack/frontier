@@ -55,7 +55,7 @@ func (v Dep) CreateRole(ctx context.Context, request *shieldv1.CreateRoleRequest
 		Id:        request.GetBody().Id,
 		Name:      request.GetBody().Name,
 		Types:     request.GetBody().Types,
-		Namespace: request.GetBody().NamespaceId,
+		NamespaceId: request.GetBody().NamespaceId,
 		Metadata:  metaDataMap,
 	})
 	if err != nil {
@@ -109,7 +109,7 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1.UpdateRoleRequest
 		Id:        request.GetBody().Id,
 		Name:      request.GetBody().Name,
 		Types:     request.GetBody().Types,
-		Namespace: request.GetBody().NamespaceId,
+		NamespaceId: request.GetBody().NamespaceId,
 		Metadata:  metaDataMap,
 	})
 	if err != nil {
