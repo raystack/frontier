@@ -3,6 +3,8 @@ package v1
 import (
 	"context"
 	"errors"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -78,9 +80,25 @@ func TestListActions(t *testing.T) {
 				for _, act := range testActionMap {
 					testActionList = append(testActionList, act)
 				}
+
+				sort.Slice(testActionList[:], func(i, j int) bool {
+					return strings.Compare(testActionList[i].Id, testActionList[j].Id) < 1
+				})
 				return testActionList, nil
 			}},
 			want: &shieldv1.ListActionsResponse{Actions: []*shieldv1.Action{
+				{
+					Id:   "manage",
+					Name: "Manage",
+					Namespace: &shieldv1.Namespace{
+						Id:        "resource-1",
+						Name:      "Resource 1",
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
 				{
 					Id:   "read",
 					Name: "Read",
@@ -96,18 +114,6 @@ func TestListActions(t *testing.T) {
 				{
 					Id:   "write",
 					Name: "Write",
-					Namespace: &shieldv1.Namespace{
-						Id:        "resource-1",
-						Name:      "Resource 1",
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
-				},
-				{
-					Id:   "manage",
-					Name: "Manage",
 					Namespace: &shieldv1.Namespace{
 						Id:        "resource-1",
 						Name:      "Resource 1",

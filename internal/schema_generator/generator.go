@@ -151,10 +151,15 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 				permissions: permissions,
 			})
 		}
+
 		definition := definition{
 			name:  ns,
 			roles: roles,
 		}
+
+		sort.Slice(roles[:], func(i, j int) bool {
+			return strings.Compare(roles[i].name, roles[j].name) < 1 && strings.Compare(roles[i].namespace, roles[j].namespace) < 1
+		})
 
 		definitions = append(definitions, definition)
 	}

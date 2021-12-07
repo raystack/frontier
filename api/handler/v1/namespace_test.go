@@ -3,6 +3,8 @@ package v1
 import (
 	"context"
 	"errors"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -55,20 +57,17 @@ func TestListNamespaces(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockNamespaceSrv: mockNamespaceSrv{ListNamespacesFunc: func(ctx context.Context) (namespaces []model.Namespace, err error) {
+			mockNamespaceSrv: mockNamespaceSrv{ListNamespacesFunc: func(ctx context.Context) ([]model.Namespace, error) {
 				var testNSList []model.Namespace
 				for _, ns := range testNsMap {
 					testNSList = append(testNSList, ns)
 				}
+				sort.Slice(testNSList[:], func(i, j int) bool {
+					return strings.Compare(testNSList[i].Id, testNSList[j].Id) < 1
+				})
 				return testNSList, nil
 			}},
 			want: &shieldv1.ListNamespacesResponse{Namespaces: []*shieldv1.Namespace{
-				{
-					Id:        "team",
-					Name:      "Team",
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
-				},
 				{
 					Id:        "org",
 					Name:      "Org",
@@ -78,6 +77,12 @@ func TestListNamespaces(t *testing.T) {
 				{
 					Id:        "project",
 					Name:      "Project",
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+				{
+					Id:        "team",
+					Name:      "Team",
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
