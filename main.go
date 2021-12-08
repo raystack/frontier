@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/odpf/salt/log"
+	shieldlogger "github.com/odpf/shield/logger"
+
 	"github.com/odpf/shield/cmd"
 	"github.com/odpf/shield/config"
 
@@ -13,7 +14,7 @@ import (
 
 func main() {
 	appConfig := config.Load()
-	logger := log.NewLogrus(log.LogrusWithLevel(appConfig.Log.Level))
+	logger := shieldlogger.InitLogger(appConfig)
 
 	if err := cmd.New(logger, appConfig).Execute(); err != nil {
 		fmt.Printf("%+v", err)
