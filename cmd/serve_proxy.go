@@ -4,136 +4,34 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
-	"time"
 
+	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/casbin_authz"
 
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
-	"github.com/odpf/shield/proxy"
 	"github.com/odpf/shield/store"
-	blobstore "github.com/odpf/shield/store/blob"
 	"github.com/pkg/errors"
-	"github.com/pkg/profile"
-	cli "github.com/spf13/cobra"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/fileblob"
 	"gocloud.dev/blob/gcsblob"
 	"gocloud.dev/blob/memblob"
 	"gocloud.dev/gcp"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"golang.org/x/oauth2/google"
 )
 
-var (
-	proxyTermChan         = make(chan os.Signal, 1)
-	ruleCacheRefreshDelay = time.Minute * 2
-)
-
-// h2c reverse proxy
-func proxyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	c := &cli.Command{
-		Use:     "proxy",
-		Short:   "Start proxy over h2c",
-		Example: "shield serve proxy",
-		RunE: func(c *cli.Command, args []string) error {
-			if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
-				defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
-			}
-
-			baseCtx, baseCancel := context.WithCancel(context.Background())
-			defer baseCancel()
-
-			var cleanUpFunc []func() error
-			var cleanUpProxies []func(ctx context.Context) error
-			for _, service := range appConfig.Proxy.Services {
-				if service.RulesPath == "" {
-					return errors.New("ruleset field cannot be left empty")
-				}
-				blobFS, err := (&blobFactory{}).New(baseCtx, service.RulesPath, service.RulesPathSecret)
-				if err != nil {
-					return err
-				}
-
-				// TODO: option to use default http round tripper for http1.1 backends
-				h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger), proxy.NewDirector())
-
-				ruleRepo := blobstore.NewRuleRepository(logger, blobFS)
-				if err := ruleRepo.InitCache(baseCtx, ruleCacheRefreshDelay); err != nil {
-					return err
-				}
-				cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-				pipeline := buildPipeline(logger, h2cProxy, ruleRepo)
-				go func(thisService config.Service, handler http.Handler) {
-					proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
-					logger.Info("starting h2c proxy", "url", proxyURL)
-
-					mux := http.NewServeMux()
-					mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-						fmt.Fprintf(w, "pong")
-					})
-					mux.Handle("/", handler)
-
-					//create a tcp listener
-					proxyListener, err := net.Listen("tcp", proxyURL)
-					if err != nil {
-						logger.Fatal("failed to listen", "err", err)
-					}
-
-					proxySrv := http.Server{
-						Addr:    proxyURL,
-						Handler: h2c.NewHandler(mux, &http2.Server{}),
-					}
-					if err := proxySrv.Serve(proxyListener); err != nil && err != http.ErrServerClosed {
-						logger.Fatal("failed to serve", "err", err)
-					}
-					cleanUpProxies = append(cleanUpProxies, proxySrv.Shutdown)
-				}(service, pipeline)
-			}
-
-			// we'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-			signal.Notify(proxyTermChan, os.Interrupt, os.Kill, syscall.SIGTERM)
-
-			// block until we receive our signal
-			<-proxyTermChan
-			for _, f := range cleanUpFunc {
-				if err := f(); err != nil {
-					logger.Warn("error occurred during shutdown", "err", err)
-				}
-			}
-			for _, f := range cleanUpProxies {
-				shutdownCtx, shutdownCancel := context.WithTimeout(baseCtx, time.Second*20)
-				if err := f(shutdownCtx); err != nil {
-					shutdownCancel()
-					logger.Warn("error occurred during shutdown", "err", err)
-					continue
-				}
-				shutdownCancel()
-			}
-			return nil
-		},
-	}
-	return c
-}
-
 // buildPipeline builds middleware sequence
-func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
+func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository, identityProxyHeader string) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := casbin_authz.New(logger, prefixWare)
+	casbinAuthz := authz.New(logger, identityProxyHeader, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
+	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
 }
 

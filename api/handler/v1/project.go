@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/odpf/shield/v1"
+	shieldv1 "github.com/odpf/shield/proto/v1"
 )
 
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
