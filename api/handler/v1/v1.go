@@ -6,7 +6,7 @@ import (
 
 	"github.com/odpf/salt/server"
 
-	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
+	shieldv1 "github.com/odpf/shield/proto/v1"
 )
 
 type Dep struct {

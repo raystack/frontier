@@ -1,8 +1,7 @@
 package structs
 
 import (
-	"context"
-	"net/url"
+	"net/http"
 	"regexp"
 )
 
@@ -36,7 +35,7 @@ type Frontend struct {
 	URL   string         `yaml:"url"`
 	URLRx *regexp.Regexp `yaml:"-"`
 
-	Methods []string `yaml:"methods"`
+	Method string `yaml:"method"`
 }
 
 type Backend struct {
@@ -44,5 +43,5 @@ type Backend struct {
 }
 
 type RuleMatcher interface {
-	Match(ctx context.Context, reqMethod string, reqURL *url.URL) (*Rule, error)
+	Match(req *http.Request) (*Rule, error)
 }

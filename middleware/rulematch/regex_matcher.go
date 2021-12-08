@@ -20,14 +20,7 @@ func (m RegexMatcher) Match(ctx context.Context, reqMethod string, reqURL *url.U
 
 	for _, set := range ruleset {
 		for _, rule := range set.Rules {
-			var isMethodMatch bool
-			for _, ruleMethod := range rule.Frontend.Methods {
-				if reqMethod == ruleMethod {
-					isMethodMatch = true
-					break
-				}
-			}
-			if !isMethodMatch {
+			if reqMethod != rule.Frontend.Method {
 				continue
 			}
 

@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "go.buf.build/odpf/gwv/odpf/proton/odpf/shield/v1"
+	shieldv1 "github.com/odpf/shield/proto/v1"
 )
 
 var testUserMap = map[string]model.User{

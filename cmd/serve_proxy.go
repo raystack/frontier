@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/casbin_authz"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware/prefix"
@@ -26,12 +26,12 @@ import (
 )
 
 // buildPipeline builds middleware sequence
-func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
+func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository, identityProxyHeader string) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := casbin_authz.New(logger, prefixWare)
+	casbinAuthz := authz.New(logger, identityProxyHeader, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
+	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
 }
 
