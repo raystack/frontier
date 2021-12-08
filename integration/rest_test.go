@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/casbin_authz"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
 	"github.com/odpf/shield/proxy"
@@ -27,6 +27,8 @@ import (
 const (
 	restBackendPort = 13777
 	restProxyPort   = restBackendPort + 1
+	httpProtocol    = "http"
+	h2cProtocol     = "h2c"
 )
 
 func TestREST(t *testing.T) {
@@ -69,69 +71,96 @@ func TestREST(t *testing.T) {
 		}
 	}()
 
-	ts := startTestHTTPServer(restBackendPort, http.StatusOK, "")
-	defer ts.Close()
+	for _, proto := range []string{httpProtocol, h2cProtocol} {
+		func() {
+			ts := startTestHTTPServer(restBackendPort, http.StatusOK, "", proto)
+			defer ts.Close()
 
-	// wait for proxy to start
-	time.Sleep(time.Second * 1)
-
-	t.Run("should handle GET request with 200", func(t *testing.T) {
-		backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn/", restProxyPort), nil)
-		if err != nil {
-			assert.Nil(t, err)
-		}
-		backendReq.SetBasicAuth("user", "password")
-		resp, err := http.DefaultClient.Do(backendReq)
-		if err != nil {
-			assert.Nil(t, err)
-		}
-		assert.Equal(t, 200, resp.StatusCode)
-		resp.Body.Close()
-	})
-	t.Run("should give 401 if authn fails", func(t *testing.T) {
-		backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn/", restProxyPort), nil)
-		if err != nil {
-			assert.Nil(t, err)
-		}
-		backendReq.SetBasicAuth("user", "XX")
-		resp, err := http.DefaultClient.Do(backendReq)
-		if err != nil {
-			assert.Nil(t, err)
-		}
-		assert.Equal(t, 401, resp.StatusCode)
-		resp.Body.Close()
-	})
-	t.Run("should give 401 if authz fails on json payload", func(t *testing.T) {
-		buff := bytes.NewReader([]byte(`{"project": "xx"}`))
-		backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic-authz/", restProxyPort), buff)
-		if err != nil {
-			t.Fatal(err)
-		}
-		backendReq.SetBasicAuth("user", "password")
-		resp, err := http.DefaultClient.Do(backendReq)
-		if err != nil {
-			assert.Nil(t, err)
-		}
-		assert.Equal(t, 401, resp.StatusCode)
-		resp.Body.Close()
-	})
-	t.Run("should give 200 if authz success on json payload", func(t *testing.T) {
-		buff := bytes.NewReader([]byte(`{"project": "foo"}`))
-		backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic-authz/", restProxyPort), buff)
-		if err != nil {
-			t.Fatal(err)
-		}
-		backendReq.SetBasicAuth("user", "password")
-		resp, err := http.DefaultClient.Do(backendReq)
-		if err != nil {
-			assert.Nil(t, err)
-		}
-		assert.Equal(t, 200, resp.StatusCode)
-		resp.Body.Close()
-	})
+			// wait for proxy to start
+			time.Sleep(time.Second * 1)
+			t.Run("should handle GET request with 200", func(t *testing.T) {
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn", restProxyPort), nil)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				backendReq.SetBasicAuth("user", "password")
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 200, resp.StatusCode)
+				resp.Body.Close()
+			})
+			t.Run("should handle valid method request with 200", func(t *testing.T) {
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic/", restProxyPort), nil)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 200, resp.StatusCode)
+				resp.Body.Close()
+			})
+			t.Run("should handle invalid method request with 400", func(t *testing.T) {
+				backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic/", restProxyPort), nil)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 400, resp.StatusCode)
+				resp.Body.Close()
+			})
+			t.Run("should give 401 if authn fails", func(t *testing.T) {
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn/", restProxyPort), nil)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				backendReq.SetBasicAuth("user", "XX")
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 401, resp.StatusCode)
+				resp.Body.Close()
+			})
+			t.Run("should give 401 if authz fails on json payload", func(t *testing.T) {
+				buff := bytes.NewReader([]byte(`{"project": "xx"}`))
+				backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic-authz/", restProxyPort), buff)
+				if err != nil {
+					t.Fatal(err)
+				}
+				backendReq.SetBasicAuth("user", "password")
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 401, resp.StatusCode)
+				resp.Body.Close()
+			})
+			t.Run("should give 200 if authz success on json payload", func(t *testing.T) {
+				buff := bytes.NewReader([]byte(`{"project": "foo"}`))
+				backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic-authz/", restProxyPort), buff)
+				if err != nil {
+					t.Fatal(err)
+				}
+				backendReq.SetBasicAuth("user", "password")
+				resp, err := http.DefaultClient.Do(backendReq)
+				if err != nil {
+					assert.Nil(t, err)
+				}
+				assert.Equal(t, 200, resp.StatusCode)
+				resp.Body.Close()
+			})
+		}()
+	}
 }
 
-func BenchmarkProxyOverHttp1(b *testing.B) {
+func BenchmarkProxyOverHttp(b *testing.B) {
 	baseCtx, baseCancel := context.WithCancel(context.Background())
 	defer baseCancel()
 
@@ -171,93 +200,96 @@ func BenchmarkProxyOverHttp1(b *testing.B) {
 		}
 	}()
 
-	ts := startTestHTTPServer(restBackendPort, http.StatusOK, "")
-	defer ts.Close()
+	for _, proto := range []string{httpProtocol, h2cProtocol} {
+		func() {
+			ts := startTestHTTPServer(restBackendPort, http.StatusOK, "", proto)
+			defer ts.Close()
 
-	// wait for proxy to start
-	time.Sleep(time.Second * 1)
-
-	b.Run("200 status code GET on http1.1", func(b *testing.B) {
-		backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic/", restProxyPort), nil)
-		if err != nil {
-			b.Fatal(err)
-		}
-		for i := 0; i < b.N; i++ {
-			resp, err := http.DefaultClient.Do(backendReq)
-			if err != nil {
-				panic(err)
-			}
-			if 200 != resp.StatusCode {
-				b.Fatal("response code non 200")
-			}
-			resp.Body.Close()
-		}
-	})
-	b.Run("200 status code with basic md5 authn on http1.1", func(b *testing.B) {
-		backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn/", restProxyPort), nil)
-		if err != nil {
-			b.Fatal(err)
-		}
-		backendReq.SetBasicAuth("user", "password")
-		for i := 0; i < b.N; i++ {
-			resp, err := http.DefaultClient.Do(backendReq)
-			if err != nil {
-				panic(err)
-			}
-			if 200 != resp.StatusCode {
-				b.Fatal("response code non 200")
-			}
-			resp.Body.Close()
-		}
-	})
-	b.Run("200 status code with basic bcrypt authn on http1.1", func(b *testing.B) {
-		backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn-bcrypt/", restProxyPort), nil)
-		if err != nil {
-			b.Fatal(err)
-		}
-		backendReq.SetBasicAuth("user", "password")
-		for i := 0; i < b.N; i++ {
-			resp, err := http.DefaultClient.Do(backendReq)
-			if err != nil {
-				panic(err)
-			}
-			if 200 != resp.StatusCode {
-				b.Fatal("response code non 200")
-			}
-			resp.Body.Close()
-		}
-	})
-	b.Run("200 status code with basic authz on http1.1", func(b *testing.B) {
-		buff := bytes.NewReader([]byte(`{"project": "foo"}`))
-		backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic-authz/", restProxyPort), buff)
-		if err != nil {
-			b.Fatal(err)
-		}
-		backendReq.SetBasicAuth("user", "password")
-		for i := 0; i < b.N; i++ {
-			resp, err := http.DefaultClient.Do(backendReq)
-			if err != nil {
-				panic(err)
-			}
-			if 200 != resp.StatusCode {
-				b.Fatal("response code non 200")
-			}
-			resp.Body.Close()
-		}
-	})
+			// wait for proxy to start
+			time.Sleep(time.Second * 1)
+			b.Run("200 status code GET on http1.1", func(b *testing.B) {
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic/", restProxyPort), nil)
+				if err != nil {
+					b.Fatal(err)
+				}
+				for i := 0; i < b.N; i++ {
+					resp, err := http.DefaultClient.Do(backendReq)
+					if err != nil {
+						panic(err)
+					}
+					if 200 != resp.StatusCode {
+						b.Fatal("response code non 200")
+					}
+					resp.Body.Close()
+				}
+			})
+			b.Run("200 status code with basic md5 authn on http1.1", func(b *testing.B) {
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn/", restProxyPort), nil)
+				if err != nil {
+					b.Fatal(err)
+				}
+				backendReq.SetBasicAuth("user", "password")
+				for i := 0; i < b.N; i++ {
+					resp, err := http.DefaultClient.Do(backendReq)
+					if err != nil {
+						panic(err)
+					}
+					if 200 != resp.StatusCode {
+						b.Fatal("response code non 200")
+					}
+					resp.Body.Close()
+				}
+			})
+			b.Run("200 status code with basic bcrypt authn on http1.1", func(b *testing.B) {
+				backendReq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/basic-authn-bcrypt/", restProxyPort), nil)
+				if err != nil {
+					b.Fatal(err)
+				}
+				backendReq.SetBasicAuth("user", "password")
+				for i := 0; i < b.N; i++ {
+					resp, err := http.DefaultClient.Do(backendReq)
+					if err != nil {
+						panic(err)
+					}
+					if 200 != resp.StatusCode {
+						b.Fatal("response code non 200")
+					}
+					resp.Body.Close()
+				}
+			})
+			b.Run("200 status code with basic authz on http1.1", func(b *testing.B) {
+				buff := bytes.NewReader([]byte(`{"project": "foo"}`))
+				backendReq, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/basic-authz/", restProxyPort), buff)
+				if err != nil {
+					b.Fatal(err)
+				}
+				backendReq.SetBasicAuth("user", "password")
+				for i := 0; i < b.N; i++ {
+					resp, err := http.DefaultClient.Do(backendReq)
+					if err != nil {
+						panic(err)
+					}
+					if 200 != resp.StatusCode {
+						b.Fatal("response code non 200")
+					}
+					resp.Body.Close()
+				}
+			})
+		}()
+	}
 }
 
 // buildPipeline builds middleware sequence
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := casbin_authz.New(logger, prefixWare)
+	casbinAuthz := authz.New(logger, "", prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRegexMatcher(ruleRepo))
+	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
 }
 
-func startTestHTTPServer(port, statusCode int, content string) (ts *httptest.Server) {
+func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(statusCode)
 		if content != "" {
@@ -271,10 +303,16 @@ func startTestHTTPServer(port, statusCode int, content string) (ts *httptest.Ser
 	if err != nil {
 		panic(err)
 	}
+
+	var testHandler http.Handler = handler
+	if proto == h2cProtocol {
+		testHandler = h2c.NewHandler(handler, &http2.Server{})
+	}
+
 	ts = &httptest.Server{
 		Listener: listener,
 		Config: &http.Server{
-			Handler:      h2c.NewHandler(handler, &http2.Server{}),
+			Handler:      testHandler,
 			ReadTimeout:  time.Second,
 			WriteTimeout: time.Second,
 			IdleTimeout:  time.Second,

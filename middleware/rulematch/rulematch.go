@@ -36,7 +36,7 @@ func (m Ware) Info() *structs.MiddlewareInfo {
 
 func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// find matched rule
-	matchedRule, err := m.ruleMatcher.Match(req.Context(), req.Method, req.URL)
+	matchedRule, err := m.ruleMatcher.Match(req)
 	if err != nil {
 		m.log.Info("middleware: failed to match rule", "path", req.URL.String(), "err", err)
 		rw.WriteHeader(http.StatusBadRequest)

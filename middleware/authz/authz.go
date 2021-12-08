@@ -1,19 +1,22 @@
-package casbin_authz
+package authz
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/structs"
+
+	"github.com/mitchellh/mapstructure"
+	"github.com/odpf/salt/log"
 )
 
 // make sure the request is allowed & ready to be sent to backend
-type CasbinAuthz struct {
-	log  log.Logger
-	next http.Handler
+type Authz struct {
+	log                 log.Logger
+	identityProxyHeader string
+	next                http.Handler
 }
 
 type Config struct {
@@ -21,18 +24,18 @@ type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, next http.Handler) *CasbinAuthz {
-	return &CasbinAuthz{log: log, next: next}
+func New(log log.Logger, identityProxyHeader string, next http.Handler) *Authz {
+	return &Authz{log: log, identityProxyHeader: identityProxyHeader, next: next}
 }
 
-func (c CasbinAuthz) Info() *structs.MiddlewareInfo {
+func (c Authz) Info() *structs.MiddlewareInfo {
 	return &structs.MiddlewareInfo{
 		Name:        "authz",
 		Description: "rule based authorization using casbin",
 	}
 }
 
-func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	wareSpec, ok := middleware.ExtractMiddleware(req, c.Info().Name)
 	if !ok {
 		c.next.ServeHTTP(rw, req)
@@ -47,11 +50,11 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// TODO: check if action matchers user capabilities
-	// config.Action
+	permissionAttributes := map[string]string{}
+
+	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
 
 	for res, attr := range config.Attributes {
-		// TODO: do something about this
 		_ = res
 
 		switch attr.Type {
@@ -70,10 +73,9 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			// do something about it
-			_ = payloadField
-
+			permissionAttributes[res] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+
 		case middleware.AttributeTypeJSONPayload:
 			if attr.Key == "" {
 				c.log.Error("middleware: payload key field empty")
@@ -87,7 +89,41 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			permissionAttributes[res] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+
+		case middleware.AttributeTypeHeader:
+			if attr.Key == "" {
+				c.log.Error("middleware: header key field empty")
+				c.notAllowed(rw)
+				return
+			}
+			headerAttr := req.Header.Get(attr.Key)
+			if headerAttr == "" {
+				c.log.Error(fmt.Sprintf("middleware: header %s is empty", attr.Key))
+				c.notAllowed(rw)
+				return
+			}
+
+			permissionAttributes[res] = headerAttr
+			c.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
+
+		case middleware.AttributeTypeQuery:
+			if attr.Key == "" {
+				c.log.Error("middleware: query key field empty")
+				c.notAllowed(rw)
+				return
+			}
+			queryAttr := req.URL.Query().Get(attr.Key)
+			if queryAttr == "" {
+				c.log.Error(fmt.Sprintf("middleware: query %s is empty", attr.Key))
+				c.notAllowed(rw)
+				return
+			}
+
+			permissionAttributes[res] = queryAttr
+			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
+
 		default:
 			c.log.Error("middleware: unknown attribute type", "attr", attr)
 			c.notAllowed(rw)
@@ -95,10 +131,23 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	paramMap, mapExists := middleware.ExtractPathParams(req)
+	if !mapExists {
+		c.log.Error("middleware: path param map doesn't exist")
+		c.notAllowed(rw)
+		return
+	}
+
+	for key, value := range paramMap {
+		permissionAttributes[key] = value
+	}
+
+	// use permissionAttributes & config.Action here
+
 	c.next.ServeHTTP(rw, req)
 }
 
-func (w CasbinAuthz) notAllowed(rw http.ResponseWriter) {
+func (w Authz) notAllowed(rw http.ResponseWriter) {
 	rw.WriteHeader(http.StatusUnauthorized)
 	return
 }
