@@ -15,10 +15,12 @@ import (
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/internal/authz"
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/pkg/sql"
 	"github.com/odpf/shield/proxy"
@@ -110,7 +112,7 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 		panic(err)
 	}
 
-	handler.Register(ctx, s, gw, apiDependencies(db, appConfig))
+	handler.Register(ctx, s, gw, apiDependencies(db, appConfig, logger))
 
 	go s.Serve()
 
@@ -188,8 +190,9 @@ func healthCheck() http.HandlerFunc {
 	}
 }
 
-func apiDependencies(db *sql.SQL, appConfig *config.Shield) handler.Deps {
+func apiDependencies(db *sql.SQL, appConfig *config.Shield, logger log.Logger) handler.Deps {
 	serviceStore := postgres.NewStore(db)
+	authzService := authz.New(appConfig, logger)
 
 	dependencies := handler.Deps{
 		V1: v1.Dep{
@@ -207,6 +210,10 @@ func apiDependencies(db *sql.SQL, appConfig *config.Shield) handler.Deps {
 			},
 			GroupService: group.Service{
 				Store: serviceStore,
+			},
+			PolicyService: schema.Service{
+				Store: serviceStore,
+				Authz: authzService,
 			},
 			IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		},

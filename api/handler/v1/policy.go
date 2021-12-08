@@ -11,7 +11,7 @@ import (
 
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/odpf/shield/v1"
+	shieldv1 "github.com/odpf/shield/proto/v1"
 )
 
 type PolicyService interface {

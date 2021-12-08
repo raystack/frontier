@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/odpf/shield/v1"
+	shieldv1 "github.com/odpf/shield/proto/v1"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
