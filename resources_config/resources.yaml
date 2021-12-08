@@ -1,0 +1,18 @@
+resources:
+  - name: dagger
+    actions:
+      read:
+        - team_admin
+        - dagger_manager
+        - org_admin
+      delete:
+        - team_admin
+        - org_admin
+  - name: firehose
+    actions:
+      read:
+        - team_admin
+        - firehose_manager
+      delete:
+        - team_admin
+        - org_admin

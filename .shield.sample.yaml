@@ -27,3 +27,4 @@ proxy:
       #
       # +optional
       # ruleset_secret: env://TEST_RULESET_SECRET
+      resources_config_path: file://absolute_path_to_rules_directory
