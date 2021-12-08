@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-
 	"net"
 	"net/http"
 	"os"
@@ -54,6 +53,7 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}
 
+	// @TODO: need to inject custom logger wrapper over zap into ctx to use it internally
 	ctx, cancelFunc := context.WithCancel(server.HandleSignals(context.Background()))
 	defer cancelFunc()
 
@@ -139,16 +139,10 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 			return nil, nil, err
 		}
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-		pipeline := buildPipeline(logger, h2cProxy, ruleRepo)
+		pipeline := buildPipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader)
 		go func(thisService config.Service, handler http.Handler) {
 			proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 			logger.Info("starting h2c proxy", "url", proxyURL)
-
-			//s, err := server.NewMux(server.Config{
-			//	Port: appConfig.App.Port,
-			//}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(appConfig, logger)), nil)
-			//s.RegisterHandler("/ping", healthCheck())
-			//s.RegisterHandler("/", handler)
 
 			mux := http.NewServeMux()
 			mux.Handle("/ping", healthCheck())
