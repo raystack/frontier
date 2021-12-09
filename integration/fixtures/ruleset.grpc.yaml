@@ -19,7 +19,7 @@ rules:
               action: some_action
               attributes:
                 project_resp:
-                  index: "10."
+                  index: 1
                   type: grpc_payload
 
       - name: basic_auth_2
@@ -44,5 +44,5 @@ rules:
               action: some_action
               attributes:
                 project_resp:
-                  index: "10."
+                  index: 1
                   type: grpc_payload

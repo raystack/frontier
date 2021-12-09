@@ -40,9 +40,15 @@ type Frontend struct {
 	Path        string       `yaml:"path"`
 	Method      string       `yaml:"method"`
 	Middlewares []Middleware `yaml:"middlewares"`
+	Hooks       []Hook       `yaml:"hooks"`
 }
 
 type Middleware struct {
+	Name   string                 `yaml:"name"`
+	Config map[string]interface{} `yaml:"config"`
+}
+
+type Hook struct {
 	Name   string                 `yaml:"name"`
 	Config map[string]interface{} `yaml:"config"`
 }
@@ -116,6 +122,14 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 						})
 					}
 
+					hooks := structs.HookSpecs{}
+					for _, hook := range frontend.Hooks {
+						hooks = append(hooks, structs.HookSpec{
+							Name:   hook.Name,
+							Config: hook.Config,
+						})
+					}
+
 					targetRuleSet.Rules = append(targetRuleSet.Rules, structs.Rule{
 						Frontend: structs.Frontend{
 							URL:    frontend.Path,
@@ -123,6 +137,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 						},
 						Backend:     structs.Backend{URL: backend.Target},
 						Middlewares: middlewares,
+						Hooks:       hooks,
 					})
 				}
 			}

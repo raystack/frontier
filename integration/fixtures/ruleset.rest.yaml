@@ -53,13 +53,11 @@ rules:
                     type: json_payload
                     key: project
         hooks:
-        #      - name: authz
-        #        config:
-        #          action: authz_action
-        #          attributes:
-        #            project:
-        #              key: data.project
-        #              type: json_payload
-        #            group:
-        #              key: data.group
-        #              type: json_payload
+          - name: authz
+            config:
+              action: authz_action
+              attributes:
+                project:
+                  key: project
+                  type: json_payload
+                  source: request
