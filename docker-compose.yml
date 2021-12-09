@@ -11,3 +11,34 @@ services:
       - ./temp/pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shield"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  shield-migrate:
+    build:
+      context: .
+    command:
+      - "migrate"
+    depends_on:
+      pg:
+        condition: service_healthy
+    environment:
+      - SHIELD_DB_DRIVER=postgres
+      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+  shield:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    command:
+      - "serve"
+    depends_on:
+      pg:
+        condition: service_healthy
+      shield-migrate:
+        condition: service_completed_successfully
+    environment:
+      - SHIELD_DB_DRIVER=postgres
+      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
