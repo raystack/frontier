@@ -5,8 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/jhump/protoreflect/desc/protoprint"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -14,10 +13,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
-	"github.com/jhump/protoreflect/desc/protoprint"
 	"github.com/jhump/protoreflect/dynamic"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -28,7 +29,8 @@ type GRPCPayloadCompressionFormat uint8
 const (
 	compressionNone GRPCPayloadCompressionFormat = 0
 	compressionMade GRPCPayloadCompressionFormat = 1
-	maxInt                                       = int(^uint(0) >> 1)
+
+	maxInt = int(^uint(0) >> 1)
 
 	NestedArray = "MessageArray"
 	StringArray = "StringArray"
@@ -37,7 +39,6 @@ const (
 )
 
 type GRPCPayloadHandler struct{}
-
 
 func (b GRPCPayloadHandler) Extract(req *http.Request, protoIndex string) (string, error) {
 	reqBody, err := ioutil.ReadAll(req.Body)
@@ -115,29 +116,35 @@ func (p *grpcRequestParser) Parse() (pf GRPCPayloadCompressionFormat, msg []byte
 	}
 	return pf, msg, nil
 }
-//4.2[1]
+
 func fieldFromProtoMessage(msg []byte, tagIndex string) (string, error) {
-	q, err := NewQuery(tagIndex)
+	queries, err := ParseQuery(tagIndex)
 	if err != nil {
 		return "", err
 	}
 
-	msgDescriptor, err := buildPayloadProto(q)
+	msgDescriptor, err := buildPayloadProto(queries)
 	if err != nil {
 		return "", err
 	}
 
 	// populate message
 	dynamicMsgKey := dynamic.NewMessage(msgDescriptor)
-	protoPrinter := &protoprint.Printer{}
-	str, err := protoPrinter.PrintProtoToString(msgDescriptor.GetFile())
-	fmt.Println(str)
-	fmt.Println(err)
-	if err := dynamicMsgKey.Unmarshal(msg); err != nil {
+	if err := dynamicMsgKey.UnmarshalMerge(msg); err != nil {
 		return "", err
 	}
 
-	val, err := QueryValue(dynamicMsgKey, q)
+	protoPrint := protoprint.Printer{}
+	fmt.Println(dynamicMsgKey.GetMessageDescriptor().GetFile().GetName())
+	fmt.Println(protoPrint.PrintProtoToString(dynamicMsgKey.GetMessageDescriptor().GetFile()))
+	for _, r := range dynamicMsgKey.GetMessageDescriptor().GetFile().GetDependencies() {
+		fmt.Println("-----------------------------------------------------")
+		fmt.Println(r.GetFile().GetName())
+		fmt.Println(protoPrint.PrintProtoToString(r.GetFile()))
+	}
+	//fmt.Println(dynamicMsgKey.GetMessageDescriptor().AsProto().String())
+
+	val, err := RunQuery(dynamicMsgKey, queries)
 	if err != nil {
 		return "", err
 	}
@@ -152,44 +159,34 @@ func buildPayloadProto(queries []Query) (*desc.MessageDescriptor, error) {
 	for queryListIndex := len(queries) - 1; queryListIndex > 0; queryListIndex-- {
 		subQuery := queries[queryListIndex]
 		if subQuery.DataType == String {
-			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg_%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("%s%d", fieldName, subQuery.Field),
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
 				builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(subQuery.Field)))
 		} else if subQuery.DataType == StringArray {
-			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg_%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("%s%d", fieldName, subQuery.Field),
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
 				builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(subQuery.Field)).SetRepeated())
 		} else if subQuery.DataType == Message {
-			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg_%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("%s%d", fieldName, subQuery.Field),
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
 				builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(subQuery.Field)))
 		} else if subQuery.DataType == NestedArray {
-			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg_%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("%s%d", fieldName, subQuery.Field),
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
 				builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(subQuery.Field)).SetRepeated())
 		}
 		fieldName = "_" + fieldName
 	}
-	//
-	//if queries[0].DataType == Message {
-	//	builderMsg.AddField(builder.NewField(fmt.Sprintf("%s%d", fieldName, queries[0].Field),
-	//		builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)))
-	//
-	//} else if queries[0].DataType == NestedArray {
-	//	builderMsg.AddField(builder.NewField(fmt.Sprintf("%s%d", fieldName, queries[0].Field),
-	//		builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)).SetRepeated())
-	//
-	//}
 
-	nestedMsg := builder.NewMessage("sub_message").AddField(builder.NewField("b1", builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(1))
-
-	msgD, err:= nestedMsg.Build()
-	fmt.Println(err)
-	protoPrinter := &protoprint.Printer{}
-	str, err := protoPrinter.PrintProtoToString(msgD.GetFile())
-	fmt.Println(str)
-	fmt.Println(err)
-
-	builderMsg = builderMsg.AddField(builder.NewField("a2", builder.FieldTypeMessage(nestedMsg)).SetNumber(4))
-
-	//builderMsg.AddField(builder.NewField("_1", builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(1))
-	//builderMsg.AddField(builder.NewField("_2", builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetRepeated().SetNumber(2))
+	if queries[0].DataType == Message {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)))
+	} else if queries[0].DataType == NestedArray {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)).SetRepeated())
+	} else if queries[0].DataType == String {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(queries[0].Field)))
+	} else if queries[0].DataType == StringArray {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(queries[0].Field)).SetRepeated())
+	}
 
 	msgDescriptor, err := builderMsg.Build()
 	if err != nil {
@@ -198,16 +195,13 @@ func buildPayloadProto(queries []Query) (*desc.MessageDescriptor, error) {
 	return msgDescriptor, nil
 }
 
-//--------------------------------------------------------
-
 type Query struct {
-	Field    int         `json:"field"`
-	Index    int         `json:"index"`
-	MapKey   interface{} `json:"map_key"`
-	DataType string      `json:"data_type"`
+	Field    int    `json:"field"`
+	Index    int    `json:"index"`
+	DataType string `json:"data_type"`
 }
 
-func QueryValue(msg *dynamic.Message, query []Query) (interface{}, error) {
+func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 	first := query[0]
 	rest := query[1:]
 
@@ -215,10 +209,6 @@ func QueryValue(msg *dynamic.Message, query []Query) (interface{}, error) {
 	var err error
 	if first.Index != -1 {
 		val, err = msg.TryGetRepeatedFieldByNumber(first.Field, first.Index)
-		fmt.Println("here1")
-	} else if first.MapKey != nil {
-		val, err = msg.TryGetMapFieldByNumber(first.Field, first.MapKey)
-		fmt.Println("here2")
 	} else {
 		val, err = msg.TryGetFieldByNumber(first.Field)
 	}
@@ -246,10 +236,10 @@ func QueryValue(msg *dynamic.Message, query []Query) (interface{}, error) {
 		}
 	}
 
-	return QueryValue(dm, rest)
+	return RunQuery(dm, rest)
 }
 
-func NewQuery(query string) ([]Query, error) {
+func ParseQuery(query string) ([]Query, error) {
 	arrayBrackets := []string{"[", "]"}
 
 	arrayRegexBuild, err := regexp.Compile("\\[([0-9]*)]")
