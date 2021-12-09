@@ -42,7 +42,7 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// TODO: should cache it
 	config := Config{}
 	if err := mapstructure.Decode(wareSpec.Config, &config); err != nil {
-		c.log.Error("middleware: failed to decode authz config", "config", wareSpec.Config)
+		c.log.Error("middleware: failed to decode authz config", "config", wareSpec.Config, "err", err)
 		c.notAllowed(rw)
 		return
 	}
@@ -66,7 +66,7 @@ func (c *CasbinAuthz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			// TODO: we can optimise this by parsing all field at once
 			payloadField, err := middleware.GRPCPayloadHandler{}.Extract(req, attr.Index)
 			if err != nil {
-				c.log.Error("middleware: failed to parse grpc payload", "err", err)
+				c.log.Error("middleware: failed to parse grpc payload", "err", err, "tr", "here")
 				return
 			}
 
