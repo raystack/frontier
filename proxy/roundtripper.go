@@ -10,8 +10,6 @@ import (
 
 	"github.com/odpf/salt/log"
 
-	"github.com/odpf/shield/hook"
-
 	"golang.org/x/net/http2"
 )
 

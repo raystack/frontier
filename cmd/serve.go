@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/salt/server"
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/hook"
+	authz_hook "github.com/odpf/shield/hook/authz"
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/internal/project"
@@ -24,9 +24,13 @@ import (
 	"github.com/odpf/shield/proxy"
 	blobstore "github.com/odpf/shield/store/blob"
 	"github.com/odpf/shield/store/postgres"
+
+	"github.com/odpf/salt/log"
+	"github.com/odpf/salt/server"
 	"github.com/pkg/errors"
 	"github.com/pkg/profile"
 	cli "github.com/spf13/cobra"
+
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -131,15 +135,14 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 			return nil, nil, err
 		}
 
-		// TODO: option to use default http round tripper for http1.1 backends
-		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger), proxy.NewDirector())
+		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger)), proxy.NewDirector())
 
 		ruleRepo := blobstore.NewRuleRepository(logger, blobFS)
 		if err := ruleRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 			return nil, nil, err
 		}
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-		pipeline := buildPipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader)
 		go func(thisService config.Service, handler http.Handler) {
 			proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 			logger.Info("starting h2c proxy", "url", proxyURL)
@@ -162,11 +165,16 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 				logger.Fatal("failed to serve", "err", err)
 			}
 			cleanUpProxies = append(cleanUpProxies, proxySrv.Shutdown)
-		}(service, pipeline)
+		}(service, middlewarePipeline)
 	}
 	time.Sleep(100 * time.Millisecond)
 	logger.Info("[shield] proxy is up")
 	return cleanUpFunc, cleanUpProxies, nil
+}
+
+func buildHookPipeline(log log.Logger) hook.Service {
+	rootHook := hook.New()
+	return authz_hook.New(log, rootHook, rootHook)
 }
 
 func waitForTermSignal(ctx context.Context) {
