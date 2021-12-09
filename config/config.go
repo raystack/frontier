@@ -1,6 +1,9 @@
 package config
 
 import (
+	"errors"
+	"fmt"
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 	"time"
@@ -90,7 +93,12 @@ func Load() *Shield {
 
 	l := config.NewLoader(options...)
 	if err := l.Load(conf); err != nil {
-		panic(err)
+		// @TODO change &viper.ConfigFileNotFoundError{} to &config.ConfigFileNotFoundError{}. https://github.com/odpf/salt/issues/18
+		if errors.As(err, &viper.ConfigFileNotFoundError{}) {
+			fmt.Println(err)
+		} else {
+			panic(err)
+		}
 	}
 	return conf
 }
