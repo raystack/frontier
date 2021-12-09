@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
@@ -36,11 +35,11 @@ var (
 )
 
 func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
-	fetchedPolicy, err := s.selectPolicy(ctx, id, nil)
+	fetchedPolicy, err := s.selectPolicy(ctx, id)
 	return fetchedPolicy, err
 }
 
-func (s Store) selectPolicy(ctx context.Context, id string, txn *sqlx.Tx) (model.Policy, error) {
+func (s Store) selectPolicy(ctx context.Context, id string) (model.Policy, error) {
 	var fetchedPolicy Policy
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -119,13 +118,8 @@ func (s Store) fetchNamespacePolicies(ctx context.Context, namespaceId string) (
 func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([]model.Policy, error) {
 	var newPolicy Policy
 
-	tx, err := s.DB.BeginTxx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return tx.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, policyToCreate.ActionId)
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, policyToCreate.ActionId)
 	})
 	if err != nil {
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)

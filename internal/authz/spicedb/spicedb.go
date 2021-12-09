@@ -25,11 +25,10 @@ func (s *SpiceDB) Check() bool {
 
 func (p *Policy) AddPolicy(schema string) error {
 	request := &pb.WriteSchemaRequest{Schema: schema}
-	resp, err := p.client.WriteSchema(context.Background(), request)
+	_, err := p.client.WriteSchema(context.Background(), request)
 	if err != nil {
 		return err
 	}
-	fmt.Println("Output", resp)
 	return nil
 }
 
