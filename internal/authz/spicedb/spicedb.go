@@ -23,9 +23,9 @@ func (s *SpiceDB) Check() bool {
 	return false
 }
 
-func (p *Policy) AddPolicy(schema string) error {
+func (p *Policy) AddPolicy(ctx context.Context, schema string) error {
 	request := &pb.WriteSchemaRequest{Schema: schema}
-	_, err := p.client.WriteSchema(context.Background(), request)
+	_, err := p.client.WriteSchema(ctx, request)
 	if err != nil {
 		return err
 	}

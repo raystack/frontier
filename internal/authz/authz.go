@@ -1,13 +1,14 @@
 package authz
 
 import (
+	"context"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/authz/spicedb"
 )
 
 type Policy interface {
-	AddPolicy(schema string) error
+	AddPolicy(ctx context.Context, schema string) error
 }
 
 type Authz struct {

@@ -23,11 +23,11 @@ func (s Service) CreatePolicy(ctx context.Context, policy model.Policy) ([]model
 	if err != nil {
 		return []model.Policy{}, err
 	}
-	schemas, err := s.generateSchema(ctx, policies)
+	schemas, err := s.generateSchema(policies)
 	if err != nil {
 		return []model.Policy{}, err
 	}
-	err = s.pushSchema(schemas)
+	err = s.pushSchema(ctx, schemas)
 	if err != nil {
 		return []model.Policy{}, err
 	}
@@ -39,18 +39,18 @@ func (s Service) UpdatePolicy(ctx context.Context, id string, policy model.Polic
 	if err != nil {
 		return []model.Policy{}, err
 	}
-	schemas, err := s.generateSchema(ctx, policies)
+	schemas, err := s.generateSchema(policies)
 	if err != nil {
 		return []model.Policy{}, err
 	}
-	err = s.pushSchema(schemas)
+	err = s.pushSchema(ctx, schemas)
 	if err != nil {
 		return []model.Policy{}, err
 	}
 	return policies, err
 }
 
-func (s Service) generateSchema(ctx context.Context, policies []model.Policy) ([]string, error) {
+func (s Service) generateSchema(policies []model.Policy) ([]string, error) {
 	definitions, err := schema_generator.BuildPolicyDefinitions(policies)
 	if err != nil {
 		return []string{}, err
@@ -59,9 +59,9 @@ func (s Service) generateSchema(ctx context.Context, policies []model.Policy) ([
 	return schemas, nil
 }
 
-func (s Service) pushSchema(schemas []string) error {
+func (s Service) pushSchema(ctx context.Context, schemas []string) error {
 	for _, schema := range schemas {
-		err := s.Authz.Policy.AddPolicy(schema)
+		err := s.Authz.Policy.AddPolicy(ctx, schema)
 		if err != nil {
 			return err
 		}
