@@ -15,7 +15,10 @@ type Dep struct {
 	ProjectService      ProjectService
 	GroupService        GroupService
 	RoleService         RoleService
+	PolicyService       PolicyService
 	UserService         UserService
+	NamespaceService    NamespaceService
+	ActionService       ActionService
 	IdentityProxyHeader string
 }
 

@@ -12,12 +12,13 @@ import (
 
 type Shield struct {
 	// configuration version
-	Version  int         `yaml:"version"`
-	Proxy    ProxyConfig `yaml:"proxy"`
-	Log      LogConfig   `yaml:"log"`
-	NewRelic NewRelic    `yaml:"new_relic"`
-	App      Service     `yaml:"app"`
-	DB       DBConfig    `yaml:"db"`
+	Version  int           `yaml:"version"`
+	Proxy    ProxyConfig   `yaml:"proxy"`
+	Log      LogConfig     `yaml:"log"`
+	NewRelic NewRelic      `yaml:"new_relic"`
+	App      Service       `yaml:"app"`
+	DB       DBConfig      `yaml:"db"`
+	SpiceDB  SpiceDBConfig `yaml:"spice_db"`
 }
 
 type LogConfig struct {
@@ -30,6 +31,12 @@ type LogConfig struct {
 
 type ProxyConfig struct {
 	Services []Service `yaml:"services" mapstructure:"services"`
+}
+
+type SpiceDBConfig struct {
+	Host         string `yaml:"host"`
+	Port         string `yaml:"port" default:"50051"`
+	PreSharedKey string `yaml:"pre_shared_key"`
 }
 
 type Service struct {

@@ -32,13 +32,42 @@ type Group struct {
 }
 
 type Role struct {
+	Id          string
+	Name        string
+	Types       []string
+	Namespace   Namespace
+	NamespaceId string
+	Metadata    map[string]string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type Action struct {
+	Id          string
+	Name        string
+	NamespaceId string
+	Namespace   Namespace
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type Namespace struct {
 	Id        string
 	Name      string
-	Types     []string
-	Namespace string
-	Metadata  map[string]string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Policy struct {
+	Id          string
+	Role        Role
+	RoleId      string `json:"role_id"`
+	Namespace   Namespace
+	NamespaceId string `json:"namespace_id"`
+	Action      Action
+	ActionId    string `json:"action_id"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type User struct {

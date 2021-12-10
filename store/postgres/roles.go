@@ -8,26 +8,28 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/model"
 )
 
 type Role struct {
-	Id        string    `db:"id"`
-	Name      string    `db:"name"`
-	Types     []string  `db:"types"`
-	Namespace string    `db:"namespace"`
-	Metadata  []byte    `db:"metadata"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id          string         `db:"id"`
+	Name        string         `db:"name"`
+	Types       pq.StringArray `db:"types"`
+	Namespace   Namespace      `db:"namespace"`
+	NamespaceID string         `db:"namespace_id"`
+	Metadata    []byte         `db:"metadata"`
+	CreatedAt   time.Time      `db:"created_at"`
+	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
 const (
-	createRoleQuery = `INSERT into roles(id, name, types, namespace, metadata) values($1, $2, $3, $4, $5) RETURNING id, name, types, namespace, metadata, created_at, updated_at;`
-	getRoleQuery    = `SELECT id, name, types, namespace, metadata, created_at, updated_at from roles where id=$1;`
-	listRolesQuery  = `SELECT id, name, types, namespace, metadata, created_at, updated_at from roles;`
-	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, namespace = $4, metadata = $5, updated_at = now() where id = $1;`
+	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, metadata) values($1, $2, $3, $4, $5) RETURNING id, name, types, namespace_id, metadata, created_at, updated_at;`
+	getRoleQuery    = `SELECT id, name, types, namespace_id, metadata, created_at, updated_at from roles where id=$1;`
+	listRolesQuery  = `SELECT id, name, types, namespace_id, metadata, created_at, updated_at from roles;`
+	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, namespace_id = $4, metadata = $5, updated_at = now() where id = $1;`
 )
 
 func (s Store) GetRole(ctx context.Context, id string) (model.Role, error) {
@@ -58,7 +60,7 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate model.Role) (model.R
 
 	var newRole Role
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newRole, createRoleQuery, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.Id, roleToCreate.Name, pq.StringArray(roleToCreate.Types), roleToCreate.Namespace, marshaledMetadata)
 	})
 	if err != nil {
 		return model.Role{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -105,7 +107,7 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.Id, toUpdate.Name, toUpdate.Types, toUpdate.Namespace, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.Id, toUpdate.Name, toUpdate.Types, toUpdate.NamespaceId, marshaledMetadata)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -124,17 +126,24 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 
 func transformToRole(from Role) (model.Role, error) {
 	var unmarshalledMetadata map[string]string
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return model.Role{}, err
+	if len(from.Metadata) > 0 {
+		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+			return model.Role{}, err
+		}
 	}
 
+	namespace, err := transformToNamespace(from.Namespace)
+	if err != nil {
+		return model.Role{}, err
+	}
 	return model.Role{
-		Id:        from.Id,
-		Name:      from.Name,
-		Types:     from.Types,
-		Namespace: from.Namespace,
-		Metadata:  unmarshalledMetadata,
-		CreatedAt: from.CreatedAt,
-		UpdatedAt: from.UpdatedAt,
+		Id:          from.Id,
+		Name:        from.Name,
+		Types:       from.Types,
+		Namespace:   namespace,
+		NamespaceId: from.NamespaceID,
+		Metadata:    unmarshalledMetadata,
+		CreatedAt:   from.CreatedAt,
+		UpdatedAt:   from.UpdatedAt,
 	}, nil
 }
