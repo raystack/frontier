@@ -91,6 +91,9 @@ rules:
                   action: some_action
                   attributes:
                     project_resp:
-                      index: 1
+                      key: project
                       type: grpc_payload
                       source: request
+                    group:
+                      key: id.group
+                      type: grpc_payload

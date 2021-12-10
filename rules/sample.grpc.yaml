@@ -28,3 +28,6 @@ rules:
               index: 1
               type: grpc_payload
               source: request
+            group:
+              index: 1
+              type: grpc_payload
