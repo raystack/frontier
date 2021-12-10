@@ -11,15 +11,21 @@ import (
 	"time"
 
 	"github.com/odpf/salt/log"
+
+	"github.com/odpf/shield/hook"
+	authz_hook "github.com/odpf/shield/hook/authz"
 	"github.com/odpf/shield/middleware/authz"
-	"github.com/odpf/shield/middleware/basic_auth"
+	basic_auth "github.com/odpf/shield/middleware/basic_auth"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
 	"github.com/odpf/shield/proxy"
 	"github.com/odpf/shield/store"
 	blobstore "github.com/odpf/shield/store/blob"
+
 	"github.com/stretchr/testify/assert"
+
 	"gocloud.dev/blob/fileblob"
+
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -43,7 +49,8 @@ func TestREST(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop()), proxy.NewDirector())
+	responseHooks := hookPipeline(log.NewNoop())
+	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), responseHooks), proxy.NewDirector())
 	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		t.Fatal(err)
@@ -172,7 +179,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop()), proxy.NewDirector())
+	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), hook.New()), proxy.NewDirector())
 	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		b.Fatal(err)
@@ -287,6 +294,11 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRep
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
+}
+
+func hookPipeline(log log.Logger) hook.Service {
+	rootHook := hook.New()
+	return authz_hook.New(log, rootHook, rootHook)
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {

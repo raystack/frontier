@@ -1,9 +1,9 @@
-package middleware
+package body_extractor
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/pkg/errors"
 
@@ -12,14 +12,14 @@ import (
 
 type JSONPayloadHandler struct{}
 
-func (h JSONPayloadHandler) Extract(req *http.Request, key string) (string, error) {
-	reqBody, err := ioutil.ReadAll(req.Body)
+func (h JSONPayloadHandler) Extract(body *io.ReadCloser, key string) (string, error) {
+	reqBody, err := ioutil.ReadAll(*body)
 	if err != nil {
 		return "", err
 	}
-	defer req.Body.Close()
+	defer (*body).Close()
 	// repopulate body
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+	*body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
 
 	field := gjson.GetBytes(reqBody, key)
 	if !field.Exists() {

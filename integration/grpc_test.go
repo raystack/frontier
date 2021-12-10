@@ -9,17 +9,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
+	"github.com/odpf/shield/hook"
 	"github.com/odpf/shield/integration/fixtures/helloworld"
-	"google.golang.org/grpc"
-
-	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/proxy"
 	blobstore "github.com/odpf/shield/store/blob"
+
+	"github.com/odpf/salt/log"
+	"github.com/stretchr/testify/assert"
+
 	"gocloud.dev/blob/fileblob"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+
+	"google.golang.org/grpc"
 )
 
 const (
@@ -39,7 +41,8 @@ func TestGRPCProxyHelloWorld(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop()), proxy.NewDirector())
+	responseHooks := hookPipeline(log.NewNoop())
+	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), responseHooks), proxy.NewDirector())
 	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		t.Fatal(err)
@@ -137,7 +140,7 @@ func BenchmarkGRPCProxyHelloWorld(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop()), proxy.NewDirector())
+	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), hook.New()), proxy.NewDirector())
 	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		b.Fatal(err)

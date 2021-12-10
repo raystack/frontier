@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/middleware"
+	"github.com/odpf/shield/pkg/body_extractor"
 	"github.com/odpf/shield/structs"
 
 	"github.com/mitchellh/mapstructure"
@@ -67,7 +68,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			// TODO: we can optimise this by parsing all field at once
-			payloadField, err := middleware.GRPCPayloadHandler{}.Extract(req, attr.Index)
+			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&req.Body, attr.Index)
 			if err != nil {
 				c.log.Error("middleware: failed to parse grpc payload", "err", err)
 				return
@@ -82,7 +83,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				c.notAllowed(rw)
 				return
 			}
-			payloadField, err := middleware.JSONPayloadHandler{}.Extract(req, attr.Key)
+			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&req.Body, attr.Key)
 			if err != nil {
 				c.log.Error("middleware: failed to parse grpc payload", "err", err)
 				c.notAllowed(rw)

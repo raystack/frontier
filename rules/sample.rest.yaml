@@ -14,6 +14,17 @@ rules:
                     group:
                       key: id.group
                       type: json_payload
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    project:
+                      key: host.ip
+                      type: json_payload
+                    group2:
+                      key: host.hostname
+                      type: json_payload
           - name: some_rest_1
             path: "/basic1/{project:(?:.*\\/.*)}"
             method: "GET"
@@ -74,3 +85,15 @@ rules:
                       project:
                         type: json_payload
                         key: project
+            hooks:
+              - name: authz
+                config:
+                  action: some_action
+                  attributes:
+                    project_resp:
+                      key: project
+                      type: grpc_payload
+                      source: request
+                    group:
+                      key: id.group
+                      type: grpc_payload
