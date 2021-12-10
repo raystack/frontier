@@ -85,3 +85,12 @@ rules:
                       project:
                         type: json_payload
                         key: project
+            hooks:
+              - name: authz
+                config:
+                  action: some_action
+                  attributes:
+                    project_resp:
+                      index: 1
+                      type: grpc_payload
+                      source: request

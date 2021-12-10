@@ -19,3 +19,12 @@ rules:
               client:
                 type: grpc_payload
                 index: 1
+    hooks:
+      - name: authz
+        config:
+          action: some_action
+          attributes:
+            project_resp:
+              index: 1
+              type: grpc_payload
+              source: request
