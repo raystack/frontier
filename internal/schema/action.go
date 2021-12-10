@@ -29,3 +29,16 @@ func (s Service) CreateAction(ctx context.Context, action model.Action) (model.A
 func (s Service) ListActions(ctx context.Context) ([]model.Action, error) {
 	return s.Store.ListActions(ctx)
 }
+
+func (s Service) UpdateAction(ctx context.Context, id string, action model.Action) (model.Action, error) {
+	updatedAction, err := s.Store.UpdateAction(ctx, model.Action{
+		Name: action.Name,
+		Id:   id,
+	})
+
+	if err != nil {
+		return model.Action{}, err
+	}
+
+	return updatedAction, nil
+}

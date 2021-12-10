@@ -103,6 +103,27 @@ func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 	return transformedActions, nil
 }
 
+func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.Action, error) {
+	var updatedAction Action
+
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &updatedAction, updateActionQuery, toUpdate.Id, toUpdate.Name, toUpdate.NamespaceId)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Action{}, schema.ActionDoesntExist
+	} else if err != nil {
+		return model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	transformedAction, err := transformToAction(updatedAction)
+	if err != nil {
+		return model.Action{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
+	return transformedAction, nil
+}
+
 func transformToAction(from Action) (model.Action, error) {
 	return model.Action{
 		Id:          from.Id,

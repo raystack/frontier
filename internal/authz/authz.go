@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/authz/spicedb"
