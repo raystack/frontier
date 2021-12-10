@@ -26,7 +26,7 @@ type Role struct {
 }
 
 const (
-	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, namespac, metadata) values($1, $2, $3, $4, $4, $5) RETURNING id, name, types, namespace_id, metadata, created_at, updated_at;`
+	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, metadata) values($1, $2, $3, $4, $5) RETURNING id, name, types, namespace_id, metadata, created_at, updated_at;`
 	getRoleQuery    = `SELECT id, name, types, namespace_id, metadata, created_at, updated_at from roles where id=$1;`
 	listRolesQuery  = `SELECT id, name, types, namespace_id, metadata, created_at, updated_at from roles;`
 	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, namespace_id = $4, metadata = $5, updated_at = now() where id = $1;`

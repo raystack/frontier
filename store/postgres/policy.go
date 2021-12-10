@@ -91,10 +91,10 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 func (s Store) fetchNamespacePolicies(ctx context.Context, namespaceId string) ([]model.Policy, error) {
 	var fetchedPolicies []Policy
 
-	query := fmt.Sprintf("%s %s", listPolicyQuery, fmt.Sprintf("WHERE p.namespace_id='%s'", namespaceId))
+	query := fmt.Sprintf("%s %s", listPolicyQuery, "WHERE p.namespace_id='$1'")
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedPolicies, query)
+		return s.DB.SelectContext(ctx, &fetchedPolicies, query, namespaceId)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
