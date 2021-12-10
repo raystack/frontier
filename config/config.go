@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -97,7 +99,11 @@ func Load() *Shield {
 
 	l := config.NewLoader(options...)
 	if err := l.Load(conf); err != nil {
-		panic(err)
+		if errors.As(err, &config.ConfigFileNotFoundError{}) {
+			fmt.Println(err)
+		} else {
+			panic(err)
+		}
 	}
 	return conf
 }
