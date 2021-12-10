@@ -11,22 +11,24 @@ import (
 
 	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
-
-	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
+
+	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/store"
 	"github.com/pkg/errors"
+
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/fileblob"
 	"gocloud.dev/blob/gcsblob"
 	"gocloud.dev/blob/memblob"
 	"gocloud.dev/gcp"
+
 	"golang.org/x/oauth2/google"
 )
 
 // buildPipeline builds middleware sequence
-func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository, identityProxyHeader string) http.Handler {
+func buildMiddlewarePipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository, identityProxyHeader string) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
 	casbinAuthz := authz.New(logger, identityProxyHeader, prefixWare)

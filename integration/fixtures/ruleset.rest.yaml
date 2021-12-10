@@ -40,7 +40,6 @@ rules:
           - name: prefix
             config:
               strip: "/basic-authz"
-
           - name: basic_auth
             config:
               users:
@@ -53,3 +52,12 @@ rules:
                   project:
                     type: json_payload
                     key: project
+        hooks:
+          - name: authz
+            config:
+              action: authz_action
+              attributes:
+                project:
+                  key: project
+                  type: json_payload
+                  source: request
