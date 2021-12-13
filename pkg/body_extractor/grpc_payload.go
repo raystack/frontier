@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"io"
 	"io/ioutil"
 	"regexp"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/jhump/protoreflect/dynamic"
@@ -258,7 +258,6 @@ func ParseQuery(query string) ([]Query, error) {
 			} else {
 				processingQuery.DataType = NestedArray
 			}
-
 		} else {
 			processingQuery.Index = -1
 
@@ -273,7 +272,6 @@ func ParseQuery(query string) ([]Query, error) {
 			} else {
 				processingQuery.DataType = Message
 			}
-
 		}
 		queries = append(queries, processingQuery)
 	}

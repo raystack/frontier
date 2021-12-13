@@ -1,13 +1,13 @@
 package body_extractor
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewQuery(t *testing.T) {
-
 	t.Run("error", func(t *testing.T) {
 		parsedQuery, err := ParseQuery("1.2.3[a].45")
 		assert.IsType(t, &strconv.NumError{}, err)
