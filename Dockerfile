@@ -1,16 +1,7 @@
-FROM golang:1.16.11-alpine3.15 as builder
-
-RUN apk add make
-
-WORKDIR /go/src/app
-
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-
-RUN make build
-
 FROM alpine:3.15
-COPY --from=builder /go/src/app/shield /usr/local/bin/
-ENTRYPOINT [ "shield" ]
+
+COPY shield /usr/bin/shield
+
+EXPOSE 8080
+EXPOSE 5556
+ENTRYPOINT ["shield"]
