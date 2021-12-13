@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS relations
     subject_id           VARCHAR,
     object_namespace_id  VARCHAR REFERENCES namespaces (id),
     object_id            VARCHAR,
+    role_id              VARCHAR REFERENCES roles (id),
     created_at           timestamptz NOT NULL DEFAULT NOW(),
     updated_at           timestamptz NOT NULL DEFAULT NOW(),
     deleted_at           timestamptz

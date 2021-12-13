@@ -78,3 +78,17 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type Relation struct {
+	Id                 string
+	SubjectNamespace   Namespace
+	SubjectNamespaceId string `json:"subject_namespace_id"`
+	SubjectId          string `json:"subject_id"`
+	ObjectNamespace    Namespace
+	ObjectNamespaceId  string `json:"object_namespace_id"`
+	ObjectId           string `json:"object_id"`
+	Role               Role
+	RoleId             string `json:"role_id"`
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
