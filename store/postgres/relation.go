@@ -25,10 +25,51 @@ type Relation struct {
 }
 
 const (
-	createRelationQuery = `INSERT INTO relations(subject_namespace_id, subject_id, object_namespace_id, object_id, role_id) values ($1, $2, $3, $4, $5) RETURNING id, subject_namespace_id,  subject_id, object_namespace_id,  object_id, role_id,  created_at, updated_at`
-	listRelationQuery   = `SELECT id, subject_namespace_id, subject_id, object_namespace_id, object_id, role_id, created_at, updated_at FROM relations`
-	getRelationsQuery   = `SELECT id, subject_namespace_id, subject_id, object_namespace_id, object_id, role_id, created_at, updated_at FROM relations WHERE id = $1`
-	updateRelationQuery = `UPDATE relations SET subject_namespace_id = $2, subject_id = $3, object_namespace_id = $4, object_id = $5, role_id = $6 WHERE id = $1`
+	createRelationQuery = `
+		INSERT INTO relations(
+		  subject_namespace_id,
+		  subject_id,
+		  object_namespace_id,
+		  object_id,
+		  role_id
+		) values (
+			  $1,
+			  $2,
+			  $3,
+			  $4,
+			  $5
+		) RETURNING id, subject_namespace_id,  subject_id, object_namespace_id,  object_id, role_id,  created_at, updated_at`
+	listRelationQuery = `
+		SELECT 
+		       id,
+		       subject_namespace_id,
+		       subject_id,
+		       object_namespace_id,
+		       object_id,
+		       role_id,
+		       created_at,
+		       updated_at
+		FROM relations`
+	getRelationsQuery = `
+		SELECT 
+		       id, 
+		       subject_namespace_id, 
+		       subject_id, 
+		       object_namespace_id, 
+		       object_id, 
+		       role_id, 
+		       created_at, 
+		       updated_at 
+		FROM relations 
+		WHERE id = $1`
+	updateRelationQuery = `
+		UPDATE relations SET
+			 subject_namespace_id = $2,
+			 subject_id = $3,
+			 object_namespace_id = $4,
+			 object_id = $5,
+			 role_id = $6 
+		WHERE id = $1`
 )
 
 func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relation) (model.Relation, error) {

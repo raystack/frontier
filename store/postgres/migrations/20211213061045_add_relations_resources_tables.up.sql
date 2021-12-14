@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS relations
 
 CREATE TABLE IF NOT EXISTS resources
 (
-    id           uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
+    id           varchar PRIMARY KEY,
     project_id   uuid REFERENCES projects (id),
     group_id     uuid REFERENCES groups (id),
     org_id       uuid REFERENCES organizations (id),

@@ -92,3 +92,17 @@ type Relation struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }
+
+type Resource struct {
+	Id             string
+	ProjectId      string `json:"project_id"`
+	Project        Project
+	GroupId        string `json:"group_id"`
+	Group          Group
+	OrganizationId string `json:"organization_id"`
+	Organization   Organization
+	NamespaceId    string `json:"namespace_id"`
+	Namespace      Namespace
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
