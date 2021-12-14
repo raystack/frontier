@@ -148,11 +148,11 @@ func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, erro
 	return transformedRelation, nil
 }
 
-func (s Store) UpdateRelation(ctx context.Context, toUpdate model.Relation) (model.Relation, error) {
+func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate model.Relation) (model.Relation, error) {
 	var updatedRelation Relation
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedRelation, updateRelationQuery, toUpdate.Id, toUpdate.SubjectNamespaceId, toUpdate.SubjectId, toUpdate.ObjectNamespaceId, toUpdate.ObjectId, toUpdate.RoleId)
+		return s.DB.GetContext(ctx, &updatedRelation, updateRelationQuery, id, toUpdate.SubjectNamespaceId, toUpdate.SubjectId, toUpdate.ObjectNamespaceId, toUpdate.ObjectId, toUpdate.RoleId)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

@@ -19,7 +19,7 @@ type Store interface {
 	GetRelation(ctx context.Context, id string) (model.Relation, error)
 	CreateRelation(ctx context.Context, relation model.Relation) (model.Relation, error)
 	ListRelations(ctx context.Context) ([]model.Relation, error)
-	UpdateRelation(ctx context.Context, toUpdate model.Relation) (model.Relation, error)
+	UpdateRelation(ctx context.Context, id string, toUpdate model.Relation) (model.Relation, error)
 }
 
 func (s Service) Get(ctx context.Context, id string) (model.Relation, error) {
@@ -40,6 +40,6 @@ func (s Service) List(ctx context.Context) ([]model.Relation, error) {
 	return s.Store.ListRelations(ctx)
 }
 
-func (s Service) Update(ctx context.Context, toUpdate model.Relation) (model.Relation, error) {
-	return s.Store.UpdateRelation(ctx, toUpdate)
+func (s Service) Update(ctx context.Context, id string, toUpdate model.Relation) (model.Relation, error) {
+	return s.Store.UpdateRelation(ctx, id, toUpdate)
 }
