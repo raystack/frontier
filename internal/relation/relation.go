@@ -17,7 +17,7 @@ var (
 
 type Store interface {
 	GetRelation(ctx context.Context, id string) (model.Relation, error)
-	CreateRelation(ctx context.Context, org model.Relation) (model.Relation, error)
+	CreateRelation(ctx context.Context, relation model.Relation) (model.Relation, error)
 	ListRelations(ctx context.Context) ([]model.Relation, error)
 	UpdateRelation(ctx context.Context, toUpdate model.Relation) (model.Relation, error)
 }

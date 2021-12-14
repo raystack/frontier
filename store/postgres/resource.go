@@ -12,6 +12,7 @@ import (
 
 type Resource struct {
 	Id             string       `db:"id"`
+	Name           string       `db:"name"`
 	ProjectId      string       `db:"project_id"`
 	Project        Project      `db:"project"`
 	GroupId        string       `db:"group_id"`
@@ -28,6 +29,7 @@ const (
 	createResourceQuery = `
 		INSERT INTO resources (
 			id,
+		    name,
 			project_id,
 			group_id,
 			org_id,
@@ -37,12 +39,14 @@ const (
 			$2,
 			$3,
 			$4,
-			$5
+			$5,
+		    $6
 		)
-		RETURNING id, project_id, group_id, org_id, namespace_id, created_at, updated_at`
+		RETURNING id, name, project_id, group_id, org_id, namespace_id, created_at, updated_at`
 	listResourcesQuery = `
 		SELECT
 			id,
+		    name,
 			project_id,
 			group_id,
 			org_id,
@@ -53,6 +57,7 @@ const (
 	getResourcesQuery = `
 		SELECT
 			id,
+		    name,
 			project_id,
 			group_id,
 			org_id,
@@ -63,10 +68,11 @@ const (
 		WHERE id = $1`
 	updateResourceQuery = `
 		UPDATE resources SET
-			project_id = $2,
-			group_id = $3,
-			org_id = $4,
-			namespace_id = $5
+		    name = $2,
+			project_id = $3,
+			group_id = $4,
+			org_id = $5,
+			namespace_id = $6
 		WHERE id = $1
 		`
 )
@@ -75,7 +81,7 @@ func (s Store) CreateResource(ctx context.Context, resourceToCreate model.Resour
 	var newResource Resource
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Id, resourceToCreate.ProjectId, resourceToCreate.GroupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId)
+		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Id, resourceToCreate.Name, resourceToCreate.ProjectId, resourceToCreate.GroupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId)
 	})
 
 	if err != nil {
@@ -151,7 +157,7 @@ func (s Store) UpdateResource(ctx context.Context, toUpdate model.Resource) (mod
 	var updatedResource Resource
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, toUpdate.Id, toUpdate.ProjectId, toUpdate.GroupId, toUpdate.OrganizationId, toUpdate.NamespaceId)
+		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, toUpdate.Id, toUpdate.Name, toUpdate.ProjectId, toUpdate.GroupId, toUpdate.OrganizationId, toUpdate.NamespaceId)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -176,6 +182,7 @@ func transformToResource(from Resource) (model.Resource, error) {
 
 	return model.Resource{
 		Id:             from.Id,
+		Name:           from.Name,
 		ProjectId:      from.ProjectId,
 		NamespaceId:    from.NamespaceId,
 		OrganizationId: from.OrganizationId,

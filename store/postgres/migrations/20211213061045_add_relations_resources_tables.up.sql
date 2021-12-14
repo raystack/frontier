@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS relations
 CREATE TABLE IF NOT EXISTS resources
 (
     id           varchar PRIMARY KEY,
+    name         varchar,
     project_id   uuid REFERENCES projects (id),
     group_id     uuid REFERENCES groups (id),
     org_id       uuid REFERENCES organizations (id),

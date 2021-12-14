@@ -95,6 +95,7 @@ type Relation struct {
 
 type Resource struct {
 	Id             string
+	Name           string
 	ProjectId      string `json:"project_id"`
 	Project        Project
 	GroupId        string `json:"group_id"`
