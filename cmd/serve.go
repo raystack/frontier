@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/odpf/shield/internal/relation"
+	"github.com/odpf/shield/internal/resource"
 
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1beta1"
@@ -235,6 +237,12 @@ func apiDependencies(db *sql.SQL, appConfig *config.Shield, logger log.Logger) h
 			PolicyService: schema.Service{
 				Store: serviceStore,
 				Authz: authzService,
+			},
+			RelationService: relation.Service{
+				Store: serviceStore,
+			},
+			ResourceService: resource.Service{
+				Store: serviceStore,
 			},
 			IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		},

@@ -19,6 +19,8 @@ type Dep struct {
 	UserService         UserService
 	NamespaceService    NamespaceService
 	ActionService       ActionService
+	RelationService     RelationService
+	ResourceService     ResourceService
 	IdentityProxyHeader string
 }
 

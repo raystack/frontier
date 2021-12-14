@@ -3,6 +3,7 @@ package relation
 import (
 	"context"
 	"errors"
+
 	"github.com/odpf/shield/model"
 )
 

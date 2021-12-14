@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/model"
-	"time"
 )
 
 type Relation struct {
@@ -174,7 +175,6 @@ func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate model.Rel
 }
 
 func transformToRelation(from Relation) (model.Relation, error) {
-
 	return model.Relation{
 		Id:                 from.Id,
 		SubjectNamespaceId: from.SubjectNamespaceId,

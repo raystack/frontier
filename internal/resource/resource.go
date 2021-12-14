@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/odpf/shield/model"
 )
 
@@ -20,7 +21,7 @@ type Store interface {
 	GetResource(ctx context.Context, id string) (model.Resource, error)
 	CreateResource(ctx context.Context, resource model.Resource) (model.Resource, error)
 	ListResources(ctx context.Context) ([]model.Resource, error)
-	UpdateResource(ctx context.Context, resource model.Resource) (model.Resource, error)
+	UpdateResource(ctx context.Context, id string, resource model.Resource) (model.Resource, error)
 }
 
 func (s Service) Get(ctx context.Context, id string) (model.Resource, error) {
@@ -43,8 +44,8 @@ func (s Service) List(ctx context.Context) ([]model.Resource, error) {
 	return s.Store.ListResources(ctx)
 }
 
-func (s Service) Update(ctx context.Context, resource model.Resource) (model.Resource, error) {
-	return s.Store.UpdateResource(ctx, resource)
+func (s Service) Update(ctx context.Context, id string, resource model.Resource) (model.Resource, error) {
+	return s.Store.UpdateResource(ctx, id, resource)
 }
 
 func createResourceUrl(resource model.Resource) string {

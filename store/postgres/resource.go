@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/odpf/shield/internal/resource"
 	"github.com/odpf/shield/model"
-	"time"
 )
 
 type Resource struct {
@@ -153,11 +154,11 @@ func (s Store) GetResource(ctx context.Context, id string) (model.Resource, erro
 	return transformedResource, nil
 }
 
-func (s Store) UpdateResource(ctx context.Context, toUpdate model.Resource) (model.Resource, error) {
+func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Resource) (model.Resource, error) {
 	var updatedResource Resource
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, toUpdate.Id, toUpdate.Name, toUpdate.ProjectId, toUpdate.GroupId, toUpdate.OrganizationId, toUpdate.NamespaceId)
+		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, toUpdate.GroupId, toUpdate.OrganizationId, toUpdate.NamespaceId)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -179,7 +180,6 @@ func (s Store) UpdateResource(ctx context.Context, toUpdate model.Resource) (mod
 }
 
 func transformToResource(from Resource) (model.Resource, error) {
-
 	return model.Resource{
 		Id:             from.Id,
 		Name:           from.Name,
