@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"errors"
+
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/model"
 	shieldv1 "github.com/odpf/shield/proto/v1"
@@ -22,7 +23,7 @@ type RelationService interface {
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
 
-func (v Dep) ListRelations(ctx context.Context) (*shieldv1.ListRelationsResponse, error) {
+func (v Dep) ListRelations(ctx context.Context, request *shieldv1.ListRelationsRequest) (*shieldv1.ListRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var relations []*shieldv1.Relation
 

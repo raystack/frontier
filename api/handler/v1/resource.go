@@ -23,7 +23,7 @@ type ResourceService interface {
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
 
-func (v Dep) ListResources(ctx context.Context) (*shieldv1.ListResourcesResponse, error) {
+func (v Dep) ListResources(ctx context.Context, request *shieldv1.ListResourcesRequest) (*shieldv1.ListResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var resources []*shieldv1.Resource
 
