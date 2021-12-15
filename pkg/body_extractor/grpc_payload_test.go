@@ -33,7 +33,7 @@ func TestNewQuery(t *testing.T) {
 			{
 				Field:    3,
 				Index:    1,
-				DataType: NestedArray,
+				DataType: MessageArray,
 			},
 			{
 				Field:    45,

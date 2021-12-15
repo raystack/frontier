@@ -31,10 +31,15 @@ const (
 
 	maxInt = int(^uint(0) >> 1)
 
-	NestedArray = "MessageArray"
-	StringArray = "StringArray"
-	String      = "String"
-	Message     = "Message"
+	MessageArray = "MessageArray"
+	StringArray  = "StringArray"
+	String       = "String"
+	Message      = "Message"
+)
+
+var (
+	queryCache        = make(map[string][]Query)
+	payloadProtoCache = make(map[string]*desc.MessageDescriptor)
 )
 
 type Query struct {
@@ -128,13 +133,13 @@ func fieldFromProtoMessage(msg []byte, tagIndex string) (string, error) {
 		return "", err
 	}
 
-	desc, err := buildPayloadProto(parsedQuery)
+	msgDesc, err := buildPayloadProto(tagIndex, parsedQuery)
 	if err != nil {
 		return "", err
 	}
 
 	// populate message
-	dynamicMsgKey := dynamic.NewMessage(desc)
+	dynamicMsgKey := dynamic.NewMessage(msgDesc)
 	if err := dynamicMsgKey.Unmarshal(msg); err != nil {
 		return "", err
 	}
@@ -146,7 +151,11 @@ func fieldFromProtoMessage(msg []byte, tagIndex string) (string, error) {
 	return val.(string), nil
 }
 
-func buildPayloadProto(queries []Query) (*desc.MessageDescriptor, error) {
+func buildPayloadProto(query string, queries []Query) (*desc.MessageDescriptor, error) {
+	if val, ok := payloadProtoCache[query]; ok {
+		return val, nil
+	}
+
 	builderMsg := builder.NewMessage("shield")
 	fieldName := "_"
 	var lastBuilderMsg *builder.MessageBuilder
@@ -161,7 +170,7 @@ func buildPayloadProto(queries []Query) (*desc.MessageDescriptor, error) {
 		} else if subQuery.DataType == Message {
 			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
 				builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(subQuery.Field)))
-		} else if subQuery.DataType == NestedArray {
+		} else if subQuery.DataType == MessageArray {
 			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
 				builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(subQuery.Field)).SetRepeated())
 		}
@@ -171,7 +180,7 @@ func buildPayloadProto(queries []Query) (*desc.MessageDescriptor, error) {
 	if queries[0].DataType == Message {
 		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
 			builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)))
-	} else if queries[0].DataType == NestedArray {
+	} else if queries[0].DataType == MessageArray {
 		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
 			builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)).SetRepeated())
 	} else if queries[0].DataType == String {
@@ -186,7 +195,9 @@ func buildPayloadProto(queries []Query) (*desc.MessageDescriptor, error) {
 	if err != nil {
 		return nil, err
 	}
-	return msgDescriptor, nil
+
+	payloadProtoCache[query] = msgDescriptor
+	return payloadProtoCache[query], nil
 }
 
 func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
@@ -228,8 +239,11 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 }
 
 func ParseQuery(query string) ([]Query, error) {
-	arrayBrackets := []string{"[", "]"}
+	if queries, ok := queryCache[query]; ok {
+		return queries, nil
+	}
 
+	arrayBrackets := []string{"[", "]"}
 	arrayRegexBuild, err := regexp.Compile("\\[([0-9]*)]")
 	if err != nil {
 		return []Query{}, err
@@ -256,7 +270,7 @@ func ParseQuery(query string) ([]Query, error) {
 			if queryIndex == len(subQueries)-1 {
 				processingQuery.DataType = StringArray
 			} else {
-				processingQuery.DataType = NestedArray
+				processingQuery.DataType = MessageArray
 			}
 		} else {
 			processingQuery.Index = -1
@@ -276,7 +290,8 @@ func ParseQuery(query string) ([]Query, error) {
 		queries = append(queries, processingQuery)
 	}
 
-	return queries, nil
+	queryCache[query] = queries
+	return queryCache[query], nil
 }
 
 func removeBrackets(capture string, bracket []string) string {
