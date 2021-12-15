@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -43,8 +43,8 @@ func TestListNamespaces(t *testing.T) {
 	table := []struct {
 		title            string
 		mockNamespaceSrv mockNamespaceSrv
-		req              *shieldv1.ListNamespacesRequest
-		want             *shieldv1.ListNamespacesResponse
+		req              *shieldv1beta1.ListNamespacesRequest
+		want             *shieldv1beta1.ListNamespacesResponse
 		err              error
 	}{
 		{
@@ -67,7 +67,7 @@ func TestListNamespaces(t *testing.T) {
 				})
 				return testNSList, nil
 			}},
-			want: &shieldv1.ListNamespacesResponse{Namespaces: []*shieldv1.Namespace{
+			want: &shieldv1beta1.ListNamespacesResponse{Namespaces: []*shieldv1beta1.Namespace{
 				{
 					Id:        "org",
 					Name:      "Org",
@@ -110,8 +110,8 @@ func TestCreateNamespace(t *testing.T) {
 	table := []struct {
 		title            string
 		mockNamespaceSrv mockNamespaceSrv
-		req              *shieldv1.CreateNamespaceRequest
-		want             *shieldv1.CreateNamespaceResponse
+		req              *shieldv1beta1.CreateNamespaceRequest
+		want             *shieldv1beta1.CreateNamespaceResponse
 		err              error
 	}{
 		{
@@ -119,7 +119,7 @@ func TestCreateNamespace(t *testing.T) {
 			mockNamespaceSrv: mockNamespaceSrv{CreateNamespaceFunc: func(ctx context.Context, ns model.Namespace) (model.Namespace, error) {
 				return model.Namespace{}, errors.New("some error")
 			}},
-			req: &shieldv1.CreateNamespaceRequest{Body: &shieldv1.NamespaceRequestBody{
+			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Id:   "team",
 				Name: "Team",
 			}},
@@ -134,11 +134,11 @@ func TestCreateNamespace(t *testing.T) {
 					Name: "Team",
 				}, nil
 			}},
-			req: &shieldv1.CreateNamespaceRequest{Body: &shieldv1.NamespaceRequestBody{
+			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Id:   "team",
 				Name: "Team",
 			}},
-			want: &shieldv1.CreateNamespaceResponse{Namespace: &shieldv1.Namespace{
+			want: &shieldv1beta1.CreateNamespaceResponse{Namespace: &shieldv1beta1.Namespace{
 				Id:        "team",
 				Name:      "Team",
 				CreatedAt: timestamppb.New(time.Time{}),

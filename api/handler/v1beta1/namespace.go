@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -22,9 +22,9 @@ type NamespaceService interface {
 
 var grpcNamespaceNotFoundErr = status.Errorf(codes.NotFound, "namespace doesn't exist")
 
-func (v Dep) ListNamespaces(ctx context.Context, request *shieldv1.ListNamespacesRequest) (*shieldv1.ListNamespacesResponse, error) {
+func (v Dep) ListNamespaces(ctx context.Context, request *shieldv1beta1.ListNamespacesRequest) (*shieldv1beta1.ListNamespacesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var namespaces []*shieldv1.Namespace
+	var namespaces []*shieldv1beta1.Namespace
 
 	nsList, err := v.NamespaceService.ListNamespaces(ctx)
 	if err != nil {
@@ -42,10 +42,10 @@ func (v Dep) ListNamespaces(ctx context.Context, request *shieldv1.ListNamespace
 		namespaces = append(namespaces, &nsPB)
 	}
 
-	return &shieldv1.ListNamespacesResponse{Namespaces: namespaces}, nil
+	return &shieldv1beta1.ListNamespacesResponse{Namespaces: namespaces}, nil
 }
 
-func (v Dep) CreateNamespace(ctx context.Context, request *shieldv1.CreateNamespaceRequest) (*shieldv1.CreateNamespaceResponse, error) {
+func (v Dep) CreateNamespace(ctx context.Context, request *shieldv1beta1.CreateNamespaceRequest) (*shieldv1beta1.CreateNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	newNS, err := v.NamespaceService.CreateNamespace(ctx, model.Namespace{
@@ -65,10 +65,10 @@ func (v Dep) CreateNamespace(ctx context.Context, request *shieldv1.CreateNamesp
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateNamespaceResponse{Namespace: &nsPB}, nil
+	return &shieldv1beta1.CreateNamespaceResponse{Namespace: &nsPB}, nil
 }
 
-func (v Dep) GetNamespace(ctx context.Context, request *shieldv1.GetNamespaceRequest) (*shieldv1.GetNamespaceResponse, error) {
+func (v Dep) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNamespaceRequest) (*shieldv1beta1.GetNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedNS, err := v.NamespaceService.GetNamespace(ctx, request.GetId())
@@ -90,10 +90,10 @@ func (v Dep) GetNamespace(ctx context.Context, request *shieldv1.GetNamespaceReq
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetNamespaceResponse{Namespace: &nsPB}, nil
+	return &shieldv1beta1.GetNamespaceResponse{Namespace: &nsPB}, nil
 }
 
-func (v Dep) UpdateNamespace(ctx context.Context, request *shieldv1.UpdateNamespaceRequest) (*shieldv1.UpdateNamespaceResponse, error) {
+func (v Dep) UpdateNamespace(ctx context.Context, request *shieldv1beta1.UpdateNamespaceRequest) (*shieldv1beta1.UpdateNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	updatedNS, err := v.NamespaceService.UpdateNamespace(ctx, request.GetId(), model.Namespace{
@@ -112,11 +112,11 @@ func (v Dep) UpdateNamespace(ctx context.Context, request *shieldv1.UpdateNamesp
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.UpdateNamespaceResponse{Namespace: &nsPB}, nil
+	return &shieldv1beta1.UpdateNamespaceResponse{Namespace: &nsPB}, nil
 }
 
-func transformNamespaceToPB(ns model.Namespace) (shieldv1.Namespace, error) {
-	return shieldv1.Namespace{
+func transformNamespaceToPB(ns model.Namespace) (shieldv1beta1.Namespace, error) {
+	return shieldv1beta1.Namespace{
 		Id:        ns.Id,
 		Name:      ns.Name,
 		CreatedAt: timestamppb.New(ns.CreatedAt),

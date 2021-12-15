@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 var testOrgMap = map[string]model.Organization{
@@ -37,7 +37,7 @@ func TestListOrganizations(t *testing.T) {
 	table := []struct {
 		title      string
 		mockOrgSrv mockOrgSrv
-		want       *shieldv1.ListOrganizationsResponse
+		want       *shieldv1beta1.ListOrganizationsResponse
 		err        error
 	}{
 		{
@@ -56,7 +56,7 @@ func TestListOrganizations(t *testing.T) {
 				}
 				return testOrgList, nil
 			}},
-			want: &shieldv1.ListOrganizationsResponse{Organizations: []*shieldv1.Organization{
+			want: &shieldv1beta1.ListOrganizationsResponse{Organizations: []*shieldv1beta1.Organization{
 				{
 					Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 					Name: "Org 1",
@@ -92,8 +92,8 @@ func TestCreateOrganization(t *testing.T) {
 	table := []struct {
 		title      string
 		mockOrgSrv mockOrgSrv
-		req        *shieldv1.CreateOrganizationRequest
-		want       *shieldv1.CreateOrganizationResponse
+		req        *shieldv1beta1.CreateOrganizationRequest
+		want       *shieldv1beta1.CreateOrganizationResponse
 		err        error
 	}{
 		{
@@ -101,7 +101,7 @@ func TestCreateOrganization(t *testing.T) {
 			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o model.Organization) (model.Organization, error) {
 				return model.Organization{}, errors.New("some error")
 			}},
-			req: &shieldv1.CreateOrganizationRequest{Body: &shieldv1.OrganizationRequestBody{
+			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "some org",
 				Slug:     "abc",
 				Metadata: &structpb.Struct{},
@@ -111,7 +111,7 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "int values in metadata map",
-			req: &shieldv1.CreateOrganizationRequest{Body: &shieldv1.OrganizationRequestBody{
+			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name: "some org",
 				Slug: "abc",
 				Metadata: &structpb.Struct{
@@ -133,7 +133,7 @@ func TestCreateOrganization(t *testing.T) {
 					Metadata: nil,
 				}, nil
 			}},
-			req: &shieldv1.CreateOrganizationRequest{Body: &shieldv1.OrganizationRequestBody{
+			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name: "some org",
 				Slug: "abc",
 				Metadata: &structpb.Struct{
@@ -142,7 +142,7 @@ func TestCreateOrganization(t *testing.T) {
 					},
 				},
 			}},
-			want: &shieldv1.CreateOrganizationResponse{Organization: &shieldv1.Organization{
+			want: &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
 				Id:        "new-abc",
 				Name:      "some org",
 				Slug:      "abc",

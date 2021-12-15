@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type UserService interface {
@@ -27,9 +27,9 @@ type UserService interface {
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
 }
 
-func (v Dep) ListUsers(ctx context.Context, request *shieldv1.ListUsersRequest) (*shieldv1.ListUsersResponse, error) {
+func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var users []*shieldv1.User
+	var users []*shieldv1beta1.User
 	userList, err := v.UserService.ListUsers(ctx)
 
 	if err != nil {
@@ -47,12 +47,12 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1.ListUsersRequest) 
 		users = append(users, &userPB)
 	}
 
-	return &shieldv1.ListUsersResponse{
+	return &shieldv1beta1.ListUsersResponse{
 		Users: users,
 	}, nil
 }
 
-func (v Dep) CreateUser(ctx context.Context, request *shieldv1.CreateUserRequest) (*shieldv1.CreateUserResponse, error) {
+func (v Dep) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRequest) (*shieldv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.Body == nil {
@@ -82,7 +82,7 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1.CreateUserRequest
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateUserResponse{User: &shieldv1.User{
+	return &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
 		Id:        newUser.Id,
 		Name:      newUser.Name,
 		Email:     newUser.Email,
@@ -92,7 +92,7 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1.CreateUserRequest
 	}}, nil
 }
 
-func (v Dep) GetUser(ctx context.Context, request *shieldv1.GetUserRequest) (*shieldv1.GetUserResponse, error) {
+func (v Dep) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest) (*shieldv1beta1.GetUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedUser, err := v.UserService.GetUser(ctx, request.GetId())
@@ -114,12 +114,12 @@ func (v Dep) GetUser(ctx context.Context, request *shieldv1.GetUserRequest) (*sh
 		return nil, status.Errorf(codes.Internal, internalServerError.Error())
 	}
 
-	return &shieldv1.GetUserResponse{
+	return &shieldv1beta1.GetUserResponse{
 		User: &userPB,
 	}, nil
 }
 
-func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1.GetCurrentUserRequest) (*shieldv1.GetCurrentUserResponse, error) {
+func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurrentUserRequest) (*shieldv1beta1.GetCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
@@ -146,12 +146,12 @@ func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1.GetCurrentUse
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetCurrentUserResponse{
+	return &shieldv1beta1.GetCurrentUserResponse{
 		User: &userPB,
 	}, nil
 }
 
-func (v Dep) UpdateUser(ctx context.Context, request *shieldv1.UpdateUserRequest) (*shieldv1.UpdateUserResponse, error) {
+func (v Dep) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRequest) (*shieldv1beta1.UpdateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.Body == nil {
@@ -181,10 +181,10 @@ func (v Dep) UpdateUser(ctx context.Context, request *shieldv1.UpdateUserRequest
 		return nil, internalServerError
 	}
 
-	return &shieldv1.UpdateUserResponse{User: &userPB}, nil
+	return &shieldv1beta1.UpdateUserResponse{User: &userPB}, nil
 }
 
-func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1.UpdateCurrentUserRequest) (*shieldv1.UpdateCurrentUserResponse, error) {
+func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.UpdateCurrentUserRequest) (*shieldv1beta1.UpdateCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
@@ -222,16 +222,16 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1.UpdateCurr
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.UpdateCurrentUserResponse{User: &userPB}, nil
+	return &shieldv1beta1.UpdateCurrentUserResponse{User: &userPB}, nil
 }
 
-func transformUserToPB(user model.User) (shieldv1.User, error) {
+func transformUserToPB(user model.User) (shieldv1beta1.User, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(user.Metadata))
 	if err != nil {
-		return shieldv1.User{}, err
+		return shieldv1beta1.User{}, err
 	}
 
-	return shieldv1.User{
+	return shieldv1beta1.User{
 		Id:        user.Id,
 		Name:      user.Name,
 		Email:     user.Email,

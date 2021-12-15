@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type RoleService interface {
@@ -20,9 +20,9 @@ type RoleService interface {
 	Update(ctx context.Context, toUpdate model.Role) (model.Role, error)
 }
 
-func (v Dep) ListRoles(ctx context.Context, request *shieldv1.ListRolesRequest) (*shieldv1.ListRolesResponse, error) {
+func (v Dep) ListRoles(ctx context.Context, request *shieldv1beta1.ListRolesRequest) (*shieldv1beta1.ListRolesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var roles []*shieldv1.Role
+	var roles []*shieldv1beta1.Role
 
 	roleList, err := v.RoleService.List(ctx)
 	if err != nil {
@@ -40,10 +40,10 @@ func (v Dep) ListRoles(ctx context.Context, request *shieldv1.ListRolesRequest) 
 		roles = append(roles, &rolePB)
 	}
 
-	return &shieldv1.ListRolesResponse{Roles: roles}, nil
+	return &shieldv1beta1.ListRolesResponse{Roles: roles}, nil
 }
 
-func (v Dep) CreateRole(ctx context.Context, request *shieldv1.CreateRoleRequest) (*shieldv1.CreateRoleResponse, error) {
+func (v Dep) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRoleRequest) (*shieldv1beta1.CreateRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
 	if err != nil {
@@ -69,10 +69,10 @@ func (v Dep) CreateRole(ctx context.Context, request *shieldv1.CreateRoleRequest
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateRoleResponse{Role: &rolePB}, nil
+	return &shieldv1beta1.CreateRoleResponse{Role: &rolePB}, nil
 }
 
-func (v Dep) GetRole(ctx context.Context, request *shieldv1.GetRoleRequest) (*shieldv1.GetRoleResponse, error) {
+func (v Dep) GetRole(ctx context.Context, request *shieldv1beta1.GetRoleRequest) (*shieldv1beta1.GetRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedRole, err := v.RoleService.Get(ctx, request.GetId())
@@ -94,10 +94,10 @@ func (v Dep) GetRole(ctx context.Context, request *shieldv1.GetRoleRequest) (*sh
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetRoleResponse{Role: &rolePB}, nil
+	return &shieldv1beta1.GetRoleResponse{Role: &rolePB}, nil
 }
 
-func (v Dep) UpdateRole(ctx context.Context, request *shieldv1.UpdateRoleRequest) (*shieldv1.UpdateRoleResponse, error) {
+func (v Dep) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRoleRequest) (*shieldv1beta1.UpdateRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
@@ -123,21 +123,21 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1.UpdateRoleRequest
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.UpdateRoleResponse{Role: &rolePB}, nil
+	return &shieldv1beta1.UpdateRoleResponse{Role: &rolePB}, nil
 }
 
-func transformRoleToPB(from model.Role) (shieldv1.Role, error) {
+func transformRoleToPB(from model.Role) (shieldv1beta1.Role, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(from.Metadata))
 	if err != nil {
-		return shieldv1.Role{}, err
+		return shieldv1beta1.Role{}, err
 	}
 
 	namespace, err := transformNamespaceToPB(from.Namespace)
 	if err != nil {
-		return shieldv1.Role{}, err
+		return shieldv1beta1.Role{}, err
 	}
 
-	return shieldv1.Role{
+	return shieldv1beta1.Role{
 		Id:        from.Id,
 		Name:      from.Name,
 		Types:     from.Types,

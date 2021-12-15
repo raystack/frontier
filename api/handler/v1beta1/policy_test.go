@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -56,8 +56,8 @@ func TestListPolicies(t *testing.T) {
 	table := []struct {
 		title         string
 		MockPolicySrv mockPolicySrv
-		req           *shieldv1.ListPoliciesRequest
-		want          *shieldv1.ListPoliciesResponse
+		req           *shieldv1beta1.ListPoliciesRequest
+		want          *shieldv1beta1.ListPoliciesResponse
 		err           error
 	}{
 		{
@@ -77,13 +77,13 @@ func TestListPolicies(t *testing.T) {
 				}
 				return testPoliciesList, nil
 			}},
-			want: &shieldv1.ListPoliciesResponse{Policies: []*shieldv1.Policy{
+			want: &shieldv1beta1.ListPoliciesResponse{Policies: []*shieldv1beta1.Policy{
 				{
 					Id: "test",
-					Action: &shieldv1.Action{
+					Action: &shieldv1beta1.Action{
 						Id:   "read",
 						Name: "Read",
-						Namespace: &shieldv1.Namespace{
+						Namespace: &shieldv1beta1.Namespace{
 							Id:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: timestamppb.New(time.Time{}),
@@ -92,17 +92,17 @@ func TestListPolicies(t *testing.T) {
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
-					Namespace: &shieldv1.Namespace{
+					Namespace: &shieldv1beta1.Namespace{
 						Id:        "resource-1",
 						Name:      "Resource 1",
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
-					Role: &shieldv1.Role{
+					Role: &shieldv1beta1.Role{
 						Id:       "reader",
 						Name:     "Reader",
 						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
-						Namespace: &shieldv1.Namespace{
+						Namespace: &shieldv1beta1.Namespace{
 							Id:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: timestamppb.New(time.Time{}),
@@ -138,8 +138,8 @@ func TestCreatePolicy(t *testing.T) {
 	table := []struct {
 		title         string
 		mockPolicySrv mockPolicySrv
-		req           *shieldv1.CreatePolicyRequest
-		want          *shieldv1.CreatePolicyResponse
+		req           *shieldv1beta1.CreatePolicyRequest
+		want          *shieldv1beta1.CreatePolicyResponse
 		err           error
 	}{
 		{
@@ -147,7 +147,7 @@ func TestCreatePolicy(t *testing.T) {
 			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, policy model.Policy) ([]model.Policy, error) {
 				return []model.Policy{}, errors.New("some error")
 			}},
-			req: &shieldv1.CreatePolicyRequest{Body: &shieldv1.PolicyRequestBody{
+			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
 				NamespaceId: "team",
 				RoleId:      "Admin",
 				ActionId:    "add-member",
@@ -193,18 +193,18 @@ func TestCreatePolicy(t *testing.T) {
 					},
 				}, nil
 			}},
-			req: &shieldv1.CreatePolicyRequest{Body: &shieldv1.PolicyRequestBody{
+			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
 				ActionId:    "read",
 				NamespaceId: "resource-1",
 				RoleId:      "reader",
 			}},
-			want: &shieldv1.CreatePolicyResponse{Policies: []*shieldv1.Policy{
+			want: &shieldv1beta1.CreatePolicyResponse{Policies: []*shieldv1beta1.Policy{
 				{
 					Id: "test",
-					Action: &shieldv1.Action{
+					Action: &shieldv1beta1.Action{
 						Id:   "read",
 						Name: "Read",
-						Namespace: &shieldv1.Namespace{
+						Namespace: &shieldv1beta1.Namespace{
 							Id:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: timestamppb.New(time.Time{}),
@@ -213,17 +213,17 @@ func TestCreatePolicy(t *testing.T) {
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
-					Namespace: &shieldv1.Namespace{
+					Namespace: &shieldv1beta1.Namespace{
 						Id:        "resource-1",
 						Name:      "Resource 1",
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
-					Role: &shieldv1.Role{
+					Role: &shieldv1beta1.Role{
 						Id:       "reader",
 						Name:     "Reader",
 						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
-						Namespace: &shieldv1.Namespace{
+						Namespace: &shieldv1beta1.Namespace{
 							Id:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: timestamppb.New(time.Time{}),
