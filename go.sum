@@ -980,8 +980,8 @@ github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6/go.mod h1:E26fwEtRNigB
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nishanths/predeclared v0.0.0-20200524104333-86fad755b4d3/go.mod h1:nt3d53pc1VYcphSCIaYAJtnPYnr3Zyn8fMq2wvPGPso=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
-github.com/odpf/salt v0.0.0-20211209124356-60f6178cfd80 h1:da6GZ1cswyPZobRO/Q8h9DdcnL2wnTVbFyGPcrti2U0=
-github.com/odpf/salt v0.0.0-20211209124356-60f6178cfd80/go.mod h1:NVnVQaXur70W/1wo06X6DYu6utZIUI/bMeMGyvFIwyo=
+github.com/odpf/salt v0.0.0-20211214154610-9a9a0943d7c2 h1:AzI1R4ysQJ0xUBjtpyNCq+uHojj6dYc94n2MDqtT3fQ=
+github.com/odpf/salt v0.0.0-20211214154610-9a9a0943d7c2/go.mod h1:NVnVQaXur70W/1wo06X6DYu6utZIUI/bMeMGyvFIwyo=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
