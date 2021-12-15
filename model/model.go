@@ -22,13 +22,14 @@ type Organization struct {
 }
 
 type Group struct {
-	Id           string
-	Name         string
-	Slug         string
-	Organization Organization
-	Metadata     map[string]string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	Id             string
+	Name           string
+	Slug           string
+	Organization   Organization
+	OrganizationId string `json:"orgId"`
+	Metadata       map[string]string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type Role struct {

@@ -61,7 +61,7 @@ func (s Store) CreateGroup(ctx context.Context, grp model.Group) (model.Group, e
 
 	var newGroup Group
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newGroup, createGroupsQuery, grp.Name, grp.Slug, grp.Organization.Id, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newGroup, createGroupsQuery, grp.Name, grp.Slug, grp.OrganizationId, marshaledMetadata)
 	})
 
 	if err != nil {
@@ -112,7 +112,7 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 
 	var updatedGroup Group
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.OrganizationId, marshaledMetadata)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -136,12 +136,13 @@ func transformToGroup(from Group) (model.Group, error) {
 	}
 
 	return model.Group{
-		Id:           from.Id,
-		Name:         from.Name,
-		Slug:         from.Slug,
-		Organization: model.Organization{Id: from.OrgID},
-		Metadata:     unmarshalledMetadata,
-		CreatedAt:    from.CreatedAt,
-		UpdatedAt:    from.UpdatedAt,
+		Id:             from.Id,
+		Name:           from.Name,
+		Slug:           from.Slug,
+		Organization:   model.Organization{Id: from.OrgID},
+		OrganizationId: from.OrgID,
+		Metadata:       unmarshalledMetadata,
+		CreatedAt:      from.CreatedAt,
+		UpdatedAt:      from.UpdatedAt,
 	}, nil
 }
