@@ -229,12 +229,20 @@ func apiDependencies(db *sql.SQL, appConfig *config.Shield, logger log.Logger) h
 				Store: serviceStore,
 			},
 			RoleService: roles.Service{
-				Store: postgres.NewStore(db),
+				Store: serviceStore,
 			},
 			GroupService: group.Service{
 				Store: serviceStore,
 			},
 			PolicyService: schema.Service{
+				Store: serviceStore,
+				Authz: authzService,
+			},
+			ActionService: schema.Service{
+				Store: serviceStore,
+				Authz: authzService,
+			},
+			NamespaceService: schema.Service{
 				Store: serviceStore,
 				Authz: authzService,
 			},
