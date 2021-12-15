@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS relations
     role_id              VARCHAR REFERENCES roles (id),
     created_at           timestamptz NOT NULL DEFAULT NOW(),
     updated_at           timestamptz NOT NULL DEFAULT NOW(),
-    deleted_at           timestamptz
+    deleted_at           timestamptz,
+    UNIQUE (subject_namespace_id, subject_id, role_id, object_namespace_id, object_id)
 );
 
 CREATE TABLE IF NOT EXISTS resources
