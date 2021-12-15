@@ -72,6 +72,17 @@ func TestBuildSchema(t *testing.T) {
 	permission read = Admin
 }`, buildSchema(d))
 	})
+
+	t.Run("Should check if role and definition namespace is same", func(t *testing.T) {
+		d := definition{
+			name:  "team",
+			roles: []role{{name: "team-member", types: []string{"User"}, namespace: "team", permissions: []string{"view"}}},
+		}
+		assert.Equal(t, `definition team {
+	relation team-member: User
+	permission view = team-member
+}`, buildSchema(d))
+	})
 }
 
 func TestBuildPolicyDefinitions(t *testing.T) {
@@ -276,5 +287,30 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 
 		assert.EqualValues(t, expectedDef, def)
 		assert.Errorf(t, err, "actions namespace doesnt match")
+	})
+
+	t.Run("should replace role and namespace `-` with `_`", func(t *testing.T) {
+		policies := []model.Policy{
+			{
+				Namespace: model.Namespace{Name: "Project-1-1", Id: "project-1-1"},
+				Role:      model.Role{Name: "Project Admin", Id: "project-admin", Types: []string{"User", "Team#members"}},
+				Action:    model.Action{Name: "Read", Id: "read"},
+			},
+		}
+		def, _ := BuildPolicyDefinitions(policies)
+		expectedDef := []definition{
+			{
+				name: "project_1_1",
+				roles: []role{
+					{
+						name:        "project_admin",
+						types:       []string{"User", "Team#members"},
+						namespace:   "project_1_1",
+						permissions: []string{"read"},
+					},
+				},
+			},
+		}
+		assert.EqualValues(t, expectedDef, def)
 	})
 }

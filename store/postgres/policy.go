@@ -24,7 +24,7 @@ type Policy struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
-const selectStatement = `p.id, roles.id "role.id",roles.name "role.name", roles.namespace_id "role.namespace_id", roles.metadata "role.metadata", namespaces.id "namespace.id", namespaces.name "namespace.name", actions.id "action.id", actions.name "action.name", actions.namespace_id "action.namespace_id"`
+const selectStatement = `p.id, p.namespace_id, roles.id "role.id", roles.name "role.name", roles.types "role.types", roles.namespace_id "role.namespace_id", roles.namespace_id "role.namespace.id", roles.metadata "role.metadata", namespaces.id "namespace.id", namespaces.name "namespace.name", actions.id "action.id", actions.name "action.name", actions.namespace_id "action.namespace_id", actions.namespace_id "action.namespace.id"`
 const joinStatement = `JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id`
 
 var (
@@ -91,7 +91,7 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 func (s Store) fetchNamespacePolicies(ctx context.Context, namespaceId string) ([]model.Policy, error) {
 	var fetchedPolicies []Policy
 
-	query := fmt.Sprintf("%s %s", listPolicyQuery, "WHERE p.namespace_id='$1'")
+	query := fmt.Sprintf("%s %s", listPolicyQuery, "WHERE p.namespace_id = $1")
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedPolicies, query, namespaceId)

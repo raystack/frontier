@@ -37,7 +37,7 @@ func buildSchema(d definition) string {
 	permissions := make(map[string][]*v0.SetOperation_Child)
 
 	for _, r := range d.roles {
-		if r.namespace == "" {
+		if r.namespace == "" || r.namespace == d.name {
 			relationReference := buildRelationReference(r)
 			relations = append(relations, namespace.Relation(
 				r.name,
@@ -48,7 +48,7 @@ func buildSchema(d definition) string {
 
 		for _, p := range r.permissions {
 			perm := namespace.ComputedUserset(r.name)
-			if r.namespace != "" {
+			if r.namespace != "" && r.namespace != d.name {
 				perm = namespace.TupleToUserset(r.namespace, r.name)
 				relations = append(relations, namespace.Relation(
 					r.namespace,
@@ -118,7 +118,7 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 			def[keyName] = r
 		}
 
-		if p.Action.NamespaceId != "" && p.Action.NamespaceId != namespaceId {
+		if (p.Action.NamespaceId != "" || p.Action.Namespace.Id != "") && (p.Action.NamespaceId != namespaceId || p.Action.Namespace.Id != namespaceId) {
 			return []definition{}, errors.New("actions namespace doesnt match")
 		}
 
@@ -145,15 +145,15 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 			}
 
 			roles = append(roles, role{
-				name:        r[0].name,
+				name:        strings.ReplaceAll(r[0].name, "-", "_"),
 				types:       r[0].types,
-				namespace:   roleNamespace,
+				namespace:   strings.ReplaceAll(roleNamespace, "-", "_"),
 				permissions: permissions,
 			})
 		}
 
 		definition := definition{
-			name:  ns,
+			name:  strings.ReplaceAll(ns, "-", "_"),
 			roles: roles,
 		}
 

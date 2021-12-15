@@ -15,6 +15,7 @@ import (
 type Action struct {
 	Id          string    `db:"id"`
 	Name        string    `db:"name"`
+	Namespace   Namespace `db:"namespace"`
 	NamespaceID string    `db:"namespace_id"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
@@ -125,10 +126,16 @@ func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.A
 }
 
 func transformToAction(from Action) (model.Action, error) {
+	namespace, err := transformToNamespace(from.Namespace)
+	if err != nil {
+		return model.Action{}, err
+	}
+
 	return model.Action{
 		Id:          from.Id,
 		Name:        from.Name,
 		NamespaceId: from.NamespaceID,
+		Namespace:   namespace,
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,
 	}, nil
