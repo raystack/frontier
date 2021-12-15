@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 
 	"github.com/odpf/salt/server"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type Dep struct {
-	shieldv1.UnimplementedShieldServiceServer
+	shieldv1beta1.UnimplementedShieldServiceServer
 	OrgService          OrganizationService
 	ProjectService      ProjectService
 	GroupService        GroupService
@@ -28,10 +28,10 @@ var (
 )
 
 func RegisterV1(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, dep Dep) {
-	gw.RegisterHandler(ctx, shieldv1.RegisterShieldServiceHandlerFromEndpoint)
+	gw.RegisterHandler(ctx, shieldv1beta1.RegisterShieldServiceHandlerFromEndpoint)
 
 	s.RegisterService(
-		&shieldv1.ShieldService_ServiceDesc,
+		&shieldv1beta1.ShieldService_ServiceDesc,
 		&dep,
 	)
 }

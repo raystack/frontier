@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 var testProjectID = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
@@ -50,13 +50,13 @@ func TestCreateProject(t *testing.T) {
 	table := []struct {
 		title          string
 		mockProjectSrv mockProject
-		req            *shieldv1.CreateProjectRequest
-		want           *shieldv1.CreateProjectResponse
+		req            *shieldv1beta1.CreateProjectRequest
+		want           *shieldv1beta1.CreateProjectResponse
 		err            error
 	}{
 		{
 			title: "error in metadata parsing",
-			req: &shieldv1.CreateProjectRequest{Body: &shieldv1.ProjectRequestBody{
+			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "odpf 1",
 				Slug: "odpf-1",
 				Metadata: &structpb.Struct{
@@ -69,7 +69,7 @@ func TestCreateProject(t *testing.T) {
 		},
 		{
 			title: "error in service",
-			req: &shieldv1.CreateProjectRequest{Body: &shieldv1.ProjectRequestBody{
+			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "odpf 1",
 				Slug: "odpf-1",
 				Metadata: &structpb.Struct{
@@ -85,7 +85,7 @@ func TestCreateProject(t *testing.T) {
 		},
 		{
 			title: "success",
-			req: &shieldv1.CreateProjectRequest{Body: &shieldv1.ProjectRequestBody{
+			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "odpf 1",
 				Slug: "odpf-1",
 				Metadata: &structpb.Struct{
@@ -97,7 +97,7 @@ func TestCreateProject(t *testing.T) {
 			mockProjectSrv: mockProject{CreateProjectFunc: func(ctx context.Context, prj model.Project) (model.Project, error) {
 				return testProjectMap[testProjectID], nil
 			}},
-			want: &shieldv1.CreateProjectResponse{Project: &shieldv1.Project{
+			want: &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
 				Id:   testProjectMap[testProjectID].Id,
 				Name: testProjectMap[testProjectID].Name,
 				Slug: testProjectMap[testProjectID].Slug,
@@ -131,13 +131,13 @@ func TestListProjects(t *testing.T) {
 	table := []struct {
 		title          string
 		mockProjectSrv mockProject
-		req            *shieldv1.ListProjectsRequest
-		want           *shieldv1.ListProjectsResponse
+		req            *shieldv1beta1.ListProjectsRequest
+		want           *shieldv1beta1.ListProjectsResponse
 		err            error
 	}{
 		{
 			title: "error in service",
-			req:   &shieldv1.ListProjectsRequest{},
+			req:   &shieldv1beta1.ListProjectsRequest{},
 			mockProjectSrv: mockProject{ListProjectFunc: func(ctx context.Context) ([]model.Project, error) {
 				return []model.Project{}, errors.New("some store error")
 			}},
@@ -146,7 +146,7 @@ func TestListProjects(t *testing.T) {
 		},
 		{
 			title: "success",
-			req:   &shieldv1.ListProjectsRequest{},
+			req:   &shieldv1beta1.ListProjectsRequest{},
 			mockProjectSrv: mockProject{ListProjectFunc: func(ctx context.Context) ([]model.Project, error) {
 				var prjs []model.Project
 
@@ -156,7 +156,7 @@ func TestListProjects(t *testing.T) {
 
 				return prjs, nil
 			}},
-			want: &shieldv1.ListProjectsResponse{Projects: []*shieldv1.Project{
+			want: &shieldv1beta1.ListProjectsResponse{Projects: []*shieldv1beta1.Project{
 				{
 					Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 					Name: "Prj 1",
@@ -204,13 +204,13 @@ func TestGetProject(t *testing.T) {
 	table := []struct {
 		title          string
 		mockProjectSrv mockProject
-		req            *shieldv1.GetProjectRequest
-		want           *shieldv1.GetProjectResponse
+		req            *shieldv1beta1.GetProjectRequest
+		want           *shieldv1beta1.GetProjectResponse
 		err            error
 	}{
 		{
 			title: "project doesnt exist",
-			req:   &shieldv1.GetProjectRequest{},
+			req:   &shieldv1beta1.GetProjectRequest{},
 			mockProjectSrv: mockProject{GetProjectFunc: func(ctx context.Context, id string) (model.Project, error) {
 				return model.Project{}, project.ProjectDoesntExist
 			}},
@@ -218,7 +218,7 @@ func TestGetProject(t *testing.T) {
 		},
 		{
 			title: "uuid syntax error",
-			req:   &shieldv1.GetProjectRequest{},
+			req:   &shieldv1beta1.GetProjectRequest{},
 			mockProjectSrv: mockProject{GetProjectFunc: func(ctx context.Context, id string) (model.Project, error) {
 				return model.Project{}, project.InvalidUUID
 			}},
@@ -226,7 +226,7 @@ func TestGetProject(t *testing.T) {
 		},
 		{
 			title: "service error",
-			req:   &shieldv1.GetProjectRequest{},
+			req:   &shieldv1beta1.GetProjectRequest{},
 			mockProjectSrv: mockProject{GetProjectFunc: func(ctx context.Context, id string) (model.Project, error) {
 				return model.Project{}, errors.New("some error")
 			}},
@@ -234,11 +234,11 @@ func TestGetProject(t *testing.T) {
 		},
 		{
 			title: "success",
-			req:   &shieldv1.GetProjectRequest{},
+			req:   &shieldv1beta1.GetProjectRequest{},
 			mockProjectSrv: mockProject{GetProjectFunc: func(ctx context.Context, id string) (model.Project, error) {
 				return testProjectMap[testProjectID], nil
 			}},
-			want: &shieldv1.GetProjectResponse{Project: &shieldv1.Project{
+			want: &shieldv1beta1.GetProjectResponse{Project: &shieldv1beta1.Project{
 				Id:   testProjectMap[testProjectID].Id,
 				Name: testProjectMap[testProjectID].Name,
 				Slug: testProjectMap[testProjectID].Slug,

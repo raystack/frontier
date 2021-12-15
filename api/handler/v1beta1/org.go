@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type OrganizationService interface {
@@ -25,9 +25,9 @@ type OrganizationService interface {
 	Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 }
 
-func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrganizationsRequest) (*shieldv1.ListOrganizationsResponse, error) {
+func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var orgs []*shieldv1.Organization
+	var orgs []*shieldv1beta1.Organization
 
 	orgList, err := v.OrgService.List(ctx)
 	if err != nil {
@@ -45,12 +45,12 @@ func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1.ListOrgani
 		orgs = append(orgs, &orgPB)
 	}
 
-	return &shieldv1.ListOrganizationsResponse{
+	return &shieldv1beta1.ListOrganizationsResponse{
 		Organizations: orgs,
 	}, nil
 }
 
-func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrganizationRequest) (*shieldv1.CreateOrganizationResponse, error) {
+func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1beta1.CreateOrganizationRequest) (*shieldv1beta1.CreateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	// TODO (@krtkvrm): Add validations using Proto
@@ -86,7 +86,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateOrganizationResponse{Organization: &shieldv1.Organization{
+	return &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
 		Id:        newOrg.Id,
 		Name:      newOrg.Name,
 		Slug:      newOrg.Slug,
@@ -96,7 +96,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1.CreateOrg
 	}}, nil
 }
 
-func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizationRequest) (*shieldv1.GetOrganizationResponse, error) {
+func (v Dep) GetOrganization(ctx context.Context, request *shieldv1beta1.GetOrganizationRequest) (*shieldv1beta1.GetOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedOrg, err := v.OrgService.Get(ctx, request.GetId())
@@ -118,12 +118,12 @@ func (v Dep) GetOrganization(ctx context.Context, request *shieldv1.GetOrganizat
 		return nil, status.Errorf(codes.Internal, internalServerError.Error())
 	}
 
-	return &shieldv1.GetOrganizationResponse{
+	return &shieldv1beta1.GetOrganizationResponse{
 		Organization: &orgPB,
 	}, nil
 }
 
-func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrganizationRequest) (*shieldv1.UpdateOrganizationResponse, error) {
+func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1beta1.UpdateOrganizationRequest) (*shieldv1beta1.UpdateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.Body == nil {
@@ -153,16 +153,16 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1.UpdateOrg
 		return nil, internalServerError
 	}
 
-	return &shieldv1.UpdateOrganizationResponse{Organization: &orgPB}, nil
+	return &shieldv1beta1.UpdateOrganizationResponse{Organization: &orgPB}, nil
 }
 
-func transformOrgToPB(org model.Organization) (shieldv1.Organization, error) {
+func transformOrgToPB(org model.Organization) (shieldv1beta1.Organization, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(org.Metadata))
 	if err != nil {
-		return shieldv1.Organization{}, err
+		return shieldv1beta1.Organization{}, err
 	}
 
-	return shieldv1.Organization{
+	return shieldv1beta1.Organization{
 		Id:        org.Id,
 		Name:      org.Name,
 		Slug:      org.Slug,
