@@ -70,7 +70,17 @@ const (
 			 object_namespace_id = $4,
 			 object_id = $5,
 			 role_id = $6 
-		WHERE id = $1`
+		WHERE id = $1
+		RETURNING 
+		   id,
+		   subject_namespace_id,
+		   subject_id,
+		   object_namespace_id,
+		   object_id,
+		   role_id,
+		   created_at,
+		   updated_at
+		`
 )
 
 func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relation) (model.Relation, error) {

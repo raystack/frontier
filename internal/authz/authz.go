@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+
 	"github.com/odpf/shield/model"
 
 	"github.com/odpf/salt/log"
@@ -15,6 +16,7 @@ type Policy interface {
 
 type Permission interface {
 	AddRelation(ctx context.Context, relation model.Relation) error
+	DeleteRelation(ctx context.Context, relation model.Relation) error
 }
 
 type Authz struct {

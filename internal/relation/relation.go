@@ -3,6 +3,7 @@ package relation
 import (
 	"context"
 	"errors"
+
 	"github.com/odpf/shield/internal/authz"
 
 	"github.com/odpf/shield/model"
@@ -56,5 +57,29 @@ func (s Service) List(ctx context.Context) ([]model.Relation, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, toUpdate model.Relation) (model.Relation, error) {
-	return s.Store.UpdateRelation(ctx, id, toUpdate)
+	oldRelation, err := s.Store.GetRelation(ctx, id)
+
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	newRelation, err := s.Store.UpdateRelation(ctx, id, toUpdate)
+
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	err = s.Authz.Permission.DeleteRelation(ctx, oldRelation)
+
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	err = s.Authz.Permission.AddRelation(ctx, newRelation)
+
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	return newRelation, nil
 }

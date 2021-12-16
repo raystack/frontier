@@ -3,8 +3,9 @@ package spicedb
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/model"
 	"strings"
+
+	"github.com/odpf/shield/model"
 
 	"github.com/odpf/salt/log"
 
@@ -75,6 +76,30 @@ func (p Permission) AddRelation(ctx context.Context, relation model.Relation) er
 	}
 
 	_, err := p.client.WriteRelationships(ctx, request)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation) error {
+	relationship := transformRelation(relation)
+	request := &pb.DeleteRelationshipsRequest{
+		RelationshipFilter: &pb.RelationshipFilter{
+			ResourceType:       relationship.Resource.ObjectType,
+			OptionalResourceId: relationship.Resource.ObjectId,
+			OptionalRelation:   relationship.Relation,
+			OptionalSubjectFilter: &pb.SubjectFilter{
+				SubjectType:       relationship.Subject.Object.ObjectType,
+				OptionalSubjectId: relationship.Subject.Object.ObjectId,
+			},
+		},
+	}
+
+	_, err := p.client.DeleteRelationships(ctx, request)
 
 	if err != nil {
 		fmt.Println(err)
