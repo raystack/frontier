@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/api/handler"
-	v1 "github.com/odpf/shield/api/handler/v1"
+	v1 "github.com/odpf/shield/api/handler/v1beta1"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/hook"
 	authz_hook "github.com/odpf/shield/hook/authz"
@@ -203,7 +203,7 @@ func apiDependencies(db *sql.SQL, appConfig *config.Shield, logger log.Logger) h
 	authzService := authz.New(appConfig, logger)
 
 	dependencies := handler.Deps{
-		V1: v1.Dep{
+		V1beta1: v1.Dep{
 			OrgService: org.Service{
 				Store: serviceStore,
 			},

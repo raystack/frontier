@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -61,8 +61,8 @@ func TestListActions(t *testing.T) {
 	table := []struct {
 		title         string
 		mockActionSrc mockActionSrv
-		req           *shieldv1.ListActionsRequest
-		want          *shieldv1.ListActionsResponse
+		req           *shieldv1beta1.ListActionsRequest
+		want          *shieldv1beta1.ListActionsResponse
 		err           error
 	}{
 		{
@@ -86,11 +86,11 @@ func TestListActions(t *testing.T) {
 				})
 				return testActionList, nil
 			}},
-			want: &shieldv1.ListActionsResponse{Actions: []*shieldv1.Action{
+			want: &shieldv1beta1.ListActionsResponse{Actions: []*shieldv1beta1.Action{
 				{
 					Id:   "manage",
 					Name: "Manage",
-					Namespace: &shieldv1.Namespace{
+					Namespace: &shieldv1beta1.Namespace{
 						Id:        "resource-1",
 						Name:      "Resource 1",
 						CreatedAt: timestamppb.New(time.Time{}),
@@ -102,7 +102,7 @@ func TestListActions(t *testing.T) {
 				{
 					Id:   "read",
 					Name: "Read",
-					Namespace: &shieldv1.Namespace{
+					Namespace: &shieldv1beta1.Namespace{
 						Id:        "resource-1",
 						Name:      "Resource 1",
 						CreatedAt: timestamppb.New(time.Time{}),
@@ -114,7 +114,7 @@ func TestListActions(t *testing.T) {
 				{
 					Id:   "write",
 					Name: "Write",
-					Namespace: &shieldv1.Namespace{
+					Namespace: &shieldv1beta1.Namespace{
 						Id:        "resource-1",
 						Name:      "Resource 1",
 						CreatedAt: timestamppb.New(time.Time{}),
@@ -147,8 +147,8 @@ func TestCreateAction(t *testing.T) {
 	table := []struct {
 		title         string
 		mockActionSrv mockActionSrv
-		req           *shieldv1.CreateActionRequest
-		want          *shieldv1.CreateActionResponse
+		req           *shieldv1beta1.CreateActionRequest
+		want          *shieldv1beta1.CreateActionResponse
 		err           error
 	}{
 		{
@@ -156,7 +156,7 @@ func TestCreateAction(t *testing.T) {
 			mockActionSrv: mockActionSrv{CreateActionFunc: func(ctx context.Context, act model.Action) (model.Action, error) {
 				return model.Action{}, errors.New("some error")
 			}},
-			req: &shieldv1.CreateActionRequest{Body: &shieldv1.ActionRequestBody{
+			req: &shieldv1beta1.CreateActionRequest{Body: &shieldv1beta1.ActionRequestBody{
 				Id:          "read",
 				Name:        "Read",
 				NamespaceId: "team",
@@ -176,15 +176,15 @@ func TestCreateAction(t *testing.T) {
 					},
 				}, nil
 			}},
-			req: &shieldv1.CreateActionRequest{Body: &shieldv1.ActionRequestBody{
+			req: &shieldv1beta1.CreateActionRequest{Body: &shieldv1beta1.ActionRequestBody{
 				Id:          "read",
 				Name:        "Read",
 				NamespaceId: "team",
 			}},
-			want: &shieldv1.CreateActionResponse{Action: &shieldv1.Action{
+			want: &shieldv1beta1.CreateActionResponse{Action: &shieldv1beta1.Action{
 				Id:   "read",
 				Name: "Read",
-				Namespace: &shieldv1.Namespace{
+				Namespace: &shieldv1beta1.Namespace{
 					Id:        "team",
 					Name:      "Team",
 					CreatedAt: timestamppb.New(time.Time{}),

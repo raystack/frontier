@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/odpf/salt/server"
-	v1 "github.com/odpf/shield/api/handler/v1"
+	"github.com/odpf/shield/api/handler/v1beta1"
 )
 
 type Deps struct {
-	V1 v1.Dep
+	V1beta1 v1beta1.Dep
 }
 
 func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, deps Deps) {
@@ -20,5 +20,5 @@ func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, 
 
 	// grpc gateway api will have version endpoints
 	s.SetGateway("/", gw)
-	v1.RegisterV1(ctx, s, gw, deps.V1)
+	v1beta1.RegisterV1(ctx, s, gw, deps.V1beta1)
 }

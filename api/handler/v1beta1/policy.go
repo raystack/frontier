@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type PolicyService interface {
@@ -23,9 +23,9 @@ type PolicyService interface {
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
 
-func (v Dep) ListPolicies(ctx context.Context, request *shieldv1.ListPoliciesRequest) (*shieldv1.ListPoliciesResponse, error) {
+func (v Dep) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPoliciesRequest) (*shieldv1beta1.ListPoliciesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var policies []*shieldv1.Policy
+	var policies []*shieldv1beta1.Policy
 
 	policyList, err := v.PolicyService.ListPolicies(ctx)
 	if err != nil {
@@ -43,12 +43,12 @@ func (v Dep) ListPolicies(ctx context.Context, request *shieldv1.ListPoliciesReq
 		policies = append(policies, &policyPB)
 	}
 
-	return &shieldv1.ListPoliciesResponse{Policies: policies}, nil
+	return &shieldv1beta1.ListPoliciesResponse{Policies: policies}, nil
 }
 
-func (v Dep) CreatePolicy(ctx context.Context, request *shieldv1.CreatePolicyRequest) (*shieldv1.CreatePolicyResponse, error) {
+func (v Dep) CreatePolicy(ctx context.Context, request *shieldv1beta1.CreatePolicyRequest) (*shieldv1beta1.CreatePolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var policies []*shieldv1.Policy
+	var policies []*shieldv1beta1.Policy
 
 	newPolicies, err := v.PolicyService.CreatePolicy(ctx, model.Policy{
 		RoleId:      request.GetBody().RoleId,
@@ -76,10 +76,10 @@ func (v Dep) CreatePolicy(ctx context.Context, request *shieldv1.CreatePolicyReq
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreatePolicyResponse{Policies: policies}, nil
+	return &shieldv1beta1.CreatePolicyResponse{Policies: policies}, nil
 }
 
-func (v Dep) GetPolicy(ctx context.Context, request *shieldv1.GetPolicyRequest) (*shieldv1.GetPolicyResponse, error) {
+func (v Dep) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicyRequest) (*shieldv1beta1.GetPolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedPolicy, err := v.PolicyService.GetPolicy(ctx, request.GetId())
@@ -101,12 +101,12 @@ func (v Dep) GetPolicy(ctx context.Context, request *shieldv1.GetPolicyRequest) 
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetPolicyResponse{Policy: &policyPB}, nil
+	return &shieldv1beta1.GetPolicyResponse{Policy: &policyPB}, nil
 }
 
-func (v Dep) UpdatePolicy(ctx context.Context, request *shieldv1.UpdatePolicyRequest) (*shieldv1.UpdatePolicyResponse, error) {
+func (v Dep) UpdatePolicy(ctx context.Context, request *shieldv1beta1.UpdatePolicyRequest) (*shieldv1beta1.UpdatePolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var policies []*shieldv1.Policy
+	var policies []*shieldv1beta1.Policy
 
 	updatedPolices, err := v.PolicyService.UpdatePolicy(ctx, request.GetId(), model.Policy{
 		RoleId:      request.GetBody().RoleId,
@@ -133,28 +133,28 @@ func (v Dep) UpdatePolicy(ctx context.Context, request *shieldv1.UpdatePolicyReq
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	return &shieldv1.UpdatePolicyResponse{Policies: policies}, nil
+	return &shieldv1beta1.UpdatePolicyResponse{Policies: policies}, nil
 }
 
-func transformPolicyToPB(policy model.Policy) (shieldv1.Policy, error) {
+func transformPolicyToPB(policy model.Policy) (shieldv1beta1.Policy, error) {
 	role, err := transformRoleToPB(policy.Role)
 	if err != nil {
-		return shieldv1.Policy{}, err
+		return shieldv1beta1.Policy{}, err
 	}
 
 	action, err := transformActionToPB(policy.Action)
 
 	if err != nil {
-		return shieldv1.Policy{}, err
+		return shieldv1beta1.Policy{}, err
 	}
 
 	namespace, err := transformNamespaceToPB(policy.Namespace)
 
 	if err != nil {
-		return shieldv1.Policy{}, err
+		return shieldv1beta1.Policy{}, err
 	}
 
-	return shieldv1.Policy{
+	return shieldv1beta1.Policy{
 		Id:        policy.Id,
 		Role:      &role,
 		Action:    &action,
