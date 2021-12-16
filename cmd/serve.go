@@ -248,6 +248,7 @@ func apiDependencies(db *sql.SQL, appConfig *config.Shield, logger log.Logger) h
 			},
 			RelationService: relation.Service{
 				Store: serviceStore,
+				Authz: authzService,
 			},
 			ResourceService: resource.Service{
 				Store: serviceStore,

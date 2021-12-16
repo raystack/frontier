@@ -3,12 +3,14 @@ package relation
 import (
 	"context"
 	"errors"
+	"github.com/odpf/shield/internal/authz"
 
 	"github.com/odpf/shield/model"
 )
 
 type Service struct {
 	Store Store
+	Authz *authz.Authz
 }
 
 var (
@@ -28,13 +30,25 @@ func (s Service) Get(ctx context.Context, id string) (model.Relation, error) {
 }
 
 func (s Service) Create(ctx context.Context, relation model.Relation) (model.Relation, error) {
-	return s.Store.CreateRelation(ctx, model.Relation{
+	rel, err := s.Store.CreateRelation(ctx, model.Relation{
 		SubjectNamespaceId: relation.SubjectNamespaceId,
 		SubjectId:          relation.SubjectId,
 		ObjectNamespaceId:  relation.ObjectNamespaceId,
 		ObjectId:           relation.ObjectId,
 		RoleId:             relation.RoleId,
 	})
+
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	err = s.Authz.Permission.AddRelation(ctx, rel)
+
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	return rel, nil
 }
 
 func (s Service) List(ctx context.Context) ([]model.Relation, error) {

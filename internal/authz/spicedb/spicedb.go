@@ -3,6 +3,8 @@ package spicedb
 import (
 	"context"
 	"fmt"
+	"github.com/odpf/shield/model"
+	"strings"
 
 	"github.com/odpf/salt/log"
 
@@ -14,10 +16,15 @@ import (
 )
 
 type SpiceDB struct {
-	Policy *Policy
+	Policy     *Policy
+	Permission *Permission
 }
 
 type Policy struct {
+	client *authzed.Client
+}
+
+type Permission struct {
 	client *authzed.Client
 }
 
@@ -46,7 +53,49 @@ func New(config config.SpiceDBConfig, logger log.Logger) (*SpiceDB, error) {
 	policy := &Policy{
 		client,
 	}
+
+	permission := &Permission{
+		client,
+	}
 	return &SpiceDB{
 		policy,
+		permission,
 	}, nil
+}
+
+func (p Permission) AddRelation(ctx context.Context, relation model.Relation) error {
+	relationship := transformRelation(relation)
+	request := &pb.WriteRelationshipsRequest{
+		Updates: []*pb.RelationshipUpdate{
+			{
+				Operation:    pb.RelationshipUpdate_OPERATION_CREATE,
+				Relationship: &relationship,
+			},
+		},
+	}
+
+	_, err := p.client.WriteRelationships(ctx, request)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func transformRelation(relation model.Relation) pb.Relationship {
+	return pb.Relationship{
+		Resource: &pb.ObjectReference{
+			ObjectId:   relation.ObjectId,
+			ObjectType: strings.ReplaceAll(relation.ObjectNamespaceId, "-", "_"),
+		},
+		Subject: &pb.SubjectReference{
+			Object: &pb.ObjectReference{
+				ObjectId:   relation.SubjectId,
+				ObjectType: strings.ReplaceAll(relation.SubjectNamespaceId, "-", "_"),
+			},
+		},
+		Relation: strings.ReplaceAll(relation.RoleId, "-", "_"),
+	}
 }
