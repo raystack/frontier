@@ -32,6 +32,12 @@ func BuildSchema(def []definition) []string {
 	return schema
 }
 
+func GetDefaultSchema() []string {
+	userSchema := `definition user {}`
+	schemas := []string{userSchema}
+	return schemas
+}
+
 func buildSchema(d definition) string {
 	var relations []*v0.Relation
 	permissions := make(map[string][]*v0.SetOperation_Child)

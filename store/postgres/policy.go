@@ -88,33 +88,6 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	return transformedPolicies, nil
 }
 
-func (s Store) fetchNamespacePolicies(ctx context.Context, namespaceId string) ([]model.Policy, error) {
-	var fetchedPolicies []Policy
-
-	query := fmt.Sprintf("%s %s", listPolicyQuery, "WHERE p.namespace_id = $1")
-
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedPolicies, query, namespaceId)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Policy{}, schema.PolicyDoesntExist
-	} else if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedPolicies []model.Policy
-	for _, p := range fetchedPolicies {
-		transformedPolicy, err := transformToPolicy(p)
-		if err != nil {
-			return []model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedPolicies = append(transformedPolicies, transformedPolicy)
-	}
-
-	return transformedPolicies, nil
-}
-
 func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([]model.Policy, error) {
 	var newPolicy Policy
 
@@ -124,7 +97,7 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 	if err != nil {
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
-	return s.fetchNamespacePolicies(ctx, newPolicy.NamespaceID)
+	return s.ListPolicies(ctx)
 }
 
 func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Policy) ([]model.Policy, error) {
@@ -138,7 +111,7 @@ func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Polic
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return s.fetchNamespacePolicies(ctx, updatedPolicy.NamespaceID)
+	return s.ListPolicies(ctx)
 }
 
 func transformToPolicy(from Policy) (model.Policy, error) {
