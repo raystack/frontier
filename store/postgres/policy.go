@@ -28,7 +28,10 @@ const selectStatement = `p.id, p.namespace_id, roles.id "role.id", roles.name "r
 const joinStatement = `JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id`
 
 var (
-	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) values($1, $2, $3) RETURNING id, namespace_id, role_id, action_id`)
+	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) 
+	values($1, $2, $3) 
+	ON CONFLICT (role_id, namespace_id, action_id) DO UPDATE SET namespace_id=$1
+	RETURNING id, namespace_id, role_id, action_id`)
 	getPolicyQuery    = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
 	listPolicyQuery   = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
 	updatePolicyQuery = fmt.Sprintf(`UPDATE policies SET namespace_id = $2, role_id = $3, action_id = $4, updated_at = now() where id = $1 RETURNING id, namespace_id, role_id, action_id;`)

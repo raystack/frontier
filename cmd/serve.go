@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/internal/bootstrap"
 	"net"
 	"net/http"
 	"os"
@@ -12,6 +11,9 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/odpf/shield/internal/bootstrap"
+	"github.com/odpf/shield/internal/group"
+
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/internal/resource"
 
@@ -21,7 +23,6 @@ import (
 	"github.com/odpf/shield/hook"
 	authz_hook "github.com/odpf/shield/hook/authz"
 	"github.com/odpf/shield/internal/authz"
-	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
@@ -217,7 +218,24 @@ func healthCheck() http.HandlerFunc {
 func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, logger log.Logger) handler.Deps {
 	serviceStore := postgres.NewStore(db)
 	authzService := authz.New(appConfig, logger)
-	bootstrap.BootstrapDefinitions(ctx, serviceStore, authzService, logger)
+
+	schemaService := schema.Service{
+		Store: serviceStore,
+		Authz: authzService,
+	}
+
+	roleService := roles.Service{
+		Store: serviceStore,
+	}
+
+	bootstrapService := bootstrap.Service{
+		SchemaService: schemaService,
+		RoleService:   roleService,
+		Logger:        logger,
+	}
+
+	bootstrapService.BootstrapDefinitions(ctx)
+
 	dependencies := handler.Deps{
 		V1beta1: v1.Dep{
 			OrgService: org.Service{
@@ -229,23 +247,8 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 			ProjectService: project.Service{
 				Store: serviceStore,
 			},
-			RoleService: roles.Service{
-				Store: serviceStore,
-			},
 			GroupService: group.Service{
 				Store: serviceStore,
-			},
-			PolicyService: schema.Service{
-				Store: serviceStore,
-				Authz: authzService,
-			},
-			ActionService: schema.Service{
-				Store: serviceStore,
-				Authz: authzService,
-			},
-			NamespaceService: schema.Service{
-				Store: serviceStore,
-				Authz: authzService,
 			},
 			RelationService: relation.Service{
 				Store: serviceStore,
@@ -254,6 +257,10 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 			ResourceService: resource.Service{
 				Store: serviceStore,
 			},
+			RoleService:         roleService,
+			PolicyService:       schemaService,
+			ActionService:       schemaService,
+			NamespaceService:    schemaService,
 			IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		},
 	}

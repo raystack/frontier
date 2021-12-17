@@ -23,7 +23,10 @@ type Action struct {
 
 const (
 	getActionQuery    = `SELECT id, name, namespace_id, created_at, updated_at from actions where id=$1;`
-	createActionQuery = `INSERT INTO actions(id, name, namespace_id) values($1, $2, $3) RETURNING id, name, namespace_id, created_at, updated_at;`
+	createActionQuery = `INSERT INTO actions(id, name, namespace_id)
+		values($1, $2, $3)
+		ON CONFLICT (id) DO UPDATE SET name=$2
+		RETURNING id, name, namespace_id, created_at, updated_at;`
 	listActionsQuery  = `SELECT id, name, namespace_id, created_at, updated_at from actions;`
 	updateActionQuery = `UPDATE actions set name = $2, namespace_id = $3, updated_at = now() where id = $1 RETURNING id, name, namespace_id, created_at, updated_at;`
 )

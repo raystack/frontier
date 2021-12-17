@@ -2,26 +2,65 @@ package bootstrap
 
 import (
 	"context"
+
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/internal/authz"
 	"github.com/odpf/shield/internal/bootstrap/definition"
+	"github.com/odpf/shield/internal/roles"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
 )
 
 // Insert Action
 // Insert Policy
 
-type Store interface {
-	CreateNamespace(ctx context.Context, namespace model.Namespace) (model.Namespace, error)
-	CreateRole(ctx context.Context, role model.Role) (model.Role, error)
+type Service struct {
+	Logger        log.Logger
+	SchemaService schema.Service
+	RoleService   roles.Service
 }
 
-func BootstrapDefinitions(ctx context.Context, store Store, authz *authz.Authz, logger log.Logger) {
-	bootstrapNamespaces(ctx, store, logger)
-	bootstrapRoles(ctx, store, logger)
+func (s Service) BootstrapDefinitions(ctx context.Context) {
+	s.bootstrapNamespaces(ctx)
+	s.bootstrapRoles(ctx)
+	s.bootstrapActions(ctx)
+	s.bootstrapPolicies(ctx)
 }
 
-func bootstrapRoles(ctx context.Context, store Store, logger log.Logger) {
+func (s Service) bootstrapPolicies(ctx context.Context) {
+	policies := []model.Policy{
+		definition.OrganizationManagePolicy,
+		definition.CreateProjectPolicy,
+		definition.CreateTeamPolicy,
+	}
+
+	for _, policy := range policies {
+		_, err := s.SchemaService.CreatePolicy(ctx, policy)
+		if err != nil {
+			s.Logger.Fatal(err.Error())
+		}
+	}
+
+	s.Logger.Info("Bootstrap Polices Successfully")
+}
+
+func (s Service) bootstrapActions(ctx context.Context) {
+	actions := []model.Action{
+		definition.ManageOrganizationAction,
+		definition.CreateProjectAction,
+		definition.CreateTeamAction,
+	}
+
+	for _, action := range actions {
+		_, err := s.SchemaService.CreateAction(ctx, action)
+		if err != nil {
+			s.Logger.Fatal(err.Error())
+		}
+	}
+
+	s.Logger.Info("Bootstrap Actions Successfully")
+}
+
+func (s Service) bootstrapRoles(ctx context.Context) {
 	roles := []model.Role{
 		definition.OrganizationAdminRole,
 		definition.ProjectAdminRole,
@@ -30,16 +69,16 @@ func bootstrapRoles(ctx context.Context, store Store, logger log.Logger) {
 	}
 
 	for _, role := range roles {
-		_, err := store.CreateRole(ctx, role)
+		_, err := s.RoleService.Create(ctx, role)
 		if err != nil {
-			logger.Fatal(err.Error())
+			s.Logger.Fatal(err.Error())
 		}
 	}
 
-	logger.Info("Bootstrap Roles Successfully")
+	s.Logger.Info("Bootstrap Roles Successfully")
 }
 
-func bootstrapNamespaces(ctx context.Context, store Store, logger log.Logger) {
+func (s Service) bootstrapNamespaces(ctx context.Context) {
 	namespaces := []model.Namespace{
 		definition.OrgNamespace,
 		definition.ProjectNamespace,
@@ -48,10 +87,10 @@ func bootstrapNamespaces(ctx context.Context, store Store, logger log.Logger) {
 	}
 
 	for _, ns := range namespaces {
-		_, err := store.CreateNamespace(ctx, ns)
+		_, err := s.SchemaService.CreateNamespace(ctx, ns)
 		if err != nil {
-			logger.Fatal(err.Error())
+			s.Logger.Fatal(err.Error())
 		}
 	}
-	logger.Info("Bootstrap Namespaces Successfully")
+	s.Logger.Info("Bootstrap Namespaces Successfully")
 }
