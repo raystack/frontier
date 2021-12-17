@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/internal/resource"
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -23,9 +23,9 @@ type ResourceService interface {
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
 
-func (v Dep) ListResources(ctx context.Context, request *shieldv1.ListResourcesRequest) (*shieldv1.ListResourcesResponse, error) {
+func (v Dep) ListResources(ctx context.Context, request *shieldv1beta1.ListResourcesRequest) (*shieldv1beta1.ListResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var resources []*shieldv1.Resource
+	var resources []*shieldv1beta1.Resource
 
 	resourcesList, err := v.ResourceService.List(ctx)
 	if err != nil {
@@ -43,12 +43,12 @@ func (v Dep) ListResources(ctx context.Context, request *shieldv1.ListResourcesR
 		resources = append(resources, &resourcePB)
 	}
 
-	return &shieldv1.ListResourcesResponse{
+	return &shieldv1beta1.ListResourcesResponse{
 		Resources: resources,
 	}, nil
 }
 
-func (v Dep) CreateResource(ctx context.Context, request *shieldv1.CreateResourceRequest) (*shieldv1.CreateResourceResponse, error) {
+func (v Dep) CreateResource(ctx context.Context, request *shieldv1beta1.CreateResourceRequest) (*shieldv1beta1.CreateResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.Body == nil {
 		return nil, grpcBadBodyError
@@ -74,12 +74,12 @@ func (v Dep) CreateResource(ctx context.Context, request *shieldv1.CreateResourc
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateResourceResponse{
+	return &shieldv1beta1.CreateResourceResponse{
 		Resource: &resourcePB,
 	}, nil
 }
 
-func (v Dep) GetResource(ctx context.Context, request *shieldv1.GetResourceRequest) (*shieldv1.GetResourceResponse, error) {
+func (v Dep) GetResource(ctx context.Context, request *shieldv1beta1.GetResourceRequest) (*shieldv1beta1.GetResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedResource, err := v.ResourceService.Get(ctx, request.Id)
@@ -102,12 +102,12 @@ func (v Dep) GetResource(ctx context.Context, request *shieldv1.GetResourceReque
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetResourceResponse{
+	return &shieldv1beta1.GetResourceResponse{
 		Resource: &resourcePB,
 	}, nil
 }
 
-func (v Dep) UpdateResource(ctx context.Context, request *shieldv1.UpdateResourceRequest) (*shieldv1.UpdateResourceResponse, error) {
+func (v Dep) UpdateResource(ctx context.Context, request *shieldv1beta1.UpdateResourceRequest) (*shieldv1beta1.UpdateResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.Body == nil {
@@ -140,33 +140,33 @@ func (v Dep) UpdateResource(ctx context.Context, request *shieldv1.UpdateResourc
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.UpdateResourceResponse{
+	return &shieldv1beta1.UpdateResourceResponse{
 		Resource: &resourcePB,
 	}, nil
 }
 
-func transformResourceToPB(from model.Resource) (shieldv1.Resource, error) {
+func transformResourceToPB(from model.Resource) (shieldv1beta1.Resource, error) {
 	namespace, err := transformNamespaceToPB(from.Namespace)
 	if err != nil {
-		return shieldv1.Resource{}, err
+		return shieldv1beta1.Resource{}, err
 	}
 
 	org, err := transformOrgToPB(from.Organization)
 	if err != nil {
-		return shieldv1.Resource{}, err
+		return shieldv1beta1.Resource{}, err
 	}
 
 	project, err := transformProjectToPB(from.Project)
 	if err != nil {
-		return shieldv1.Resource{}, err
+		return shieldv1beta1.Resource{}, err
 	}
 
 	group, err := transformGroupToPB(from.Group)
 	if err != nil {
-		return shieldv1.Resource{}, err
+		return shieldv1beta1.Resource{}, err
 	}
 
-	return shieldv1.Resource{
+	return shieldv1beta1.Resource{
 		Id:           from.Id,
 		Name:         from.Name,
 		Namespace:    &namespace,

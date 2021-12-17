@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/model"
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -23,9 +23,9 @@ type RelationService interface {
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
 
-func (v Dep) ListRelations(ctx context.Context, request *shieldv1.ListRelationsRequest) (*shieldv1.ListRelationsResponse, error) {
+func (v Dep) ListRelations(ctx context.Context, request *shieldv1beta1.ListRelationsRequest) (*shieldv1beta1.ListRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var relations []*shieldv1.Relation
+	var relations []*shieldv1beta1.Relation
 
 	relationsList, err := v.RelationService.List(ctx)
 	if err != nil {
@@ -43,12 +43,12 @@ func (v Dep) ListRelations(ctx context.Context, request *shieldv1.ListRelationsR
 		relations = append(relations, &relationPB)
 	}
 
-	return &shieldv1.ListRelationsResponse{
+	return &shieldv1beta1.ListRelationsResponse{
 		Relations: relations,
 	}, nil
 }
 
-func (v Dep) CreateRelation(ctx context.Context, request *shieldv1.CreateRelationRequest) (*shieldv1.CreateRelationResponse, error) {
+func (v Dep) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRelationRequest) (*shieldv1beta1.CreateRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.Body == nil {
 		return nil, grpcBadBodyError
@@ -74,12 +74,12 @@ func (v Dep) CreateRelation(ctx context.Context, request *shieldv1.CreateRelatio
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateRelationResponse{
+	return &shieldv1beta1.CreateRelationResponse{
 		Relation: &relationPB,
 	}, nil
 }
 
-func (v Dep) GetRelation(ctx context.Context, request *shieldv1.GetRelationRequest) (*shieldv1.GetRelationResponse, error) {
+func (v Dep) GetRelation(ctx context.Context, request *shieldv1beta1.GetRelationRequest) (*shieldv1beta1.GetRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedRelation, err := v.RelationService.Get(ctx, request.GetId())
@@ -102,12 +102,12 @@ func (v Dep) GetRelation(ctx context.Context, request *shieldv1.GetRelationReque
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetRelationResponse{
+	return &shieldv1beta1.GetRelationResponse{
 		Relation: &relationPB,
 	}, nil
 }
 
-func (v Dep) UpdateRelation(ctx context.Context, request *shieldv1.UpdateRelationRequest) (*shieldv1.UpdateRelationResponse, error) {
+func (v Dep) UpdateRelation(ctx context.Context, request *shieldv1beta1.UpdateRelationRequest) (*shieldv1beta1.UpdateRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.Body == nil {
@@ -141,31 +141,31 @@ func (v Dep) UpdateRelation(ctx context.Context, request *shieldv1.UpdateRelatio
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.UpdateRelationResponse{
+	return &shieldv1beta1.UpdateRelationResponse{
 		Relation: &relationPB,
 	}, nil
 }
 
-func transformRelationToPB(relation model.Relation) (shieldv1.Relation, error) {
+func transformRelationToPB(relation model.Relation) (shieldv1beta1.Relation, error) {
 	subjectType, err := transformNamespaceToPB(relation.SubjectNamespace)
 
 	if err != nil {
-		return shieldv1.Relation{}, err
+		return shieldv1beta1.Relation{}, err
 	}
 
 	objectType, err := transformNamespaceToPB(relation.ObjectNamespace)
 
 	if err != nil {
-		return shieldv1.Relation{}, err
+		return shieldv1beta1.Relation{}, err
 	}
 
 	role, err := transformRoleToPB(relation.Role)
 
 	if err != nil {
-		return shieldv1.Relation{}, err
+		return shieldv1beta1.Relation{}, err
 	}
 
-	return shieldv1.Relation{
+	return shieldv1beta1.Relation{
 		Id:          relation.Id,
 		SubjectType: &subjectType,
 		SubjectId:   relation.SubjectId,

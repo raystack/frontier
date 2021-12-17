@@ -87,7 +87,7 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relati
 	var newRelation Relation
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newRelation, createRelationQuery, relationToCreate.SubjectNamespaceId, relationToCreate.SubjectId, relationToCreate.ObjectNamespaceId, relationToCreate.ObjectId, sql.NullString{relationToCreate.RoleId, relationToCreate.RoleId != ""})
+		return s.DB.GetContext(ctx, &newRelation, createRelationQuery, relationToCreate.SubjectNamespaceId, relationToCreate.SubjectId, relationToCreate.ObjectNamespaceId, relationToCreate.ObjectId, sql.NullString{String: relationToCreate.RoleId, Valid: relationToCreate.RoleId != ""})
 	})
 
 	if err != nil {
