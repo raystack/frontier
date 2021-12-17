@@ -15,16 +15,19 @@ import (
 type Namespace struct {
 	Id        string    `db:"id"`
 	Name      string    `db:"name"`
-	Slug      string    `db:"slug"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
 const (
 	getNamespaceQuery    = `SELECT id, name, created_at, updated_at from namespaces where id=$1;`
-	createNamespaceQuery = `INSERT INTO namespaces(id, name) values($1, $2) RETURNING id, name, created_at, updated_at;`
+	createNamespaceQuery = `INSERT INTO namespaces(id, name) 
+		values($1, $2) 
+		ON CONFLICT (id)
+			DO UPDATE SET name=$2
+		RETURNING id, name, created_at, updated_at;`
 	listNamespacesQuery  = `SELECT id, name, created_at, updated_at from namespaces;`
-	updateNamespaceQuery = `UPDATE namespaces set name = $2, slug = $3 updated_at = now() where id = $1 RETURNING id, name, slug, created_at, updated_at;`
+	updateNamespaceQuery = `UPDATE namespaces set id = $2, name = $3, updated_at = now() where id = $1 RETURNING id, name, created_at, updated_at;`
 )
 
 func (s Store) GetNamespace(ctx context.Context, id string) (model.Namespace, error) {

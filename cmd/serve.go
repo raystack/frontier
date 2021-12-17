@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/odpf/shield/internal/bootstrap"
 	"net"
 	"net/http"
 	"os"
@@ -122,7 +123,7 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 		panic(err)
 	}
 
-	handler.Register(ctx, s, gw, apiDependencies(db, appConfig, logger))
+	handler.Register(ctx, s, gw, apiDependencies(ctx, db, appConfig, logger))
 
 	go s.Serve()
 
@@ -213,10 +214,10 @@ func healthCheck() http.HandlerFunc {
 	}
 }
 
-func apiDependencies(db *sql.SQL, appConfig *config.Shield, logger log.Logger) handler.Deps {
+func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, logger log.Logger) handler.Deps {
 	serviceStore := postgres.NewStore(db)
 	authzService := authz.New(appConfig, logger)
-
+	bootstrap.BootstrapDefinitions(ctx, serviceStore, authzService, logger)
 	dependencies := handler.Deps{
 		V1beta1: v1.Dep{
 			OrgService: org.Service{

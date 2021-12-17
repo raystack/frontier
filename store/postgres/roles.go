@@ -29,7 +29,10 @@ const roleSelectStatement = `r.id, r.name, r.types, r.namespace_id, r.metadata, 
 const roleJoinStatement = `JOIN namespaces on namespaces.id = r.namespace_id`
 
 var (
-	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, metadata) values($1, $2, $3, $4, $5) RETURNING id;`
+	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, metadata) 
+		values($1, $2, $3, $4, $5) 
+		ON CONFLICT (id) DO UPDATE SET name=$2
+		RETURNING id;`
 	getRoleQuery    = fmt.Sprintf(`SELECT %s FROM roles r %s WHERE r.id = $1`, roleSelectStatement, roleJoinStatement)
 	listRolesQuery  = fmt.Sprintf(`SELECT %s FROM roles r %s`, roleSelectStatement, roleJoinStatement)
 	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, namespace_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id;`
