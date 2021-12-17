@@ -110,17 +110,24 @@ func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation)
 }
 
 func transformRelation(relation model.Relation) pb.Relationship {
+	roleId := strings.ReplaceAll(relation.RoleId, "-", "_")
+	objectNSId := strings.ReplaceAll(relation.ObjectNamespaceId, "-", "_")
+	subjectNSId := strings.ReplaceAll(relation.SubjectNamespaceId, "-", "_")
+
+	if roleId == "" {
+		roleId = objectNSId
+	}
 	return pb.Relationship{
 		Resource: &pb.ObjectReference{
 			ObjectId:   relation.ObjectId,
-			ObjectType: strings.ReplaceAll(relation.ObjectNamespaceId, "-", "_"),
+			ObjectType: objectNSId,
 		},
 		Subject: &pb.SubjectReference{
 			Object: &pb.ObjectReference{
 				ObjectId:   relation.SubjectId,
-				ObjectType: strings.ReplaceAll(relation.SubjectNamespaceId, "-", "_"),
+				ObjectType: subjectNSId,
 			},
 		},
-		Relation: strings.ReplaceAll(relation.RoleId, "-", "_"),
+		Relation: roleId,
 	}
 }

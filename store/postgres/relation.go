@@ -12,17 +12,17 @@ import (
 )
 
 type Relation struct {
-	Id                 string    `db:"id"`
-	SubjectNamespaceId string    `db:"subject_namespace_id"`
-	SubjectNamespace   Namespace `db:"subject_namespace"`
-	SubjectId          string    `db:"subject_id"`
-	ObjectNamespaceId  string    `db:"object_namespace_id"`
-	ObjectNamespace    Namespace `db:"object_namespace"`
-	ObjectId           string    `db:"object_id"`
-	RoleId             string    `db:"role_id"`
-	Role               Role      `db:"role"`
-	CreatedAt          time.Time `db:"created_at"`
-	UpdatedAt          time.Time `db:"updated_at"`
+	Id                 string         `db:"id"`
+	SubjectNamespaceId string         `db:"subject_namespace_id"`
+	SubjectNamespace   Namespace      `db:"subject_namespace"`
+	SubjectId          string         `db:"subject_id"`
+	ObjectNamespaceId  string         `db:"object_namespace_id"`
+	ObjectNamespace    Namespace      `db:"object_namespace"`
+	ObjectId           string         `db:"object_id"`
+	RoleId             sql.NullString `db:"role_id"`
+	Role               Role           `db:"role"`
+	CreatedAt          time.Time      `db:"created_at"`
+	UpdatedAt          time.Time      `db:"updated_at"`
 }
 
 const (
@@ -87,7 +87,7 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relati
 	var newRelation Relation
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newRelation, createRelationQuery, relationToCreate.SubjectNamespaceId, relationToCreate.SubjectId, relationToCreate.ObjectNamespaceId, relationToCreate.ObjectId, relationToCreate.RoleId)
+		return s.DB.GetContext(ctx, &newRelation, createRelationQuery, relationToCreate.SubjectNamespaceId, relationToCreate.SubjectId, relationToCreate.ObjectNamespaceId, relationToCreate.ObjectId, sql.NullString{relationToCreate.RoleId, relationToCreate.RoleId != ""})
 	})
 
 	if err != nil {
@@ -191,7 +191,7 @@ func transformToRelation(from Relation) (model.Relation, error) {
 		SubjectId:          from.SubjectId,
 		ObjectNamespaceId:  from.ObjectNamespaceId,
 		ObjectId:           from.ObjectId,
-		RoleId:             from.RoleId,
+		RoleId:             from.RoleId.String,
 		CreatedAt:          from.CreatedAt,
 		UpdatedAt:          from.UpdatedAt,
 	}, nil
