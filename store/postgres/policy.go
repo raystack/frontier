@@ -13,15 +13,15 @@ import (
 )
 
 type Policy struct {
-	Id          string    `db:"id"`
-	Role        Role      `db:"role"`
-	RoleID      string    `db:"role_id"`
-	Namespace   Namespace `db:"namespace"`
-	NamespaceID string    `db:"namespace_id"`
-	Action      Action    `db:"action"`
-	ActionID    string    `db:"action_id"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	Id          string         `db:"id"`
+	Role        Role           `db:"role"`
+	RoleID      string         `db:"role_id"`
+	Namespace   Namespace      `db:"namespace"`
+	NamespaceID string         `db:"namespace_id"`
+	Action      Action         `db:"action"`
+	ActionID    sql.NullString `db:"action_id"`
+	CreatedAt   time.Time      `db:"created_at"`
+	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
 const selectStatement = `p.id, p.namespace_id, roles.id "role.id", roles.name "role.name", roles.types "role.types", roles.namespace_id "role.namespace_id", roles.namespace_id "role.namespace.id", roles.metadata "role.metadata", namespaces.id "namespace.id", namespaces.name "namespace.name", actions.id "action.id", actions.name "action.name", actions.namespace_id "action.namespace_id", actions.namespace_id "action.namespace.id"`
@@ -95,7 +95,7 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 	var newPolicy Policy
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, policyToCreate.ActionId)
+		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, sql.NullString{String: policyToCreate.ActionId, Valid: policyToCreate.ActionId != ""})
 	})
 	if err != nil {
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -107,7 +107,7 @@ func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Polic
 	var updatedPolicy Policy
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, toUpdate.ActionId)
+		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, sql.NullString{String: toUpdate.ActionId, Valid: toUpdate.ActionId != ""})
 	})
 
 	if err != nil {
@@ -143,7 +143,7 @@ func transformToPolicy(from Policy) (model.Policy, error) {
 		Role:        role,
 		RoleId:      from.RoleID,
 		Action:      action,
-		ActionId:    from.ActionID,
+		ActionId:    from.ActionID.String,
 		Namespace:   namespace,
 		NamespaceId: from.NamespaceID,
 		CreatedAt:   from.CreatedAt,

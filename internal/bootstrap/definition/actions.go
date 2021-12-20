@@ -19,3 +19,21 @@ var CreateTeamAction = model.Action{
 	Name:        "Create Team",
 	NamespaceId: OrgNamespace.Id,
 }
+
+var ManageTeamAction = model.Action{
+	Id:          "manage_team",
+	Name:        "Manage Team",
+	NamespaceId: TeamNamespace.Id,
+}
+
+var ViewTeamAction = model.Action{
+	Id:          "view_team",
+	Name:        "View Team",
+	NamespaceId: TeamNamespace.Id,
+}
+
+var ManageProjectAction = model.Action{
+	Id:          "manage_project",
+	Name:        "Manage Project",
+	NamespaceId: ProjectNamespace.Id,
+}
