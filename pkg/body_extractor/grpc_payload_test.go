@@ -4,6 +4,9 @@ import (
 	"strconv"
 	"testing"
 
+	fixturesv1 "github.com/odpf/shield/pkg/body_extractor/fixtures"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,4 +45,32 @@ func TestNewQuery(t *testing.T) {
 			},
 		}, parsedQuery)
 	})
+}
+
+func TestExtract(t *testing.T) {
+	testMessage := fixturesv1.NestedMessageL0{
+		L1: &fixturesv1.NestedMessageL1{
+			L2: &fixturesv1.NestedMessageL2{
+				L3: []*fixturesv1.NestedMessageL3{
+					{S1L3: "s1l3_one"},
+					{S1L3: "s1l3_two"},
+					{S1L3: "s1l3_three"},
+				},
+			},
+		},
+	}
+
+	testgrpcPayloadHandler := GRPCPayloadHandler{grpcDisabled: true}
+
+	msg, err := proto.Marshal(&testMessage)
+
+	assert.NoError(t, err)
+
+	ex, err := testgrpcPayloadHandler.extractFromRequest(msg, "1.2.7[1]")
+	assert.NoError(t, err)
+	assert.EqualValues(t, []string{
+		"\n\bs1l3_one",
+		"\n\bs1l3_two",
+		"\n\ns1l3_three",
+	}, ex.([]string))
 }

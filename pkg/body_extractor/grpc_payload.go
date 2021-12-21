@@ -48,9 +48,11 @@ type Query struct {
 	DataType string `json:"data_type"`
 }
 
-type GRPCPayloadHandler struct{}
+type GRPCPayloadHandler struct {
+	grpcDisabled bool
+}
 
-func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex string) (string, error) {
+func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex string) (interface{}, error) {
 	reqBody, err := ioutil.ReadAll(*body)
 	if err != nil {
 		return "", err
@@ -62,7 +64,11 @@ func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex string) (str
 	return b.extractFromRequest(reqBody, protoIndex)
 }
 
-func (b GRPCPayloadHandler) extractFromRequest(body []byte, protoIndex string) (string, error) {
+func (b GRPCPayloadHandler) extractFromRequest(body []byte, protoIndex string) (interface{}, error) {
+	if b.grpcDisabled {
+		return fieldFromProtoMessage(body, protoIndex)
+	}
+
 	reqParser := grpcRequestParser{
 		r:      bytes.NewBuffer(body),
 		header: [5]byte{},
@@ -127,7 +133,7 @@ func (p *grpcRequestParser) Parse() (pf GRPCPayloadCompressionFormat, msg []byte
 	return pf, msg, nil
 }
 
-func fieldFromProtoMessage(msg []byte, tagIndex string) (string, error) {
+func fieldFromProtoMessage(msg []byte, tagIndex string) (interface{}, error) {
 	parsedQuery, err := ParseQuery(tagIndex)
 	if err != nil {
 		return "", err
@@ -148,7 +154,7 @@ func fieldFromProtoMessage(msg []byte, tagIndex string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return val.(string), nil
+	return val, nil
 }
 
 func buildPayloadProto(query string, queries []Query) (*desc.MessageDescriptor, error) {
@@ -207,7 +213,50 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 	var val interface{}
 	var err error
 	if first.Index != -1 {
-		val, err = msg.TryGetRepeatedFieldByNumber(first.Field, first.Index)
+		if first.DataType == StringArray {
+			elements := make([]string, 0)
+			repeatedIndex := 0
+			for {
+				el, err := msg.TryGetRepeatedFieldByNumber(first.Field, repeatedIndex)
+				if errors.Is(err, dynamic.ErrIndexOutOfRange) || errors.Is(err, dynamic.IndexOutOfRangeError) {
+					if repeatedIndex == 0 {
+						return nil, fmt.Errorf("repeated field is having no elements")
+					}
+					break
+				}
+
+				strElement, ok := el.(string)
+				if !ok {
+					return nil, fmt.Errorf("repeated field value not of string type")
+				}
+
+				elements = append(elements, strElement)
+				repeatedIndex++
+			}
+			val = elements
+		} else if first.DataType == MessageArray {
+			v, err := msg.TryGetFieldByNumber(first.Field)
+			if err != nil {
+				return nil, err
+			}
+
+			nestedMessageArray := v.([]interface{})
+			valueList := make([]interface{}, 0)
+			for _, j := range nestedMessageArray {
+				dm, err := getNextDynamicMessage(j, first)
+				if err != nil {
+					return nil, err
+				}
+				valuesFromSubQuery, err := RunQuery(dm, rest)
+				if err != nil {
+					return nil, err
+				}
+
+				valueList = append(valueList, valuesFromSubQuery)
+			}
+			val = valueList
+			return val, nil
+		}
 	} else {
 		val, err = msg.TryGetFieldByNumber(first.Field)
 	}
@@ -219,6 +268,15 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 		return val, nil
 	}
 
+	dm, err := getNextDynamicMessage(val, first)
+	if err != nil {
+		return nil, err
+	}
+
+	return RunQuery(dm, rest)
+}
+
+func getNextDynamicMessage(val interface{}, first Query) (*dynamic.Message, error) {
 	dm, ok := val.(*dynamic.Message)
 	if !ok {
 		pm, ok := val.(proto.Message)
@@ -234,8 +292,7 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 			return nil, err
 		}
 	}
-
-	return RunQuery(dm, rest)
+	return dm, nil
 }
 
 func ParseQuery(query string) ([]Query, error) {

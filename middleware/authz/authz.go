@@ -51,7 +51,9 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	permissionAttributes := map[string]string{}
+	permissionAttributes := map[string]interface{}{}
+
+	// is it string or []string
 
 	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
 
