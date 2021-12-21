@@ -1,11 +1,12 @@
 package schema_generator
 
 import (
+	"testing"
+
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/spicedb/pkg/tuple"
 	"github.com/odpf/shield/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestTransformRelation(t *testing.T) {
@@ -252,5 +253,4 @@ func TestTransformRelation(t *testing.T) {
 		expectedString := "resource/dagger:dagger_1#editor@team:team_1#team_member"
 		assert.Equal(t, expectedString, relString)
 	})
-
 }

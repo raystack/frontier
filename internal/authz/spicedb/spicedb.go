@@ -3,6 +3,7 @@ package spicedb
 import (
 	"context"
 	"fmt"
+
 	"github.com/odpf/shield/internal/schema_generator"
 	"github.com/odpf/shield/model"
 

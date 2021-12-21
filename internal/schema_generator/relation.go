@@ -3,14 +3,14 @@ package schema_generator
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/utils"
-	"strings"
 )
 
 func TransformRelation(relation model.Relation) (*pb.Relationship, error) {
-
 	roleId := strings.ReplaceAll(utils.DefaultStringIfEmpty(relation.Role.Id, relation.RoleId), "-", "_")
 	objectNSId := strings.ReplaceAll(utils.DefaultStringIfEmpty(relation.ObjectNamespace.Id, relation.ObjectNamespaceId), "-", "_")
 	subjectNSId := strings.ReplaceAll(utils.DefaultStringIfEmpty(relation.SubjectNamespace.Id, relation.SubjectNamespaceId), "-", "_")
