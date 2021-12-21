@@ -85,6 +85,7 @@ type Relation struct {
 	SubjectNamespace   Namespace
 	SubjectNamespaceId string `json:"subject_namespace_id"`
 	SubjectId          string `json:"subject_id"`
+	SubjectRoleId      string `json:"subject_role_id"`
 	ObjectNamespace    Namespace
 	ObjectNamespaceId  string `json:"object_namespace_id"`
 	ObjectId           string `json:"object_id"`

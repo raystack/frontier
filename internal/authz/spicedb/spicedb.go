@@ -3,8 +3,7 @@ package spicedb
 import (
 	"context"
 	"fmt"
-	"strings"
-
+	"github.com/odpf/shield/internal/schema_generator"
 	"github.com/odpf/shield/model"
 
 	"github.com/odpf/salt/log"
@@ -65,17 +64,20 @@ func New(config config.SpiceDBConfig, logger log.Logger) (*SpiceDB, error) {
 }
 
 func (p Permission) AddRelation(ctx context.Context, relation model.Relation) error {
-	relationship := transformRelation(relation)
+	relationship, err := schema_generator.TransformRelation(relation)
+	if err != nil {
+		return err
+	}
 	request := &pb.WriteRelationshipsRequest{
 		Updates: []*pb.RelationshipUpdate{
 			{
 				Operation:    pb.RelationshipUpdate_OPERATION_CREATE,
-				Relationship: &relationship,
+				Relationship: relationship,
 			},
 		},
 	}
 
-	_, err := p.client.WriteRelationships(ctx, request)
+	_, err = p.client.WriteRelationships(ctx, request)
 
 	if err != nil {
 		fmt.Println(err)
@@ -86,7 +88,10 @@ func (p Permission) AddRelation(ctx context.Context, relation model.Relation) er
 }
 
 func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation) error {
-	relationship := transformRelation(relation)
+	relationship, err := schema_generator.TransformRelation(relation)
+	if err != nil {
+		return err
+	}
 	request := &pb.DeleteRelationshipsRequest{
 		RelationshipFilter: &pb.RelationshipFilter{
 			ResourceType:       relationship.Resource.ObjectType,
@@ -99,7 +104,7 @@ func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation)
 		},
 	}
 
-	_, err := p.client.DeleteRelationships(ctx, request)
+	_, err = p.client.DeleteRelationships(ctx, request)
 
 	if err != nil {
 		fmt.Println(err)
@@ -107,27 +112,4 @@ func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation)
 	}
 
 	return nil
-}
-
-func transformRelation(relation model.Relation) pb.Relationship {
-	roleId := strings.ReplaceAll(relation.RoleId, "-", "_")
-	objectNSId := strings.ReplaceAll(relation.ObjectNamespaceId, "-", "_")
-	subjectNSId := strings.ReplaceAll(relation.SubjectNamespaceId, "-", "_")
-
-	if roleId == "" {
-		roleId = objectNSId
-	}
-	return pb.Relationship{
-		Resource: &pb.ObjectReference{
-			ObjectId:   relation.ObjectId,
-			ObjectType: objectNSId,
-		},
-		Subject: &pb.SubjectReference{
-			Object: &pb.ObjectReference{
-				ObjectId:   relation.SubjectId,
-				ObjectType: subjectNSId,
-			},
-		},
-		Relation: roleId,
-	}
 }
