@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 
@@ -37,9 +39,45 @@ const (
 	Message      = "Message"
 )
 
+type queryCacheMutex struct {
+	m          sync.Mutex
+	queryCache map[string][]Query
+}
+
+func (q *queryCacheMutex) Get(key string) ([]Query, bool) {
+	q.m.Lock()
+	defer q.m.Unlock()
+	val, ok := q.queryCache[key]
+	return val, ok
+}
+
+func (q *queryCacheMutex) Set(key string, query []Query) {
+	q.m.Lock()
+	defer q.m.Unlock()
+	q.queryCache[key] = query
+}
+
+type payloadProtoCacheMutex struct {
+	m                 sync.Mutex
+	payloadProtoCache map[string]*desc.MessageDescriptor
+}
+
+func (p *payloadProtoCacheMutex) Get(key string) (*desc.MessageDescriptor, bool) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	val, ok := p.payloadProtoCache[key]
+	return val, ok
+}
+
+func (p *payloadProtoCacheMutex) Set(key string, msgDescriptor *desc.MessageDescriptor) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	p.payloadProtoCache[key] = msgDescriptor
+}
+
 var (
-	queryCache        = make(map[string][]Query)
-	payloadProtoCache = make(map[string]*desc.MessageDescriptor)
+	queryCache        = queryCacheMutex{queryCache: make(map[string][]Query)}
+	payloadProtoCache = payloadProtoCacheMutex{payloadProtoCache: make(map[string]*desc.MessageDescriptor)}
 )
 
 type Query struct {
@@ -158,7 +196,7 @@ func fieldFromProtoMessage(msg []byte, tagIndex string) (interface{}, error) {
 }
 
 func buildPayloadProto(query string, queries []Query) (*desc.MessageDescriptor, error) {
-	if val, ok := payloadProtoCache[query]; ok {
+	if val, ok := payloadProtoCache.Get(query); ok {
 		return val, nil
 	}
 
@@ -202,8 +240,8 @@ func buildPayloadProto(query string, queries []Query) (*desc.MessageDescriptor, 
 		return nil, err
 	}
 
-	payloadProtoCache[query] = msgDescriptor
-	return payloadProtoCache[query], nil
+	payloadProtoCache.Set(query, msgDescriptor)
+	return msgDescriptor, nil
 }
 
 func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
@@ -214,26 +252,7 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 	var err error
 	if first.Index != -1 {
 		if first.DataType == StringArray {
-			elements := make([]string, 0)
-			repeatedIndex := 0
-			for {
-				el, err := msg.TryGetRepeatedFieldByNumber(first.Field, repeatedIndex)
-				if errors.Is(err, dynamic.ErrIndexOutOfRange) || errors.Is(err, dynamic.IndexOutOfRangeError) {
-					if repeatedIndex == 0 {
-						return nil, fmt.Errorf("repeated field is having no elements")
-					}
-					break
-				}
-
-				strElement, ok := el.(string)
-				if !ok {
-					return nil, fmt.Errorf("repeated field value not of string type")
-				}
-
-				elements = append(elements, strElement)
-				repeatedIndex++
-			}
-			val = elements
+			val, err = msg.TryGetFieldByNumber(first.Field)
 		} else if first.DataType == MessageArray {
 			v, err := msg.TryGetFieldByNumber(first.Field)
 			if err != nil {
@@ -252,7 +271,13 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 					return nil, err
 				}
 
-				valueList = append(valueList, valuesFromSubQuery)
+				if reflect.TypeOf(valuesFromSubQuery).String() == "[]interface {}" {
+					for _, interfaceValue := range valuesFromSubQuery.([]interface{}) {
+						valueList = append(valueList, interfaceValue)
+					}
+				} else {
+					valueList = append(valueList, valuesFromSubQuery)
+				}
 			}
 			val = valueList
 			return val, nil
@@ -296,7 +321,7 @@ func getNextDynamicMessage(val interface{}, first Query) (*dynamic.Message, erro
 }
 
 func ParseQuery(query string) ([]Query, error) {
-	if queries, ok := queryCache[query]; ok {
+	if queries, ok := queryCache.Get(query); ok {
 		return queries, nil
 	}
 
@@ -347,8 +372,8 @@ func ParseQuery(query string) ([]Query, error) {
 		queries = append(queries, processingQuery)
 	}
 
-	queryCache[query] = queries
-	return queryCache[query], nil
+	queryCache.Set(query, queries)
+	return queries, nil
 }
 
 func removeBrackets(capture string, bracket []string) string {
