@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1beta1"
 	"github.com/odpf/shield/config"
@@ -111,7 +113,9 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 		panic(err)
 	}
 
-	gw, err := server.NewGateway("", appConfig.App.Port)
+	gw, err := server.NewGateway("", appConfig.App.Port, server.WithGatewayMuxOptions(
+		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{appConfig.App.IdentityProxyHeader: true}))),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -125,6 +129,15 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 	// we'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	signal.Notify(proxyTermChan, os.Interrupt, os.Kill, syscall.SIGTERM)
 	return s
+}
+
+func customHeaderMatcherFunc(headerKeys map[string]bool) func(key string) (string, bool) {
+	return func(key string) (string, bool) {
+		if _, ok := headerKeys[key]; ok {
+			return key, true
+		}
+		return runtime.DefaultHeaderMatcher(key)
+	}
 }
 
 func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {

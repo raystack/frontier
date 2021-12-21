@@ -20,7 +20,7 @@ require (
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/newrelic/go-agent v3.15.0+incompatible
-	github.com/odpf/salt v0.0.0-20211209124356-60f6178cfd80
+	github.com/odpf/salt v0.0.0-20211214154610-9a9a0943d7c2
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.6.0
 	github.com/robfig/cron/v3 v3.0.1

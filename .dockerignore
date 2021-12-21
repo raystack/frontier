@@ -6,3 +6,4 @@ LICENSE
 test
 .idea/
 temp/
+vendor/

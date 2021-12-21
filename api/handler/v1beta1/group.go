@@ -72,7 +72,7 @@ func (v Dep) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroup
 	newGroup, err := v.GroupService.CreateGroup(ctx, model.Group{
 		Name:         request.Body.Name,
 		Slug:         slug,
-		Organization: model.Organization{Id: "23cb5c8f-859f-43ad-ae2b-47fae181bd8a"},
+		Organization: model.Organization{Id: request.GetBody().OrgId},
 		Metadata:     metaDataMap,
 	})
 
