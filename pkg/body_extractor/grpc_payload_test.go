@@ -3,7 +3,6 @@ package body_extractor
 import (
 	"bytes"
 	"io/ioutil"
-	"strconv"
 	"testing"
 
 	fixturesv1 "github.com/odpf/shield/pkg/body_extractor/fixtures"
@@ -14,36 +13,95 @@ import (
 
 func TestNewQuery(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
-		parsedQuery, err := ParseQuery("1.2.3[a].45")
-		assert.IsType(t, &strconv.NumError{}, err)
+		parsedQuery, err := ParseQuery("1.2.3a.45")
+		assert.NotNil(t, err)
 
-		assert.EqualValues(t, []Query{}, parsedQuery)
+		assert.Nil(t, parsedQuery)
 	})
 
-	t.Run("success", func(t *testing.T) {
-		parsedQuery, err := ParseQuery("1.2.3[1].45")
+	t.Run("root string", func(t *testing.T) {
+		parsedQuery, err := ParseQuery("1")
+		assert.Nil(t, err)
+
+		assert.EqualValues(t, []Query{{
+			Field:    1,
+			DataType: String,
+		}}, parsedQuery)
+	})
+
+	t.Run("root repeated string", func(t *testing.T) {
+		parsedQuery, err := ParseQuery("1*")
+		assert.Nil(t, err)
+
+		assert.EqualValues(t, []Query{{
+			Field:    1,
+			DataType: StringArray,
+		}}, parsedQuery)
+	})
+
+	t.Run("root repeated message", func(t *testing.T) {
+		parsedQuery, err := ParseQuery("1*.2")
 		assert.Nil(t, err)
 
 		assert.EqualValues(t, []Query{
 			{
 				Field:    1,
-				Index:    -1,
+				DataType: MessageArray,
+			},
+			{
+				Field:    2,
+				DataType: String},
+		}, parsedQuery)
+	})
+
+	t.Run("repeated message nested", func(t *testing.T) {
+		parsedQuery, err := ParseQuery("1.2.3*.45")
+		assert.Nil(t, err)
+
+		assert.EqualValues(t, []Query{
+			{
+				Field:    1,
 				DataType: Message,
 			},
 			{
 				Field:    2,
-				Index:    -1,
 				DataType: Message,
 			},
 			{
 				Field:    3,
-				Index:    1,
 				DataType: MessageArray,
 			},
 			{
 				Field:    45,
-				Index:    -1,
 				DataType: String,
+			},
+		}, parsedQuery)
+	})
+
+	t.Run("repeated message nested with repeated string", func(t *testing.T) {
+		parsedQuery, err := ParseQuery("1.2.3*.45.8*")
+		assert.Nil(t, err)
+
+		assert.EqualValues(t, []Query{
+			{
+				Field:    1,
+				DataType: Message,
+			},
+			{
+				Field:    2,
+				DataType: Message,
+			},
+			{
+				Field:    3,
+				DataType: MessageArray,
+			},
+			{
+				Field:    45,
+				DataType: Message,
+			},
+			{
+				Field:    8,
+				DataType: StringArray,
 			},
 		}, parsedQuery)
 	})
@@ -68,16 +126,27 @@ func TestExtract(t *testing.T) {
 		{
 			title:       "message string",
 			testMessage: &fixturesv1.NestedMessageL3{L5: &fixturesv1.NestedMessageL5{S1L5: "SomeMessage"}},
-			query:       "9.11",
+			query:       "9.12",
 			want:        "SomeMessage",
 			err:         nil,
 		},
 		{
-			title:       "message string",
-			testMessage: &fixturesv1.NestedMessageL3{L5: &fixturesv1.NestedMessageL5{S1L5: "SomeMessage"}},
-			query:       "9.11",
-			want:        "SomeMessage",
-			err:         nil,
+			title: "root repeated",
+			testMessage: &fixturesv1.NestedMessageL4{
+				S3L4: []string{
+					"two",
+					"four",
+					"six",
+					"ten",
+				},
+			},
+			query: "1.2.7*",
+			want: []interface{}{
+				"two",
+				"four",
+				"six",
+				"ten",
+			},
 		},
 		{
 			title: "message with repeated string",
@@ -92,7 +161,7 @@ func TestExtract(t *testing.T) {
 					},
 				},
 			},
-			query: "1.2.7[1]",
+			query: "1.2.7*",
 			want: []interface{}{
 				"\n\bs1l3_one",
 				"\n\bs1l3_two",
@@ -126,7 +195,7 @@ func TestExtract(t *testing.T) {
 					},
 				},
 			},
-			query: "1.2.8[1].1",
+			query: "1.2.8*.1",
 			want: []interface{}{
 				"S1L4_one",
 				"S1L4_two",
@@ -179,7 +248,7 @@ func TestExtract(t *testing.T) {
 					},
 				},
 			},
-			query: "1.2.8[1].3[1]",
+			query: "1.2.8*.3*",
 			want: []interface{}{
 				"S3L4_one_one",
 				"S3L4_one_two",

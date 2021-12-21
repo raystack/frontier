@@ -2,8 +2,6 @@ module github.com/odpf/shield
 
 go 1.16
 
-replace github.com/jhump/protoreflect => /Users/kartik/go/src/github.com/jhump/protoreflect
-
 require (
 	cloud.google.com/go/storage v1.18.2 // indirect
 	github.com/abbot/go-http-auth v0.4.0

@@ -8,18 +8,15 @@ import (
 	"io"
 	"io/ioutil"
 	"reflect"
-	"regexp"
 	"strconv"
-	"strings"
 	"sync"
-
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/jhump/protoreflect/dynamic"
 
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -82,7 +79,6 @@ var (
 
 type Query struct {
 	Field    int    `json:"field"`
-	Index    int    `json:"index"`
 	DataType string `json:"data_type"`
 }
 
@@ -250,38 +246,34 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 
 	var val interface{}
 	var err error
-	if first.Index != -1 {
-		if first.DataType == StringArray {
-			val, err = msg.TryGetFieldByNumber(first.Field)
-		} else if first.DataType == MessageArray {
-			v, err := msg.TryGetFieldByNumber(first.Field)
+	if first.DataType == MessageArray {
+		v, err := msg.TryGetFieldByNumber(first.Field)
+		if err != nil {
+			return nil, err
+		}
+
+		nestedMessageArray := v.([]interface{})
+		valueList := make([]interface{}, 0)
+		for _, j := range nestedMessageArray {
+			dm, err := getNextDynamicMessage(j, first)
+			if err != nil {
+				return nil, err
+			}
+			valuesFromSubQuery, err := RunQuery(dm, rest)
 			if err != nil {
 				return nil, err
 			}
 
-			nestedMessageArray := v.([]interface{})
-			valueList := make([]interface{}, 0)
-			for _, j := range nestedMessageArray {
-				dm, err := getNextDynamicMessage(j, first)
-				if err != nil {
-					return nil, err
+			if reflect.TypeOf(valuesFromSubQuery).String() == "[]interface {}" {
+				for _, interfaceValue := range valuesFromSubQuery.([]interface{}) {
+					valueList = append(valueList, interfaceValue)
 				}
-				valuesFromSubQuery, err := RunQuery(dm, rest)
-				if err != nil {
-					return nil, err
-				}
-
-				if reflect.TypeOf(valuesFromSubQuery).String() == "[]interface {}" {
-					for _, interfaceValue := range valuesFromSubQuery.([]interface{}) {
-						valueList = append(valueList, interfaceValue)
-					}
-				} else {
-					valueList = append(valueList, valuesFromSubQuery)
-				}
+			} else {
+				valueList = append(valueList, valuesFromSubQuery)
 			}
-			val = valueList
-			return val, nil
 		}
+		val = valueList
+		return val, nil
 	} else {
 		val, err = msg.TryGetFieldByNumber(first.Field)
 	}
@@ -320,67 +312,116 @@ func getNextDynamicMessage(val interface{}, first Query) (*dynamic.Message, erro
 	return dm, nil
 }
 
-func ParseQuery(query string) ([]Query, error) {
-	if queries, ok := queryCache.Get(query); ok {
-		return queries, nil
-	}
+/* Parsing Grammar
+Token Size is 1
+Token not allowed "/"
 
-	arrayBrackets := []string{"[", "]"}
-	arrayRegexBuild, err := regexp.Compile("\\[([0-9]*)]")
-	if err != nil {
-		return []Query{}, err
-	}
+Definitions
+- INT: any single digit integer
+- END: end of string, denoted by "/"
 
-	queries := make([]Query, 0)
-	subQueries := strings.Split(query, ".")
-	for queryIndex, subQueryString := range subQueries {
-		processingQuery := Query{}
-		if strings.Contains(subQueryString, arrayBrackets[0]) {
-			r := removeBrackets(arrayRegexBuild.FindString(subQueryString), arrayBrackets)
-			parsedIndex, err := strconv.Atoi(r)
-			if err != nil {
-				return []Query{}, err
-			}
-			processingQuery.Index = parsedIndex
+Table of Allowed Characters
+| Current Character | allowed next characters |
+|-------------------|-------------------------|
+| INT           	| INT, ".", "*", END	  |
+| "*"               | ".", END                |
+| "."               | INT			          |
 
-			parsedfield, err := strconv.Atoi(subQueryString[:strings.Index(subQueryString, "[")])
-			if err != nil {
-				return []Query{}, err
-			}
-			processingQuery.Field = parsedfield
+Table of Actions
 
-			if queryIndex == len(subQueries)-1 {
-				processingQuery.DataType = StringArray
-			} else {
-				processingQuery.DataType = MessageArray
-			}
-		} else {
-			processingQuery.Index = -1
+*/
 
-			parsedfield, err := strconv.Atoi(subQueryString)
-			if err != nil {
-				return []Query{}, err
-			}
-			processingQuery.Field = parsedfield
+const (
+	intRepresentation        = "INT"
+	endRepresentation        = "END"
+	outOfBoundRepresentation = "OOB"
+	dotRepresentation        = "."
+	starRepresentation       = "*"
 
-			if queryIndex == len(subQueries)-1 {
-				processingQuery.DataType = String
-			} else {
-				processingQuery.DataType = Message
-			}
-		}
-		queries = append(queries, processingQuery)
-	}
+	endRepresentationChar = "/"
+)
 
-	queryCache.Set(query, queries)
-	return queries, nil
+var nextValidCharTable = map[string][]string{
+	intRepresentation:  {intRepresentation, dotRepresentation, starRepresentation, endRepresentation},
+	starRepresentation: {dotRepresentation, endRepresentation},
+	dotRepresentation:  {intRepresentation},
 }
 
-func removeBrackets(capture string, bracket []string) string {
-	return strings.Replace(
-		strings.Replace(capture, bracket[0], "", 1),
-		bracket[1],
-		"",
-		1,
-	)
+func getTokenAt(query string, tokenIndex int) string {
+	if tokenIndex >= len(query) {
+		// to handle edge cases
+		return outOfBoundRepresentation
+	}
+
+	chr := string(query[tokenIndex])
+	switch chr {
+	case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
+		return intRepresentation
+	case endRepresentationChar:
+		return endRepresentation
+	}
+
+	return chr
+}
+
+func ParseQuery(query string) ([]Query, error) {
+	query = query + endRepresentationChar
+	tokenIndex := 0
+	queryList := make([]Query, 0)
+	processingSubQuery := Query{}
+
+	for {
+		currentToken := getTokenAt(query, tokenIndex)
+		nextToken := getTokenAt(query, tokenIndex+1)
+		switch currentToken {
+		case endRepresentation:
+			queryList = append(queryList, processingSubQuery)
+			return queryList, nil
+		case intRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			fieldDigit, _ := strconv.Atoi(string(query[tokenIndex])) // no need to handle error as we know currentToken is a digit
+			processingSubQuery.Field = processingSubQuery.Field*10 + fieldDigit
+			if nextToken == endRepresentation {
+				processingSubQuery.DataType = String
+			}
+		case dotRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			if processingSubQuery.DataType == "" {
+				processingSubQuery.DataType = Message
+			}
+			queryList = append(queryList, processingSubQuery)
+			processingSubQuery = Query{}
+
+		case starRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			if nextToken == dotRepresentation {
+				processingSubQuery.DataType = MessageArray
+			} else if nextToken == endRepresentation {
+				processingSubQuery.DataType = StringArray
+			}
+		default:
+			return nil, fmt.Errorf("found invalid char %s", currentToken)
+		}
+
+		tokenIndex++
+	}
+}
+
+func nextCharValidations(nextChar string, valid []string) bool {
+	for _, elem := range valid {
+		if nextChar == elem {
+			return true
+		}
+	}
+
+	return false
 }
