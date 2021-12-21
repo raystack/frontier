@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/model"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,10 +29,10 @@ var (
 	grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
 )
 
-func (v Dep) ListGroups(ctx context.Context, request *shieldv1.ListGroupsRequest) (*shieldv1.ListGroupsResponse, error) {
+func (v Dep) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var groups []*shieldv1.Group
+	var groups []*shieldv1beta1.Group
 
 	groupList, err := v.GroupService.ListGroups(ctx)
 	if errors.Is(err, group.GroupDoesntExist) {
@@ -52,10 +52,10 @@ func (v Dep) ListGroups(ctx context.Context, request *shieldv1.ListGroupsRequest
 		groups = append(groups, &groupPB)
 	}
 
-	return &shieldv1.ListGroupsResponse{Groups: groups}, nil
+	return &shieldv1beta1.ListGroupsResponse{Groups: groups}, nil
 }
 
-func (v Dep) CreateGroup(ctx context.Context, request *shieldv1.CreateGroupRequest) (*shieldv1.CreateGroupResponse, error) {
+func (v Dep) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroupRequest) (*shieldv1beta1.CreateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
@@ -87,7 +87,7 @@ func (v Dep) CreateGroup(ctx context.Context, request *shieldv1.CreateGroupReque
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateGroupResponse{Group: &shieldv1.Group{
+	return &shieldv1beta1.CreateGroupResponse{Group: &shieldv1beta1.Group{
 		Id:        newGroup.Id,
 		Name:      newGroup.Name,
 		Slug:      newGroup.Slug,
@@ -98,7 +98,7 @@ func (v Dep) CreateGroup(ctx context.Context, request *shieldv1.CreateGroupReque
 	}}, nil
 }
 
-func (v Dep) GetGroup(ctx context.Context, request *shieldv1.GetGroupRequest) (*shieldv1.GetGroupResponse, error) {
+func (v Dep) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRequest) (*shieldv1beta1.GetGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedGroup, err := v.GroupService.GetGroup(ctx, request.GetId())
@@ -120,14 +120,14 @@ func (v Dep) GetGroup(ctx context.Context, request *shieldv1.GetGroupRequest) (*
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetGroupResponse{Group: &groupPB}, nil
+	return &shieldv1beta1.GetGroupResponse{Group: &groupPB}, nil
 }
 
-func (v Dep) ListGroupUsers(ctx context.Context, request *shieldv1.ListGroupUsersRequest) (*shieldv1.ListGroupUsersResponse, error) {
+func (v Dep) ListGroupUsers(ctx context.Context, request *shieldv1beta1.ListGroupUsersRequest) (*shieldv1beta1.ListGroupUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
 }
 
-func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1.UpdateGroupRequest) (*shieldv1.UpdateGroupResponse, error) {
+func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateGroupRequest) (*shieldv1beta1.UpdateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.Body == nil {
@@ -161,16 +161,16 @@ func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1.UpdateGroupReque
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.UpdateGroupResponse{Group: &groupPB}, nil
+	return &shieldv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
 }
 
-func transformGroupToPB(grp model.Group) (shieldv1.Group, error) {
+func transformGroupToPB(grp model.Group) (shieldv1beta1.Group, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(grp.Metadata))
 	if err != nil {
-		return shieldv1.Group{}, err
+		return shieldv1beta1.Group{}, err
 	}
 
-	return shieldv1.Group{
+	return shieldv1beta1.Group{
 		Id:        grp.Id,
 		Name:      grp.Name,
 		Slug:      grp.Slug,

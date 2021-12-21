@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 var testUserMap = map[string]model.User{
@@ -38,7 +38,7 @@ func TestListUsers(t *testing.T) {
 	table := []struct {
 		title       string
 		mockUserSrv mockUserSrv
-		want        *shieldv1.ListUsersResponse
+		want        *shieldv1beta1.ListUsersResponse
 		err         error
 	}{
 		{
@@ -57,7 +57,7 @@ func TestListUsers(t *testing.T) {
 				}
 				return testUserList, nil
 			}},
-			want: &shieldv1.ListUsersResponse{Users: []*shieldv1.User{
+			want: &shieldv1beta1.ListUsersResponse{Users: []*shieldv1beta1.User{
 				{
 					Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 					Name:  "User 1",
@@ -93,8 +93,8 @@ func TestCreateUser(t *testing.T) {
 	table := []struct {
 		title       string
 		mockUserSrv mockUserSrv
-		req         *shieldv1.CreateUserRequest
-		want        *shieldv1.CreateUserResponse
+		req         *shieldv1beta1.CreateUserRequest
+		want        *shieldv1beta1.CreateUserResponse
 		err         error
 	}{
 		{
@@ -102,7 +102,7 @@ func TestCreateUser(t *testing.T) {
 			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u model.User) (model.User, error) {
 				return model.User{}, grpcInternalServerError
 			}},
-			req: &shieldv1.CreateUserRequest{Body: &shieldv1.UserRequestBody{
+			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:     "some user",
 				Email:    "abc@test.com",
 				Metadata: &structpb.Struct{},
@@ -112,7 +112,7 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "int values in metadata map",
-			req: &shieldv1.CreateUserRequest{Body: &shieldv1.UserRequestBody{
+			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
 				Email: "abc@test.com",
 				Metadata: &structpb.Struct{
@@ -134,7 +134,7 @@ func TestCreateUser(t *testing.T) {
 					Metadata: nil,
 				}, nil
 			}},
-			req: &shieldv1.CreateUserRequest{Body: &shieldv1.UserRequestBody{
+			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
 				Email: "abc@test.com",
 				Metadata: &structpb.Struct{
@@ -143,7 +143,7 @@ func TestCreateUser(t *testing.T) {
 					},
 				},
 			}},
-			want: &shieldv1.CreateUserResponse{User: &shieldv1.User{
+			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
 				Id:        "new-abc",
 				Name:      "some user",
 				Email:     "abc@test.com",
@@ -174,7 +174,7 @@ func TestGetCurrentUser(t *testing.T) {
 		title       string
 		mockUserSrv mockUserSrv
 		header      string
-		want        *shieldv1.GetCurrentUserResponse
+		want        *shieldv1beta1.GetCurrentUserResponse
 		err         error
 	}{
 		{
@@ -201,7 +201,7 @@ func TestGetCurrentUser(t *testing.T) {
 				}, nil
 			}},
 			header: "someuser@test.com",
-			want: &shieldv1.GetCurrentUserResponse{User: &shieldv1.User{
+			want: &shieldv1beta1.GetCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
 				Name:  "some user",
 				Email: "someuser@test.com",
@@ -238,9 +238,9 @@ func TestUpdateCurrentUser(t *testing.T) {
 	table := []struct {
 		title       string
 		mockUserSrv mockUserSrv
-		req         *shieldv1.UpdateCurrentUserRequest
+		req         *shieldv1beta1.UpdateCurrentUserRequest
 		header      string
-		want        *shieldv1.UpdateCurrentUserResponse
+		want        *shieldv1beta1.UpdateCurrentUserResponse
 		err         error
 	}{
 		{
@@ -248,7 +248,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate model.User) (user model.User, err error) {
 				return model.User{}, errors.New("some error")
 			}},
-			req: &shieldv1.UpdateCurrentUserRequest{Body: &shieldv1.UserRequestBody{
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "abc user",
 				Email: "abcuser@test.com",
 				Metadata: &structpb.Struct{
@@ -266,7 +266,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate model.User) (user model.User, err error) {
 				return model.User{}, nil
 			}},
-			req: &shieldv1.UpdateCurrentUserRequest{Body: &shieldv1.UserRequestBody{
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "abc user",
 				Email: "abcuser123@test.com",
 				Metadata: &structpb.Struct{
@@ -284,7 +284,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate model.User) (user model.User, err error) {
 				return model.User{}, nil
 			}},
-			req:    &shieldv1.UpdateCurrentUserRequest{Body: nil},
+			req:    &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
 			header: "abcuser@test.com",
 			want:   nil,
 			err:    grpcBadBodyError,
@@ -303,7 +303,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 					UpdatedAt: time.Time{},
 				}, nil
 			}},
-			req: &shieldv1.UpdateCurrentUserRequest{Body: &shieldv1.UserRequestBody{
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "abc user",
 				Email: "abcuser@test.com",
 				Metadata: &structpb.Struct{
@@ -313,7 +313,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				},
 			}},
 			header: "abcuser@test.com",
-			want: &shieldv1.UpdateCurrentUserResponse{User: &shieldv1.User{
+			want: &shieldv1beta1.UpdateCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
 				Name:  "abc user",
 				Email: "abcuser@test.com",

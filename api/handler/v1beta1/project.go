@@ -1,4 +1,4 @@
-package v1
+package v1beta1
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1 "github.com/odpf/shield/proto/v1"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
@@ -27,9 +27,9 @@ type ProjectService interface {
 	Update(ctx context.Context, toUpdate model.Project) (model.Project, error)
 }
 
-func (v Dep) ListProjects(ctx context.Context, request *shieldv1.ListProjectsRequest) (*shieldv1.ListProjectsResponse, error) {
+func (v Dep) ListProjects(ctx context.Context, request *shieldv1beta1.ListProjectsRequest) (*shieldv1beta1.ListProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var projects []*shieldv1.Project
+	var projects []*shieldv1beta1.Project
 
 	projectList, err := v.ProjectService.List(ctx)
 	if err != nil {
@@ -47,10 +47,10 @@ func (v Dep) ListProjects(ctx context.Context, request *shieldv1.ListProjectsReq
 		projects = append(projects, &projectPB)
 	}
 
-	return &shieldv1.ListProjectsResponse{Projects: projects}, nil
+	return &shieldv1beta1.ListProjectsResponse{Projects: projects}, nil
 }
 
-func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectRequest) (*shieldv1.CreateProjectResponse, error) {
+func (v Dep) CreateProject(ctx context.Context, request *shieldv1beta1.CreateProjectRequest) (*shieldv1beta1.CreateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
 	if err != nil {
@@ -81,7 +81,7 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.CreateProjectResponse{Project: &shieldv1.Project{
+	return &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
 		Id:        newProject.Id,
 		Name:      newProject.Name,
 		Slug:      newProject.Slug,
@@ -91,7 +91,7 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1.CreateProjectR
 	}}, nil
 }
 
-func (v Dep) GetProject(ctx context.Context, request *shieldv1.GetProjectRequest) (*shieldv1.GetProjectResponse, error) {
+func (v Dep) GetProject(ctx context.Context, request *shieldv1beta1.GetProjectRequest) (*shieldv1beta1.GetProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedProject, err := v.ProjectService.Get(ctx, request.GetId())
@@ -113,10 +113,10 @@ func (v Dep) GetProject(ctx context.Context, request *shieldv1.GetProjectRequest
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.GetProjectResponse{Project: &projectPB}, nil
+	return &shieldv1beta1.GetProjectResponse{Project: &projectPB}, nil
 }
 
-func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectRequest) (*shieldv1.UpdateProjectResponse, error) {
+func (v Dep) UpdateProject(ctx context.Context, request *shieldv1beta1.UpdateProjectRequest) (*shieldv1beta1.UpdateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
@@ -142,16 +142,16 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1.UpdateProjectR
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1.UpdateProjectResponse{Project: &projectPB}, nil
+	return &shieldv1beta1.UpdateProjectResponse{Project: &projectPB}, nil
 }
 
-func transformProjectToPB(prj model.Project) (shieldv1.Project, error) {
+func transformProjectToPB(prj model.Project) (shieldv1beta1.Project, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(prj.Metadata))
 	if err != nil {
-		return shieldv1.Project{}, err
+		return shieldv1beta1.Project{}, err
 	}
 
-	return shieldv1.Project{
+	return shieldv1beta1.Project{
 		Id:        prj.Id,
 		Name:      prj.Name,
 		Slug:      prj.Slug,
