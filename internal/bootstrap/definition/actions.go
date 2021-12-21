@@ -37,3 +37,15 @@ var ManageProjectAction = model.Action{
 	Name:        "Manage Project",
 	NamespaceId: ProjectNamespace.Id,
 }
+
+var TeamAllAction = model.Action{
+	Id:          "all_actions_team",
+	Name:        "All Actions Team",
+	NamespaceId: TeamNamespace.Id,
+}
+
+var ProjectAllAction = model.Action{
+	Id:          "all_actions_project",
+	Name:        "All Actions Project",
+	NamespaceId: ProjectNamespace.Id,
+}

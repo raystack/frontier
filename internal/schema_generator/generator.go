@@ -3,6 +3,7 @@ package schema_generator
 import (
 	"errors"
 	"fmt"
+	"github.com/odpf/shield/pkg/utils"
 	"sort"
 	"strings"
 
@@ -124,15 +125,17 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 			def[keyName] = r
 		}
 
-		if (p.Action.NamespaceId != "" || p.Action.Namespace.Id != "") && (p.Action.NamespaceId != namespaceId || p.Action.Namespace.Id != namespaceId) {
-			return []definition{}, errors.New("actions namespace doesnt match")
+		actionNs := utils.DefaultStringIfEmpty(p.Action.Namespace.Id, p.Action.NamespaceId)
+		actionId := utils.DefaultStringIfEmpty(p.Action.Id, p.ActionId)
+		if actionNs != "" && actionNs != namespaceId {
+			return []definition{}, errors.New(fmt.Sprintf("actions (%s) namespace `%s` doesnt match with `%s`", actionId, actionNs, namespaceId))
 		}
 
 		def[keyName] = append(r, role{
 			name:        p.Role.Id,
 			types:       p.Role.Types,
 			namespace:   p.Role.NamespaceId,
-			permissions: []string{p.Action.Id},
+			permissions: []string{actionId},
 		})
 	}
 

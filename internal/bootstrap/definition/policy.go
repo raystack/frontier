@@ -26,12 +26,6 @@ var ManageTeamPolicy = model.Policy{
 	ActionId:    ManageTeamAction.Id,
 }
 
-var ManageTeamOrgAdminPolicy = model.Policy{
-	NamespaceId: TeamNamespace.Id,
-	RoleId:      OrganizationAdminRole.Id,
-	ActionId:    ManageTeamAction.Id,
-}
-
 var ViewTeamAdminPolicy = model.Policy{
 	NamespaceId: TeamNamespace.Id,
 	RoleId:      TeamAdminRole.Id,
@@ -54,4 +48,16 @@ var ManageProjectOrgPolicy = model.Policy{
 	NamespaceId: ProjectNamespace.Id,
 	RoleId:      OrganizationAdminRole.Id,
 	ActionId:    ManageProjectAction.Id,
+}
+
+var TeamOrgAdminPolicy = model.Policy{
+	NamespaceId: TeamNamespace.Id,
+	RoleId:      OrganizationAdminRole.Id,
+	ActionId:    TeamAllAction.Id,
+}
+
+var ProjectOrgAdminPolicy = model.Policy{
+	NamespaceId: TeamNamespace.Id,
+	RoleId:      ProjectAdminRole.Id,
+	ActionId:    TeamAllAction.Id,
 }

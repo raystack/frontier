@@ -34,9 +34,10 @@ func (s Service) bootstrapPolicies(ctx context.Context) {
 		definition.CreateProjectPolicy,
 		definition.CreateTeamPolicy,
 		definition.ManageTeamPolicy,
-		definition.ManageTeamOrgAdminPolicy,
+		definition.TeamOrgAdminPolicy,
 		definition.ManageProjectPolicy,
 		definition.ManageProjectOrgPolicy,
+		definition.ProjectOrgAdminPolicy,
 	}
 
 	for _, policy := range policies {
@@ -57,6 +58,8 @@ func (s Service) bootstrapActions(ctx context.Context) {
 		definition.ManageTeamAction,
 		definition.ViewTeamAction,
 		definition.ManageProjectAction,
+		definition.TeamAllAction,
+		definition.ProjectAllAction,
 	}
 
 	for _, action := range actions {
