@@ -114,7 +114,7 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 	}
 
 	gw, err := server.NewGateway("", appConfig.App.Port, server.WithGatewayMuxOptions(
-		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(appConfig.App.IdentityProxyHeader))),
+		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{appConfig.App.IdentityProxyHeader: true}))),
 	)
 	if err != nil {
 		panic(err)
@@ -131,14 +131,12 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 	return s
 }
 
-func customHeaderMatcherFunc(proxyHeader string) func(key string) (string, bool) {
+func customHeaderMatcherFunc(headerKeys map[string]bool) func(key string) (string, bool) {
 	return func(key string) (string, bool) {
-		switch key {
-		case proxyHeader:
+		if _, ok := headerKeys[key]; ok {
 			return key, true
-		default:
-			return runtime.DefaultHeaderMatcher(key)
 		}
+		return runtime.DefaultHeaderMatcher(key)
 	}
 }
 
