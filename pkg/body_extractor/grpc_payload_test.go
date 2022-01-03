@@ -30,7 +30,7 @@ func TestNewQuery(t *testing.T) {
 	})
 
 	t.Run("root repeated string", func(t *testing.T) {
-		parsedQuery, err := ParseQuery("1*")
+		parsedQuery, err := ParseQuery("1[*]")
 		assert.Nil(t, err)
 
 		assert.EqualValues(t, []Query{{
@@ -40,7 +40,7 @@ func TestNewQuery(t *testing.T) {
 	})
 
 	t.Run("root repeated message", func(t *testing.T) {
-		parsedQuery, err := ParseQuery("1*.2")
+		parsedQuery, err := ParseQuery("1[*].2")
 		assert.Nil(t, err)
 
 		assert.EqualValues(t, []Query{
@@ -55,7 +55,7 @@ func TestNewQuery(t *testing.T) {
 	})
 
 	t.Run("repeated message nested", func(t *testing.T) {
-		parsedQuery, err := ParseQuery("1.2.3*.45")
+		parsedQuery, err := ParseQuery("1.2.3[*].45")
 		assert.Nil(t, err)
 
 		assert.EqualValues(t, []Query{
@@ -79,7 +79,7 @@ func TestNewQuery(t *testing.T) {
 	})
 
 	t.Run("repeated message nested with repeated string", func(t *testing.T) {
-		parsedQuery, err := ParseQuery("1.2.3*.45.8*")
+		parsedQuery, err := ParseQuery("1.2.3[*].45.8[*]")
 		assert.Nil(t, err)
 
 		assert.EqualValues(t, []Query{
@@ -140,7 +140,7 @@ func TestExtract(t *testing.T) {
 					"ten",
 				},
 			},
-			query: "1.2.7*",
+			query: "1.2.7[*]",
 			want: []interface{}{
 				"two",
 				"four",
@@ -161,7 +161,7 @@ func TestExtract(t *testing.T) {
 					},
 				},
 			},
-			query: "1.2.7*",
+			query: "1.2.7[*]",
 			want: []interface{}{
 				"\n\bs1l3_one",
 				"\n\bs1l3_two",
@@ -195,7 +195,7 @@ func TestExtract(t *testing.T) {
 					},
 				},
 			},
-			query: "1.2.8*.1",
+			query: "1.2.8[*].1",
 			want: []interface{}{
 				"S1L4_one",
 				"S1L4_two",
@@ -248,7 +248,7 @@ func TestExtract(t *testing.T) {
 					},
 				},
 			},
-			query: "1.2.8*.3*",
+			query: "1.2.8[*].3[*]",
 			want: []interface{}{
 				"S3L4_one_one",
 				"S3L4_one_two",

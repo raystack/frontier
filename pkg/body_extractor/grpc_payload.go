@@ -314,7 +314,7 @@ func getNextDynamicMessage(val interface{}, first Query) (*dynamic.Message, erro
 
 /* Parsing Grammar
 Token Size is 1
-Token not allowed "/"
+"/" Character not allowed as its reserved for END
 
 Definitions
 - INT: any single digit integer
@@ -323,28 +323,32 @@ Definitions
 Table of Allowed Characters
 | Current Character | allowed next characters |
 |-------------------|-------------------------|
-| INT           	| INT, ".", "*", END	  |
-| "*"               | ".", END                |
+| INT           	| INT, ".", "[", END	  |
+| "*"               | "]"                  	  |
 | "."               | INT			          |
-
-Table of Actions
+| "["				| "*"					  |
+| "]"				| ".", END			      |
 
 */
 
 const (
-	intRepresentation        = "INT"
-	endRepresentation        = "END"
-	outOfBoundRepresentation = "OOB"
-	dotRepresentation        = "."
-	starRepresentation       = "*"
+	intRepresentation                  = "INT"
+	endRepresentation                  = "END"
+	outOfBoundRepresentation           = "OOB"
+	dotRepresentation                  = "."
+	starRepresentation                 = "*"
+	squareBracketOpeningRepresentation = "["
+	squareBracketClosingRepresentation = "]"
 
 	endRepresentationChar = "/"
 )
 
 var nextValidCharTable = map[string][]string{
-	intRepresentation:  {intRepresentation, dotRepresentation, starRepresentation, endRepresentation},
-	starRepresentation: {dotRepresentation, endRepresentation},
-	dotRepresentation:  {intRepresentation},
+	intRepresentation:                  {intRepresentation, dotRepresentation, squareBracketOpeningRepresentation, endRepresentation},
+	starRepresentation:                 {squareBracketClosingRepresentation},
+	dotRepresentation:                  {intRepresentation},
+	squareBracketOpeningRepresentation: {starRepresentation},
+	squareBracketClosingRepresentation: {dotRepresentation, endRepresentation},
 }
 
 func getTokenAt(query string, tokenIndex int) string {
@@ -403,11 +407,22 @@ func ParseQuery(query string) ([]Query, error) {
 				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
 			}
 
+		case squareBracketOpeningRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+		case squareBracketClosingRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
 			if nextToken == dotRepresentation {
 				processingSubQuery.DataType = MessageArray
 			} else if nextToken == endRepresentation {
 				processingSubQuery.DataType = StringArray
 			}
+
 		default:
 			return nil, fmt.Errorf("found invalid char %s", currentToken)
 		}
