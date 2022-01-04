@@ -2,6 +2,7 @@ package body_extractor
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -15,6 +16,13 @@ func TestNewQuery(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		parsedQuery, err := ParseQuery("1.2.3a.45")
 		assert.NotNil(t, err)
+
+		assert.Nil(t, parsedQuery)
+	})
+
+	t.Run("multiple array wildcard", func(t *testing.T) {
+		parsedQuery, err := ParseQuery("1.2.3[*].45.8[*]")
+		assert.Error(t, err)
 
 		assert.Nil(t, parsedQuery)
 	})
@@ -74,34 +82,6 @@ func TestNewQuery(t *testing.T) {
 			{
 				Field:    45,
 				DataType: String,
-			},
-		}, parsedQuery)
-	})
-
-	t.Run("repeated message nested with repeated string", func(t *testing.T) {
-		parsedQuery, err := ParseQuery("1.2.3[*].45.8[*]")
-		assert.Nil(t, err)
-
-		assert.EqualValues(t, []Query{
-			{
-				Field:    1,
-				DataType: Message,
-			},
-			{
-				Field:    2,
-				DataType: Message,
-			},
-			{
-				Field:    3,
-				DataType: MessageArray,
-			},
-			{
-				Field:    45,
-				DataType: Message,
-			},
-			{
-				Field:    8,
-				DataType: StringArray,
 			},
 		}, parsedQuery)
 	})
@@ -249,18 +229,8 @@ func TestExtract(t *testing.T) {
 				},
 			},
 			query: "1.2.8[*].3[*]",
-			want: []interface{}{
-				"S3L4_one_one",
-				"S3L4_one_two",
-				"S3L4_one_three",
-				"S3L4_one_four",
-				"S3L4_two_one",
-				"S3L4_two_two",
-				"S3L4_two_three",
-				"S3L4_three_one",
-				"S3L4_three_two",
-				"S3L4_four_one",
-			},
+			want:  nil,
+			err:   fmt.Errorf("array wildcard has been used more than once"),
 		},
 	}
 

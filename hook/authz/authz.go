@@ -139,7 +139,6 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	//}
 
 	// use attributes to modify authz
-	// add respu
 
 	return a.next.ServeHook(res, nil)
 }

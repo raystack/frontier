@@ -170,23 +170,23 @@ func (p *grpcRequestParser) Parse() (pf GRPCPayloadCompressionFormat, msg []byte
 func fieldFromProtoMessage(msg []byte, tagIndex string) (interface{}, error) {
 	parsedQuery, err := ParseQuery(tagIndex)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	msgDesc, err := buildPayloadProto(tagIndex, parsedQuery)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// populate message
 	dynamicMsgKey := dynamic.NewMessage(msgDesc)
 	if err := dynamicMsgKey.Unmarshal(msg); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	val, err := RunQuery(dynamicMsgKey, parsedQuery)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return val, nil
 }
@@ -313,8 +313,9 @@ func getNextDynamicMessage(val interface{}, first Query) (*dynamic.Message, erro
 }
 
 /* Parsing Grammar
-Token Size is 1
-"/" Character not allowed as its reserved for END
+- Token Size is 1
+- "/" Character not allowed as its reserved for END
+- Array Wildcard [*] can be used only once
 
 Definitions
 - INT: any single digit integer
@@ -372,6 +373,7 @@ func ParseQuery(query string) ([]Query, error) {
 	query = query + endRepresentationChar
 	tokenIndex := 0
 	queryList := make([]Query, 0)
+	countOfArrayWildcard := 0
 	processingSubQuery := Query{}
 
 	for {
@@ -410,6 +412,14 @@ func ParseQuery(query string) ([]Query, error) {
 		case squareBracketOpeningRepresentation:
 			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
 				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			if countOfArrayWildcard >= 1 {
+				return nil, fmt.Errorf("array wildcard has been used more than once")
+			}
+
+			if nextToken == starRepresentation {
+				countOfArrayWildcard++
 			}
 
 		case squareBracketClosingRepresentation:
