@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"reflect"
 	"strconv"
 	"sync"
 
@@ -264,13 +263,7 @@ func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
 				return nil, err
 			}
 
-			if reflect.TypeOf(valuesFromSubQuery).String() == "[]interface {}" {
-				for _, interfaceValue := range valuesFromSubQuery.([]interface{}) {
-					valueList = append(valueList, interfaceValue)
-				}
-			} else {
-				valueList = append(valueList, valuesFromSubQuery)
-			}
+			valueList = append(valueList, valuesFromSubQuery)
 		}
 		val = valueList
 		return val, nil
