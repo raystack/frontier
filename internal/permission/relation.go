@@ -24,6 +24,8 @@ type Permissions interface {
 	AddTeamToOrg(ctx context.Context, team model.Group, org model.Organization) error
 	AddAdminToTeam(ctx context.Context, user model.User, team model.Group) error
 	AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error
+	AddAdminToProject(ctx context.Context, user model.User, project model.Project) error
+	AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error
 	FetchCurrentUser(ctx context.Context) (model.User, error)
 }
 
@@ -77,6 +79,43 @@ func (s Service) AddAdminToOrg(ctx context.Context, user model.User, org model.O
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddAdminToProject(ctx context.Context, user model.User, project model.Project) error {
+	rel := model.Relation{
+		ObjectNamespace:  definition.ProjectNamespace,
+		ObjectId:         project.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role: model.Role{
+			Id:        definition.ProjectAdminRole.Id,
+			Namespace: definition.ProjectNamespace,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error {
+	rel := model.Relation{
+		ObjectNamespace:  definition.ProjectNamespace,
+		ObjectId:         project.Id,
+		SubjectId:        org.Id,
+		SubjectNamespace: definition.OrgNamespace,
+		Role: model.Role{
+			Id:        definition.OrgNamespace.Id,
+			Namespace: definition.ProjectNamespace,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	fmt.Println(rel)
 	if err != nil {
 		return err
 	}

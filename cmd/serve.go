@@ -254,7 +254,8 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 				Store: serviceStore,
 			},
 			ProjectService: project.Service{
-				Store: serviceStore,
+				Store:       serviceStore,
+				Permissions: permissions,
 			},
 			GroupService: group.Service{
 				Store:       serviceStore,

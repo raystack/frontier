@@ -3,6 +3,7 @@ package org
 import (
 	"context"
 	"errors"
+
 	"github.com/odpf/shield/internal/permission"
 
 	"github.com/odpf/shield/model"
