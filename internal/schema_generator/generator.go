@@ -3,9 +3,10 @@ package schema_generator
 import (
 	"errors"
 	"fmt"
-	"github.com/odpf/shield/pkg/utils"
 	"sort"
 	"strings"
+
+	"github.com/odpf/shield/pkg/utils"
 
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	"github.com/authzed/spicedb/pkg/namespace"

@@ -253,4 +253,38 @@ func TestTransformRelation(t *testing.T) {
 		expectedString := "resource/dagger:dagger_1#editor@team:team_1#team_member"
 		assert.Equal(t, expectedString, relString)
 	})
+
+	t.Run("should admin to team", func(t *testing.T) {
+		input := model.Relation{
+			ObjectNamespaceId:  "team",
+			ObjectId:           "team_1",
+			SubjectNamespaceId: "user",
+			SubjectId:          "user_1",
+			Role: model.Role{
+				Id:          "team_admin",
+				NamespaceId: "team",
+			},
+		}
+		output, err := TransformRelation(input)
+		expected := &v1.Relationship{
+			Resource: &v1.ObjectReference{
+				ObjectId:   "team_1",
+				ObjectType: "team",
+			},
+			Subject: &v1.SubjectReference{
+				Object: &v1.ObjectReference{
+					ObjectId:   "user_1",
+					ObjectType: "user",
+				},
+				OptionalRelation: "",
+			},
+			Relation: "team_admin",
+		}
+		assert.EqualValues(t, expected, output)
+		assert.NoError(t, err)
+
+		relString := tuple.RelString(output)
+		expectedString := "team:team_1#team_admin@user:user_1"
+		assert.Equal(t, expectedString, relString)
+	})
 }

@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/internal/permission"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/odpf/shield/internal/bootstrap"
 	"github.com/odpf/shield/internal/group"
@@ -219,6 +221,12 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 	serviceStore := postgres.NewStore(db)
 	authzService := authz.New(appConfig, logger)
 
+	permissions := permission.Service{
+		Authz:               authzService,
+		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
+		Store:               serviceStore,
+	}
+
 	schemaService := schema.Service{
 		Store: serviceStore,
 		Authz: authzService,
@@ -248,7 +256,8 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 				Store: serviceStore,
 			},
 			GroupService: group.Service{
-				Store: serviceStore,
+				Store:       serviceStore,
+				Permissions: permissions,
 			},
 			RelationService: relation.Service{
 				Store: serviceStore,

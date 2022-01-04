@@ -55,7 +55,7 @@ type Service struct {
 	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
 
 	// Headers which will have user's email id
-	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header"`
+	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:"X-SHIELD-EMAIL"`
 
 	// ResourcesPath is a directory path where resources is defined
 	// that this service should implement

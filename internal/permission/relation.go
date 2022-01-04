@@ -1,0 +1,66 @@
+package permission
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/odpf/shield/internal/authz"
+	"github.com/odpf/shield/internal/bootstrap/definition"
+	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
+)
+
+type Store interface {
+	GetCurrentUser(ctx context.Context, email string) (model.User, error)
+}
+
+type Service struct {
+	Authz               *authz.Authz
+	Store               Store
+	IdentityProxyHeader string
+}
+
+type Permissions interface {
+	AddTeamToOrg(ctx context.Context, team model.Group, org model.Organization) error
+	AddAdminToTeam(ctx context.Context, user model.User, team model.Group) error
+	FetchCurrentUser(ctx context.Context) (model.User, error)
+}
+
+func (s Service) AddTeamToOrg(ctx context.Context, team model.Group, org model.Organization) error {
+	orgId := utils.DefaultStringIfEmpty(org.Id, team.OrganizationId)
+	rel := model.Relation{
+		ObjectNamespace:  definition.TeamNamespace,
+		ObjectId:         team.Id,
+		SubjectId:        orgId,
+		SubjectNamespace: definition.OrgNamespace,
+		Role: model.Role{
+			Id:        definition.OrgNamespace.Id,
+			Namespace: definition.TeamNamespace,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	fmt.Println(rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddAdminToTeam(ctx context.Context, user model.User, team model.Group) error {
+	rel := model.Relation{
+		ObjectNamespace:  definition.TeamNamespace,
+		ObjectId:         team.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role: model.Role{
+			Id:        definition.TeamAdminRole.Id,
+			Namespace: definition.TeamNamespace,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	fmt.Println(rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
