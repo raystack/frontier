@@ -247,7 +247,8 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 	dependencies := handler.Deps{
 		V1beta1: v1.Dep{
 			OrgService: org.Service{
-				Store: serviceStore,
+				Store:       serviceStore,
+				Permissions: permissions,
 			},
 			UserService: user.Service{
 				Store: serviceStore,

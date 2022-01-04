@@ -23,6 +23,7 @@ type Service struct {
 type Permissions interface {
 	AddTeamToOrg(ctx context.Context, team model.Group, org model.Organization) error
 	AddAdminToTeam(ctx context.Context, user model.User, team model.Group) error
+	AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error
 	FetchCurrentUser(ctx context.Context) (model.User, error)
 }
 
@@ -58,7 +59,24 @@ func (s Service) AddAdminToTeam(ctx context.Context, user model.User, team model
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
-	fmt.Println(rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error {
+	rel := model.Relation{
+		ObjectNamespace:  definition.OrgNamespace,
+		ObjectId:         org.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role: model.Role{
+			Id:        definition.OrganizationAdminRole.Id,
+			Namespace: definition.OrgNamespace,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
 	if err != nil {
 		return err
 	}
