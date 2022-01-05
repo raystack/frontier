@@ -31,69 +31,63 @@ func (s Service) BootstrapDefaultDefinitions(ctx context.Context) {
 }
 
 func (s Service) onboardResource(ctx context.Context, resource structs.Resource) {
-	nsID := utils.Slugify(resource.Name, utils.SlugifyOptions{})
-	ns := model.Namespace{
-		Name: resource.Name,
-		Id:   nsID,
-	}
-	_, err := s.SchemaService.CreateNamespace(ctx, ns)
-	if err != nil {
-		s.Logger.Fatal(err.Error())
-	}
+	ns := getResourceNamespace(resource)
 
-	resourceRoles := []model.Role{}
-	actions := []model.Action{}
-	policies := []model.Policy{}
+	var resourceRoles []model.Role
+	var policies []model.Policy
+	var actions []model.Action
 
-	for action, roles := range resource.Actions {
-		actId := fmt.Sprintf("%s_%s", nsID, action)
-		act := model.Action{
-			Id:        actId,
-			Name:      action,
-			Namespace: ns,
-		}
+	for action, rolesList := range resource.Actions {
+		act := getResourceAction(action, ns)
 		actions = append(actions, act)
 
-		for _, r := range roles {
-			roleId := fmt.Sprintf("%s_%s", nsID, r)
-			role := model.Role{
-				Id:        roleId,
-				Name:      roleId,
-				Namespace: ns,
-				Types:     []string{definition.UserType, definition.TeamMemberType},
-			}
-			resourceRoles = append(resourceRoles, role)
-
+		for _, r := range rolesList {
+			role := getResourceRole(r, ns)
 			policy := model.Policy{
 				Action:    act,
 				Namespace: ns,
 				Role:      role,
 			}
-
+			resourceRoles = append(resourceRoles, role)
 			policies = append(policies, policy)
 		}
 	}
 
-	for _, role := range resourceRoles {
-		_, err := s.RoleService.Create(ctx, role)
-		if err != nil {
-			s.Logger.Fatal(err.Error())
-		}
-	}
+	s.createNamespaces(ctx, []model.Namespace{ns})
+	s.createRoles(ctx, resourceRoles)
+	s.createActions(ctx, actions)
+	s.createPolicies(ctx, policies)
 
-	for _, act := range actions {
-		_, err := s.SchemaService.CreateAction(ctx, act)
-		if err != nil {
-			s.Logger.Fatal(err.Error())
-		}
-	}
+}
 
-	for _, p := range policies {
-		_, err := s.SchemaService.CreatePolicy(ctx, p)
-		if err != nil {
-			s.Logger.Fatal(err.Error())
-		}
+func getResourceRole(r string, ns model.Namespace) model.Role {
+	roleId := fmt.Sprintf("%s_%s", ns.Id, r)
+	role := model.Role{
+		Id:        roleId,
+		Name:      roleId,
+		Namespace: ns,
+		Types:     []string{definition.UserType, definition.TeamMemberType},
 	}
+	return role
+}
+
+func getResourceAction(action string, ns model.Namespace) model.Action {
+	actId := fmt.Sprintf("%s_%s", ns.Id, action)
+	act := model.Action{
+		Id:        actId,
+		Name:      action,
+		Namespace: ns,
+	}
+	return act
+}
+
+func getResourceNamespace(resource structs.Resource) model.Namespace {
+	nsID := utils.Slugify(resource.Name, utils.SlugifyOptions{})
+	ns := model.Namespace{
+		Name: resource.Name,
+		Id:   nsID,
+	}
+	return ns
 }
 
 func (s Service) BootstrapResources(ctx context.Context, resourceConfig *blobstore.ResourcesRepository) error {
@@ -105,10 +99,6 @@ func (s Service) BootstrapResources(ctx context.Context, resourceConfig *blobsto
 		s.onboardResource(ctx, resource)
 	}
 
-	// Onboard resource
-	// Create resource roles
-	// Create actions
-	// Create Policy
 	return nil
 }
 
@@ -126,14 +116,18 @@ func (s Service) bootstrapPolicies(ctx context.Context) {
 		definition.ProjectOrgAdminPolicy,
 	}
 
+	s.createPolicies(ctx, policies)
+
+	s.Logger.Info("Bootstrap Polices Successfully")
+}
+
+func (s Service) createPolicies(ctx context.Context, policies []model.Policy) {
 	for _, policy := range policies {
 		_, err := s.SchemaService.CreatePolicy(ctx, policy)
 		if err != nil {
 			s.Logger.Fatal(err.Error())
 		}
 	}
-
-	s.Logger.Info("Bootstrap Polices Successfully")
 }
 
 func (s Service) bootstrapActions(ctx context.Context) {
@@ -148,33 +142,48 @@ func (s Service) bootstrapActions(ctx context.Context) {
 		definition.ProjectAllAction,
 	}
 
+	s.createActions(ctx, actions)
+
+	s.Logger.Info("Bootstrap Actions Successfully")
+}
+
+func (s Service) createActions(ctx context.Context, actions []model.Action) {
 	for _, action := range actions {
 		_, err := s.SchemaService.CreateAction(ctx, action)
 		if err != nil {
 			s.Logger.Fatal(err.Error())
 		}
 	}
-
-	s.Logger.Info("Bootstrap Actions Successfully")
 }
 
 func (s Service) bootstrapRoles(ctx context.Context) {
-	roles := []model.Role{
+	rolesList := []model.Role{
 		definition.OrganizationAdminRole,
 		definition.ProjectAdminRole,
 		definition.TeamAdminRole,
 		definition.TeamMemberRole,
 		definition.ProjectAdminRole,
 	}
+	s.createRoles(ctx, rolesList)
+	s.Logger.Info("Bootstrap Roles Successfully")
+}
 
+func (s Service) createRoles(ctx context.Context, roles []model.Role) {
 	for _, role := range roles {
 		_, err := s.RoleService.Create(ctx, role)
 		if err != nil {
 			s.Logger.Fatal(err.Error())
 		}
 	}
+}
 
-	s.Logger.Info("Bootstrap Roles Successfully")
+func (s Service) createNamespaces(ctx context.Context, namespaces []model.Namespace) {
+	for _, ns := range namespaces {
+		_, err := s.SchemaService.CreateNamespace(ctx, ns)
+		if err != nil {
+			s.Logger.Fatal(err.Error())
+		}
+	}
 }
 
 func (s Service) bootstrapNamespaces(ctx context.Context) {
@@ -185,11 +194,6 @@ func (s Service) bootstrapNamespaces(ctx context.Context) {
 		definition.UserNamespace,
 	}
 
-	for _, ns := range namespaces {
-		_, err := s.SchemaService.CreateNamespace(ctx, ns)
-		if err != nil {
-			s.Logger.Fatal(err.Error())
-		}
-	}
+	s.createNamespaces(ctx, namespaces)
 	s.Logger.Info("Bootstrap Namespaces Successfully")
 }

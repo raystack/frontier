@@ -100,7 +100,6 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 	actionId := utils.DefaultStringIfEmpty(policyToCreate.Action.Id, policyToCreate.ActionId)
 	nsId := utils.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
 
-	fmt.Println(actionId)
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsId, roleId, sql.NullString{String: actionId, Valid: actionId != ""})
 	})
