@@ -5,11 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/odpf/shield/internal/permission"
+
 	"github.com/odpf/shield/model"
 )
 
 type Service struct {
-	Store Store
+	Store       Store
+	Permissions permission.Permissions
 }
 
 var (
@@ -30,7 +33,7 @@ func (s Service) Get(ctx context.Context, id string) (model.Resource, error) {
 
 func (s Service) Create(ctx context.Context, resource model.Resource) (model.Resource, error) {
 	id := createResourceUrl(resource)
-	return s.Store.CreateResource(ctx, model.Resource{
+	newResource, err := s.Store.CreateResource(ctx, model.Resource{
 		Id:             id,
 		Name:           resource.Name,
 		OrganizationId: resource.OrganizationId,
@@ -38,6 +41,30 @@ func (s Service) Create(ctx context.Context, resource model.Resource) (model.Res
 		GroupId:        resource.GroupId,
 		NamespaceId:    resource.NamespaceId,
 	})
+
+	if err != nil {
+		return model.Resource{}, err
+	}
+
+	err = s.Permissions.AddTeamToResource(ctx, model.Group{Id: resource.GroupId}, newResource)
+
+	if err != nil {
+		return model.Resource{}, err
+	}
+
+	err = s.Permissions.AddProjectToResource(ctx, model.Project{Id: resource.ProjectId}, newResource)
+
+	if err != nil {
+		return model.Resource{}, err
+	}
+
+	err = s.Permissions.AddOrgToResource(ctx, model.Organization{Id: resource.OrganizationId}, newResource)
+
+	if err != nil {
+		return model.Resource{}, err
+	}
+
+	return newResource, nil
 }
 
 func (s Service) List(ctx context.Context) ([]model.Resource, error) {

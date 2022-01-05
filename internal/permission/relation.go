@@ -26,6 +26,9 @@ type Permissions interface {
 	AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error
 	AddAdminToProject(ctx context.Context, user model.User, project model.Project) error
 	AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error
+	AddTeamToResource(ctx context.Context, team model.Group, resource model.Resource) error
+	AddProjectToResource(ctx context.Context, project model.Project, resource model.Resource) error
+	AddOrgToResource(ctx context.Context, org model.Organization, resource model.Resource) error
 	FetchCurrentUser(ctx context.Context) (model.User, error)
 }
 
@@ -112,6 +115,75 @@ func (s Service) AddProjectToOrg(ctx context.Context, project model.Project, org
 		Role: model.Role{
 			Id:        definition.OrgNamespace.Id,
 			Namespace: definition.ProjectNamespace,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	fmt.Println(rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddProjectToResource(ctx context.Context, project model.Project, resource model.Resource) error {
+	resourceNS := model.Namespace{
+		Id: resource.NamespaceId,
+	}
+
+	rel := model.Relation{
+		ObjectNamespace:  definition.ProjectNamespace,
+		ObjectId:         project.Id,
+		SubjectId:        resource.Id,
+		SubjectNamespace: resourceNS,
+		Role: model.Role{
+			Id:        definition.ProjectNamespace.Id,
+			Namespace: resourceNS,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	fmt.Println(rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddOrgToResource(ctx context.Context, org model.Organization, resource model.Resource) error {
+	resourceNS := model.Namespace{
+		Id: resource.NamespaceId,
+	}
+
+	rel := model.Relation{
+		ObjectNamespace:  definition.OrgNamespace,
+		ObjectId:         org.Id,
+		SubjectId:        resource.Id,
+		SubjectNamespace: resourceNS,
+		Role: model.Role{
+			Id:        definition.OrgNamespace.Id,
+			Namespace: resourceNS,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	fmt.Println(rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddTeamToResource(ctx context.Context, team model.Group, resource model.Resource) error {
+	resourceNS := model.Namespace{
+		Id: resource.NamespaceId,
+	}
+
+	rel := model.Relation{
+		ObjectNamespace:  definition.TeamNamespace,
+		ObjectId:         team.Id,
+		SubjectId:        resource.Id,
+		SubjectNamespace: resourceNS,
+		Role: model.Role{
+			Id:        definition.TeamNamespace.Id,
+			Namespace: resourceNS,
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
