@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
@@ -63,8 +65,10 @@ func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model
 
 func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (model.Action, error) {
 	var newAction Action
+
+	nsId := utils.DefaultStringIfEmpty(actionToCreate.Namespace.Id, actionToCreate.NamespaceId)
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, actionToCreate.NamespaceId)
+		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, nsId)
 	})
 
 	if err != nil {

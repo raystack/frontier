@@ -2,12 +2,16 @@ package bootstrap
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
+	blobstore "github.com/odpf/shield/store/blob"
+	"github.com/odpf/shield/structs"
 )
 
 // Insert Action
@@ -19,11 +23,93 @@ type Service struct {
 	RoleService   roles.Service
 }
 
-func (s Service) BootstrapDefinitions(ctx context.Context) {
+func (s Service) BootstrapDefaultDefinitions(ctx context.Context) {
 	s.bootstrapNamespaces(ctx)
 	s.bootstrapRoles(ctx)
 	s.bootstrapActions(ctx)
 	s.bootstrapPolicies(ctx)
+}
+
+func (s Service) onboardResource(ctx context.Context, resource structs.Resource) {
+	nsID := utils.Slugify(resource.Name, utils.SlugifyOptions{})
+	ns := model.Namespace{
+		Name: resource.Name,
+		Id:   nsID,
+	}
+	_, err := s.SchemaService.CreateNamespace(ctx, ns)
+	if err != nil {
+		s.Logger.Fatal(err.Error())
+	}
+
+	resourceRoles := []model.Role{}
+	actions := []model.Action{}
+	policies := []model.Policy{}
+
+	for action, roles := range resource.Actions {
+		actId := fmt.Sprintf("%s_%s", nsID, action)
+		act := model.Action{
+			Id:        actId,
+			Name:      action,
+			Namespace: ns,
+		}
+		actions = append(actions, act)
+
+		for _, r := range roles {
+			roleId := fmt.Sprintf("%s_%s", nsID, r)
+			role := model.Role{
+				Id:        roleId,
+				Name:      roleId,
+				Namespace: ns,
+				Types:     []string{definition.UserType, definition.TeamMemberType},
+			}
+			resourceRoles = append(resourceRoles, role)
+
+			policy := model.Policy{
+				Action:    act,
+				Namespace: ns,
+				Role:      role,
+			}
+
+			policies = append(policies, policy)
+		}
+	}
+
+	for _, role := range resourceRoles {
+		_, err := s.RoleService.Create(ctx, role)
+		if err != nil {
+			s.Logger.Fatal(err.Error())
+		}
+	}
+
+	for _, act := range actions {
+		_, err := s.SchemaService.CreateAction(ctx, act)
+		if err != nil {
+			s.Logger.Fatal(err.Error())
+		}
+	}
+
+	for _, p := range policies {
+		_, err := s.SchemaService.CreatePolicy(ctx, p)
+		if err != nil {
+			s.Logger.Fatal(err.Error())
+		}
+	}
+}
+
+func (s Service) BootstrapResources(ctx context.Context, resourceConfig *blobstore.ResourcesRepository) error {
+	resources, err := resourceConfig.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+	for _, resource := range resources {
+		s.onboardResource(ctx, resource)
+	}
+
+	// Onboard resource
+	// Create resource roles
+	// Create actions
+	// Create Policy
+	return nil
 }
 
 func (s Service) bootstrapPolicies(ctx context.Context) {

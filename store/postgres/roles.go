@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/lib/pq"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
@@ -67,8 +69,10 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate model.Role) (model.R
 	var newRole Role
 	var fetchedRole Role
 
+	nsId := utils.DefaultStringIfEmpty(roleToCreate.Namespace.Id, roleToCreate.NamespaceId)
+
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.Id, roleToCreate.Name, pq.StringArray(roleToCreate.Types), roleToCreate.NamespaceId, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.Id, roleToCreate.Name, pq.StringArray(roleToCreate.Types), nsId, marshaledMetadata)
 	})
 	if err != nil {
 		return model.Role{}, fmt.Errorf("%w: %s", dbErr, err)

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
@@ -94,8 +96,13 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([]model.Policy, error) {
 	var newPolicy Policy
 
+	roleId := utils.DefaultStringIfEmpty(policyToCreate.Role.Id, policyToCreate.RoleId)
+	actionId := utils.DefaultStringIfEmpty(policyToCreate.Action.Id, policyToCreate.ActionId)
+	nsId := utils.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
+
+	fmt.Println(actionId)
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, sql.NullString{String: policyToCreate.ActionId, Valid: policyToCreate.ActionId != ""})
+		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsId, roleId, sql.NullString{String: actionId, Valid: actionId != ""})
 	})
 	if err != nil {
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)

@@ -126,7 +126,19 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 		panic(err)
 	}
 
-	handler.Register(ctx, s, gw, apiDependencies(ctx, db, appConfig, logger))
+	resourceConfig, err := loadResourceConfig(ctx, logger, appConfig)
+
+	if err != nil {
+		panic(err)
+	}
+
+	deps, err := apiDependencies(ctx, db, appConfig, resourceConfig, logger)
+
+	if err != nil {
+		panic(err)
+	}
+
+	handler.Register(ctx, s, gw, deps)
 
 	go s.Serve()
 
@@ -146,8 +158,27 @@ func customHeaderMatcherFunc(headerKeys map[string]bool) func(key string) (strin
 	}
 }
 
+func loadResourceConfig(ctx context.Context, logger log.Logger, appConfig *config.Shield) (*blobstore.ResourcesRepository, error) {
+	// load resource config
+	if appConfig.App.ResourcesConfigPath == "" {
+		return nil, errors.New("resource config path cannot be left empty")
+	}
+	resourceBlobFS, err := (&blobFactory{}).New(ctx, appConfig.App.ResourcesConfigPath, appConfig.App.ResourcesConfigPathSecret)
+	if err != nil {
+		return nil, err
+	}
+	resourceRepo := blobstore.NewResourcesRepository(logger, resourceBlobFS)
+	if err := resourceRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+		return nil, err
+	}
+	return resourceRepo, nil
+}
+
 func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
 	for _, service := range appConfig.Proxy.Services {
+		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger)), proxy.NewDirector())
+
+		// load rules sets
 		if service.RulesPath == "" {
 			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
@@ -156,12 +187,11 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 			return nil, nil, err
 		}
 
-		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger)), proxy.NewDirector())
-
 		ruleRepo := blobstore.NewRuleRepository(logger, blobFS)
 		if err := ruleRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 			return nil, nil, err
 		}
+
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
 		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader)
 		go func(thisService config.Service, handler http.Handler) {
@@ -217,7 +247,7 @@ func healthCheck() http.HandlerFunc {
 	}
 }
 
-func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, logger log.Logger) handler.Deps {
+func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, resourceConfig *blobstore.ResourcesRepository, logger log.Logger) (handler.Deps, error) {
 	serviceStore := postgres.NewStore(db)
 	authzService := authz.New(appConfig, logger)
 
@@ -242,7 +272,12 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 		Logger:        logger,
 	}
 
-	bootstrapService.BootstrapDefinitions(ctx)
+	bootstrapService.BootstrapDefaultDefinitions(ctx)
+	err := bootstrapService.BootstrapResources(ctx, resourceConfig)
+
+	if err != nil {
+		return handler.Deps{}, err
+	}
 
 	dependencies := handler.Deps{
 		V1beta1: v1.Dep{
@@ -276,5 +311,5 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 			IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		},
 	}
-	return dependencies
+	return dependencies, nil
 }
