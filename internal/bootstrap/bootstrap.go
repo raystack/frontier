@@ -33,9 +33,15 @@ func (s Service) BootstrapDefaultDefinitions(ctx context.Context) {
 func (s Service) onboardResource(ctx context.Context, resource structs.Resource) {
 	ns := getResourceNamespace(resource)
 
+	resourceAllActions := getResourceAction("all_actions", ns)
+
 	var resourceRoles []model.Role
-	var policies []model.Policy
-	var actions []model.Action
+
+	actions := []model.Action{
+		resourceAllActions,
+	}
+
+	policies := getResourceDefaultPolicies(ns, resourceAllActions)
 
 	for action, rolesList := range resource.Actions {
 		act := getResourceAction(action, ns)
@@ -57,7 +63,26 @@ func (s Service) onboardResource(ctx context.Context, resource structs.Resource)
 	s.createRoles(ctx, resourceRoles)
 	s.createActions(ctx, actions)
 	s.createPolicies(ctx, policies)
+}
 
+func getResourceDefaultPolicies(ns model.Namespace, action model.Action) []model.Policy {
+	return []model.Policy{
+		{
+			Action:    action,
+			Namespace: ns,
+			Role:      definition.TeamAdminRole,
+		},
+		{
+			Action:    action,
+			Namespace: ns,
+			Role:      definition.ProjectAdminRole,
+		},
+		{
+			Action:    action,
+			Namespace: ns,
+			Role:      definition.OrganizationAdminRole,
+		},
+	}
 }
 
 func getResourceRole(r string, ns model.Namespace) model.Role {
