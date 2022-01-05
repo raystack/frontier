@@ -32,7 +32,7 @@ type AttributeType string
 type Attribute struct {
 	Key    string        `yaml:"key" mapstructure:"key"`
 	Type   AttributeType `yaml:"type" mapstructure:"type"`
-	Index  int           `yaml:"index" mapstructure:"index"` // proto index
+	Index  string        `yaml:"index" mapstructure:"index"` // proto index
 	Source string        `yaml:"source" mapstructure:"source"`
 }
 

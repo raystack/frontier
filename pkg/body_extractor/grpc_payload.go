@@ -7,13 +7,15 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strconv"
+	"sync"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-
+	"github.com/golang/protobuf/proto"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/jhump/protoreflect/dynamic"
 
+	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,12 +26,66 @@ type GRPCPayloadCompressionFormat uint8
 const (
 	compressionNone GRPCPayloadCompressionFormat = 0
 	compressionMade GRPCPayloadCompressionFormat = 1
-	maxInt                                       = int(^uint(0) >> 1)
+
+	maxInt = int(^uint(0) >> 1)
+
+	MessageArray = "MessageArray"
+	StringArray  = "StringArray"
+	String       = "String"
+	Message      = "Message"
 )
 
-type GRPCPayloadHandler struct{}
+type queryCacheMutex struct {
+	m          sync.Mutex
+	queryCache map[string][]Query
+}
 
-func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex int) (string, error) {
+func (q *queryCacheMutex) Get(key string) ([]Query, bool) {
+	q.m.Lock()
+	defer q.m.Unlock()
+	val, ok := q.queryCache[key]
+	return val, ok
+}
+
+func (q *queryCacheMutex) Set(key string, query []Query) {
+	q.m.Lock()
+	defer q.m.Unlock()
+	q.queryCache[key] = query
+}
+
+type payloadProtoCacheMutex struct {
+	m                 sync.Mutex
+	payloadProtoCache map[string]*desc.MessageDescriptor
+}
+
+func (p *payloadProtoCacheMutex) Get(key string) (*desc.MessageDescriptor, bool) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	val, ok := p.payloadProtoCache[key]
+	return val, ok
+}
+
+func (p *payloadProtoCacheMutex) Set(key string, msgDescriptor *desc.MessageDescriptor) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	p.payloadProtoCache[key] = msgDescriptor
+}
+
+var (
+	queryCache        = queryCacheMutex{queryCache: make(map[string][]Query)}
+	payloadProtoCache = payloadProtoCacheMutex{payloadProtoCache: make(map[string]*desc.MessageDescriptor)}
+)
+
+type Query struct {
+	Field    int    `json:"field"`
+	DataType string `json:"data_type"`
+}
+
+type GRPCPayloadHandler struct {
+	grpcDisabled bool
+}
+
+func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex string) (interface{}, error) {
 	reqBody, err := ioutil.ReadAll(*body)
 	if err != nil {
 		return "", err
@@ -41,7 +97,11 @@ func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex int) (string
 	return b.extractFromRequest(reqBody, protoIndex)
 }
 
-func (b GRPCPayloadHandler) extractFromRequest(body []byte, protoIndex int) (string, error) {
+func (b GRPCPayloadHandler) extractFromRequest(body []byte, protoIndex string) (interface{}, error) {
+	if b.grpcDisabled {
+		return fieldFromProtoMessage(body, protoIndex)
+	}
+
 	reqParser := grpcRequestParser{
 		r:      bytes.NewBuffer(body),
 		header: [5]byte{},
@@ -106,41 +166,280 @@ func (p *grpcRequestParser) Parse() (pf GRPCPayloadCompressionFormat, msg []byte
 	return pf, msg, nil
 }
 
-func fieldFromProtoMessage(msg []byte, tagIndex int) (string, error) {
-	desc, err := buildPayloadGenericProto()
-	if err != nil {
-		return "", err
-	}
-
-	// populate message
-	dynamicMsgKey := dynamic.NewMessage(desc)
-	if err := dynamicMsgKey.Unmarshal(msg); err != nil {
-		return "", err
-	}
-	val, err := dynamicMsgKey.TryGetFieldByNumber(tagIndex)
-	if err != nil {
-		return "", err
-	}
-	return val.(string), nil
-}
-
-// should only be built once
-var genericProtoCache *desc.MessageDescriptor
-
-func buildPayloadGenericProto() (*desc.MessageDescriptor, error) {
-	if genericProtoCache != nil {
-		return genericProtoCache, nil
-	}
-
-	builderMsg := builder.NewMessage("message")
-	for i := 1; i < 100; i++ {
-		builderMsg.AddField(builder.NewField(fmt.Sprintf("field_%d", i),
-			builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(i)))
-	}
-	desc, err := builderMsg.Build()
+func fieldFromProtoMessage(msg []byte, tagIndex string) (interface{}, error) {
+	parsedQuery, err := ParseQuery(tagIndex)
 	if err != nil {
 		return nil, err
 	}
-	genericProtoCache = desc
-	return genericProtoCache, nil
+
+	msgDesc, err := buildPayloadProto(tagIndex, parsedQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	// populate message
+	dynamicMsgKey := dynamic.NewMessage(msgDesc)
+	if err := dynamicMsgKey.Unmarshal(msg); err != nil {
+		return nil, err
+	}
+
+	val, err := RunQuery(dynamicMsgKey, parsedQuery)
+	if err != nil {
+		return nil, err
+	}
+	return val, nil
+}
+
+func buildPayloadProto(query string, queries []Query) (*desc.MessageDescriptor, error) {
+	if val, ok := payloadProtoCache.Get(query); ok {
+		return val, nil
+	}
+
+	builderMsg := builder.NewMessage("shield")
+	fieldName := "_"
+	var lastBuilderMsg *builder.MessageBuilder
+	for queryListIndex := len(queries) - 1; queryListIndex > 0; queryListIndex-- {
+		subQuery := queries[queryListIndex]
+		if subQuery.DataType == String {
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
+				builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(subQuery.Field)))
+		} else if subQuery.DataType == StringArray {
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
+				builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(subQuery.Field)).SetRepeated())
+		} else if subQuery.DataType == Message {
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
+				builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(subQuery.Field)))
+		} else if subQuery.DataType == MessageArray {
+			lastBuilderMsg = builder.NewMessage(fmt.Sprintf("msg%s%d", fieldName, subQuery.Field)).AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, subQuery.Field),
+				builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(subQuery.Field)).SetRepeated())
+		}
+		fieldName = "_" + fieldName
+	}
+
+	if queries[0].DataType == Message {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)))
+	} else if queries[0].DataType == MessageArray {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeMessage(lastBuilderMsg)).SetNumber(int32(queries[0].Field)).SetRepeated())
+	} else if queries[0].DataType == String {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(queries[0].Field)))
+	} else if queries[0].DataType == StringArray {
+		builderMsg.AddField(builder.NewField(fmt.Sprintf("field%s%d", fieldName, queries[0].Field),
+			builder.FieldTypeScalar(descriptor.FieldDescriptorProto_TYPE_STRING)).SetNumber(int32(queries[0].Field)).SetRepeated())
+	}
+
+	msgDescriptor, err := builderMsg.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	payloadProtoCache.Set(query, msgDescriptor)
+	return msgDescriptor, nil
+}
+
+func RunQuery(msg *dynamic.Message, query []Query) (interface{}, error) {
+	first := query[0]
+	rest := query[1:]
+
+	var val interface{}
+	var err error
+	if first.DataType == MessageArray {
+		v, err := msg.TryGetFieldByNumber(first.Field)
+		if err != nil {
+			return nil, err
+		}
+
+		nestedMessageArray := v.([]interface{})
+		valueList := make([]interface{}, 0)
+		for _, j := range nestedMessageArray {
+			dm, err := getNextDynamicMessage(j, first)
+			if err != nil {
+				return nil, err
+			}
+			valuesFromSubQuery, err := RunQuery(dm, rest)
+			if err != nil {
+				return nil, err
+			}
+
+			valueList = append(valueList, valuesFromSubQuery)
+		}
+		val = valueList
+		return val, nil
+	} else {
+		val, err = msg.TryGetFieldByNumber(first.Field)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rest) == 0 {
+		return val, nil
+	}
+
+	dm, err := getNextDynamicMessage(val, first)
+	if err != nil {
+		return nil, err
+	}
+
+	return RunQuery(dm, rest)
+}
+
+func getNextDynamicMessage(val interface{}, first Query) (*dynamic.Message, error) {
+	dm, ok := val.(*dynamic.Message)
+	if !ok {
+		pm, ok := val.(proto.Message)
+		if !ok {
+			return nil, fmt.Errorf("cannot query field from non-message value %q", first.Field)
+		}
+		md, err := desc.LoadMessageDescriptorForMessage(pm)
+		if err != nil {
+			return nil, err
+		}
+		dm = dynamic.NewMessage(md)
+		if err := dm.ConvertFrom(pm); err != nil {
+			return nil, err
+		}
+	}
+	return dm, nil
+}
+
+/* Parsing Grammar
+- Token Size is 1
+- "/" Character not allowed as its reserved for END
+- Array Wildcard [*] can be used only once
+
+Definitions
+- INT: any single digit integer
+- END: end of string, denoted by "/"
+
+Table of Allowed Characters
+| Current Character | allowed next characters |
+|-------------------|-------------------------|
+| INT           	| INT, ".", "[", END	  |
+| "*"               | "]"                  	  |
+| "."               | INT			          |
+| "["				| "*"					  |
+| "]"				| ".", END			      |
+
+*/
+
+const (
+	intRepresentation                  = "INT"
+	endRepresentation                  = "END"
+	outOfBoundRepresentation           = "OOB"
+	dotRepresentation                  = "."
+	starRepresentation                 = "*"
+	squareBracketOpeningRepresentation = "["
+	squareBracketClosingRepresentation = "]"
+
+	endRepresentationChar = "/"
+)
+
+var nextValidCharTable = map[string][]string{
+	intRepresentation:                  {intRepresentation, dotRepresentation, squareBracketOpeningRepresentation, endRepresentation},
+	starRepresentation:                 {squareBracketClosingRepresentation},
+	dotRepresentation:                  {intRepresentation},
+	squareBracketOpeningRepresentation: {starRepresentation},
+	squareBracketClosingRepresentation: {dotRepresentation, endRepresentation},
+}
+
+func getTokenAt(query string, tokenIndex int) string {
+	if tokenIndex >= len(query) {
+		// to handle edge cases
+		return outOfBoundRepresentation
+	}
+
+	chr := string(query[tokenIndex])
+	switch chr {
+	case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
+		return intRepresentation
+	case endRepresentationChar:
+		return endRepresentation
+	}
+
+	return chr
+}
+
+func ParseQuery(query string) ([]Query, error) {
+	query = query + endRepresentationChar
+	tokenIndex := 0
+	queryList := make([]Query, 0)
+	countOfArrayWildcard := 0
+	processingSubQuery := Query{}
+
+	for {
+		currentToken := getTokenAt(query, tokenIndex)
+		nextToken := getTokenAt(query, tokenIndex+1)
+		switch currentToken {
+		case endRepresentation:
+			queryList = append(queryList, processingSubQuery)
+			return queryList, nil
+		case intRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			fieldDigit, _ := strconv.Atoi(string(query[tokenIndex])) // no need to handle error as we know currentToken is a digit
+			processingSubQuery.Field = processingSubQuery.Field*10 + fieldDigit
+			if nextToken == endRepresentation {
+				processingSubQuery.DataType = String
+			}
+		case dotRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			if processingSubQuery.DataType == "" {
+				processingSubQuery.DataType = Message
+			}
+			queryList = append(queryList, processingSubQuery)
+			processingSubQuery = Query{}
+
+		case starRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+		case squareBracketOpeningRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			if countOfArrayWildcard >= 1 {
+				return nil, fmt.Errorf("array wildcard has been used more than once")
+			}
+
+			if nextToken == starRepresentation {
+				countOfArrayWildcard++
+			}
+
+		case squareBracketClosingRepresentation:
+			if !nextCharValidations(nextToken, nextValidCharTable[currentToken]) {
+				return nil, fmt.Errorf("invalid char %s after %s", nextToken, currentToken)
+			}
+
+			if nextToken == dotRepresentation {
+				processingSubQuery.DataType = MessageArray
+			} else if nextToken == endRepresentation {
+				processingSubQuery.DataType = StringArray
+			}
+
+		default:
+			return nil, fmt.Errorf("found invalid char %s", currentToken)
+		}
+
+		tokenIndex++
+	}
+}
+
+func nextCharValidations(nextChar string, valid []string) bool {
+	for _, elem := range valid {
+		if nextChar == elem {
+			return true
+		}
+	}
+
+	return false
 }

@@ -58,7 +58,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.next.ServeHook(res, nil)
 	}
 
-	attributes := map[string]string{}
+	attributes := map[string]interface{}{}
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)
 		bodySource := &res.Body

@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package hello;
+option go_package = "proto/hello_test";
+
+message nestedMessageL0 {
+  nestedMessageL1 l1 = 1;
+}
+
+message nestedMessageL1 {
+  nestedMessageL2 l2 = 2;
+}
+
+message nestedMessageL2 {
+  repeated nestedMessageL3 l3 = 7;
+  repeated nestedMessageL4 l4 = 8;
+}
+
+message nestedMessageL3 {
+  string s1l3 = 1;
+  nestedMessageL5 l5 = 9;
+}
+
+message nestedMessageL4 {
+  string s1l4 = 1;
+  repeated string s3l4 = 3;
+}
+
+message nestedMessageL5 {
+  string s1l5 = 12;
+}
+
+service helloTestService {
+  rpc Greet(nestedMessageL0) returns (nestedMessageL0) {};
+}
