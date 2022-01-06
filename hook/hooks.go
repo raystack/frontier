@@ -37,11 +37,20 @@ type Attribute struct {
 }
 
 func ExtractHook(r *http.Request, name string) (structs.HookSpec, bool) {
-	rl, ok := middleware.ExtractRule(r)
+	rl, ok := ExtractRule(r)
 	if !ok {
 		return structs.HookSpec{}, false
 	}
 	return rl.Hooks.Get(name)
+}
+
+func ExtractRule(r *http.Request) (*structs.Rule, bool) {
+	rl, ok := middleware.ExtractRule(r)
+	if !ok {
+		return nil, false
+	}
+
+	return rl, true
 }
 
 type Hook struct{}

@@ -135,7 +135,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 							URL:    frontend.Path,
 							Method: frontend.Method,
 						},
-						Backend:     structs.Backend{URL: backend.Target},
+						Backend:     structs.Backend{URL: backend.Target, Namespace: backend.Name},
 						Middlewares: middlewares,
 						Hooks:       hooks,
 					})
