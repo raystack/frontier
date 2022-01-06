@@ -76,12 +76,23 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 
 	var cleanUpFunc []func() error
 	var cleanUpProxies []func(ctx context.Context) error
-	cleanUpFunc, cleanUpProxies, err := startProxy(logger, appConfig, ctx, cleanUpFunc, cleanUpProxies)
+
+	resourceConfig, err := loadResourceConfig(ctx, logger, appConfig)
 	if err != nil {
 		return err
 	}
 
-	muxServer := startServer(logger, appConfig, err, ctx, db)
+	deps, err := apiDependencies(ctx, db, appConfig, resourceConfig, logger)
+	if err != nil {
+		return err
+	}
+
+	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies)
+	if err != nil {
+		return err
+	}
+
+	muxServer := startServer(logger, appConfig, err, ctx, deps)
 
 	waitForTermSignal(ctx)
 	cleanup(logger, ctx, cleanUpFunc, cleanUpProxies, muxServer)
@@ -111,7 +122,7 @@ func cleanup(logger log.Logger, ctx context.Context, cleanUpFunc []func() error,
 	s.Shutdown(shutdownCtx)
 }
 
-func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx context.Context, db *sql.SQL) *server.MuxServer {
+func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx context.Context, deps handler.Deps) *server.MuxServer {
 	s, err := server.NewMux(server.Config{
 		Port: appConfig.App.Port,
 	}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(appConfig, logger)))
@@ -122,18 +133,6 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 	gw, err := server.NewGateway("", appConfig.App.Port, server.WithGatewayMuxOptions(
 		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{appConfig.App.IdentityProxyHeader: true}))),
 	)
-	if err != nil {
-		panic(err)
-	}
-
-	resourceConfig, err := loadResourceConfig(ctx, logger, appConfig)
-
-	if err != nil {
-		panic(err)
-	}
-
-	deps, err := apiDependencies(ctx, db, appConfig, resourceConfig, logger)
-
 	if err != nil {
 		panic(err)
 	}
@@ -174,7 +173,7 @@ func loadResourceConfig(ctx context.Context, logger log.Logger, appConfig *confi
 	return resourceRepo, nil
 }
 
-func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
+func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, deps handler.Deps, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
 	for _, service := range appConfig.Proxy.Services {
 		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger)), proxy.NewDirector())
 
@@ -193,7 +192,7 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 		}
 
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader, deps)
 		go func(thisService config.Service, handler http.Handler) {
 			proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 			logger.Info("starting h2c proxy", "url", proxyURL)

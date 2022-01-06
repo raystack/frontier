@@ -2,8 +2,6 @@ package permission
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/odpf/shield/internal/authz"
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/model"
@@ -45,7 +43,6 @@ func (s Service) AddTeamToOrg(ctx context.Context, team model.Group, org model.O
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
-	fmt.Println(rel)
 	if err != nil {
 		return err
 	}
@@ -60,6 +57,24 @@ func (s Service) AddAdminToTeam(ctx context.Context, user model.User, team model
 		SubjectNamespace: definition.UserNamespace,
 		Role: model.Role{
 			Id:        definition.TeamAdminRole.Id,
+			Namespace: definition.TeamNamespace,
+		},
+	}
+	err := s.Authz.Permission.AddRelation(ctx, rel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AddMemberToTeam(ctx context.Context, user model.User, team model.Group) error {
+	rel := model.Relation{
+		ObjectNamespace:  definition.TeamNamespace,
+		ObjectId:         team.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role: model.Role{
+			Id:        definition.TeamMemberRole.Id,
 			Namespace: definition.TeamNamespace,
 		},
 	}
@@ -118,7 +133,6 @@ func (s Service) AddProjectToOrg(ctx context.Context, project model.Project, org
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
-	fmt.Println(rel)
 	if err != nil {
 		return err
 	}
@@ -131,17 +145,16 @@ func (s Service) AddProjectToResource(ctx context.Context, project model.Project
 	}
 
 	rel := model.Relation{
-		ObjectNamespace:  definition.ProjectNamespace,
-		ObjectId:         project.Id,
-		SubjectId:        resource.Id,
-		SubjectNamespace: resourceNS,
+		ObjectNamespace:  resourceNS,
+		ObjectId:         resource.Id,
+		SubjectId:        project.Id,
+		SubjectNamespace: definition.ProjectNamespace,
 		Role: model.Role{
 			Id:        definition.ProjectNamespace.Id,
 			Namespace: resourceNS,
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
-	fmt.Println(rel)
 	if err != nil {
 		return err
 	}
@@ -154,17 +167,16 @@ func (s Service) AddOrgToResource(ctx context.Context, org model.Organization, r
 	}
 
 	rel := model.Relation{
-		ObjectNamespace:  definition.OrgNamespace,
-		ObjectId:         org.Id,
-		SubjectId:        resource.Id,
-		SubjectNamespace: resourceNS,
+		ObjectNamespace:  resourceNS,
+		ObjectId:         resource.Id,
+		SubjectId:        org.Id,
+		SubjectNamespace: definition.OrgNamespace,
 		Role: model.Role{
 			Id:        definition.OrgNamespace.Id,
 			Namespace: resourceNS,
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
-	fmt.Println(rel)
 	if err != nil {
 		return err
 	}
@@ -177,17 +189,16 @@ func (s Service) AddTeamToResource(ctx context.Context, team model.Group, resour
 	}
 
 	rel := model.Relation{
-		ObjectNamespace:  definition.TeamNamespace,
-		ObjectId:         team.Id,
-		SubjectId:        resource.Id,
-		SubjectNamespace: resourceNS,
+		ObjectNamespace:  resourceNS,
+		ObjectId:         resource.Id,
+		SubjectId:        team.Id,
+		SubjectNamespace: definition.TeamNamespace,
 		Role: model.Role{
 			Id:        definition.TeamNamespace.Id,
 			Namespace: resourceNS,
 		},
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
-	fmt.Println(rel)
 	if err != nil {
 		return err
 	}

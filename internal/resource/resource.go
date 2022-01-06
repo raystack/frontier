@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/odpf/shield/internal/permission"
 
 	"github.com/odpf/shield/model"
@@ -76,5 +75,6 @@ func (s Service) Update(ctx context.Context, id string, resource model.Resource)
 }
 
 func createResourceUrl(resource model.Resource) string {
-	return fmt.Sprintf("organizations/%s/projects/%s/teams/%s/%s/%s", resource.OrganizationId, resource.ProjectId, resource.GroupId, resource.NamespaceId, resource.Name)
+	//return fmt.Sprintf("organizations/%s/projects/%s/teams/%s/%s/%s", resource.OrganizationId, resource.ProjectId, resource.GroupId, resource.NamespaceId, resource.Name)
+	return fmt.Sprintf("%s/%s", resource.NamespaceId, resource.Name)
 }

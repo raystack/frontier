@@ -1,7 +1,10 @@
 package authz
 
 import (
+	"context"
 	"fmt"
+	"github.com/odpf/shield/api/handler"
+	"github.com/odpf/shield/model"
 	"net/http"
 	"strings"
 
@@ -18,6 +21,7 @@ type Authz struct {
 	log                 log.Logger
 	identityProxyHeader string
 	next                http.Handler
+	Deps                handler.Deps
 }
 
 type Config struct {
@@ -25,8 +29,8 @@ type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, identityProxyHeader string, next http.Handler) *Authz {
-	return &Authz{log: log, identityProxyHeader: identityProxyHeader, next: next}
+func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler) *Authz {
+	return &Authz{log: log, identityProxyHeader: identityProxyHeader, Deps: deps, next: next}
 }
 
 func (c Authz) Info() *structs.MiddlewareInfo {
@@ -55,7 +59,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// is it string or []string
 
-	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
+	//permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
 
 	for res, attr := range config.Attributes {
 		_ = res
@@ -146,8 +150,89 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// use permissionAttributes & config.Action here
+	resources, err := createResources(permissionAttributes)
+	if err != nil {
+		c.log.Error(err.Error())
+		return
+	}
+	for _, resource := range resources {
+		res, err := c.Deps.V1beta1.ResourceService.Create(context.Background(), resource)
+		if err != nil {
+			c.log.Error(err.Error())
+			return
+		}
+		c.log.Info(fmt.Sprintf("Resource %s created", res.Id))
+	}
 
 	c.next.ServeHTTP(rw, req)
+}
+
+func createResources(permissionAttributes map[string]interface{}) ([]model.Resource, error) {
+	var resources []model.Resource
+	projects, err := getAttributesValues(permissionAttributes["project"])
+	if err != nil {
+		return nil, err
+	}
+
+	orgs, err := getAttributesValues(permissionAttributes["organization"])
+	if err != nil {
+		return nil, err
+	}
+
+	teams, err := getAttributesValues(permissionAttributes["team"])
+	if err != nil {
+		return nil, err
+	}
+
+	resourceList, err := getAttributesValues(permissionAttributes["resource"])
+	if err != nil {
+		return nil, err
+	}
+
+	if len(projects) < 1 || len(orgs) < 1 || len(teams) < 1 || len(resourceList) < 1 {
+		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
+	}
+
+	// @TODO: add namespaceid
+
+	for _, org := range orgs {
+		for _, project := range projects {
+			for _, team := range teams {
+				for _, res := range resourceList {
+					resources = append(resources, model.Resource{
+						Name:           res,
+						OrganizationId: org,
+						ProjectId:      project,
+						GroupId:        team,
+					})
+				}
+			}
+		}
+	}
+	return resources, nil
+}
+
+func getAttributesValues(attributes interface{}) ([]string, error) {
+	var values []string
+	switch attributes.(type) {
+	case []string:
+		for _, i := range attributes.([]string) {
+			values = append(values, i)
+		}
+	case string:
+		values = append(values, attributes.(string))
+	case []interface{}:
+		for _, i := range attributes.([]interface{}) {
+			values = append(values, i.(string))
+		}
+	case interface{}:
+		values = append(values, attributes.(string))
+	case nil:
+		return values, nil
+	default:
+		return values, fmt.Errorf("unsuported attribute type %v", attributes)
+	}
+	return values, nil
 }
 
 func (w Authz) notAllowed(rw http.ResponseWriter) {
