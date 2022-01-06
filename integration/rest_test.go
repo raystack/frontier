@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/api/handler"
+
 	"github.com/odpf/salt/log"
 
 	"github.com/odpf/shield/hook"
@@ -290,7 +292,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, "", prefixWare)
+	casbinAuthz := authz.New(logger, "", handler.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare

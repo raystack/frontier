@@ -2,6 +2,7 @@ package permission
 
 import (
 	"context"
+
 	"github.com/odpf/shield/internal/authz"
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/model"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/odpf/shield/internal/permission"
 
 	"github.com/odpf/shield/model"
