@@ -8,14 +8,6 @@ import (
 )
 
 func TestCreateResources(t *testing.T) {
-	t.Run("should return empty list", func(t *testing.T) {
-		input := map[string]interface{}{}
-		output, err := createResources(input)
-		var expected []model.Resource
-		assert.EqualValues(t, expected, output)
-		assert.NoError(t, err)
-	})
-
 	t.Run("should should throw error if project is missing", func(t *testing.T) {
 		input := map[string]interface{}{
 			"abc": "abc",
