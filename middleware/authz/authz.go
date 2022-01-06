@@ -68,10 +68,9 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	attributes := map[string]interface{}{}
-	attributes["namespace"] = rule.Backend.Namespace
-
 	permissionAttributes := map[string]interface{}{}
+
+	permissionAttributes["namespace"] = rule.Backend.Namespace
 
 	// is it string or []string
 
@@ -205,11 +204,14 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 		return nil, err
 	}
 
+	namespace, err := getAttributesValues(permissionAttributes["namespace"])
+	if err != nil {
+		return nil, err
+	}
+
 	if len(projects) < 1 || len(orgs) < 1 || len(teams) < 1 || len(resourceList) < 1 {
 		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
 	}
-
-	// @TODO: add namespaceid
 
 	for _, org := range orgs {
 		for _, project := range projects {
@@ -220,6 +222,7 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 						OrganizationId: org,
 						ProjectId:      project,
 						GroupId:        team,
+						NamespaceId:    namespace[0],
 					})
 				}
 			}
