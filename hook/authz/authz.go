@@ -48,6 +48,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, err)
 	}
 
+	rule, ok := hook.ExtractRule(res.Request)
+	if !ok {
+		return a.next.ServeHook(res, nil)
+	}
+
 	hookSpec, ok := hook.ExtractHook(res.Request, a.Info().Name)
 	if !ok {
 		return a.next.ServeHook(res, nil)
@@ -58,7 +63,13 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.next.ServeHook(res, nil)
 	}
 
+	if rule.Backend.Namespace == "" {
+		return a.next.ServeHook(res, fmt.Errorf("namespace variable not defined in rules"))
+	}
+
 	attributes := map[string]interface{}{}
+	attributes["namespace"] = rule.Backend.Namespace
+
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)
 		bodySource := &res.Body
@@ -132,13 +143,10 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		}
 	}
 
-	//Change after merging PR#32
-	//paramMap, _ := middleware.ExtractPathParams(req)
-	//for key, value := range paramMap {
-	//	permissionAttributes[key] = value
-	//}
-
-	// use attributes to modify authz
+	paramMap, _ := middleware.ExtractPathParams(res.Request)
+	for key, value := range paramMap {
+		attributes[key] = value
+	}
 
 	return a.next.ServeHook(res, nil)
 }

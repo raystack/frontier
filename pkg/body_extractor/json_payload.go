@@ -12,10 +12,10 @@ import (
 
 type JSONPayloadHandler struct{}
 
-func (h JSONPayloadHandler) Extract(body *io.ReadCloser, key string) (string, error) {
+func (h JSONPayloadHandler) Extract(body *io.ReadCloser, key string) (interface{}, error) {
 	reqBody, err := ioutil.ReadAll(*body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer (*body).Close()
 	// repopulate body
@@ -23,7 +23,7 @@ func (h JSONPayloadHandler) Extract(body *io.ReadCloser, key string) (string, er
 
 	field := gjson.GetBytes(reqBody, key)
 	if !field.Exists() {
-		return "", errors.Errorf("failed to find field: %s", key)
+		return nil, errors.Errorf("failed to find field: %s", key)
 	}
-	return field.String(), nil
+	return field.Value(), nil
 }

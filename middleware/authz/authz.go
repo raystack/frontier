@@ -42,6 +42,12 @@ func (c Authz) Info() *structs.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	rule, ok := middleware.ExtractRule(req)
+	if !ok {
+		c.next.ServeHTTP(rw, req)
+		return
+	}
+
 	wareSpec, ok := middleware.ExtractMiddleware(req, c.Info().Name)
 	if !ok {
 		c.next.ServeHTTP(rw, req)
@@ -55,6 +61,15 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		c.notAllowed(rw)
 		return
 	}
+
+	if rule.Backend.Namespace == "" {
+		c.log.Error("namespace is not defined for this rule")
+		c.notAllowed(rw)
+		return
+	}
+
+	attributes := map[string]interface{}{}
+	attributes["namespace"] = rule.Backend.Namespace
 
 	permissionAttributes := map[string]interface{}{}
 
