@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/odpf/shield/api/handler"
+	"github.com/odpf/shield/model"
+
 	"github.com/odpf/shield/hook"
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
@@ -21,13 +24,16 @@ type Authz struct {
 
 	// To skip all the next hooks and just respond back
 	escape hook.Service
+
+	Deps handler.Deps
 }
 
-func New(log log.Logger, next, escape hook.Service) Authz {
+func New(log log.Logger, next, escape hook.Service, deps handler.Deps) Authz {
 	return Authz{
 		log:    log,
 		next:   next,
 		escape: escape,
+		Deps:   deps,
 	}
 }
 
@@ -148,5 +154,91 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
+	resources, err := createResources(attributes)
+	if err != nil {
+		a.log.Error(err.Error())
+		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
+	}
+	for _, resource := range resources {
+		newResource, err := a.Deps.V1beta1.ResourceService.Create(res.Request.Context(), resource)
+		if err != nil {
+			a.log.Error(err.Error())
+			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
+		}
+		a.log.Info(fmt.Sprintf("Resource %s created", newResource.Id))
+	}
+
 	return a.next.ServeHook(res, nil)
+}
+
+func createResources(permissionAttributes map[string]interface{}) ([]model.Resource, error) {
+	var resources []model.Resource
+	projects, err := getAttributesValues(permissionAttributes["project"])
+	if err != nil {
+		return nil, err
+	}
+
+	orgs, err := getAttributesValues(permissionAttributes["organization"])
+	if err != nil {
+		return nil, err
+	}
+
+	teams, err := getAttributesValues(permissionAttributes["team"])
+	if err != nil {
+		return nil, err
+	}
+
+	resourceList, err := getAttributesValues(permissionAttributes["resource"])
+	if err != nil {
+		return nil, err
+	}
+
+	namespace, err := getAttributesValues(permissionAttributes["namespace"])
+	if err != nil {
+		return nil, err
+	}
+
+	if len(projects) < 1 || len(orgs) < 1 || len(teams) < 1 || len(resourceList) < 1 {
+		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
+	}
+
+	for _, org := range orgs {
+		for _, project := range projects {
+			for _, team := range teams {
+				for _, res := range resourceList {
+					resources = append(resources, model.Resource{
+						Name:           res,
+						OrganizationId: org,
+						ProjectId:      project,
+						GroupId:        team,
+						NamespaceId:    namespace[0],
+					})
+				}
+			}
+		}
+	}
+	return resources, nil
+}
+
+func getAttributesValues(attributes interface{}) ([]string, error) {
+	var values []string
+	switch attributes.(type) {
+	case []string:
+		for _, i := range attributes.([]string) {
+			values = append(values, i)
+		}
+	case string:
+		values = append(values, attributes.(string))
+	case []interface{}:
+		for _, i := range attributes.([]interface{}) {
+			values = append(values, i.(string))
+		}
+	case interface{}:
+		values = append(values, attributes.(string))
+	case nil:
+		return values, nil
+	default:
+		return values, fmt.Errorf("unsuported attribute type %v", attributes)
+	}
+	return values, nil
 }

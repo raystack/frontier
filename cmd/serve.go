@@ -175,7 +175,7 @@ func loadResourceConfig(ctx context.Context, logger log.Logger, appConfig *confi
 
 func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, deps handler.Deps, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
 	for _, service := range appConfig.Proxy.Services {
-		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger)), proxy.NewDirector())
+		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger, deps)), proxy.NewDirector())
 
 		// load rules sets
 		if service.RulesPath == "" {
@@ -222,9 +222,9 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 	return cleanUpFunc, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger) hook.Service {
+func buildHookPipeline(log log.Logger, deps handler.Deps) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook)
+	return authz_hook.New(log, rootHook, rootHook, deps)
 }
 
 func waitForTermSignal(ctx context.Context) {

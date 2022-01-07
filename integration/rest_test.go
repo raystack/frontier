@@ -39,6 +39,8 @@ const (
 	h2cProtocol     = "h2c"
 )
 
+// @TODO: add tests for hooks
+
 func TestREST(t *testing.T) {
 	baseCtx, baseCancel := context.WithCancel(context.Background())
 	defer baseCancel()
@@ -300,7 +302,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRep
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook)
+	return authz_hook.New(log, rootHook, rootHook, handler.Deps{})
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {
