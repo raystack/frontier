@@ -14,10 +14,7 @@ func (s Service) GetAction(ctx context.Context, id string) (model.Action, error)
 }
 
 func (s Service) CreateAction(ctx context.Context, action model.Action) (model.Action, error) {
-	newAction, err := s.Store.CreateAction(ctx, model.Action{
-		Name: action.Name,
-		Id:   action.Id,
-	})
+	newAction, err := s.Store.CreateAction(ctx, action)
 
 	if err != nil {
 		return model.Action{}, err

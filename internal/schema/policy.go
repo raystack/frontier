@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/odpf/shield/internal/schema_generator"
 	"github.com/odpf/shield/model"
@@ -56,15 +57,15 @@ func (s Service) generateSchema(policies []model.Policy) ([]string, error) {
 		return []string{}, err
 	}
 	schemas := schema_generator.BuildSchema(definitions)
+	schemas = append(schemas, schema_generator.GetDefaultSchema()...)
 	return schemas, nil
 }
 
 func (s Service) pushSchema(ctx context.Context, schemas []string) error {
-	for _, schema := range schemas {
-		err := s.Authz.Policy.AddPolicy(ctx, schema)
-		if err != nil {
-			return err
-		}
+	schema := strings.Join(schemas, "\n")
+	err := s.Authz.Policy.AddPolicy(ctx, schema)
+	if err != nil {
+		return err
 	}
 	return nil
 }

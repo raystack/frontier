@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/odpf/shield/api/handler"
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
 	"github.com/odpf/shield/structs"
@@ -18,6 +19,7 @@ type Authz struct {
 	log                 log.Logger
 	identityProxyHeader string
 	next                http.Handler
+	Deps                handler.Deps
 }
 
 type Config struct {
@@ -25,8 +27,8 @@ type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, identityProxyHeader string, next http.Handler) *Authz {
-	return &Authz{log: log, identityProxyHeader: identityProxyHeader, next: next}
+func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler) *Authz {
+	return &Authz{log: log, identityProxyHeader: identityProxyHeader, Deps: deps, next: next}
 }
 
 func (c Authz) Info() *structs.MiddlewareInfo {
@@ -37,6 +39,12 @@ func (c Authz) Info() *structs.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	rule, ok := middleware.ExtractRule(req)
+	if !ok {
+		c.next.ServeHTTP(rw, req)
+		return
+	}
+
 	wareSpec, ok := middleware.ExtractMiddleware(req, c.Info().Name)
 	if !ok {
 		c.next.ServeHTTP(rw, req)
@@ -51,11 +59,19 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if rule.Backend.Namespace == "" {
+		c.log.Error("namespace is not defined for this rule")
+		c.notAllowed(rw)
+		return
+	}
+
 	permissionAttributes := map[string]interface{}{}
+
+	permissionAttributes["namespace"] = rule.Backend.Namespace
 
 	// is it string or []string
 
-	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
+	//permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
 
 	for res, attr := range config.Attributes {
 		_ = res

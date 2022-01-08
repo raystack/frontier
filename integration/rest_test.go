@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/api/handler"
+
 	"github.com/odpf/salt/log"
 
 	"github.com/odpf/shield/hook"
@@ -36,6 +38,8 @@ const (
 	httpProtocol    = "http"
 	h2cProtocol     = "h2c"
 )
+
+// @TODO: add tests for hooks
 
 func TestREST(t *testing.T) {
 	baseCtx, baseCancel := context.WithCancel(context.Background())
@@ -290,7 +294,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, "", prefixWare)
+	casbinAuthz := authz.New(logger, "", handler.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
@@ -298,7 +302,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRep
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook)
+	return authz_hook.New(log, rootHook, rootHook, handler.Deps{})
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {

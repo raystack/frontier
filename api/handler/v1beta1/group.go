@@ -70,10 +70,10 @@ func (v Dep) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroup
 	}
 
 	newGroup, err := v.GroupService.CreateGroup(ctx, model.Group{
-		Name:         request.Body.Name,
-		Slug:         slug,
-		Organization: model.Organization{Id: request.GetBody().OrgId},
-		Metadata:     metaDataMap,
+		Name:           request.Body.Name,
+		Slug:           slug,
+		OrganizationId: request.Body.OrgId,
+		Metadata:       metaDataMap,
 	})
 
 	if err != nil {

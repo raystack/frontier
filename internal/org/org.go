@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 
+	"github.com/odpf/shield/internal/permission"
+
 	"github.com/odpf/shield/model"
 )
 
 type Service struct {
-	Store Store
+	Store       Store
+	Permissions permission.Permissions
 }
 
 var (
@@ -28,11 +31,22 @@ func (s Service) Get(ctx context.Context, id string) (model.Organization, error)
 }
 
 func (s Service) Create(ctx context.Context, org model.Organization) (model.Organization, error) {
+	user, err := s.Permissions.FetchCurrentUser(ctx)
+	if err != nil {
+		return model.Organization{}, err
+	}
+
 	newOrg, err := s.Store.CreateOrg(ctx, model.Organization{
 		Name:     org.Name,
 		Slug:     org.Slug,
 		Metadata: org.Metadata,
 	})
+
+	if err != nil {
+		return model.Organization{}, err
+	}
+
+	err = s.Permissions.AddAdminToOrg(ctx, user, newOrg)
 
 	if err != nil {
 		return model.Organization{}, err

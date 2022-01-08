@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
@@ -15,6 +17,7 @@ import (
 type Action struct {
 	Id          string    `db:"id"`
 	Name        string    `db:"name"`
+	Namespace   Namespace `db:"namespace"`
 	NamespaceID string    `db:"namespace_id"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
@@ -22,7 +25,10 @@ type Action struct {
 
 const (
 	getActionQuery    = `SELECT id, name, namespace_id, created_at, updated_at from actions where id=$1;`
-	createActionQuery = `INSERT INTO actions(id, name, namespace_id) values($1, $2, $3) RETURNING id, name, namespace_id, created_at, updated_at;`
+	createActionQuery = `INSERT INTO actions(id, name, namespace_id)
+		values($1, $2, $3)
+		ON CONFLICT (id) DO UPDATE SET name=$2
+		RETURNING id, name, namespace_id, created_at, updated_at;`
 	listActionsQuery  = `SELECT id, name, namespace_id, created_at, updated_at from actions;`
 	updateActionQuery = `UPDATE actions set name = $2, namespace_id = $3, updated_at = now() where id = $1 RETURNING id, name, namespace_id, created_at, updated_at;`
 )
@@ -59,8 +65,10 @@ func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model
 
 func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (model.Action, error) {
 	var newAction Action
+
+	nsId := utils.DefaultStringIfEmpty(actionToCreate.Namespace.Id, actionToCreate.NamespaceId)
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, actionToCreate.NamespaceId)
+		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, nsId)
 	})
 
 	if err != nil {
@@ -125,10 +133,16 @@ func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.A
 }
 
 func transformToAction(from Action) (model.Action, error) {
+	namespace, err := transformToNamespace(from.Namespace)
+	if err != nil {
+		return model.Action{}, err
+	}
+
 	return model.Action{
 		Id:          from.Id,
 		Name:        from.Name,
 		NamespaceId: from.NamespaceID,
+		Namespace:   namespace,
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,
 	}, nil

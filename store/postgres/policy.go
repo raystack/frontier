@@ -7,28 +7,33 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
 )
 
 type Policy struct {
-	Id          string    `db:"id"`
-	Role        Role      `db:"role"`
-	RoleID      string    `db:"role_id"`
-	Namespace   Namespace `db:"namespace"`
-	NamespaceID string    `db:"namespace_id"`
-	Action      Action    `db:"action"`
-	ActionID    string    `db:"action_id"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	Id          string         `db:"id"`
+	Role        Role           `db:"role"`
+	RoleID      string         `db:"role_id"`
+	Namespace   Namespace      `db:"namespace"`
+	NamespaceID string         `db:"namespace_id"`
+	Action      Action         `db:"action"`
+	ActionID    sql.NullString `db:"action_id"`
+	CreatedAt   time.Time      `db:"created_at"`
+	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
-const selectStatement = `p.id, roles.id "role.id",roles.name "role.name", roles.namespace_id "role.namespace_id", roles.metadata "role.metadata", namespaces.id "namespace.id", namespaces.name "namespace.name", actions.id "action.id", actions.name "action.name", actions.namespace_id "action.namespace_id"`
+const selectStatement = `p.id, p.namespace_id, roles.id "role.id", roles.name "role.name", roles.types "role.types", roles.namespace_id "role.namespace_id", roles.namespace_id "role.namespace.id", roles.metadata "role.metadata", namespaces.id "namespace.id", namespaces.name "namespace.name", actions.id "action.id", actions.name "action.name", actions.namespace_id "action.namespace_id", actions.namespace_id "action.namespace.id"`
 const joinStatement = `JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id`
 
 var (
-	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) values($1, $2, $3) RETURNING id, namespace_id, role_id, action_id`)
+	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) 
+	values($1, $2, $3) 
+	ON CONFLICT (role_id, namespace_id, action_id) DO UPDATE SET namespace_id=$1
+	RETURNING id, namespace_id, role_id, action_id`)
 	getPolicyQuery    = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
 	listPolicyQuery   = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
 	updatePolicyQuery = fmt.Sprintf(`UPDATE policies SET namespace_id = $2, role_id = $3, action_id = $4, updated_at = now() where id = $1 RETURNING id, namespace_id, role_id, action_id;`)
@@ -88,57 +93,34 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	return transformedPolicies, nil
 }
 
-func (s Store) fetchNamespacePolicies(ctx context.Context, namespaceId string) ([]model.Policy, error) {
-	var fetchedPolicies []Policy
-
-	query := fmt.Sprintf("%s %s", listPolicyQuery, "WHERE p.namespace_id='$1'")
-
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedPolicies, query, namespaceId)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Policy{}, schema.PolicyDoesntExist
-	} else if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedPolicies []model.Policy
-	for _, p := range fetchedPolicies {
-		transformedPolicy, err := transformToPolicy(p)
-		if err != nil {
-			return []model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedPolicies = append(transformedPolicies, transformedPolicy)
-	}
-
-	return transformedPolicies, nil
-}
-
 func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([]model.Policy, error) {
 	var newPolicy Policy
 
+	roleId := utils.DefaultStringIfEmpty(policyToCreate.Role.Id, policyToCreate.RoleId)
+	actionId := utils.DefaultStringIfEmpty(policyToCreate.Action.Id, policyToCreate.ActionId)
+	nsId := utils.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
+
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, policyToCreate.NamespaceId, policyToCreate.RoleId, policyToCreate.ActionId)
+		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsId, roleId, sql.NullString{String: actionId, Valid: actionId != ""})
 	})
 	if err != nil {
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
-	return s.fetchNamespacePolicies(ctx, newPolicy.NamespaceID)
+	return s.ListPolicies(ctx)
 }
 
 func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Policy) ([]model.Policy, error) {
 	var updatedPolicy Policy
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, toUpdate.ActionId)
+		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, sql.NullString{String: toUpdate.ActionId, Valid: toUpdate.ActionId != ""})
 	})
 
 	if err != nil {
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return s.fetchNamespacePolicies(ctx, updatedPolicy.NamespaceID)
+	return s.ListPolicies(ctx)
 }
 
 func transformToPolicy(from Policy) (model.Policy, error) {
@@ -167,7 +149,7 @@ func transformToPolicy(from Policy) (model.Policy, error) {
 		Role:        role,
 		RoleId:      from.RoleID,
 		Action:      action,
-		ActionId:    from.ActionID,
+		ActionId:    from.ActionID.String,
 		Namespace:   namespace,
 		NamespaceId: from.NamespaceID,
 		CreatedAt:   from.CreatedAt,

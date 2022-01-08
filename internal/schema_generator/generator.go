@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	"github.com/authzed/spicedb/pkg/namespace"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
@@ -32,12 +34,18 @@ func BuildSchema(def []definition) []string {
 	return schema
 }
 
+func GetDefaultSchema() []string {
+	userSchema := `definition user {}`
+	schemas := []string{userSchema}
+	return schemas
+}
+
 func buildSchema(d definition) string {
 	var relations []*v0.Relation
 	permissions := make(map[string][]*v0.SetOperation_Child)
 
 	for _, r := range d.roles {
-		if r.namespace == "" {
+		if r.namespace == "" || r.namespace == d.name {
 			relationReference := buildRelationReference(r)
 			relations = append(relations, namespace.Relation(
 				r.name,
@@ -48,7 +56,7 @@ func buildSchema(d definition) string {
 
 		for _, p := range r.permissions {
 			perm := namespace.ComputedUserset(r.name)
-			if r.namespace != "" {
+			if r.namespace != "" && r.namespace != d.name {
 				perm = namespace.TupleToUserset(r.namespace, r.name)
 				relations = append(relations, namespace.Relation(
 					r.namespace,
@@ -118,15 +126,17 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 			def[keyName] = r
 		}
 
-		if p.Action.NamespaceId != "" && p.Action.NamespaceId != namespaceId {
-			return []definition{}, errors.New("actions namespace doesnt match")
+		actionNs := utils.DefaultStringIfEmpty(p.Action.Namespace.Id, p.Action.NamespaceId)
+		actionId := utils.DefaultStringIfEmpty(p.Action.Id, p.ActionId)
+		if actionNs != "" && actionNs != namespaceId {
+			return []definition{}, errors.New(fmt.Sprintf("actions (%s) namespace `%s` doesnt match with `%s`", actionId, actionNs, namespaceId))
 		}
 
 		def[keyName] = append(r, role{
 			name:        p.Role.Id,
 			types:       p.Role.Types,
 			namespace:   p.Role.NamespaceId,
-			permissions: []string{p.Action.Id},
+			permissions: []string{actionId},
 		})
 	}
 
@@ -145,15 +155,15 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 			}
 
 			roles = append(roles, role{
-				name:        r[0].name,
+				name:        strings.ReplaceAll(r[0].name, "-", "_"),
 				types:       r[0].types,
-				namespace:   roleNamespace,
+				namespace:   strings.ReplaceAll(roleNamespace, "-", "_"),
 				permissions: permissions,
 			})
 		}
 
 		definition := definition{
-			name:  ns,
+			name:  strings.ReplaceAll(ns, "-", "_"),
 			roles: roles,
 		}
 

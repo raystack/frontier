@@ -36,7 +36,7 @@ type ProxyConfig struct {
 type SpiceDBConfig struct {
 	Host         string `yaml:"host"`
 	Port         string `yaml:"port" default:"50051"`
-	PreSharedKey string `yaml:"pre_shared_key"`
+	PreSharedKey string `yaml:"pre_shared_key" mapstructure:"pre_shared_key"`
 }
 
 type Service struct {
@@ -55,7 +55,7 @@ type Service struct {
 	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
 
 	// Headers which will have user's email id
-	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header"`
+	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:"X-SHIELD-EMAIL"`
 
 	// ResourcesPath is a directory path where resources is defined
 	// that this service should implement

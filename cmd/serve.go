@@ -10,7 +10,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/internal/permission"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/odpf/shield/internal/bootstrap"
+	"github.com/odpf/shield/internal/group"
+
+	"github.com/odpf/shield/internal/relation"
+	"github.com/odpf/shield/internal/resource"
 
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1beta1"
@@ -18,7 +25,6 @@ import (
 	"github.com/odpf/shield/hook"
 	authz_hook "github.com/odpf/shield/hook/authz"
 	"github.com/odpf/shield/internal/authz"
-	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
@@ -70,12 +76,23 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 
 	var cleanUpFunc []func() error
 	var cleanUpProxies []func(ctx context.Context) error
-	cleanUpFunc, cleanUpProxies, err := startProxy(logger, appConfig, ctx, cleanUpFunc, cleanUpProxies)
+
+	resourceConfig, err := loadResourceConfig(ctx, logger, appConfig)
 	if err != nil {
 		return err
 	}
 
-	muxServer := startServer(logger, appConfig, err, ctx, db)
+	deps, err := apiDependencies(ctx, db, appConfig, resourceConfig, logger)
+	if err != nil {
+		return err
+	}
+
+	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies)
+	if err != nil {
+		return err
+	}
+
+	muxServer := startServer(logger, appConfig, err, ctx, deps)
 
 	waitForTermSignal(ctx)
 	cleanup(logger, ctx, cleanUpFunc, cleanUpProxies, muxServer)
@@ -105,7 +122,7 @@ func cleanup(logger log.Logger, ctx context.Context, cleanUpFunc []func() error,
 	s.Shutdown(shutdownCtx)
 }
 
-func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx context.Context, db *sql.SQL) *server.MuxServer {
+func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx context.Context, deps handler.Deps) *server.MuxServer {
 	s, err := server.NewMux(server.Config{
 		Port: appConfig.App.Port,
 	}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(appConfig, logger)))
@@ -120,7 +137,7 @@ func startServer(logger log.Logger, appConfig *config.Shield, err error, ctx con
 		panic(err)
 	}
 
-	handler.Register(ctx, s, gw, apiDependencies(db, appConfig, logger))
+	handler.Register(ctx, s, gw, deps)
 
 	go s.Serve()
 
@@ -140,8 +157,27 @@ func customHeaderMatcherFunc(headerKeys map[string]bool) func(key string) (strin
 	}
 }
 
-func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
+func loadResourceConfig(ctx context.Context, logger log.Logger, appConfig *config.Shield) (*blobstore.ResourcesRepository, error) {
+	// load resource config
+	if appConfig.App.ResourcesConfigPath == "" {
+		return nil, errors.New("resource config path cannot be left empty")
+	}
+	resourceBlobFS, err := (&blobFactory{}).New(ctx, appConfig.App.ResourcesConfigPath, appConfig.App.ResourcesConfigPathSecret)
+	if err != nil {
+		return nil, err
+	}
+	resourceRepo := blobstore.NewResourcesRepository(logger, resourceBlobFS)
+	if err := resourceRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+		return nil, err
+	}
+	return resourceRepo, nil
+}
+
+func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, deps handler.Deps, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
 	for _, service := range appConfig.Proxy.Services {
+		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger, deps)), proxy.NewDirector())
+
+		// load rules sets
 		if service.RulesPath == "" {
 			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
@@ -150,14 +186,13 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 			return nil, nil, err
 		}
 
-		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger)), proxy.NewDirector())
-
 		ruleRepo := blobstore.NewRuleRepository(logger, blobFS)
 		if err := ruleRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 			return nil, nil, err
 		}
+
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader, deps)
 		go func(thisService config.Service, handler http.Handler) {
 			proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 			logger.Info("starting h2c proxy", "url", proxyURL)
@@ -187,9 +222,9 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 	return cleanUpFunc, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger) hook.Service {
+func buildHookPipeline(log log.Logger, deps handler.Deps) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook)
+	return authz_hook.New(log, rootHook, rootHook, deps)
 }
 
 func waitForTermSignal(ctx context.Context) {
@@ -211,33 +246,69 @@ func healthCheck() http.HandlerFunc {
 	}
 }
 
-func apiDependencies(db *sql.SQL, appConfig *config.Shield, logger log.Logger) handler.Deps {
+func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, resourceConfig *blobstore.ResourcesRepository, logger log.Logger) (handler.Deps, error) {
 	serviceStore := postgres.NewStore(db)
 	authzService := authz.New(appConfig, logger)
+
+	permissions := permission.Service{
+		Authz:               authzService,
+		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
+		Store:               serviceStore,
+	}
+
+	schemaService := schema.Service{
+		Store: serviceStore,
+		Authz: authzService,
+	}
+
+	roleService := roles.Service{
+		Store: serviceStore,
+	}
+
+	bootstrapService := bootstrap.Service{
+		SchemaService: schemaService,
+		RoleService:   roleService,
+		Logger:        logger,
+	}
+
+	bootstrapService.BootstrapDefaultDefinitions(ctx)
+	err := bootstrapService.BootstrapResources(ctx, resourceConfig)
+
+	if err != nil {
+		return handler.Deps{}, err
+	}
 
 	dependencies := handler.Deps{
 		V1beta1: v1.Dep{
 			OrgService: org.Service{
-				Store: serviceStore,
+				Store:       serviceStore,
+				Permissions: permissions,
 			},
 			UserService: user.Service{
 				Store: serviceStore,
 			},
 			ProjectService: project.Service{
-				Store: serviceStore,
-			},
-			RoleService: roles.Service{
-				Store: postgres.NewStore(db),
+				Store:       serviceStore,
+				Permissions: permissions,
 			},
 			GroupService: group.Service{
-				Store: serviceStore,
+				Store:       serviceStore,
+				Permissions: permissions,
 			},
-			PolicyService: schema.Service{
+			RelationService: relation.Service{
 				Store: serviceStore,
 				Authz: authzService,
 			},
+			ResourceService: resource.Service{
+				Store:       serviceStore,
+				Permissions: permissions,
+			},
+			RoleService:         roleService,
+			PolicyService:       schemaService,
+			ActionService:       schemaService,
+			NamespaceService:    schemaService,
 			IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		},
 	}
-	return dependencies
+	return dependencies, nil
 }
