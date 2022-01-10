@@ -27,47 +27,123 @@ Discover why users choose Shield as their authorization proxy
 - [Contributing](contribute/contribution.md) contains resources for anyone who wants to contribute to Shield
 
 
-## Technologies
+## Installation
 
-Shield is developed with
+Install Shield on macOS, Windows, Linux, OpenBSD, FreeBSD, and on any machine.
 
-- [node.js](https://nodejs.org/en/) - Javascript runtime
-- [docker](https://www.docker.com/get-started) - container engine runs on top of operating system
-- [hapi](https://hapi.dev/) - Web application framework
-- [casbin](https://casbin.org/) - Access control library
-- [typeorm](https://typeorm.io/#/) - Database agnostic sql query builder
+#### Binary (Cross-platform)
+
+Download the appropriate version for your platform from [releases](https://github.com/odpf/shield/releases) page. Once downloaded, the binary can be run from anywhere.
+You don’t need to install it into a global location. This works well for shared hosts and other systems where you don’t have a privileged account.
+Ideally, you should install it somewhere in your PATH for easy use. `/usr/local/bin` is the most probable location.
+
+#### Homebrew
+
+```sh
+# Install shield (requires homebrew installed)
+$ brew install odpf/taps/shield
+
+# Upgrade shield (requires homebrew installed)
+$ brew upgrade shield
+
+# Check for installed shield version
+$ shield version
+```
+
+## Usage
+
+Shield CLI is fully featured but simple to use, even for those who have very limited experience working from the command line. Run `shield --help` to see list of all available commands and instructions to use.
+
+```
+$ shield --help
+Identiy made simple.
+
+USAGE
+  shield <command> <subcommand> [flags]
+
+CORE COMMANDS
+  migrate     Run database migrations
+  serve       Run shield server
+
+ADDITIONAL COMMANDS
+  completion  generate the autocompletion script for the specified shell
+  config      Manage client configuration settings
+  help        Help about any command
+  version     Print version information
+
+FLAGS
+  --help   Show help for command
+
+ENVIRONMENT VARIABLES
+  See 'shield help environment' for the list of supported environment variables.
+
+LEARN MORE
+  Use 'shield <command> <subcommand> --help' for more information about a command.
+  Read the manual at https://odpf.github.io/shield/
+
+FEEDBACK
+  Open an issue here https://github.com/odpf/shield/issues
+```
 
 ## Running locally
 
-In order to install this project locally, you can follow the instructions below:
+<details>
+  <summary>Dependencies:</summary>
 
-```shell
+    - Git
+    - Go 1.17 or above
+    - PostgreSQL 13.2 or above
 
+</details>
+
+```sh
+# Clone the repo
 $ git clone git@github.com:odpf/shield.git
-$ cd shield
-$ npm install
-$ docker-compose up
+
+# Install all the golang dependencies
+$ make install
+
+# Check all build comamnds available
+$ make help
+
+# Build meteor binary file
+$ make build
+
+# Init config
+$ cp app/config.yaml config.yaml
+$ ./shield config init
+
+# Run database migrations
+$ ./shield migrate
+
+# Start shield server
+$ ./shield serve
 ```
 
-Please refer [guides](guides/usage-reverse-proxy.md) section to know more about proxies.
+## Running tests
 
-If application is running successfully [click me](http://localhost:5000/ping) will open success message on a browser.
+```sh
+# Running all unit tests
+$ make test
 
-**Note** - before `docker-compose up` command run `docker` daemon locally.
-
-Once running, you can find the Shield API documentation [on this link](http://localhost:5000/documentation)
+# Print code coverage
+$ make coverage
+```
 
 ## Contribute
 
-Development of Shield happens in the open on GitHub, and we are grateful to the community for contributing bugfixes and improvements. Read below to learn how you can take part in improving Shield.
+Development of Shield happens in the open on GitHub, and we are grateful to the community for contributing bugfixes and
+improvements. Read below to learn how you can take part in improving Shield.
 
-Read our [contributing guide](docs/contribute/contribution.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Shield.
+Read our [contributing guide](https://odpf.github.io/shield/docs/contribute/contribution) to learn about our development process, how to propose
+bugfixes and improvements, and how to build and test your changes to Shield.
 
-To help you get your feet wet and get you familiar with our contribution process, we have a list of [good first issues](https://github.com/odpf/shield/labels/good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started.
+To help you get your feet wet and get you familiar with our contribution process, we have a list of
+[good first issues](https://github.com/odpf/shield/labels/good%20first%20issue) that contain bugs which have a relatively
+limited scope. This is a great place to get started.
 
 This project exists thanks to all the [contributors](https://github.com/odpf/shield/graphs/contributors).
 
-
 ## License
 
-Shield is [Apache Licensed](LICENSE)
+Shield is [Apache 2.0](LICENSE) licensed.
