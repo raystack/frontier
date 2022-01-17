@@ -81,7 +81,6 @@ func (p Permission) AddRelation(ctx context.Context, relation model.Relation) er
 	_, err = p.client.WriteRelationships(ctx, request)
 
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
@@ -108,7 +107,6 @@ func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation)
 	_, err = p.client.DeleteRelationships(ctx, request)
 
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
