@@ -82,12 +82,20 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 		return err
 	}
 
-	deps, err := apiDependencies(ctx, db, appConfig, resourceConfig, logger)
+	serviceStore := postgres.NewStore(db)
+	authzService := authz.New(appConfig, logger)
+	deps, err := apiDependencies(ctx, db, appConfig, resourceConfig, logger, serviceStore, authzService)
 	if err != nil {
 		return err
 	}
 
-	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies)
+	AuthzCheckService := permission.NewCheckService(permission.Service{
+		Authz:               authzService,
+		Store:               serviceStore,
+		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
+	})
+
+	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies, AuthzCheckService)
 	if err != nil {
 		return err
 	}
@@ -173,7 +181,7 @@ func loadResourceConfig(ctx context.Context, logger log.Logger, appConfig *confi
 	return resourceRepo, nil
 }
 
-func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, deps handler.Deps, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
+func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, deps handler.Deps, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error, authzCheckService permission.CheckService) ([]func() error, []func(ctx context.Context) error, error) {
 	for _, service := range appConfig.Proxy.Services {
 		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger, deps)), proxy.NewDirector())
 
@@ -192,7 +200,7 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 		}
 
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader, deps)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader, deps, authzCheckService)
 		go func(thisService config.Service, handler http.Handler) {
 			proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 			logger.Info("starting h2c proxy", "url", proxyURL)
@@ -246,10 +254,7 @@ func healthCheck() http.HandlerFunc {
 	}
 }
 
-func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, resourceConfig *blobstore.ResourcesRepository, logger log.Logger) (handler.Deps, error) {
-	serviceStore := postgres.NewStore(db)
-	authzService := authz.New(appConfig, logger)
-
+func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, resourceConfig *blobstore.ResourcesRepository, logger log.Logger, serviceStore postgres.Store, authzService *authz.Authz) (handler.Deps, error) {
 	permissions := permission.Service{
 		Authz:               authzService,
 		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,

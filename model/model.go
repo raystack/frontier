@@ -109,3 +109,7 @@ type Resource struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
+
+type Permission struct {
+	Name string
+}

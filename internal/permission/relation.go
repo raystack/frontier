@@ -29,6 +29,7 @@ type Permissions interface {
 	AddProjectToResource(ctx context.Context, project model.Project, resource model.Resource) error
 	AddOrgToResource(ctx context.Context, org model.Organization, resource model.Resource) error
 	FetchCurrentUser(ctx context.Context) (model.User, error)
+	CheckPermission(ctx context.Context, user model.User, resource model.Resource, permission model.Permission) (bool, error)
 }
 
 func (s Service) AddTeamToOrg(ctx context.Context, team model.Group, org model.Organization) error {
@@ -204,4 +205,19 @@ func (s Service) AddTeamToResource(ctx context.Context, team model.Group, resour
 		return err
 	}
 	return nil
+}
+
+func (s Service) CheckPermission(ctx context.Context, user model.User, resource model.Resource, permission model.Permission) (bool, error) {
+	resourceNS := model.Namespace{
+		Id: resource.NamespaceId,
+	}
+
+	rel := model.Relation{
+		ObjectNamespace:  resourceNS,
+		ObjectId:         resource.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+	}
+
+	return s.Authz.Permission.CheckRelation(ctx, rel, permission)
 }

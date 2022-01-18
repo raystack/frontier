@@ -87,6 +87,27 @@ func (p Permission) AddRelation(ctx context.Context, relation model.Relation) er
 	return nil
 }
 
+func (p Permission) CheckRelation(ctx context.Context, relation model.Relation, prmsn model.Permission) (bool, error) {
+	relationship, err := schema_generator.TransformCheckRelation(relation)
+	if err != nil {
+		return false, err
+	}
+
+	request := &pb.CheckPermissionRequest{
+		Resource:   relationship.Resource,
+		Subject:    relationship.Subject,
+		Permission: prmsn.Name,
+	}
+
+	response, err := p.client.CheckPermission(ctx, request)
+
+	if err != nil {
+		return false, err
+	}
+
+	return response.Permissionship == pb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
+}
+
 func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation) error {
 	relationship, err := schema_generator.TransformRelation(relation)
 	if err != nil {
