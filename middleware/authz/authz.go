@@ -30,7 +30,7 @@ type Authz struct {
 }
 
 type Config struct {
-	Action     string                          `yaml:"action" mapstructure:"action"`
+	Actions    []string                        `yaml:"actions" mapstructure:"actions"`
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
@@ -174,16 +174,23 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	for _, resource := range resources {
-		isAuthorized, err := c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Permission{Name: config.Action})
-		if err != nil {
-			c.log.Error("error while creating resource obj", "err", err)
-			c.notAllowed(rw)
-			return
+		isAuthorized := false
+		for _, action := range config.Actions {
+			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Permission{Name: action})
+			if err != nil {
+				c.log.Error("error while creating resource obj", "err", err)
+				c.notAllowed(rw)
+				return
+			}
+
+			if isAuthorized {
+				break
+			}
 		}
 
-		c.log.Info("authz check successful", "user", permissionAttributes["user"], "resource", resource, "result", isAuthorized)
+		c.log.Info("authz check successful", "user", permissionAttributes["user"], "resource", resource.Name, "result", isAuthorized)
 		if !isAuthorized {
-			c.log.Info("user not allowed to make request", "user", permissionAttributes["user"], "resource", resource.Id, "result", isAuthorized)
+			c.log.Info("user not allowed to make request", "user", permissionAttributes["user"], "resource", resource.Name, "result", isAuthorized)
 			c.notAllowed(rw)
 			return
 		}
@@ -199,21 +206,6 @@ func (w Authz) notAllowed(rw http.ResponseWriter) {
 
 func createResources(permissionAttributes map[string]interface{}) ([]model.Resource, error) {
 	var resources []model.Resource
-	//projects, err := getAttributesValues(permissionAttributes["project"])
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//orgs, err := getAttributesValues(permissionAttributes["organization"])
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//teams, err := getAttributesValues(permissionAttributes["team"])
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	resourceList, err := getAttributesValues(permissionAttributes["resource"])
 	if err != nil {
 		return nil, err
