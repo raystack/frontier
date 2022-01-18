@@ -16,7 +16,6 @@ import (
 
 	"github.com/odpf/shield/hook"
 	authz_hook "github.com/odpf/shield/hook/authz"
-	"github.com/odpf/shield/middleware/authz"
 	basic_auth "github.com/odpf/shield/middleware/basic_auth"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
@@ -294,8 +293,8 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, "", handler.Deps{}, prefixWare)
-	basicAuthn := basic_auth.New(logger, casbinAuthz)
+	//casbinAuthz := authz.New(logger, "", handler.Deps{}, prefixWare)
+	basicAuthn := basic_auth.New(logger, prefixWare)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
 }

@@ -17,6 +17,7 @@ type Policy interface {
 type Permission interface {
 	AddRelation(ctx context.Context, relation model.Relation) error
 	DeleteRelation(ctx context.Context, relation model.Relation) error
+	CheckRelation(ctx context.Context, relation model.Relation, permissionID model.Permission) (bool, error)
 }
 
 type Authz struct {

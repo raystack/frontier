@@ -8,6 +8,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+const emailContext = "email-context"
+
 func (s Service) FetchCurrentUser(ctx context.Context) (model.User, error) {
 	email, err := fetchEmailFromMetadata(ctx, s.IdentityProxyHeader)
 	if err != nil {
@@ -25,7 +27,12 @@ func (s Service) FetchCurrentUser(ctx context.Context) (model.User, error) {
 func fetchEmailFromMetadata(ctx context.Context, headerKey string) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return "", fmt.Errorf("unable to fetch context from incoming")
+		val, ok := GetEmailFromContext(ctx)
+		if !ok {
+			return "", fmt.Errorf("unable to fetch context from incoming")
+		}
+
+		return val, nil
 	}
 
 	var email string
@@ -34,4 +41,14 @@ func fetchEmailFromMetadata(ctx context.Context, headerKey string) (string, erro
 		email = metadataValues[0]
 	}
 	return email, nil
+}
+
+func SetEmailToContext(ctx context.Context, email string) context.Context {
+	return context.WithValue(ctx, emailContext, email)
+}
+
+func GetEmailFromContext(ctx context.Context) (string, bool) {
+	val, ok := ctx.Value(emailContext).(string)
+
+	return val, ok
 }
