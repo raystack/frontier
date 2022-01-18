@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/internal/permission"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -11,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/api/handler"
-
+	"github.com/odpf/shield/internal/permission"
 	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
 	"github.com/odpf/shield/middleware/prefix"
