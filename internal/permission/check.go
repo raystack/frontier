@@ -3,6 +3,7 @@ package permission
 import (
 	"context"
 	"fmt"
+
 	"github.com/odpf/shield/model"
 )
 

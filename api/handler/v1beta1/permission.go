@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+
 	"github.com/odpf/shield/model"
 )
 
