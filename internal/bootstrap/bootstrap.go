@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/internal/bootstrap/definition"
@@ -86,11 +87,20 @@ func getResourceDefaultPolicies(ns model.Namespace, action model.Action) []model
 }
 
 func getResourceRole(r string, ns model.Namespace) model.Role {
+	roleNs := ns
 	roleId := fmt.Sprintf("%s_%s", ns.Id, r)
+
+	rSlice := strings.Split(r, ".")
+
+	if len(rSlice) == 2 {
+		roleNs = model.Namespace{Id: rSlice[0]}
+		roleId = rSlice[1]
+	}
+
 	role := model.Role{
 		Id:        roleId,
 		Name:      roleId,
-		Namespace: ns,
+		Namespace: roleNs,
 		Types:     []string{definition.UserType, definition.TeamMemberType},
 	}
 	return role
@@ -98,9 +108,10 @@ func getResourceRole(r string, ns model.Namespace) model.Role {
 
 func getResourceAction(action string, ns model.Namespace) model.Action {
 	actId := fmt.Sprintf("%s_%s", ns.Id, action)
+	actionName := fmt.Sprintf("%s %s", strings.Title(strings.ToLower(ns.Id)), strings.Title(strings.ToLower(action)))
 	act := model.Action{
 		Id:        actId,
-		Name:      action,
+		Name:      actionName,
 		Namespace: ns,
 	}
 	return act

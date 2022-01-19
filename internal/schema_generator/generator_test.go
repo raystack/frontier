@@ -51,6 +51,22 @@ func TestBuildSchema(t *testing.T) {
 }`, buildSchema(d))
 	})
 
+	t.Run("Add merge role namespace", func(t *testing.T) {
+		d := definition{
+			name: "Test",
+			roles: []role{
+				{name: "Admin", types: []string{"User"}, permissions: []string{"read", "write"}, namespace: "Project"},
+				{name: "Member", types: []string{"User"}, namespace: "Group", permissions: []string{"read"}},
+			},
+		}
+		assert.Equal(t, `definition Test {
+	relation Project: Project
+	relation Group: Group
+	permission read = Project->Admin + Group->Member
+	permission write = Project->Admin
+}`, buildSchema(d))
+	})
+
 	t.Run("Should add role subtype", func(t *testing.T) {
 		d := definition{
 			name:  "Test",
