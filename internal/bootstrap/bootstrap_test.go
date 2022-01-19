@@ -1,9 +1,10 @@
 package bootstrap
 
 import (
+	"testing"
+
 	"github.com/odpf/shield/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGetResourceRole(t *testing.T) {
