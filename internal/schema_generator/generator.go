@@ -44,6 +44,8 @@ func buildSchema(d definition) string {
 	var relations []*v0.Relation
 	permissions := make(map[string][]*v0.SetOperation_Child)
 
+	inheritedNSMap := map[string]bool{}
+
 	for _, r := range d.roles {
 		if r.namespace == "" || r.namespace == d.name {
 			relationReference := buildRelationReference(r)
@@ -58,14 +60,17 @@ func buildSchema(d definition) string {
 			perm := namespace.ComputedUserset(r.name)
 			if r.namespace != "" && r.namespace != d.name {
 				perm = namespace.TupleToUserset(r.namespace, r.name)
-				relations = append(relations, namespace.Relation(
-					r.namespace,
-					nil,
-					&v0.RelationReference{
-						Namespace: r.namespace,
-						Relation:  "...",
-					},
-				))
+				if !inheritedNSMap[r.namespace] {
+					relations = append(relations, namespace.Relation(
+						r.namespace,
+						nil,
+						&v0.RelationReference{
+							Namespace: r.namespace,
+							Relation:  "...",
+						},
+					))
+					inheritedNSMap[r.namespace] = true
+				}
 			}
 			permissions[p] = append(permissions[p], perm)
 		}
