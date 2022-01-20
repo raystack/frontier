@@ -39,16 +39,25 @@ func (s Service) Create(ctx context.Context, resource model.Resource) (model.Res
 		ProjectId:      resource.ProjectId,
 		GroupId:        resource.GroupId,
 		NamespaceId:    resource.NamespaceId,
+		UserId:         resource.UserId,
 	})
 
 	if err != nil {
 		return model.Resource{}, err
 	}
 
-	err = s.Permissions.AddTeamToResource(ctx, model.Group{Id: resource.GroupId}, newResource)
+	if newResource.GroupId != "" {
+		err = s.Permissions.AddTeamToResource(ctx, model.Group{Id: resource.GroupId}, newResource)
+		if err != nil {
+			return model.Resource{}, err
+		}
+	}
 
-	if err != nil {
-		return model.Resource{}, err
+	if newResource.UserId != "" {
+		err = s.Permissions.AddUserToResource(ctx, model.User{Id: resource.GroupId}, newResource)
+		if err != nil {
+			return model.Resource{}, err
+		}
 	}
 
 	err = s.Permissions.AddProjectToResource(ctx, model.Project{Id: resource.ProjectId}, newResource)

@@ -141,6 +141,53 @@
         ]
       }
     },
+    "/v1beta1/check/{resourceId}": {
+      "post": {
+        "summary": "check permission for action on a resource by an user",
+        "operationId": "ShieldService_CheckResourcePermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ResourceActionAuthzResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "resourceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "actionId": {
+                  "type": "string"
+                },
+                "namespaceId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Authz"
+        ]
+      }
+    },
     "/v1beta1/groups": {
       "get": {
         "summary": "Get all Groups",
@@ -271,6 +318,111 @@
         ]
       }
     },
+    "/v1beta1/groups/{id}/admins": {
+      "get": {
+        "summary": "Get all Admins of a Group",
+        "operationId": "ShieldService_ListGroupAdmins",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListGroupAdminsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      },
+      "post": {
+        "summary": "Add Admin to Group",
+        "operationId": "ShieldService_AddGroupAdmin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddGroupAdminResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddGroupAdminRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/groups/{id}/admins/{userId}": {
+      "delete": {
+        "summary": "Remove Admin from Group",
+        "operationId": "ShieldService_RemoveGroupAdmin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1RemoveGroupAdminResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
     "/v1beta1/groups/{id}/users": {
       "get": {
         "summary": "Get all Users in a Group",
@@ -292,6 +444,80 @@
         "parameters": [
           {
             "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      },
+      "post": {
+        "summary": "Add User to Group",
+        "operationId": "ShieldService_AddGroupUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddGroupUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddGroupUserRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/groups/{id}/users/{userId}": {
+      "delete": {
+        "summary": "Remove User from Group",
+        "operationId": "ShieldService_RemoveGroupUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1RemoveGroupUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -546,6 +772,111 @@
         ]
       }
     },
+    "/v1beta1/organizations/{id}/admins": {
+      "get": {
+        "summary": "Get all Admins of an Organization",
+        "operationId": "ShieldService_ListOrganizationAdmins",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListOrganizationAdminsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "post": {
+        "summary": "Add Admin to Organization",
+        "operationId": "ShieldService_AddOrganizationAdmin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddOrganizationAdminResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddOrganizationAdminRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{id}/admins/{userId}": {
+      "delete": {
+        "summary": "Remove Admin from Organization",
+        "operationId": "ShieldService_RemoveOrganizationAdmin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1RemoveOrganizationAdminResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
     "/v1beta1/policies": {
       "get": {
         "summary": "Get all Policy",
@@ -783,6 +1114,111 @@
             "schema": {
               "$ref": "#/definitions/v1beta1ProjectRequestBody"
             }
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      }
+    },
+    "/v1beta1/projects/{id}/admins": {
+      "get": {
+        "summary": "Get all Admins of a Project",
+        "operationId": "ShieldService_ListProjectAdmins",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListProjectAdminsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      },
+      "post": {
+        "summary": "Add Admin to Project",
+        "operationId": "ShieldService_AddProjectAdmin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddProjectAdminResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddProjectAdminRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      }
+    },
+    "/v1beta1/projects/{id}/admins/{userId}": {
+      "delete": {
+        "summary": "Remove Admin from Project",
+        "operationId": "ShieldService_RemoveProjectAdmin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1RemoveProjectAdminResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1405,6 +1841,94 @@
         }
       }
     },
+    "v1beta1AddGroupAdminRequestBody": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1beta1AddGroupAdminResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
+    "v1beta1AddGroupUserRequestBody": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1beta1AddGroupUserResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
+    "v1beta1AddOrganizationAdminRequestBody": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1beta1AddOrganizationAdminResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
+    "v1beta1AddProjectAdminRequestBody": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1beta1AddProjectAdminResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
     "v1beta1CreateActionResponse": {
       "type": "object",
       "properties": {
@@ -1632,6 +2156,17 @@
         }
       }
     },
+    "v1beta1ListGroupAdminsResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
     "v1beta1ListGroupUsersResponse": {
       "type": "object",
       "properties": {
@@ -1665,6 +2200,17 @@
         }
       }
     },
+    "v1beta1ListOrganizationAdminsResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
     "v1beta1ListOrganizationsResponse": {
       "type": "object",
       "properties": {
@@ -1683,6 +2229,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1beta1Policy"
+          }
+        }
+      }
+    },
+    "v1beta1ListProjectAdminsResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
           }
         }
       }
@@ -1946,6 +2503,38 @@
         }
       }
     },
+    "v1beta1RemoveGroupAdminResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1beta1RemoveGroupUserResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1beta1RemoveOrganizationAdminResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1beta1RemoveProjectAdminResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1beta1Resource": {
       "type": "object",
       "properties": {
@@ -1974,6 +2563,17 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "user": {
+          "$ref": "#/definitions/v1beta1User"
+        }
+      }
+    },
+    "v1beta1ResourceActionAuthzResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
         }
       }
     },
@@ -1993,6 +2593,9 @@
           "type": "string"
         },
         "namespaceId": {
+          "type": "string"
+        },
+        "userId": {
           "type": "string"
         }
       }

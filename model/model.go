@@ -106,6 +106,8 @@ type Resource struct {
 	Organization   Organization
 	NamespaceId    string `json:"namespace_id"`
 	Namespace      Namespace
+	User           User
+	UserId         string `json:"user_id"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

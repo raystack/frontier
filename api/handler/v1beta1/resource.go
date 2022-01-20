@@ -60,6 +60,7 @@ func (v Dep) CreateResource(ctx context.Context, request *shieldv1beta1.CreateRe
 		GroupId:        request.GetBody().GroupId,
 		NamespaceId:    request.GetBody().NamespaceId,
 		Name:           request.GetBody().Name,
+		UserId:         request.GetBody().UserId,
 	})
 
 	if err != nil {
@@ -120,6 +121,7 @@ func (v Dep) UpdateResource(ctx context.Context, request *shieldv1beta1.UpdateRe
 		GroupId:        request.GetBody().GroupId,
 		NamespaceId:    request.GetBody().NamespaceId,
 		Name:           request.GetBody().Name,
+		UserId:         request.GetBody().UserId,
 	})
 
 	if err != nil {
@@ -166,6 +168,11 @@ func transformResourceToPB(from model.Resource) (shieldv1beta1.Resource, error) 
 		return shieldv1beta1.Resource{}, err
 	}
 
+	user, err := transformUserToPB(from.User)
+	if err != nil {
+		return shieldv1beta1.Resource{}, err
+	}
+
 	return shieldv1beta1.Resource{
 		Id:           from.Id,
 		Name:         from.Name,
@@ -173,6 +180,7 @@ func transformResourceToPB(from model.Resource) (shieldv1beta1.Resource, error) 
 		Organization: &org,
 		Project:      &project,
 		Group:        &group,
+		User:         &user,
 		CreatedAt:    timestamppb.New(from.CreatedAt),
 		UpdatedAt:    timestamppb.New(from.UpdatedAt),
 	}, nil
