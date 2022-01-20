@@ -3,12 +3,10 @@ package resource
 import (
 	"context"
 	"errors"
-	"fmt"
-	"github.com/odpf/shield/utils"
 
 	"github.com/odpf/shield/internal/permission"
-
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/utils"
 )
 
 type Service struct {
@@ -74,9 +72,4 @@ func (s Service) List(ctx context.Context) ([]model.Resource, error) {
 
 func (s Service) Update(ctx context.Context, id string, resource model.Resource) (model.Resource, error) {
 	return s.Store.UpdateResource(ctx, id, resource)
-}
-
-func createResourceUrl(resource model.Resource) string {
-	//return fmt.Sprintf("organizations/%s/projects/%s/teams/%s/%s/%s", resource.OrganizationId, resource.ProjectId, resource.GroupId, resource.NamespaceId, resource.Name)
-	return fmt.Sprintf("%s/%s", resource.NamespaceId, resource.Name)
 }
