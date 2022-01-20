@@ -3,6 +3,8 @@ package permission
 import (
 	"context"
 
+	"github.com/odpf/shield/internal/bootstrap"
+
 	"github.com/odpf/shield/internal/authz"
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/model"
@@ -26,7 +28,7 @@ type Permissions interface {
 	AddAdminToProject(ctx context.Context, user model.User, project model.Project) error
 	AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error
 	AddTeamToResource(ctx context.Context, team model.Group, resource model.Resource) error
-	AddUserToResource(ctx context.Context, user model.User, resource model.Resource) error
+	AddOwnerToResource(ctx context.Context, user model.User, resource model.Resource) error
 	AddProjectToResource(ctx context.Context, project model.Project, resource model.Resource) error
 	AddOrgToResource(ctx context.Context, org model.Organization, resource model.Resource) error
 	FetchCurrentUser(ctx context.Context) (model.User, error)
@@ -223,20 +225,18 @@ func (s Service) CheckPermission(ctx context.Context, user model.User, resource 
 	return s.Authz.Permission.CheckRelation(ctx, rel, permission)
 }
 
-func (s Service) AddUserToResource(ctx context.Context, user model.User, resource model.Resource) error {
+func (s Service) AddOwnerToResource(ctx context.Context, user model.User, resource model.Resource) error {
 	resourceNS := model.Namespace{
 		Id: resource.NamespaceId,
 	}
 
+	role := bootstrap.GetOwnerRole(resourceNS)
 	rel := model.Relation{
 		ObjectNamespace:  resourceNS,
 		ObjectId:         resource.Id,
 		SubjectId:        user.Id,
 		SubjectNamespace: definition.UserNamespace,
-		Role: model.Role{
-			Id:        definition.UserNamespace.Id,
-			Namespace: resourceNS,
-		},
+		Role:             role,
 	}
 	err := s.Authz.Permission.AddRelation(ctx, rel)
 	if err != nil {
