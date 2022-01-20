@@ -2,17 +2,12 @@ resources:
   - name: dagger
     actions:
       read:
-        - team_admin
-        - dagger_manager
-        - org_admin
+        - team.team_member
       delete:
-        - team_admin
-        - org_admin
+        - team.team_member
   - name: firehose
     actions:
       read:
-        - team_admin
-        - firehose_manager
+        - team.team_member
       delete:
-        - team_admin
-        - org_admin
+        - team.team_member

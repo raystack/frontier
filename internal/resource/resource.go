@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/odpf/shield/utils"
 
 	"github.com/odpf/shield/internal/permission"
 
@@ -32,7 +33,7 @@ func (s Service) Get(ctx context.Context, id string) (model.Resource, error) {
 }
 
 func (s Service) Create(ctx context.Context, resource model.Resource) (model.Resource, error) {
-	id := createResourceUrl(resource)
+	id := utils.CreateResourceId(resource)
 	newResource, err := s.Store.CreateResource(ctx, model.Resource{
 		Id:             id,
 		Name:           resource.Name,

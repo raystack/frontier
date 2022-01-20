@@ -2,9 +2,9 @@ package permission
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/utils"
 )
 
 type CheckService struct {
@@ -21,7 +21,6 @@ func (c CheckService) CheckAuthz(ctx context.Context, resource model.Resource, p
 		return false, err
 	}
 
-	resource.Id = fmt.Sprintf("%s/%s", resource.NamespaceId, resource.Name)
-
+	resource.Id = utils.CreateResourceId(resource)
 	return c.PermissionsService.CheckPermission(ctx, user, resource, prmsn)
 }
