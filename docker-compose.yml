@@ -48,22 +48,24 @@ services:
       - SHIELD_SPICEDB_HOST=spicedb
       - SHIELD_SPICEDB_PRE_SHARED_KEY=shield;
 
-  shield:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    ports:
-      - "8080:8080"
-    command:
-      - "serve"
-    depends_on:
-      pg:
-        condition: service_healthy
-      shield-migrate:
-        condition: service_completed_successfully
-    environment:
-      - SHIELD_DB_DRIVER=postgres
-      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+#  shield:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dev
+#    ports:
+#      - "8081:8080"
+#    command:
+#      - "serve"
+#    depends_on:
+#      pg:
+#        condition: service_healthy
+#      shield-migrate:
+#        condition: service_completed_successfully
+#    environment:
+#      - SHIELD_DB_DRIVER=postgres
+#      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+#      - SHIELD_SPICEDB_HOST=spicedb
+#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield;
 
   spicedb-migration:
     image: quay.io/authzed/spicedb:v1.0.0

@@ -1,12 +1,15 @@
 package authz
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/odpf/shield/api/handler"
+	"github.com/odpf/shield/internal/permission"
 	"github.com/odpf/shield/middleware"
+	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/body_extractor"
 	"github.com/odpf/shield/structs"
 
@@ -14,21 +17,25 @@ import (
 	"github.com/odpf/salt/log"
 )
 
-// make sure the request is allowed & ready to be sent to backend
+type AuthzCheckService interface {
+	CheckAuthz(ctx context.Context, resource model.Resource, prmsn model.Permission) (bool, error)
+}
+
 type Authz struct {
 	log                 log.Logger
 	identityProxyHeader string
 	next                http.Handler
 	Deps                handler.Deps
+	AuthzCheckService   AuthzCheckService
 }
 
 type Config struct {
-	Action     string                          `yaml:"action" mapstructure:"action"`
+	Actions    []string                        `yaml:"actions" mapstructure:"actions"`
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler) *Authz {
-	return &Authz{log: log, identityProxyHeader: identityProxyHeader, Deps: deps, next: next}
+func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler, authzCheckService AuthzCheckService) *Authz {
+	return &Authz{log: log, identityProxyHeader: identityProxyHeader, Deps: deps, next: next, AuthzCheckService: authzCheckService}
 }
 
 func (c Authz) Info() *structs.MiddlewareInfo {
@@ -69,9 +76,8 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	permissionAttributes["namespace"] = rule.Backend.Namespace
 
-	// is it string or []string
-
-	//permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
+	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
+	req = req.WithContext(permission.SetEmailToContext(req.Context(), req.Header.Get(c.identityProxyHeader)))
 
 	for res, attr := range config.Attributes {
 		_ = res
@@ -161,7 +167,34 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		permissionAttributes[key] = value
 	}
 
-	// use permissionAttributes & config.Action here
+	resources, err := createResources(permissionAttributes)
+	if err != nil {
+		c.log.Error("error while creating resource obj", "err", err)
+		c.notAllowed(rw)
+		return
+	}
+	for _, resource := range resources {
+		isAuthorized := false
+		for _, action := range config.Actions {
+			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Permission{Name: action})
+			if err != nil {
+				c.log.Error("error while creating resource obj", "err", err)
+				c.notAllowed(rw)
+				return
+			}
+
+			if isAuthorized {
+				break
+			}
+		}
+
+		c.log.Info("authz check successful", "user", permissionAttributes["user"], "resource", resource.Name, "result", isAuthorized)
+		if !isAuthorized {
+			c.log.Info("user not allowed to make request", "user", permissionAttributes["user"], "resource", resource.Name, "result", isAuthorized)
+			c.notAllowed(rw)
+			return
+		}
+	}
 
 	c.next.ServeHTTP(rw, req)
 }
@@ -169,4 +202,52 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 func (w Authz) notAllowed(rw http.ResponseWriter) {
 	rw.WriteHeader(http.StatusUnauthorized)
 	return
+}
+
+func createResources(permissionAttributes map[string]interface{}) ([]model.Resource, error) {
+	var resources []model.Resource
+	resourceList, err := getAttributesValues(permissionAttributes["resource"])
+	if err != nil {
+		return nil, err
+	}
+
+	namespace, err := getAttributesValues(permissionAttributes["namespace"])
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resourceList) < 1 {
+		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
+	}
+
+	for _, res := range resourceList {
+		resources = append(resources, model.Resource{
+			Name:        res,
+			NamespaceId: namespace[0],
+		})
+	}
+	return resources, nil
+}
+
+func getAttributesValues(attributes interface{}) ([]string, error) {
+	var values []string
+	switch attributes.(type) {
+	case []string:
+		for _, i := range attributes.([]string) {
+			values = append(values, i)
+		}
+	case string:
+		values = append(values, attributes.(string))
+	case []interface{}:
+		for _, i := range attributes.([]interface{}) {
+			values = append(values, i.(string))
+		}
+	case interface{}:
+		values = append(values, attributes.(string))
+	case nil:
+		return values, nil
+	default:
+		return values, fmt.Errorf("unsuported attribute type %v", attributes)
+	}
+	return values, nil
 }

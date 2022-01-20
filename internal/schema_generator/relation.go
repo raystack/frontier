@@ -11,15 +11,24 @@ import (
 )
 
 func TransformRelation(relation model.Relation) (*pb.Relationship, error) {
+	transformedRelation, err := transformObjectAndSubject(relation)
+	if err != nil {
+		return nil, err
+	}
+
 	roleId := strings.ReplaceAll(utils.DefaultStringIfEmpty(relation.Role.Id, relation.RoleId), "-", "_")
+	roleNSId := utils.DefaultStringIfEmpty(relation.Role.Namespace.Id, relation.Role.NamespaceId)
+	if roleNSId != "" && roleNSId != transformedRelation.Resource.ObjectType {
+		return &pb.Relationship{}, errors.New(fmt.Sprintf("Role %s doesnt exist in %s", roleId, transformedRelation.Resource.ObjectType))
+	}
+
+	transformedRelation.Relation = roleId
+	return transformedRelation, nil
+}
+
+func transformObjectAndSubject(relation model.Relation) (*pb.Relationship, error) {
 	objectNSId := strings.ReplaceAll(utils.DefaultStringIfEmpty(relation.ObjectNamespace.Id, relation.ObjectNamespaceId), "-", "_")
 	subjectNSId := strings.ReplaceAll(utils.DefaultStringIfEmpty(relation.SubjectNamespace.Id, relation.SubjectNamespaceId), "-", "_")
-
-	roleNSId := utils.DefaultStringIfEmpty(relation.Role.Namespace.Id, relation.Role.NamespaceId)
-
-	if roleNSId != "" && roleNSId != objectNSId {
-		return &pb.Relationship{}, errors.New(fmt.Sprintf("Role %s doesnt exist in %s", roleId, objectNSId))
-	}
 
 	return &pb.Relationship{
 		Resource: &pb.ObjectReference{
@@ -33,6 +42,9 @@ func TransformRelation(relation model.Relation) (*pb.Relationship, error) {
 			},
 			OptionalRelation: relation.SubjectRoleId,
 		},
-		Relation: roleId,
 	}, nil
+}
+
+func TransformCheckRelation(relation model.Relation) (*pb.Relationship, error) {
+	return transformObjectAndSubject(relation)
 }
