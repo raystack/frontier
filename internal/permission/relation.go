@@ -2,14 +2,13 @@ package permission
 
 import (
 	"context"
-	blobstore "github.com/odpf/shield/store/blob"
-
-	"github.com/odpf/shield/internal/bootstrap"
 
 	"github.com/odpf/shield/internal/authz"
+	"github.com/odpf/shield/internal/bootstrap"
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/utils"
+	blobstore "github.com/odpf/shield/store/blob"
 )
 
 type Store interface {

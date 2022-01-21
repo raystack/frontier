@@ -2,15 +2,14 @@ package authz
 
 import (
 	"fmt"
-	"github.com/odpf/shield/internal/permission"
 	"net/http"
 	"strings"
 
 	"github.com/odpf/shield/api/handler"
-	"github.com/odpf/shield/model"
-
 	"github.com/odpf/shield/hook"
+	"github.com/odpf/shield/internal/permission"
 	"github.com/odpf/shield/middleware"
+	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/body_extractor"
 
 	"github.com/mitchellh/mapstructure"
