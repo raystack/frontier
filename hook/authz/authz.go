@@ -2,6 +2,7 @@ package authz
 
 import (
 	"fmt"
+	"github.com/odpf/shield/internal/permission"
 	"net/http"
 	"strings"
 
@@ -75,6 +76,9 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 
 	attributes := map[string]interface{}{}
 	attributes["namespace"] = rule.Backend.Namespace
+
+	attributes["user"] = res.Request.Header.Get(a.Deps.V1beta1.IdentityProxyHeader)
+	res.Request = res.Request.WithContext(permission.SetEmailToContext(res.Request.Context(), res.Request.Header.Get(a.Deps.V1beta1.IdentityProxyHeader)))
 
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)
@@ -198,19 +202,28 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 		return nil, err
 	}
 
-	if len(projects) < 1 || len(orgs) < 1 || len(teams) < 1 || len(resourceList) < 1 {
+	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 {
 		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
 	}
 
 	for _, org := range orgs {
 		for _, project := range projects {
-			for _, team := range teams {
-				for _, res := range resourceList {
+			for _, res := range resourceList {
+				if len(teams) > 0 {
+					for _, team := range teams {
+						resources = append(resources, model.Resource{
+							Name:           res,
+							OrganizationId: org,
+							ProjectId:      project,
+							GroupId:        team,
+							NamespaceId:    namespace[0],
+						})
+					}
+				} else {
 					resources = append(resources, model.Resource{
 						Name:           res,
 						OrganizationId: org,
 						ProjectId:      project,
-						GroupId:        team,
 						NamespaceId:    namespace[0],
 					})
 				}

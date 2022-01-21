@@ -2,6 +2,7 @@ package permission
 
 import (
 	"context"
+	blobstore "github.com/odpf/shield/store/blob"
 
 	"github.com/odpf/shield/internal/bootstrap"
 
@@ -19,6 +20,7 @@ type Service struct {
 	Authz               *authz.Authz
 	Store               Store
 	IdentityProxyHeader string
+	ResourcesRepository *blobstore.ResourcesRepository
 }
 
 type Permissions interface {
@@ -230,7 +232,17 @@ func (s Service) AddOwnerToResource(ctx context.Context, user model.User, resour
 		Id: resource.NamespaceId,
 	}
 
+	relationSet, err := s.ResourcesRepository.GetRelationsForNamespace(ctx, resource.NamespaceId)
+	if err != nil {
+		return err
+	}
+
 	role := bootstrap.GetOwnerRole(resourceNS)
+
+	if !relationSet[role.Id] {
+		return nil
+	}
+
 	rel := model.Relation{
 		ObjectNamespace:  resourceNS,
 		ObjectId:         resource.Id,
@@ -238,7 +250,8 @@ func (s Service) AddOwnerToResource(ctx context.Context, user model.User, resour
 		SubjectNamespace: definition.UserNamespace,
 		Role:             role,
 	}
-	err := s.Authz.Permission.AddRelation(ctx, rel)
+
+	err = s.Authz.Permission.AddRelation(ctx, rel)
 	if err != nil {
 		return err
 	}
