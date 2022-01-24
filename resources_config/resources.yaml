@@ -1,6 +1,14 @@
 resources:
+  - name: guardian
+    actions:
+      read:
+        - owner
+      delete:
+        - owner
   - name: dagger
     actions:
+      all_actions:
+        - owner
       read:
         - team.team_member
       delete:

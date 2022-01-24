@@ -36,13 +36,16 @@ func (s Service) onboardResource(ctx context.Context, resource structs.Resource)
 
 	resourceAllActions := getResourceAction("all_actions", ns)
 
-	var resourceRoles []model.Role
+	ownerRole := GetOwnerRole(ns)
+	resourceRoles := []model.Role{
+		ownerRole,
+	}
 
 	actions := []model.Action{
 		resourceAllActions,
 	}
 
-	policies := getResourceDefaultPolicies(ns, resourceAllActions)
+	policies := getResourceDefaultPolicies(ns, resourceAllActions, ownerRole)
 
 	for action, rolesList := range resource.Actions {
 		act := getResourceAction(action, ns)
@@ -66,7 +69,7 @@ func (s Service) onboardResource(ctx context.Context, resource structs.Resource)
 	s.createPolicies(ctx, policies)
 }
 
-func getResourceDefaultPolicies(ns model.Namespace, action model.Action) []model.Policy {
+func getResourceDefaultPolicies(ns model.Namespace, action model.Action, owner model.Role) []model.Policy {
 	return []model.Policy{
 		{
 			Action:    action,
@@ -83,6 +86,22 @@ func getResourceDefaultPolicies(ns model.Namespace, action model.Action) []model
 			Namespace: ns,
 			Role:      definition.OrganizationAdminRole,
 		},
+		//{
+		//	Action:    action,
+		//	Namespace: ns,
+		//	Role:      owner,
+		//},
+	}
+}
+
+func GetOwnerRole(ns model.Namespace) model.Role {
+	id := fmt.Sprintf("%s_%s", ns.Id, "owner")
+	name := fmt.Sprintf("%s_%s", strings.Title(ns.Id), "Owner")
+	return model.Role{
+		Id:        id,
+		Name:      name,
+		Types:     []string{definition.UserType},
+		Namespace: ns,
 	}
 }
 

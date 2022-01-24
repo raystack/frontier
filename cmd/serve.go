@@ -93,6 +93,7 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 		Authz:               authzService,
 		Store:               serviceStore,
 		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
+		ResourcesRepository: resourceConfig,
 	})
 
 	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies, AuthzCheckService)
@@ -259,6 +260,7 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 		Authz:               authzService,
 		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		Store:               serviceStore,
+		ResourcesRepository: resourceConfig,
 	}
 
 	schemaService := schema.Service{

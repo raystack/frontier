@@ -4,9 +4,11 @@ import (
 	"context"
 
 	"github.com/odpf/shield/internal/authz"
+	"github.com/odpf/shield/internal/bootstrap"
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/utils"
+	blobstore "github.com/odpf/shield/store/blob"
 )
 
 type Store interface {
@@ -17,6 +19,7 @@ type Service struct {
 	Authz               *authz.Authz
 	Store               Store
 	IdentityProxyHeader string
+	ResourcesRepository *blobstore.ResourcesRepository
 }
 
 type Permissions interface {
@@ -26,6 +29,7 @@ type Permissions interface {
 	AddAdminToProject(ctx context.Context, user model.User, project model.Project) error
 	AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error
 	AddTeamToResource(ctx context.Context, team model.Group, resource model.Resource) error
+	AddOwnerToResource(ctx context.Context, user model.User, resource model.Resource) error
 	AddProjectToResource(ctx context.Context, project model.Project, resource model.Resource) error
 	AddOrgToResource(ctx context.Context, org model.Organization, resource model.Resource) error
 	FetchCurrentUser(ctx context.Context) (model.User, error)
@@ -220,4 +224,35 @@ func (s Service) CheckPermission(ctx context.Context, user model.User, resource 
 	}
 
 	return s.Authz.Permission.CheckRelation(ctx, rel, permission)
+}
+
+func (s Service) AddOwnerToResource(ctx context.Context, user model.User, resource model.Resource) error {
+	resourceNS := model.Namespace{
+		Id: resource.NamespaceId,
+	}
+
+	relationSet, err := s.ResourcesRepository.GetRelationsForNamespace(ctx, resource.NamespaceId)
+	if err != nil {
+		return err
+	}
+
+	role := bootstrap.GetOwnerRole(resourceNS)
+
+	if !relationSet[role.Id] {
+		return nil
+	}
+
+	rel := model.Relation{
+		ObjectNamespace:  resourceNS,
+		ObjectId:         resource.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role:             role,
+	}
+
+	err = s.Authz.Permission.AddRelation(ctx, rel)
+	if err != nil {
+		return err
+	}
+	return nil
 }

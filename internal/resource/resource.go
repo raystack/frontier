@@ -32,6 +32,19 @@ func (s Service) Get(ctx context.Context, id string) (model.Resource, error) {
 
 func (s Service) Create(ctx context.Context, resource model.Resource) (model.Resource, error) {
 	id := utils.CreateResourceId(resource)
+
+	user, err := s.Permissions.FetchCurrentUser(ctx)
+
+	if err != nil {
+		return model.Resource{}, err
+	}
+
+	userId := resource.UserId
+
+	if userId == "" {
+		userId = user.Id
+	}
+
 	newResource, err := s.Store.CreateResource(ctx, model.Resource{
 		Id:             id,
 		Name:           resource.Name,
@@ -39,16 +52,25 @@ func (s Service) Create(ctx context.Context, resource model.Resource) (model.Res
 		ProjectId:      resource.ProjectId,
 		GroupId:        resource.GroupId,
 		NamespaceId:    resource.NamespaceId,
+		UserId:         userId,
 	})
 
 	if err != nil {
 		return model.Resource{}, err
 	}
 
-	err = s.Permissions.AddTeamToResource(ctx, model.Group{Id: resource.GroupId}, newResource)
+	if newResource.GroupId != "" {
+		err = s.Permissions.AddTeamToResource(ctx, model.Group{Id: resource.GroupId}, newResource)
+		if err != nil {
+			return model.Resource{}, err
+		}
+	}
 
-	if err != nil {
-		return model.Resource{}, err
+	if userId != "" {
+		err = s.Permissions.AddOwnerToResource(ctx, model.User{Id: userId}, newResource)
+		if err != nil {
+			return model.Resource{}, err
+		}
 	}
 
 	err = s.Permissions.AddProjectToResource(ctx, model.Project{Id: resource.ProjectId}, newResource)

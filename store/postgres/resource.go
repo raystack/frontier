@@ -12,18 +12,20 @@ import (
 )
 
 type Resource struct {
-	Id             string       `db:"id"`
-	Name           string       `db:"name"`
-	ProjectId      string       `db:"project_id"`
-	Project        Project      `db:"project"`
-	GroupId        string       `db:"group_id"`
-	Group          Group        `db:"group"`
-	OrganizationId string       `db:"org_id"`
-	Organization   Organization `db:"organization"`
-	NamespaceId    string       `db:"namespace_id"`
-	Namespace      Namespace    `db:"namespace"`
-	CreatedAt      time.Time    `db:"created_at"`
-	UpdatedAt      time.Time    `db:"updated_at"`
+	Id             string         `db:"id"`
+	Name           string         `db:"name"`
+	ProjectId      string         `db:"project_id"`
+	Project        Project        `db:"project"`
+	GroupId        sql.NullString `db:"group_id"`
+	Group          Group          `db:"group"`
+	OrganizationId string         `db:"org_id"`
+	Organization   Organization   `db:"organization"`
+	NamespaceId    string         `db:"namespace_id"`
+	Namespace      Namespace      `db:"namespace"`
+	User           User           `db:"user"`
+	UserId         sql.NullString `db:"user_id"`
+	CreatedAt      time.Time      `db:"created_at"`
+	UpdatedAt      time.Time      `db:"updated_at"`
 }
 
 const (
@@ -34,16 +36,18 @@ const (
 			project_id,
 			group_id,
 			org_id,
-			namespace_id
+			namespace_id,
+		    user_id
 		) VALUES (
 			$1,
 			$2,
 			$3,
 			$4,
 			$5,
-		    $6
+		    $6,
+		    $7
 		)
-		RETURNING id, name, project_id, group_id, org_id, namespace_id, created_at, updated_at`
+		RETURNING id, name, project_id, group_id, org_id, namespace_id, user_id, created_at, updated_at`
 	listResourcesQuery = `
 		SELECT
 			id,
@@ -52,6 +56,7 @@ const (
 			group_id,
 			org_id,
 			namespace_id,
+		    user_id,
 			created_at,
 			updated_at
 		FROM resources`
@@ -63,6 +68,7 @@ const (
 			group_id,
 			org_id,
 			namespace_id,
+		    user_id,
 			created_at,
 			updated_at
 		FROM resources
@@ -73,7 +79,8 @@ const (
 			project_id = $3,
 			group_id = $4,
 			org_id = $5,
-			namespace_id = $6
+			namespace_id = $6,
+		    user_id = $7
 		WHERE id = $1
 		`
 )
@@ -81,8 +88,11 @@ const (
 func (s Store) CreateResource(ctx context.Context, resourceToCreate model.Resource) (model.Resource, error) {
 	var newResource Resource
 
+	userId := sql.NullString{String: resourceToCreate.UserId, Valid: resourceToCreate.UserId != ""}
+	groupId := sql.NullString{String: resourceToCreate.GroupId, Valid: resourceToCreate.GroupId != ""}
+
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Id, resourceToCreate.Name, resourceToCreate.ProjectId, resourceToCreate.GroupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId)
+		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Id, resourceToCreate.Name, resourceToCreate.ProjectId, groupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId, userId)
 	})
 
 	if err != nil {
@@ -157,8 +167,11 @@ func (s Store) GetResource(ctx context.Context, id string) (model.Resource, erro
 func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Resource) (model.Resource, error) {
 	var updatedResource Resource
 
+	userId := sql.NullString{String: toUpdate.UserId, Valid: toUpdate.UserId != ""}
+	groupId := sql.NullString{String: toUpdate.GroupId, Valid: toUpdate.GroupId != ""}
+
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, toUpdate.GroupId, toUpdate.OrganizationId, toUpdate.NamespaceId)
+		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, groupId, toUpdate.OrganizationId, toUpdate.NamespaceId, userId)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -186,7 +199,8 @@ func transformToResource(from Resource) (model.Resource, error) {
 		ProjectId:      from.ProjectId,
 		NamespaceId:    from.NamespaceId,
 		OrganizationId: from.OrganizationId,
-		GroupId:        from.GroupId,
+		GroupId:        from.GroupId.String,
+		UserId:         from.UserId.String,
 		CreatedAt:      from.CreatedAt,
 		UpdatedAt:      from.UpdatedAt,
 	}, nil
