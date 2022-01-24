@@ -2,6 +2,7 @@ package blob
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -47,6 +48,31 @@ func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]structs.Resource
 
 	err := repo.refresh(ctx)
 	return repo.cached, err
+}
+
+func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, resourceID string) (map[string]bool, error) {
+	resources, err := repo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	relationSet := map[string]bool{}
+	for _, resource := range resources {
+		if resource.Name == resourceID {
+			for _, action := range resource.Actions {
+				for _, relation := range action {
+					relationSet[fmt.Sprintf("%s_%s", resourceID, relation)] = true
+				}
+			}
+			break
+		}
+	}
+
+	if len(relationSet) == 0 {
+		return nil, fmt.Errorf("resource not found")
+	}
+
+	return relationSet, err
 }
 
 func (repo *ResourcesRepository) refresh(ctx context.Context) error {

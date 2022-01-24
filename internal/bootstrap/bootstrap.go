@@ -86,11 +86,11 @@ func getResourceDefaultPolicies(ns model.Namespace, action model.Action, owner m
 			Namespace: ns,
 			Role:      definition.OrganizationAdminRole,
 		},
-		{
-			Action:    action,
-			Namespace: ns,
-			Role:      owner,
-		},
+		//{
+		//	Action:    action,
+		//	Namespace: ns,
+		//	Role:      owner,
+		//},
 	}
 }
 
