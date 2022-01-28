@@ -32,6 +32,7 @@ type Backend struct {
 	Target    string     `yaml:"target"`
 	Methods   []string   `yaml:"methods"`
 	Frontends []Frontend `yaml:"frontends"`
+	Prefix    string     `yaml:"prefix"`
 }
 
 type Frontend struct {
@@ -133,7 +134,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 							URL:    frontend.Path,
 							Method: frontend.Method,
 						},
-						Backend:     structs.Backend{URL: backend.Target, Namespace: backend.Name},
+						Backend:     structs.Backend{URL: backend.Target, Namespace: backend.Name, Prefix: backend.Prefix},
 						Middlewares: middlewares,
 						Hooks:       hooks,
 					})
