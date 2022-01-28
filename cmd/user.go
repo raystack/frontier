@@ -90,7 +90,7 @@ func createUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 		},
 	}
 
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the provider config")
+	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the user body file")
 	cmd.MarkFlagRequired("file")
 
 	return cmd
@@ -146,7 +146,7 @@ func updateUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 		},
 	}
 
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the provider config")
+	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the user body file")
 	cmd.MarkFlagRequired("file")
 
 	return cmd

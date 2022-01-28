@@ -90,7 +90,7 @@ func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the provider config")
+	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the namespace body file")
 	cmd.MarkFlagRequired("file")
 
 	return cmd
@@ -146,7 +146,7 @@ func updateNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 		},
 	}
 
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the provider config")
+	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the namespace body file")
 	cmd.MarkFlagRequired("file")
 
 	return cmd
