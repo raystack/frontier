@@ -118,6 +118,7 @@ func (v Dep) UpdateAction(ctx context.Context, request *shieldv1beta1.UpdateActi
 }
 
 func transformActionToPB(act model.Action) (shieldv1beta1.Action, error) {
+	act.Namespace.Id = act.NamespaceId
 	namespace, err := transformNamespaceToPB(act.Namespace)
 	if err != nil {
 		return shieldv1beta1.Action{}, err
