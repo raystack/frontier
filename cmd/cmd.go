@@ -20,5 +20,6 @@ func New(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd.AddCommand(OrganizationCommand(logger, appConfig))
 	cmd.AddCommand(GroupCommand(logger, appConfig))
 	cmd.AddCommand(ProjectCommand(logger, appConfig))
+	cmd.AddCommand(RoleCommand(logger, appConfig))
 	return cmd
 }
