@@ -50,7 +50,7 @@ func (a Authz) Info() hook.Info {
 }
 
 func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) {
-	if err != nil {
+	if err != nil || res.StatusCode >= 400 {
 		return a.escape.ServeHook(res, err)
 	}
 
