@@ -72,7 +72,7 @@ func (p Permission) AddRelation(ctx context.Context, relation model.Relation) er
 	request := &pb.WriteRelationshipsRequest{
 		Updates: []*pb.RelationshipUpdate{
 			{
-				Operation:    pb.RelationshipUpdate_OPERATION_CREATE,
+				Operation:    pb.RelationshipUpdate_OPERATION_TOUCH,
 				Relationship: relationship,
 			},
 		},
@@ -87,7 +87,7 @@ func (p Permission) AddRelation(ctx context.Context, relation model.Relation) er
 	return nil
 }
 
-func (p Permission) CheckRelation(ctx context.Context, relation model.Relation, prmsn model.Permission) (bool, error) {
+func (p Permission) CheckRelation(ctx context.Context, relation model.Relation, action model.Action) (bool, error) {
 	relationship, err := schema_generator.TransformCheckRelation(relation)
 	if err != nil {
 		return false, err
@@ -96,7 +96,7 @@ func (p Permission) CheckRelation(ctx context.Context, relation model.Relation, 
 	request := &pb.CheckPermissionRequest{
 		Resource:   relationship.Resource,
 		Subject:    relationship.Subject,
-		Permission: prmsn.Name,
+		Permission: action.Id,
 	}
 
 	response, err := p.client.CheckPermission(ctx, request)

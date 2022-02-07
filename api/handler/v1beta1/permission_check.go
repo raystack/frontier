@@ -19,7 +19,7 @@ var (
 )
 
 type PermissionCheckService interface {
-	CheckAuthz(ctx context.Context, resource model.Resource, prmsn model.Permission) (bool, error)
+	CheckAuthz(ctx context.Context, resource model.Resource, action model.Action) (bool, error)
 }
 
 func (v Dep) CheckResourcePermission(ctx context.Context, in *shieldv1beta1.ResourceActionAuthzRequest) (*shieldv1beta1.ResourceActionAuthzResponse, error) {
@@ -33,7 +33,7 @@ func (v Dep) CheckResourcePermission(ctx context.Context, in *shieldv1beta1.Reso
 	result, err := v.PermissionCheckService.CheckAuthz(ctx, model.Resource{
 		Name:        in.ResourceId,
 		NamespaceId: in.NamespaceId,
-	}, model.Permission{Name: in.ActionId})
+	}, model.Action{Id: in.ActionId})
 	if err != nil {
 		formattedErr := fmt.Errorf("%s: %w", internalServerErr, err)
 		logger.Error(formattedErr.Error())
