@@ -25,6 +25,7 @@ type GroupService interface {
 	UpdateGroup(ctx context.Context, grp model.Group) (model.Group, error)
 	AddUsersToGroup(ctx context.Context, groupId string, userIds []string) ([]model.User, error)
 	ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error)
+	RemoveUserFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error)
 }
 
 var (
@@ -181,6 +182,25 @@ func (v Dep) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGroupUs
 
 	return &shieldv1beta1.AddGroupUserResponse{
 		Users: users,
+	}, nil
+}
+
+func (v Dep) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.RemoveGroupUserRequest) (*shieldv1beta1.RemoveGroupUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	_, err := v.GroupService.RemoveUserFromGroup(ctx, request.GetId(), request.GetUserId())
+
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.GroupDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.RemoveGroupUserResponse{
+		Message: "Removed User from group",
 	}, nil
 }
 

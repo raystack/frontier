@@ -14,6 +14,8 @@ import (
 type Store interface {
 	GetCurrentUser(ctx context.Context, email string) (model.User, error)
 	CreateRelation(ctx context.Context, relation model.Relation) (model.Relation, error)
+	GetRelationByFields(ctx context.Context, relation model.Relation) (model.Relation, error)
+	DeleteRelationById(ctx context.Context, id string) error
 }
 
 type Service struct {
@@ -27,6 +29,7 @@ type Permissions interface {
 	AddTeamToOrg(ctx context.Context, team model.Group, org model.Organization) error
 	AddAdminToTeam(ctx context.Context, user model.User, team model.Group) error
 	AddMemberToTeam(ctx context.Context, user model.User, team model.Group) error
+	RemoveMemberFromTeam(ctx context.Context, user model.User, team model.Group) error
 	AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error
 	AddAdminToProject(ctx context.Context, user model.User, project model.Project) error
 	AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error
@@ -49,6 +52,22 @@ func (s Service) addRelation(ctx context.Context, rel model.Relation) error {
 		return err
 	}
 	return nil
+}
+
+func (s Service) removeRelation(ctx context.Context, rel model.Relation) error {
+	fetchedRel, err := s.Store.GetRelationByFields(ctx, rel)
+	if err != nil {
+		return err
+	}
+
+	err = s.Authz.Permission.DeleteRelation(ctx, rel)
+	if err != nil {
+		return err
+	}
+
+	err = s.Store.DeleteRelationById(ctx, fetchedRel.Id)
+
+	return err
 }
 
 func (s Service) AddTeamToOrg(ctx context.Context, team model.Group, org model.Organization) error {
@@ -94,6 +113,20 @@ func (s Service) AddMemberToTeam(ctx context.Context, user model.User, team mode
 		},
 	}
 	return s.addRelation(ctx, rel)
+}
+
+func (s Service) RemoveMemberFromTeam(ctx context.Context, user model.User, team model.Group) error {
+	rel := model.Relation{
+		ObjectNamespace:  definition.TeamNamespace,
+		ObjectId:         team.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role: model.Role{
+			Id:        definition.TeamMemberRole.Id,
+			Namespace: definition.TeamNamespace,
+		},
+	}
+	return s.removeRelation(ctx, rel)
 }
 
 func (s Service) AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error {

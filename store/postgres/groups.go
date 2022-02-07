@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/internal/user"
-
+	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
+	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
 )
 
@@ -24,12 +24,20 @@ type Group struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-const (
+var (
 	createGroupsQuery   = `INSERT INTO groups(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 	getGroupsQuery      = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups where id=$1;`
 	listGroupsQuery     = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups`
 	updateGroupQuery    = `UPDATE groups set name = $2, slug = $3, org_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
-	listGroupUsersQuery = `SELECT u.id as id, u."name" as name, u.email as email, u.metadata as metadata, u.created_at as created_at, u.updated_at as updated_at from relations r JOIN users u ON CAST(u.id as VARCHAR) = r.subject_id WHERE r.object_id=$1`
+	listGroupUsersQuery = fmt.Sprintf(
+		`SELECT u.id as id, u."name" as name, u.email as email, u.metadata as metadata, u.created_at as created_at, u.updated_at as updated_at
+				FROM relations r 
+				JOIN users u ON CAST(u.id as VARCHAR) = r.subject_id 
+				WHERE r.object_id=$1 
+					AND r.role_id='%s'
+					AND r.subject_namespace_id='%s'
+					AND r.object_namespace_id='%s';`,
+		definition.TeamMemberRole.Id, definition.UserNamespace.Id, definition.TeamNamespace.Id)
 )
 
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {

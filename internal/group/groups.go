@@ -24,6 +24,7 @@ type Store interface {
 	ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error)
 	UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Group, error)
 	GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error)
+	GetUser(ctx context.Context, userId string) (model.User, error)
 	ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error)
 }
 
@@ -111,6 +112,47 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 			return []model.User{}, err
 		}
 	}
+	return s.ListGroupUsers(ctx, groupId)
+}
+
+func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error) {
+	currentUser, err := s.Permissions.FetchCurrentUser(ctx)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	group, err := s.Store.GetGroup(ctx, groupId)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
+		Id:        groupId,
+		Namespace: definition.TeamNamespace,
+	},
+		definition.ManageTeamAction,
+	)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	if !isAuthorized {
+		return []model.User{}, shieldError.Unauthorzied
+	}
+
+	user, err := s.Store.GetUser(ctx, userId)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	err = s.Permissions.RemoveMemberFromTeam(ctx, user, group)
+	if err != nil {
+		return []model.User{}, err
+	}
+
 	return s.ListGroupUsers(ctx, groupId)
 }
 

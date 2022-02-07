@@ -91,6 +91,20 @@ const (
 		   created_at,
 		   updated_at
 		`
+	getRelationByFieldsQuery = `
+		SELECT 
+		       id, 
+		       subject_namespace_id, 
+		       subject_id, 
+		       object_namespace_id, 
+		       object_id, 
+		       role_id,
+		       namespace_id,
+		       created_at, 
+		       updated_at 
+		FROM relations 
+		WHERE subject_namespace_id=$1 AND subject_id=$2 AND object_namespace_id=$3 AND object_id=$4 AND (role_id IS NULL OR role_id = $5) AND (namespace_id IS NULL OR namespace_id = $6)`
+	deleteRelationById = `DELETE FROM relations WHERE id = $1`
 )
 
 func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relation) (model.Relation, error) {
@@ -165,6 +179,70 @@ func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, erro
 	var fetchedRelation Relation
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedRelation, getRelationsQuery, id)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Relation{}, relation.RelationDoesntExist
+	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+		// TODO: this uuid syntax is a error defined in db, not in library
+		// need to look into better ways to implement this
+		return model.Relation{}, relation.InvalidUUID
+	} else if err != nil {
+		return model.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	transformedRelation, err := transformToRelation(fetchedRelation)
+	if err != nil {
+		return model.Relation{}, err
+	}
+
+	return transformedRelation, nil
+}
+
+func (s Store) DeleteRelationById(ctx context.Context, id string) error {
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		result, err := s.DB.ExecContext(ctx, deleteRelationById, id)
+		if err == nil {
+			count, err := result.RowsAffected()
+			if err == nil {
+				if count == 1 {
+					return nil
+				}
+			}
+		}
+		return err
+	})
+	return err
+}
+
+func (s Store) GetRelationByFields(ctx context.Context, rel model.Relation) (model.Relation, error) {
+	var fetchedRelation Relation
+
+	subjectNamespaceId := utils.DefaultStringIfEmpty(rel.SubjectNamespace.Id, rel.SubjectNamespaceId)
+	objectNamespaceId := utils.DefaultStringIfEmpty(rel.ObjectNamespace.Id, rel.ObjectNamespaceId)
+	roleId := utils.DefaultStringIfEmpty(rel.Role.Id, rel.RoleId)
+	var nsId string
+
+	if rel.RelationType == model.RelationTypes.Namespace {
+		nsId = roleId
+		roleId = ""
+	}
+
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx,
+			&fetchedRelation,
+			getRelationByFieldsQuery,
+			subjectNamespaceId,
+			rel.SubjectId,
+			objectNamespaceId,
+			rel.ObjectId,
+			sql.NullString{String: roleId, Valid: roleId != ""},
+			sql.NullString{String: nsId, Valid: nsId != ""},
+		)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
