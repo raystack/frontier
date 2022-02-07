@@ -3,6 +3,7 @@ package group
 import (
 	"context"
 	"errors"
+
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	shieldError "github.com/odpf/shield/utils/errors"
 

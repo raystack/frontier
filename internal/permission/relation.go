@@ -170,7 +170,6 @@ func (s Service) AddProjectToOrg(ctx context.Context, project model.Project, org
 		RelationType: model.RelationTypes.Namespace,
 	}
 	return s.addRelation(ctx, rel)
-
 }
 
 func (s Service) AddProjectToResource(ctx context.Context, project model.Project, resource model.Resource) error {
@@ -190,7 +189,6 @@ func (s Service) AddProjectToResource(ctx context.Context, project model.Project
 		RelationType: model.RelationTypes.Namespace,
 	}
 	return s.addRelation(ctx, rel)
-
 }
 
 func (s Service) AddOrgToResource(ctx context.Context, org model.Organization, resource model.Resource) error {
@@ -210,7 +208,6 @@ func (s Service) AddOrgToResource(ctx context.Context, org model.Organization, r
 		RelationType: model.RelationTypes.Namespace,
 	}
 	return s.addRelation(ctx, rel)
-
 }
 
 func (s Service) AddTeamToResource(ctx context.Context, team model.Group, resource model.Resource) error {
@@ -230,7 +227,6 @@ func (s Service) AddTeamToResource(ctx context.Context, team model.Group, resour
 		RelationType: model.RelationTypes.Namespace,
 	}
 	return s.addRelation(ctx, rel)
-
 }
 
 func (s Service) CheckPermission(ctx context.Context, user model.User, resource model.Resource, action model.Action) (bool, error) {

@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/odpf/shield/pkg/utils"
 	"time"
+
+	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/model"
