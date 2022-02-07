@@ -202,7 +202,7 @@ func (s Service) AddTeamToResource(ctx context.Context, team model.Group, resour
 
 func (s Service) CheckPermission(ctx context.Context, user model.User, resource model.Resource, action model.Action) (bool, error) {
 	resourceNS := model.Namespace{
-		Id: resource.NamespaceId,
+		Id: utils.DefaultStringIfEmpty(resource.NamespaceId, resource.Namespace.Id),
 	}
 
 	rel := model.Relation{

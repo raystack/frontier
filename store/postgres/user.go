@@ -24,11 +24,12 @@ type User struct {
 }
 
 const (
-	getUsersQuery            = `SELECT id, name,  email, metadata, created_at, updated_at from users where id=$1;`
+	getUserQuery             = `SELECT id, name,  email, metadata, created_at, updated_at from users where id=$1;`
+	getUsersByIdsQuery       = `SELECT id, name,  email, metadata, created_at, updated_at from users where id IN (?);`
 	getCurrentUserQuery      = `SELECT id, name, email, metadata, created_at, updated_at from users where email=$1;`
 	createUserQuery          = `INSERT INTO users(name, email, metadata) values($1, $2, $3) RETURNING id, name, email, metadata, created_at, updated_at;`
 	listUsersQuery           = `SELECT id, name, email, metadata, created_at, updated_at from users;`
-	selectUserForUpdateQuery = `SELECT id, name, email, metadata, version, updated_at from users where id=$1;`
+	selectUserForUpdateQuery = `SELECT id, name, email, metadata, updated_at from users where id=$1;`
 	updateUserQuery          = `UPDATE users set name = $2, email = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
 	updateCurrentUserQuery   = `UPDATE users set name = $2, metadata = $3, updated_at = now() where email = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
 )
@@ -45,7 +46,7 @@ func (s Store) selectUser(ctx context.Context, id string, forUpdate bool, txn *s
 		if forUpdate {
 			return txn.GetContext(ctx, &fetchedUser, selectUserForUpdateQuery, id)
 		} else {
-			return s.DB.GetContext(ctx, &fetchedUser, getUsersQuery, id)
+			return s.DB.GetContext(ctx, &fetchedUser, getUserQuery, id)
 		}
 	})
 
@@ -94,6 +95,43 @@ func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
 	var fetchedUsers []User
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedUsers, listUsersQuery)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.User{}, user.UserDoesntExist
+	}
+
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedUsers []model.User
+
+	for _, u := range fetchedUsers {
+		transformedUser, err := transformToUser(u)
+		if err != nil {
+			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedUsers = append(transformedUsers, transformedUser)
+	}
+
+	return transformedUsers, nil
+}
+
+func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error) {
+	var fetchedUsers []User
+
+	query, args, err := sqlx.In(getUsersByIdsQuery, userIds)
+
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	query = s.DB.Rebind(query)
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedUsers, query, args...)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

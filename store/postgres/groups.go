@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/internal/user"
+
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/model"
 )
@@ -23,10 +25,11 @@ type Group struct {
 }
 
 const (
-	createGroupsQuery = `INSERT INTO groups(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
-	getGroupsQuery    = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups where id=$1;`
-	listGroupsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups`
-	updateGroupQuery  = `UPDATE groups set name = $2, slug = $3, org_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
+	createGroupsQuery   = `INSERT INTO groups(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
+	getGroupsQuery      = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups where id=$1;`
+	listGroupsQuery     = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups`
+	updateGroupQuery    = `UPDATE groups set name = $2, slug = $3, org_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
+	listGroupUsersQuery = `SELECT u.id as id, u."name" as name, u.email as email, u.metadata as metadata, u.created_at as created_at, u.updated_at as updated_at from relations r JOIN users u ON CAST(u.id as VARCHAR) = r.subject_id WHERE r.object_id=$1`
 )
 
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
@@ -134,6 +137,34 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 	}
 
 	return updated, nil
+}
+
+func (s Store) ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error) {
+	var fetchedUsers []User
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedUsers, listGroupUsersQuery, groupId)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.User{}, user.UserDoesntExist
+	}
+
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedUsers []model.User
+
+	for _, u := range fetchedUsers {
+		transformedUser, err := transformToUser(u)
+		if err != nil {
+			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedUsers = append(transformedUsers, transformedUser)
+	}
+
+	return transformedUsers, nil
 }
 
 func transformToGroup(from Group) (model.Group, error) {
