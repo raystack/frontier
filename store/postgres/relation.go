@@ -43,7 +43,9 @@ const (
 			  $4,
 			  $5,
 		      $6
-		) RETURNING id, subject_namespace_id,  subject_id, object_namespace_id,  object_id, role_id, namespace_id, created_at, updated_at`
+		) 
+		ON CONFLICT (subject_namespace_id,  subject_id, object_namespace_id,  object_id, COALESCE(role_id, ''), COALESCE(namespace_id, '')) DO UPDATE SET subject_namespace_id=$1
+		RETURNING id, subject_namespace_id,  subject_id, object_namespace_id,  object_id, role_id, namespace_id, created_at, updated_at`
 	listRelationQuery = `
 		SELECT 
 		       id,
