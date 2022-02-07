@@ -43,14 +43,14 @@ func ProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "create",
 		Short: "create all projects",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield project create --file=<project-body>
+			$ shield project create --file=<project-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
@@ -77,6 +77,8 @@ func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 			}
 			defer cancel()
 
+			ctx = setCtxHeader(ctx, header)
+
 			res, err := client.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
 				Body: &reqBody,
 			})
@@ -92,6 +94,8 @@ func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the project body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

@@ -43,14 +43,14 @@ func GroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "create",
 		Short: "create all groups",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield group create --file=<group-body>
+			$ shield group create --file=<group-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
@@ -77,6 +77,8 @@ func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 			}
 			defer cancel()
 
+			ctx = setCtxHeader(ctx, header)
+
 			res, err := client.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
 				Body: &reqBody,
 			})
@@ -92,6 +94,8 @@ func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the group body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

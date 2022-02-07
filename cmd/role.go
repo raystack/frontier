@@ -44,14 +44,14 @@ func RoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "create",
 		Short: "create all roles",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield role create --file=<role-body>
+			$ shield role create --file=<role-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"role:core": "true",
@@ -78,6 +78,8 @@ func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 			defer cancel()
 
+			ctx = setCtxHeader(ctx, header)
+
 			res, err := client.CreateRole(ctx, &shieldv1beta1.CreateRoleRequest{
 				Body: &reqBody,
 			})
@@ -93,6 +95,8 @@ func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the role body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

@@ -43,14 +43,14 @@ func ActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "create",
 		Short: "create all actions",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield action create --file=<action-body>
+			$ shield action create --file=<action-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"action:core": "true",
@@ -77,6 +77,8 @@ func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			}
 			defer cancel()
 
+			ctx = setCtxHeader(ctx, header)
+
 			res, err := client.CreateAction(ctx, &shieldv1beta1.CreateActionRequest{
 				Body: &reqBody,
 			})
@@ -92,6 +94,8 @@ func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the action body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

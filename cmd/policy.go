@@ -43,14 +43,14 @@ func PolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "create",
 		Short: "create all policies",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield policy create --file=<policy-body>
+			$ shield policy create --file=<policy-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"policy:core": "true",
@@ -77,6 +77,8 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			}
 			defer cancel()
 
+			ctx = setCtxHeader(ctx, header)
+
 			_, err = client.CreatePolicy(ctx, &shieldv1beta1.CreatePolicyRequest{
 				Body: &reqBody,
 			})
@@ -92,6 +94,8 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the policy body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

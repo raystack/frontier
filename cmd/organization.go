@@ -46,14 +46,14 @@ func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 }
 
 func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "create",
 		Short: "create all organizations",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield organization create --file=<organization-body>
+			$ shield organization create --file=<organization-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
@@ -80,6 +80,8 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 			}
 			defer cancel()
 
+			ctx = setCtxHeader(ctx, header)
+
 			res, err := client.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
 				Body: &reqBody,
 			})
@@ -95,6 +97,8 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the organization body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }
