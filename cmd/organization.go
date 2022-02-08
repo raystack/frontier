@@ -18,8 +18,8 @@ func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd := &cli.Command{
 		Use:     "organization",
-		Aliases: []string{"organization"},
-		Short:   "Manage organization",
+		Aliases: []string{"organizations"},
+		Short:   "Manage organizations",
 		Long: heredoc.Doc(`
 			Work with organizations.
 		`),
@@ -50,7 +50,7 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all organizations",
+		Short: "Create an organization",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield organization create --file=<organization-body> --header=<key>:<value>
@@ -108,7 +108,7 @@ func updateOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all organizations",
+		Short: "Edit an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield organization update <organization-id> --file=<organization-body>
@@ -164,7 +164,7 @@ func getOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get an organization",
+		Short: "View an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield organization get <organization-id>
@@ -236,7 +236,7 @@ func listOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all organizations",
+		Short: "List all organizations",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield organization list
@@ -296,7 +296,7 @@ func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 
 	cmd := &cli.Command{
 		Use:   "admadd",
-		Short: "add admins to all organizations",
+		Short: "add admins to an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield organization admadd <organization-id> -file=<add-organization-admin-body>
@@ -352,7 +352,7 @@ func admremoveOrganizationCommand(logger log.Logger, appConfig *config.Shield) *
 
 	cmd := &cli.Command{
 		Use:   "admremove",
-		Short: "remove admins from all organizations",
+		Short: "remove admins from an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield organization admremove <organization-id> --user=<user-id>
@@ -397,7 +397,7 @@ func admlistOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cl
 
 	cmd := &cli.Command{
 		Use:   "admlist",
-		Short: "list admins of all organizations",
+		Short: "list admins of an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield organization admlist <organization-id>

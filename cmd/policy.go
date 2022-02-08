@@ -18,8 +18,8 @@ func PolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:     "policy",
-		Aliases: []string{"policy"},
-		Short:   "Manage policy",
+		Aliases: []string{"policies"},
+		Short:   "Manage policies",
 		Long: heredoc.Doc(`
 			Work with policies.
 		`),
@@ -47,7 +47,7 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all policies",
+		Short: "Create a policy",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield policy create --file=<policy-body> --header=<key>:<value>
@@ -105,7 +105,7 @@ func updatePolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all policies",
+		Short: "Edit a policy",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield policy update <policy-id> --file=<policy-body>
@@ -159,7 +159,7 @@ func updatePolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 func getPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get an policy",
+		Short: "View a policy",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield policy get <policy-id>
@@ -212,7 +212,7 @@ func listPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all policies",
+		Short: "List all policies",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield policy list

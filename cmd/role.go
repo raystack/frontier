@@ -19,8 +19,8 @@ func RoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:     "role",
-		Aliases: []string{"role"},
-		Short:   "Manage role",
+		Aliases: []string{"roles"},
+		Short:   "Manage roles",
 		Long: heredoc.Doc(`
 			Work with roles.
 		`),
@@ -48,7 +48,7 @@ func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all roles",
+		Short: "Create a role",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield role create --file=<role-body> --header=<key>:<value>
@@ -106,7 +106,7 @@ func updateRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all roles",
+		Short: "Edit a role",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield role update <role-id> --file=<role-body>
@@ -162,7 +162,7 @@ func getRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get an role",
+		Short: "View a role",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield role get <role-id>
@@ -235,7 +235,7 @@ func listRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all roles",
+		Short: "List all roles",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield role list

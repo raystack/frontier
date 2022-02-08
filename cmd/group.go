@@ -18,8 +18,8 @@ func GroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:     "group",
-		Aliases: []string{"group"},
-		Short:   "Manage group",
+		Aliases: []string{"groups"},
+		Short:   "Manage groups",
 		Long: heredoc.Doc(`
 			Work with groups.
 		`),
@@ -47,7 +47,7 @@ func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all groups",
+		Short: "Create a group",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield group create --file=<group-body> --header=<key>:<value>
@@ -105,7 +105,7 @@ func updateGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all groups",
+		Short: "Edit a group",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield group update <group-id> --file=<group-body>
@@ -161,7 +161,7 @@ func getGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get an group",
+		Short: "Get a group",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield group get <group-id>
@@ -234,7 +234,7 @@ func listGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all groups",
+		Short: "List all groups",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield group list

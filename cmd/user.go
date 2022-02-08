@@ -18,8 +18,8 @@ func UserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:     "user",
-		Aliases: []string{"user"},
-		Short:   "Manage user",
+		Aliases: []string{"users"},
+		Short:   "Manage users",
 		Long: heredoc.Doc(`
 			Work with users.
 		`),
@@ -47,7 +47,7 @@ func createUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all users",
+		Short: "Create an user",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield user create --file=<user-body>
@@ -101,7 +101,7 @@ func updateUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all users",
+		Short: "Edit an user",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield user update <user-id> --file=<user-body>
@@ -157,7 +157,7 @@ func getUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get all users",
+		Short: "View an user",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield user get <user-id>
@@ -224,7 +224,7 @@ func listUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all users",
+		Short: "List all users",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield user list

@@ -18,8 +18,8 @@ func ActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:     "action",
-		Aliases: []string{"action"},
-		Short:   "Manage action",
+		Aliases: []string{"actions"},
+		Short:   "Manage actions",
 		Long: heredoc.Doc(`
 			Work with actions.
 		`),
@@ -47,7 +47,7 @@ func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all actions",
+		Short: "Create an action",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield action create --file=<action-body> --header=<key>:<value>
@@ -105,7 +105,7 @@ func updateActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all actions",
+		Short: "Edit an action",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield action update <action-id> --file=<action-body>
@@ -159,7 +159,7 @@ func updateActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 func getActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get an action",
+		Short: "View an action",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield action get <action-id>
@@ -212,7 +212,7 @@ func listActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all actions",
+		Short: "List all actions",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield action list

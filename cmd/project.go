@@ -18,8 +18,8 @@ func ProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:     "project",
-		Aliases: []string{"project"},
-		Short:   "Manage project",
+		Aliases: []string{"projects"},
+		Short:   "Manage projects",
 		Long: heredoc.Doc(`
 			Work with projects.
 		`),
@@ -47,7 +47,7 @@ func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all projects",
+		Short: "Create a project",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield project create --file=<project-body> --header=<key>:<value>
@@ -105,7 +105,7 @@ func updateProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all projects",
+		Short: "Edit a project",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield project update <project-id> --file=<project-body>
@@ -161,7 +161,7 @@ func getProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get an project",
+		Short: "View a project",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield project get <project-id>
@@ -234,7 +234,7 @@ func listProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all projects",
+		Short: "List all projects",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield project list

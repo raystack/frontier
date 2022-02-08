@@ -18,8 +18,8 @@ func NamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 
 	cmd := &cli.Command{
 		Use:     "namespace",
-		Aliases: []string{"namespace"},
-		Short:   "Manage namespace",
+		Aliases: []string{"namespaces"},
+		Short:   "Manage namespaces",
 		Long: heredoc.Doc(`
 			Work with namespaces.
 		`),
@@ -47,7 +47,7 @@ func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "create all namespaces",
+		Short: "Create a namespace",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield namespace create --file=<namespace-body>
@@ -101,7 +101,7 @@ func updateNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 
 	cmd := &cli.Command{
 		Use:   "update",
-		Short: "update all namespaces",
+		Short: "Edit a namespace",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield namespace update <namespace-id> --file=<namespace-body>
@@ -156,7 +156,7 @@ func getNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 
 	cmd := &cli.Command{
 		Use:   "get",
-		Short: "get all namespaces",
+		Short: "View a namespace",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield namespace get <namespace-id>
@@ -212,7 +212,7 @@ func listNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 
 	cmd := &cli.Command{
 		Use:   "list",
-		Short: "list all namespaces",
+		Short: "List all namespaces",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield namespace list
