@@ -15,7 +15,6 @@ import (
 )
 
 func ActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "action",
 		Aliases: []string{"actions"},
@@ -209,7 +208,6 @@ func getActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 }
 
 func listActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all actions",

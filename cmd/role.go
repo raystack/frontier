@@ -16,7 +16,6 @@ import (
 )
 
 func RoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "role",
 		Aliases: []string{"roles"},
@@ -232,7 +231,6 @@ func getRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func listRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all roles",

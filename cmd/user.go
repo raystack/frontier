@@ -15,7 +15,6 @@ import (
 )
 
 func UserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "user",
 		Aliases: []string{"users"},
@@ -221,7 +220,6 @@ func getUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func listUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all users",

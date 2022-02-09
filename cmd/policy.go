@@ -15,7 +15,6 @@ import (
 )
 
 func PolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "policy",
 		Aliases: []string{"policies"},
@@ -209,7 +208,6 @@ func getPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 }
 
 func listPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all policies",

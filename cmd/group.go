@@ -15,7 +15,6 @@ import (
 )
 
 func GroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "group",
 		Aliases: []string{"groups"},
@@ -231,7 +230,6 @@ func getGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 }
 
 func listGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all groups",

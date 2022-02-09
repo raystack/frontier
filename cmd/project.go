@@ -15,7 +15,6 @@ import (
 )
 
 func ProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "project",
 		Aliases: []string{"projects"},
@@ -231,7 +230,6 @@ func getProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 }
 
 func listProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all projects",

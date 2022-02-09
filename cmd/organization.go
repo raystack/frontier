@@ -15,7 +15,6 @@ import (
 )
 
 func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "organization",
 		Aliases: []string{"organizations"},
@@ -233,7 +232,6 @@ func getOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 }
 
 func listOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all organizations",

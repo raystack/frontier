@@ -15,7 +15,6 @@ import (
 )
 
 func NamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:     "namespace",
 		Aliases: []string{"namespaces"},
@@ -153,7 +152,6 @@ func updateNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 }
 
 func getNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "get",
 		Short: "View a namespace",
@@ -209,7 +207,6 @@ func getNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 }
 
 func listNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all namespaces",
