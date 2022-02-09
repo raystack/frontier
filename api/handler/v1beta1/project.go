@@ -155,6 +155,7 @@ func transformProjectToPB(prj model.Project) (shieldv1beta1.Project, error) {
 		Id:        prj.Id,
 		Name:      prj.Name,
 		Slug:      prj.Slug,
+		OrgId:     prj.Organization.Id,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(prj.CreatedAt),
 		UpdatedAt: timestamppb.New(prj.UpdatedAt),

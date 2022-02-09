@@ -194,14 +194,14 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 
 func transformToResource(from Resource) (model.Resource, error) {
 	return model.Resource{
-		Id:             from.Id,
-		Name:           from.Name,
-		ProjectId:      from.ProjectId,
-		NamespaceId:    from.NamespaceId,
-		OrganizationId: from.OrganizationId,
-		GroupId:        from.GroupId.String,
-		UserId:         from.UserId.String,
-		CreatedAt:      from.CreatedAt,
-		UpdatedAt:      from.UpdatedAt,
+		Id:           from.Id,
+		Name:         from.Name,
+		Project:      model.Project{Id: from.ProjectId},
+		Namespace:    model.Namespace{Id: from.NamespaceId},
+		Organization: model.Organization{Id: from.OrganizationId},
+		Group:        model.Group{Id: from.GroupId.String},
+		User:         model.User{Id: from.UserId.String},
+		CreatedAt:    from.CreatedAt,
+		UpdatedAt:    from.UpdatedAt,
 	}, nil
 }

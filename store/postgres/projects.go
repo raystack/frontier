@@ -145,11 +145,12 @@ func transformToProject(from Project) (model.Project, error) {
 	}
 
 	return model.Project{
-		Id:        from.Id,
-		Name:      from.Name,
-		Slug:      from.Slug,
-		Metadata:  unmarshalledMetadata,
-		CreatedAt: from.CreatedAt,
-		UpdatedAt: from.UpdatedAt,
+		Id:           from.Id,
+		Name:         from.Name,
+		Slug:         from.Slug,
+		Organization: model.Organization{Id: from.OrgId},
+		Metadata:     unmarshalledMetadata,
+		CreatedAt:    from.CreatedAt,
+		UpdatedAt:    from.UpdatedAt,
 	}, nil
 }

@@ -97,7 +97,7 @@ func (v Dep) UpdateNamespace(ctx context.Context, request *shieldv1beta1.UpdateN
 	logger := grpczap.Extract(ctx)
 
 	updatedNS, err := v.NamespaceService.UpdateNamespace(ctx, request.GetId(), model.Namespace{
-		Id:   request.GetId(),
+		Id:   request.GetBody().Id,
 		Name: request.GetBody().Name,
 	})
 

@@ -22,9 +22,9 @@ func (s Service) ListNamespaces(ctx context.Context) ([]model.Namespace, error) 
 }
 
 func (s Service) UpdateNamespace(ctx context.Context, id string, ns model.Namespace) (model.Namespace, error) {
-	updatedNamespace, err := s.Store.UpdateNamespace(ctx, model.Namespace{
+	updatedNamespace, err := s.Store.UpdateNamespace(ctx, id, model.Namespace{
 		Name: ns.Name,
-		Id:   id,
+		Id:   ns.Id,
 	})
 	if err != nil {
 		return model.Namespace{}, err

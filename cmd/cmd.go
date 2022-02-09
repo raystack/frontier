@@ -15,5 +15,13 @@ func New(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd.AddCommand(serveCommand(logger, appConfig))
 	cmd.AddCommand(migrationsCommand(logger, appConfig))
 	cmd.AddCommand(migrationsRollbackCommand(logger, appConfig))
+	cmd.AddCommand(NamespaceCommand(logger, appConfig))
+	cmd.AddCommand(UserCommand(logger, appConfig))
+	cmd.AddCommand(OrganizationCommand(logger, appConfig))
+	cmd.AddCommand(GroupCommand(logger, appConfig))
+	cmd.AddCommand(ProjectCommand(logger, appConfig))
+	cmd.AddCommand(RoleCommand(logger, appConfig))
+	cmd.AddCommand(ActionCommand(logger, appConfig))
+	cmd.AddCommand(PolicyCommand(logger, appConfig))
 	return cmd
 }

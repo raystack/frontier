@@ -112,7 +112,7 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 
 	var updatedGroup Group
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.OrganizationId, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
