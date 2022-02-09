@@ -24,8 +24,8 @@ func ActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Example: heredoc.Doc(`
 			$ shield action create
-			$ shield action update
-			$ shield action get
+			$ shield action edit
+			$ shield action view
 			$ shield action list
 		`),
 		Annotations: map[string]string{
@@ -34,8 +34,8 @@ func ActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 
 	cmd.AddCommand(createActionCommand(logger, appConfig))
-	cmd.AddCommand(updateActionCommand(logger, appConfig))
-	cmd.AddCommand(getActionCommand(logger, appConfig))
+	cmd.AddCommand(editActionCommand(logger, appConfig))
+	cmd.AddCommand(viewActionCommand(logger, appConfig))
 	cmd.AddCommand(listActionCommand(logger, appConfig))
 
 	return cmd
@@ -99,15 +99,15 @@ func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	return cmd
 }
 
-func updateActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit an action",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield action update <action-id> --file=<action-body>
+			$ shield action edit <action-id> --file=<action-body>
 		`),
 		Annotations: map[string]string{
 			"action:core": "true",
@@ -144,7 +144,7 @@ func updateActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated action with id %s", actionID))
+			logger.Info(fmt.Sprintf("successfully edited action with id %s", actionID))
 			return nil
 		},
 	}
@@ -155,13 +155,13 @@ func updateActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	return cmd
 }
 
-func getActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd := &cli.Command{
-		Use:   "get",
+		Use:   "view",
 		Short: "View an action",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield action get <action-id>
+			$ shield action view <action-id>
 		`),
 		Annotations: map[string]string{
 			"action:core": "true",

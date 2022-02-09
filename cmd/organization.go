@@ -24,8 +24,8 @@ func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 		`),
 		Example: heredoc.Doc(`
 			$ shield organization create
-			$ shield organization update
-			$ shield organization get
+			$ shield organization edit
+			$ shield organization view
 			$ shield organization list
 		`),
 		Annotations: map[string]string{
@@ -34,8 +34,8 @@ func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	}
 
 	cmd.AddCommand(createOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(updateOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(getOrganizationCommand(logger, appConfig))
+	cmd.AddCommand(editOrganizationCommand(logger, appConfig))
+	cmd.AddCommand(viewOrganizationCommand(logger, appConfig))
 	cmd.AddCommand(listOrganizationCommand(logger, appConfig))
 	//cmd.AddCommand(admaddOrganizationCommand(logger, appConfig))
 	//cmd.AddCommand(admremoveOrganizationCommand(logger, appConfig))
@@ -102,15 +102,15 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 	return cmd
 }
 
-func updateOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield organization update <organization-id> --file=<organization-body>
+			$ shield organization edit <organization-id> --file=<organization-body>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
@@ -147,7 +147,7 @@ func updateOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated organization with id %s", organizationID))
+			logger.Info(fmt.Sprintf("successfully edited organization with id %s", organizationID))
 			return nil
 		},
 	}
@@ -158,15 +158,15 @@ func updateOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 	return cmd
 }
 
-func getOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
-		Use:   "get",
+		Use:   "view",
 		Short: "View an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield organization get <organization-id>
+			$ shield organization view <organization-id>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",

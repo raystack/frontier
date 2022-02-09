@@ -25,8 +25,8 @@ func RoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Example: heredoc.Doc(`
 			$ shield role create
-			$ shield role update
-			$ shield role get
+			$ shield role edit
+			$ shield role view
 			$ shield role list
 		`),
 		Annotations: map[string]string{
@@ -35,8 +35,8 @@ func RoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 
 	cmd.AddCommand(createRoleCommand(logger, appConfig))
-	cmd.AddCommand(updateRoleCommand(logger, appConfig))
-	cmd.AddCommand(getRoleCommand(logger, appConfig))
+	cmd.AddCommand(editRoleCommand(logger, appConfig))
+	cmd.AddCommand(viewRoleCommand(logger, appConfig))
 	cmd.AddCommand(listRoleCommand(logger, appConfig))
 
 	return cmd
@@ -100,15 +100,15 @@ func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func updateRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit a role",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield role update <role-id> --file=<role-body>
+			$ shield role edit <role-id> --file=<role-body>
 		`),
 		Annotations: map[string]string{
 			"role:core": "true",
@@ -145,7 +145,7 @@ func updateRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated role with id %s", roleID))
+			logger.Info(fmt.Sprintf("successfully edited role with id %s", roleID))
 			return nil
 		},
 	}
@@ -156,15 +156,15 @@ func updateRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func getRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
-		Use:   "get",
+		Use:   "view",
 		Short: "View a role",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield role get <role-id>
+			$ shield role view <role-id>
 		`),
 		Annotations: map[string]string{
 			"role:core": "true",

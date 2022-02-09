@@ -24,8 +24,8 @@ func PolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Example: heredoc.Doc(`
 			$ shield policy create
-			$ shield policy update
-			$ shield policy get
+			$ shield policy edit
+			$ shield policy view
 			$ shield policy list
 		`),
 		Annotations: map[string]string{
@@ -34,8 +34,8 @@ func PolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 
 	cmd.AddCommand(createPolicyCommand(logger, appConfig))
-	cmd.AddCommand(updatePolicyCommand(logger, appConfig))
-	cmd.AddCommand(getPolicyCommand(logger, appConfig))
+	cmd.AddCommand(editPolicyCommand(logger, appConfig))
+	cmd.AddCommand(viewPolicyCommand(logger, appConfig))
 	cmd.AddCommand(listPolicyCommand(logger, appConfig))
 
 	return cmd
@@ -99,15 +99,15 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	return cmd
 }
 
-func updatePolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit a policy",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield policy update <policy-id> --file=<policy-body>
+			$ shield policy edit <policy-id> --file=<policy-body>
 		`),
 		Annotations: map[string]string{
 			"policy:core": "true",
@@ -144,7 +144,7 @@ func updatePolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated policy"))
+			logger.Info(fmt.Sprintf("successfully edited policy"))
 			return nil
 		},
 	}
@@ -155,13 +155,13 @@ func updatePolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	return cmd
 }
 
-func getPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd := &cli.Command{
-		Use:   "get",
+		Use:   "view",
 		Short: "View a policy",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield policy get <policy-id>
+			$ shield policy view <policy-id>
 		`),
 		Annotations: map[string]string{
 			"policy:core": "true",

@@ -24,8 +24,8 @@ func NamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 		`),
 		Example: heredoc.Doc(`
 			$ shield namespace create
-			$ shield namespace update
-			$ shield namespace get
+			$ shield namespace edit
+			$ shield namespace view
 			$ shield namespace list
 		`),
 		Annotations: map[string]string{
@@ -34,8 +34,8 @@ func NamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 	}
 
 	cmd.AddCommand(createNamespaceCommand(logger, appConfig))
-	cmd.AddCommand(updateNamespaceCommand(logger, appConfig))
-	cmd.AddCommand(getNamespaceCommand(logger, appConfig))
+	cmd.AddCommand(editNamespaceCommand(logger, appConfig))
+	cmd.AddCommand(viewNamespaceCommand(logger, appConfig))
 	cmd.AddCommand(listNamespaceCommand(logger, appConfig))
 
 	return cmd
@@ -95,15 +95,15 @@ func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 	return cmd
 }
 
-func updateNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit a namespace",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield namespace update <namespace-id> --file=<namespace-body>
+			$ shield namespace edit <namespace-id> --file=<namespace-body>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
@@ -140,7 +140,7 @@ func updateNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated namespace with id %s to id %s and name %s", namespaceID, res.GetNamespace().GetId(), res.GetNamespace().GetName()))
+			logger.Info(fmt.Sprintf("successfully edited namespace with id %s to id %s and name %s", namespaceID, res.GetNamespace().GetId(), res.GetNamespace().GetName()))
 			return nil
 		},
 	}
@@ -151,13 +151,13 @@ func updateNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 	return cmd
 }
 
-func getNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd := &cli.Command{
-		Use:   "get",
+		Use:   "view",
 		Short: "View a namespace",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield namespace get <namespace-id>
+			$ shield namespace view <namespace-id>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",

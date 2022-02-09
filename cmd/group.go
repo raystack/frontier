@@ -24,8 +24,8 @@ func GroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Example: heredoc.Doc(`
 			$ shield group create
-			$ shield group update
-			$ shield group get
+			$ shield group edit
+			$ shield group view
 			$ shield group list
 		`),
 		Annotations: map[string]string{
@@ -34,8 +34,8 @@ func GroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 
 	cmd.AddCommand(createGroupCommand(logger, appConfig))
-	cmd.AddCommand(updateGroupCommand(logger, appConfig))
-	cmd.AddCommand(getGroupCommand(logger, appConfig))
+	cmd.AddCommand(editGroupCommand(logger, appConfig))
+	cmd.AddCommand(viewGroupCommand(logger, appConfig))
 	cmd.AddCommand(listGroupCommand(logger, appConfig))
 
 	return cmd
@@ -99,15 +99,15 @@ func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 	return cmd
 }
 
-func updateGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit a group",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield group update <group-id> --file=<group-body>
+			$ shield group edit <group-id> --file=<group-body>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
@@ -144,7 +144,7 @@ func updateGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated group with id %s", groupID))
+			logger.Info(fmt.Sprintf("successfully edited group with id %s", groupID))
 			return nil
 		},
 	}
@@ -155,15 +155,15 @@ func updateGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 	return cmd
 }
 
-func getGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
-		Use:   "get",
-		Short: "Get a group",
+		Use:   "view",
+		Short: "View a group",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield group get <group-id>
+			$ shield group view <group-id>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",

@@ -24,8 +24,8 @@ func UserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Example: heredoc.Doc(`
 			$ shield user create
-			$ shield user update
-			$ shield user get
+			$ shield user edit
+			$ shield user view
 			$ shield user list
 		`),
 		Annotations: map[string]string{
@@ -34,8 +34,8 @@ func UserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 
 	cmd.AddCommand(createUserCommand(logger, appConfig))
-	cmd.AddCommand(updateUserCommand(logger, appConfig))
-	cmd.AddCommand(getUserCommand(logger, appConfig))
+	cmd.AddCommand(editUserCommand(logger, appConfig))
+	cmd.AddCommand(viewUserCommand(logger, appConfig))
 	cmd.AddCommand(listUserCommand(logger, appConfig))
 
 	return cmd
@@ -95,15 +95,15 @@ func createUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func updateUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit an user",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield user update <user-id> --file=<user-body>
+			$ shield user edit <user-id> --file=<user-body>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
@@ -140,7 +140,7 @@ func updateUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated user with id %s", userID))
+			logger.Info(fmt.Sprintf("successfully edited user with id %s", userID))
 			return nil
 		},
 	}
@@ -151,15 +151,15 @@ func updateUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func getUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
-		Use:   "get",
+		Use:   "view",
 		Short: "View an user",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield user get <user-id>
+			$ shield user view <user-id>
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",

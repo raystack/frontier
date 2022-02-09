@@ -24,8 +24,8 @@ func ProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Example: heredoc.Doc(`
 			$ shield project create
-			$ shield project update
-			$ shield project get
+			$ shield project edit
+			$ shield project view
 			$ shield project list
 		`),
 		Annotations: map[string]string{
@@ -34,8 +34,8 @@ func ProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	}
 
 	cmd.AddCommand(createProjectCommand(logger, appConfig))
-	cmd.AddCommand(updateProjectCommand(logger, appConfig))
-	cmd.AddCommand(getProjectCommand(logger, appConfig))
+	cmd.AddCommand(editProjectCommand(logger, appConfig))
+	cmd.AddCommand(viewProjectCommand(logger, appConfig))
 	cmd.AddCommand(listProjectCommand(logger, appConfig))
 
 	return cmd
@@ -99,15 +99,15 @@ func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 	return cmd
 }
 
-func updateProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
-		Use:   "update",
+		Use:   "edit",
 		Short: "Edit a project",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield project update <project-id> --file=<project-body>
+			$ shield project edit <project-id> --file=<project-body>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
@@ -144,7 +144,7 @@ func updateProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully updated project with id %s", projectID))
+			logger.Info(fmt.Sprintf("successfully edited project with id %s", projectID))
 			return nil
 		},
 	}
@@ -155,15 +155,15 @@ func updateProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 	return cmd
 }
 
-func getProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
-		Use:   "get",
+		Use:   "view",
 		Short: "View a project",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield project get <project-id>
+			$ shield project view <project-id>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
