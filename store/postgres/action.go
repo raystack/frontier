@@ -133,6 +133,7 @@ func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.A
 }
 
 func transformToAction(from Action) (model.Action, error) {
+	from.Namespace.Id = from.NamespaceID
 	namespace, err := transformToNamespace(from.Namespace)
 	if err != nil {
 		return model.Action{}, err
