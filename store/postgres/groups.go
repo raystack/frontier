@@ -34,10 +34,10 @@ var (
 				FROM relations r 
 				JOIN users u ON CAST(u.id as VARCHAR) = r.subject_id 
 				WHERE r.object_id=$1 
-					AND r.role_id='%s'
+					AND r.role_id=$2
 					AND r.subject_namespace_id='%s'
 					AND r.object_namespace_id='%s';`,
-		definition.TeamMemberRole.Id, definition.UserNamespace.Id, definition.TeamNamespace.Id)
+		definition.UserNamespace.Id, definition.TeamNamespace.Id)
 )
 
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
@@ -147,10 +147,15 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 	return updated, nil
 }
 
-func (s Store) ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error) {
+func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]model.User, error) {
+	var role = definition.TeamMemberRole.Id
+	if roleId != "" {
+		role = roleId
+	}
+
 	var fetchedUsers []User
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedUsers, listGroupUsersQuery, groupId)
+		return s.DB.SelectContext(ctx, &fetchedUsers, listGroupUsersQuery, groupId, role)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

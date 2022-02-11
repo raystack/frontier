@@ -26,7 +26,7 @@ type Store interface {
 	UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Group, error)
 	GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error)
 	GetUser(ctx context.Context, userId string) (model.User, error)
-	ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error)
+	ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]model.User, error)
 }
 
 var (
@@ -158,5 +158,9 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 }
 
 func (s Service) ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error) {
-	return s.Store.ListGroupUsers(ctx, groupId)
+	return s.Store.ListGroupUsers(ctx, groupId, definition.TeamMemberRole.Id)
+}
+
+func (s Service) ListGroupAdmins(ctx context.Context, groupId string) ([]model.User, error) {
+	return s.Store.ListGroupUsers(ctx, groupId, definition.TeamAdminRole.Id)
 }
