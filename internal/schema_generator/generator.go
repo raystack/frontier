@@ -80,6 +80,9 @@ func buildSchema(d definition) string {
 		if len(roles) == 0 {
 			continue
 		}
+		sort.Slice(roles, func(i, j int) bool {
+			return roles[i].String() > roles[j].String()
+		})
 		relations = append(relations, namespace.Relation(
 			p,
 			namespace.Union(
