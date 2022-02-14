@@ -1,0 +1,175 @@
+rules:
+  - backends:
+      - name: optimus
+        target: "http://optimus.integration.golabs.io:80"
+        frontends:
+          - name: version
+            path: "/odpf.optimus.core.v1beta1.RuntimeService/Version"
+            method: "POST"
+
+          - name: check_job_specification
+            path: "/odpf.optimus.core.v1beta1.RuntimeService/CheckJobSpecification"
+            method: "POST"
+
+          - name: register_project
+            path: "/odpf.optimus.core.v1beta1.RuntimeService/RegisterProject"
+            method: "POST"
+
+          #deployment
+          # - name: deploy_job_spec
+          #   path: "/odpf.optimus.core.v1beta1.RuntimeService/DeployJobSpecification"
+          #   method: "POST"
+          #   middlewares:
+          #     - name: basic_auth
+          #       config:
+          #         users: *BASIC_AUTH_USER_DB
+          #         scope:
+          #           action: "deploy_jobs:{{.project}}:{{.namespace}}"
+          #           attributes:
+          #             project:
+          #               type: grpc_payload
+          #               index: 1
+          #             namespace:
+          #               type: grpc_payload
+          #               index: 4
+
+          # - name: deploy_resource_spec
+          #   path: "/odpf.optimus.core.v1beta1.RuntimeService/DeployResourceSpecification"
+          #   method: "POST"
+          #   middlewares:
+          #     - name: basic_auth
+          #       config:
+          #         users: *BASIC_AUTH_USER_DB
+          #         scope:
+          #           action: "deploy_resources:{{.project}}:{{.namespace}}"
+          #           attributes:
+          #             project:
+          #               type: grpc_payload
+          #               index: 1
+          #             namespace:
+          #               type: grpc_payload
+          #               index: 4
+
+          # #namespace registration
+          # - name: register_namespace
+          #   path: "/odpf.optimus.core.v1beta1.RuntimeService/RegisterProjectNamespace"
+          #   method: "POST"
+          #   middlewares:
+          #     - name: basic_auth
+          #       config:
+          #         users: *BASIC_AUTH_USER_DB
+          #         scope:
+          #           action: "register_namespace:{{.project}}"
+          #           attributes:
+          #             project:
+          #               type: grpc_payload
+          #               index: 1
+
+          #replay
+          - name: replay_dry_run
+            path: "/odpf.optimus.core.v1beta1.RuntimeService/ReplayDryRun"
+            method: "POST"
+            middlewares:
+              - name: basic_auth
+                config:
+                  users:
+                    - user: arinda.arif@gojek.com
+                      password: $2y$05$0l6BK9PI53auMoxw4q6SkOCHERHpr7ebaRaWXu9ORC9Ot1aAE18Je
+                      capabilities: [ "*" ]
+                  userdb: ""
+                  scope:
+                    action: "replay_dry_run:{{.project}}:{{.namespace}}"
+                    attributes:
+                      project:
+                        type: grpc_payload
+                        index: "1"
+                      namespace:
+                        type: grpc_payload
+                        index: "3"
+
+          - name: list_replays
+            path: "/odpf.optimus.core.v1beta1.RuntimeService/ListReplays"
+            method: "POST"
+            middlewares:
+              - name: basic_auth
+                config:
+                  users:
+                    - user: arinda.arif@gojek.com
+                      password: $2y$05$0l6BK9PI53auMoxw4q6SkOCHERHpr7ebaRaWXu9ORC9Ot1aAE18Je
+                      capabilities: [
+                          "r#replay_dry_run:*",
+                          "r#list_replay:*",
+                          "r#replay_status:*",
+                          "r#backup_dry_run:*",
+                          "r#list_backup:*"
+                      ]
+                  userdb: ""
+                  scope:
+                    action: "list_replay:{{.project}}"
+                    attributes:
+                      project:
+                        type: grpc_payload
+                        index: "1"
+
+          # - name: get_replay_status
+          #   path: "/odpf.optimus.core.v1beta1.RuntimeService/GetReplayStatus"
+          #   method: "GET"
+          #   middlewares:
+          #     - name: basic_auth
+          #       config:
+          #         users: *BASIC_AUTH_USER_DB
+          #         scope:
+          #           action: "replay_status:{{.project}}"
+          #           attributes:
+          #             project:
+          #               type: grpc_payload
+          #               index: 3
+
+          # #backup
+          # - name: backup_dry_run
+          #   path: "/odpf.optimus.core.v1beta1.RuntimeService/BackupDryRun"
+          #   method: "POST"
+          #   middlewares:
+          #     - name: basic_auth
+          #       config:
+          #         users: *BASIC_AUTH_USER_DB
+          #         scope:
+          #           action: "backup_dry_run:{{.project}}:{{.namespace}}"
+          #           attributes:
+          #             project:
+          #               type: grpc_payload
+          #               index: 1
+          #             namespace:
+          #               type: grpc_payload
+          #               index: 4
+
+          # - name: backup
+          #   path: "/odpf.optimus.core.v1beta1.RuntimeService/Backup"
+          #   method: "POST"
+          #   middlewares:
+          #     - name: basic_auth
+          #       config:
+          #         users: *BASIC_AUTH_USER_DB
+          #         scope:
+          #           action: "backup:{{.project}}:{{.namespace}}"
+          #           attributes:
+          #             project:
+          #               type: grpc_payload
+          #               index: 1
+          #             namespace:
+          #               type: grpc_payload
+          #               index: 4
+
+          # - name: list_backups
+          #   path: "/odpf.optimus.core.v1beta1.RuntimeService/ListBackups"
+          #   method: "GET"
+          #   middlewares:
+          #     - name: basic_auth
+          #       config:
+          #         users: *BASIC_AUTH_USER_DB
+          #         scope:
+          #           action: "list_backup:{{.project}}"
+          #           attributes:
+          #             project:
+          #               type: grpc_payload
+          #               index: 1
