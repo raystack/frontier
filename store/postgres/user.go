@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/odpf/shield/internal/bootstrap/definition"
+	"github.com/odpf/shield/internal/group"
 	"time"
 
 	"github.com/odpf/shield/internal/user"
@@ -32,6 +34,19 @@ const (
 	selectUserForUpdateQuery = `SELECT id, name, email, metadata, updated_at from users where id=$1;`
 	updateUserQuery          = `UPDATE users set name = $2, email = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
 	updateCurrentUserQuery   = `UPDATE users set name = $2, metadata = $3, updated_at = now() where email = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
+)
+
+var (
+	listUserGroupsQuery = fmt.Sprintf(
+		`SELECT g.id as id, g.metadata as metadata, g."name" as "name", g.slug as slug, g.updated_at as updated_at, g.created_at as created_at, g.org_id as org_id 
+				FROM relations r 
+				JOIN groups g ON CAST(g.id as VARCHAR) = r.object_id
+				WHERE r.object_namespace_id = '%s'
+					AND subject_namespace_id = '%s'
+					AND subject_id = $1
+					AND role_id = $2;`,
+		definition.TeamNamespace.Id, definition.UserNamespace.Id,
+	)
 )
 
 func (s Store) GetUser(ctx context.Context, id string) (model.User, error) {
@@ -227,6 +242,34 @@ func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate model.User) (mode
 	}
 
 	return transformedUser, nil
+}
+
+func (s Store) ListUserGroups(ctx context.Context, userId string) ([]model.Group, error) {
+	var fetchedGroups []Group
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userId, definition.TeamMemberRole.Id)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.Group{}, group.GroupDoesntExist
+	}
+
+	if err != nil {
+		return []model.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedGroups []model.Group
+
+	for _, v := range fetchedGroups {
+		transformedGroup, err := transformToGroup(v)
+		if err != nil {
+			return []model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedGroups = append(transformedGroups, transformedGroup)
+	}
+
+	return transformedGroups, nil
 }
 
 func transformToUser(from User) (model.User, error) {
