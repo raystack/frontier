@@ -351,6 +351,7 @@ type mockUserSrv struct {
 	ListUsersFunc         func(ctx context.Context) ([]model.User, error)
 	UpdateUserFunc        func(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUserFunc func(ctx context.Context, toUpdate model.User) (model.User, error)
+	ListUserGroupsFunc    func(ctx context.Context, userId string) ([]model.Group, error)
 }
 
 func (m mockUserSrv) GetUser(ctx context.Context, id string) (model.User, error) {
@@ -375,4 +376,8 @@ func (m mockUserSrv) UpdateUser(ctx context.Context, toUpdate model.User) (model
 
 func (m mockUserSrv) UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error) {
 	return m.UpdateCurrentUserFunc(ctx, toUpdate)
+}
+
+func (m mockUserSrv) ListUserGroups(ctx context.Context, userId string) ([]model.Group, error) {
+	return m.ListUserGroupsFunc(ctx, userId)
 }

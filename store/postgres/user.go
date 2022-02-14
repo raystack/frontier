@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
-	"time"
 
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
