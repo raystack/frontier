@@ -23,7 +23,7 @@ type Store interface {
 	ListUsers(ctx context.Context) ([]model.User, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
-	ListUserGroups(ctx context.Context, userId string) ([]model.Group, error)
+	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
 }
 
 func (s Service) GetUser(ctx context.Context, id string) (model.User, error) {
@@ -60,6 +60,6 @@ func (s Service) UpdateCurrentUser(ctx context.Context, toUpdate model.User) (mo
 	return s.Store.UpdateCurrentUser(ctx, toUpdate)
 }
 
-func (s Service) ListUserGroups(ctx context.Context, userId string) ([]model.Group, error) {
-	return s.Store.ListUserGroups(ctx, userId)
+func (s Service) ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error) {
+	return s.Store.ListUserGroups(ctx, userId, roleId)
 }

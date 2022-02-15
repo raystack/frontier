@@ -245,10 +245,16 @@ func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate model.User) (mode
 	return transformedUser, nil
 }
 
-func (s Store) ListUserGroups(ctx context.Context, userId string) ([]model.Group, error) {
+func (s Store) ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error) {
+	role := definition.TeamMemberRole.Id
+
+	if roleId == definition.TeamAdminRole.Id {
+		role = definition.TeamAdminRole.Id
+	}
+
 	var fetchedGroups []Group
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userId, definition.TeamMemberRole.Id)
+		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userId, role)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
