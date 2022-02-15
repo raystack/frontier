@@ -22,6 +22,7 @@ type ShieldServiceClient interface {
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
+	ListUserGroups(ctx context.Context, in *ListUserGroupsRequest, opts ...grpc.CallOption) (*ListUserGroupsResponse, error)
 	GetCurrentUser(ctx context.Context, in *GetCurrentUserRequest, opts ...grpc.CallOption) (*GetCurrentUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	UpdateCurrentUser(ctx context.Context, in *UpdateCurrentUserRequest, opts ...grpc.CallOption) (*UpdateCurrentUserResponse, error)
@@ -115,6 +116,15 @@ func (c *shieldServiceClient) CreateUser(ctx context.Context, in *CreateUserRequ
 func (c *shieldServiceClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
 	out := new(GetUserResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListUserGroups(ctx context.Context, in *ListUserGroupsRequest, opts ...grpc.CallOption) (*ListUserGroupsResponse, error) {
+	out := new(ListUserGroupsResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListUserGroups", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -597,6 +607,7 @@ type ShieldServiceServer interface {
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
+	ListUserGroups(context.Context, *ListUserGroupsRequest) (*ListUserGroupsResponse, error)
 	GetCurrentUser(context.Context, *GetCurrentUserRequest) (*GetCurrentUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	UpdateCurrentUser(context.Context, *UpdateCurrentUserRequest) (*UpdateCurrentUserResponse, error)
@@ -674,6 +685,9 @@ func (UnimplementedShieldServiceServer) CreateUser(context.Context, *CreateUserR
 }
 func (UnimplementedShieldServiceServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedShieldServiceServer) ListUserGroups(context.Context, *ListUserGroupsRequest) (*ListUserGroupsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUserGroups not implemented")
 }
 func (UnimplementedShieldServiceServer) GetCurrentUser(context.Context, *GetCurrentUserRequest) (*GetCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentUser not implemented")
@@ -894,6 +908,24 @@ func _ShieldService_GetUser_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetUser(ctx, req.(*GetUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListUserGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserGroupsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListUserGroups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListUserGroups",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListUserGroups(ctx, req.(*ListUserGroupsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1852,6 +1884,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUser",
 			Handler:    _ShieldService_GetUser_Handler,
+		},
+		{
+			MethodName: "ListUserGroups",
+			Handler:    _ShieldService_ListUserGroups_Handler,
 		},
 		{
 			MethodName: "GetCurrentUser",

@@ -19,7 +19,7 @@ type Service struct {
 type Store interface {
 	CreateGroup(ctx context.Context, grp model.Group) (model.Group, error)
 	GetGroup(ctx context.Context, id string) (model.Group, error)
-	ListGroups(ctx context.Context) ([]model.Group, error)
+	ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error)
 	UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Group, error)
 }
 
@@ -60,8 +60,8 @@ func (s Service) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	return s.Store.GetGroup(ctx, id)
 }
 
-func (s Service) ListGroups(ctx context.Context) ([]model.Group, error) {
-	return s.Store.ListGroups(ctx)
+func (s Service) ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error) {
+	return s.Store.ListGroups(ctx, org)
 }
 
 func (s Service) UpdateGroup(ctx context.Context, grp model.Group) (model.Group, error) {

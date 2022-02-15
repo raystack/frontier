@@ -212,6 +212,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1767,6 +1773,37 @@
           "User"
         ]
       }
+    },
+    "/v1beta1/users/{id}/groups": {
+      "get": {
+        "summary": "List Groups of a User",
+        "operationId": "ShieldService_ListUserGroups",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListUserGroupsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
     }
   },
   "definitions": {
@@ -2284,6 +2321,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1beta1Role"
+          }
+        }
+      }
+    },
+    "v1beta1ListUserGroupsResponse": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1Group"
           }
         }
       }

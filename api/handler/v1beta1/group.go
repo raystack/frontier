@@ -21,7 +21,7 @@ import (
 type GroupService interface {
 	CreateGroup(ctx context.Context, grp model.Group) (model.Group, error)
 	GetGroup(ctx context.Context, id string) (model.Group, error)
-	ListGroups(ctx context.Context) ([]model.Group, error)
+	ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error)
 	UpdateGroup(ctx context.Context, grp model.Group) (model.Group, error)
 }
 
@@ -34,7 +34,7 @@ func (v Dep) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRe
 
 	var groups []*shieldv1beta1.Group
 
-	groupList, err := v.GroupService.ListGroups(ctx)
+	groupList, err := v.GroupService.ListGroups(ctx, model.Organization{Id: request.OrgId})
 	if errors.Is(err, group.GroupDoesntExist) {
 		return nil, nil
 	} else if err != nil {
