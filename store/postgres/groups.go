@@ -25,7 +25,7 @@ type Group struct {
 const (
 	createGroupsQuery = `INSERT INTO groups(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 	getGroupsQuery    = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups where id=$1;`
-	listGroupsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups;`
+	listGroupsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from groups`
 	updateGroupQuery  = `UPDATE groups set name = $2, slug = $3, org_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 )
 
@@ -76,10 +76,17 @@ func (s Store) CreateGroup(ctx context.Context, grp model.Group) (model.Group, e
 	return transformedGroup, nil
 }
 
-func (s Store) ListGroups(ctx context.Context) ([]model.Group, error) {
+func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error) {
 	var fetchedGroups []Group
+
+	query := listGroupsQuery
+	if org.Id != "" {
+		query = query + `WHERE org_id=$1`
+	}
+
+	query = query + ";"
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedGroups, listGroupsQuery)
+		return s.DB.SelectContext(ctx, &fetchedGroups, query, org.Id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
