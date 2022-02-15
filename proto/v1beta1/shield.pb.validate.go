@@ -1536,6 +1536,8 @@ func (m *ListUserGroupsRequest) validate(all bool) error {
 
 	// no validation rules for Id
 
+	// no validation rules for Role
+
 	if len(errors) > 0 {
 		return ListUserGroupsRequestMultiError(errors)
 	}
