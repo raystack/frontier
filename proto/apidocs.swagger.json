@@ -1798,6 +1798,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

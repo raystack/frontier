@@ -18,7 +18,7 @@ import (
 )
 
 type AuthzCheckService interface {
-	CheckAuthz(ctx context.Context, resource model.Resource, prmsn model.Permission) (bool, error)
+	CheckAuthz(ctx context.Context, resource model.Resource, action model.Action) (bool, error)
 }
 
 type Authz struct {
@@ -175,8 +175,8 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 	for _, resource := range resources {
 		isAuthorized := false
-		for _, action := range config.Actions {
-			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Permission{Name: action})
+		for _, actionId := range config.Actions {
+			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Action{Id: actionId})
 			if err != nil {
 				c.log.Error("error while creating resource obj", "err", err)
 				c.notAllowed(rw)
