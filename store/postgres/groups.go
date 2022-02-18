@@ -92,12 +92,12 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 
 	query := listGroupsQuery
 	if org.Id != "" {
-		query = query + `WHERE org_id=$1`
+		query = query + fmt.Sprintf("WHERE org_id='%s'", org.Id)
 	}
 
 	query = query + ";"
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedGroups, query, org.Id)
+		return s.DB.SelectContext(ctx, &fetchedGroups, query)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
