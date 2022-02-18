@@ -51,6 +51,7 @@ func TestBuildSchema(t *testing.T) {
 }`, buildSchema(d))
 	})
 
+	// @TODO: fix flaky test
 	t.Run("Add merge role namespace", func(t *testing.T) {
 		d := definition{
 			name: "Test",
