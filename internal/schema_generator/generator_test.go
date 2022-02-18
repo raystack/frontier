@@ -51,7 +51,6 @@ func TestBuildSchema(t *testing.T) {
 }`, buildSchema(d))
 	})
 
-	// @TODO: fix flaky test
 	t.Run("Add merge role namespace", func(t *testing.T) {
 		d := definition{
 			name: "Test",
@@ -60,12 +59,14 @@ func TestBuildSchema(t *testing.T) {
 				{name: "Member", types: []string{"User"}, namespace: "Group", permissions: []string{"read"}},
 			},
 		}
-		assert.Equal(t, `definition Test {
+		expected := `definition Test {
 	relation Project: Project
 	relation Group: Group
 	permission read = Project->Admin + Group->Member
 	permission write = Project->Admin
-}`, buildSchema(d))
+}`
+		actual := buildSchema(d)
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("Should add role subtype", func(t *testing.T) {
