@@ -249,7 +249,7 @@ func (s Service) AddOwnerToResource(ctx context.Context, user model.User, resour
 		Id: resource.NamespaceId,
 	}
 
-	relationSet, err := s.ResourcesRepository.GetRelationsForNamespace(ctx, resource.NamespaceId)
+	relationSet, err := s.ResourcesRepository.GetRelationsForNamespace(ctx, resource.Namespace.Id)
 	if err != nil {
 		return err
 	}
