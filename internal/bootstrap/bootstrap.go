@@ -129,9 +129,10 @@ func getResourceAction(action string, ns model.Namespace) model.Action {
 	actId := fmt.Sprintf("%s_%s", ns.Id, action)
 	actionName := fmt.Sprintf("%s %s", strings.Title(strings.ToLower(ns.Id)), strings.Title(strings.ToLower(action)))
 	act := model.Action{
-		Id:        actId,
-		Name:      actionName,
-		Namespace: ns,
+		Id:          actId,
+		Name:        actionName,
+		Namespace:   ns,
+		NamespaceId: ns.Id,
 	}
 	return act
 }
