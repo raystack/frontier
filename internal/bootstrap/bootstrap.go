@@ -127,6 +127,7 @@ func getResourceRole(r string, ns model.Namespace) model.Role {
 
 func getResourceAction(action string, ns model.Namespace) model.Action {
 	actId := fmt.Sprintf("%s_%s", ns.Id, action)
+	// @TODO: should the action name have spaces?
 	actionName := fmt.Sprintf("%s %s", strings.Title(strings.ToLower(ns.Id)), strings.Title(strings.ToLower(action)))
 	act := model.Action{
 		Id:          actId,
