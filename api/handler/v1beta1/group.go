@@ -39,7 +39,7 @@ func (v Dep) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRe
 	var groups []*shieldv1beta1.Group
 
 	groupList, err := v.GroupService.ListGroups(ctx, model.Organization{Id: request.OrgId})
-	if errors.Is(err, group.GroupDoesntExist) {
+	if errors.Is(err, group.DoesntExist) {
 		return nil, nil
 	} else if err != nil {
 		logger.Error(err.Error())
@@ -109,7 +109,7 @@ func (v Dep) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupReques
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.DoesntExist):
 			return nil, grpcGroupNotFoundErr
 		case errors.Is(err, group.InvalidUUID):
 			return nil, grpcBadBodyError
@@ -163,7 +163,7 @@ func (v Dep) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGroupUs
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.DoesntExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
 		default:
 			return nil, grpcInternalServerError
@@ -193,7 +193,7 @@ func (v Dep) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.RemoveG
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.DoesntExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
 		default:
 			return nil, grpcInternalServerError
@@ -227,7 +227,7 @@ func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateGroup
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.DoesntExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
 		default:
 			return nil, grpcInternalServerError

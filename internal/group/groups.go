@@ -30,8 +30,8 @@ type Store interface {
 }
 
 var (
-	GroupDoesntExist = errors.New("group doesn't exist")
-	InvalidUUID      = errors.New("invalid syntax of uuid")
+	DoesntExist = errors.New("group doesn't exist")
+	InvalidUUID = errors.New("invalid syntax of uuid")
 )
 
 func (s Service) CreateGroup(ctx context.Context, grp model.Group) (model.Group, error) {

@@ -47,7 +47,7 @@ func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Group{}, group.GroupDoesntExist
+		return model.Group{}, group.DoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
@@ -101,7 +101,7 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Group{}, group.GroupDoesntExist
+		return []model.Group{}, group.DoesntExist
 	}
 
 	if err != nil {
@@ -134,7 +134,7 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Group{}, group.GroupDoesntExist
+		return model.Group{}, group.DoesntExist
 	} else if err != nil {
 		return model.Group{}, fmt.Errorf("%s: %w", dbErr, err)
 	}

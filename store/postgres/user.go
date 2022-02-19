@@ -258,7 +258,7 @@ func (s Store) ListUserGroups(ctx context.Context, userId string, roleId string)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Group{}, group.GroupDoesntExist
+		return []model.Group{}, group.DoesntExist
 	}
 
 	if err != nil {
