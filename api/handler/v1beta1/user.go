@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+
 	"github.com/odpf/shield/pkg/utils"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
