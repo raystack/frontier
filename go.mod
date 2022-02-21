@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go/storage v1.18.2 // indirect
-	github.com/MakeNowJust/heredoc v1.0.0 // indirect
+	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/abbot/go-http-auth v0.4.0
 	github.com/authzed/authzed-go v0.3.0
 	github.com/authzed/grpcutil v0.0.0-20211020204402-aba1876830e6

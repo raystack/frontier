@@ -43,6 +43,7 @@ func GetDefaultSchema() []string {
 func buildSchema(d definition) string {
 	var relations []*v0.Relation
 	permissionsMap := make(map[string][]*v0.SetOperation_Child)
+	permissionsSlice := make([]string, 0)
 
 	inheritedNSMap := map[string]bool{}
 
@@ -72,6 +73,9 @@ func buildSchema(d definition) string {
 					inheritedNSMap[r.namespace] = true
 				}
 			}
+			if _, ok := permissionsMap[p]; !ok {
+				permissionsSlice = append(permissionsSlice, p)
+			}
 			permissionsMap[p] = append(permissionsMap[p], perm)
 			sort.Slice(permissionsMap[p], func(i, j int) bool {
 				return permissionsMap[p][i].String() > permissionsMap[p][j].String()
@@ -79,7 +83,8 @@ func buildSchema(d definition) string {
 		}
 	}
 
-	for p, roles := range permissionsMap {
+	for _, p := range permissionsSlice {
+		roles := permissionsMap[p]
 		if len(roles) == 0 {
 			continue
 		}

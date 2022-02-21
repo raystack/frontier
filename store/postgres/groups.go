@@ -92,7 +92,7 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 
 	query := listGroupsQuery
 	if org.Id != "" {
-		query = query + fmt.Sprintf("WHERE org_id='%s'", org.Id)
+		query = query + fmt.Sprintf(" WHERE org_id='%s'", org.Id)
 	}
 
 	query = query + ";"
