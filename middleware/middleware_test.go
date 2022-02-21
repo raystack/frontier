@@ -45,6 +45,7 @@ func TestEnrichPathParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			EnrichPathParams(tt.args.r, tt.args.params)
 			if !reflect.DeepEqual((tt.args.r.Context().Value(ctxPathParamsKey)).(map[string]string), tt.args.params) {
 				t.Errorf("EnrichPathParams() = %v, want %v", tt.args.r.Context().Value(ctxPathParamsKey), tt.args.params)

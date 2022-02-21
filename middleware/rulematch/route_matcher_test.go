@@ -3,12 +3,13 @@ package rulematch
 import (
 	"context"
 	"errors"
-	"github.com/odpf/shield/store/mocks"
-	"github.com/odpf/shield/structs"
-	"github.com/stretchr/testify/suite"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/odpf/shield/store/mocks"
+	"github.com/odpf/shield/structs"
+	"github.com/stretchr/testify/suite"
 )
 
 type RouteMatcherTestSuite struct {

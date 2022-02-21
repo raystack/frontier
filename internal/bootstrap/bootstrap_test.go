@@ -1,8 +1,9 @@
 package bootstrap
 
 import (
-	"github.com/odpf/shield/structs"
 	"testing"
+
+	"github.com/odpf/shield/structs"
 
 	"github.com/odpf/shield/model"
 	"github.com/stretchr/testify/assert"

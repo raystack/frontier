@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"errors"
+
 	"github.com/odpf/shield/model"
 )
 

@@ -1,11 +1,12 @@
 package schema
 
 import (
+	"testing"
+
 	"github.com/odpf/shield/internal/authz"
 	authzmock "github.com/odpf/shield/internal/authz/mocks"
 	"github.com/odpf/shield/internal/schema/mocks"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type ServiceTestSuite struct {

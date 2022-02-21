@@ -3,8 +3,9 @@ package schema
 import (
 	"context"
 	"errors"
-	"github.com/odpf/shield/model"
 	"time"
+
+	"github.com/odpf/shield/model"
 )
 
 func (s *ServiceTestSuite) TestUpdateNamespace_shouldThrowErrorOnStoreError() {

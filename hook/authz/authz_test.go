@@ -108,5 +108,4 @@ func TestGetAttributesValues(t *testing.T) {
 		var expected []string
 		assert.EqualValues(t, expected, output)
 	})
-
 }

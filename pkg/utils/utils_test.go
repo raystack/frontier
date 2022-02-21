@@ -32,6 +32,7 @@ func TestDefaultStringIfEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := DefaultStringIfEmpty(tt.args.str, tt.args.defaultString); got != tt.want {
 				t.Errorf("DefaultStringIfEmpty() = %v, want %v", got, tt.want)
 			}
@@ -101,6 +102,7 @@ func TestSlugify(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := Slugify(tt.args.str, tt.args.options); got != tt.want {
 				t.Errorf("Slugify() = %v, want %v", got, tt.want)
 			}
