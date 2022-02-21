@@ -98,7 +98,7 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 	}
 
 	if !isAuthorized {
-		return []model.User{}, shieldError.Unauthorzied
+		return []model.User{}, shieldError.Unauthorized
 	}
 
 	users, err := s.Store.GetUsersByIds(ctx, userIds)
@@ -140,7 +140,7 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 	}
 
 	if !isAuthorized {
-		return []model.User{}, shieldError.Unauthorzied
+		return []model.User{}, shieldError.Unauthorized
 	}
 
 	user, err := s.Store.GetUser(ctx, userId)
