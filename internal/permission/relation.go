@@ -245,11 +245,13 @@ func (s Service) CheckPermission(ctx context.Context, user model.User, resource 
 }
 
 func (s Service) AddOwnerToResource(ctx context.Context, user model.User, resource model.Resource) error {
+	nsId := utils.DefaultStringIfEmpty(resource.NamespaceId, resource.Namespace.Id)
+
 	resourceNS := model.Namespace{
-		Id: resource.NamespaceId,
+		Id: nsId,
 	}
 
-	relationSet, err := s.ResourcesRepository.GetRelationsForNamespace(ctx, resource.Namespace.Id)
+	relationSet, err := s.ResourcesRepository.GetRelationsForNamespace(ctx, nsId)
 	if err != nil {
 		return err
 	}
