@@ -19,13 +19,27 @@ import (
 	"gocloud.dev/blob"
 )
 
+type ResourceBackends struct {
+	Backends []ResourceBackend `json:"backends" yaml:"backends"`
+}
+
+type ResourceBackend struct {
+	Name          string         `json:"name" yaml:"name"`
+	ResourceTypes []ResourceType `json:"resource_types" yaml:"resource_types"`
+}
+
+type ResourceType struct {
+	Name    string              `json:"name" yaml:"name"`
+	Actions map[string][]string `json:"actions" yaml:"actions"`
+}
+
 type Resources struct {
-	Resources []Resource `json:"resources" yaml:"resources"`
+	Resources []Resource
 }
 
 type Resource struct {
-	Name    string              `json:"name" yaml:"name"`
-	Actions map[string][]string `json:"actions" yaml:"actions"`
+	Name    string
+	Actions map[string][]string
 }
 
 type ResourcesRepository struct {
@@ -100,19 +114,21 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
 		}
 
-		var resource Resources
-		if err := yaml.Unmarshal(fileBytes, &resource); err != nil {
+		var resourceBackends ResourceBackends
+		if err := yaml.Unmarshal(fileBytes, &resourceBackends); err != nil {
 			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
-		if len(resource.Resources) == 0 {
+		if len(resourceBackends.Backends) == 0 {
 			continue
 		}
 
-		for _, res := range resource.Resources {
-			resources = append(resources, structs.Resource{
-				Name:    res.Name,
-				Actions: res.Actions,
-			})
+		for _, resourceBackend := range resourceBackends.Backends {
+			for _, resourceType := range resourceBackend.ResourceTypes {
+				resources = append(resources, structs.Resource{
+					Name:    fmt.Sprintf("%s_%s", resourceBackend.Name, resourceType.Name),
+					Actions: resourceType.Actions,
+				})
+			}
 		}
 	}
 

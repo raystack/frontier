@@ -1,21 +1,16 @@
-resources:
+backends:
   - name: guardian
-    actions:
-      read:
-        - owner
-      delete:
-        - owner
-  - name: dagger
-    actions:
-      all_actions:
-        - owner
-      read:
-        - team.team_member
-      delete:
-        - team.team_member
-  - name: firehose
-    actions:
-      read:
-        - team.team_member
-      delete:
-        - team.team_member
+    resource_types:
+      - name: "appeal"
+        actions:
+          read:
+            - owner
+          delete:
+            - owner
+      - name: "provider"
+        actions:
+          read:
+            - owner
+            - "organization.organization_admin"
+          write:
+            - owner
