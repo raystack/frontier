@@ -8,7 +8,7 @@ import (
 )
 
 func TestCreateResources(t *testing.T) {
-	t.Run("should should throw error if project is missing", func(t *testing.T) {
+	t.Run("should throw error if project is missing", func(t *testing.T) {
 		input := map[string]interface{}{
 			"abc": "abc",
 		}
@@ -18,7 +18,7 @@ func TestCreateResources(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("should should throw error if team is missing", func(t *testing.T) {
+	t.Run("should throw error if team is missing", func(t *testing.T) {
 		input := map[string]interface{}{
 			"project": "abc",
 		}
@@ -28,7 +28,7 @@ func TestCreateResources(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("should should return resource", func(t *testing.T) {
+	t.Run("should return resource", func(t *testing.T) {
 		input := map[string]interface{}{
 			"project":      "project1",
 			"team":         "team1",
@@ -50,7 +50,7 @@ func TestCreateResources(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should should return multiple resource", func(t *testing.T) {
+	t.Run("should return multiple resource", func(t *testing.T) {
 		input := map[string]interface{}{
 			"project":      "project1",
 			"team":         "team1",
@@ -85,4 +85,28 @@ func TestCreateResources(t *testing.T) {
 		assert.EqualValues(t, expected, output)
 		assert.NoError(t, err)
 	})
+}
+
+func TestGetAttributesValues(t *testing.T) {
+	t.Run("should return slice of strings for slice of strings", func(t *testing.T) {
+		input := []string{"a", "b", "c"}
+		output, err := getAttributesValues(input)
+		assert.Nil(t, err)
+		expected := []string{"a", "b", "c"}
+		assert.EqualValues(t, expected, output)
+	})
+	t.Run("should return slice of strings for slice of interface{}", func(t *testing.T) {
+		input := []interface{}{"a", "b", "c"}
+		output, err := getAttributesValues(input)
+		assert.Nil(t, err)
+		expected := []string{"a", "b", "c"}
+		assert.EqualValues(t, expected, output)
+	})
+	t.Run("should return nil string slice for nil", func(t *testing.T) {
+		output, err := getAttributesValues(nil)
+		assert.Nil(t, err)
+		var expected []string
+		assert.EqualValues(t, expected, output)
+	})
+
 }
