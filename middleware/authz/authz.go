@@ -3,6 +3,7 @@ package authz
 import (
 	"context"
 	"fmt"
+	"github.com/odpf/shield/utils"
 	"net/http"
 	"strings"
 
@@ -149,6 +150,16 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = queryAttr
 			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
+		case middleware.AttributeTypeConstant:
+			if attr.Value == "" {
+				c.log.Error("middleware: constant value empty")
+				c.notAllowed(rw)
+				return
+			}
+
+			permissionAttributes[res] = attr.Value
+			c.log.Info("middleware: extracted", "constant_key", res, "attr", permissionAttributes[res])
+
 		default:
 			c.log.Error("middleware: unknown attribute type", "attr", attr)
 			c.notAllowed(rw)
@@ -211,19 +222,30 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 		return nil, err
 	}
 
-	namespace, err := getAttributesValues(permissionAttributes["namespace"])
+	project, err := getAttributesValues(permissionAttributes["project"])
+	if err != nil {
+		return nil, err
+	}
+
+	backendNamespace, err := getAttributesValues(permissionAttributes["namespace"])
+	if err != nil {
+		return nil, err
+	}
+
+	resourceType, err := getAttributesValues(permissionAttributes["resource_type"])
 	if err != nil {
 		return nil, err
 	}
 
 	if len(resourceList) < 1 {
-		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
+		return nil, fmt.Errorf("resources are required")
 	}
 
 	for _, res := range resourceList {
 		resources = append(resources, model.Resource{
 			Name:        res,
-			NamespaceId: namespace[0],
+			NamespaceId: utils.CreateNamespaceID(backendNamespace[0], resourceType[0]),
+			ProjectId:   project[0],
 		})
 	}
 	return resources, nil

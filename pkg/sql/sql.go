@@ -11,11 +11,12 @@ import (
 )
 
 type Config struct {
-	Driver          string
-	URL             string
-	MaxIdleConns    int
-	MaxOpenConns    int
-	ConnMaxLifeTime time.Duration
+	Driver              string
+	URL                 string
+	MaxIdleConns        int
+	MaxOpenConns        int
+	ConnMaxLifeTime     time.Duration
+	MaxQueryTimeoutInMS time.Duration
 }
 
 type SQL struct {
@@ -37,7 +38,7 @@ func New(config Config) (*SQL, error) {
 	d.SetMaxOpenConns(config.MaxOpenConns)
 	d.SetConnMaxLifetime(config.ConnMaxLifeTime)
 
-	return &SQL{DB: d, queryTimeOut: 100 * time.Millisecond}, err // TODO: queryTimeOut configurable
+	return &SQL{DB: d, queryTimeOut: config.MaxQueryTimeoutInMS}, err
 }
 
 func (s SQL) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {

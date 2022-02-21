@@ -22,6 +22,7 @@ const (
 	AttributeTypeGRPCPayload AttributeType = "grpc_payload"
 	AttributeTypeQuery       AttributeType = "query"
 	AttributeTypeHeader      AttributeType = "header"
+	AttributeTypeConstant    AttributeType = "constant"
 
 	SourceRequest  AttributeType = "request"
 	SourceResponse AttributeType = "response"
@@ -34,6 +35,7 @@ type Attribute struct {
 	Type   AttributeType `yaml:"type" mapstructure:"type"`
 	Index  string        `yaml:"index" mapstructure:"index"` // proto index
 	Source string        `yaml:"source" mapstructure:"source"`
+	Value  string        `yaml:"value" mapstructure:"value"`
 }
 
 func ExtractHook(r *http.Request, name string) (structs.HookSpec, bool) {
