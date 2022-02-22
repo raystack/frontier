@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/user"
@@ -65,9 +67,12 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRe
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
+
+	currentUserEmail, _ := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	email := utils.DefaultStringIfEmpty(request.GetBody().Email, currentUserEmail)
 	userT := model.User{
 		Name:     request.GetBody().Name,
-		Email:    request.GetBody().Email,
+		Email:    email,
 		Metadata: metaDataMap,
 	}
 	newUser, err := v.UserService.CreateUser(ctx, userT)
