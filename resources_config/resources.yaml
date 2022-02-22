@@ -7,10 +7,24 @@ backends:
             - owner
           delete:
             - owner
+          cancel:
+            - owner
       - name: "provider"
         actions:
           read:
             - owner
             - "organization.organization_admin"
+          write:
+            - owner
+      - name: "policy"
+        actions:
+          read:
+            - owner
+          write:
+            - owner
+      - name: "resource"
+        actions:
+          read:
+            - owner
           write:
             - owner
