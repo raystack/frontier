@@ -36,10 +36,12 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 	t.log.Debug("proxy request", "host", req.URL.Host, "path", req.URL.Path,
 		"scheme", req.URL.Scheme, "protocol", req.Proto)
 
+	req.Header.Del("Accept-Encoding")
 	var transport http.RoundTripper = t.httpTransport
 	if req.Header.Get("Content-Type") == "application/grpc" {
 		transport = t.grpcTransport
 	}
+
 	res, err := transport.RoundTrip(req)
 	if err != nil {
 		return res, err
@@ -55,12 +57,14 @@ func NewH2cRoundTripper(log log.Logger, hook hook.Service) http.RoundTripper {
 				Timeout:   10 * time.Second,
 				KeepAlive: 1 * time.Minute,
 			}).DialContext,
+			DisableCompression: true,
 		},
 		grpcTransport: &http2.Transport{
 			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
 				return net.Dial(network, addr)
 			},
-			AllowHTTP: true,
+			AllowHTTP:          true,
+			DisableCompression: true,
 		},
 		log:  log,
 		hook: hook,

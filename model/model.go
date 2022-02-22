@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Project struct {
 	Id           string
@@ -90,7 +92,8 @@ type Relation struct {
 	ObjectNamespaceId  string `json:"object_namespace_id"`
 	ObjectId           string `json:"object_id"`
 	Role               Role
-	RoleId             string `json:"role_id"`
+	RoleId             string       `json:"role_id"`
+	RelationType       RelationType `json:"role_type"`
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }
@@ -114,4 +117,14 @@ type Resource struct {
 
 type Permission struct {
 	Name string
+}
+
+type RelationType string
+
+var RelationTypes = struct {
+	Role      RelationType
+	Namespace RelationType
+}{
+	Role:      "role",
+	Namespace: "namespace",
 }

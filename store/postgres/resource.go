@@ -193,14 +193,18 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 }
 
 func transformToResource(from Resource) (model.Resource, error) {
+	// TODO: remove *Id
 	return model.Resource{
 		Id:             from.Id,
 		Name:           from.Name,
+		Project:        model.Project{Id: from.ProjectId},
 		ProjectId:      from.ProjectId,
+		Namespace:      model.Namespace{Id: from.NamespaceId},
 		NamespaceId:    from.NamespaceId,
+		Organization:   model.Organization{Id: from.OrganizationId},
 		OrganizationId: from.OrganizationId,
-		GroupId:        from.GroupId.String,
-		UserId:         from.UserId.String,
+		Group:          model.Group{Id: from.GroupId.String},
+		User:           model.User{Id: from.UserId.String},
 		CreatedAt:      from.CreatedAt,
 		UpdatedAt:      from.UpdatedAt,
 	}, nil

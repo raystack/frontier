@@ -14,11 +14,11 @@ type Deps struct {
 }
 
 func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, deps Deps) {
-	s.RegisterHandler("/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	s.RegisterHandler("/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "pong")
 	}))
 
 	// grpc gateway api will have version endpoints
-	s.SetGateway("/", gw)
+	s.SetGateway("/admin", gw)
 	v1beta1.RegisterV1(ctx, s, gw, deps.V1beta1)
 }

@@ -106,11 +106,11 @@ func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
 	return transformedNamespaces, nil
 }
 
-func (s Store) UpdateNamespace(ctx context.Context, toUpdate model.Namespace) (model.Namespace, error) {
+func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate model.Namespace) (model.Namespace, error) {
 	var updatedNamespace Namespace
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedNamespace, updateNamespaceQuery, toUpdate.Id, toUpdate.Name)
+		return s.DB.GetContext(ctx, &updatedNamespace, updateNamespaceQuery, id, toUpdate.Id, toUpdate.Name)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

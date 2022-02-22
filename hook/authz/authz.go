@@ -11,6 +11,7 @@ import (
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/body_extractor"
+	"github.com/odpf/shield/utils"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
@@ -50,7 +51,7 @@ func (a Authz) Info() hook.Info {
 }
 
 func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) {
-	if err != nil {
+	if err != nil || res.StatusCode >= 400 {
 		return a.escape.ServeHook(res, err)
 	}
 
@@ -146,6 +147,16 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 
 			attributes[id] = queryAttr
 			a.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
+
+		case hook.AttributeTypeConstant:
+			if attr.Value == "" {
+				a.log.Error("middleware: constant value empty")
+				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
+			}
+
+			attributes[id] = attr.Value
+			a.log.Info("middleware: extracted", "constant_key", res, "attr", attributes[id])
+
 		default:
 			a.log.Error("middleware: unknown attribute type", "attr", attr)
 			return a.escape.ServeHook(res, fmt.Errorf("unknown attribute type: %v", attr))
@@ -196,13 +207,18 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 		return nil, err
 	}
 
-	namespace, err := getAttributesValues(permissionAttributes["namespace"])
+	backendNamespace, err := getAttributesValues(permissionAttributes["namespace"])
 	if err != nil {
 		return nil, err
 	}
 
-	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 {
-		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
+	resourceType, err := getAttributesValues(permissionAttributes["resource_type"])
+	if err != nil {
+		return nil, err
+	}
+
+	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
+		return nil, fmt.Errorf("namespace, resource type, projects, organizations, resource, and team are required")
 	}
 
 	for _, org := range orgs {
@@ -215,7 +231,7 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 							OrganizationId: org,
 							ProjectId:      project,
 							GroupId:        team,
-							NamespaceId:    namespace[0],
+							NamespaceId:    utils.CreateNamespaceID(backendNamespace[0], resourceType[0]),
 						})
 					}
 				} else {
@@ -223,7 +239,7 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 						Name:           res,
 						OrganizationId: org,
 						ProjectId:      project,
-						NamespaceId:    namespace[0],
+						NamespaceId:    utils.CreateNamespaceID(backendNamespace[0], resourceType[0]),
 					})
 				}
 			}

@@ -37,6 +37,7 @@ func (s Service) Create(ctx context.Context, relation model.Relation) (model.Rel
 		ObjectNamespaceId:  relation.ObjectNamespaceId,
 		ObjectId:           relation.ObjectId,
 		RoleId:             relation.RoleId,
+		RelationType:       relation.RelationType,
 	})
 
 	if err != nil {

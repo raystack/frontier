@@ -27,7 +27,7 @@ type Store interface {
 	GetNamespace(ctx context.Context, id string) (model.Namespace, error)
 	CreateNamespace(ctx context.Context, namespace model.Namespace) (model.Namespace, error)
 	ListNamespaces(ctx context.Context) ([]model.Namespace, error)
-	UpdateNamespace(ctx context.Context, namespace model.Namespace) (model.Namespace, error)
+	UpdateNamespace(ctx context.Context, id string, namespace model.Namespace) (model.Namespace, error)
 	GetPolicy(ctx context.Context, id string) (model.Policy, error)
 	ListPolicies(ctx context.Context) ([]model.Policy, error)
 	CreatePolicy(ctx context.Context, policy model.Policy) ([]model.Policy, error)

@@ -11,6 +11,7 @@ shield
 .shield.yaml
 dist
 coverage.txt
+coverage.out
 rules/test.yaml
 *.pprof
 ignore/

@@ -12,13 +12,14 @@ import (
 	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/body_extractor"
 	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/utils"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
 )
 
 type AuthzCheckService interface {
-	CheckAuthz(ctx context.Context, resource model.Resource, prmsn model.Permission) (bool, error)
+	CheckAuthz(ctx context.Context, resource model.Resource, action model.Action) (bool, error)
 }
 
 type Authz struct {
@@ -149,6 +150,16 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = queryAttr
 			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
+		case middleware.AttributeTypeConstant:
+			if attr.Value == "" {
+				c.log.Error("middleware: constant value empty")
+				c.notAllowed(rw)
+				return
+			}
+
+			permissionAttributes[res] = attr.Value
+			c.log.Info("middleware: extracted", "constant_key", res, "attr", permissionAttributes[res])
+
 		default:
 			c.log.Error("middleware: unknown attribute type", "attr", attr)
 			c.notAllowed(rw)
@@ -175,8 +186,8 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 	for _, resource := range resources {
 		isAuthorized := false
-		for _, action := range config.Actions {
-			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Permission{Name: action})
+		for _, actionId := range config.Actions {
+			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Action{Id: actionId})
 			if err != nil {
 				c.log.Error("error while creating resource obj", "err", err)
 				c.notAllowed(rw)
@@ -211,19 +222,30 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 		return nil, err
 	}
 
-	namespace, err := getAttributesValues(permissionAttributes["namespace"])
+	project, err := getAttributesValues(permissionAttributes["project"])
+	if err != nil {
+		return nil, err
+	}
+
+	backendNamespace, err := getAttributesValues(permissionAttributes["namespace"])
+	if err != nil {
+		return nil, err
+	}
+
+	resourceType, err := getAttributesValues(permissionAttributes["resource_type"])
 	if err != nil {
 		return nil, err
 	}
 
 	if len(resourceList) < 1 {
-		return nil, fmt.Errorf("projects, organizations, resource, and team are required")
+		return nil, fmt.Errorf("resources are required")
 	}
 
 	for _, res := range resourceList {
 		resources = append(resources, model.Resource{
 			Name:        res,
-			NamespaceId: namespace[0],
+			NamespaceId: utils.CreateNamespaceID(backendNamespace[0], resourceType[0]),
+			ProjectId:   project[0],
 		})
 	}
 	return resources, nil

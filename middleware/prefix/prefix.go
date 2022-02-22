@@ -6,16 +6,11 @@ import (
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/structs"
 )
 
 type Ware struct {
 	next http.Handler
 	log  log.Logger
-}
-
-type Config struct {
-	Strip string `mapstructure:"strip"`
 }
 
 func New(log log.Logger, next http.Handler) *Ware {
@@ -25,29 +20,13 @@ func New(log log.Logger, next http.Handler) *Ware {
 	}
 }
 
-func (w Ware) Info() *structs.MiddlewareInfo {
-	return &structs.MiddlewareInfo{
-		Name:        "prefix",
-		Description: "strip prefix from request path",
-	}
-}
-
 func (w *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	wareSpec, ok := middleware.ExtractMiddleware(req, w.Info().Name)
+	rules, ok := middleware.ExtractRule(req)
 	if !ok {
 		w.next.ServeHTTP(rw, req)
 		return
 	}
-
-	var prefixStr string
-	if raw, ok := wareSpec.Config["strip"]; ok {
-		prefixStr = raw.(string)
-	} else {
-		w.log.Debug("middleware: prefix config missing")
-		w.next.ServeHTTP(rw, req)
-		return
-	}
-
+	prefixStr := rules.Backend.Prefix
 	req.URL.Path = w.getPrefixStripped(req.URL.Path, prefixStr)
 	if req.URL.RawPath != "" {
 		req.URL.RawPath = w.getPrefixStripped(req.URL.RawPath, prefixStr)

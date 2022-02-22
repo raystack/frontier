@@ -1,4 +1,4 @@
-#!/usr/bin/env -S buf generate buf.build/odpf/proton:c9513e98ff5e1418fdd3da18891dfefb660e7584 --path odpf/shield --template
+#!/usr/bin/env -S buf generate buf.build/odpf/proton:7a61c4a231f0ea5b799cc9ecb02b6a69639b2fbf --path odpf/shield --template
 ---
 version: "v1"
 plugins:

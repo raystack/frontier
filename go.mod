@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go/storage v1.18.2 // indirect
+	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/abbot/go-http-auth v0.4.0
 	github.com/authzed/authzed-go v0.3.0
 	github.com/authzed/grpcutil v0.0.0-20211020204402-aba1876830e6
@@ -20,7 +21,7 @@ require (
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/newrelic/go-agent v3.15.0+incompatible
-	github.com/odpf/salt v0.0.0-20211214154610-9a9a0943d7c2
+	github.com/odpf/salt v0.0.0-20220123093403-faac19525416
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.6.0
 	github.com/robfig/cron/v3 v3.0.1
@@ -31,7 +32,7 @@ require (
 	github.com/tidwall/gjson v1.9.1
 	go.uber.org/zap v1.19.0
 	gocloud.dev v0.24.0
-	golang.org/x/net v0.0.0-20211020060615-d418f374d309
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
 	google.golang.org/genproto v0.0.0-20211020151524-b7c3a969101a
 	google.golang.org/grpc v1.41.0

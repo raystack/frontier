@@ -58,6 +58,7 @@ type Frontend struct {
 type Backend struct {
 	URL       string `yaml:"url"`
 	Namespace string `yaml:"namespace"`
+	Prefix    string `yaml:"prefix"`
 }
 
 type RuleMatcher interface {

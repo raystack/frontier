@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/internal/user"
@@ -25,6 +27,7 @@ type UserService interface {
 	ListUsers(ctx context.Context) ([]model.User, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
+	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
 }
 
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
@@ -64,9 +67,12 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRe
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
+
+	currentUserEmail, _ := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	email := utils.DefaultStringIfEmpty(request.GetBody().Email, currentUserEmail)
 	userT := model.User{
 		Name:     request.GetBody().Name,
-		Email:    request.GetBody().Email,
+		Email:    email,
 		Metadata: metaDataMap,
 	}
 	newUser, err := v.UserService.CreateUser(ctx, userT)
@@ -238,6 +244,31 @@ func transformUserToPB(user model.User) (shieldv1beta1.User, error) {
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(user.CreatedAt),
 		UpdatedAt: timestamppb.New(user.UpdatedAt),
+	}, nil
+}
+
+func (v Dep) ListUserGroups(ctx context.Context, request *shieldv1beta1.ListUserGroupsRequest) (*shieldv1beta1.ListUserGroupsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	var groups []*shieldv1beta1.Group
+	groupsList, err := v.UserService.ListUserGroups(ctx, request.Id, request.Role)
+
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, group := range groupsList {
+		groupPB, err := transformGroupToPB(group)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+
+		groups = append(groups, &groupPB)
+	}
+
+	return &shieldv1beta1.ListUserGroupsResponse{
+		Groups: groups,
 	}, nil
 }
 

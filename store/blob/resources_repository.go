@@ -8,24 +8,39 @@ import (
 	"sync"
 	"time"
 
-	"github.com/odpf/salt/log"
-
-	"github.com/robfig/cron/v3"
-
-	"github.com/ghodss/yaml"
 	"github.com/odpf/shield/store"
 	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/utils"
+
+	"github.com/ghodss/yaml"
+	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
+
 	"gocloud.dev/blob"
 )
 
+type ResourceBackends struct {
+	Backends []ResourceBackend `json:"backends" yaml:"backends"`
+}
+
+type ResourceBackend struct {
+	Name          string         `json:"name" yaml:"name"`
+	ResourceTypes []ResourceType `json:"resource_types" yaml:"resource_types"`
+}
+
+type ResourceType struct {
+	Name    string              `json:"name" yaml:"name"`
+	Actions map[string][]string `json:"actions" yaml:"actions"`
+}
+
 type Resources struct {
-	Resources []Resource `json:"resources" yaml:"resources"`
+	Resources []Resource
 }
 
 type Resource struct {
-	Name    string              `json:"name" yaml:"name"`
-	Actions map[string][]string `json:"actions" yaml:"actions"`
+	Name    string
+	Actions map[string][]string
 }
 
 type ResourcesRepository struct {
@@ -50,7 +65,7 @@ func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]structs.Resource
 	return repo.cached, err
 }
 
-func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, resourceID string) (map[string]bool, error) {
+func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, namespaceID string) (map[string]bool, error) {
 	resources, err := repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -58,10 +73,10 @@ func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, r
 
 	relationSet := map[string]bool{}
 	for _, resource := range resources {
-		if resource.Name == resourceID {
+		if resource.Name == namespaceID {
 			for _, action := range resource.Actions {
 				for _, relation := range action {
-					relationSet[fmt.Sprintf("%s_%s", resourceID, relation)] = true
+					relationSet[fmt.Sprintf("%s_%s", namespaceID, relation)] = true
 				}
 			}
 			break
@@ -100,19 +115,21 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
 		}
 
-		var resource Resources
-		if err := yaml.Unmarshal(fileBytes, &resource); err != nil {
+		var resourceBackends ResourceBackends
+		if err := yaml.Unmarshal(fileBytes, &resourceBackends); err != nil {
 			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
-		if len(resource.Resources) == 0 {
+		if len(resourceBackends.Backends) == 0 {
 			continue
 		}
 
-		for _, res := range resource.Resources {
-			resources = append(resources, structs.Resource{
-				Name:    res.Name,
-				Actions: res.Actions,
-			})
+		for _, resourceBackend := range resourceBackends.Backends {
+			for _, resourceType := range resourceBackend.ResourceTypes {
+				resources = append(resources, structs.Resource{
+					Name:    utils.CreateNamespaceID(resourceBackend.Name, resourceType.Name),
+					Actions: resourceType.Actions,
+				})
+			}
 		}
 	}
 

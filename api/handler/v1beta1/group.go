@@ -21,8 +21,12 @@ import (
 type GroupService interface {
 	CreateGroup(ctx context.Context, grp model.Group) (model.Group, error)
 	GetGroup(ctx context.Context, id string) (model.Group, error)
-	ListGroups(ctx context.Context) ([]model.Group, error)
+	ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error)
 	UpdateGroup(ctx context.Context, grp model.Group) (model.Group, error)
+	AddUsersToGroup(ctx context.Context, groupId string, userIds []string) ([]model.User, error)
+	ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error)
+	ListGroupAdmins(ctx context.Context, groupId string) ([]model.User, error)
+	RemoveUserFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error)
 }
 
 var (
@@ -34,7 +38,7 @@ func (v Dep) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRe
 
 	var groups []*shieldv1beta1.Group
 
-	groupList, err := v.GroupService.ListGroups(ctx)
+	groupList, err := v.GroupService.ListGroups(ctx, model.Organization{Id: request.OrgId})
 	if errors.Is(err, group.GroupDoesntExist) {
 		return nil, nil
 	} else if err != nil {
@@ -124,7 +128,81 @@ func (v Dep) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupReques
 }
 
 func (v Dep) ListGroupUsers(ctx context.Context, request *shieldv1beta1.ListGroupUsersRequest) (*shieldv1beta1.ListGroupUsersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method not implemented")
+	logger := grpczap.Extract(ctx)
+
+	usersList, err := v.GroupService.ListGroupUsers(ctx, request.GetId())
+
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var users []*shieldv1beta1.User
+
+	for _, u := range usersList {
+		userPB, err := transformUserToPB(u)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		users = append(users, &userPB)
+	}
+
+	return &shieldv1beta1.ListGroupUsersResponse{
+		Users: users,
+	}, nil
+}
+
+func (v Dep) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGroupUserRequest) (*shieldv1beta1.AddGroupUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if request.Body == nil {
+		return nil, grpcBadBodyError
+	}
+	updatedUsers, err := v.GroupService.AddUsersToGroup(ctx, request.GetId(), request.GetBody().UserIds)
+
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.GroupDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var users []*shieldv1beta1.User
+
+	for _, u := range updatedUsers {
+		userPB, err := transformUserToPB(u)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		users = append(users, &userPB)
+	}
+
+	return &shieldv1beta1.AddGroupUserResponse{
+		Users: users,
+	}, nil
+}
+
+func (v Dep) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.RemoveGroupUserRequest) (*shieldv1beta1.RemoveGroupUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	_, err := v.GroupService.RemoveUserFromGroup(ctx, request.GetId(), request.GetUserId())
+
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.GroupDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.RemoveGroupUserResponse{
+		Message: "Removed User from group",
+	}, nil
 }
 
 func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateGroupRequest) (*shieldv1beta1.UpdateGroupResponse, error) {
@@ -162,6 +240,31 @@ func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateGroup
 	}
 
 	return &shieldv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
+}
+
+func (v Dep) ListGroupAdmins(ctx context.Context, request *shieldv1beta1.ListGroupAdminsRequest) (*shieldv1beta1.ListGroupAdminsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	usersList, err := v.GroupService.ListGroupAdmins(ctx, request.GetId())
+
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var users []*shieldv1beta1.User
+
+	for _, u := range usersList {
+		userPB, err := transformUserToPB(u)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		users = append(users, &userPB)
+	}
+
+	return &shieldv1beta1.ListGroupAdminsResponse{
+		Users: users,
+	}, nil
 }
 
 func transformGroupToPB(grp model.Group) (shieldv1beta1.Group, error) {
