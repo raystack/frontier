@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/utils"
 	"net/http"
 	"strings"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/body_extractor"
 	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/utils"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"

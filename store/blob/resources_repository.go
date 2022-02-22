@@ -3,20 +3,20 @@ package blob
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/utils"
 	"io"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/odpf/salt/log"
-
-	"github.com/robfig/cron/v3"
-
-	"github.com/ghodss/yaml"
 	"github.com/odpf/shield/store"
 	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/utils"
+
+	"github.com/ghodss/yaml"
+	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
+
 	"gocloud.dev/blob"
 )
 
