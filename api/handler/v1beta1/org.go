@@ -23,6 +23,7 @@ type OrganizationService interface {
 	Create(ctx context.Context, org model.Organization) (model.Organization, error)
 	List(ctx context.Context) ([]model.Organization, error)
 	Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
+	AddAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error)
 }
 
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
@@ -154,6 +155,37 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1beta1.Upda
 	}
 
 	return &shieldv1beta1.UpdateOrganizationResponse{Organization: &orgPB}, nil
+}
+
+func (v Dep) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.AddOrganizationAdminRequest) (*shieldv1beta1.AddOrganizationAdminResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	var toAdd []model.User
+	userIds := request.GetBody().UserIds
+	for _, userId := range userIds {
+		toAdd = append(toAdd, model.User{
+			Id: userId,
+		})
+	}
+
+	addedUsers, err := v.OrgService.AddAdmin(ctx, request.GetId(), toAdd)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, internalServerError
+	}
+
+	var addedUsersPB []*shieldv1beta1.User
+	for _, user := range addedUsers {
+		u, err := transformUserToPB(user)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, internalServerError
+		}
+
+		addedUsersPB = append(addedUsersPB, &u)
+	}
+
+	return &shieldv1beta1.AddOrganizationAdminResponse{Users: addedUsersPB}, nil
 }
 
 func transformOrgToPB(org model.Organization) (shieldv1beta1.Organization, error) {
