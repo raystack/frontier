@@ -74,6 +74,7 @@ const (
 	AttributeTypeJSONPayload AttributeType = "json_payload"
 	AttributeTypeGRPCPayload AttributeType = "grpc_payload"
 	AttributeTypePathParam   AttributeType = "path_param"
+	AttributeTypeConstant    AttributeType = "constant"
 )
 
 type AttributeType string
@@ -84,6 +85,7 @@ type Attribute struct {
 	Index  string        `yaml:"index" mapstructure:"index"` // proto index
 	Path   string        `yaml:"path" mapstructure:"path"`
 	Params []string      `yaml:"params" mapstructure:"params"`
+	Value  string        `yaml:"value" mapstructure:"value"`
 }
 
 func Elapsed(what string) func() {

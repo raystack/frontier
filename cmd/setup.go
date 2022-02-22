@@ -53,11 +53,12 @@ func getGRPCMiddleware(cfg *config.Shield, logger log.Logger) grpc.ServerOption 
 
 func setupDB(cfg config.DBConfig, logger log.Logger) (*sql.SQL, func()) {
 	db, err := sql.New(sql.Config{
-		Driver:          cfg.Driver,
-		URL:             cfg.URL,
-		MaxIdleConns:    cfg.MaxIdleConns,
-		MaxOpenConns:    cfg.MaxOpenConns,
-		ConnMaxLifeTime: cfg.ConnMaxLifeTime,
+		Driver:              cfg.Driver,
+		URL:                 cfg.URL,
+		MaxIdleConns:        cfg.MaxIdleConns,
+		MaxOpenConns:        cfg.MaxOpenConns,
+		ConnMaxLifeTime:     cfg.ConnMaxLifeTime,
+		MaxQueryTimeoutInMS: cfg.MaxQueryTimeout,
 	})
 
 	if err != nil {

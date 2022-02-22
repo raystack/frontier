@@ -8,14 +8,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/odpf/salt/log"
-
-	"github.com/robfig/cron/v3"
-
-	"github.com/ghodss/yaml"
 	"github.com/odpf/shield/store"
 	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/utils"
+
+	"github.com/ghodss/yaml"
+	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
+
 	"gocloud.dev/blob"
 )
 
@@ -64,7 +65,7 @@ func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]structs.Resource
 	return repo.cached, err
 }
 
-func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, resourceID string) (map[string]bool, error) {
+func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, namespaceID string) (map[string]bool, error) {
 	resources, err := repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
@@ -72,10 +73,10 @@ func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, r
 
 	relationSet := map[string]bool{}
 	for _, resource := range resources {
-		if resource.Name == resourceID {
+		if resource.Name == namespaceID {
 			for _, action := range resource.Actions {
 				for _, relation := range action {
-					relationSet[fmt.Sprintf("%s_%s", resourceID, relation)] = true
+					relationSet[fmt.Sprintf("%s_%s", namespaceID, relation)] = true
 				}
 			}
 			break
@@ -125,7 +126,7 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 		for _, resourceBackend := range resourceBackends.Backends {
 			for _, resourceType := range resourceBackend.ResourceTypes {
 				resources = append(resources, structs.Resource{
-					Name:    fmt.Sprintf("%s_%s", resourceBackend.Name, resourceType.Name),
+					Name:    utils.CreateNamespaceID(resourceBackend.Name, resourceType.Name),
 					Actions: resourceType.Actions,
 				})
 			}
