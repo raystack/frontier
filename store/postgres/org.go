@@ -27,7 +27,7 @@ const (
 	createOrganizationQuery = `INSERT INTO organizations(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
 	listOrganizationsQuery  = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
 	updateOrganizationQuery = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
-	addOrganizationAdmins   = `INSERT INTO relations(subject_namespace_id, subject_id, object_namespace_id, object_id, role_id) values%s RETURNING subject_id;`
+	addOrganizationAdmins   = `INSERT INTO relations(subject_namespace_id, subject_id, object_namespace_id, object_id, role_id) values %s RETURNING subject_id;`
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
@@ -134,18 +134,21 @@ func (s Store) AddOrgAdmin(ctx context.Context, id string, toAdd []model.User) (
 	var addedUsers []model.User
 
 	valueStrings := []string{}
+	valueArgs := make([]interface{}, 0, len(toAdd)*2)
+	ind := 1
 	for _, user := range toAdd {
-		val := fmt.Sprintf("('user', '%s','organization', '%s', 'organization_admin')", user.Id, id)
-		valueStrings = append(valueStrings, val)
+		valueStrings = append(valueStrings, fmt.Sprintf("('user', $%d,'organization', $%d, 'organization_admin')", ind, ind+1))
+		valueArgs = append(valueArgs, user.Id)
+		valueArgs = append(valueArgs, id)
+		ind += 2
 	}
 
-	query := fmt.Sprintf(addOrganizationAdmins, strings.Join(valueStrings, ", "))
-
+	stmt := fmt.Sprintf(addOrganizationAdmins, strings.Join(valueStrings, ", "))
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &addedRelations, query)
+		return s.DB.SelectContext(ctx, &addedRelations, stmt, valueArgs...)
 	})
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%s: %w", txnErr, err)
+		return []model.User{}, fmt.Errorf("%s: %w", dbErr, err)
 	}
 
 	for _, relation := range addedRelations {
