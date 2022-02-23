@@ -11,13 +11,13 @@ import (
 
 type Shield struct {
 	// configuration version
-	Version  int           `yaml:"version"`
-	Proxy    ProxyConfig   `yaml:"proxy"`
-	Log      LogConfig     `yaml:"log"`
-	NewRelic NewRelic      `yaml:"new_relic"`
-	App      Service       `yaml:"app"`
-	DB       DBConfig      `yaml:"db"`
-	SpiceDB  SpiceDBConfig `yaml:"spice_db"`
+	Version  int           `yaml:"version" mapstructure:"version"`
+	Proxy    ProxyConfig   `yaml:"proxy" mapstructure:"proxy"`
+	Log      LogConfig     `yaml:"log" mapstructure:"log"`
+	NewRelic NewRelic      `yaml:"new_relic" mapstructure:"new_relic"`
+	App      Service       `yaml:"app" mapstructure:"app"`
+	DB       DBConfig      `yaml:"db" mapstructure:"db"`
+	SpiceDB  SpiceDBConfig `yaml:"spice_db" mapstructure:"spice_db"`
 }
 
 type LogConfig struct {
