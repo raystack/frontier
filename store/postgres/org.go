@@ -29,6 +29,7 @@ const (
 	updateOrganizationQuery = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
 	addOrganizationAdmins   = `INSERT INTO relations(subject_namespace_id, subject_id, object_namespace_id, object_id, role_id) values %s RETURNING subject_id;`
 	listOrganizationAdmins  = `SELECT subject_id from relations where object_id = $1 and role_id = 'organization_admin';`
+	removeOrganizationAdmin = `DELETE from relations where object_id = $1 and subject_id = $2 and role_id = 'organization_admin';`
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
@@ -180,6 +181,21 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 	}
 
 	return fetchedUsers, nil
+}
+
+func (s Store) RemoveOrgAdmin(ctx context.Context, id string, user_id string) (string, error) {
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		_, err := s.DB.Exec(removeOrganizationAdmin, id, user_id)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return "success", nil
 }
 
 func transformToOrg(from Organization) (model.Organization, error) {

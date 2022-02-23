@@ -27,6 +27,7 @@ type Store interface {
 	UpdateOrg(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 	AddOrgAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error)
 	ListOrgAdmins(ctx context.Context, id string) ([]model.User, error)
+	RemoveOrgAdmin(ctx context.Context, id string, user_id string) (string, error)
 }
 
 func (s Service) Get(ctx context.Context, id string) (model.Organization, error) {
@@ -72,4 +73,8 @@ func (s Service) AddAdmin(ctx context.Context, id string, toAdd []model.User) ([
 
 func (s Service) ListAdmins(ctx context.Context, id string) ([]model.User, error) {
 	return s.Store.ListOrgAdmins(ctx, id)
+}
+
+func (s Service) RemoveAdmin(ctx context.Context, id string, user_id string) (string, error) {
+	return s.Store.RemoveOrgAdmin(ctx, id, user_id)
 }
