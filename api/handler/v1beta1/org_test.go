@@ -172,6 +172,7 @@ type mockOrgSrv struct {
 	ListOrganizationsFunc  func(ctx context.Context) ([]model.Organization, error)
 	UpdateOrganizationFunc func(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 	AddAdminFunc           func(ctx context.Context, id string, toAdd []model.User) ([]model.User, error)
+	ListAdminsFunc         func(ctx context.Context, id string) ([]model.User, error)
 }
 
 func (m mockOrgSrv) Get(ctx context.Context, id string) (model.Organization, error) {
@@ -192,4 +193,8 @@ func (m mockOrgSrv) Update(ctx context.Context, toUpdate model.Organization) (mo
 
 func (m mockOrgSrv) AddAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error) {
 	return m.AddAdminFunc(ctx, id, toAdd)
+}
+
+func (m mockOrgSrv) ListAdmins(ctx context.Context, id string) ([]model.User, error) {
+	return m.ListAdminsFunc(ctx, id)
 }

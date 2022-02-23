@@ -24,6 +24,7 @@ type OrganizationService interface {
 	List(ctx context.Context) ([]model.Organization, error)
 	Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 	AddAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error)
+	ListAdmins(ctx context.Context, id string) ([]model.User, error)
 }
 
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
@@ -186,6 +187,29 @@ func (v Dep) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.Ad
 	}
 
 	return &shieldv1beta1.AddOrganizationAdminResponse{Users: addedUsersPB}, nil
+}
+
+func (v Dep) ListOrganizationAdmins(ctx context.Context, request *shieldv1beta1.ListOrganizationAdminsRequest) (*shieldv1beta1.ListOrganizationAdminsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	admins, err := v.OrgService.ListAdmins(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, internalServerError
+	}
+
+	var adminsPB []*shieldv1beta1.User
+	for _, user := range admins {
+		u, err := transformUserToPB(user)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, internalServerError
+		}
+
+		adminsPB = append(adminsPB, &u)
+	}
+
+	return &shieldv1beta1.ListOrganizationAdminsResponse{Users: adminsPB}, nil
 }
 
 func transformOrgToPB(org model.Organization) (shieldv1beta1.Organization, error) {

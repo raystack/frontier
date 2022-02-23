@@ -16,6 +16,7 @@ type Service struct {
 
 var (
 	OrgDoesntExist = errors.New("org doesn't exist")
+	NoAdminsExist  = errors.New("no admins exist")
 	InvalidUUID    = errors.New("invalid syntax of uuid")
 )
 
@@ -25,6 +26,7 @@ type Store interface {
 	ListOrg(ctx context.Context) ([]model.Organization, error)
 	UpdateOrg(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 	AddOrgAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error)
+	ListOrgAdmins(ctx context.Context, id string) ([]model.User, error)
 }
 
 func (s Service) Get(ctx context.Context, id string) (model.Organization, error) {
@@ -66,4 +68,8 @@ func (s Service) Update(ctx context.Context, toUpdate model.Organization) (model
 
 func (s Service) AddAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error) {
 	return s.Store.AddOrgAdmin(ctx, id, toAdd)
+}
+
+func (s Service) ListAdmins(ctx context.Context, id string) ([]model.User, error) {
+	return s.Store.ListOrgAdmins(ctx, id)
 }

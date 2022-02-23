@@ -28,6 +28,7 @@ const (
 	listOrganizationsQuery  = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
 	updateOrganizationQuery = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
 	addOrganizationAdmins   = `INSERT INTO relations(subject_namespace_id, subject_id, object_namespace_id, object_id, role_id) values %s RETURNING subject_id;`
+	listOrganizationAdmins  = `SELECT subject_id from relations where object_id = $1 and role_id = 'organization_admin';`
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
@@ -156,6 +157,29 @@ func (s Store) AddOrgAdmin(ctx context.Context, id string, toAdd []model.User) (
 	}
 
 	return addedUsers, nil
+}
+
+func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, error) {
+	var fetchedUsers []model.User
+	var fetchedRelations []Relation
+
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedRelations, listOrganizationAdmins, id)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.User{}, org.NoAdminsExist
+	}
+
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	for _, relation := range fetchedRelations {
+		fetchedUsers = append(fetchedUsers, model.User{Id: relation.SubjectId})
+	}
+
+	return fetchedUsers, nil
 }
 
 func transformToOrg(from Organization) (model.Organization, error) {
