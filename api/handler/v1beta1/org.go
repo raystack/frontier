@@ -194,7 +194,12 @@ func (v Dep) ListOrganizationAdmins(ctx context.Context, request *shieldv1beta1.
 	admins, err := v.OrgService.ListAdmins(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, internalServerError
+		switch {
+		case errors.Is(err, org.OrgDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	var adminsPB []*shieldv1beta1.User
