@@ -28,8 +28,8 @@ type Store interface {
 	ListOrg(ctx context.Context) ([]model.Organization, error)
 	UpdateOrg(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
 	GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error)
+	GetUser(ctx context.Context, userId string) (model.User, error)
 	ListOrgAdmins(ctx context.Context, id string) ([]model.User, error)
-	RemoveOrgAdmin(ctx context.Context, id string, user_id string) (string, error)
 }
 
 func (s Service) Get(ctx context.Context, id string) (model.Organization, error) {
@@ -115,6 +115,43 @@ func (s Service) ListAdmins(ctx context.Context, id string) ([]model.User, error
 	return s.Store.ListOrgAdmins(ctx, id)
 }
 
-func (s Service) RemoveAdmin(ctx context.Context, id string, user_id string) (string, error) {
-	return s.Store.RemoveOrgAdmin(ctx, id, user_id)
+func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]model.User, error) {
+	currentUser, err := s.Permissions.FetchCurrentUser(ctx)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	org, err := s.Store.GetOrg(ctx, id)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
+		Id:        id,
+		Namespace: definition.OrgNamespace,
+	},
+		definition.ManageOrganizationAction,
+	)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	if !isAuthorized {
+		return []model.User{}, shieldError.Unauthorzied
+	}
+
+	user, err := s.Store.GetUser(ctx, userId)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	err = s.Permissions.RemoveAdminFromOrg(ctx, user, org)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	return s.ListAdmins(ctx, id)
 }
