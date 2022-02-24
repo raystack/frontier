@@ -23,7 +23,7 @@ type OrganizationService interface {
 	Create(ctx context.Context, org model.Organization) (model.Organization, error)
 	List(ctx context.Context) ([]model.Organization, error)
 	Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
-	AddAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error)
+	AddAdmin(ctx context.Context, id string, userIds []string) ([]model.User, error)
 	ListAdmins(ctx context.Context, id string) ([]model.User, error)
 	RemoveAdmin(ctx context.Context, id string, user_id string) (string, error)
 }
@@ -161,30 +161,28 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1beta1.Upda
 
 func (v Dep) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.AddOrganizationAdminRequest) (*shieldv1beta1.AddOrganizationAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	var toAdd []model.User
 	userIds := request.GetBody().UserIds
-	for _, userId := range userIds {
-		toAdd = append(toAdd, model.User{
-			Id: userId,
-		})
-	}
 
-	addedUsers, err := v.OrgService.AddAdmin(ctx, request.GetId(), toAdd)
+	addedUsers, err := v.OrgService.AddAdmin(ctx, request.GetId(), userIds)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, internalServerError
+		switch {
+		case errors.Is(err, org.OrgDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	var addedUsersPB []*shieldv1beta1.User
-	for _, user := range addedUsers {
-		u, err := transformUserToPB(user)
+	for _, u := range addedUsers {
+		userPB, err := transformUserToPB(u)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, internalServerError
 		}
 
-		addedUsersPB = append(addedUsersPB, &u)
+		addedUsersPB = append(addedUsersPB, &userPB)
 	}
 
 	return &shieldv1beta1.AddOrganizationAdminResponse{Users: addedUsersPB}, nil

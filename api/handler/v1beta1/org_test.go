@@ -171,7 +171,7 @@ type mockOrgSrv struct {
 	CreateOrganizationFunc func(ctx context.Context, org model.Organization) (model.Organization, error)
 	ListOrganizationsFunc  func(ctx context.Context) ([]model.Organization, error)
 	UpdateOrganizationFunc func(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
-	AddAdminFunc           func(ctx context.Context, id string, toAdd []model.User) ([]model.User, error)
+	AddAdminFunc           func(ctx context.Context, id string, userIds []string) ([]model.User, error)
 	ListAdminsFunc         func(ctx context.Context, id string) ([]model.User, error)
 	RemoveAdminFunc        func(ctx context.Context, id string, user_id string) (string, error)
 }
@@ -192,8 +192,8 @@ func (m mockOrgSrv) Update(ctx context.Context, toUpdate model.Organization) (mo
 	return m.UpdateOrganizationFunc(ctx, toUpdate)
 }
 
-func (m mockOrgSrv) AddAdmin(ctx context.Context, id string, toAdd []model.User) ([]model.User, error) {
-	return m.AddAdminFunc(ctx, id, toAdd)
+func (m mockOrgSrv) AddAdmin(ctx context.Context, id string, userIds []string) ([]model.User, error) {
+	return m.AddAdminFunc(ctx, id, userIds)
 }
 
 func (m mockOrgSrv) ListAdmins(ctx context.Context, id string) ([]model.User, error) {
