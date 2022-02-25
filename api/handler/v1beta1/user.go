@@ -30,6 +30,10 @@ type UserService interface {
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
 }
 
+var (
+	EmptyEmailId = errors.New("email id is empty")
+)
+
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
@@ -69,6 +73,10 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRe
 	}
 
 	currentUserEmail, _ := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	if len(currentUserEmail) == 0 {
+		logger.Error(EmptyEmailId.Error())
+		return nil, EmptyEmailId
+	}
 	email := utils.DefaultStringIfEmpty(request.GetBody().Email, currentUserEmail)
 	userT := model.User{
 		Name:     request.GetBody().Name,
@@ -129,6 +137,10 @@ func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurre
 	logger := grpczap.Extract(ctx)
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	if len(email) == 0 {
+		logger.Error(EmptyEmailId.Error())
+		return nil, EmptyEmailId
+	}
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
@@ -194,6 +206,10 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.Updat
 	logger := grpczap.Extract(ctx)
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	if len(email) == 0 {
+		logger.Error(EmptyEmailId.Error())
+		return nil, EmptyEmailId
+	}
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
@@ -214,6 +230,7 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.Updat
 
 	updatedUser, err := v.UserService.UpdateCurrentUser(ctx, model.User{
 		Name:     request.GetBody().Name,
+		Email:    request.GetBody().Email,
 		Metadata: metaDataMap,
 	})
 
