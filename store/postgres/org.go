@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/model"
 )
@@ -21,11 +22,19 @@ type Organization struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-const (
+var (
 	getOrganizationsQuery   = `SELECT id, name, slug, metadata, created_at, updated_at from organizations where id=$1;`
 	createOrganizationQuery = `INSERT INTO organizations(name, slug, metadata) values($1, $2, $3) RETURNING id, name, slug, metadata, created_at, updated_at;`
 	listOrganizationsQuery  = `SELECT id, name, slug, metadata, created_at, updated_at from organizations;`
 	updateOrganizationQuery = `UPDATE organizations set name = $2, slug = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
+	listOrganizationAdmins  = fmt.Sprintf(
+		`SELECT u.id as id, u.name as name, u.email as email, u.metadata as metadata, u.created_at as created_at, u.updated_at as updated_at
+				FROM relations r 
+				JOIN users u ON CAST(u.id as VARCHAR) = r.subject_id 
+				WHERE r.object_id=$1 
+					AND r.role_id='%s'
+					AND r.subject_namespace_id='%s'
+					AND r.object_namespace_id='%s';`, definition.OrganizationAdminRole.Id, definition.UserNamespace.Id, definition.OrgNamespace.Id)
 )
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
@@ -125,6 +134,34 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (mode
 	}
 
 	return toUpdate, nil
+}
+
+func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, error) {
+	var fetchedUsers []User
+
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedUsers, listOrganizationAdmins, id)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.User{}, org.NoAdminsExist
+	}
+
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedUsers []model.User
+	for _, u := range fetchedUsers {
+		transformedUser, err := transformToUser(u)
+		if err != nil {
+			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedUsers = append(transformedUsers, transformedUser)
+	}
+
+	return transformedUsers, nil
 }
 
 func transformToOrg(from Organization) (model.Organization, error) {
