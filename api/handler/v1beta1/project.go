@@ -152,7 +152,7 @@ func (v Dep) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.AddProj
 	logger := grpczap.Extract(ctx)
 	userIds := request.GetBody().UserIds
 
-	addedUsers, err := v.ProjectService.AddAdmin(ctx, request.GetId(), userIds)
+	admins, err := v.ProjectService.AddAdmin(ctx, request.GetId(), userIds)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -163,18 +163,18 @@ func (v Dep) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.AddProj
 		}
 	}
 
-	var addedUsersPB []*shieldv1beta1.User
-	for _, u := range addedUsers {
-		userPB, err := transformUserToPB(u)
+	var transformedAdmins []*shieldv1beta1.User
+	for _, a := range admins {
+		userPB, err := transformUserToPB(a)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, internalServerError
 		}
 
-		addedUsersPB = append(addedUsersPB, &userPB)
+		transformedAdmins = append(transformedAdmins, &userPB)
 	}
 
-	return &shieldv1beta1.AddProjectAdminResponse{Users: addedUsersPB}, nil
+	return &shieldv1beta1.AddProjectAdminResponse{Users: transformedAdmins}, nil
 }
 
 func (v Dep) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.ListProjectAdminsRequest) (*shieldv1beta1.ListProjectAdminsResponse, error) {
@@ -191,18 +191,18 @@ func (v Dep) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.ListP
 		}
 	}
 
-	var adminsPB []*shieldv1beta1.User
-	for _, user := range admins {
-		u, err := transformUserToPB(user)
+	var transformedAdmins []*shieldv1beta1.User
+	for _, a := range admins {
+		u, err := transformUserToPB(a)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, internalServerError
 		}
 
-		adminsPB = append(adminsPB, &u)
+		transformedAdmins = append(transformedAdmins, &u)
 	}
 
-	return &shieldv1beta1.ListProjectAdminsResponse{Users: adminsPB}, nil
+	return &shieldv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
 }
 
 func (v Dep) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.RemoveProjectAdminRequest) (*shieldv1beta1.RemoveProjectAdminResponse, error) {
