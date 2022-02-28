@@ -72,12 +72,12 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate model.Project)
 		return model.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedOrg, err := transformToProject(newProject)
+	transformedProj, err := transformToProject(newProject)
 	if err != nil {
 		return model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	return transformedOrg, nil
+	return transformedProj, nil
 }
 
 func (s Store) ListProject(ctx context.Context) ([]model.Project, error) {
@@ -96,13 +96,13 @@ func (s Store) ListProject(ctx context.Context) ([]model.Project, error) {
 
 	var transformedProjects []model.Project
 
-	for _, o := range fetchedProjects {
-		transformedOrg, err := transformToProject(o)
+	for _, p := range fetchedProjects {
+		transformedProj, err := transformToProject(p)
 		if err != nil {
 			return []model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
-		transformedProjects = append(transformedProjects, transformedOrg)
+		transformedProjects = append(transformedProjects, transformedProj)
 	}
 
 	return transformedProjects, nil
