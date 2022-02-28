@@ -14,6 +14,7 @@ import (
 var (
 	grpcInternalServerError = status.Errorf(codes.Internal, internalServerError.Error())
 	grpcBadBodyError        = status.Error(codes.InvalidArgument, badRequestError.Error())
+	grpcPermissionDenied    = status.Error(codes.PermissionDenied, permissionDeniedError.Error())
 )
 
 func mapOfStringValues(m map[string]interface{}) (map[string]string, error) {

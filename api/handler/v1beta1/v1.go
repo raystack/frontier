@@ -26,8 +26,9 @@ type Dep struct {
 }
 
 var (
-	internalServerError = errors.New("internal server error")
-	badRequestError     = errors.New("invalid syntax in body")
+	internalServerError   = errors.New("internal server error")
+	badRequestError       = errors.New("invalid syntax in body")
+	permissionDeniedError = errors.New("permission denied")
 )
 
 func RegisterV1(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, dep Dep) {
