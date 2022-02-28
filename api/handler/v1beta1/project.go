@@ -25,6 +25,8 @@ type ProjectService interface {
 	Create(ctx context.Context, project model.Project) (model.Project, error)
 	List(ctx context.Context) ([]model.Project, error)
 	Update(ctx context.Context, toUpdate model.Project) (model.Project, error)
+	AddAdmin(ctx context.Context, id string, userIds []string) ([]model.User, error)
+	ListAdmins(ctx context.Context, id string) ([]model.User, error)
 }
 
 func (v Dep) ListProjects(ctx context.Context, request *shieldv1beta1.ListProjectsRequest) (*shieldv1beta1.ListProjectsResponse, error) {
@@ -143,6 +145,63 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1beta1.UpdatePro
 	}
 
 	return &shieldv1beta1.UpdateProjectResponse{Project: &projectPB}, nil
+}
+
+func (v Dep) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.AddProjectAdminRequest) (*shieldv1beta1.AddProjectAdminResponse, error) {
+	logger := grpczap.Extract(ctx)
+	userIds := request.GetBody().UserIds
+
+	addedUsers, err := v.ProjectService.AddAdmin(ctx, request.GetId(), userIds)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ProjectDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var addedUsersPB []*shieldv1beta1.User
+	for _, u := range addedUsers {
+		userPB, err := transformUserToPB(u)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, internalServerError
+		}
+
+		addedUsersPB = append(addedUsersPB, &userPB)
+	}
+
+	return &shieldv1beta1.AddProjectAdminResponse{Users: addedUsersPB}, nil
+}
+
+func (v Dep) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.ListProjectAdminsRequest) (*shieldv1beta1.ListProjectAdminsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	admins, err := v.ProjectService.ListAdmins(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ProjectDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var adminsPB []*shieldv1beta1.User
+	for _, user := range admins {
+		u, err := transformUserToPB(user)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, internalServerError
+		}
+
+		adminsPB = append(adminsPB, &u)
+	}
+
+	return &shieldv1beta1.ListProjectAdminsResponse{Users: adminsPB}, nil
 }
 
 func transformProjectToPB(prj model.Project) (shieldv1beta1.Project, error) {
