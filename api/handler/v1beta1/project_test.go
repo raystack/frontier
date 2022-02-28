@@ -273,6 +273,7 @@ type mockProject struct {
 	UpdateProjectFunc func(ctx context.Context, toUpdate model.Project) (model.Project, error)
 	AddAdminFunc      func(ctx context.Context, id string, userIds []string) ([]model.User, error)
 	ListAdminsFunc    func(ctx context.Context, id string) ([]model.User, error)
+	RemoveAdminFunc   func(ctx context.Context, id string, userId string) ([]model.User, error)
 }
 
 func (m mockProject) List(ctx context.Context) ([]model.Project, error) {
@@ -297,4 +298,8 @@ func (m mockProject) AddAdmin(ctx context.Context, id string, userIds []string) 
 
 func (m mockProject) ListAdmins(ctx context.Context, id string) ([]model.User, error) {
 	return m.ListAdminsFunc(ctx, id)
+}
+
+func (m mockProject) RemoveAdmin(ctx context.Context, id string, userId string) ([]model.User, error) {
+	return m.RemoveAdminFunc(ctx, id, userId)
 }

@@ -28,6 +28,7 @@ type Store interface {
 	ListProject(ctx context.Context) ([]model.Project, error)
 	UpdateProject(ctx context.Context, toUpdate model.Project) (model.Project, error)
 	GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error)
+	GetUser(ctx context.Context, userId string) (model.User, error)
 	ListProjectAdmins(ctx context.Context, id string) ([]model.User, error)
 }
 
@@ -120,4 +121,45 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]m
 
 func (s Service) ListAdmins(ctx context.Context, id string) ([]model.User, error) {
 	return s.Store.ListProjectAdmins(ctx, id)
+}
+
+func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]model.User, error) {
+	currentUser, err := s.Permissions.FetchCurrentUser(ctx)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	project, err := s.Store.GetProject(ctx, id)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
+		Id:        id,
+		Namespace: definition.ProjectNamespace,
+	},
+		definition.ManageProjectAction,
+	)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	if !isAuthorized {
+		return []model.User{}, shieldError.Unauthorzied
+	}
+
+	user, err := s.Store.GetUser(ctx, userId)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	err = s.Permissions.RemoveAdminFromProject(ctx, user, project)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	return s.ListAdmins(ctx, id)
 }
