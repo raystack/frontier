@@ -159,12 +159,18 @@ func TestCreateUser(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-			mockDep := Dep{UserService: tt.mockUserSrv, IdentityProxyHeader: "x-auth-email"}
-			md := metadata.Pairs(mockDep.IdentityProxyHeader, tt.header)
-			context := metadata.NewIncomingContext(context.Background(), md)
+			var resp *shieldv1beta1.CreateUserResponse
+			var err error
+			if tt.title == "success" {
+				mockDep := Dep{UserService: tt.mockUserSrv, IdentityProxyHeader: "x-auth-email"}
+				md := metadata.Pairs(mockDep.IdentityProxyHeader, tt.header)
+				ctx := metadata.NewIncomingContext(context.Background(), md)
+				resp, err = mockDep.CreateUser(ctx, tt.req)
+			} else {
+				mockDep := Dep{UserService: tt.mockUserSrv}
+				resp, err = mockDep.CreateUser(context.Background(), tt.req)
+			}
 
-			resp, err := mockDep.CreateUser(context, tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
