@@ -137,12 +137,12 @@ func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurre
 	logger := grpczap.Extract(ctx)
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
 	if len(email) == 0 {
 		logger.Error(emptyEmailId.Error())
 		return nil, emptyEmailId
-	}
-	if err != nil {
-		return nil, grpcBadBodyError
 	}
 
 	fetchedUser, err := v.UserService.GetCurrentUser(ctx, email)
@@ -206,16 +206,16 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.Updat
 	logger := grpczap.Extract(ctx)
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
-	if len(email) == 0 {
-		logger.Error(emptyEmailId.Error())
-		return nil, emptyEmailId
-	}
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
 
 	if request.Body == nil {
 		return nil, grpcBadBodyError
+	}
+	if len(email) == 0 {
+		logger.Error(emptyEmailId.Error())
+		return nil, emptyEmailId
 	}
 
 	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
