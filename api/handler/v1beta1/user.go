@@ -31,7 +31,7 @@ type UserService interface {
 }
 
 var (
-	EmptyEmailId = errors.New("email id is empty")
+	emptyEmailId = errors.New("email id is empty")
 )
 
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
@@ -74,8 +74,8 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRe
 
 	currentUserEmail, _ := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
 	if len(currentUserEmail) == 0 {
-		logger.Error(EmptyEmailId.Error())
-		return nil, EmptyEmailId
+		logger.Error(emptyEmailId.Error())
+		return nil, emptyEmailId
 	}
 	email := utils.DefaultStringIfEmpty(request.GetBody().Email, currentUserEmail)
 	userT := model.User{
@@ -138,8 +138,8 @@ func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurre
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
 	if len(email) == 0 {
-		logger.Error(EmptyEmailId.Error())
-		return nil, EmptyEmailId
+		logger.Error(emptyEmailId.Error())
+		return nil, emptyEmailId
 	}
 	if err != nil {
 		return nil, grpcBadBodyError
@@ -207,8 +207,8 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.Updat
 
 	email, err := fetchEmailFromMetadata(ctx, v.IdentityProxyHeader)
 	if len(email) == 0 {
-		logger.Error(EmptyEmailId.Error())
-		return nil, EmptyEmailId
+		logger.Error(emptyEmailId.Error())
+		return nil, emptyEmailId
 	}
 	if err != nil {
 		return nil, grpcBadBodyError
