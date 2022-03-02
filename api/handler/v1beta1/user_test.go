@@ -135,7 +135,7 @@ func TestCreateUser(t *testing.T) {
 					Metadata: nil,
 				}, nil
 			}},
-			header: "X-Auth-Email=someuser@test.com",
+			header: "abc@test.com",
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
 				Email: "abc@test.com",
