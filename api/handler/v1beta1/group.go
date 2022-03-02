@@ -9,6 +9,7 @@ import (
 
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/model"
+	shieldError "github.com/odpf/shield/utils/errors"
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
@@ -165,6 +166,8 @@ func (v Dep) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGroupUs
 		switch {
 		case errors.Is(err, group.GroupDoesntExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		case errors.Is(err, shieldError.Unauthorzied):
+			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -195,6 +198,8 @@ func (v Dep) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.RemoveG
 		switch {
 		case errors.Is(err, group.GroupDoesntExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		case errors.Is(err, shieldError.Unauthorzied):
+			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
 		}

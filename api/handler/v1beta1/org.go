@@ -9,6 +9,7 @@ import (
 
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/model"
+	shieldError "github.com/odpf/shield/utils/errors"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -169,6 +170,8 @@ func (v Dep) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.Ad
 		switch {
 		case errors.Is(err, org.OrgDoesntExist):
 			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
+		case errors.Is(err, shieldError.Unauthorzied):
+			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -225,6 +228,8 @@ func (v Dep) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1beta1
 		switch {
 		case errors.Is(err, org.OrgDoesntExist):
 			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
+		case errors.Is(err, shieldError.Unauthorzied):
+			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
 		}
