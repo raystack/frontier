@@ -25,6 +25,9 @@ type ProjectService interface {
 	Create(ctx context.Context, project model.Project) (model.Project, error)
 	List(ctx context.Context) ([]model.Project, error)
 	Update(ctx context.Context, toUpdate model.Project) (model.Project, error)
+	AddAdmin(ctx context.Context, id string, userIds []string) ([]model.User, error)
+	ListAdmins(ctx context.Context, id string) ([]model.User, error)
+	RemoveAdmin(ctx context.Context, id string, userId string) ([]model.User, error)
 }
 
 func (v Dep) ListProjects(ctx context.Context, request *shieldv1beta1.ListProjectsRequest) (*shieldv1beta1.ListProjectsResponse, error) {
@@ -143,6 +146,82 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1beta1.UpdatePro
 	}
 
 	return &shieldv1beta1.UpdateProjectResponse{Project: &projectPB}, nil
+}
+
+func (v Dep) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.AddProjectAdminRequest) (*shieldv1beta1.AddProjectAdminResponse, error) {
+	logger := grpczap.Extract(ctx)
+	userIds := request.GetBody().UserIds
+
+	admins, err := v.ProjectService.AddAdmin(ctx, request.GetId(), userIds)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ProjectDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var transformedAdmins []*shieldv1beta1.User
+	for _, a := range admins {
+		userPB, err := transformUserToPB(a)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, internalServerError
+		}
+
+		transformedAdmins = append(transformedAdmins, &userPB)
+	}
+
+	return &shieldv1beta1.AddProjectAdminResponse{Users: transformedAdmins}, nil
+}
+
+func (v Dep) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.ListProjectAdminsRequest) (*shieldv1beta1.ListProjectAdminsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	admins, err := v.ProjectService.ListAdmins(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ProjectDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var transformedAdmins []*shieldv1beta1.User
+	for _, a := range admins {
+		u, err := transformUserToPB(a)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, internalServerError
+		}
+
+		transformedAdmins = append(transformedAdmins, &u)
+	}
+
+	return &shieldv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
+}
+
+func (v Dep) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.RemoveProjectAdminRequest) (*shieldv1beta1.RemoveProjectAdminResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	_, err := v.ProjectService.RemoveAdmin(ctx, request.GetId(), request.GetUserId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ProjectDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.RemoveProjectAdminResponse{
+		Message: "Removed Admin from org",
+	}, nil
 }
 
 func transformProjectToPB(prj model.Project) (shieldv1beta1.Project, error) {

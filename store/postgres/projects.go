@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/model"
 )
@@ -22,11 +23,19 @@ type Project struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-const (
+var (
 	getProjectsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects where id=$1;`
 	createProjectQuery = `INSERT INTO projects(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 	listProjectQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects;`
 	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, org_id=$4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
+	listProjectAdmins  = fmt.Sprintf(
+		`SELECT u.id as id, u.name as name, u.email as email, u.metadata as metadata, u.created_at as created_at, u.updated_at as updated_at
+				FROM relations r 
+				JOIN users u ON CAST(u.id as VARCHAR) = r.subject_id 
+				WHERE r.object_id=$1 
+					AND r.role_id='%s'
+					AND r.subject_namespace_id='%s'
+					AND r.object_namespace_id='%s';`, definition.ProjectAdminRole.Id, definition.UserNamespace.Id, definition.ProjectNamespace.Id)
 )
 
 func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
@@ -136,6 +145,34 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 	}
 
 	return toUpdate, nil
+}
+
+func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]model.User, error) {
+	var fetchedUsers []User
+
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedUsers, listProjectAdmins, id)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.User{}, project.NoAdminsExist
+	}
+
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedUsers []model.User
+	for _, u := range fetchedUsers {
+		transformedUser, err := transformToUser(u)
+		if err != nil {
+			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedUsers = append(transformedUsers, transformedUser)
+	}
+
+	return transformedUsers, nil
 }
 
 func transformToProject(from Project) (model.Project, error) {

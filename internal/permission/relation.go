@@ -33,6 +33,7 @@ type Permissions interface {
 	AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error
 	RemoveAdminFromOrg(ctx context.Context, user model.User, org model.Organization) error
 	AddAdminToProject(ctx context.Context, user model.User, project model.Project) error
+	RemoveAdminFromProject(ctx context.Context, user model.User, project model.Project) error
 	AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error
 	AddTeamToResource(ctx context.Context, team model.Group, resource model.Resource) error
 	AddOwnerToResource(ctx context.Context, user model.User, resource model.Resource) error
@@ -170,6 +171,20 @@ func (s Service) AddAdminToProject(ctx context.Context, user model.User, project
 		},
 	}
 	return s.addRelation(ctx, rel)
+}
+
+func (s Service) RemoveAdminFromProject(ctx context.Context, user model.User, project model.Project) error {
+	rel := model.Relation{
+		ObjectNamespace:  definition.ProjectNamespace,
+		ObjectId:         project.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role: model.Role{
+			Id:        definition.ProjectAdminRole.Id,
+			Namespace: definition.ProjectNamespace,
+		},
+	}
+	return s.removeRelation(ctx, rel)
 }
 
 func (s Service) AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error {
