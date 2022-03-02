@@ -230,7 +230,7 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.Updat
 
 	updatedUser, err := v.UserService.UpdateCurrentUser(ctx, model.User{
 		Name:     request.GetBody().Name,
-		Email:    request.GetBody().Email,
+		Email:    email,
 		Metadata: metaDataMap,
 	})
 
