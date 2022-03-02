@@ -14,8 +14,6 @@ import (
 	"github.com/odpf/shield/grpc_interceptors"
 	"github.com/odpf/shield/pkg/sql"
 
-	"go.uber.org/zap"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -44,7 +42,7 @@ func getGRPCMiddleware(cfg *config.Shield, logger log.Logger) grpc.ServerOption 
 	return grpc.UnaryInterceptor(
 		grpcMiddleware.ChainUnaryServer(
 			grpc_interceptors.EnrichCtxWithIdentity(cfg.App.IdentityProxyHeader),
-			grpczap.UnaryServerInterceptor(zap.NewExample()),
+			grpczap.UnaryServerInterceptor(logger.(*log.Zap).GetInternalZapLogger().Desugar()),
 			grpcRecovery.UnaryServerInterceptor(opts...),
 			grpcctxtags.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(setupNewRelic(cfg.NewRelic, logger)),
