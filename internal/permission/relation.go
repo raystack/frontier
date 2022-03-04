@@ -30,6 +30,8 @@ type Permissions interface {
 	AddAdminToTeam(ctx context.Context, user model.User, team model.Group) error
 	AddMemberToTeam(ctx context.Context, user model.User, team model.Group) error
 	RemoveMemberFromTeam(ctx context.Context, user model.User, team model.Group) error
+	RemoveAdminFromTeam(ctx context.Context, user model.User, team model.Group) error
+	GetTeamAdminRelation(user model.User, team model.Group) model.Relation
 	AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error
 	RemoveAdminFromOrg(ctx context.Context, user model.User, org model.Organization) error
 	AddAdminToProject(ctx context.Context, user model.User, project model.Project) error
@@ -90,16 +92,7 @@ func (s Service) AddTeamToOrg(ctx context.Context, team model.Group, org model.O
 }
 
 func (s Service) AddAdminToTeam(ctx context.Context, user model.User, team model.Group) error {
-	rel := model.Relation{
-		ObjectNamespace:  definition.TeamNamespace,
-		ObjectId:         team.Id,
-		SubjectId:        user.Id,
-		SubjectNamespace: definition.UserNamespace,
-		Role: model.Role{
-			Id:        definition.TeamAdminRole.Id,
-			Namespace: definition.TeamNamespace,
-		},
-	}
+	rel := s.GetTeamAdminRelation(user, team)
 	return s.addRelation(ctx, rel)
 }
 
@@ -128,6 +121,25 @@ func (s Service) RemoveMemberFromTeam(ctx context.Context, user model.User, team
 			Namespace: definition.TeamNamespace,
 		},
 	}
+	return s.removeRelation(ctx, rel)
+}
+
+func (s Service) GetTeamAdminRelation(user model.User, team model.Group) model.Relation {
+	rel := model.Relation{
+		ObjectNamespace:  definition.TeamNamespace,
+		ObjectId:         team.Id,
+		SubjectId:        user.Id,
+		SubjectNamespace: definition.UserNamespace,
+		Role: model.Role{
+			Id:        definition.TeamAdminRole.Id,
+			Namespace: definition.TeamNamespace,
+		},
+	}
+	return rel
+}
+
+func (s Service) RemoveAdminFromTeam(ctx context.Context, user model.User, team model.Group) error {
+	rel := s.GetTeamAdminRelation(user, team)
 	return s.removeRelation(ctx, rel)
 }
 

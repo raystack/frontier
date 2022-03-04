@@ -28,6 +28,8 @@ type GroupService interface {
 	ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error)
 	ListGroupAdmins(ctx context.Context, groupId string) ([]model.User, error)
 	RemoveUserFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error)
+	AddAdminsToGroup(ctx context.Context, groupId string, userIds []string) ([]model.User, error)
+	RemoveAdminFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error)
 }
 
 var (
@@ -269,6 +271,58 @@ func (v Dep) ListGroupAdmins(ctx context.Context, request *shieldv1beta1.ListGro
 
 	return &shieldv1beta1.ListGroupAdminsResponse{
 		Users: users,
+	}, nil
+}
+
+func (v Dep) AddGroupAdmin(ctx context.Context, request *shieldv1beta1.AddGroupAdminRequest) (*shieldv1beta1.AddGroupAdminResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if request.Body == nil {
+		return nil, grpcBadBodyError
+	}
+	updatedUsers, err := v.GroupService.AddAdminsToGroup(ctx, request.GetId(), request.GetBody().UserIds)
+
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.GroupDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var users []*shieldv1beta1.User
+
+	for _, u := range updatedUsers {
+		userPB, err := transformUserToPB(u)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		users = append(users, &userPB)
+	}
+
+	return &shieldv1beta1.AddGroupAdminResponse{
+		Users: users,
+	}, nil
+}
+
+func (v Dep) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.RemoveGroupAdminRequest) (*shieldv1beta1.RemoveGroupAdminResponse, error) {
+	logger := grpczap.Extract(ctx)
+	_, err := v.GroupService.RemoveAdminFromGroup(ctx, request.GetId(), request.GetUserId())
+
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.GroupDoesntExist):
+			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.RemoveGroupAdminResponse{
+		Message: "Removed Admin from group",
 	}, nil
 }
 

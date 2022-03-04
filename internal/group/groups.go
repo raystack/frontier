@@ -27,6 +27,7 @@ type Store interface {
 	GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error)
 	GetUser(ctx context.Context, userId string) (model.User, error)
 	ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]model.User, error)
+	GetRelationByFields(ctx context.Context, relation model.Relation) (model.Relation, error)
 }
 
 var (
@@ -54,6 +55,12 @@ func (s Service) CreateGroup(ctx context.Context, grp model.Group) (model.Group,
 	}
 
 	err = s.Permissions.AddAdminToTeam(ctx, user, newGroup)
+
+	if err != nil {
+		return model.Group{}, err
+	}
+
+	err = s.Permissions.AddMemberToTeam(ctx, user, newGroup)
 
 	if err != nil {
 		return model.Group{}, err
@@ -154,6 +161,11 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		return []model.User{}, err
 	}
 
+	err = s.Permissions.RemoveAdminFromTeam(ctx, user, group)
+	if err != nil {
+		return []model.User{}, err
+	}
+
 	return s.ListGroupUsers(ctx, groupId)
 }
 
@@ -163,4 +175,92 @@ func (s Service) ListGroupUsers(ctx context.Context, groupId string) ([]model.Us
 
 func (s Service) ListGroupAdmins(ctx context.Context, groupId string) ([]model.User, error) {
 	return s.Store.ListGroupUsers(ctx, groupId, definition.TeamAdminRole.Id)
+}
+
+func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds []string) ([]model.User, error) {
+	currentUser, err := s.Permissions.FetchCurrentUser(ctx)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	group, err := s.Store.GetGroup(ctx, groupId)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
+		Id:        groupId,
+		Namespace: definition.TeamNamespace,
+	},
+		definition.ManageTeamAction,
+	)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	if !isAuthorized {
+		return []model.User{}, shieldError.Unauthorzied
+	}
+
+	users, err := s.Store.GetUsersByIds(ctx, userIds)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	for _, user := range users {
+		err = s.Permissions.AddMemberToTeam(ctx, user, group)
+		if err != nil {
+			return []model.User{}, err
+		}
+
+		err = s.Permissions.AddAdminToTeam(ctx, user, group)
+		if err != nil {
+			return []model.User{}, err
+		}
+	}
+	return s.ListGroupAdmins(ctx, groupId)
+}
+
+func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error) {
+	currentUser, err := s.Permissions.FetchCurrentUser(ctx)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	group, err := s.Store.GetGroup(ctx, groupId)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
+		Id:        groupId,
+		Namespace: definition.TeamNamespace,
+	},
+		definition.ManageTeamAction,
+	)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	if !isAuthorized {
+		return []model.User{}, shieldError.Unauthorzied
+	}
+
+	user, err := s.Store.GetUser(ctx, userId)
+
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	err = s.Permissions.RemoveAdminFromTeam(ctx, user, group)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	return s.ListGroupAdmins(ctx, groupId)
 }
