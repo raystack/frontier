@@ -93,6 +93,7 @@ func TestCreateUser(t *testing.T) {
 	table := []struct {
 		title       string
 		mockUserSrv mockUserSrv
+		header      string
 		req         *shieldv1beta1.CreateUserRequest
 		want        *shieldv1beta1.CreateUserResponse
 		err         error
@@ -100,7 +101,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			title: "error in fetching user list",
 			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u model.User) (model.User, error) {
-				return model.User{}, grpcInternalServerError
+				return model.User{}, emptyEmailId
 			}},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:     "some user",
@@ -108,7 +109,7 @@ func TestCreateUser(t *testing.T) {
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
-			err:  grpcInternalServerError,
+			err:  emptyEmailId,
 		},
 		{
 			title: "int values in metadata map",
@@ -134,6 +135,7 @@ func TestCreateUser(t *testing.T) {
 					Metadata: nil,
 				}, nil
 			}},
+			header: "abc@test.com",
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
 				Email: "abc@test.com",
@@ -159,8 +161,18 @@ func TestCreateUser(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Dep{UserService: tt.mockUserSrv}
-			resp, err := mockDep.CreateUser(context.Background(), tt.req)
+			var resp *shieldv1beta1.CreateUserResponse
+			var err error
+			if tt.title == "success" {
+				mockDep := Dep{UserService: tt.mockUserSrv, IdentityProxyHeader: "x-auth-email"}
+				md := metadata.Pairs(mockDep.IdentityProxyHeader, tt.header)
+				ctx := metadata.NewIncomingContext(context.Background(), md)
+				resp, err = mockDep.CreateUser(ctx, tt.req)
+			} else {
+				mockDep := Dep{UserService: tt.mockUserSrv}
+				resp, err = mockDep.CreateUser(context.Background(), tt.req)
+			}
+
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
