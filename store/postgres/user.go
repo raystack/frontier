@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
@@ -24,15 +25,16 @@ type User struct {
 	Metadata  []byte    `db:"metadata"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	Roles     []uint8
 }
 
 const (
-	getUserQuery             = `SELECT id, name,  email, metadata, created_at, updated_at from users where id=$1;`
-	getUsersByIdsQuery       = `SELECT id, name,  email, metadata, created_at, updated_at from users where id IN (?);`
-	getCurrentUserQuery      = `SELECT id, name, email, metadata, created_at, updated_at from users where email=$1;`
+	getUserQuery             = `SELECT id, name,  email, metadata, created_at, updated_at,(SELECT array_agg(role_id) from relations where subject_id=u.id::varchar group by subject_id) as roles from users u where id=$1;`
+	getUsersByIdsQuery       = `SELECT id, name,  email, metadata, created_at, updated_at,(SELECT array_agg(role_id) from relations where subject_id=u.id::varchar group by subject_id) as roles from users u where id IN (?);`
+	getCurrentUserQuery      = `SELECT id, name, email, metadata, created_at, updated_at,(SELECT array_agg(role_id) from relations where subject_id=u.id::varchar group by subject_id) as roles from users u where email=$1;`
 	createUserQuery          = `INSERT INTO users(name, email, metadata) values($1, $2, $3) RETURNING id, name, email, metadata, created_at, updated_at;`
 	listUsersQuery           = `SELECT id, name, email, metadata, created_at, updated_at from users;`
-	selectUserForUpdateQuery = `SELECT id, name, email, metadata, updated_at from users where id=$1;`
+	selectUserForUpdateQuery = `SELECT id, name, email, metadata, updated_at,(SELECT array_agg(role_id) from relations where subject_id=u.id::varchar group by subject_id) as roles from users u where id=$1;`
 	updateUserQuery          = `UPDATE users set name = $2, email = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
 	updateCurrentUserQuery   = `UPDATE users set name = $2, metadata = $3, updated_at = now() where email = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
 )
@@ -285,6 +287,13 @@ func transformToUser(from User) (model.User, error) {
 		return model.User{}, err
 	}
 
+	userRoles := make(map[string]bool, 0)
+	if from.Roles != nil {
+		roles := strings.Split(string(from.Roles[1:len(from.Roles)-1]), ",")
+		for _, role := range roles {
+			userRoles[role] = true
+		}
+	}
 	return model.User{
 		Id:        from.Id,
 		Name:      from.Name,
@@ -292,5 +301,6 @@ func transformToUser(from User) (model.User, error) {
 		Metadata:  unmarshalledMetadata,
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,
+		Roles:     userRoles,
 	}, nil
 }

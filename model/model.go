@@ -80,6 +80,7 @@ type User struct {
 	Metadata  map[string]string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	Roles     map[string]bool
 }
 
 type Relation struct {

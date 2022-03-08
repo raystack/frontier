@@ -156,14 +156,18 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		return []model.User{}, err
 	}
 
-	err = s.Permissions.RemoveMemberFromTeam(ctx, user, group)
-	if err != nil {
-		return []model.User{}, err
+	if user.Roles[definition.TeamMemberRole.Id] {
+		err = s.Permissions.RemoveMemberFromTeam(ctx, user, group)
+		if err != nil {
+			return []model.User{}, err
+		}
 	}
 
-	err = s.Permissions.RemoveAdminFromTeam(ctx, user, group)
-	if err != nil {
-		return []model.User{}, err
+	if user.Roles[definition.TeamAdminRole.Id] {
+		err = s.Permissions.RemoveAdminFromTeam(ctx, user, group)
+		if err != nil {
+			return []model.User{}, err
+		}
 	}
 
 	return s.ListGroupUsers(ctx, groupId)
