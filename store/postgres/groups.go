@@ -38,6 +38,23 @@ var (
 					AND r.subject_namespace_id='%s'
 					AND r.object_namespace_id='%s';`,
 		definition.UserNamespace.Id, definition.TeamNamespace.Id)
+	listUserGroupRelationsQuery = fmt.Sprintf(
+		`SELECT
+					id, 
+					subject_namespace_id, 
+					subject_id, 
+					object_namespace_id, 
+					object_id, 
+					role_id,
+					namespace_id,
+					created_at, 
+					updated_at
+				FROM relations 
+				WHERE subject_namespace_id='%s'
+					AND object_namespace_id='%s'
+					AND subject_id=$1
+					AND object_id=$2;`,
+		definition.UserNamespace.Id, definition.TeamNamespace.Id)
 )
 
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
@@ -178,6 +195,35 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 	}
 
 	return transformedUsers, nil
+}
+
+func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]model.Relation, error) {
+	var fetchedRelations []Relation
+
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedRelations, listUserGroupRelationsQuery, userId, groupId)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return []model.Relation{}, sql.ErrNoRows
+	}
+
+	if err != nil {
+		return []model.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedRelations []model.Relation
+
+	for _, v := range fetchedRelations {
+		transformedGroup, err := transformToRelation(v)
+		if err != nil {
+			return []model.Relation{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+
+		transformedRelations = append(transformedRelations, transformedGroup)
+	}
+
+	return transformedRelations, nil
 }
 
 func transformToGroup(from Group) (model.Group, error) {
