@@ -28,6 +28,7 @@ type Store interface {
 	GetUser(ctx context.Context, userId string) (model.User, error)
 	ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]model.User, error)
 	GetRelationByFields(ctx context.Context, relation model.Relation) (model.Relation, error)
+	ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]model.Relation, error)
 }
 
 var (
@@ -156,14 +157,17 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		return []model.User{}, err
 	}
 
-	err = s.Permissions.RemoveMemberFromTeam(ctx, user, group)
+	relations, err := s.Store.ListUserGroupRelations(ctx, user.Id, group.Id)
+
 	if err != nil {
 		return []model.User{}, err
 	}
 
-	err = s.Permissions.RemoveAdminFromTeam(ctx, user, group)
-	if err != nil {
-		return []model.User{}, err
+	for _, rel := range relations {
+		err = s.Permissions.RemoveRelation(ctx, rel)
+		if err != nil {
+			return []model.User{}, err
+		}
 	}
 
 	return s.ListGroupUsers(ctx, groupId)

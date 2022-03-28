@@ -43,6 +43,7 @@ type Permissions interface {
 	AddOrgToResource(ctx context.Context, org model.Organization, resource model.Resource) error
 	FetchCurrentUser(ctx context.Context) (model.User, error)
 	CheckPermission(ctx context.Context, user model.User, resource model.Resource, action model.Action) (bool, error)
+	RemoveRelation(ctx context.Context, rel model.Relation) error
 }
 
 func (s Service) addRelation(ctx context.Context, rel model.Relation) error {
@@ -58,7 +59,7 @@ func (s Service) addRelation(ctx context.Context, rel model.Relation) error {
 	return nil
 }
 
-func (s Service) removeRelation(ctx context.Context, rel model.Relation) error {
+func (s Service) RemoveRelation(ctx context.Context, rel model.Relation) error {
 	fetchedRel, err := s.Store.GetRelationByFields(ctx, rel)
 	if err != nil {
 		return err
@@ -121,7 +122,7 @@ func (s Service) RemoveMemberFromTeam(ctx context.Context, user model.User, team
 			Namespace: definition.TeamNamespace,
 		},
 	}
-	return s.removeRelation(ctx, rel)
+	return s.RemoveRelation(ctx, rel)
 }
 
 func (s Service) GetTeamAdminRelation(user model.User, team model.Group) model.Relation {
@@ -140,7 +141,7 @@ func (s Service) GetTeamAdminRelation(user model.User, team model.Group) model.R
 
 func (s Service) RemoveAdminFromTeam(ctx context.Context, user model.User, team model.Group) error {
 	rel := s.GetTeamAdminRelation(user, team)
-	return s.removeRelation(ctx, rel)
+	return s.RemoveRelation(ctx, rel)
 }
 
 func (s Service) RemoveAdminFromOrg(ctx context.Context, user model.User, org model.Organization) error {
@@ -154,7 +155,7 @@ func (s Service) RemoveAdminFromOrg(ctx context.Context, user model.User, org mo
 			Namespace: definition.OrgNamespace,
 		},
 	}
-	return s.removeRelation(ctx, rel)
+	return s.RemoveRelation(ctx, rel)
 }
 
 func (s Service) AddAdminToOrg(ctx context.Context, user model.User, org model.Organization) error {
@@ -196,7 +197,7 @@ func (s Service) RemoveAdminFromProject(ctx context.Context, user model.User, pr
 			Namespace: definition.ProjectNamespace,
 		},
 	}
-	return s.removeRelation(ctx, rel)
+	return s.RemoveRelation(ctx, rel)
 }
 
 func (s Service) AddProjectToOrg(ctx context.Context, project model.Project, org model.Organization) error {
