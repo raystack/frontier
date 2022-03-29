@@ -16508,6 +16508,14 @@ func (m *ListResourcesRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for GroupId
+
+	// no validation rules for ProjectId
+
+	// no validation rules for OrganizationId
+
+	// no validation rules for NamespaceId
+
 	if len(errors) > 0 {
 		return ListResourcesRequestMultiError(errors)
 	}
