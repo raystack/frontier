@@ -22,7 +22,7 @@ var (
 type Store interface {
 	GetResource(ctx context.Context, id string) (model.Resource, error)
 	CreateResource(ctx context.Context, resource model.Resource) (model.Resource, error)
-	ListResources(ctx context.Context) ([]model.Resource, error)
+	ListResources(ctx context.Context, filters model.ResourceFilters) ([]model.Resource, error)
 	UpdateResource(ctx context.Context, id string, resource model.Resource) (model.Resource, error)
 }
 
@@ -88,8 +88,8 @@ func (s Service) Create(ctx context.Context, resource model.Resource) (model.Res
 	return newResource, nil
 }
 
-func (s Service) List(ctx context.Context) ([]model.Resource, error) {
-	return s.Store.ListResources(ctx)
+func (s Service) List(ctx context.Context, filters model.ResourceFilters) ([]model.Resource, error) {
+	return s.Store.ListResources(ctx, filters)
 }
 
 func (s Service) Update(ctx context.Context, id string, resource model.Resource) (model.Resource, error) {

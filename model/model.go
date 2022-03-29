@@ -115,6 +115,13 @@ type Resource struct {
 	UpdatedAt      time.Time
 }
 
+type ResourceFilters struct {
+	ProjectId      string `json:"project_id"`
+	GroupId        string `json:"group_id"`
+	OrganizationId string `json:"org_id"`
+	NamespaceId    string `json:"namespace_id"`
+}
+
 type Permission struct {
 	Name string
 }

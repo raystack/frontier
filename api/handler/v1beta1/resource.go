@@ -16,7 +16,7 @@ import (
 
 type ResourceService interface {
 	Get(ctx context.Context, id string) (model.Resource, error)
-	List(ctx context.Context) ([]model.Resource, error)
+	List(ctx context.Context, filters model.ResourceFilters) ([]model.Resource, error)
 	Create(ctx context.Context, resource model.Resource) (model.Resource, error)
 	Update(ctx context.Context, id string, resource model.Resource) (model.Resource, error)
 }
@@ -27,7 +27,14 @@ func (v Dep) ListResources(ctx context.Context, request *shieldv1beta1.ListResou
 	logger := grpczap.Extract(ctx)
 	var resources []*shieldv1beta1.Resource
 
-	resourcesList, err := v.ResourceService.List(ctx)
+	filters := model.ResourceFilters{
+		NamespaceId:    request.NamespaceId,
+		OrganizationId: request.OrganizationId,
+		ProjectId:      request.ProjectId,
+		GroupId:        request.GroupId,
+	}
+
+	resourcesList, err := v.ResourceService.List(ctx, filters)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
