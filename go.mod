@@ -9,6 +9,7 @@ require (
 	github.com/authzed/authzed-go v0.3.0
 	github.com/authzed/grpcutil v0.0.0-20211020204402-aba1876830e6
 	github.com/authzed/spicedb v1.1.0
+	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/envoyproxy/protoc-gen-validate v0.6.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.15.1

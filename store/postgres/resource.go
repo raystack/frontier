@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/internal/resource"
 	"github.com/odpf/shield/model"
 )
@@ -26,6 +29,7 @@ type Resource struct {
 	UserId         sql.NullString `db:"user_id"`
 	CreatedAt      time.Time      `db:"created_at"`
 	UpdatedAt      time.Time      `db:"updated_at"`
+	DeletedAt      sql.NullTime   `db:"deleted_at"`
 }
 
 const (
@@ -48,31 +52,6 @@ const (
 		    $7
 		)
 		RETURNING id, name, project_id, group_id, org_id, namespace_id, user_id, created_at, updated_at`
-	listResourcesQuery = `
-		SELECT
-			id,
-		    name,
-			project_id,
-			group_id,
-			org_id,
-			namespace_id,
-		    user_id,
-			created_at,
-			updated_at
-		FROM resources`
-	getResourcesQuery = `
-		SELECT
-			id,
-		    name,
-			project_id,
-			group_id,
-			org_id,
-			namespace_id,
-		    user_id,
-			created_at,
-			updated_at
-		FROM resources
-		WHERE id = $1`
 	updateResourceQuery = `
 		UPDATE resources SET
 		    name = $2,
@@ -108,10 +87,29 @@ func (s Store) CreateResource(ctx context.Context, resourceToCreate model.Resour
 	return transformedResource, nil
 }
 
-func (s Store) ListResources(ctx context.Context) ([]model.Resource, error) {
+func (s Store) ListResources(ctx context.Context, filters model.ResourceFilters) ([]model.Resource, error) {
 	var fetchedResources []Resource
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedResources, listResourcesQuery)
+	filterQueryMap, err := utils.StructToStringMap(filters)
+	if err != nil {
+		return []model.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	selectQuery := goqu.Select("*").From("resources")
+
+	for key, value := range filterQueryMap {
+		if value != "" {
+			selectQuery = selectQuery.Where(goqu.Ex{key: value})
+		}
+	}
+
+	querySql, _, err := selectQuery.ToSQL()
+
+	if err != nil {
+		return []model.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedResources, querySql)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -138,8 +136,15 @@ func (s Store) ListResources(ctx context.Context) ([]model.Resource, error) {
 
 func (s Store) GetResource(ctx context.Context, id string) (model.Resource, error) {
 	var fetchedResource Resource
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedResource, getResourcesQuery, id)
+
+	querySql, _, err := goqu.Select("*").From("resources").Where(goqu.Ex{"id": id}).ToSQL()
+
+	if err != nil {
+		return model.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &fetchedResource, querySql)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
