@@ -253,6 +253,7 @@ func transformToResource(from Resource) (model.Resource, error) {
 		NamespaceId:    from.NamespaceId,
 		Organization:   model.Organization{Id: from.OrganizationId},
 		OrganizationId: from.OrganizationId,
+		GroupId:        from.GroupId.String,
 		Group:          model.Group{Id: from.GroupId.String},
 		User:           model.User{Id: from.UserId.String},
 		CreatedAt:      from.CreatedAt,
