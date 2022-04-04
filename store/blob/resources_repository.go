@@ -72,6 +72,10 @@ func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, n
 	}
 
 	relationSet := map[string]bool{}
+	relationSet["organization"] = true
+	relationSet["project"] = true
+	relationSet["team"] = true
+
 	for _, resource := range resources {
 		if resource.Name == namespaceID {
 			for _, action := range resource.Actions {
