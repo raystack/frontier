@@ -31,7 +31,7 @@ func (s Service) Get(ctx context.Context, id string) (model.Resource, error) {
 }
 
 func (s Service) Create(ctx context.Context, resource model.Resource) (model.Resource, error) {
-	id := utils.CreateResourceId(resource)
+	urn := utils.CreateResourceURN(resource)
 
 	user, err := s.Permissions.FetchCurrentUser(ctx)
 
@@ -46,7 +46,7 @@ func (s Service) Create(ctx context.Context, resource model.Resource) (model.Res
 	}
 
 	newResource, err := s.Store.CreateResource(ctx, model.Resource{
-		Id:             id,
+		Urn:            urn,
 		Name:           resource.Name,
 		OrganizationId: resource.OrganizationId,
 		ProjectId:      resource.ProjectId,

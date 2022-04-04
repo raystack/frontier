@@ -16,6 +16,7 @@ import (
 
 type Resource struct {
 	Id             string         `db:"id"`
+	Urn            string         `db:"urn"`
 	Name           string         `db:"name"`
 	ProjectId      string         `db:"project_id"`
 	Project        Project        `db:"project"`
@@ -35,7 +36,7 @@ type Resource struct {
 const (
 	createResourceQuery = `
 		INSERT INTO resources (
-			id,
+			urn,
 		    name,
 			project_id,
 			group_id,
@@ -51,7 +52,21 @@ const (
 		    $6,
 		    $7
 		)
-		RETURNING id, name, project_id, group_id, org_id, namespace_id, user_id, created_at, updated_at`
+		RETURNING id, urn, name, project_id, group_id, org_id, namespace_id, user_id, created_at, updated_at;`
+	getResourcesQueryByURN = `
+		SELECT
+			id,
+		    urn,
+		    name,
+			project_id,
+			group_id,
+			org_id,
+			namespace_id,
+		    user_id,
+			created_at,
+			updated_at
+		FROM resources
+		WHERE urn = $1;`
 	updateResourceQuery = `
 		UPDATE resources SET
 		    name = $2,
@@ -59,7 +74,8 @@ const (
 			group_id = $4,
 			org_id = $5,
 			namespace_id = $6,
-		    user_id = $7
+		    user_id = $7,
+		    urn = $8,
 		WHERE id = $1
 		`
 )
@@ -71,7 +87,7 @@ func (s Store) CreateResource(ctx context.Context, resourceToCreate model.Resour
 	groupId := sql.NullString{String: resourceToCreate.GroupId, Valid: resourceToCreate.GroupId != ""}
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Id, resourceToCreate.Name, resourceToCreate.ProjectId, groupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId, userId)
+		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Urn, resourceToCreate.Name, resourceToCreate.ProjectId, groupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId, userId)
 	})
 
 	if err != nil {
@@ -176,7 +192,7 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 	groupId := sql.NullString{String: toUpdate.GroupId, Valid: toUpdate.GroupId != ""}
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, groupId, toUpdate.OrganizationId, toUpdate.NamespaceId, userId)
+		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, groupId, toUpdate.OrganizationId, toUpdate.NamespaceId, userId, toUpdate.Urn)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -197,10 +213,39 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 	return toUpdate, nil
 }
 
+func (s Store) GetResourceByURN(ctx context.Context, urn string) (model.Resource, error) {
+	var fetchedResource Resource
+	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &fetchedResource, getResourcesQueryByURN, urn)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Resource{}, resource.ResourceDoesntExist
+	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+		// TODO: this uuid syntax is a error defined in db, not in library
+		// need to look into better ways to implement this
+		return model.Resource{}, resource.InvalidUUID
+	} else if err != nil {
+		return model.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	if err != nil {
+		return model.Resource{}, err
+	}
+
+	transformedResource, err := transformToResource(fetchedResource)
+	if err != nil {
+		return model.Resource{}, err
+	}
+
+	return transformedResource, nil
+}
+
 func transformToResource(from Resource) (model.Resource, error) {
 	// TODO: remove *Id
 	return model.Resource{
-		Id:             from.Id,
+		Idxa:           from.Id,
+		Urn:            from.Urn,
 		Name:           from.Name,
 		Project:        model.Project{Id: from.ProjectId},
 		ProjectId:      from.ProjectId,

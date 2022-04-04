@@ -90,7 +90,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]m
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Id:        id,
+		Idxa:      id,
 		Namespace: definition.ProjectNamespace,
 	},
 		definition.ManageProjectAction,
@@ -136,7 +136,7 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]m
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Id:        id,
+		Idxa:      id,
 		Namespace: definition.ProjectNamespace,
 	},
 		definition.ManageProjectAction,

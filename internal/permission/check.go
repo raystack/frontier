@@ -9,10 +9,15 @@ import (
 
 type CheckService struct {
 	PermissionsService Permissions
+	ResourceStore      ResourceStore
 }
 
-func NewCheckService(permissionService Permissions) CheckService {
-	return CheckService{PermissionsService: permissionService}
+type ResourceStore interface {
+	GetResourceByURN(ctx context.Context, urn string) (model.Resource, error)
+}
+
+func NewCheckService(permissionService Permissions, resourceStore ResourceStore) CheckService {
+	return CheckService{PermissionsService: permissionService, ResourceStore: resourceStore}
 }
 
 func (c CheckService) CheckAuthz(ctx context.Context, resource model.Resource, action model.Action) (bool, error) {
@@ -21,6 +26,8 @@ func (c CheckService) CheckAuthz(ctx context.Context, resource model.Resource, a
 		return false, err
 	}
 
-	resource.Id = utils.CreateResourceId(resource)
-	return c.PermissionsService.CheckPermission(ctx, user, resource, action)
+	resource.Urn = utils.CreateResourceURN(resource)
+	fetchedResource, err := c.ResourceStore.GetResourceByURN(ctx, resource.Urn)
+
+	return c.PermissionsService.CheckPermission(ctx, user, fetchedResource, action)
 }

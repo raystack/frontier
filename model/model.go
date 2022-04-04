@@ -99,7 +99,8 @@ type Relation struct {
 }
 
 type Resource struct {
-	Id             string
+	Idxa           string
+	Urn            string
 	Name           string
 	ProjectId      string `json:"project_id"`
 	Project        Project
