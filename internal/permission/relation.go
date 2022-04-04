@@ -222,7 +222,7 @@ func (s Service) AddProjectToResource(ctx context.Context, project model.Project
 
 	rel := model.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         resource.Id,
+		ObjectId:         resource.Idxa,
 		SubjectId:        project.Id,
 		SubjectNamespace: definition.ProjectNamespace,
 		Role: model.Role{
@@ -241,7 +241,7 @@ func (s Service) AddOrgToResource(ctx context.Context, org model.Organization, r
 
 	rel := model.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         resource.Id,
+		ObjectId:         resource.Idxa,
 		SubjectId:        org.Id,
 		SubjectNamespace: definition.OrgNamespace,
 		Role: model.Role{
@@ -260,7 +260,7 @@ func (s Service) AddTeamToResource(ctx context.Context, team model.Group, resour
 
 	rel := model.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         resource.Id,
+		ObjectId:         resource.Idxa,
 		SubjectId:        team.Id,
 		SubjectNamespace: definition.TeamNamespace,
 		Role: model.Role{
@@ -279,7 +279,7 @@ func (s Service) CheckPermission(ctx context.Context, user model.User, resource 
 
 	rel := model.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         resource.Id,
+		ObjectId:         resource.Idxa,
 		SubjectId:        user.Id,
 		SubjectNamespace: definition.UserNamespace,
 	}
@@ -307,7 +307,7 @@ func (s Service) AddOwnerToResource(ctx context.Context, user model.User, resour
 
 	rel := model.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         resource.Id,
+		ObjectId:         resource.Idxa,
 		SubjectId:        user.Id,
 		SubjectNamespace: definition.UserNamespace,
 		Role:             role,

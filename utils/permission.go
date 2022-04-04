@@ -24,7 +24,7 @@ func StrListHas(list []string, a string) bool {
 /*
  /project/uuid/
 */
-func CreateResourceId(resource model.Resource) string {
+func CreateResourceURN(resource model.Resource) string {
 	if ok := StrListHas(systemNSIds, resource.NamespaceId); ok {
 		return resource.Name
 	}

@@ -179,7 +179,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			a.log.Error(err.Error())
 			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 		}
-		a.log.Info(fmt.Sprintf("Resource %s created", newResource.Id))
+		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.Urn, newResource.Idxa))
 	}
 
 	return a.next.ServeHook(res, nil)

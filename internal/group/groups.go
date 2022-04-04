@@ -95,7 +95,7 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Id:        groupId,
+		Idxa:      groupId,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,
@@ -137,7 +137,7 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Id:        groupId,
+		Idxa:      groupId,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,
@@ -194,7 +194,7 @@ func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds [
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Id:        groupId,
+		Idxa:      groupId,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,
@@ -241,7 +241,7 @@ func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userI
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Id:        groupId,
+		Idxa:      groupId,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,

@@ -94,7 +94,7 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 		Store:               serviceStore,
 		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		ResourcesRepository: resourceConfig,
-	})
+	}, serviceStore)
 
 	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies, AuthzCheckService)
 	if err != nil {
@@ -315,7 +315,7 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 			ActionService:          schemaService,
 			NamespaceService:       schemaService,
 			IdentityProxyHeader:    appConfig.App.IdentityProxyHeader,
-			PermissionCheckService: permission.NewCheckService(permissions),
+			PermissionCheckService: permission.NewCheckService(permissions, serviceStore),
 		},
 	}
 	return dependencies, nil

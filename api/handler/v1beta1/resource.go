@@ -181,7 +181,8 @@ func transformResourceToPB(from model.Resource) (shieldv1beta1.Resource, error) 
 	}
 
 	return shieldv1beta1.Resource{
-		Id:           from.Id,
+		Id:           from.Idxa,
+		Urn:          from.Urn,
 		Name:         from.Name,
 		Namespace:    &namespace,
 		Organization: &org,

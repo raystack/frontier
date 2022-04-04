@@ -15308,6 +15308,8 @@ func (m *Resource) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Urn
+
 	if len(errors) > 0 {
 		return ResourceMultiError(errors)
 	}
