@@ -18,8 +18,16 @@ import (
 	"github.com/odpf/salt/log"
 )
 
+const (
+	userIDHeader = "X-Shield-User-Id"
+)
+
 type AuthzCheckService interface {
 	CheckAuthz(ctx context.Context, resource model.Resource, action model.Action) (bool, error)
+}
+
+type PermissionService interface {
+	FetchCurrentUser(ctx context.Context) (model.User, error)
 }
 
 type Authz struct {
@@ -28,6 +36,7 @@ type Authz struct {
 	next                http.Handler
 	Deps                handler.Deps
 	AuthzCheckService   AuthzCheckService
+	PermissionService   PermissionService
 }
 
 type Config struct {
@@ -35,8 +44,8 @@ type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler, authzCheckService AuthzCheckService) *Authz {
-	return &Authz{log: log, identityProxyHeader: identityProxyHeader, Deps: deps, next: next, AuthzCheckService: authzCheckService}
+func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler, authzCheckService AuthzCheckService, permissionService PermissionService) *Authz {
+	return &Authz{log: log, identityProxyHeader: identityProxyHeader, Deps: deps, next: next, AuthzCheckService: authzCheckService, PermissionService: permissionService}
 }
 
 func (c Authz) Info() *structs.MiddlewareInfo {
@@ -47,6 +56,15 @@ func (c Authz) Info() *structs.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	user, err := c.PermissionService.FetchCurrentUser(req.Context())
+	if err != nil {
+		c.log.Error("middleware: failed to get user details", "err", err.Error())
+		c.notAllowed(rw)
+		return
+	}
+
+	req.Header.Set(userIDHeader, user.Id)
+
 	rule, ok := middleware.ExtractRule(req)
 	if !ok {
 		c.next.ServeHTTP(rw, req)

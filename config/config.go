@@ -56,6 +56,9 @@ type Service struct {
 	// Headers which will have user's email id
 	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:"X-Shield-Email"`
 
+	// Header which will have user_id
+	UserIDHeader string `yaml:"user_id_header" mapstructure:"user_id_header" default:"X-Shield-User-Id"`
+
 	// ResourcesPath is a directory path where resources is defined
 	// that this service should implement
 	ResourcesConfigPath string `yaml:"resources_config_path" mapstructure:"resources_config_path"`
