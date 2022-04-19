@@ -33,7 +33,7 @@ import (
 func buildMiddlewarePipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository, identityProxyHeader string, deps handler.Deps, authZCheckService permission.CheckService) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, identityProxyHeader, deps, prefixWare, authZCheckService)
+	casbinAuthz := authz.New(logger, identityProxyHeader, deps, prefixWare, authZCheckService, authZCheckService.PermissionsService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
