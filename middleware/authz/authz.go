@@ -56,6 +56,8 @@ func (c Authz) Info() *structs.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	req = req.WithContext(permission.SetEmailToContext(req.Context(), req.Header.Get(c.identityProxyHeader)))
+
 	user, err := c.PermissionService.FetchCurrentUser(req.Context())
 	if err != nil {
 		c.log.Error("middleware: failed to get user details", "err", err.Error())
@@ -96,7 +98,6 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	permissionAttributes["namespace"] = rule.Backend.Namespace
 
 	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
-	req = req.WithContext(permission.SetEmailToContext(req.Context(), req.Header.Get(c.identityProxyHeader)))
 
 	for res, attr := range config.Attributes {
 		_ = res
