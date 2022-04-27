@@ -6,12 +6,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/odpf/shield/pkg/utils"
-
 	v0 "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	"github.com/authzed/spicedb/pkg/namespace"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
+
+	defn "github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type role struct {
@@ -193,5 +194,52 @@ func BuildPolicyDefinitions(policies []model.Policy) ([]definition, error) {
 	sort.Slice(definitions[:], func(i, j int) bool {
 		return strings.Compare(definitions[i].name, definitions[j].name) < 1
 	})
-	return definitions, nil
+
+	//return definitions, nil
+
+	var finalDefinitions []definition
+	for _, defns := range definitions {
+		if Has([]string{defn.TeamNamespace.Id, defn.OrgNamespace.Id, defn.ProjectNamespace.Id}, defns.name) {
+			for _, d := range definitions {
+				if Has([]string{defn.TeamNamespace.Id, defn.OrgNamespace.Id, defn.ProjectNamespace.Id}, d.name) {
+					continue
+				}
+
+				breakerFlag := false
+
+				for _, rl := range d.roles {
+					if rl.namespace == defns.name {
+						for _, defnRole := range defns.roles {
+							if defnRole.name == rl.name {
+								breakerFlag = true
+								break
+							}
+						}
+
+						if !breakerFlag {
+							defns.roles = append(defns.roles, role{
+								name:        rl.name,
+								types:       rl.types,
+								namespace:   rl.namespace,
+								permissions: []string{},
+							})
+						}
+					}
+				}
+			}
+		}
+
+		finalDefinitions = append(finalDefinitions, defns)
+	}
+
+	return finalDefinitions, nil
+}
+
+func Has(list []string, el string) bool {
+	for _, elm := range list {
+		if elm == el {
+			return true
+		}
+	}
+	return false
 }

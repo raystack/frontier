@@ -116,6 +116,15 @@ func getResourceRole(r string, ns model.Namespace) model.Role {
 		roleId = rSlice[1]
 	}
 
+	if roleNs.Id == definition.TeamNamespace.Id {
+		return model.Role{
+			Id:        roleId,
+			Name:      roleId,
+			Namespace: definition.TeamNamespace,
+			Types:     []string{definition.UserType},
+		}
+	}
+
 	role := model.Role{
 		Id:        roleId,
 		Name:      roleId,

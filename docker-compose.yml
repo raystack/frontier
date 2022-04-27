@@ -33,20 +33,20 @@ services:
       timeout: 30s
       retries: 3
 
-  shield-migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    command:
-      - "migrate"
-    depends_on:
-      pg:
-        condition: service_healthy
-    environment:
-      - SHIELD_DB_DRIVER=postgres
-      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
-      - SHIELD_SPICEDB_HOST=spicedb
-      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield;
+#  shield-migrate:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dev
+#    command:
+#      - "migrate"
+#    depends_on:
+#      pg:
+#        condition: service_healthy
+#    environment:
+#      - SHIELD_DB_DRIVER=postgres
+#      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+#      - SHIELD_SPICEDB_HOST=spicedb
+#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield;
 
 #  shield:
 #    build:
@@ -78,9 +78,9 @@ services:
   spicedb:
     image: quay.io/authzed/spicedb:v1.0.0
     ports:
-      - "8080:8080"
-      - "50051:50051"
-      - "50053:50053"
+      - "8081:8080"
+      - "50052:50051"
+      - "50054:50053"
     command:
       spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres
       --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
