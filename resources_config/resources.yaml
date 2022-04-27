@@ -1,17 +1,9 @@
 backends:
-  - name: odin
+  - name: litmus
     resource_types:
-      - name: "firehose"
+      - name: "experiment"
         actions:
-          read:
-            - owner
-          delete:
-            - owner
-          cancel:
-            - owner
-      - name: "dagger"
-        actions:
-          read:
-            - owner
-          write:
-            - owner
+          manage_experiment:
+#            - team.experimenter
+#            - owner
+#            - two
