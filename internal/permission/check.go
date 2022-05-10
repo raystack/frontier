@@ -31,7 +31,9 @@ func (c CheckService) CheckAuthz(ctx context.Context, resource model.Resource, a
 	isSystemNS := utils.IsSystemNS(resource)
 	fetchedResource := resource
 
-	if !isSystemNS {
+	if isSystemNS {
+		fetchedResource.Idxa = resource.Urn
+	} else {
 		fetchedResource, err = c.ResourceStore.GetResourceByURN(ctx, resource.Urn)
 		if err != nil {
 			return false, err
