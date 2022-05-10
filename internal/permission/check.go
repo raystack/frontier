@@ -27,9 +27,15 @@ func (c CheckService) CheckAuthz(ctx context.Context, resource model.Resource, a
 	}
 
 	resource.Urn = utils.CreateResourceURN(resource)
-	fetchedResource, err := c.ResourceStore.GetResourceByURN(ctx, resource.Urn)
-	if err != nil {
-		return false, err
+
+	isSystemNS := utils.IsSystemNS(resource)
+	fetchedResource := resource
+
+	if !isSystemNS {
+		fetchedResource, err = c.ResourceStore.GetResourceByURN(ctx, resource.Urn)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	return c.PermissionsService.CheckPermission(ctx, user, fetchedResource, action)
