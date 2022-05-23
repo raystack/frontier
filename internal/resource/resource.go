@@ -59,6 +59,10 @@ func (s Service) Create(ctx context.Context, resource model.Resource) (model.Res
 		return model.Resource{}, err
 	}
 
+	if err = s.Permissions.DeleteSubjectRelations(ctx, newResource); err != nil {
+		return model.Resource{}, err
+	}
+
 	if newResource.GroupId != "" {
 		err = s.Permissions.AddTeamToResource(ctx, model.Group{Id: resource.GroupId}, newResource)
 		if err != nil {

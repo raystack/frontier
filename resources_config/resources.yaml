@@ -7,3 +7,9 @@ backends:
 #            - team.experimenter
 #            - owner
 #            - two
+  - name: odin
+    resource_types:
+      - name: "firehose"
+        actions:
+          manage:
+            - team.firehose_manager

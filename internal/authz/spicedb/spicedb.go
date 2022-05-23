@@ -133,3 +133,20 @@ func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation)
 
 	return nil
 }
+
+func (p Permission) DeleteSubjectRelations(ctx context.Context, resource model.Resource) error {
+	request := &pb.DeleteRelationshipsRequest{
+		RelationshipFilter: &pb.RelationshipFilter{
+			ResourceType:       resource.NamespaceId,
+			OptionalResourceId: resource.Idxa,
+		},
+	}
+
+	_, err := p.client.DeleteRelationships(ctx, request)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
