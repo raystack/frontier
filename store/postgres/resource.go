@@ -52,6 +52,9 @@ const (
 		    $6,
 		    $7
 		)
+		ON CONFLICT ON CONSTRAINT resources_urn_unique 
+		DO
+		    UPDATE SET name=$2, project_id=$3, group_id=$4, org_id=$5, namespace_id=$6,user_id=$7
 		RETURNING id, urn, name, project_id, group_id, org_id, namespace_id, user_id, created_at, updated_at;`
 	getResourcesQueryByURN = `
 		SELECT

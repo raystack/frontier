@@ -44,6 +44,7 @@ type Permissions interface {
 	FetchCurrentUser(ctx context.Context) (model.User, error)
 	CheckPermission(ctx context.Context, user model.User, resource model.Resource, action model.Action) (bool, error)
 	RemoveRelation(ctx context.Context, rel model.Relation) error
+	DeleteSubjectRelations(ctx context.Context, resource model.Resource) error
 }
 
 func (s Service) addRelation(ctx context.Context, rel model.Relation) error {
@@ -57,6 +58,10 @@ func (s Service) addRelation(ctx context.Context, rel model.Relation) error {
 		return err
 	}
 	return nil
+}
+
+func (s Service) DeleteSubjectRelations(ctx context.Context, resource model.Resource) error {
+	return s.Authz.Permission.DeleteSubjectRelations(ctx, resource)
 }
 
 func (s Service) RemoveRelation(ctx context.Context, rel model.Relation) error {
