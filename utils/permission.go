@@ -25,7 +25,8 @@ func StrListHas(list []string, a string) bool {
  /project/uuid/
 */
 func CreateResourceURN(resource model.Resource) string {
-	if ok := StrListHas(systemNSIds, resource.NamespaceId); ok {
+	isSystemNS := IsSystemNS(resource)
+	if isSystemNS {
 		return resource.Name
 	}
 	if resource.Name == NON_RESOURCE_ID {
@@ -34,6 +35,12 @@ func CreateResourceURN(resource model.Resource) string {
 	return fmt.Sprintf("r/%s/%s", resource.NamespaceId, resource.Name)
 }
 
+func IsSystemNS(resource model.Resource) bool {
+	return StrListHas(systemNSIds, resource.NamespaceId)
+}
+
 func CreateNamespaceID(backend, resourceType string) string {
 	return fmt.Sprintf("%s_%s", backend, resourceType)
 }
+
+//postgres://shield:@:5432/
