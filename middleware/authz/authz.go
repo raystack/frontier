@@ -169,6 +169,28 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = queryAttr
 			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
+		case middleware.AttributeTypePathParam:
+			if attr.Key == "" {
+				c.log.Error("middleware: path param key field empty")
+				c.notAllowed(rw)
+				return
+			}
+			pathParams, ok := middleware.ExtractPathParams(req)
+			if !ok {
+				c.log.Error("middleware: path params is empty")
+				c.notAllowed(rw)
+				return
+			}
+			var pathAttr string
+			if pathAttr, ok = pathParams[attr.Key]; !ok {
+				c.log.Error(fmt.Sprintf("middleware: path param value %s is empty", attr.Key))
+				c.notAllowed(rw)
+				return
+			}
+
+			permissionAttributes[res] = pathAttr
+			c.log.Info("middleware: extracted", "field", pathAttr, "attr", attr)
+
 		case middleware.AttributeTypeConstant:
 			if attr.Value == "" {
 				c.log.Error("middleware: constant value empty")
