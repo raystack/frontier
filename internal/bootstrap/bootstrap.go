@@ -175,6 +175,7 @@ func (s Service) bootstrapPolicies(ctx context.Context) {
 		definition.CreateTeamPolicy,
 		definition.ManageTeamPolicy,
 		definition.TeamOrgAdminPolicy,
+		definition.ManageTeamOrgAdminPolicy,
 		definition.ManageProjectPolicy,
 		definition.ManageProjectOrgPolicy,
 		definition.ProjectOrgAdminPolicy,
