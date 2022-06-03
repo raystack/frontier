@@ -27,7 +27,7 @@ var (
 	getProjectsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects where id=$1;`
 	createProjectQuery = `INSERT INTO projects(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 	listProjectQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects;`
-	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, org_id=$4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, metadata, created_at, updated_at;`
+	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, org_id=$4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
 	listProjectAdmins  = fmt.Sprintf(
 		`SELECT u.id as id, u.name as name, u.email as email, u.metadata as metadata, u.created_at as created_at, u.updated_at as updated_at
 				FROM relations r 
