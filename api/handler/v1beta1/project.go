@@ -220,7 +220,7 @@ func (v Dep) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.Remo
 	}
 
 	return &shieldv1beta1.RemoveProjectAdminResponse{
-		Message: "Removed Admin from org",
+		Message: "Removed Admin from project",
 	}, nil
 }
 
