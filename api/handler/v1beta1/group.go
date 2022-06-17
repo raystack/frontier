@@ -286,6 +286,8 @@ func (v Dep) AddGroupAdmin(ctx context.Context, request *shieldv1beta1.AddGroupA
 		switch {
 		case errors.Is(err, group.GroupDoesntExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		case errors.Is(err, shieldError.Unauthorzied):
+			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -316,6 +318,8 @@ func (v Dep) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.Remove
 		switch {
 		case errors.Is(err, group.GroupDoesntExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+		case errors.Is(err, shieldError.Unauthorzied):
+			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
 		}
