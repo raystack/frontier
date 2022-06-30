@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/doug-martin/goqu/v9"
 	"time"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
@@ -26,29 +27,108 @@ type User struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-const (
-	getUserQuery             = `SELECT id, name,  email, metadata, created_at, updated_at from users where id=$1;`
-	getUsersByIdsQuery       = `SELECT id, name,  email, metadata, created_at, updated_at from users where id IN (?);`
-	getCurrentUserQuery      = `SELECT id, name, email, metadata, created_at, updated_at from users where email=$1;`
-	createUserQuery          = `INSERT INTO users(name, email, metadata) values($1, $2, $3) RETURNING id, name, email, metadata, created_at, updated_at;`
-	listUsersQuery           = `SELECT id, name, email, metadata, created_at, updated_at from users;`
-	selectUserForUpdateQuery = `SELECT id, name, email, metadata, updated_at from users where id=$1;`
-	updateUserQuery          = `UPDATE users set name = $2, email = $3, metadata = $4, updated_at = now() where id = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
-	updateCurrentUserQuery   = `UPDATE users set name = $2, metadata = $3, updated_at = now() where email = $1 RETURNING id, name, email, metadata, created_at, updated_at;`
-)
+func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
+	getUserQuery, _, err := dialect.From("users").
+		Where(goqu.Ex{
+			"id": goqu.L("$1"),
+		}).ToSQL()
 
-var (
-	listUserGroupsQuery = fmt.Sprintf(
-		`SELECT g.id as id, g.metadata as metadata, g."name" as "name", g.slug as slug, g.updated_at as updated_at, g.created_at as created_at, g.org_id as org_id 
-				FROM relations r 
-				JOIN groups g ON CAST(g.id as VARCHAR) = r.object_id
-				WHERE r.object_namespace_id = '%s'
-					AND subject_namespace_id = '%s'
-					AND subject_id = $1
-					AND role_id = $2;`,
-		definition.TeamNamespace.Id, definition.UserNamespace.Id,
-	)
-)
+	return getUserQuery, err
+}
+
+func buildGetUsersByIdsQuery(dialect goqu.DialectWrapper) (string, error) {
+	getUsersByIdsQuery, _, err := dialect.From("users").Prepared(true).Where(
+		goqu.Ex{
+			"email": "email_PH",
+		}).ToSQL()
+
+	return getUsersByIdsQuery, err
+}
+
+func buildGetCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
+	getCurrentUserQuery, _, err := dialect.From("users").Where(
+		goqu.Ex{
+			"email": goqu.L("$1"),
+		}).ToSQL()
+
+	return getCurrentUserQuery, err
+}
+
+func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
+	createUserQuery, _, err := dialect.Insert("users").Rows(
+		goqu.Record{
+			"name":     goqu.L("$1"),
+			"email":    goqu.L("$2"),
+			"metadata": goqu.L("$3"),
+		}).Returning(&User{}).ToSQL()
+
+	return createUserQuery, err
+}
+
+func buildListUsersQuery(dialect goqu.DialectWrapper) (string, error) {
+	listUsersQuery, _, err := dialect.From("users").ToSQL()
+
+	return listUsersQuery, err
+}
+
+func buildSelectUserForUpdateQuery(dialect goqu.DialectWrapper) (string, error) {
+	selectUserForUpdateQuery, _, err := dialect.From("users").Prepared(true).Where(
+		goqu.Ex{
+			"id": "id_PH",
+		}).ToSQL()
+
+	return selectUserForUpdateQuery, err
+}
+
+func buildUpdateUserQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateUserQuery, _, err := dialect.Update("users").Set(
+		goqu.Record{
+			"name":       goqu.L("$2"),
+			"email":      goqu.L("$3"),
+			"metadata":   goqu.L("$4"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning(&User{}).ToSQL()
+
+	return updateUserQuery, err
+}
+
+func buildUpdateCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateCurrentUserQuery, _, err := dialect.Update("users").Set(
+		goqu.Record{
+			"name":       goqu.L("$2"),
+			"metadata":   goqu.L("$3"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning(&User{}).ToSQL()
+
+	return updateCurrentUserQuery, err
+}
+
+func buildlLstUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
+	listUserGroupsQuery, _, err := dialect.Select(
+		goqu.I("g.id").As("id"),
+		goqu.I("g.metadata").As("metadata"),
+		goqu.I("g.name").As("name"),
+		goqu.I("g.slug").As("slug"),
+		goqu.I("g.updated_at").As("updated_at"),
+		goqu.I("g.created_at").As("created_at"),
+		goqu.I("g.org_id").As("org_id"),
+	).From(goqu.L("relations r")).
+		Join(goqu.L("groups g"), goqu.On(
+			goqu.I("g.id").Cast("VARCHAR").
+				Eq(goqu.I("r.object_id")),
+		)).Where(goqu.Ex{
+		"r.object_namespace_id": definition.TeamNamespace.Id,
+		"subject_namespace_id":  definition.UserNamespace.Id,
+		"subject_id":            goqu.L("$1"),
+		"role_id":               goqu.L("$2"),
+	}).ToSQL()
+
+	return listUserGroupsQuery, err
+}
 
 func (s Store) GetUser(ctx context.Context, id string) (model.User, error) {
 	fetchedUser, err := s.selectUser(ctx, id, false, nil)
@@ -58,7 +138,18 @@ func (s Store) GetUser(ctx context.Context, id string) (model.User, error) {
 func (s Store) selectUser(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (model.User, error) {
 	var fetchedUser User
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	selectUserForUpdateQuery, err := buildSelectUserForUpdateQuery(dialect)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var getUserQuery string
+	getUserQuery, err = buildGetUserQuery(dialect)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		if forUpdate {
 			return txn.GetContext(ctx, &fetchedUser, selectUserForUpdateQuery, id)
 		} else {
@@ -91,6 +182,11 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 	}
 
 	var newUser User
+	createUserQuery, err := buildCreateUserQuery(dialect)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newUser, createUserQuery, userToCreate.Name, userToCreate.Email, marshaledMetadata)
 	})
@@ -109,7 +205,12 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 
 func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
 	var fetchedUsers []User
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	listUsersQuery, err := buildListUsersQuery(dialect)
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedUsers, listUsersQuery)
 	})
 
@@ -138,7 +239,14 @@ func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
 func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error) {
 	var fetchedUsers []User
 
-	query, args, err := sqlx.In(getUsersByIdsQuery, userIds)
+	getUsersByIdsQuery, err := buildGetUsersByIdsQuery(dialect)
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var query string
+	var args []interface{}
+	query, args, err = sqlx.In(getUsersByIdsQuery, userIds)
 
 	if err != nil {
 		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -180,6 +288,12 @@ func (s Store) UpdateUser(ctx context.Context, toUpdate model.User) (model.User,
 		return model.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	var updateUserQuery string
+	updateUserQuery, err = buildUpdateUserQuery(dialect)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedUser, updateUserQuery, toUpdate.Id, toUpdate.Name, toUpdate.Email, marshaledMetadata)
 	})
@@ -203,7 +317,13 @@ func (s Store) GetCurrentUser(ctx context.Context, email string) (model.User, er
 
 func (s Store) getUserWithEmailID(ctx context.Context, email string) (model.User, error) {
 	var userSelf User
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+
+	getCurrentUserQuery, err := buildGetCurrentUserQuery(dialect)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &userSelf, getCurrentUserQuery, email)
 	})
 
@@ -227,6 +347,12 @@ func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate model.User) (mode
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
 		return model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	var updateCurrentUserQuery string
+	updateCurrentUserQuery, err = buildUpdateCurrentUserQuery(dialect)
+	if err != nil {
+		return model.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -253,7 +379,13 @@ func (s Store) ListUserGroups(ctx context.Context, userId string, roleId string)
 	}
 
 	var fetchedGroups []Group
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+
+	listUserGroupsQuery, err := buildListGroupUsersQuery(dialect)
+	if err != nil {
+		return []model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userId, role)
 	})
 
