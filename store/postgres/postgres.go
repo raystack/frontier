@@ -12,6 +12,7 @@ type Store struct {
 
 var (
 	parseErr = errors.New("parsing error")
+	queryErr = errors.New("error while creating the query")
 	dbErr    = errors.New("error while running query")
 	txnErr   = errors.New("error while running transaction")
 )
