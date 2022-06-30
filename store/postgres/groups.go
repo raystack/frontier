@@ -268,7 +268,7 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]model.Relation, error) {
 	var fetchedRelations []Relation
 
-	listUserGroupRelationsQuery, err := buildListGroupUsersQuery(dialect)
+	listUserGroupRelationsQuery, err := buildListUserGroupRelationsQuery(dialect)
 	if err != nil {
 		return []model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
