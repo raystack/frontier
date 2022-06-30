@@ -17,13 +17,14 @@ import (
 )
 
 type Group struct {
-	Id        string    `db:"id"`
-	Name      string    `db:"name"`
-	Slug      string    `db:"slug"`
-	OrgID     string    `db:"org_id"`
-	Metadata  []byte    `db:"metadata"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id        string       `db:"id"`
+	Name      string       `db:"name"`
+	Slug      string       `db:"slug"`
+	OrgID     string       `db:"org_id"`
+	Metadata  []byte       `db:"metadata"`
+	CreatedAt time.Time    `db:"created_at"`
+	UpdatedAt time.Time    `db:"updated_at"`
+	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
 func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
