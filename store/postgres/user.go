@@ -19,12 +19,13 @@ import (
 )
 
 type User struct {
-	Id        string    `db:"id"`
-	Name      string    `db:"name"`
-	Email     string    `db:"email"`
-	Metadata  []byte    `db:"metadata"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id        string       `db:"id"`
+	Name      string       `db:"name"`
+	Email     string       `db:"email"`
+	Metadata  []byte       `db:"metadata"`
+	CreatedAt time.Time    `db:"created_at"`
+	UpdatedAt time.Time    `db:"updated_at"`
+	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
 func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -101,7 +102,7 @@ func buildUpdateCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
 			"metadata":   goqu.L("$3"),
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
-		"id": goqu.L("$1"),
+		"email": goqu.L("$1"),
 	}).Returning(&User{}).ToSQL()
 
 	return updateCurrentUserQuery, err
