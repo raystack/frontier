@@ -39,9 +39,7 @@ func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
 
 func buildGetUsersByIdsQuery(dialect goqu.DialectWrapper) (string, error) {
 	getUsersByIdsQuery, _, err := dialect.From("users").Prepared(true).Where(
-		goqu.Ex{
-			"email": "email_PH",
-		}).ToSQL()
+		goqu.C("id").In("id_PH")).ToSQL()
 
 	return getUsersByIdsQuery, err
 }
@@ -108,7 +106,7 @@ func buildUpdateCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateCurrentUserQuery, err
 }
 
-func buildlLstUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
+func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 	listUserGroupsQuery, _, err := dialect.Select(
 		goqu.I("g.id").As("id"),
 		goqu.I("g.metadata").As("metadata"),
@@ -381,7 +379,7 @@ func (s Store) ListUserGroups(ctx context.Context, userId string, roleId string)
 
 	var fetchedGroups []Group
 
-	listUserGroupsQuery, err := buildListGroupUsersQuery(dialect)
+	listUserGroupsQuery, err := buildListUserGroupsQuery(dialect)
 	if err != nil {
 		return []model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
