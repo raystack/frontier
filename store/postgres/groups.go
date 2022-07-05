@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
@@ -60,6 +61,14 @@ var (
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("groups"),
+			Operation:  "Get Group",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
 	})
 
@@ -89,6 +98,14 @@ func (s Store) CreateGroup(ctx context.Context, grp model.Group) (model.Group, e
 
 	var newGroup Group
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("groups"),
+			Operation:  "Create Group",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newGroup, createGroupsQuery, grp.Name, grp.Slug, grp.OrganizationId, marshaledMetadata)
 	})
 
@@ -114,6 +131,14 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 
 	query = query + ";"
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("groups"),
+			Operation:  "List Groups",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedGroups, query)
 	})
 
@@ -147,6 +172,14 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 
 	var updatedGroup Group
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("groups"),
+			Operation:  "Update Group",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
 	})
 
@@ -172,6 +205,14 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 
 	var fetchedUsers []User
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("groups.relations"),
+			Operation:  "List Group Users",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedUsers, listGroupUsersQuery, groupId, role)
 	})
 
@@ -201,6 +242,14 @@ func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupI
 	var fetchedRelations []Relation
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("groups.relations"),
+			Operation:  "List Group Users Relations",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedRelations, listUserGroupRelationsQuery, userId, groupId)
 	})
 

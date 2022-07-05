@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/odpf/shield/pkg/utils"
@@ -42,6 +43,14 @@ func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model
 	var fetchedAction Action
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("actions"),
+			Operation:  "Get Action",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedAction, getActionQuery, id)
 	})
 
@@ -68,6 +77,14 @@ func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (m
 
 	nsId := utils.DefaultStringIfEmpty(actionToCreate.Namespace.Id, actionToCreate.NamespaceId)
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("actions"),
+			Operation:  "Create Action",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, nsId)
 	})
 
@@ -86,6 +103,14 @@ func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (m
 func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 	var fetchedActions []Action
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("actions"),
+			Operation:  "List Actions",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedActions, listActionsQuery)
 	})
 
@@ -115,6 +140,14 @@ func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.A
 	var updatedAction Action
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("actions"),
+			Operation:  "Update Action",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedAction, updateActionQuery, toUpdate.Id, toUpdate.Name, toUpdate.NamespaceId)
 	})
 

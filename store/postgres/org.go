@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
@@ -40,6 +41,14 @@ var (
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
 	var fetchedOrg Organization
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("organizations"),
+			Operation:  "Get Organization",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id)
 	})
 
@@ -69,6 +78,14 @@ func (s Store) CreateOrg(ctx context.Context, orgToCreate model.Organization) (m
 
 	var newOrg Organization
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("organizations"),
+			Operation:  "Create Organization",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newOrg, createOrganizationQuery, orgToCreate.Name, orgToCreate.Slug, marshaledMetadata)
 	})
 
@@ -87,6 +104,14 @@ func (s Store) CreateOrg(ctx context.Context, orgToCreate model.Organization) (m
 func (s Store) ListOrg(ctx context.Context) ([]model.Organization, error) {
 	var fetchedOrgs []Organization
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("organizations"),
+			Operation:  "List Organizations",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedOrgs, listOrganizationsQuery)
 	})
 
@@ -121,6 +146,14 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (mode
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("organizations"),
+			Operation:  "Update Organization",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
 	})
 
@@ -140,6 +173,14 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 	var fetchedUsers []User
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("organizations.relations"),
+			Operation:  "Get Organization Admins",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedUsers, listOrganizationAdmins, id)
 	})
 

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/odpf/shield/pkg/utils"
@@ -48,6 +49,14 @@ func (s Store) selectPolicy(ctx context.Context, id string) (model.Policy, error
 	var fetchedPolicy Policy
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("policy"),
+			Operation:  "Get Policy",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedPolicy, getPolicyQuery, id)
 	})
 
@@ -72,6 +81,14 @@ func (s Store) selectPolicy(ctx context.Context, id string) (model.Policy, error
 func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	var fetchedPolicies []Policy
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("policy"),
+			Operation:  "List Policies",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedPolicies, listPolicyQuery)
 	})
 
@@ -101,6 +118,14 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 	nsId := utils.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("policy"),
+			Operation:  "Create Policy",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsId, roleId, sql.NullString{String: actionId, Valid: actionId != ""})
 	})
 	if err != nil {
@@ -113,6 +138,14 @@ func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Polic
 	var updatedPolicy Policy
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("policy"),
+			Operation:  "Update Policy",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, sql.NullString{String: toUpdate.ActionId, Valid: toUpdate.ActionId != ""})
 	})
 

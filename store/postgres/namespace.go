@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -39,6 +40,14 @@ func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (mo
 	var fetchedNamespace Namespace
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("namespaces"),
+			Operation:  "Get Namespace",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedNamespace, getNamespaceQuery, id)
 	})
 
@@ -63,6 +72,14 @@ func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (mo
 func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Namespace) (model.Namespace, error) {
 	var newNamespace Namespace
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("namespaces"),
+			Operation:  "Create Namespace",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.Id, namespaceToCreate.Name)
 	})
 
@@ -81,6 +98,14 @@ func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Name
 func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
 	var fetchedNamespaces []Namespace
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("namespaces"),
+			Operation:  "List Namespaces",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedNamespaces, listNamespacesQuery)
 	})
 
@@ -110,6 +135,14 @@ func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate model.Na
 	var updatedNamespace Namespace
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("namespaces"),
+			Operation:  "Update Namespace",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedNamespace, updateNamespaceQuery, id, toUpdate.Id, toUpdate.Name)
 	})
 
