@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	newrelic "github.com/newrelic/go-agent"
 	"time"
-
-	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
+
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type Action struct {

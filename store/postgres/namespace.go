@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	newrelic "github.com/newrelic/go-agent"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
+
+	"github.com/jmoiron/sqlx"
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type Namespace struct {

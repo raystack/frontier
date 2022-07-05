@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/model"
+
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type Organization struct {

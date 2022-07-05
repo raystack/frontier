@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
+
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type Group struct {
