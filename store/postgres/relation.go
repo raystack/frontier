@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
-
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
+
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type Relation struct {
@@ -122,6 +123,14 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relati
 	}
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("relation"),
+			Operation:  "Create Relation",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(
 			ctx,
 			&newRelation,
@@ -151,6 +160,14 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relati
 func (s Store) ListRelations(ctx context.Context) ([]model.Relation, error) {
 	var fetchedRelations []Relation
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("relation"),
+			Operation:  "List Relations",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedRelations, listRelationQuery)
 	})
 
@@ -179,6 +196,14 @@ func (s Store) ListRelations(ctx context.Context) ([]model.Relation, error) {
 func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, error) {
 	var fetchedRelation Relation
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("relation"),
+			Operation:  "Get Relation",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedRelation, getRelationsQuery, id)
 	})
 
@@ -206,6 +231,14 @@ func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, erro
 
 func (s Store) DeleteRelationById(ctx context.Context, id string) error {
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("relation"),
+			Operation:  "Delete Relation by ID",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		result, err := s.DB.ExecContext(ctx, deleteRelationById, id)
 		if err == nil {
 			count, err := result.RowsAffected()
@@ -234,6 +267,14 @@ func (s Store) GetRelationByFields(ctx context.Context, rel model.Relation) (mod
 	}
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("relation"),
+			Operation:  "Get Relation by fields",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx,
 			&fetchedRelation,
 			getRelationByFieldsQuery,
@@ -282,6 +323,14 @@ func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate model.Rel
 	}
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("relation"),
+			Operation:  "Update Relation",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(
 			ctx,
 			&updatedRelation,

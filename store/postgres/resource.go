@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -90,6 +91,14 @@ func (s Store) CreateResource(ctx context.Context, resourceToCreate model.Resour
 	groupId := sql.NullString{String: resourceToCreate.GroupId, Valid: resourceToCreate.GroupId != ""}
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("resource"),
+			Operation:  "Create Resource",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Urn, resourceToCreate.Name, resourceToCreate.ProjectId, groupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId, userId)
 	})
 
@@ -128,6 +137,14 @@ func (s Store) ListResources(ctx context.Context, filters model.ResourceFilters)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("resource"),
+			Operation:  "List Resources",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedResources, querySql)
 	})
 
@@ -163,6 +180,14 @@ func (s Store) GetResource(ctx context.Context, id string) (model.Resource, erro
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("resource"),
+			Operation:  "Get Resource",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedResource, querySql)
 	})
 
@@ -195,6 +220,14 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 	groupId := sql.NullString{String: toUpdate.GroupId, Valid: toUpdate.GroupId != ""}
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("resource"),
+			Operation:  "Update Resource",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, groupId, toUpdate.OrganizationId, toUpdate.NamespaceId, userId, toUpdate.Urn)
 	})
 
@@ -219,6 +252,14 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 func (s Store) GetResourceByURN(ctx context.Context, urn string) (model.Resource, error) {
 	var fetchedResource Resource
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("resource"),
+			Operation:  "Get Resource from URN",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedResource, getResourcesQueryByURN, urn)
 	})
 

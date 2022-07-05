@@ -11,6 +11,8 @@ import (
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/model"
+
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type Project struct {
@@ -41,6 +43,14 @@ var (
 func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
 	var fetchedProject Project
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("projects"),
+			Operation:  "Get Project",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
 	})
 
@@ -74,6 +84,14 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate model.Project)
 
 	var newProject Project
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("projects"),
+			Operation:  "Create Project",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, projectToCreate.Organization.Id, marshaledMetadata)
 	})
 
@@ -92,6 +110,14 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate model.Project)
 func (s Store) ListProject(ctx context.Context) ([]model.Project, error) {
 	var fetchedProjects []Project
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("projects"),
+			Operation:  "List Projects",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedProjects, listProjectQuery)
 	})
 
@@ -126,6 +152,14 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("projects"),
+			Operation:  "Update Project",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
 	})
 
@@ -151,6 +185,14 @@ func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]model.User, 
 	var fetchedUsers []User
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("projects.relations"),
+			Operation:  "List Project Admins",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedUsers, listProjectAdmins, id)
 	})
 

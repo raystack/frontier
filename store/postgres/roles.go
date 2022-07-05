@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
-
-	"github.com/lib/pq"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
+
+	"github.com/lib/pq"
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type Role struct {
@@ -43,6 +44,14 @@ var (
 func (s Store) GetRole(ctx context.Context, id string) (model.Role, error) {
 	var fetchedRole Role
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("roles"),
+			Operation:  "Get Role",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, id)
 	})
 
@@ -72,6 +81,14 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate model.Role) (model.R
 	nsId := utils.DefaultStringIfEmpty(roleToCreate.Namespace.Id, roleToCreate.NamespaceId)
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("roles"),
+			Operation:  "Create Role",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.Id, roleToCreate.Name, pq.StringArray(roleToCreate.Types), nsId, marshaledMetadata)
 	})
 	if err != nil {
@@ -99,6 +116,14 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate model.Role) (model.R
 func (s Store) ListRoles(ctx context.Context) ([]model.Role, error) {
 	var fetchedRoles []Role
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("roles"),
+			Operation:  "List Roles",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedRoles, listRolesQuery)
 	})
 	if errors.Is(err, sql.ErrNoRows) {
@@ -130,6 +155,14 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("roles"),
+			Operation:  "Update Role",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.Id, toUpdate.Name, pq.StringArray(toUpdate.Types), toUpdate.NamespaceId, marshaledMetadata)
 	})
 

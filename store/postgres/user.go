@@ -10,11 +10,11 @@ import (
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
-
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
 
 	"github.com/jmoiron/sqlx"
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type User struct {
@@ -59,9 +59,21 @@ func (s Store) selectUser(ctx context.Context, id string, forUpdate bool, txn *s
 	var fetchedUser User
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users"),
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+
 		if forUpdate {
+			nr.Operation = "Get Users for Update"
+			nr.End()
+
 			return txn.GetContext(ctx, &fetchedUser, selectUserForUpdateQuery, id)
 		} else {
+			nr.Operation = "Get Users"
+			nr.End()
+
 			return s.DB.GetContext(ctx, &fetchedUser, getUserQuery, id)
 		}
 	})
@@ -92,6 +104,14 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 
 	var newUser User
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users"),
+			Operation:  "Create User",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &newUser, createUserQuery, userToCreate.Name, userToCreate.Email, marshaledMetadata)
 	})
 
@@ -110,6 +130,14 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
 	var fetchedUsers []User
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users"),
+			Operation:  "List Users",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedUsers, listUsersQuery)
 	})
 
@@ -147,6 +175,14 @@ func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]model.Use
 	query = s.DB.Rebind(query)
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users"),
+			Operation:  "Get Users by ID",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedUsers, query, args...)
 	})
 
@@ -181,6 +217,14 @@ func (s Store) UpdateUser(ctx context.Context, toUpdate model.User) (model.User,
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users"),
+			Operation:  "Update User",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedUser, updateUserQuery, toUpdate.Id, toUpdate.Name, toUpdate.Email, marshaledMetadata)
 	})
 
@@ -204,6 +248,14 @@ func (s Store) GetCurrentUser(ctx context.Context, email string) (model.User, er
 func (s Store) getUserWithEmailID(ctx context.Context, email string) (model.User, error) {
 	var userSelf User
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users"),
+			Operation:  "Get User by Email",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &userSelf, getCurrentUserQuery, email)
 	})
 
@@ -230,6 +282,14 @@ func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate model.User) (mode
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users"),
+			Operation:  "Update User",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.GetContext(ctx, &updatedUser, updateCurrentUserQuery, toUpdate.Email, toUpdate.Name, marshaledMetadata)
 	})
 
@@ -254,6 +314,14 @@ func (s Store) ListUserGroups(ctx context.Context, userId string, roleId string)
 
 	var fetchedGroups []Group
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: fmt.Sprintf("users.relations"),
+			Operation:  "List User Groups",
+			StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+		}
+		defer nr.End()
+
 		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userId, role)
 	})
 
