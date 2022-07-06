@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/odpf/shield/pkg/utils"
 
@@ -24,7 +25,7 @@ type UserService interface {
 	GetUser(ctx context.Context, id string) (model.User, error)
 	GetCurrentUser(ctx context.Context, email string) (model.User, error)
 	CreateUser(ctx context.Context, user model.User) (model.User, error)
-	ListUsers(ctx context.Context) ([]model.User, error)
+	ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
@@ -37,7 +38,13 @@ var (
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
-	userList, err := v.UserService.ListUsers(ctx)
+	limit := request.Limit
+	page := request.Page
+	keyword := request.Keyword
+
+	userList, err := v.UserService.ListUsers(ctx, limit, page, keyword)
+
+	log.Printf("Request as recvd: %v", request)
 
 	if err != nil {
 		logger.Error(err.Error())

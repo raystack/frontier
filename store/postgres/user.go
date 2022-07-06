@@ -64,8 +64,13 @@ func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
 	return createUserQuery, err
 }
 
-func buildListUsersQuery(dialect goqu.DialectWrapper) (string, error) {
-	listUsersQuery, _, err := dialect.From("users").ToSQL()
+func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, page int32, keyword string) (string, error) {
+	offset := (page - 1) * limit
+
+	listUsersQuery, _, err := dialect.From("users").Where(goqu.Or(
+		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
+		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
+	)).Limit(uint(limit)).Offset(uint(offset)).ToSQL()
 
 	return listUsersQuery, err
 }
@@ -202,9 +207,10 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 	return transformedUser, nil
 }
 
-func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
+func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
 	var fetchedUsers []User
-	listUsersQuery, err := buildListUsersQuery(dialect)
+	listUsersQuery, err := buildListUsersQuery(dialect, limit, page, keyword)
+	//log.Printf("Limit: %v, Page: %v, Keyword: %v", limit, page, keyword)
 	if err != nil {
 		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

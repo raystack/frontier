@@ -1642,6 +1642,29 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "google.protobuf.Struct fields = 1;.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "User"
         ]
