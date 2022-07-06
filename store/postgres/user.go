@@ -28,6 +28,17 @@ type User struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
+func listUserQueryHelper(page int32, limit int32) (uint, uint) {
+	var defaultLimit int32 = 50
+	if limit == 0 {
+		limit = defaultLimit
+	}
+
+	offset := (page - 1) * limit
+
+	return uint(limit), uint(offset)
+}
+
 func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
 	getUserQuery, _, err := dialect.From("users").
 		Where(goqu.Ex{
@@ -65,12 +76,12 @@ func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, page int32, keyword string) (string, error) {
-	offset := (page - 1) * limit
+	limitRows, offset := listUserQueryHelper(page, limit)
 
 	listUsersQuery, _, err := dialect.From("users").Where(goqu.Or(
 		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
 		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
-	)).Limit(uint(limit)).Offset(uint(offset)).ToSQL()
+	)).Limit(limitRows).Offset(offset).ToSQL()
 
 	return listUsersQuery, err
 }
@@ -210,7 +221,6 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
 	var fetchedUsers []User
 	listUsersQuery, err := buildListUsersQuery(dialect, limit, page, keyword)
-	//log.Printf("Limit: %v, Page: %v, Keyword: %v", limit, page, keyword)
 	if err != nil {
 		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

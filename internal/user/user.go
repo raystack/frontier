@@ -21,7 +21,6 @@ type Store interface {
 	GetCurrentUser(ctx context.Context, email string) (model.User, error)
 	CreateUser(ctx context.Context, user model.User) (model.User, error)
 	ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error)
-	//ListUsers(ctx context.Context) ([]model.User, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
