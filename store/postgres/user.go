@@ -30,7 +30,7 @@ type User struct {
 
 func listUserQueryHelper(page int32, limit int32) (uint, uint) {
 	var defaultLimit int32 = 50
-	if limit == 0 {
+	if limit < 1 {
 		limit = defaultLimit
 	}
 

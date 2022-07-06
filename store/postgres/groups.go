@@ -100,8 +100,6 @@ func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, erro
 	return listUserGroupRelationsQuery, err
 }
 
-var dialect = goqu.Dialect("postgres")
-
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group
 	getGroupsQuery, err := buildGetGroupsQuery(dialect)

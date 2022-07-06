@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"errors"
+	"github.com/doug-martin/goqu/v9"
 
 	"github.com/odpf/shield/pkg/sql"
 )
@@ -15,6 +16,7 @@ var (
 	queryErr = errors.New("error while creating the query")
 	dbErr    = errors.New("error while running query")
 	txnErr   = errors.New("error while running transaction")
+	dialect  = goqu.Dialect("postgres")
 )
 
 func NewStore(db *sql.SQL) Store {

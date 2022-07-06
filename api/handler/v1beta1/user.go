@@ -3,8 +3,6 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"log"
-
 	"github.com/odpf/shield/pkg/utils"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -41,10 +39,11 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequ
 	limit := request.Limit
 	page := request.Page
 	keyword := request.Keyword
+	if page < 1 {
+		page = 1
+	}
 
 	userList, err := v.UserService.ListUsers(ctx, limit, page, keyword)
-
-	log.Printf("Request as recvd: %v", request)
 
 	if err != nil {
 		logger.Error(err.Error())
