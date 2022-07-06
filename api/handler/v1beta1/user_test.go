@@ -38,25 +38,36 @@ func TestListUsers(t *testing.T) {
 	table := []struct {
 		title       string
 		mockUserSrv mockUserSrv
+		req         *shieldv1beta1.ListUsersRequest
 		want        *shieldv1beta1.ListUsersResponse
 		err         error
 	}{
 		{
 			title: "error in User Service",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context) (users []model.User, err error) {
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users []model.User, err error) {
 				return []model.User{}, errors.New("some error")
 			}},
+			req: &shieldv1beta1.ListUsersRequest{
+				Limit:   50,
+				Page:    1,
+				Keyword: "",
+			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		}, {
 			title: "success",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context) (users []model.User, err error) {
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users []model.User, err error) {
 				var testUserList []model.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
 				return testUserList, nil
 			}},
+			req: &shieldv1beta1.ListUsersRequest{
+				Limit:   50,
+				Page:    1,
+				Keyword: "",
+			},
 			want: &shieldv1beta1.ListUsersResponse{Users: []*shieldv1beta1.User{
 				{
 					Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -80,7 +91,8 @@ func TestListUsers(t *testing.T) {
 			t.Parallel()
 
 			mockDep := Dep{UserService: tt.mockUserSrv}
-			resp, err := mockDep.ListUsers(context.Background(), nil)
+			req := tt.req
+			resp, err := mockDep.ListUsers(context.Background(), req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
 		})
@@ -360,7 +372,7 @@ type mockUserSrv struct {
 	GetUserFunc           func(ctx context.Context, id string) (model.User, error)
 	GetCurrentUserFunc    func(ctx context.Context, email string) (model.User, error)
 	CreateUserFunc        func(ctx context.Context, user model.User) (model.User, error)
-	ListUsersFunc         func(ctx context.Context) ([]model.User, error)
+	ListUsersFunc         func(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error)
 	UpdateUserFunc        func(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUserFunc func(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroupsFunc    func(ctx context.Context, userId string, roleId string) ([]model.Group, error)
@@ -378,8 +390,8 @@ func (m mockUserSrv) CreateUser(ctx context.Context, user model.User) (model.Use
 	return m.CreateUserFunc(ctx, user)
 }
 
-func (m mockUserSrv) ListUsers(ctx context.Context) ([]model.User, error) {
-	return m.ListUsersFunc(ctx)
+func (m mockUserSrv) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
+	return m.ListUsersFunc(ctx, limit, page, keyword)
 }
 
 func (m mockUserSrv) UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error) {
