@@ -29,11 +29,19 @@ type User struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
+const (
+	UUID_MIN        = "00000000-0000-0000-0000-000000000000"
+	UUID_MAX        = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+	PAGE_NEXT       = "next"
+	PAGE_PREV       = "prev"
+	TOKEN_SEPARATOR = "__"
+)
+
 func PageTokenizer(label string, uuid string) string {
 	if uuid == "" {
-		uuid = "00000000-0000-0000-0000-000000000000"
+		uuid = UUID_MIN
 	}
-	data := fmt.Sprintf("%s__%s", label, uuid)
+	data := fmt.Sprintf("%s%s%s", label, TOKEN_SEPARATOR, uuid)
 	encoded := base64.StdEncoding.EncodeToString([]byte(data))
 
 	return encoded
@@ -46,7 +54,7 @@ func PageDetokenizer(token string) (string, string, error) {
 	}
 
 	dataStr := string(data)
-	dataList := strings.Split(dataStr, "__")
+	dataList := strings.Split(dataStr, TOKEN_SEPARATOR)
 	label, uuid := dataList[0], dataList[1]
 
 	return label, uuid, err
@@ -95,7 +103,7 @@ func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, pageToken str
 	}
 
 	var listUsersQuery string
-	if label == "next" {
+	if label == PAGE_NEXT {
 		// Next Page Query
 		listUsersQuery, _, err = dialect.From("users").Where(goqu.And(
 			goqu.Or(
@@ -193,10 +201,10 @@ func (s Store) getLimits(ctx context.Context, label string, uuid string, keyword
 
 	var labelId string
 	if errors.Is(err, sql.ErrNoRows) {
-		if label == "next" {
-			labelId = "ffffffff-ffff-ffff-ffff-ffffffffffff"
-		} else if label == "prev" {
-			labelId = "00000000-0000-0000-0000-000000000000"
+		if label == PAGE_NEXT {
+			labelId = UUID_MAX
+		} else if label == PAGE_PREV {
+			labelId = UUID_MIN
 		}
 	} else if err != nil {
 		return "", fmt.Errorf("%w: %s", dbErr, err)
@@ -286,18 +294,18 @@ func (s Store) ListUsers(ctx context.Context, limit int32, pageToken string, key
 	var fetchedUsers []User
 
 	if pageToken == "" {
-		pageToken = PageTokenizer("next", "00000000-0000-0000-0000-000000000000")
-	} else if pageToken == PageTokenizer("prev", "00000000-0000-0000-0000-000000000000") {
+		pageToken = PageTokenizer(PAGE_NEXT, UUID_MIN)
+	} else if pageToken == PageTokenizer(PAGE_PREV, UUID_MIN) {
 		return model.PagedUser{
 			Count:             0,
 			PreviousPageToken: pageToken,
-			NextPageToken:     PageTokenizer("next", "00000000-0000-0000-0000-000000000000"),
+			NextPageToken:     PageTokenizer(PAGE_NEXT, UUID_MIN),
 			Users:             []model.User{},
 		}, nil
-	} else if pageToken == PageTokenizer("next", "ffffffff-ffff-ffff-ffff-ffffffffffff") {
+	} else if pageToken == PageTokenizer(PAGE_NEXT, UUID_MAX) {
 		return model.PagedUser{
 			Count:             0,
-			PreviousPageToken: PageTokenizer("prev", "ffffffff-ffff-ffff-ffff-ffffffffffff"),
+			PreviousPageToken: PageTokenizer(PAGE_PREV, UUID_MAX),
 			NextPageToken:     pageToken,
 			Users:             []model.User{},
 		}, nil
@@ -332,18 +340,18 @@ func (s Store) ListUsers(ctx context.Context, limit int32, pageToken string, key
 
 		transformedUsers = append(transformedUsers, transformedUser)
 		if idx == 0 {
-			prevId, err := s.getLimits(ctx, "prev", transformedUser.Id, keyword)
+			prevId, err := s.getLimits(ctx, PAGE_PREV, transformedUser.Id, keyword)
 			if err != nil {
 				return model.PagedUser{}, err
 			}
-			prevToken = PageTokenizer("prev", prevId)
+			prevToken = PageTokenizer(PAGE_PREV, prevId)
 		}
 		if idx == (lenUsers - 1) {
-			nextId, err := s.getLimits(ctx, "next", transformedUser.Id, keyword)
+			nextId, err := s.getLimits(ctx, PAGE_NEXT, transformedUser.Id, keyword)
 			if err != nil {
 				return model.PagedUser{}, err
 			}
-			nextToken = PageTokenizer("next", nextId)
+			nextToken = PageTokenizer(PAGE_NEXT, nextId)
 		}
 	}
 
