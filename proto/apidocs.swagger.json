@@ -1644,19 +1644,18 @@
         },
         "parameters": [
           {
-            "name": "limit",
-            "description": "google.protobuf.Struct fields = 1;.",
+            "name": "pageSize",
+            "description": "google.protobuf.Struct fields = 1;\n string parent_token = 1;.",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "page",
+            "name": "pageToken",
             "in": "query",
             "required": false,
-            "type": "integer",
-            "format": "int32"
+            "type": "string"
           },
           {
             "name": "keyword",
@@ -2394,6 +2393,16 @@
     "v1beta1ListUsersResponse": {
       "type": "object",
       "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "previous": {
+          "type": "string"
+        },
+        "next": {
+          "type": "string"
+        },
         "users": {
           "type": "array",
           "items": {

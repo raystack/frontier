@@ -3,9 +3,8 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"github.com/odpf/shield/pkg/utils"
-
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
@@ -23,7 +22,7 @@ type UserService interface {
 	GetUser(ctx context.Context, id string) (model.User, error)
 	GetCurrentUser(ctx context.Context, email string) (model.User, error)
 	CreateUser(ctx context.Context, user model.User) (model.User, error)
-	ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error)
+	ListUsers(ctx context.Context, limit int32, pageToken string, keyword string) (model.PagedUser, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
@@ -36,19 +35,21 @@ var (
 func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
-	limit := request.Limit
-	page := request.Page
+	limit := request.PageSize
+	pageToken := request.PageToken
 	keyword := request.Keyword
-	if page < 1 {
-		page = 1
+	if limit < 1 {
+		limit = 50
 	}
 
-	userList, err := v.UserService.ListUsers(ctx, limit, page, keyword)
+	userListResp, err := v.UserService.ListUsers(ctx, limit, pageToken, keyword)
 
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
+
+	userList := userListResp.Users
 
 	for _, user := range userList {
 		userPB, err := transformUserToPB(user)
@@ -61,7 +62,10 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequ
 	}
 
 	return &shieldv1beta1.ListUsersResponse{
-		Users: users,
+		Users:    users,
+		Previous: userListResp.PreviousPageToken,
+		Next:     userListResp.NextPageToken,
+		Count:    userListResp.Count,
 	}, nil
 }
 

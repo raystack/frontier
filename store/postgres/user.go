@@ -3,14 +3,15 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/doug-martin/goqu/v9"
-	"time"
-
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
+	"strings"
+	"time"
 
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
@@ -28,15 +29,27 @@ type User struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
-func listUserQueryHelper(page int32, limit int32) (uint, uint) {
-	var defaultLimit int32 = 50
-	if limit < 1 {
-		limit = defaultLimit
+func PageTokenizer(label string, uuid string) string {
+	if uuid == "" {
+		uuid = "00000000-0000-0000-0000-000000000000"
+	}
+	data := fmt.Sprintf("%s__%s", label, uuid)
+	encoded := base64.StdEncoding.EncodeToString([]byte(data))
+
+	return encoded
+}
+
+func PageDetokenizer(token string) (string, string, error) {
+	data, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return "", "", err
 	}
 
-	offset := (page - 1) * limit
+	dataStr := string(data)
+	dataList := strings.Split(dataStr, "__")
+	label, uuid := dataList[0], dataList[1]
 
-	return uint(limit), uint(offset)
+	return label, uuid, err
 }
 
 func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -75,13 +88,32 @@ func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
 	return createUserQuery, err
 }
 
-func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, page int32, keyword string) (string, error) {
-	limitRows, offset := listUserQueryHelper(page, limit)
+func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, pageToken string, keyword string) (string, error) {
+	label, uuid, err := PageDetokenizer(pageToken)
+	if err != nil {
+		return "", err
+	}
 
-	listUsersQuery, _, err := dialect.From("users").Where(goqu.Or(
-		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
-		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
-	)).Limit(limitRows).Offset(offset).ToSQL()
+	var listUsersQuery string
+	if label == "next" {
+		// Next Page Query
+		listUsersQuery, _, err = dialect.From("users").Where(goqu.And(
+			goqu.Or(
+				goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
+				goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
+			), goqu.C("id").Gt(uuid),
+		)).Order(goqu.C("id").Asc()).Limit(uint(limit)).ToSQL()
+	} else {
+		// Previous Page Query
+		listUsersInnerQuery := dialect.From("users").Where(goqu.And(
+			goqu.Or(
+				goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
+				goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
+			), goqu.C("id").Lt(uuid),
+		)).Order(goqu.C("id").Desc()).Limit(uint(limit))
+
+		listUsersQuery, _, err = goqu.From(listUsersInnerQuery).Order(goqu.C("id").Asc()).ToSQL()
+	}
 
 	return listUsersQuery, err
 }
@@ -143,6 +175,38 @@ func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 	}).ToSQL()
 
 	return listUserGroupsQuery, err
+}
+
+// Helper Function
+func (s Store) getLimits(ctx context.Context, label string, uuid string, keyword string) (string, error) {
+	var fetchedUser User
+
+	pageToken := PageTokenizer(label, uuid)
+	query, err := buildListUsersQuery(dialect, 1, pageToken, keyword)
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &fetchedUser, query)
+	})
+
+	var labelId string
+	if errors.Is(err, sql.ErrNoRows) {
+		if label == "next" {
+			labelId = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+		} else if label == "prev" {
+			labelId = "00000000-0000-0000-0000-000000000000"
+		}
+	} else if err != nil {
+		return "", fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	if err == nil {
+		labelId = uuid
+	}
+
+	return labelId, nil
 }
 
 func (s Store) GetUser(ctx context.Context, id string) (model.User, error) {
@@ -218,11 +282,30 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 	return transformedUser, nil
 }
 
-func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
+func (s Store) ListUsers(ctx context.Context, limit int32, pageToken string, keyword string) (model.PagedUser, error) {
 	var fetchedUsers []User
-	listUsersQuery, err := buildListUsersQuery(dialect, limit, page, keyword)
+
+	if pageToken == "" {
+		pageToken = PageTokenizer("next", "00000000-0000-0000-0000-000000000000")
+	} else if pageToken == PageTokenizer("prev", "00000000-0000-0000-0000-000000000000") {
+		return model.PagedUser{
+			Count:             0,
+			PreviousPageToken: pageToken,
+			NextPageToken:     PageTokenizer("next", "00000000-0000-0000-0000-000000000000"),
+			Users:             []model.User{},
+		}, nil
+	} else if pageToken == PageTokenizer("next", "ffffffff-ffff-ffff-ffff-ffffffffffff") {
+		return model.PagedUser{
+			Count:             0,
+			PreviousPageToken: PageTokenizer("prev", "ffffffff-ffff-ffff-ffff-ffffffffffff"),
+			NextPageToken:     pageToken,
+			Users:             []model.User{},
+		}, nil
+	}
+
+	listUsersQuery, err := buildListUsersQuery(dialect, limit, pageToken, keyword)
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return model.PagedUser{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -230,25 +313,48 @@ func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword s
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.User{}, user.UserDoesntExist
+		return model.PagedUser{}, user.UserDoesntExist
 	}
 
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.PagedUser{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedUsers []model.User
+	var nextToken, prevToken string
 
-	for _, u := range fetchedUsers {
+	lenUsers := len(fetchedUsers)
+	for idx, u := range fetchedUsers {
 		transformedUser, err := transformToUser(u)
 		if err != nil {
-			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+			return model.PagedUser{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedUsers = append(transformedUsers, transformedUser)
+		if idx == 0 {
+			prevId, err := s.getLimits(ctx, "prev", transformedUser.Id, keyword)
+			if err != nil {
+				return model.PagedUser{}, err
+			}
+			prevToken = PageTokenizer("prev", prevId)
+		}
+		if idx == (lenUsers - 1) {
+			nextId, err := s.getLimits(ctx, "next", transformedUser.Id, keyword)
+			if err != nil {
+				return model.PagedUser{}, err
+			}
+			nextToken = PageTokenizer("next", nextId)
+		}
 	}
 
-	return transformedUsers, nil
+	res := model.PagedUser{
+		Users:             transformedUsers,
+		PreviousPageToken: prevToken,
+		NextPageToken:     nextToken,
+		Count:             int32(lenUsers),
+	}
+
+	return res, nil
 }
 
 func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error) {

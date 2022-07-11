@@ -1740,9 +1740,9 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Limit
+	// no validation rules for PageSize
 
-	// no validation rules for Page
+	// no validation rules for PageToken
 
 	// no validation rules for Keyword
 
@@ -1844,6 +1844,12 @@ func (m *ListUsersResponse) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Count
+
+	// no validation rules for Previous
+
+	// no validation rules for Next
 
 	for idx, item := range m.GetUsers() {
 		_, _ = idx, item
