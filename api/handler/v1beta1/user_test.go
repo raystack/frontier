@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"github.com/odpf/shield/store/postgres"
 	"testing"
 	"time"
 
@@ -44,29 +45,33 @@ func TestListUsers(t *testing.T) {
 	}{
 		{
 			title: "error in User Service",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users []model.User, err error) {
-				return []model.User{}, errors.New("some error")
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, pageToken string, keyword string) (users model.PagedUser, err error) {
+				return model.PagedUser{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.ListUsersRequest{
-				Limit:   50,
-				Page:    1,
-				Keyword: "",
+				PageSize:  50,
+				PageToken: "incorrect-fromat-of-uuid",
+				Keyword:   "",
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		}, {
 			title: "success",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users []model.User, err error) {
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, pageToken string, keyword string) (users model.PagedUser, err error) {
 				var testUserList []model.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				return testUserList, nil
+				return model.PagedUser{
+					Count: int32(len(testUserList)),
+					Users: testUserList,
+					//	TODO: Complete this
+				}, nil
 			}},
 			req: &shieldv1beta1.ListUsersRequest{
-				Limit:   50,
-				Page:    1,
-				Keyword: "",
+				PageSize:  50,
+				PageToken: postgres.PageTokenizer("next", "00000000-0000-0000-0000000000"),
+				Keyword:   "",
 			},
 			want: &shieldv1beta1.ListUsersResponse{Users: []*shieldv1beta1.User{
 				{
@@ -372,7 +377,7 @@ type mockUserSrv struct {
 	GetUserFunc           func(ctx context.Context, id string) (model.User, error)
 	GetCurrentUserFunc    func(ctx context.Context, email string) (model.User, error)
 	CreateUserFunc        func(ctx context.Context, user model.User) (model.User, error)
-	ListUsersFunc         func(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error)
+	ListUsersFunc         func(ctx context.Context, limit int32, pageToken string, keyword string) (model.PagedUser, error)
 	UpdateUserFunc        func(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUserFunc func(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroupsFunc    func(ctx context.Context, userId string, roleId string) ([]model.Group, error)
@@ -390,8 +395,8 @@ func (m mockUserSrv) CreateUser(ctx context.Context, user model.User) (model.Use
 	return m.CreateUserFunc(ctx, user)
 }
 
-func (m mockUserSrv) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
-	return m.ListUsersFunc(ctx, limit, page, keyword)
+func (m mockUserSrv) ListUsers(ctx context.Context, limit int32, pageToken string, keyword string) (model.PagedUser, error) {
+	return m.ListUsersFunc(ctx, limit, pageToken, keyword)
 }
 
 func (m mockUserSrv) UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error) {
