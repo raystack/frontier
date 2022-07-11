@@ -14,7 +14,7 @@ import (
 	"github.com/odpf/shield/model"
 
 	"github.com/jmoiron/sqlx"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 )
 
 type User struct {

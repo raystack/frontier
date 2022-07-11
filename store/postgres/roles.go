@@ -14,7 +14,7 @@ import (
 	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/lib/pq"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 )
 
 type Role struct {

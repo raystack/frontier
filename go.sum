@@ -1006,6 +1006,12 @@ github.com/ncw/swift v1.0.47/go.mod h1:23YIA4yWVnGwv2dQlN4bB7egfYX6YLn0Yo/S6zZO/
 github.com/neo4j/neo4j-go-driver v1.8.1-0.20200803113522-b626aa943eba/go.mod h1:ncO5VaFWh0Nrt+4KT4mOZboaczBZcLuHrG+/sUeP8gI=
 github.com/newrelic/go-agent v3.15.0+incompatible h1:BQ5+6vIgNtnv8jFET8CMjY7u7o+pN1wmGKIvN1uDIY4=
 github.com/newrelic/go-agent v3.15.0+incompatible/go.mod h1:a8Fv1b/fYhFSReoTU6HDkTYIMZeSVNffmoS726Y0LzQ=
+github.com/newrelic/go-agent/v3 v3.12.0 h1:tcDo0Q8qRWAJqb9uykfmM8pxGSbv0HqSS3q1+PzdhAo=
+github.com/newrelic/go-agent/v3 v3.12.0/go.mod h1:1A1dssWBwzB7UemzRU6ZVaGDsI+cEn5/bNxI0wiYlIc=
+github.com/newrelic/go-agent/v3 v3.17.0 h1:FLhxjckKKoJWB2rR14oNm+mYZLpktfEy+JKRSF5WgXw=
+github.com/newrelic/go-agent/v3 v3.17.0/go.mod h1:BFJOlbZWRlPTXKYIC1TTTtQKTnYntEJaU0VU507hDc0=
+github.com/newrelic/go-agent/v3/integrations/nrgrpc v1.3.1 h1:/ar1Omo9luapTJYWXt86oQGBpWwpWF92x+UuYU9v/7o=
+github.com/newrelic/go-agent/v3/integrations/nrgrpc v1.3.1/go.mod h1:2q0u6qkNJ4ClDt920A4r+NpcO370lFze1NF4OPJjAks=
 github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6/go.mod h1:E26fwEtRNigBfFfHDWsklmo0T7Ixbg0XXgck+Hq4O9k=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nishanths/predeclared v0.0.0-20200524104333-86fad755b4d3/go.mod h1:nt3d53pc1VYcphSCIaYAJtnPYnr3Zyn8fMq2wvPGPso=

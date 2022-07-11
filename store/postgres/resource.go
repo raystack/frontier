@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	newrelic "github.com/newrelic/go-agent"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/pkg/utils"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 
 	"github.com/odpf/shield/internal/resource"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type Resource struct {

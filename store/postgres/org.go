@@ -12,7 +12,7 @@ import (
 	"github.com/odpf/shield/internal/org"
 	"github.com/odpf/shield/model"
 
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 )
 
 type Organization struct {

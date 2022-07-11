@@ -7,29 +7,33 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpcctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	newrelic "github.com/newrelic/go-agent"
-	"github.com/newrelic/go-agent/_integrations/nrgrpc"
+	"github.com/newrelic/go-agent/v3/integrations/nrgrpc"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/grpc_interceptors"
-	"github.com/odpf/shield/pkg/sql"
-
-	"go.uber.org/zap"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"go.uber.org/zap"
+
+	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/grpc_interceptors"
+	"github.com/odpf/shield/pkg/sql"
 )
 
-func setupNewRelic(cfg config.NewRelic, logger log.Logger) newrelic.Application {
-	nrCfg := newrelic.NewConfig(cfg.AppName, cfg.License)
-	nrCfg.Enabled = cfg.Enabled
+func setupNewRelic(cfg config.NewRelic, logger log.Logger) *newrelic.Application {
+	app, err := newrelic.NewApplication(
+		newrelic.ConfigAppName(cfg.AppName),
+		newrelic.ConfigLicense(cfg.License),
+		newrelic.ConfigEnabled(cfg.Enabled),
+	)
 
-	nrApp, err := newrelic.NewApplication(nrCfg)
 	if err != nil {
 		logger.Fatal("failed to load Newrelic Application")
 	}
-	return nrApp
+
+	return app
 }
 
 // REVISIT: passing config.Shield as reference
