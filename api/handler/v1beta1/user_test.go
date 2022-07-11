@@ -63,30 +63,36 @@ func TestListUsers(t *testing.T) {
 					testUserList = append(testUserList, u)
 				}
 				return model.PagedUser{
-					Count: int32(len(testUserList)),
-					Users: testUserList,
-					//	TODO: Complete this
+					Count:             int32(len(testUserList)),
+					Users:             testUserList,
+					NextPageToken:     postgres.PageTokenizer(postgres.PAGE_NEXT, postgres.UUID_MAX),
+					PreviousPageToken: postgres.PageTokenizer(postgres.PAGE_PREV, postgres.UUID_MIN),
 				}, nil
 			}},
 			req: &shieldv1beta1.ListUsersRequest{
 				PageSize:  50,
-				PageToken: postgres.PageTokenizer("next", "00000000-0000-0000-0000000000"),
+				PageToken: postgres.PageTokenizer(postgres.PAGE_NEXT, postgres.UUID_MAX),
 				Keyword:   "",
 			},
-			want: &shieldv1beta1.ListUsersResponse{Users: []*shieldv1beta1.User{
-				{
-					Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-					Name:  "User 1",
-					Email: "test@test.com",
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"foo": structpb.NewStringValue("bar"),
+			want: &shieldv1beta1.ListUsersResponse{
+				Users: []*shieldv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Name:  "User 1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo": structpb.NewStringValue("bar"),
+							},
 						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
 					},
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
 				},
-			}},
+				Count:    1,
+				Next:     postgres.PageTokenizer(postgres.PAGE_NEXT, postgres.UUID_MAX),
+				Previous: postgres.PageTokenizer(postgres.PAGE_PREV, postgres.UUID_MIN),
+			},
 			err: nil,
 		},
 	}
