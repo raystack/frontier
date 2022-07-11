@@ -23,5 +23,6 @@ func New(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	cmd.AddCommand(RoleCommand(logger, appConfig))
 	cmd.AddCommand(ActionCommand(logger, appConfig))
 	cmd.AddCommand(PolicyCommand(logger, appConfig))
+	cmd.AddCommand(showConfigs(logger, appConfig))
 	return cmd
 }

@@ -16,3 +16,4 @@ rules/test.yaml
 *.pprof
 ignore/
 vendor/
+out/
