@@ -11,23 +11,19 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/odpf/shield/internal/permission"
-
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/odpf/shield/internal/bootstrap"
-	"github.com/odpf/shield/internal/group"
-
-	"github.com/odpf/shield/internal/relation"
-	"github.com/odpf/shield/internal/resource"
-
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1beta1"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/hook"
 	authz_hook "github.com/odpf/shield/hook/authz"
 	"github.com/odpf/shield/internal/authz"
+	"github.com/odpf/shield/internal/bootstrap"
+	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/org"
+	"github.com/odpf/shield/internal/permission"
 	"github.com/odpf/shield/internal/project"
+	"github.com/odpf/shield/internal/relation"
+	"github.com/odpf/shield/internal/resource"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/user"
@@ -36,6 +32,8 @@ import (
 	blobstore "github.com/odpf/shield/store/blob"
 	"github.com/odpf/shield/store/postgres"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/server"
 	"github.com/pkg/errors"
@@ -292,8 +290,7 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 		Logger:        logger,
 	}
 
-	bootstrapService.BootstrapDefaultDefinitions(ctx)
-	err := bootstrapService.BootstrapResources(ctx, resourceConfig)
+	err := bootstrapSpiceConfigs(ctx, appConfig, bootstrapService, resourceConfig, logger)
 
 	if err != nil {
 		return handler.Deps{}, err
@@ -333,4 +330,14 @@ func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield,
 		},
 	}
 	return dependencies, nil
+}
+
+func bootstrapSpiceConfigs(ctx context.Context, appConfig *config.Shield, bootstrapService bootstrap.Service, resourceConfig *blobstore.ResourcesRepository, logger log.Logger) error {
+	nrApp := setupNewRelic(appConfig.NewRelic, logger)
+	nrTxn := nrApp.StartTransaction("shield.bootstrap_resources")
+	ctx = newrelic.NewContext(ctx, nrTxn)
+	defer nrTxn.End()
+
+	bootstrapService.BootstrapDefaultDefinitions(ctx)
+	return bootstrapService.BootstrapResources(ctx, resourceConfig)
 }

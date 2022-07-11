@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/schema_generator"
 	"github.com/odpf/shield/model"
-
-	"github.com/odpf/salt/log"
 
 	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
-	"github.com/odpf/shield/config"
+	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/odpf/salt/log"
 	"google.golang.org/grpc"
 )
 
@@ -20,6 +20,8 @@ type SpiceDB struct {
 	Policy     *Policy
 	Permission *Permission
 }
+
+const nrStoreSpiceDB = "spicedb"
 
 type Policy struct {
 	client *authzed.Client
@@ -35,6 +37,14 @@ func (s *SpiceDB) Check() bool {
 
 func (p *Policy) AddPolicy(ctx context.Context, schema string) error {
 	request := &pb.WriteSchemaRequest{Schema: schema}
+	nr := newrelic.DatastoreSegment{
+		Product:    nrStoreSpiceDB,
+		Collection: "Policy",
+		Operation:  "AddPolicy",
+		StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+	}
+	defer nr.End()
+
 	_, err := p.client.WriteSchema(ctx, request)
 	if err != nil {
 		return err
@@ -78,6 +88,14 @@ func (p Permission) AddRelation(ctx context.Context, relation model.Relation) er
 		},
 	}
 
+	nr := newrelic.DatastoreSegment{
+		Product:    nrStoreSpiceDB,
+		Collection: fmt.Sprintf("%s.%s", relationship.Resource.ObjectType, relationship.Subject.Object.ObjectType),
+		Operation:  "AddRelation",
+		StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+	}
+	defer nr.End()
+
 	_, err = p.client.WriteRelationships(ctx, request)
 
 	if err != nil {
@@ -98,6 +116,14 @@ func (p Permission) CheckRelation(ctx context.Context, relation model.Relation, 
 		Subject:    relationship.Subject,
 		Permission: action.Id,
 	}
+
+	nr := newrelic.DatastoreSegment{
+		Product:    nrStoreSpiceDB,
+		Collection: fmt.Sprintf("%s.%s", relationship.Resource.ObjectType, relationship.Subject.Object.ObjectType),
+		Operation:  "CheckRelation",
+		StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+	}
+	defer nr.End()
 
 	response, err := p.client.CheckPermission(ctx, request)
 
@@ -125,6 +151,14 @@ func (p Permission) DeleteRelation(ctx context.Context, relation model.Relation)
 		},
 	}
 
+	nr := newrelic.DatastoreSegment{
+		Product:    nrStoreSpiceDB,
+		Collection: fmt.Sprintf("%s.%s", relationship.Resource.ObjectType, relationship.Subject.Object.ObjectType),
+		Operation:  "DeleteRelation",
+		StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+	}
+	defer nr.End()
+
 	_, err = p.client.DeleteRelationships(ctx, request)
 
 	if err != nil {
@@ -141,6 +175,14 @@ func (p Permission) DeleteSubjectRelations(ctx context.Context, resource model.R
 			OptionalResourceId: resource.Idxa,
 		},
 	}
+
+	nr := newrelic.DatastoreSegment{
+		Product:    nrStoreSpiceDB,
+		Collection: resource.NamespaceId,
+		Operation:  "DeleteRelationsForResource",
+		StartTime:  newrelic.FromContext(ctx).StartSegmentNow(),
+	}
+	defer nr.End()
 
 	_, err := p.client.DeleteRelationships(ctx, request)
 
