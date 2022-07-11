@@ -2099,5 +2099,5 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/shield.proto",
+	Metadata: "odpf/shield/v1beta1/shield.proto",
 }

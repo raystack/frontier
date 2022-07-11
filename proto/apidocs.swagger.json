@@ -1645,7 +1645,6 @@
         "parameters": [
           {
             "name": "pageSize",
-            "description": "google.protobuf.Struct fields = 1;\n string parent_token = 1;.",
             "in": "query",
             "required": false,
             "type": "integer",
