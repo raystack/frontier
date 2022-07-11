@@ -8,7 +8,7 @@ install:
 	@go mod download
 
 build: ## build all
-	CGO_ENABLED=0 go build -o shield .
+	@CGO_ENABLED=0 go build -o build -o ./out/shield .
 
 lint: ## Run linters
 	golangci-lint run
@@ -31,4 +31,3 @@ proto:
 
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-

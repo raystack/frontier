@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -60,6 +61,19 @@ func serveCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		},
 	}
 	return c
+}
+
+func showConfigs(logger log.Logger, appConfig *config.Shield) *cli.Command {
+	return &cli.Command{
+		Use:   "configs",
+		Short: "Dump currently loaded configs as JSON",
+		Run: func(cmd *cli.Command, args []string) {
+			err := json.NewEncoder(os.Stdout).Encode(appConfig)
+			if err != nil {
+				logger.Error("error in showing configs", err)
+			}
+		},
+	}
 }
 
 func serve(logger log.Logger, appConfig *config.Shield) error {
