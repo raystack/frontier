@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
-
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
+
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type Action struct {
@@ -23,15 +24,45 @@ type Action struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
-const (
-	getActionQuery    = `SELECT id, name, namespace_id, created_at, updated_at from actions where id=$1;`
-	createActionQuery = `INSERT INTO actions(id, name, namespace_id)
-		values($1, $2, $3)
-		ON CONFLICT (id) DO UPDATE SET name=$2
-		RETURNING id, name, namespace_id, created_at, updated_at;`
-	listActionsQuery  = `SELECT id, name, namespace_id, created_at, updated_at from actions;`
-	updateActionQuery = `UPDATE actions set name = $2, namespace_id = $3, updated_at = now() where id = $1 RETURNING id, name, namespace_id, created_at, updated_at;`
-)
+func buildGetActionQuery(dialect goqu.DialectWrapper) (string, error) {
+	getActionQuery, _, err := dialect.From("actions").Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
+
+	return getActionQuery, err
+}
+
+func buildCreateActionQuery(dialect goqu.DialectWrapper) (string, error) {
+	createActionQuery, _, err := dialect.Insert("actions").Rows(
+		goqu.Record{
+			"id":           goqu.L("$1"),
+			"name":         goqu.L("$2"),
+			"namespace_id": goqu.L("$3"),
+		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
+		"name": goqu.L("$2"),
+	})).Returning(&Action{}).ToSQL()
+
+	return createActionQuery, err
+}
+
+func buildListActionsQuery(dialect goqu.DialectWrapper) (string, error) {
+	listActionsQuery, _, err := dialect.From("actions").ToSQL()
+
+	return listActionsQuery, err
+}
+
+func buildUpdateActionQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateActionQuery, _, err := dialect.Update("actions").Set(
+		goqu.Record{
+			"name":         goqu.L("$2"),
+			"namespace_id": goqu.L("$3"),
+			"updated_at":   goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning(&Action{}).ToSQL()
+
+	return updateActionQuery, err
+}
 
 func (s Store) GetAction(ctx context.Context, id string) (model.Action, error) {
 	fetchedAction, err := s.selectAction(ctx, id, nil)
@@ -40,8 +71,12 @@ func (s Store) GetAction(ctx context.Context, id string) (model.Action, error) {
 
 func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model.Action, error) {
 	var fetchedAction Action
+	getActionQuery, err := buildGetActionQuery(dialect)
+	if err != nil {
+		return model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedAction, getActionQuery, id)
 	})
 
@@ -65,9 +100,13 @@ func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model
 
 func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (model.Action, error) {
 	var newAction Action
+	createActionQuery, err := buildCreateActionQuery(dialect)
+	if err != nil {
+		return model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
 	nsId := utils.DefaultStringIfEmpty(actionToCreate.Namespace.Id, actionToCreate.NamespaceId)
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, nsId)
 	})
 
@@ -85,7 +124,12 @@ func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (m
 
 func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 	var fetchedActions []Action
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	listActionsQuery, err := buildListActionsQuery(dialect)
+	if err != nil {
+		return []model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedActions, listActionsQuery)
 	})
 
@@ -114,7 +158,12 @@ func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.Action, error) {
 	var updatedAction Action
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	updateActionQuery, err := buildUpdateActionQuery(dialect)
+	if err != nil {
+		return model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedAction, updateActionQuery, toUpdate.Id, toUpdate.Name, toUpdate.NamespaceId)
 	})
 

@@ -7,16 +7,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/group"
+
 	"strings"
 	"time"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
+
+	"github.com/odpf/shield/internal/bootstrap/definition"
+	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type User struct {

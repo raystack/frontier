@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
+
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
 )
@@ -19,16 +21,41 @@ type Namespace struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-const (
-	getNamespaceQuery    = `SELECT id, name, created_at, updated_at from namespaces where id=$1;`
-	createNamespaceQuery = `INSERT INTO namespaces(id, name) 
-		values($1, $2) 
-		ON CONFLICT (id)
-			DO UPDATE SET name=$2
-		RETURNING id, name, created_at, updated_at;`
-	listNamespacesQuery  = `SELECT id, name, created_at, updated_at from namespaces;`
-	updateNamespaceQuery = `UPDATE namespaces set id = $2, name = $3, updated_at = now() where id = $1 RETURNING id, name, created_at, updated_at;`
-)
+func buildGetNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
+	getNamespaceQuery, _, err := dialect.From("namespaces").Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
+
+	return getNamespaceQuery, err
+}
+func buildCreateNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
+	createNamespaceQuery, _, err := dialect.Insert("namespaces").Rows(
+		goqu.Record{
+			"id":   goqu.L("$1"),
+			"name": goqu.L("$2"),
+		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
+		"name": goqu.L("$2"),
+	})).Returning(&Namespace{}).ToSQL()
+
+	return createNamespaceQuery, err
+}
+func buildListNamespacesQuery(dialect goqu.DialectWrapper) (string, error) {
+	listNamespacesQuery, _, err := dialect.From("namespaces").ToSQL()
+
+	return listNamespacesQuery, err
+}
+func buildUpdateNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateNamespaceQuery, _, err := dialect.Update("namespaces").Set(
+		goqu.Record{
+			"id":         goqu.L("$2"),
+			"name":       goqu.L("$3"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning(&Namespace{}).ToSQL()
+
+	return updateNamespaceQuery, err
+}
 
 func (s Store) GetNamespace(ctx context.Context, id string) (model.Namespace, error) {
 	fetchedNamespace, err := s.selectNamespace(ctx, id, nil)
@@ -37,8 +64,12 @@ func (s Store) GetNamespace(ctx context.Context, id string) (model.Namespace, er
 
 func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (model.Namespace, error) {
 	var fetchedNamespace Namespace
+	getNamespaceQuery, err := buildGetNamespaceQuery(dialect)
+	if err != nil {
+		return model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedNamespace, getNamespaceQuery, id)
 	})
 
@@ -62,7 +93,12 @@ func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (mo
 
 func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Namespace) (model.Namespace, error) {
 	var newNamespace Namespace
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	createNamespaceQuery, err := buildCreateNamespaceQuery(dialect)
+	if err != nil {
+		return model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.Id, namespaceToCreate.Name)
 	})
 
@@ -80,7 +116,12 @@ func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Name
 
 func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
 	var fetchedNamespaces []Namespace
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	listNamespacesQuery, err := buildListNamespacesQuery(dialect)
+	if err != nil {
+		return []model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedNamespaces, listNamespacesQuery)
 	})
 
@@ -108,8 +149,12 @@ func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
 
 func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate model.Namespace) (model.Namespace, error) {
 	var updatedNamespace Namespace
+	updateNamespaceQuery, err := buildUpdateNamespaceQuery(dialect)
+	if err != nil {
+		return model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedNamespace, updateNamespaceQuery, id, toUpdate.Id, toUpdate.Name)
 	})
 

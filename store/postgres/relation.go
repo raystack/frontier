@@ -28,6 +28,24 @@ type Relation struct {
 	UpdatedAt          time.Time      `db:"updated_at"`
 }
 
+//func buildCreateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
+//	createRelationQuery, _, err := dialect.Insert("relations").Rows(
+//		goqu.Record{
+//			"subject_namespace_id": goqu.L("$1"),
+//			"subject_id":           goqu.L("$2"),
+//			"object_namespace_id":  goqu.L("$3"),
+//			"object_id":            goqu.L("$4"),
+//			"role_id":              goqu.L("$5"),
+//			"namespace_id":         goqu.L("$6"),
+//		}).OnConflict(goqu.DoUpdate()).ToSQL()
+//}
+//
+//func buildListRelationQuery(dialect goqu.DialectWrapper) (string, error)        {}
+//func buildGetRelationsQuery(dialect goqu.DialectWrapper) (string, error)        {}
+//func buildUpdateRelationQuery(dialect goqu.DialectWrapper) (string, error)      {}
+//func buildGetRelationByFieldsQuery(dialect goqu.DialectWrapper) (string, error) {}
+//func buildDeleteRelationById(dialect goqu.DialectWrapper) (string, error)       {}
+
 const (
 	createRelationQuery = `
 		INSERT INTO relations(
