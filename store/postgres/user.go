@@ -7,16 +7,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/group"
 	"strings"
 	"time"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
+
+	"github.com/odpf/shield/internal/bootstrap/definition"
+	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type User struct {
@@ -61,32 +61,30 @@ func PageDetokenizer(token string) (string, string, error) {
 }
 
 func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	getUserQuery, _, err := dialect.From("users").
-		Where(goqu.Ex{
-			"id": goqu.L("$1"),
-		}).ToSQL()
+	getUserQuery, _, err := dialect.From(TABLE_USER).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
 
 	return getUserQuery, err
 }
 
 func buildGetUsersByIdsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getUsersByIdsQuery, _, err := dialect.From("users").Prepared(true).Where(
+	getUsersByIdsQuery, _, err := dialect.From(TABLE_USER).Prepared(true).Where(
 		goqu.C("id").In("id_PH")).ToSQL()
 
 	return getUsersByIdsQuery, err
 }
 
 func buildGetCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	getCurrentUserQuery, _, err := dialect.From("users").Where(
-		goqu.Ex{
-			"email": goqu.L("$1"),
-		}).ToSQL()
+	getCurrentUserQuery, _, err := dialect.From(TABLE_USER).Where(goqu.Ex{
+		"email": goqu.L("$1"),
+	}).ToSQL()
 
 	return getCurrentUserQuery, err
 }
 
 func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	createUserQuery, _, err := dialect.Insert("users").Rows(
+	createUserQuery, _, err := dialect.Insert(TABLE_USER).Rows(
 		goqu.Record{
 			"name":     goqu.L("$1"),
 			"email":    goqu.L("$2"),
@@ -105,7 +103,7 @@ func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, pageToken str
 	var listUsersQuery string
 	if label == PAGE_NEXT {
 		// Next Page Query
-		listUsersQuery, _, err = dialect.From("users").Where(goqu.And(
+		listUsersQuery, _, err = dialect.From(TABLE_USER).Where(goqu.And(
 			goqu.Or(
 				goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
 				goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
@@ -113,7 +111,7 @@ func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, pageToken str
 		)).Order(goqu.C("id").Asc()).Limit(uint(limit)).ToSQL()
 	} else {
 		// Previous Page Query
-		listUsersInnerQuery := dialect.From("users").Where(goqu.And(
+		listUsersInnerQuery := dialect.From(TABLE_USER).Where(goqu.And(
 			goqu.Or(
 				goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
 				goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
@@ -127,7 +125,7 @@ func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, pageToken str
 }
 
 func buildSelectUserForUpdateQuery(dialect goqu.DialectWrapper) (string, error) {
-	selectUserForUpdateQuery, _, err := dialect.From("users").Prepared(true).Where(
+	selectUserForUpdateQuery, _, err := dialect.From(TABLE_USER).Prepared(true).Where(
 		goqu.Ex{
 			"id": "id_PH",
 		}).ToSQL()
@@ -136,7 +134,7 @@ func buildSelectUserForUpdateQuery(dialect goqu.DialectWrapper) (string, error) 
 }
 
 func buildUpdateUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateUserQuery, _, err := dialect.Update("users").Set(
+	updateUserQuery, _, err := dialect.Update(TABLE_USER).Set(
 		goqu.Record{
 			"name":       goqu.L("$2"),
 			"email":      goqu.L("$3"),
@@ -150,7 +148,7 @@ func buildUpdateUserQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildUpdateCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateCurrentUserQuery, _, err := dialect.Update("users").Set(
+	updateCurrentUserQuery, _, err := dialect.Update(TABLE_USER).Set(
 		goqu.Record{
 			"name":       goqu.L("$2"),
 			"metadata":   goqu.L("$3"),
@@ -171,8 +169,8 @@ func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 		goqu.I("g.updated_at").As("updated_at"),
 		goqu.I("g.created_at").As("created_at"),
 		goqu.I("g.org_id").As("org_id"),
-	).From(goqu.L("relations r")).
-		Join(goqu.L("groups g"), goqu.On(
+	).From(goqu.T(TABLE_RELATION).As("r")).
+		Join(goqu.T(TABLE_GROUPS).As("g"), goqu.On(
 			goqu.I("g.id").Cast("VARCHAR").
 				Eq(goqu.I("r.object_id")),
 		)).Where(goqu.Ex{

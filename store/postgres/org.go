@@ -6,8 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/doug-martin/goqu/v9"
 	"time"
+
+	"github.com/doug-martin/goqu/v9"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/org"
@@ -15,23 +16,24 @@ import (
 )
 
 type Organization struct {
-	Id        string    `db:"id"`
-	Name      string    `db:"name"`
-	Slug      string    `db:"slug"`
-	Metadata  []byte    `db:"metadata"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id        string       `db:"id"`
+	Name      string       `db:"name"`
+	Slug      string       `db:"slug"`
+	Metadata  []byte       `db:"metadata"`
+	CreatedAt time.Time    `db:"created_at"`
+	UpdatedAt time.Time    `db:"updated_at"`
+	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
 func buildGetOrganizationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getOrganizationsQuery, _, err := dialect.From("organizations").Where(goqu.Ex{
+	getOrganizationsQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 
 	return getOrganizationsQuery, err
 }
 func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
-	createOrganizationQuery, _, err := dialect.Insert("organizations").Rows(
+	createOrganizationQuery, _, err := dialect.Insert(TABLE_ORG).Rows(
 		goqu.Record{
 			"name":     goqu.L("$1"),
 			"slug":     goqu.L("$2"),
@@ -41,12 +43,12 @@ func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
 	return createOrganizationQuery, err
 }
 func buildListOrganizationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	listOrganizationsQuery, _, err := dialect.From("organizations").ToSQL()
+	listOrganizationsQuery, _, err := dialect.From(TABLE_ORG).ToSQL()
 
 	return listOrganizationsQuery, err
 }
 func buildUpdateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateOrganizationQuery, _, err := dialect.Update("organizations").Set(
+	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORG).Set(
 		goqu.Record{
 			"name":       goqu.L("$2"),
 			"slug":       goqu.L("$3"),
@@ -66,8 +68,8 @@ func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T("relations").As("r")).
-		Join(goqu.T("users").As("u"), goqu.On(
+	).From(goqu.T(TABLE_RELATION).As("r")).
+		Join(goqu.T(TABLE_USER).As("u"), goqu.On(
 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
 		"r.object_id":            goqu.L("$1"),

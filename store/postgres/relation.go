@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/doug-martin/goqu/v9"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/doug-martin/goqu/v9"
 
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type Relation struct {
@@ -29,7 +29,6 @@ type Relation struct {
 	UpdatedAt          time.Time      `db:"updated_at"`
 }
 
-//TODO: Ask if this is the correct way
 type relationCols struct {
 	Id                 string         `db:"id"`
 	SubjectNamespaceId string         `db:"subject_namespace_id"`
@@ -43,9 +42,9 @@ type relationCols struct {
 }
 
 func buildCreateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
-	// TODO: Look into goqu.OnConflict with multiple columns
+	// TODO: Look for a better way to implement goqu.OnConflict with multiple columns
 
-	createRelationQuery, _, err := dialect.Insert("relations").Rows(
+	createRelationQuery, _, err := dialect.Insert(TABLE_RELATION).Rows(
 		goqu.Record{
 			"subject_namespace_id": goqu.L("$1"),
 			"subject_id":           goqu.L("$2"),
@@ -61,13 +60,13 @@ func buildCreateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildListRelationQuery(dialect goqu.DialectWrapper) (string, error) {
-	listRelationQuery, _, err := dialect.Select(&relationCols{}).From("relations").ToSQL()
+	listRelationQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).ToSQL()
 
 	return listRelationQuery, err
 }
 
 func buildGetRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getRelationsQuery, _, err := dialect.Select(&relationCols{}).From("relations").Where(goqu.Ex{
+	getRelationsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 
@@ -75,7 +74,7 @@ func buildGetRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildUpdateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateRelationQuery, _, err := goqu.Update("relations").Set(
+	updateRelationQuery, _, err := goqu.Update(TABLE_RELATION).Set(
 		goqu.Record{
 			"subject_namespace_id": goqu.L("$2"),
 			"subject_id":           goqu.L("$3"),
@@ -91,7 +90,7 @@ func buildUpdateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetRelationByFieldsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getRelationByFieldsQuery, _, err := dialect.Select(&relationCols{}).From("relations").Where(goqu.Ex{
+	getRelationByFieldsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).Where(goqu.Ex{
 		"subject_namespace_id": goqu.L("$1"),
 		"subject_id":           goqu.L("$2"),
 		"object_namespace_id":  goqu.L("$3"),
@@ -112,92 +111,12 @@ func buildGetRelationByFieldsQuery(dialect goqu.DialectWrapper) (string, error) 
 }
 
 func buildDeleteRelationByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	deleteRelationByIdQuery, _, err := dialect.Delete("relations").Where(goqu.Ex{
+	deleteRelationByIdQuery, _, err := dialect.Delete(TABLE_RELATION).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 
 	return deleteRelationByIdQuery, err
 }
-
-//const (
-//	createRelationQuery = `
-//		INSERT INTO relations(
-//		  subject_namespace_id,
-//		  subject_id,
-//		  object_namespace_id,
-//		  object_id,
-//		  role_id,
-//		  namespace_id
-//		) values (
-//			  $1,
-//			  $2,
-//			  $3,
-//			  $4,
-//			  $5,
-//		      $6
-//		)
-//		ON CONFLICT (subject_namespace_id,  subject_id, object_namespace_id,  object_id, COALESCE(role_id, ''), COALESCE(namespace_id, '')) DO UPDATE SET subject_namespace_id=$1
-//		RETURNING id, subject_namespace_id,  subject_id, object_namespace_id,  object_id, role_id, namespace_id, created_at, updated_at;`
-//	listRelationQuery = `
-//		SELECT
-//		       id,
-//		       subject_namespace_id,
-//		       subject_id,
-//		       object_namespace_id,
-//		       object_id,
-//		       role_id,
-//		       namespace_id,
-//		       created_at,
-//		       updated_at
-//		FROM relations;`
-//	getRelationsQuery = `
-//		SELECT
-//		       id,
-//		       subject_namespace_id,
-//		       subject_id,
-//		       object_namespace_id,
-//		       object_id,
-//		       role_id,
-//		       namespace_id,
-//		       created_at,
-//		       updated_at
-//		FROM relations
-//		WHERE id = $1;`
-//	updateRelationQuery = `
-//		UPDATE relations SET
-//			 subject_namespace_id = $2,
-//			 subject_id = $3,
-//			 object_namespace_id = $4,
-//			 object_id = $5,
-//			 role_id = $6,
-//			 namespace_id = $7
-//		WHERE id = $1
-//		RETURNING
-//		   id,
-//		   subject_namespace_id,
-//		   subject_id,
-//		   object_namespace_id,
-//		   object_id,
-//		   role_id,
-//		   namespace_id,
-//		   created_at,
-//		   updated_at;
-//		`
-//	getRelationByFieldsQuery = `
-//		SELECT
-//		       id,
-//		       subject_namespace_id,
-//		       subject_id,
-//		       object_namespace_id,
-//		       object_id,
-//		       role_id,
-//		       namespace_id,
-//		       created_at,
-//		       updated_at
-//		FROM relations
-//		WHERE subject_namespace_id=$1 AND subject_id=$2 AND object_namespace_id=$3 AND object_id=$4 AND (role_id IS NULL OR role_id = $5) AND (namespace_id IS NULL OR namespace_id = $6);`
-//	deleteRelationById = `DELETE FROM relations WHERE id = $1;`
-//)
 
 func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relation) (model.Relation, error) {
 	var newRelation Relation
