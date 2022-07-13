@@ -3,11 +3,8 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"github.com/odpf/shield/store/postgres"
 	"testing"
 	"time"
-
-	"github.com/odpf/shield/model"
 
 	"github.com/stretchr/testify/assert"
 
@@ -17,7 +14,9 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/odpf/shield/model"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/odpf/shield/store/postgres"
 )
 
 var testUserMap = map[string]model.User{

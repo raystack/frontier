@@ -3,19 +3,19 @@ package v1beta1
 import (
 	"context"
 	"errors"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type UserService interface {
