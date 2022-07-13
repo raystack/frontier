@@ -20,7 +20,7 @@ type Store interface {
 	GetUser(ctx context.Context, id string) (model.User, error)
 	GetCurrentUser(ctx context.Context, email string) (model.User, error)
 	CreateUser(ctx context.Context, user model.User) (model.User, error)
-	ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error)
+	ListUsers(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
@@ -48,7 +48,7 @@ func (s Service) CreateUser(ctx context.Context, user model.User) (model.User, e
 	return newUser, nil
 }
 
-func (s Service) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
+func (s Service) ListUsers(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error) {
 	return s.Store.ListUsers(ctx, limit, page, keyword)
 }
 

@@ -44,44 +44,49 @@ func TestListUsers(t *testing.T) {
 	}{
 		{
 			title: "error in User Service",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users []model.User, err error) {
-				return []model.User{}, errors.New("some error")
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users model.PagedUsers, err error) {
+				return model.PagedUsers{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.ListUsersRequest{
-				Limit:   50,
-				Page:    1,
-				Keyword: "",
+				PageSize: 50,
+				PageNum:  1,
+				Keyword:  "",
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		}, {
 			title: "success",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users []model.User, err error) {
+			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users model.PagedUsers, err error) {
 				var testUserList []model.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				return testUserList, nil
+				return model.PagedUsers{
+					Users: testUserList,
+					Count: int32(len(testUserList)),
+				}, nil
 			}},
 			req: &shieldv1beta1.ListUsersRequest{
-				Limit:   50,
-				Page:    1,
-				Keyword: "",
+				PageSize: 50,
+				PageNum:  1,
+				Keyword:  "",
 			},
-			want: &shieldv1beta1.ListUsersResponse{Users: []*shieldv1beta1.User{
-				{
-					Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-					Name:  "User 1",
-					Email: "test@test.com",
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"foo": structpb.NewStringValue("bar"),
+			want: &shieldv1beta1.ListUsersResponse{
+				Count: 1,
+				Users: []*shieldv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Name:  "User 1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo": structpb.NewStringValue("bar"),
+							},
 						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
 					},
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
-				},
-			}},
+				}},
 			err: nil,
 		},
 	}
@@ -372,7 +377,7 @@ type mockUserSrv struct {
 	GetUserFunc           func(ctx context.Context, id string) (model.User, error)
 	GetCurrentUserFunc    func(ctx context.Context, email string) (model.User, error)
 	CreateUserFunc        func(ctx context.Context, user model.User) (model.User, error)
-	ListUsersFunc         func(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error)
+	ListUsersFunc         func(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error)
 	UpdateUserFunc        func(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUserFunc func(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroupsFunc    func(ctx context.Context, userId string, roleId string) ([]model.Group, error)
@@ -390,7 +395,7 @@ func (m mockUserSrv) CreateUser(ctx context.Context, user model.User) (model.Use
 	return m.CreateUserFunc(ctx, user)
 }
 
-func (m mockUserSrv) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
+func (m mockUserSrv) ListUsers(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error) {
 	return m.ListUsersFunc(ctx, limit, page, keyword)
 }
 

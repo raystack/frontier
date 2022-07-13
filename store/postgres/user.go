@@ -6,16 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/doug-martin/goqu/v9"
 	"time"
+
+	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
-
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type User struct {
@@ -218,11 +217,11 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 	return transformedUser, nil
 }
 
-func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) ([]model.User, error) {
+func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error) {
 	var fetchedUsers []User
 	listUsersQuery, err := buildListUsersQuery(dialect, limit, page, keyword)
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return model.PagedUsers{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -230,11 +229,11 @@ func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword s
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.User{}, user.UserDoesntExist
+		return model.PagedUsers{}, user.UserDoesntExist
 	}
 
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.PagedUsers{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedUsers []model.User
@@ -242,13 +241,18 @@ func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword s
 	for _, u := range fetchedUsers {
 		transformedUser, err := transformToUser(u)
 		if err != nil {
-			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+			return model.PagedUsers{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedUsers = append(transformedUsers, transformedUser)
 	}
 
-	return transformedUsers, nil
+	res := model.PagedUsers{
+		Count: int32(len(fetchedUsers)),
+		Users: transformedUsers,
+	}
+
+	return res, nil
 }
 
 func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error) {
