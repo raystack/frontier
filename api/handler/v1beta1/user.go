@@ -38,18 +38,17 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequ
 	limit := request.PageSize
 	page := request.PageNum
 	keyword := request.Keyword
-	if limit < 1 {
-		limit = 50
+	if page < 1 {
+		page = 50
 	}
 
-	userListResp, err := v.UserService.ListUsers(ctx, limit, page, keyword)
+	userResp, err := v.UserService.ListUsers(ctx, limit, page, keyword)
+	userList := userResp.Users
 
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-
-	userList := userListResp.Users
 
 	for _, user := range userList {
 		userPB, err := transformUserToPB(user)
@@ -62,7 +61,7 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequ
 	}
 
 	return &shieldv1beta1.ListUsersResponse{
-		Count: userListResp.Count,
+		Count: userResp.Count,
 		Users: users,
 	}, nil
 }
