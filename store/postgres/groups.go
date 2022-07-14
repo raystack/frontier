@@ -6,13 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	"github.com/google/uuid"
-
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
 	"github.com/odpf/shield/internal/user"
@@ -30,14 +27,7 @@ type Group struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
-func isUUID(key string) bool {
-	_, err := uuid.Parse(key)
-	fmt.Println(err)
-	return err == nil
-}
-
 func buildGetGroupsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
-	log.Println("Identified as a Slug")
 	getGroupsBySlugQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
 		"slug": goqu.L("$1"),
 	}).ToSQL()
@@ -57,11 +47,6 @@ func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetGroupsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	log.Println("Identified as a UUID")
-	//getGroupsByIdQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
-	//	"id": goqu.L("$1"),
-	//}).ToSQL()
-
 	getGroupsByIdQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Or(
 		goqu.C("id").Eq(goqu.L("$1")),
 		goqu.C("slug").Eq(goqu.L("$2")),

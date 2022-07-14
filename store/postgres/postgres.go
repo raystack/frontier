@@ -2,8 +2,10 @@ package postgres
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 
 	"github.com/odpf/shield/pkg/sql"
 )
@@ -37,4 +39,10 @@ func NewStore(db *sql.SQL) Store {
 	return Store{
 		DB: db,
 	}
+}
+
+func isUUID(key string) bool {
+	_, err := uuid.Parse(key)
+	fmt.Println(err)
+	return err == nil
 }

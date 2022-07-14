@@ -26,12 +26,21 @@ type Project struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
-func buildGetProjectsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getProjectsQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
-		"id": goqu.L("$1"),
+func buildGetProjectsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
+	getProjectsBySlugQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
+		"slug": goqu.L("$1"),
 	}).ToSQL()
 
-	return getProjectsQuery, err
+	return getProjectsBySlugQuery, err
+}
+
+func buildGetProjectsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	getProjectsByIdQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.Or(
+		goqu.C("id").Eq(goqu.L("$1")),
+		goqu.C("slug").Eq(goqu.L("$2")),
+	)).ToSQL()
+
+	return getProjectsByIdQuery, err
 }
 func buildCreateProjectQuery(dialect goqu.DialectWrapper) (string, error) {
 	createProjectQuery, _, err := dialect.Insert(TABLE_PROJECTS).Rows(
@@ -86,14 +95,28 @@ func buildListProjectAdminsQuery(dialect goqu.DialectWrapper) (string, error) {
 
 func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
 	var fetchedProject Project
-	getProjectsQuery, err := buildGetProjectsQuery(dialect)
+	var getProjectsQuery string
+	var err error
+	var isUuid = isUUID(id)
+
+	if isUuid {
+		getProjectsQuery, err = buildGetProjectsByIdQuery(dialect)
+	} else {
+		getProjectsQuery, err = buildGetProjectsBySlugQuery(dialect)
+	}
 	if err != nil {
 		return model.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
-	})
+	if isUuid {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id, id)
+		})
+	} else {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
+		})
+	}
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Project{}, project.ProjectDoesntExist
