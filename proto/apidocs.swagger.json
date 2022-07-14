@@ -1645,17 +1645,17 @@
         "parameters": [
           {
             "name": "pageSize",
-            "description": "google.protobuf.Struct fields = 1;\n string parent_token = 1;.",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "pageToken",
+            "name": "pageNum",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "integer",
+            "format": "int32"
           },
           {
             "name": "keyword",
@@ -2396,12 +2396,6 @@
         "count": {
           "type": "integer",
           "format": "int32"
-        },
-        "previous": {
-          "type": "string"
-        },
-        "next": {
-          "type": "string"
         },
         "users": {
           "type": "array",

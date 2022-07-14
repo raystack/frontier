@@ -82,11 +82,9 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-type PagedUser struct {
-	Count             int32
-	Users             []User
-	PreviousPageToken string
-	NextPageToken     string
+type PagedUsers struct {
+	Count int32
+	Users []User
 }
 
 type Relation struct {

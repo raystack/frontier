@@ -6,23 +6,23 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/internal/user"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/odpf/shield/internal/user"
+	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type UserService interface {
 	GetUser(ctx context.Context, id string) (model.User, error)
 	GetCurrentUser(ctx context.Context, email string) (model.User, error)
 	CreateUser(ctx context.Context, user model.User) (model.User, error)
-	ListUsers(ctx context.Context, limit int32, pageToken string, keyword string) (model.PagedUser, error)
+	ListUsers(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error)
 	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
@@ -36,13 +36,13 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequ
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
 	limit := request.PageSize
-	pageToken := request.PageToken
+	page := request.PageNum
 	keyword := request.Keyword
 	if limit < 1 {
 		limit = 50
 	}
 
-	userListResp, err := v.UserService.ListUsers(ctx, limit, pageToken, keyword)
+	userListResp, err := v.UserService.ListUsers(ctx, limit, page, keyword)
 
 	if err != nil {
 		logger.Error(err.Error())
@@ -62,10 +62,8 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequ
 	}
 
 	return &shieldv1beta1.ListUsersResponse{
-		Users:    users,
-		Previous: userListResp.PreviousPageToken,
-		Next:     userListResp.NextPageToken,
-		Count:    userListResp.Count,
+		Count: userListResp.Count,
+		Users: users,
 	}, nil
 }
 
