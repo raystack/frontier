@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/google/uuid"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
@@ -28,6 +30,21 @@ type Group struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
+func isUUID(key string) bool {
+	_, err := uuid.Parse(key)
+	fmt.Println(err)
+	return err == nil
+}
+
+func buildGetGroupsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
+	log.Println("Identified as a Slug")
+	getGroupsBySlugQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
+		"slug": goqu.L("$1"),
+	}).ToSQL()
+
+	return getGroupsBySlugQuery, err
+}
+
 func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
 	createGroupsQuery, _, err := dialect.Insert(TABLE_GROUPS).Rows(
 		goqu.Record{
@@ -39,12 +56,18 @@ func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
 	return createGroupsQuery, err
 }
 
-func buildGetGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getGroupsQuery, _, err := dialect.Select(&Group{}).From(TABLE_GROUPS).Where(goqu.Ex{
-		"id": goqu.L("$1"),
-	}).ToSQL()
+func buildGetGroupsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	log.Println("Identified as a UUID")
+	//getGroupsByIdQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
+	//	"id": goqu.L("$1"),
+	//}).ToSQL()
 
-	return getGroupsQuery, err
+	getGroupsByIdQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Or(
+		goqu.C("id").Eq(goqu.L("$1")),
+		goqu.C("slug").Eq(goqu.L("$2")),
+	)).ToSQL()
+
+	return getGroupsByIdQuery, err
 }
 
 func buildListGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -102,14 +125,28 @@ func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, erro
 
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group
-	getGroupsQuery, err := buildGetGroupsQuery(dialect)
+	var getGroupsQuery string
+	var err error
+	var isUuid = isUUID(id)
+
+	if isUuid {
+		getGroupsQuery, err = buildGetGroupsByIdQuery(dialect)
+	} else {
+		getGroupsQuery, err = buildGetGroupsBySlugQuery(dialect)
+	}
 	if err != nil {
 		return model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
-	})
+	if isUuid {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id, id)
+		})
+	} else {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
+		})
+	}
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Group{}, group.GroupDoesntExist
