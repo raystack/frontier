@@ -39,7 +39,7 @@ func (v Dep) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequ
 	page := request.PageNum
 	keyword := request.Keyword
 	if page < 1 {
-		page = 50
+		page = 1
 	}
 
 	userResp, err := v.UserService.ListUsers(ctx, limit, page, keyword)
