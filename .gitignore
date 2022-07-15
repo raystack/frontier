@@ -16,3 +16,8 @@ rules/test.yaml
 *.pprof
 ignore/
 vendor/
+buf.gen.yaml
+docker-compose.yml
+buf.lock
+buf.yaml
+store/postgres/user_test.go

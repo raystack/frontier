@@ -1740,34 +1740,11 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetFields()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ListUsersRequestValidationError{
-					field:  "Fields",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ListUsersRequestValidationError{
-					field:  "Fields",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetFields()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ListUsersRequestValidationError{
-				field:  "Fields",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for PageSize
+
+	// no validation rules for PageNum
+
+	// no validation rules for Keyword
 
 	if len(errors) > 0 {
 		return ListUsersRequestMultiError(errors)
@@ -1867,6 +1844,8 @@ func (m *ListUsersResponse) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for Count
 
 	for idx, item := range m.GetUsers() {
 		_, _ = idx, item
