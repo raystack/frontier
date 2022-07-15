@@ -82,6 +82,11 @@ type User struct {
 	UpdatedAt time.Time
 }
 
+type PagedUsers struct {
+	Count int32
+	Users []User
+}
+
 type Relation struct {
 	Id                 string
 	SubjectNamespace   Namespace

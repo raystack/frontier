@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"time"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
@@ -99,8 +98,6 @@ func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, erro
 
 	return listUserGroupRelationsQuery, err
 }
-
-var dialect = goqu.Dialect("postgres")
 
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group

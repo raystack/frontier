@@ -9,13 +9,12 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/group"
-
 	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/model"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type User struct {
@@ -26,6 +25,17 @@ type User struct {
 	CreatedAt time.Time    `db:"created_at"`
 	UpdatedAt time.Time    `db:"updated_at"`
 	DeletedAt sql.NullTime `db:"deleted_at"`
+}
+
+func listUserQueryHelper(page int32, limit int32) (uint, uint) {
+	var defaultLimit int32 = 50
+	if limit < 1 {
+		limit = defaultLimit
+	}
+
+	offset := (page - 1) * limit
+
+	return uint(limit), uint(offset)
 }
 
 func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -64,8 +74,13 @@ func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
 	return createUserQuery, err
 }
 
-func buildListUsersQuery(dialect goqu.DialectWrapper) (string, error) {
-	listUsersQuery, _, err := dialect.From("users").ToSQL()
+func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, page int32, keyword string) (string, error) {
+	limitRows, offset := listUserQueryHelper(page, limit)
+
+	listUsersQuery, _, err := dialect.From("users").Where(goqu.Or(
+		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
+		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
+	)).Limit(limitRows).Offset(offset).ToSQL()
 
 	return listUsersQuery, err
 }
@@ -202,11 +217,11 @@ func (s Store) CreateUser(ctx context.Context, userToCreate model.User) (model.U
 	return transformedUser, nil
 }
 
-func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
+func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error) {
 	var fetchedUsers []User
-	listUsersQuery, err := buildListUsersQuery(dialect)
+	listUsersQuery, err := buildListUsersQuery(dialect, limit, page, keyword)
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return model.PagedUsers{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -214,11 +229,11 @@ func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.User{}, user.UserDoesntExist
+		return model.PagedUsers{}, user.UserDoesntExist
 	}
 
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.PagedUsers{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedUsers []model.User
@@ -226,13 +241,18 @@ func (s Store) ListUsers(ctx context.Context) ([]model.User, error) {
 	for _, u := range fetchedUsers {
 		transformedUser, err := transformToUser(u)
 		if err != nil {
-			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+			return model.PagedUsers{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedUsers = append(transformedUsers, transformedUser)
 	}
 
-	return transformedUsers, nil
+	res := model.PagedUsers{
+		Count: int32(len(fetchedUsers)),
+		Users: transformedUsers,
+	}
+
+	return res, nil
 }
 
 func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]model.User, error) {
