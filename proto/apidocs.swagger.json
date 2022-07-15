@@ -1642,6 +1642,28 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "User"
         ]
@@ -2371,6 +2393,10 @@
     "v1beta1ListUsersResponse": {
       "type": "object",
       "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
         "users": {
           "type": "array",
           "items": {
