@@ -51,7 +51,7 @@ $ docker run -p 8080:8080 \
 
 Shield requires the following dependencies:
 
-- Golang (version 1.16 or above)
+- Golang (version 1.18 or above)
 - Git
 
 ### Build
