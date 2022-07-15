@@ -31,7 +31,6 @@ const (
 	TABLE_RESOURCE  = "resources"
 	TABLE_ROLES     = "roles"
 	TABLE_USER      = "users"
-
 )
 
 func NewStore(db *sql.SQL) Store {
