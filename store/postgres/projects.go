@@ -8,39 +8,90 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/doug-martin/goqu/v9"
+
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/model"
 )
 
 type Project struct {
-	Id        string    `db:"id"`
-	Name      string    `db:"name"`
-	Slug      string    `db:"slug"`
-	OrgId     string    `db:"org_id"`
-	Metadata  []byte    `db:"metadata"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id        string       `db:"id"`
+	Name      string       `db:"name"`
+	Slug      string       `db:"slug"`
+	OrgId     string       `db:"org_id"`
+	Metadata  []byte       `db:"metadata"`
+	CreatedAt time.Time    `db:"created_at"`
+	UpdatedAt time.Time    `db:"updated_at"`
+	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
-var (
-	getProjectsQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects where id=$1;`
-	createProjectQuery = `INSERT INTO projects(name, slug, org_id, metadata) values($1, $2, $3, $4) RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
-	listProjectQuery   = `SELECT id, name, slug, org_id, metadata, created_at, updated_at from projects;`
-	updateProjectQuery = `UPDATE projects set name = $2, slug = $3, org_id=$4, metadata = $5, updated_at = now() where id = $1 RETURNING id, name, slug, org_id, metadata, created_at, updated_at;`
-	listProjectAdmins  = fmt.Sprintf(
-		`SELECT u.id as id, u.name as name, u.email as email, u.metadata as metadata, u.created_at as created_at, u.updated_at as updated_at
-				FROM relations r 
-				JOIN users u ON CAST(u.id as VARCHAR) = r.subject_id 
-				WHERE r.object_id=$1 
-					AND r.role_id='%s'
-					AND r.subject_namespace_id='%s'
-					AND r.object_namespace_id='%s';`, definition.ProjectAdminRole.Id, definition.UserNamespace.Id, definition.ProjectNamespace.Id)
-)
+func buildGetProjectsQuery(dialect goqu.DialectWrapper) (string, error) {
+	getProjectsQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
+
+	return getProjectsQuery, err
+}
+func buildCreateProjectQuery(dialect goqu.DialectWrapper) (string, error) {
+	createProjectQuery, _, err := dialect.Insert(TABLE_PROJECTS).Rows(
+		goqu.Record{
+			"name":     goqu.L("$1"),
+			"slug":     goqu.L("$2"),
+			"org_id":   goqu.L("$3"),
+			"metadata": goqu.L("$4"),
+		}).Returning(&Project{}).ToSQL()
+
+	return createProjectQuery, err
+}
+func buildListProjectQuery(dialect goqu.DialectWrapper) (string, error) {
+	listProjectQuery, _, err := dialect.From(TABLE_PROJECTS).ToSQL()
+
+	return listProjectQuery, err
+}
+func buildUpdateProjectQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateProjectQuery, _, err := dialect.Update(TABLE_PROJECTS).Set(
+		goqu.Record{
+			"name":       goqu.L("$2"),
+			"slug":       goqu.L("$3"),
+			"org_id":     goqu.L("$4"),
+			"metadata":   goqu.L("$5"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning(&Project{}).ToSQL()
+
+	return updateProjectQuery, err
+}
+func buildListProjectAdminsQuery(dialect goqu.DialectWrapper) (string, error) {
+	listProjectAdminsQuery, _, err := dialect.Select(
+		goqu.I("u.id").As("id"),
+		goqu.I("u.name").As("name"),
+		goqu.I("u.email").As("email"),
+		goqu.I("u.metadata").As("metadata"),
+		goqu.I("u.created_at").As("created_at"),
+		goqu.I("u.updated_at").As("updated_at"),
+	).From(goqu.T(TABLE_RELATION).As("r")).Join(
+		goqu.T(TABLE_USER).As("u"), goqu.On(
+			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
+		)).Where(goqu.Ex{
+		"r.object_id":            goqu.L("$1"),
+		"r.role_id":              definition.ProjectAdminRole.Id,
+		"r.subject_namespace_id": definition.UserNamespace.Id,
+		"r.object_namespace_id":  definition.ProjectNamespace.Id,
+	}).ToSQL()
+
+	return listProjectAdminsQuery, err
+}
 
 func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
 	var fetchedProject Project
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	getProjectsQuery, err := buildGetProjectsQuery(dialect)
+	if err != nil {
+		return model.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
 	})
 
@@ -73,6 +124,11 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate model.Project)
 	}
 
 	var newProject Project
+	createProjectQuery, err := buildCreateProjectQuery(dialect)
+	if err != nil {
+		return model.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, projectToCreate.Organization.Id, marshaledMetadata)
 	})
@@ -91,7 +147,12 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate model.Project)
 
 func (s Store) ListProject(ctx context.Context) ([]model.Project, error) {
 	var fetchedProjects []Project
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	listProjectQuery, err := buildListProjectQuery(dialect)
+	if err != nil {
+		return []model.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedProjects, listProjectQuery)
 	})
 
@@ -125,6 +186,11 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 		return model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	updateProjectQuery, err := buildUpdateProjectQuery(dialect)
+	if err != nil {
+		return model.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
 	})
@@ -150,8 +216,13 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]model.User, error) {
 	var fetchedUsers []User
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedUsers, listProjectAdmins, id)
+	listProjectAdminsQuery, err := buildListProjectAdminsQuery(dialect)
+	if err != nil {
+		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.SelectContext(ctx, &fetchedUsers, listProjectAdminsQuery, id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

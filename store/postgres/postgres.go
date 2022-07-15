@@ -20,6 +20,19 @@ var (
 	dialect  = goqu.Dialect("postgres")
 )
 
+const (
+	TABLE_ACTION    = "actions"
+	TABLE_GROUPS    = "groups"
+	TABLE_NAMESPACE = "namespaces"
+	TABLE_ORG       = "organizations"
+	TABLE_POLICY    = "policies"
+	TABLE_PROJECTS  = "projects"
+	TABLE_RELATION  = "relations"
+	TABLE_RESOURCE  = "resources"
+	TABLE_ROLES     = "roles"
+	TABLE_USER      = "users"
+)
+
 func NewStore(db *sql.SQL) Store {
 	return Store{
 		DB: db,

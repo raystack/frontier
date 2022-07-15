@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/doug-martin/goqu/v9"
 
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type Policy struct {
@@ -26,18 +27,88 @@ type Policy struct {
 	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
-const selectStatement = `p.id, p.namespace_id, roles.id "role.id", roles.name "role.name", roles.types "role.types", roles.namespace_id "role.namespace_id", roles.namespace_id "role.namespace.id", roles.metadata "role.metadata", namespaces.id "namespace.id", namespaces.name "namespace.name", actions.id "action.id", actions.name "action.name", actions.namespace_id "action.namespace_id", actions.namespace_id "action.namespace.id"`
-const joinStatement = `JOIN roles ON roles.id = p.role_id JOIN actions ON actions.id = p.action_id JOIN namespaces on namespaces.id = p.namespace_id`
+type PolicyCols struct {
+	Id          string         `db:"id"`
+	RoleID      string         `db:"role_id"`
+	NamespaceID string         `db:"namespace_id"`
+	ActionID    sql.NullString `db:"action_id"`
+}
 
-var (
-	createPolicyQuery = fmt.Sprintf(`INSERT into policies(namespace_id, role_id, action_id) 
-	values($1, $2, $3) 
-	ON CONFLICT (role_id, namespace_id, action_id) DO UPDATE SET namespace_id=$1
-	RETURNING id, namespace_id, role_id, action_id`)
-	getPolicyQuery    = fmt.Sprintf(`SELECT %s FROM policies p %s WHERE p.id = $1`, selectStatement, joinStatement)
-	listPolicyQuery   = fmt.Sprintf(`SELECT %s FROM policies p %s`, selectStatement, joinStatement)
-	updatePolicyQuery = fmt.Sprintf(`UPDATE policies SET namespace_id = $2, role_id = $3, action_id = $4, updated_at = now() where id = $1 RETURNING id, namespace_id, role_id, action_id;`)
-)
+func buildPolicySelectStatement(dialect goqu.DialectWrapper) *goqu.SelectDataset {
+	selectStatement := dialect.Select(
+		"p.id",
+		"p.namespace_id",
+		goqu.I("roles.id").As(goqu.C("role.id")),
+		goqu.I("roles.name").As(goqu.C("role.name")),
+		goqu.I("roles.types").As(goqu.C("role.types")),
+		goqu.I("roles.namespace_id").As(goqu.C("role.namespace_id")),
+		goqu.I("roles.namespace_id").As(goqu.C("role.namespace.id")),
+		goqu.I("roles.metadata").As(goqu.C("role.metadata")),
+		goqu.I("namespaces.id").As(goqu.C("namespace.id")),
+		goqu.I("namespaces.name").As(goqu.C("namespace.name")),
+		goqu.I("actions.id").As(goqu.C("action.id")),
+		goqu.I("actions.name").As(goqu.C("action.name")),
+		goqu.I("actions.namespace_id").As(goqu.C("action.namespace_id")),
+		goqu.I("actions.namespace_id").As(goqu.C("action.namespace.id")),
+	).From(goqu.T(TABLE_POLICY).As("p"))
+
+	return selectStatement
+}
+
+func buildPolicyJoinStatement(selectStatement *goqu.SelectDataset) *goqu.SelectDataset {
+	joinStatement := selectStatement.Join(goqu.T(TABLE_ROLES), goqu.On(
+		goqu.I("roles.id").Eq(goqu.I("p.role_id")),
+	)).Join(goqu.T(TABLE_ACTION), goqu.On(
+		goqu.I("actions.id").Eq(goqu.I("p.action_id")),
+	)).Join(goqu.T(TABLE_NAMESPACE), goqu.On(
+		goqu.I("namespaces.id").Eq(goqu.I("p.namespace_id")),
+	))
+
+	return joinStatement
+}
+
+func buildCreatePolicyQuery(dialect goqu.DialectWrapper) (string, error) {
+	createPolicyQuery, _, err := dialect.Insert(TABLE_POLICY).Rows(
+		goqu.Record{
+			"namespace_id": goqu.L("$1"),
+			"role_id":      goqu.L("$2"),
+			"action_id":    goqu.L("$3"),
+		}).OnConflict(goqu.DoUpdate("role_id, namespace_id, action_id", goqu.Record{
+		"namespace_id": goqu.L("$1"),
+	})).Returning(&PolicyCols{}).ToSQL()
+
+	return createPolicyQuery, err
+}
+
+func buildGetPolicyQuery(dialect goqu.DialectWrapper) (string, error) {
+	selectStatement := buildPolicySelectStatement(dialect)
+	joinStatement := buildPolicyJoinStatement(selectStatement)
+	getPolicyQuery, _, err := joinStatement.Where(goqu.Ex{
+		"p.id": goqu.L("$1"),
+	}).ToSQL()
+
+	return getPolicyQuery, err
+}
+func buildListPolicyQuery(dialect goqu.DialectWrapper) (string, error) {
+	selectStatement := buildPolicySelectStatement(dialect)
+	joinStatement := buildPolicyJoinStatement(selectStatement)
+	listPolicyQuery, _, err := joinStatement.ToSQL()
+
+	return listPolicyQuery, err
+}
+func buildUpdatePolicyQuery(dialect goqu.DialectWrapper) (string, error) {
+	updatePolicyQuery, _, err := dialect.Update(TABLE_POLICY).Set(
+		goqu.Record{
+			"namespace_id": goqu.L("$2"),
+			"role_id":      goqu.L("$3"),
+			"action_id":    goqu.L("$4"),
+			"updated_at":   goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning(&PolicyCols{}).ToSQL()
+
+	return updatePolicyQuery, err
+}
 
 func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
 	fetchedPolicy, err := s.selectPolicy(ctx, id)
@@ -46,8 +117,12 @@ func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
 
 func (s Store) selectPolicy(ctx context.Context, id string) (model.Policy, error) {
 	var fetchedPolicy Policy
+	getPolicyQuery, err := buildGetPolicyQuery(dialect)
+	if err != nil {
+		return model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedPolicy, getPolicyQuery, id)
 	})
 
@@ -71,7 +146,12 @@ func (s Store) selectPolicy(ctx context.Context, id string) (model.Policy, error
 
 func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	var fetchedPolicies []Policy
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	listPolicyQuery, err := buildListPolicyQuery(dialect)
+	if err != nil {
+		return []model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedPolicies, listPolicyQuery)
 	})
 
@@ -99,8 +179,12 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 	roleId := utils.DefaultStringIfEmpty(policyToCreate.Role.Id, policyToCreate.RoleId)
 	actionId := utils.DefaultStringIfEmpty(policyToCreate.Action.Id, policyToCreate.ActionId)
 	nsId := utils.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
+	createPolicyQuery, err := buildCreatePolicyQuery(dialect)
+	if err != nil {
+		return []model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsId, roleId, sql.NullString{String: actionId, Valid: actionId != ""})
 	})
 	if err != nil {
@@ -111,8 +195,12 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 
 func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Policy) ([]model.Policy, error) {
 	var updatedPolicy Policy
+	updatePolicyQuery, err := buildUpdatePolicyQuery(dialect)
+	if err != nil {
+		return []model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceId, toUpdate.RoleId, sql.NullString{String: toUpdate.ActionId, Valid: toUpdate.ActionId != ""})
 	})
 
