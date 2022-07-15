@@ -321,7 +321,7 @@ func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupI
 }
 
 func transformToGroup(from Group) (model.Group, error) {
-	var unmarshalledMetadata map[string]string
+	var unmarshalledMetadata map[string]any
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 		return model.Group{}, err
 	}

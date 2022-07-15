@@ -241,7 +241,7 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 }
 
 func transformToRole(from Role) (model.Role, error) {
-	var unmarshalledMetadata map[string]string
+	var unmarshalledMetadata map[string]any
 	if len(from.Metadata) > 0 {
 		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 			return model.Role{}, err

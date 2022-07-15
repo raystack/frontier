@@ -257,7 +257,7 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 }
 
 func transformToOrg(from Organization) (model.Organization, error) {
-	var unmarshalledMetadata map[string]string
+	var unmarshalledMetadata map[string]any
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 		return model.Organization{}, err
 	}

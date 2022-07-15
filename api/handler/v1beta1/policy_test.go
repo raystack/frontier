@@ -40,7 +40,7 @@ var testPolicyMap = map[string]model.Policy{
 		Role: model.Role{
 			Id:       "reader",
 			Name:     "Reader",
-			Metadata: map[string]string{},
+			Metadata: map[string]any{},
 			Namespace: model.Namespace{
 				Id:        "resource-1",
 				Name:      "Resource 1",
@@ -182,7 +182,7 @@ func TestCreatePolicy(t *testing.T) {
 						Role: model.Role{
 							Id:       "reader",
 							Name:     "Reader",
-							Metadata: map[string]string{},
+							Metadata: map[string]any{},
 							Namespace: model.Namespace{
 								Id:        "resource-1",
 								Name:      "Resource 1",

@@ -26,7 +26,7 @@ var testProjectMap = map[string]model.Project{
 		Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name: "Prj 1",
 		Slug: "prj-1",
-		Metadata: map[string]string{
+		Metadata: map[string]any{
 			"email": "org1@org1.com",
 		},
 		CreatedAt: time.Time{},
@@ -36,7 +36,7 @@ var testProjectMap = map[string]model.Project{
 		Id:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
 		Name: "Prj 2",
 		Slug: "prj-2",
-		Metadata: map[string]string{
+		Metadata: map[string]any{
 			"email": "org1@org2.com",
 		},
 		CreatedAt: time.Time{},
