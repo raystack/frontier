@@ -7,6 +7,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 
+	"github.com/doug-martin/goqu/v9"
+
 	"github.com/odpf/shield/pkg/sql"
 )
 
