@@ -62,7 +62,6 @@ func buildListGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildUpdateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
-
 	updateGroupQuery, _, err := dialect.Update(TABLE_GROUPS).
 		Set(goqu.Record{
 			"name":       goqu.L("$2"),
