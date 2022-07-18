@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3.2.0
         with:
           skip-go-installation: true
-          version: v1.41.1
+          version: v1.46.2
