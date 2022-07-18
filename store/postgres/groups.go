@@ -66,7 +66,7 @@ func buildListGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 
 func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 	listGroupUsersQuery, _, err := dialect.Select(
-		goqu.I("u.id").As("u"),
+		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
 		goqu.I("u.email").As("email"),
 		goqu.I("u.metadata").As("metadata"),
