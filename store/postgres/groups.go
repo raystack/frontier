@@ -28,7 +28,7 @@ type Group struct {
 }
 
 func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
-	createGroupsQuery, _, err := dialect.Insert("groups").Rows(
+	createGroupsQuery, _, err := dialect.Insert(TABLE_GROUPS).Rows(
 		goqu.Record{
 			"name":     goqu.L("$1"),
 			"slug":     goqu.L("$2"),
@@ -39,7 +39,7 @@ func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getGroupsQuery, _, err := dialect.Select(&Group{}).From("groups").Where(goqu.Ex{
+	getGroupsQuery, _, err := dialect.Select(&Group{}).From(TABLE_GROUPS).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 
@@ -47,13 +47,13 @@ func buildGetGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildListGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
-	listGroupsQuery, _, err := dialect.From("groups").ToSQL()
+	listGroupsQuery, _, err := dialect.From(TABLE_GROUPS).ToSQL()
 
 	return listGroupsQuery, err
 }
 
 func buildUpdateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateGroupQuery, _, err := dialect.Update("groups").
+	updateGroupQuery, _, err := dialect.Update(TABLE_GROUPS).
 		Set(goqu.Record{
 			"name":       goqu.L("$2"),
 			"slug":       goqu.L("$3"),
@@ -74,8 +74,8 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.L("relations r")).
-		Join(goqu.L("users u"), goqu.On(
+	).From(goqu.T(TABLE_RELATION).As("r")).
+		Join(goqu.T(TABLE_USER).As("u"), goqu.On(
 			goqu.I("u.id").Cast("VARCHAR").
 				Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
@@ -89,13 +89,12 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	listUserGroupRelationsQuery, _, err := dialect.From("relations").
-		Where(goqu.Ex{
-			"subject_namespace_id": goqu.L(definition.UserNamespace.Id),
-			"object_namespace_id":  goqu.L(definition.TeamNamespace.Id),
-			"subject_id":           goqu.L("$1"),
-			"object_id":            goqu.L("$2"),
-		}).ToSQL()
+	listUserGroupRelationsQuery, _, err := dialect.From(TABLE_RELATION).Where(goqu.Ex{
+		"subject_namespace_id": goqu.L(definition.UserNamespace.Id),
+		"object_namespace_id":  goqu.L(definition.TeamNamespace.Id),
+		"subject_id":           goqu.L("$1"),
+		"object_id":            goqu.L("$2"),
+	}).ToSQL()
 
 	return listUserGroupRelationsQuery, err
 }

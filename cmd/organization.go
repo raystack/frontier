@@ -37,9 +37,9 @@ func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	cmd.AddCommand(editOrganizationCommand(logger, appConfig))
 	cmd.AddCommand(viewOrganizationCommand(logger, appConfig))
 	cmd.AddCommand(listOrganizationCommand(logger, appConfig))
-	//cmd.AddCommand(admaddOrganizationCommand(logger, appConfig))
-	//cmd.AddCommand(admremoveOrganizationCommand(logger, appConfig))
-	//cmd.AddCommand(admlistOrganizationCommand(logger, appConfig))
+	cmd.AddCommand(admaddOrganizationCommand(logger, appConfig))
+	cmd.AddCommand(admremoveOrganizationCommand(logger, appConfig))
+	cmd.AddCommand(admlistOrganizationCommand(logger, appConfig))
 
 	return cmd
 }
@@ -288,7 +288,6 @@ func listOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 	return cmd
 }
 
-/*
 func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	var filePath string
 
@@ -392,7 +391,6 @@ func admremoveOrganizationCommand(logger log.Logger, appConfig *config.Shield) *
 }
 
 func admlistOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-
 	cmd := &cli.Command{
 		Use:   "admlist",
 		Short: "list admins of an organization",
@@ -446,4 +444,3 @@ func admlistOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cl
 
 	return cmd
 }
-*/

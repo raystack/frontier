@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/model"
-
 	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/grpc/codes"
@@ -16,6 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/odpf/shield/model"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 

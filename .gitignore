@@ -16,6 +16,5 @@ rules/test.yaml
 *.pprof
 ignore/
 vendor/
-buf.gen.yaml
 buf.lock
 buf.yaml

@@ -33,63 +33,91 @@ type Resource struct {
 	DeletedAt      sql.NullTime   `db:"deleted_at"`
 }
 
-const (
-	createResourceQuery = `
-		INSERT INTO resources (
-			urn,
-		    name,
-			project_id,
-			group_id,
-			org_id,
-			namespace_id,
-		    user_id
-		) VALUES (
-			$1,
-			$2,
-			$3,
-			$4,
-			$5,
-		    $6,
-		    $7
-		)
-		ON CONFLICT ON CONSTRAINT resources_urn_unique 
-		DO
-		    UPDATE SET name=$2, project_id=$3, group_id=$4, org_id=$5, namespace_id=$6,user_id=$7
-		RETURNING id, urn, name, project_id, group_id, org_id, namespace_id, user_id, created_at, updated_at;`
-	getResourcesQueryByURN = `
-		SELECT
-			id,
-		    urn,
-		    name,
-			project_id,
-			group_id,
-			org_id,
-			namespace_id,
-		    user_id,
-			created_at,
-			updated_at
-		FROM resources
-		WHERE urn = $1;`
-	updateResourceQuery = `
-		UPDATE resources SET
-		    name = $2,
-			project_id = $3,
-			group_id = $4,
-			org_id = $5,
-			namespace_id = $6,
-		    user_id = $7,
-		    urn = $8,
-		WHERE id = $1
-		`
-)
+type ResourceCols struct {
+	Id             string         `db:"id"`
+	Urn            string         `db:"urn"`
+	Name           string         `db:"name"`
+	ProjectId      string         `db:"project_id"`
+	GroupId        sql.NullString `db:"group_id"`
+	OrganizationId string         `db:"org_id"`
+	NamespaceId    string         `db:"namespace_id"`
+	UserId         sql.NullString `db:"user_id"`
+	CreatedAt      time.Time      `db:"created_at"`
+	UpdatedAt      time.Time      `db:"updated_at"`
+}
+
+func buildListResourcesStatement(dialect goqu.DialectWrapper) *goqu.SelectDataset {
+	listResourcesStatement := dialect.From(TABLE_RESOURCE)
+
+	return listResourcesStatement
+}
+
+func buildGetResourcesByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	getResourcesByIdQuery, _, err := buildListResourcesStatement(dialect).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
+
+	return getResourcesByIdQuery, err
+}
+
+func buildCreateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
+	createResourceQuery, _, err := dialect.Insert(TABLE_RESOURCE).Rows(
+		goqu.Record{
+			"urn":          goqu.L("$1"),
+			"name":         goqu.L("$2"),
+			"project_id":   goqu.L("$3"),
+			"group_id":     goqu.L("$4"),
+			"org_id":       goqu.L("$5"),
+			"namespace_id": goqu.L("$6"),
+			"user_id":      goqu.L("$7"),
+		}).OnConflict(goqu.DoUpdate("ON CONSTRAINT resources_urn_unique", goqu.Record{
+		"name":         goqu.L("$2"),
+		"project_id":   goqu.L("$3"),
+		"group_id":     goqu.L("$4"),
+		"org_id":       goqu.L("$5"),
+		"namespace_id": goqu.L("$6"),
+		"user_id":      goqu.L("$7"),
+	})).Returning(&ResourceCols{}).ToSQL()
+
+	return createResourceQuery, err
+}
+
+func buildGetResourcesByURNQuery(dialect goqu.DialectWrapper) (string, error) {
+	getResourcesByURNQuery, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCE).Where(goqu.Ex{
+		"urn": goqu.L("$1"),
+	}).ToSQL()
+
+	return getResourcesByURNQuery, err
+}
+
+func buildUpdateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateResourceQuery, _, err := dialect.Update(TABLE_RESOURCE).Set(
+		goqu.Record{
+			"name":         goqu.L("$2"),
+			"project_id":   goqu.L("$3"),
+			"group_id":     goqu.L("$4"),
+			"org_id":       goqu.L("$5"),
+			"namespace_id": goqu.L("$6"),
+			"user_id":      goqu.L("$7"),
+			"urn":          goqu.L("$8"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
+
+	return updateResourceQuery, err
+}
 
 func (s Store) CreateResource(ctx context.Context, resourceToCreate model.Resource) (model.Resource, error) {
 	var newResource Resource
 
 	userId := sql.NullString{String: resourceToCreate.UserId, Valid: resourceToCreate.UserId != ""}
 	groupId := sql.NullString{String: resourceToCreate.GroupId, Valid: resourceToCreate.GroupId != ""}
+	createResourceQuery, err := buildCreateResourceQuery(dialect)
+	if err != nil {
+		return model.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Urn, resourceToCreate.Name, resourceToCreate.ProjectId, groupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId, userId)
 	})
 
@@ -113,22 +141,21 @@ func (s Store) ListResources(ctx context.Context, filters model.ResourceFilters)
 		return []model.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	selectQuery := goqu.Select("*").From("resources")
+	listResourcesStatement := buildListResourcesStatement(dialect)
 
 	for key, value := range filterQueryMap {
 		if value != "" {
-			selectQuery = selectQuery.Where(goqu.Ex{key: value})
+			listResourcesStatement = listResourcesStatement.Where(goqu.Ex{key: value})
 		}
 	}
 
-	querySql, _, err := selectQuery.ToSQL()
-
+	listResourcesQuery, _, err := listResourcesStatement.ToSQL()
 	if err != nil {
-		return []model.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []model.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedResources, querySql)
+		return s.DB.SelectContext(ctx, &fetchedResources, listResourcesQuery)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -156,14 +183,13 @@ func (s Store) ListResources(ctx context.Context, filters model.ResourceFilters)
 func (s Store) GetResource(ctx context.Context, id string) (model.Resource, error) {
 	var fetchedResource Resource
 
-	querySql, _, err := goqu.Select("*").From("resources").Where(goqu.Ex{"id": id}).ToSQL()
-
+	getResourcesByIdQuery, err := buildGetResourcesByIdQuery(dialect)
 	if err != nil {
-		return model.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+		return model.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedResource, querySql)
+		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByIdQuery, id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -193,8 +219,12 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 
 	userId := sql.NullString{String: toUpdate.UserId, Valid: toUpdate.UserId != ""}
 	groupId := sql.NullString{String: toUpdate.GroupId, Valid: toUpdate.GroupId != ""}
+	updateResourceQuery, err := buildUpdateResourceQuery(dialect)
+	if err != nil {
+		return model.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, groupId, toUpdate.OrganizationId, toUpdate.NamespaceId, userId, toUpdate.Urn)
 	})
 
@@ -218,8 +248,13 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate model.Res
 
 func (s Store) GetResourceByURN(ctx context.Context, urn string) (model.Resource, error) {
 	var fetchedResource Resource
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedResource, getResourcesQueryByURN, urn)
+	getResourcesByURNQuery, err := buildGetResourcesByURNQuery(dialect)
+	if err != nil {
+		return model.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByURNQuery, urn)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {

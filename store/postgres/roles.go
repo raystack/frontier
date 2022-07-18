@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
-
+	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
+
 	"github.com/odpf/shield/internal/project"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type Role struct {
@@ -27,22 +28,80 @@ type Role struct {
 	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
-const roleSelectStatement = `r.id, r.name, r.types, r.namespace_id, r.metadata, namespaces.id "namespace.id", namespaces.name "namespace.name"`
-const roleJoinStatement = `JOIN namespaces on namespaces.id = r.namespace_id`
+func buildRoleSelectStatement(dialect goqu.DialectWrapper) *goqu.SelectDataset {
+	roleSelectStatement := dialect.Select(
+		goqu.I("r.id"),
+		goqu.I("r.name"),
+		goqu.I("r.types"),
+		goqu.I("r.namespace_id"),
+		goqu.I("r.metadata"),
+		goqu.I("namespaces.id").As(goqu.C("namespace.id")),
+		goqu.I("namespaces.name").As(goqu.C("namespace.name")),
+	).From(goqu.T(TABLE_ROLES).As("r"))
 
-var (
-	createRoleQuery = `INSERT into roles(id, name, types, namespace_id, metadata) 
-		values($1, $2, $3, $4, $5) 
-		ON CONFLICT (id) DO UPDATE SET name=$2
-		RETURNING id;`
-	getRoleQuery    = fmt.Sprintf(`SELECT %s FROM roles r %s WHERE r.id = $1`, roleSelectStatement, roleJoinStatement)
-	listRolesQuery  = fmt.Sprintf(`SELECT %s FROM roles r %s`, roleSelectStatement, roleJoinStatement)
-	updateRoleQuery = `UPDATE roles SET name = $2, types = $3, namespace_id = $4, metadata = $5, updated_at = now() where id = $1 RETURNING id;`
-)
+	return roleSelectStatement
+}
+
+func buildRoleJoinStatement(selectStatement *goqu.SelectDataset) *goqu.SelectDataset {
+	roleJoinStatement := selectStatement.Join(goqu.T(TABLE_NAMESPACE), goqu.On(
+		goqu.I("namespaces.id").Eq(goqu.I("r.namespace_id"))))
+
+	return roleJoinStatement
+}
+
+func buildCreateRoleQuery(dialect goqu.DialectWrapper) (string, error) {
+	createRoleQuery, _, err := dialect.Insert(TABLE_ROLES).Rows(
+		goqu.Record{
+			"id":           goqu.L("$1"),
+			"name":         goqu.L("$2"),
+			"types":        goqu.L("$3"),
+			"namespace_id": goqu.L("$4"),
+			"metadata":     goqu.L("$5"),
+		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
+		"name": goqu.L("$2"),
+	})).Returning("id").ToSQL()
+
+	return createRoleQuery, err
+}
+func buildGetRoleQuery(dialect goqu.DialectWrapper) (string, error) {
+	selectStatement := buildRoleSelectStatement(dialect)
+	joinStatement := buildRoleJoinStatement(selectStatement)
+	getRoleQuery, _, err := joinStatement.Where(goqu.Ex{
+		"r.id": goqu.L("$1"),
+	}).ToSQL()
+
+	return getRoleQuery, err
+}
+func buildListRolesQuery(dialect goqu.DialectWrapper) (string, error) {
+	selectStatement := buildRoleSelectStatement(dialect)
+	joinStatement := buildRoleJoinStatement(selectStatement)
+	listRolesQuery, _, err := joinStatement.ToSQL()
+
+	return listRolesQuery, err
+}
+func buildUpdateRoleQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateRoleQuery, _, err := dialect.Update(TABLE_ROLES).Set(
+		goqu.Record{
+			"name":         goqu.L("$2"),
+			"types":        goqu.L("$3"),
+			"namespace_id": goqu.L("$4"),
+			"metadata":     goqu.L("$5"),
+			"updated_at":   goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning("id").ToSQL()
+
+	return updateRoleQuery, err
+}
 
 func (s Store) GetRole(ctx context.Context, id string) (model.Role, error) {
 	var fetchedRole Role
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	getRoleQuery, err := buildGetRoleQuery(dialect)
+	if err != nil {
+		return model.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, id)
 	})
 
@@ -70,12 +129,21 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate model.Role) (model.R
 	var fetchedRole Role
 
 	nsId := utils.DefaultStringIfEmpty(roleToCreate.Namespace.Id, roleToCreate.NamespaceId)
+	createRoleQuery, err := buildCreateRoleQuery(dialect)
+	if err != nil {
+		return model.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.Id, roleToCreate.Name, pq.StringArray(roleToCreate.Types), nsId, marshaledMetadata)
 	})
 	if err != nil {
 		return model.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	getRoleQuery, err := buildGetRoleQuery(dialect)
+	if err != nil {
+		return model.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -98,7 +166,12 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate model.Role) (model.R
 
 func (s Store) ListRoles(ctx context.Context) ([]model.Role, error) {
 	var fetchedRoles []Role
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	listRolesQuery, err := buildListRolesQuery(dialect)
+	if err != nil {
+		return []model.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedRoles, listRolesQuery)
 	})
 	if errors.Is(err, sql.ErrNoRows) {
@@ -129,6 +202,11 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 		return model.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	updateRoleQuery, err := buildUpdateRoleQuery(dialect)
+	if err != nil {
+		return model.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.Id, toUpdate.Name, pq.StringArray(toUpdate.Types), toUpdate.NamespaceId, marshaledMetadata)
 	})
@@ -137,6 +215,11 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate model.Role) (model.Role,
 		return model.Role{}, roles.RoleDoesntExist
 	} else if err != nil {
 		return model.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	getRoleQuery, err := buildGetRoleQuery(dialect)
+	if err != nil {
+		return model.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {

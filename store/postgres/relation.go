@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/doug-martin/goqu/v9"
 
 	"github.com/odpf/shield/internal/relation"
 	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type Relation struct {
@@ -28,85 +29,94 @@ type Relation struct {
 	UpdatedAt          time.Time      `db:"updated_at"`
 }
 
-const (
-	createRelationQuery = `
-		INSERT INTO relations(
-		  subject_namespace_id,
-		  subject_id,
-		  object_namespace_id,
-		  object_id,
-		  role_id,
-		  namespace_id
-		) values (
-			  $1,
-			  $2,
-			  $3,
-			  $4,
-			  $5,
-		      $6
-		) 
-		ON CONFLICT (subject_namespace_id,  subject_id, object_namespace_id,  object_id, COALESCE(role_id, ''), COALESCE(namespace_id, '')) DO UPDATE SET subject_namespace_id=$1
-		RETURNING id, subject_namespace_id,  subject_id, object_namespace_id,  object_id, role_id, namespace_id, created_at, updated_at;`
-	listRelationQuery = `
-		SELECT 
-		       id,
-		       subject_namespace_id,
-		       subject_id,
-		       object_namespace_id,
-		       object_id,
-		       role_id,
-		       namespace_id,
-		       created_at,
-		       updated_at
-		FROM relations;`
-	getRelationsQuery = `
-		SELECT 
-		       id, 
-		       subject_namespace_id, 
-		       subject_id, 
-		       object_namespace_id, 
-		       object_id, 
-		       role_id,
-		       namespace_id,
-		       created_at, 
-		       updated_at 
-		FROM relations 
-		WHERE id = $1;`
-	updateRelationQuery = `
-		UPDATE relations SET
-			 subject_namespace_id = $2,
-			 subject_id = $3,
-			 object_namespace_id = $4,
-			 object_id = $5,
-			 role_id = $6,
-			 namespace_id = $7
-		WHERE id = $1
-		RETURNING 
-		   id,
-		   subject_namespace_id,
-		   subject_id,
-		   object_namespace_id,
-		   object_id,
-		   role_id,
-		   namespace_id,
-		   created_at,
-		   updated_at;
-		`
-	getRelationByFieldsQuery = `
-		SELECT 
-		       id, 
-		       subject_namespace_id, 
-		       subject_id, 
-		       object_namespace_id, 
-		       object_id, 
-		       role_id,
-		       namespace_id,
-		       created_at, 
-		       updated_at 
-		FROM relations 
-		WHERE subject_namespace_id=$1 AND subject_id=$2 AND object_namespace_id=$3 AND object_id=$4 AND (role_id IS NULL OR role_id = $5) AND (namespace_id IS NULL OR namespace_id = $6);`
-	deleteRelationById = `DELETE FROM relations WHERE id = $1;`
-)
+type relationCols struct {
+	Id                 string         `db:"id"`
+	SubjectNamespaceId string         `db:"subject_namespace_id"`
+	SubjectId          string         `db:"subject_id"`
+	ObjectNamespaceId  string         `db:"object_namespace_id"`
+	ObjectId           string         `db:"object_id"`
+	RoleId             sql.NullString `db:"role_id"`
+	NamespaceId        sql.NullString `db:"namespace_id"`
+	CreatedAt          time.Time      `db:"created_at"`
+	UpdatedAt          time.Time      `db:"updated_at"`
+}
+
+func buildCreateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
+	// TODO: Look for a better way to implement goqu.OnConflict with multiple columns
+
+	createRelationQuery, _, err := dialect.Insert(TABLE_RELATION).Rows(
+		goqu.Record{
+			"subject_namespace_id": goqu.L("$1"),
+			"subject_id":           goqu.L("$2"),
+			"object_namespace_id":  goqu.L("$3"),
+			"object_id":            goqu.L("$4"),
+			"role_id":              goqu.L("$5"),
+			"namespace_id":         goqu.L("$6"),
+		}).OnConflict(goqu.DoUpdate("subject_namespace_id, subject_id, object_namespace_id,  object_id, COALESCE(role_id, ''), COALESCE(namespace_id, '')", goqu.Record{
+		"subject_namespace_id": goqu.L("$1"),
+	})).Returning(&relationCols{}).ToSQL()
+
+	return createRelationQuery, err
+}
+
+func buildListRelationQuery(dialect goqu.DialectWrapper) (string, error) {
+	listRelationQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).ToSQL()
+
+	return listRelationQuery, err
+}
+
+func buildGetRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
+	getRelationsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
+
+	return getRelationsQuery, err
+}
+
+func buildUpdateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateRelationQuery, _, err := goqu.Update(TABLE_RELATION).Set(
+		goqu.Record{
+			"subject_namespace_id": goqu.L("$2"),
+			"subject_id":           goqu.L("$3"),
+			"object_namespace_id":  goqu.L("$4"),
+			"object_id":            goqu.L("$5"),
+			"role_id":              goqu.L("$6"),
+			"namespace_id":         goqu.L("$7"),
+		}).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).Returning(&relationCols{}).ToSQL()
+
+	return updateRelationQuery, err
+}
+
+func buildGetRelationByFieldsQuery(dialect goqu.DialectWrapper) (string, error) {
+	getRelationByFieldsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).Where(goqu.Ex{
+		"subject_namespace_id": goqu.L("$1"),
+		"subject_id":           goqu.L("$2"),
+		"object_namespace_id":  goqu.L("$3"),
+		"object_id":            goqu.L("$4"),
+	}, goqu.And(
+		goqu.Or(
+			goqu.C("role_id").IsNull(),
+			goqu.C("role_id").Eq(goqu.L("$5")),
+		)),
+		goqu.And(
+			goqu.Or(
+				goqu.C("namespace_id").IsNull(),
+				goqu.C("namespace_id").Eq(goqu.L("$6")),
+			),
+		)).ToSQL()
+
+	return getRelationByFieldsQuery, err
+}
+
+func buildDeleteRelationByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	deleteRelationByIdQuery, _, err := dialect.Delete(TABLE_RELATION).Where(goqu.Ex{
+		"id": goqu.L("$1"),
+	}).ToSQL()
+
+	return deleteRelationByIdQuery, err
+}
 
 func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relation) (model.Relation, error) {
 	var newRelation Relation
@@ -121,7 +131,12 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relati
 		roleId = ""
 	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	createRelationQuery, err := buildCreateRelationQuery(dialect)
+	if err != nil {
+		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(
 			ctx,
 			&newRelation,
@@ -150,7 +165,12 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relati
 
 func (s Store) ListRelations(ctx context.Context) ([]model.Relation, error) {
 	var fetchedRelations []Relation
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	listRelationQuery, err := buildListRelationQuery(dialect)
+	if err != nil {
+		return []model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedRelations, listRelationQuery)
 	})
 
@@ -178,7 +198,12 @@ func (s Store) ListRelations(ctx context.Context) ([]model.Relation, error) {
 
 func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, error) {
 	var fetchedRelation Relation
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	getRelationsQuery, err := buildGetRelationsQuery(dialect)
+	if err != nil {
+		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &fetchedRelation, getRelationsQuery, id)
 	})
 
@@ -205,8 +230,13 @@ func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, erro
 }
 
 func (s Store) DeleteRelationById(ctx context.Context, id string) error {
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		result, err := s.DB.ExecContext(ctx, deleteRelationById, id)
+	deleteRelationByIdQuery, err := buildDeleteRelationByIdQuery(dialect)
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		result, err := s.DB.ExecContext(ctx, deleteRelationByIdQuery, id)
 		if err == nil {
 			count, err := result.RowsAffected()
 			if err == nil {
@@ -233,7 +263,12 @@ func (s Store) GetRelationByFields(ctx context.Context, rel model.Relation) (mod
 		roleId = ""
 	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	getRelationByFieldsQuery, err := buildGetRelationByFieldsQuery(dialect)
+	if err != nil {
+		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx,
 			&fetchedRelation,
 			getRelationByFieldsQuery,
@@ -281,7 +316,12 @@ func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate model.Rel
 		roleId = ""
 	}
 
-	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+	updateRelationQuery, err := buildUpdateRelationQuery(dialect)
+	if err != nil {
+		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(
 			ctx,
 			&updatedRelation,
