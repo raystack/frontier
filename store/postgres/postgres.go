@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
@@ -44,6 +43,5 @@ func NewStore(db *sql.SQL) Store {
 
 func isUUID(key string) bool {
 	_, err := uuid.Parse(key)
-	fmt.Println(err)
 	return err == nil
 }

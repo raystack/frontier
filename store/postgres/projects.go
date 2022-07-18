@@ -26,6 +26,7 @@ type Project struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
+// *Get Projects Query
 func buildGetProjectsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
 	getProjectsBySlugQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
 		"slug": goqu.L("$1"),
@@ -35,13 +36,15 @@ func buildGetProjectsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetProjectsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	getProjectsByIdQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.Or(
-		goqu.C("id").Eq(goqu.L("$1")),
-		goqu.C("slug").Eq(goqu.L("$2")),
-	)).ToSQL()
+	getProjectsByIdQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
+		"id":   goqu.L("$1"),
+		"slug": goqu.L("$2"),
+	}).ToSQL()
 
 	return getProjectsByIdQuery, err
 }
+
+// *Create Project Query
 func buildCreateProjectQuery(dialect goqu.DialectWrapper) (string, error) {
 	createProjectQuery, _, err := dialect.Insert(TABLE_PROJECTS).Rows(
 		goqu.Record{
@@ -53,25 +56,8 @@ func buildCreateProjectQuery(dialect goqu.DialectWrapper) (string, error) {
 
 	return createProjectQuery, err
 }
-func buildListProjectQuery(dialect goqu.DialectWrapper) (string, error) {
-	listProjectQuery, _, err := dialect.From(TABLE_PROJECTS).ToSQL()
 
-	return listProjectQuery, err
-}
-func buildUpdateProjectQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateProjectQuery, _, err := dialect.Update(TABLE_PROJECTS).Set(
-		goqu.Record{
-			"name":       goqu.L("$2"),
-			"slug":       goqu.L("$3"),
-			"org_id":     goqu.L("$4"),
-			"metadata":   goqu.L("$5"),
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"id": goqu.L("$1"),
-	}).Returning(&Project{}).ToSQL()
-
-	return updateProjectQuery, err
-}
+// *List Project Query
 func buildListProjectAdminsQuery(dialect goqu.DialectWrapper) (string, error) {
 	listProjectAdminsQuery, _, err := dialect.Select(
 		goqu.I("u.id").As("id"),
@@ -91,6 +77,44 @@ func buildListProjectAdminsQuery(dialect goqu.DialectWrapper) (string, error) {
 	}).ToSQL()
 
 	return listProjectAdminsQuery, err
+}
+
+func buildListProjectQuery(dialect goqu.DialectWrapper) (string, error) {
+	listProjectQuery, _, err := dialect.From(TABLE_PROJECTS).ToSQL()
+
+	return listProjectQuery, err
+}
+
+// *Update Project Query
+func buildUpdateProjectBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateProjectQuery, _, err := dialect.Update(TABLE_PROJECTS).Set(
+		goqu.Record{
+			"name":       goqu.L("$2"),
+			"slug":       goqu.L("$3"),
+			"org_id":     goqu.L("$4"),
+			"metadata":   goqu.L("$5"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"slug": goqu.L("$1"),
+	}).Returning(&Project{}).ToSQL()
+
+	return updateProjectQuery, err
+}
+
+func buildUpdateProjectByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateProjectQuery, _, err := dialect.Update(TABLE_PROJECTS).Set(
+		goqu.Record{
+			"name":       goqu.L("$3"),
+			"slug":       goqu.L("$4"),
+			"org_id":     goqu.L("$5"),
+			"metadata":   goqu.L("$6"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.ExOr{
+		"id":   goqu.L("$1"),
+		"slug": goqu.L("$2"),
+	}).Returning(&Project{}).ToSQL()
+
+	return updateProjectQuery, err
 }
 
 func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
@@ -209,15 +233,27 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 		return model.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	updateProjectQuery, err := buildUpdateProjectQuery(dialect)
+	var updateProjectQuery string
+	isUuid := isUUID(toUpdate.Id)
+
+	if isUuid {
+		updateProjectQuery, err = buildUpdateProjectByIdQuery(dialect)
+	} else {
+		updateProjectQuery, err = buildUpdateProjectBySlugQuery(dialect)
+	}
 	if err != nil {
 		return model.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
-	})
-
+	if isUuid {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+		})
+	} else {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+		})
+	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Project{}, project.ProjectDoesntExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
