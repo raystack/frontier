@@ -270,7 +270,7 @@ func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]model.User, 
 }
 
 func transformToProject(from Project) (model.Project, error) {
-	var unmarshalledMetadata map[string]string
+	var unmarshalledMetadata map[string]any
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 		return model.Project{}, err
 	}

@@ -23,8 +23,10 @@ var testOrgMap = map[string]model.Organization{
 		Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name: "Org 1",
 		Slug: "org-1",
-		Metadata: map[string]string{
-			"email": "org1@org1.com",
+		Metadata: map[string]any{
+			"email":  "org1@org1.com",
+			"age":    21,
+			"intern": true,
 		},
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
@@ -63,7 +65,9 @@ func TestListOrganizations(t *testing.T) {
 					Slug: "org-1",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
-							"email": structpb.NewStringValue("org1@org1.com"),
+							"email":  structpb.NewStringValue("org1@org1.com"),
+							"age":    structpb.NewNumberValue(21),
+							"intern": structpb.NewBoolValue(true),
 						},
 					},
 					CreatedAt: timestamppb.New(time.Time{}),
