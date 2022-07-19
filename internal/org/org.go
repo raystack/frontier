@@ -6,9 +6,8 @@ import (
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/permission"
-	shieldError "github.com/odpf/shield/utils/errors"
-
 	"github.com/odpf/shield/model"
+	shieldError "github.com/odpf/shield/utils/errors"
 )
 
 type Service struct {

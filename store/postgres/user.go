@@ -48,7 +48,7 @@ func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetUsersByIdsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getUsersByIdsQuery, _, err := dialect.From("users").Prepared(true).Where(
+	getUsersByIdsQuery, _, err := goqu.From("users").Prepared(true).Where(
 		goqu.C("id").In("id_PH")).ToSQL()
 
 	return getUsersByIdsQuery, err
