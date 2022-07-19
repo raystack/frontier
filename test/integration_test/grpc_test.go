@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/hook"
-	"github.com/odpf/shield/proxy"
-	blobstore "github.com/odpf/shield/store/blob"
+	"github.com/odpf/shield/internal/proxy"
+	"github.com/odpf/shield/internal/proxy/hook"
+	"github.com/odpf/shield/internal/store/blob"
 	"github.com/odpf/shield/test/integration_test/fixtures/helloworld"
 
 	"github.com/odpf/salt/log"
@@ -43,7 +43,7 @@ func TestGRPCProxyHelloWorld(t *testing.T) {
 
 	responseHooks := hookPipeline(log.NewNoop())
 	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), responseHooks), proxy.NewDirector())
-	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
+	ruleRepo := blob.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func BenchmarkGRPCProxyHelloWorld(b *testing.B) {
 	}
 
 	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), hook.New()), proxy.NewDirector())
-	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
+	ruleRepo := blob.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		b.Fatal(err)
 	}

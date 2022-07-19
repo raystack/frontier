@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/internal/store/postgres/migrations"
 	"github.com/odpf/shield/pkg/sql"
-	"github.com/odpf/shield/store/postgres/migrations"
 	cli "github.com/spf13/cobra"
 )
 
