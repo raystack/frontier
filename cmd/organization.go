@@ -333,7 +333,7 @@ func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully added admin(s) to organization"))
+			logger.Info("successfully added admin(s) to organization")
 			return nil
 		},
 	}
@@ -379,7 +379,7 @@ func admremoveOrganizationCommand(logger log.Logger, appConfig *config.Shield) *
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully removed admin from organization"))
+			logger.Info("successfully removed admin from organization")
 			return nil
 		},
 	}

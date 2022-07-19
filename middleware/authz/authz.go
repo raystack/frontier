@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/api/handler"
-	"github.com/odpf/shield/internal/permission"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/body_extractor"
-	"github.com/odpf/shield/structs"
-	"github.com/odpf/shield/utils"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
@@ -22,12 +22,12 @@ const (
 	userIDHeader = "X-Shield-User-Id"
 )
 
-type AuthzCheckService interface {
-	CheckAuthz(ctx context.Context, resource model.Resource, action model.Action) (bool, error)
+type ResourceService interface {
+	CheckAuthz(ctx context.Context, resource resource.Resource, act action.Action) (bool, error)
 }
 
-type PermissionService interface {
-	FetchCurrentUser(ctx context.Context) (model.User, error)
+type UserService interface {
+	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
 type Authz struct {
@@ -35,8 +35,8 @@ type Authz struct {
 	identityProxyHeader string
 	next                http.Handler
 	Deps                handler.Deps
-	AuthzCheckService   AuthzCheckService
-	PermissionService   PermissionService
+	resourceService     ResourceService
+	userService         UserService
 }
 
 type Config struct {
@@ -44,28 +44,35 @@ type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler, authzCheckService AuthzCheckService, permissionService PermissionService) *Authz {
-	return &Authz{log: log, identityProxyHeader: identityProxyHeader, Deps: deps, next: next, AuthzCheckService: authzCheckService, PermissionService: permissionService}
+func New(log log.Logger, identityProxyHeader string, deps handler.Deps, next http.Handler, resourceService ResourceService, userService UserService) *Authz {
+	return &Authz{
+		log:                 log,
+		identityProxyHeader: identityProxyHeader,
+		Deps:                deps,
+		next:                next,
+		resourceService:     resourceService,
+		userService:         userService,
+	}
 }
 
-func (c Authz) Info() *structs.MiddlewareInfo {
-	return &structs.MiddlewareInfo{
+func (c Authz) Info() *middleware.MiddlewareInfo {
+	return &middleware.MiddlewareInfo{
 		Name:        "authz",
 		Description: "rule based authorization using casbin",
 	}
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	req = req.WithContext(permission.SetEmailToContext(req.Context(), req.Header.Get(c.identityProxyHeader)))
+	req = req.WithContext(user.SetEmailToContext(req.Context(), req.Header.Get(c.identityProxyHeader)))
 
-	user, err := c.PermissionService.FetchCurrentUser(req.Context())
+	usr, err := c.userService.FetchCurrentUser(req.Context())
 	if err != nil {
 		c.log.Error("middleware: failed to get user details", "err", err.Error())
 		c.notAllowed(rw)
 		return
 	}
 
-	req.Header.Set(userIDHeader, user.Id)
+	req.Header.Set(userIDHeader, usr.Id)
 
 	rule, ok := middleware.ExtractRule(req)
 	if !ok {
@@ -206,7 +213,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	for _, resource := range resources {
 		isAuthorized := false
 		for _, actionId := range config.Actions {
-			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Action{Id: actionId})
+			isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), resource, action.Action{Id: actionId})
 			if err != nil {
 				c.log.Error("error while creating resource obj", "err", err)
 				c.notAllowed(rw)
@@ -234,8 +241,8 @@ func (w Authz) notAllowed(rw http.ResponseWriter) {
 	return
 }
 
-func createResources(permissionAttributes map[string]interface{}) ([]model.Resource, error) {
-	var resources []model.Resource
+func createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
+	var resources []resource.Resource
 	resourceList, err := getAttributesValues(permissionAttributes["resource"])
 	if err != nil {
 		return nil, err
@@ -261,9 +268,9 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 	}
 
 	for _, res := range resourceList {
-		resources = append(resources, model.Resource{
+		resources = append(resources, resource.Resource{
 			Name:        res,
-			NamespaceId: utils.CreateNamespaceID(backendNamespace[0], resourceType[0]),
+			NamespaceId: namespace.CreateID(backendNamespace[0], resourceType[0]),
 			ProjectId:   project[0],
 		})
 	}

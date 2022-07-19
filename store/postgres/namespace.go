@@ -10,8 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/namespace"
 )
 
 type Namespace struct {
@@ -58,16 +57,16 @@ func buildUpdateNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateNamespaceQuery, err
 }
 
-func (s Store) GetNamespace(ctx context.Context, id string) (model.Namespace, error) {
+func (s Store) GetNamespace(ctx context.Context, id string) (namespace.Namespace, error) {
 	fetchedNamespace, err := s.selectNamespace(ctx, id, nil)
 	return fetchedNamespace, err
 }
 
-func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (model.Namespace, error) {
+func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (namespace.Namespace, error) {
 	var fetchedNamespace Namespace
 	getNamespaceQuery, err := buildGetNamespaceQuery(dialect)
 	if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -75,28 +74,28 @@ func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (mo
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Namespace{}, schema.NamespaceDoesntExist
+		return namespace.Namespace{}, namespace.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Namespace{}, schema.InvalidUUID
+		return namespace.Namespace{}, namespace.ErrInvalidUUID
 	} else if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedNamespace, err := transformToNamespace(fetchedNamespace)
 	if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedNamespace, nil
 }
 
-func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Namespace) (model.Namespace, error) {
+func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate namespace.Namespace) (namespace.Namespace, error) {
 	var newNamespace Namespace
 	createNamespaceQuery, err := buildCreateNamespaceQuery(dialect)
 	if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -104,22 +103,22 @@ func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Name
 	})
 
 	if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedNamespace, err := transformToNamespace(newNamespace)
 	if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedNamespace, nil
 }
 
-func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
+func (s Store) ListNamespaces(ctx context.Context) ([]namespace.Namespace, error) {
 	var fetchedNamespaces []Namespace
 	listNamespacesQuery, err := buildListNamespacesQuery(dialect)
 	if err != nil {
-		return []model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -127,19 +126,19 @@ func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Namespace{}, schema.NamespaceDoesntExist
+		return []namespace.Namespace{}, namespace.ErrNotExist
 	}
 
 	if err != nil {
-		return []model.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedNamespaces []model.Namespace
+	var transformedNamespaces []namespace.Namespace
 
 	for _, o := range fetchedNamespaces {
 		transformedNamespace, err := transformToNamespace(o)
 		if err != nil {
-			return []model.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []namespace.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedNamespaces = append(transformedNamespaces, transformedNamespace)
@@ -148,11 +147,11 @@ func (s Store) ListNamespaces(ctx context.Context) ([]model.Namespace, error) {
 	return transformedNamespaces, nil
 }
 
-func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate model.Namespace) (model.Namespace, error) {
+func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate namespace.Namespace) (namespace.Namespace, error) {
 	var updatedNamespace Namespace
 	updateNamespaceQuery, err := buildUpdateNamespaceQuery(dialect)
 	if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -160,21 +159,21 @@ func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate model.Na
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Namespace{}, schema.NamespaceDoesntExist
+		return namespace.Namespace{}, namespace.ErrNotExist
 	} else if err != nil {
-		return model.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedNamespace, err := transformToNamespace(updatedNamespace)
 	if err != nil {
-		return model.Namespace{}, fmt.Errorf("%s: %w", parseErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return transformedNamespace, nil
 }
 
-func transformToNamespace(from Namespace) (model.Namespace, error) {
-	return model.Namespace{
+func transformToNamespace(from Namespace) (namespace.Namespace, error) {
+	return namespace.Namespace{
 		Id:        from.Id,
 		Name:      from.Name,
 		CreatedAt: from.CreatedAt,

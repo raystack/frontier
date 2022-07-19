@@ -9,16 +9,15 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/policy"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type PolicyService interface {
-	GetPolicy(ctx context.Context, id string) (model.Policy, error)
-	ListPolicies(ctx context.Context) ([]model.Policy, error)
-	CreatePolicy(ctx context.Context, policy model.Policy) ([]model.Policy, error)
-	UpdatePolicy(ctx context.Context, id string, policy model.Policy) ([]model.Policy, error)
+	GetPolicy(ctx context.Context, id string) (policy.Policy, error)
+	ListPolicies(ctx context.Context) ([]policy.Policy, error)
+	CreatePolicy(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
+	UpdatePolicy(ctx context.Context, id string, policy policy.Policy) ([]policy.Policy, error)
 }
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
@@ -50,7 +49,7 @@ func (v Dep) CreatePolicy(ctx context.Context, request *shieldv1beta1.CreatePoli
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	newPolicies, err := v.PolicyService.CreatePolicy(ctx, model.Policy{
+	newPolicies, err := v.PolicyService.CreatePolicy(ctx, policy.Policy{
 		RoleId:      request.GetBody().RoleId,
 		NamespaceId: request.GetBody().NamespaceId,
 		ActionId:    request.GetBody().ActionId,
@@ -86,9 +85,9 @@ func (v Dep) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicyRequ
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, schema.PolicyDoesntExist):
+		case errors.Is(err, policy.ErrNotExist):
 			return nil, grpcPolicyNotFoundErr
-		case errors.Is(err, schema.InvalidUUID):
+		case errors.Is(err, policy.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -108,7 +107,7 @@ func (v Dep) UpdatePolicy(ctx context.Context, request *shieldv1beta1.UpdatePoli
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	updatedPolices, err := v.PolicyService.UpdatePolicy(ctx, request.GetId(), model.Policy{
+	updatedPolices, err := v.PolicyService.UpdatePolicy(ctx, request.GetId(), policy.Policy{
 		RoleId:      request.GetBody().RoleId,
 		NamespaceId: request.GetBody().NamespaceId,
 		ActionId:    request.GetBody().ActionId,
@@ -136,7 +135,7 @@ func (v Dep) UpdatePolicy(ctx context.Context, request *shieldv1beta1.UpdatePoli
 	return &shieldv1beta1.UpdatePolicyResponse{Policies: policies}, nil
 }
 
-func transformPolicyToPB(policy model.Policy) (shieldv1beta1.Policy, error) {
+func transformPolicyToPB(policy policy.Policy) (shieldv1beta1.Policy, error) {
 	role, err := transformRoleToPB(policy.Role)
 	if err != nil {
 		return shieldv1beta1.Policy{}, err

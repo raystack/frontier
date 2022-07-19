@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/core/rule"
 )
 
 const (
@@ -18,7 +18,17 @@ const (
 	ctxBodyKey       = "body_ctx"
 )
 
-func EnrichRule(r *http.Request, rule *structs.Rule) {
+type Middleware interface {
+	Info() *MiddlewareInfo
+	ServeHTTP(rw http.ResponseWriter, req *http.Request)
+}
+
+type MiddlewareInfo struct {
+	Name        string
+	Description string
+}
+
+func EnrichRule(r *http.Request, rule *rule.Rule) {
 	*r = *r.WithContext(context.WithValue(r.Context(), ctxRuleKey, rule))
 }
 
@@ -43,15 +53,15 @@ func ExtractRequestBody(r *http.Request) (io.ReadCloser, bool) {
 	return ioutil.NopCloser(bytes.NewBuffer(body)), true
 }
 
-func ExtractRule(r *http.Request) (*structs.Rule, bool) {
-	rl, ok := r.Context().Value(ctxRuleKey).(*structs.Rule)
+func ExtractRule(r *http.Request) (*rule.Rule, bool) {
+	rl, ok := r.Context().Value(ctxRuleKey).(*rule.Rule)
 	return rl, ok
 }
 
-func ExtractMiddleware(r *http.Request, name string) (structs.MiddlewareSpec, bool) {
-	rl, ok := r.Context().Value(ctxRuleKey).(*structs.Rule)
+func ExtractMiddleware(r *http.Request, name string) (rule.MiddlewareSpec, bool) {
+	rl, ok := r.Context().Value(ctxRuleKey).(*rule.Rule)
 	if !ok {
-		return structs.MiddlewareSpec{}, false
+		return rule.MiddlewareSpec{}, false
 	}
 	return rl.Middlewares.Get(name)
 }

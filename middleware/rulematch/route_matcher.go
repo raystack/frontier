@@ -3,19 +3,18 @@ package rulematch
 import (
 	"net/http"
 
+	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/store"
-	"github.com/odpf/shield/structs"
 
 	"github.com/gorilla/mux"
 )
 
 type RouteMatcher struct {
-	ruleRepo store.RuleRepository
+	ruleService RuleService
 }
 
-func (r RouteMatcher) Match(req *http.Request) (*structs.Rule, error) {
-	ruleset, err := r.ruleRepo.GetAll(req.Context())
+func (r RouteMatcher) Match(req *http.Request) (*rule.Rule, error) {
+	ruleset, err := r.ruleService.GetAll(req.Context())
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +31,11 @@ func (r RouteMatcher) Match(req *http.Request) (*structs.Rule, error) {
 			}
 		}
 	}
-	return nil, ErrUnknownRule
+	return nil, rule.ErrUnknown
 }
 
-func NewRouteMatcher(ruleRepo store.RuleRepository) *RouteMatcher {
+func NewRouteMatcher(ruleService RuleService) *RouteMatcher {
 	return &RouteMatcher{
-		ruleRepo: ruleRepo,
+		ruleService: ruleService,
 	}
 }

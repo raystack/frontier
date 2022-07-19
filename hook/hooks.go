@@ -3,8 +3,8 @@ package hook
 import (
 	"net/http"
 
+	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/structs"
 )
 
 type Service interface {
@@ -38,15 +38,15 @@ type Attribute struct {
 	Value  string        `yaml:"value" mapstructure:"value"`
 }
 
-func ExtractHook(r *http.Request, name string) (structs.HookSpec, bool) {
+func ExtractHook(r *http.Request, name string) (rule.HookSpec, bool) {
 	rl, ok := ExtractRule(r)
 	if !ok {
-		return structs.HookSpec{}, false
+		return rule.HookSpec{}, false
 	}
 	return rl.Hooks.Get(name)
 }
 
-func ExtractRule(r *http.Request) (*structs.Rule, bool) {
+func ExtractRule(r *http.Request) (*rule.Rule, bool) {
 	rl, ok := middleware.ExtractRule(r)
 	if !ok {
 		return nil, false

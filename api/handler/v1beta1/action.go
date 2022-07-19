@@ -5,8 +5,7 @@ import (
 	"errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/action"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,10 +13,10 @@ import (
 )
 
 type ActionService interface {
-	GetAction(ctx context.Context, id string) (model.Action, error)
-	ListActions(ctx context.Context) ([]model.Action, error)
-	CreateAction(ctx context.Context, action model.Action) (model.Action, error)
-	UpdateAction(ctx context.Context, id string, action model.Action) (model.Action, error)
+	GetAction(ctx context.Context, id string) (action.Action, error)
+	ListActions(ctx context.Context) ([]action.Action, error)
+	CreateAction(ctx context.Context, action action.Action) (action.Action, error)
+	UpdateAction(ctx context.Context, id string, action action.Action) (action.Action, error)
 }
 
 var grpcActionNotFoundErr = status.Errorf(codes.NotFound, "action doesn't exist")
@@ -48,7 +47,7 @@ func (v Dep) ListActions(ctx context.Context, request *shieldv1beta1.ListActions
 func (v Dep) CreateAction(ctx context.Context, request *shieldv1beta1.CreateActionRequest) (*shieldv1beta1.CreateActionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	newAction, err := v.ActionService.CreateAction(ctx, model.Action{
+	newAction, err := v.ActionService.CreateAction(ctx, action.Action{
 		Id:          request.GetBody().Id,
 		Name:        request.GetBody().Name,
 		NamespaceId: request.GetBody().NamespaceId,
@@ -76,9 +75,9 @@ func (v Dep) GetAction(ctx context.Context, request *shieldv1beta1.GetActionRequ
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, schema.ActionDoesntExist):
+		case errors.Is(err, action.ErrNotExist):
 			return nil, grpcActionNotFoundErr
-		case errors.Is(err, schema.InvalidUUID):
+		case errors.Is(err, action.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -97,7 +96,7 @@ func (v Dep) GetAction(ctx context.Context, request *shieldv1beta1.GetActionRequ
 func (v Dep) UpdateAction(ctx context.Context, request *shieldv1beta1.UpdateActionRequest) (*shieldv1beta1.UpdateActionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	updatedAction, err := v.ActionService.UpdateAction(ctx, request.GetId(), model.Action{
+	updatedAction, err := v.ActionService.UpdateAction(ctx, request.GetId(), action.Action{
 		Id:          request.GetId(),
 		Name:        request.GetBody().Name,
 		NamespaceId: request.GetBody().NamespaceId,
@@ -117,7 +116,7 @@ func (v Dep) UpdateAction(ctx context.Context, request *shieldv1beta1.UpdateActi
 	return &shieldv1beta1.UpdateActionResponse{Action: &actionPB}, nil
 }
 
-func transformActionToPB(act model.Action) (shieldv1beta1.Action, error) {
+func transformActionToPB(act action.Action) (shieldv1beta1.Action, error) {
 	namespace, err := transformNamespaceToPB(act.Namespace)
 	if err != nil {
 		return shieldv1beta1.Action{}, err

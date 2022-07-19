@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/internal/relation"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/relation"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,10 +14,10 @@ import (
 )
 
 type RelationService interface {
-	Get(ctx context.Context, id string) (model.Relation, error)
-	List(ctx context.Context) ([]model.Relation, error)
-	Create(ctx context.Context, relation model.Relation) (model.Relation, error)
-	Update(ctx context.Context, id string, relation model.Relation) (model.Relation, error)
+	Get(ctx context.Context, id string) (relation.Relation, error)
+	List(ctx context.Context) ([]relation.Relation, error)
+	Create(ctx context.Context, relation relation.Relation) (relation.Relation, error)
+	Update(ctx context.Context, id string, relation relation.Relation) (relation.Relation, error)
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
@@ -54,7 +53,7 @@ func (v Dep) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRe
 		return nil, grpcBadBodyError
 	}
 
-	newRelation, err := v.RelationService.Create(ctx, model.Relation{
+	newRelation, err := v.RelationService.Create(ctx, relation.Relation{
 		SubjectNamespaceId: request.GetBody().SubjectType,
 		SubjectId:          request.GetBody().SubjectId,
 		ObjectNamespaceId:  request.GetBody().ObjectType,
@@ -86,9 +85,9 @@ func (v Dep) GetRelation(ctx context.Context, request *shieldv1beta1.GetRelation
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.RelationDoesntExist):
+		case errors.Is(err, relation.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "relation not found")
-		case errors.Is(err, relation.InvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -114,7 +113,7 @@ func (v Dep) UpdateRelation(ctx context.Context, request *shieldv1beta1.UpdateRe
 		return nil, grpcBadBodyError
 	}
 
-	updatedRelation, err := v.RelationService.Update(ctx, request.GetId(), model.Relation{
+	updatedRelation, err := v.RelationService.Update(ctx, request.GetId(), relation.Relation{
 		SubjectNamespaceId: request.GetBody().SubjectType,
 		SubjectId:          request.GetBody().SubjectId,
 		ObjectNamespaceId:  request.GetBody().ObjectType,
@@ -125,9 +124,9 @@ func (v Dep) UpdateRelation(ctx context.Context, request *shieldv1beta1.UpdateRe
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.RelationDoesntExist):
+		case errors.Is(err, relation.ErrNotExist):
 			return nil, grpcRelationNotFoundErr
-		case errors.Is(err, relation.InvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -146,7 +145,7 @@ func (v Dep) UpdateRelation(ctx context.Context, request *shieldv1beta1.UpdateRe
 	}, nil
 }
 
-func transformRelationToPB(relation model.Relation) (shieldv1beta1.Relation, error) {
+func transformRelationToPB(relation relation.Relation) (shieldv1beta1.Relation, error) {
 	subjectType, err := transformNamespaceToPB(relation.SubjectNamespace)
 
 	if err != nil {

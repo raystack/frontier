@@ -18,9 +18,9 @@ func (h JSONPayloadHandler) Extract(body *io.ReadCloser, key string) (interface{
 		return nil, err
 	}
 	defer (*body).Close()
+
 	// repopulate body
 	*body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
-
 	field := gjson.GetBytes(reqBody, key)
 	if !field.Exists() {
 		return nil, errors.Errorf("failed to find field: %s", key)
