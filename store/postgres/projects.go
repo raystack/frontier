@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -117,11 +118,13 @@ func buildUpdateProjectByIdQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateProjectQuery, err
 }
 
+// GetProject Supports Slug
 func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
 	var fetchedProject Project
 	var getProjectsQuery string
 	var err error
-	var isUuid = isUUID(id)
+	id = strings.TrimSpace(id)
+	isUuid := isUUID(id)
 
 	if isUuid {
 		getProjectsQuery, err = buildGetProjectsByIdQuery(dialect)
@@ -225,6 +228,7 @@ func (s Store) ListProject(ctx context.Context) ([]model.Project, error) {
 	return transformedProjects, nil
 }
 
+// UpdateProject Supports Slug
 func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model.Project, error) {
 	var updatedProject Project
 
@@ -234,6 +238,7 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 	}
 
 	var updateProjectQuery string
+	toUpdate.Id = strings.TrimSpace(toUpdate.Id)
 	isUuid := isUUID(toUpdate.Id)
 
 	if isUuid {
@@ -272,12 +277,23 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 	return toUpdate, nil
 }
 
+// ListProjectAdmins Supports Slug
 func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]model.User, error) {
 	var fetchedUsers []User
 
 	listProjectAdminsQuery, err := buildListProjectAdminsQuery(dialect)
 	if err != nil {
 		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	id = strings.TrimSpace(id)
+	isUuid := isUUID(id)
+	if !isUuid {
+		fetchedProject, err := s.GetProject(ctx, id)
+		if err != nil {
+			return []model.User{}, err
+		}
+		id = fetchedProject.Id
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {

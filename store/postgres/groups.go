@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -129,11 +130,13 @@ func buildUpdateGroupByIdQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateGroupQuery, err
 }
 
+// GetGroup Supports Slug
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group
 	var getGroupsQuery string
 	var err error
-	var isUuid = isUUID(id)
+	id = strings.TrimSpace(id)
+	isUuid := isUUID(id)
 
 	if isUuid {
 		getGroupsQuery, err = buildGetGroupsByIdQuery(dialect)
@@ -239,6 +242,7 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 	return transformedGroups, nil
 }
 
+// UpdateGroup Supports Slug
 func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Group, error) {
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
@@ -246,6 +250,7 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 	}
 
 	var updateGroupQuery string
+	toUpdate.Id = strings.TrimSpace(toUpdate.Id)
 	isUuid := isUUID(toUpdate.Id)
 
 	if isUuid {
@@ -283,10 +288,22 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 	return updated, nil
 }
 
+// ListGroupUsers Supports Slug
 func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]model.User, error) {
 	var role = definition.TeamMemberRole.Id
 	if roleId != "" {
 		role = roleId
+	}
+
+	groupId = strings.TrimSpace(groupId)
+	isUuid := isUUID(groupId)
+
+	if !isUuid {
+		fetchedGroup, err := s.GetGroup(ctx, groupId)
+		if err != nil {
+			return []model.User{}, err
+		}
+		groupId = fetchedGroup.Id
 	}
 
 	listGroupUsersQuery, err := buildListGroupUsersQuery(dialect)
@@ -321,12 +338,23 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 	return transformedUsers, nil
 }
 
+// ListUserGroupRelations Supports Slug
 func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]model.Relation, error) {
 	var fetchedRelations []Relation
 
 	listUserGroupRelationsQuery, err := buildListUserGroupRelationsQuery(dialect)
 	if err != nil {
 		return []model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	groupId = strings.TrimSpace(groupId)
+	isUuid := isUUID(groupId)
+	if !isUuid {
+		fetchedGroup, err := s.GetGroup(ctx, groupId)
+		if err != nil {
+			return []model.Relation{}, err
+		}
+		groupId = fetchedGroup.Id
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
