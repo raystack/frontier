@@ -118,7 +118,6 @@ func buildUpdateProjectByIdQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateProjectQuery, err
 }
 
-// GetProject Supports Slug
 func (s Store) GetProject(ctx context.Context, id string) (model.Project, error) {
 	var fetchedProject Project
 	var getProjectsQuery string
@@ -228,7 +227,6 @@ func (s Store) ListProject(ctx context.Context) ([]model.Project, error) {
 	return transformedProjects, nil
 }
 
-// UpdateProject Supports Slug
 func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model.Project, error) {
 	var updatedProject Project
 
@@ -277,7 +275,6 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate model.Project) (model
 	return toUpdate, nil
 }
 
-// ListProjectAdmins Supports Slug
 func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]model.User, error) {
 	var fetchedUsers []User
 
@@ -287,14 +284,11 @@ func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]model.User, 
 	}
 
 	id = strings.TrimSpace(id)
-	isUuid := isUUID(id)
-	if !isUuid {
-		fetchedProject, err := s.GetProject(ctx, id)
-		if err != nil {
-			return []model.User{}, err
-		}
-		id = fetchedProject.Id
+	fetchedProject, err := s.GetProject(ctx, id)
+	if err != nil {
+		return []model.User{}, err
 	}
+	id = fetchedProject.Id
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedUsers, listProjectAdminsQuery, id)

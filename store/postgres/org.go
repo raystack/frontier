@@ -114,7 +114,6 @@ func buildUpdateOrganizationByIdQuery(dialect goqu.DialectWrapper) (string, erro
 	return updateOrganizationQuery, err
 }
 
-// GetOrg Supports Slug
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
 	var fetchedOrg Organization
 	var getOrganizationsQuery string
@@ -220,7 +219,6 @@ func (s Store) ListOrg(ctx context.Context) ([]model.Organization, error) {
 	return transformedOrgs, nil
 }
 
-// UpdateOrg Supports Slug
 func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (model.Organization, error) {
 	var updatedOrg Organization
 
@@ -262,7 +260,6 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (mode
 	return toUpdate, nil
 }
 
-// ListOrgAdmins Supports Slug
 func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, error) {
 	var fetchedUsers []User
 	listOrganizationAdmins, err := buildListOrganizationAdmins(dialect)
@@ -271,14 +268,11 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 	}
 
 	id = strings.TrimSpace(id)
-	isUuid := isUUID(id)
-	if !isUuid {
-		fetchedOrg, err := s.GetOrg(ctx, id)
-		if err != nil {
-			return []model.User{}, err
-		}
-		id = fetchedOrg.Id
+	fetchedOrg, err := s.GetOrg(ctx, id)
+	if err != nil {
+		return []model.User{}, err
 	}
+	id = fetchedOrg.Id
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedUsers, listOrganizationAdmins, id)

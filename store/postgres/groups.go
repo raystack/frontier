@@ -130,7 +130,6 @@ func buildUpdateGroupByIdQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateGroupQuery, err
 }
 
-// GetGroup Supports Slug
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group
 	var getGroupsQuery string
@@ -242,7 +241,6 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 	return transformedGroups, nil
 }
 
-// UpdateGroup Supports Slug
 func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Group, error) {
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
@@ -288,23 +286,18 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 	return updated, nil
 }
 
-// ListGroupUsers Supports Slug
 func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]model.User, error) {
 	var role = definition.TeamMemberRole.Id
 	if roleId != "" {
 		role = roleId
 	}
 
-	groupId = strings.TrimSpace(groupId)
-	isUuid := isUUID(groupId)
-
-	if !isUuid {
-		fetchedGroup, err := s.GetGroup(ctx, groupId)
-		if err != nil {
-			return []model.User{}, err
-		}
-		groupId = fetchedGroup.Id
+	groupId = strings.TrimSpace(groupId) //groupId can be uuid or slug
+	fetchedGroup, err := s.GetGroup(ctx, groupId)
+	if err != nil {
+		return []model.User{}, err
 	}
+	groupId = fetchedGroup.Id
 
 	listGroupUsersQuery, err := buildListGroupUsersQuery(dialect)
 	if err != nil {
@@ -338,7 +331,6 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 	return transformedUsers, nil
 }
 
-// ListUserGroupRelations Supports Slug
 func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]model.Relation, error) {
 	var fetchedRelations []Relation
 
@@ -348,14 +340,11 @@ func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupI
 	}
 
 	groupId = strings.TrimSpace(groupId)
-	isUuid := isUUID(groupId)
-	if !isUuid {
-		fetchedGroup, err := s.GetGroup(ctx, groupId)
-		if err != nil {
-			return []model.Relation{}, err
-		}
-		groupId = fetchedGroup.Id
+	fetchedGroup, err := s.GetGroup(ctx, groupId)
+	if err != nil {
+		return []model.Relation{}, err
 	}
+	groupId = fetchedGroup.Id
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedRelations, listUserGroupRelationsQuery, userId, groupId)
