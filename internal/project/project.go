@@ -3,12 +3,12 @@ package project
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/permission"
-	shieldError "github.com/odpf/shield/utils/errors"
-
 	"github.com/odpf/shield/model"
+	shieldError "github.com/odpf/shield/utils/errors"
 )
 
 type Service struct {
@@ -83,6 +83,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]m
 		return []model.User{}, err
 	}
 
+	id = strings.TrimSpace(id)
 	project, err := s.Store.GetProject(ctx, id)
 
 	if err != nil {
@@ -90,7 +91,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]m
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Idxa:      id,
+		Idxa:      project.Id,
 		Namespace: definition.ProjectNamespace,
 	},
 		definition.ManageProjectAction,
@@ -129,6 +130,7 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]m
 		return []model.User{}, err
 	}
 
+	id = strings.TrimSpace(id)
 	project, err := s.Store.GetProject(ctx, id)
 
 	if err != nil {
@@ -136,7 +138,7 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]m
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Idxa:      id,
+		Idxa:      project.Id,
 		Namespace: definition.ProjectNamespace,
 	},
 		definition.ManageProjectAction,

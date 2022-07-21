@@ -27,6 +27,7 @@ type Relation struct {
 	NamespaceId        sql.NullString `db:"namespace_id"`
 	CreatedAt          time.Time      `db:"created_at"`
 	UpdatedAt          time.Time      `db:"updated_at"`
+	DeletedAt          sql.NullTime   `db:"deleted_at"`
 }
 
 type relationCols struct {

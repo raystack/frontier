@@ -89,8 +89,8 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 
 func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
 	listUserGroupRelationsQuery, _, err := dialect.From(TABLE_RELATION).Where(goqu.Ex{
-		"subject_namespace_id": goqu.L(definition.UserNamespace.Id),
-		"object_namespace_id":  goqu.L(definition.TeamNamespace.Id),
+		"subject_namespace_id": definition.UserNamespace.Id,
+		"object_namespace_id":  definition.TeamNamespace.Id,
 		"subject_id":           goqu.L("$1"),
 		"object_id":            goqu.L("$2"),
 	}).ToSQL()

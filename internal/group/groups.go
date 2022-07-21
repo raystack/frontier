@@ -3,14 +3,13 @@ package group
 import (
 	"context"
 	"errors"
-
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	shieldError "github.com/odpf/shield/utils/errors"
+	"strings"
 
 	"github.com/odpf/shield/internal/authz"
+	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/permission"
-
 	"github.com/odpf/shield/model"
+	shieldError "github.com/odpf/shield/utils/errors"
 )
 
 type Service struct {
@@ -88,6 +87,7 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 		return []model.User{}, err
 	}
 
+	groupId = strings.TrimSpace(groupId)
 	group, err := s.Store.GetGroup(ctx, groupId)
 
 	if err != nil {
@@ -95,7 +95,7 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Idxa:      groupId,
+		Idxa:      group.Id,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,
@@ -130,6 +130,7 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		return []model.User{}, err
 	}
 
+	groupId = strings.TrimSpace(groupId)
 	group, err := s.Store.GetGroup(ctx, groupId)
 
 	if err != nil {
@@ -137,7 +138,7 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Idxa:      groupId,
+		Idxa:      group.Id,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,
@@ -187,6 +188,7 @@ func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds [
 		return []model.User{}, err
 	}
 
+	groupId = strings.TrimSpace(groupId)
 	group, err := s.Store.GetGroup(ctx, groupId)
 
 	if err != nil {
@@ -194,7 +196,7 @@ func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds [
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Idxa:      groupId,
+		Idxa:      group.Id,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,
@@ -234,6 +236,7 @@ func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userI
 		return []model.User{}, err
 	}
 
+	groupId = strings.TrimSpace(groupId)
 	group, err := s.Store.GetGroup(ctx, groupId)
 
 	if err != nil {
@@ -241,7 +244,7 @@ func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userI
 	}
 
 	isAuthorized, err := s.Permissions.CheckPermission(ctx, currentUser, model.Resource{
-		Idxa:      groupId,
+		Idxa:      group.Id,
 		Namespace: definition.TeamNamespace,
 	},
 		definition.ManageTeamAction,
