@@ -48,7 +48,7 @@ func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetUsersByIdsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getUsersByIdsQuery, _, err := dialect.From("users").Prepared(true).Where(
+	getUsersByIdsQuery, _, err := goqu.From("users").Prepared(true).Where(
 		goqu.C("id").In("id_PH")).ToSQL()
 
 	return getUsersByIdsQuery, err
@@ -266,7 +266,6 @@ func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]model.Use
 	var query string
 	var args []interface{}
 	query, args, err = sqlx.In(getUsersByIdsQuery, userIds)
-
 	if err != nil {
 		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

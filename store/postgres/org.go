@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -25,6 +26,7 @@ type Organization struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
+// *Get Organizations Query
 func buildGetOrganizationsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
 	getOrganizationsBySlugQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.Ex{
 		"slug": goqu.L("$1"),
@@ -34,14 +36,14 @@ func buildGetOrganizationsBySlugQuery(dialect goqu.DialectWrapper) (string, erro
 }
 
 func buildGetOrganizationsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	getOrganizationsByIdQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.Or(
-		goqu.C("id").Eq(goqu.L("$1")),
-		goqu.C("slug").Eq(goqu.L("$2")),
-	)).ToSQL()
-
+	getOrganizationsByIdQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.ExOr{
+		"id":   goqu.L("$1"),
+		"slug": goqu.L("$2"),
+	}).ToSQL()
 	return getOrganizationsByIdQuery, err
 }
 
+// *Create Organization Query
 func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
 	createOrganizationQuery, _, err := dialect.Insert(TABLE_ORG).Rows(
 		goqu.Record{
@@ -52,24 +54,14 @@ func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
 
 	return createOrganizationQuery, err
 }
+
+// *List Organization Query
 func buildListOrganizationsQuery(dialect goqu.DialectWrapper) (string, error) {
 	listOrganizationsQuery, _, err := dialect.From(TABLE_ORG).ToSQL()
 
 	return listOrganizationsQuery, err
 }
-func buildUpdateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORG).Set(
-		goqu.Record{
-			"name":       goqu.L("$2"),
-			"slug":       goqu.L("$3"),
-			"metadata":   goqu.L("$4"),
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"id": goqu.L("$1"),
-	}).Returning(&Organization{}).ToSQL()
 
-	return updateOrganizationQuery, err
-}
 func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 	listOrganizationAdmins, _, err := dialect.Select(
 		goqu.I("u.id").As("id"),
@@ -91,11 +83,42 @@ func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 	return listOrganizationAdmins, err
 }
 
+// *Update Organization Query
+func buildUpdateOrganizationBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORG).Set(
+		goqu.Record{
+			"name":       goqu.L("$2"),
+			"slug":       goqu.L("$3"),
+			"metadata":   goqu.L("$4"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"slug": goqu.L("$1"),
+	}).Returning(&Organization{}).ToSQL()
+
+	return updateOrganizationQuery, err
+}
+
+func buildUpdateOrganizationByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORG).Set(
+		goqu.Record{
+			"name":       goqu.L("$3"),
+			"slug":       goqu.L("$4"),
+			"metadata":   goqu.L("$5"),
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.ExOr{
+		"slug": goqu.L("$1"),
+		"id":   goqu.L("$2"),
+	}).Returning(&Organization{}).ToSQL()
+
+	return updateOrganizationQuery, err
+}
+
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
 	var fetchedOrg Organization
 	var getOrganizationsQuery string
 	var err error
-	var isUuid = isUUID(id)
+	id = strings.TrimSpace(id)
+	isUuid := isUUID(id)
 
 	if isUuid {
 		getOrganizationsQuery, err = buildGetOrganizationsByIdQuery(dialect)
@@ -203,15 +226,27 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (mode
 		return model.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	updateOrganizationQuery, err := buildUpdateOrganizationQuery(dialect)
+	var updateOrganizationQuery string
+	isUuid := isUUID(toUpdate.Id)
+
+	if isUuid {
+		updateOrganizationQuery, err = buildUpdateOrganizationByIdQuery(dialect)
+	} else {
+		updateOrganizationQuery, err = buildUpdateOrganizationBySlugQuery(dialect)
+	}
 	if err != nil {
 		return model.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
-	})
-
+	if isUuid {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
+		})
+	} else {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
+		})
+	}
 	if err != nil {
 		return model.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
 	}
@@ -230,6 +265,13 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 	if err != nil {
 		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	id = strings.TrimSpace(id)
+	fetchedOrg, err := s.GetOrg(ctx, id)
+	if err != nil {
+		return []model.User{}, err
+	}
+	id = fetchedOrg.Id
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedUsers, listOrganizationAdmins, id)
