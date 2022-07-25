@@ -10,11 +10,12 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/group"
-	"github.com/odpf/shield/internal/user"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/group"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/core/user"
 )
 
 type Group struct {
@@ -80,8 +81,8 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 		)).Where(goqu.Ex{
 		"r.object_id":            goqu.L("$1"),
 		"r.role_id":              goqu.L("$2"),
-		"r.subject_namespace_id": definition.UserNamespace.Id,
-		"r.object_namespace_id":  definition.TeamNamespace.Id,
+		"r.subject_namespace_id": namespace.DefinitionUser.Id,
+		"r.object_namespace_id":  namespace.DefinitionTeam.Id,
 	}).ToSQL()
 
 	return listGroupUsersQuery, err
@@ -89,8 +90,8 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 
 func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
 	listUserGroupRelationsQuery, _, err := dialect.From(TABLE_RELATION).Where(goqu.Ex{
-		"subject_namespace_id": definition.UserNamespace.Id,
-		"object_namespace_id":  definition.TeamNamespace.Id,
+		"subject_namespace_id": namespace.DefinitionUser.Id,
+		"object_namespace_id":  namespace.DefinitionTeam.Id,
 		"subject_id":           goqu.L("$1"),
 		"object_id":            goqu.L("$2"),
 	}).ToSQL()
@@ -130,7 +131,7 @@ func buildUpdateGroupByIdQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateGroupQuery, err
 }
 
-func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
+func (s Store) GetGroup(ctx context.Context, id string) (group.Group, error) {
 	var fetchedGroup Group
 	var getGroupsQuery string
 	var err error
@@ -143,7 +144,7 @@ func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 		getGroupsQuery, err = buildGetGroupsBySlugQuery(dialect)
 	}
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if isUuid {
@@ -157,32 +158,32 @@ func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	}
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Group{}, group.GroupDoesntExist
+		return group.Group{}, group.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Group{}, group.InvalidUUID
+		return group.Group{}, group.ErrInvalidUUID
 	} else if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedGroup, err := transformToGroup(fetchedGroup)
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedGroup, nil
 }
 
-func (s Store) CreateGroup(ctx context.Context, grp model.Group) (model.Group, error) {
+func (s Store) CreateGroup(ctx context.Context, grp group.Group) (group.Group, error) {
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	createGroupsQuery, err := buildCreateGroupQuery(dialect)
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var newGroup Group
@@ -191,23 +192,23 @@ func (s Store) CreateGroup(ctx context.Context, grp model.Group) (model.Group, e
 	})
 
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedGroup, err := transformToGroup(newGroup)
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedGroup, nil
 }
 
-func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error) {
+func (s Store) ListGroups(ctx context.Context, org organization.Organization) ([]group.Group, error) {
 	var fetchedGroups []Group
 
 	query, err := buildListGroupsQuery(dialect)
 	if err != nil {
-		return []model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if org.Id != "" {
@@ -220,19 +221,19 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Group{}, group.GroupDoesntExist
+		return []group.Group{}, group.ErrNotExist
 	}
 
 	if err != nil {
-		return []model.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedGroups []model.Group
+	var transformedGroups []group.Group
 
 	for _, v := range fetchedGroups {
 		transformedGroup, err := transformToGroup(v)
 		if err != nil {
-			return []model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedGroups = append(transformedGroups, transformedGroup)
@@ -241,10 +242,10 @@ func (s Store) ListGroups(ctx context.Context, org model.Organization) ([]model.
 	return transformedGroups, nil
 }
 
-func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Group, error) {
+func (s Store) UpdateGroup(ctx context.Context, toUpdate group.Group) (group.Group, error) {
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var updateGroupQuery string
@@ -257,7 +258,7 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 		updateGroupQuery, err = buildUpdateGroupBySlugQuery(dialect)
 	}
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var updatedGroup Group
@@ -273,21 +274,21 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate model.Group) (model.Gro
 	}
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Group{}, group.GroupDoesntExist
+		return group.Group{}, group.ErrNotExist
 	} else if err != nil {
-		return model.Group{}, fmt.Errorf("%s: %w", dbErr, err)
+		return group.Group{}, fmt.Errorf("%s: %w", dbErr, err)
 	}
 
 	updated, err := transformToGroup(updatedGroup)
 	if err != nil {
-		return model.Group{}, fmt.Errorf("%s: %w", parseErr, err)
+		return group.Group{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return updated, nil
 }
 
-func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]model.User, error) {
-	var role = definition.TeamMemberRole.Id
+func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]user.User, error) {
+	var role = role.DefinitionTeamMember.Id
 	if roleId != "" {
 		role = roleId
 	}
@@ -295,13 +296,13 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 	groupId = strings.TrimSpace(groupId) //groupId can be uuid or slug
 	fetchedGroup, err := s.GetGroup(ctx, groupId)
 	if err != nil {
-		return []model.User{}, err
+		return []user.User{}, err
 	}
 	groupId = fetchedGroup.Id
 
 	listGroupUsersQuery, err := buildListGroupUsersQuery(dialect)
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var fetchedUsers []User
@@ -310,19 +311,19 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.User{}, user.UserDoesntExist
+		return []user.User{}, user.ErrNotExist
 	}
 
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedUsers []model.User
+	var transformedUsers []user.User
 
 	for _, u := range fetchedUsers {
 		transformedUser, err := transformToUser(u)
 		if err != nil {
-			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedUsers = append(transformedUsers, transformedUser)
@@ -331,18 +332,18 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 	return transformedUsers, nil
 }
 
-func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]model.Relation, error) {
+func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]relation.Relation, error) {
 	var fetchedRelations []Relation
 
 	listUserGroupRelationsQuery, err := buildListUserGroupRelationsQuery(dialect)
 	if err != nil {
-		return []model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	groupId = strings.TrimSpace(groupId)
 	fetchedGroup, err := s.GetGroup(ctx, groupId)
 	if err != nil {
-		return []model.Relation{}, err
+		return []relation.Relation{}, err
 	}
 	groupId = fetchedGroup.Id
 
@@ -351,19 +352,19 @@ func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupI
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Relation{}, sql.ErrNoRows
+		return []relation.Relation{}, sql.ErrNoRows
 	}
 
 	if err != nil {
-		return []model.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedRelations []model.Relation
+	var transformedRelations []relation.Relation
 
 	for _, v := range fetchedRelations {
 		transformedGroup, err := transformToRelation(v)
 		if err != nil {
-			return []model.Relation{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []relation.Relation{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedRelations = append(transformedRelations, transformedGroup)
@@ -372,17 +373,17 @@ func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupI
 	return transformedRelations, nil
 }
 
-func transformToGroup(from Group) (model.Group, error) {
+func transformToGroup(from Group) (group.Group, error) {
 	var unmarshalledMetadata map[string]any
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return model.Group{}, err
+		return group.Group{}, err
 	}
 
-	return model.Group{
+	return group.Group{
 		Id:             from.Id,
 		Name:           from.Name,
 		Slug:           from.Slug,
-		Organization:   model.Organization{Id: from.OrgID},
+		Organization:   organization.Organization{Id: from.OrgID},
 		OrganizationId: from.OrgID,
 		Metadata:       unmarshalledMetadata,
 		CreatedAt:      from.CreatedAt,

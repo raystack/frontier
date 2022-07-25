@@ -6,7 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/role"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
@@ -16,13 +19,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testPolicyMap = map[string]model.Policy{
+var testPolicyMap = map[string]policy.Policy{
 	"test": {
 		Id: "test",
-		Action: model.Action{
+		Action: action.Action{
 			Id:   "read",
 			Name: "Read",
-			Namespace: model.Namespace{
+			Namespace: namespace.Namespace{
 				Id:        "resource-1",
 				Name:      "Resource 1",
 				CreatedAt: time.Time{},
@@ -31,17 +34,17 @@ var testPolicyMap = map[string]model.Policy{
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
 		},
-		Namespace: model.Namespace{
+		Namespace: namespace.Namespace{
 			Id:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
 		},
-		Role: model.Role{
+		Role: role.Role{
 			Id:       "reader",
 			Name:     "Reader",
 			Metadata: map[string]any{},
-			Namespace: model.Namespace{
+			Namespace: namespace.Namespace{
 				Id:        "resource-1",
 				Name:      "Resource 1",
 				CreatedAt: time.Time{},
@@ -62,16 +65,16 @@ func TestListPolicies(t *testing.T) {
 	}{
 		{
 			title: "error in Policy Service",
-			MockPolicySrv: mockPolicySrv{ListPoliciesFunc: func(ctx context.Context) (actions []model.Policy, err error) {
-				return []model.Policy{}, errors.New("some error")
+			MockPolicySrv: mockPolicySrv{ListPoliciesFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
+				return []policy.Policy{}, errors.New("some error")
 			}},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		},
 		{
 			title: "success",
-			MockPolicySrv: mockPolicySrv{ListPoliciesFunc: func(ctx context.Context) (actions []model.Policy, err error) {
-				var testPoliciesList []model.Policy
+			MockPolicySrv: mockPolicySrv{ListPoliciesFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
+				var testPoliciesList []policy.Policy
 				for _, p := range testPolicyMap {
 					testPoliciesList = append(testPoliciesList, p)
 				}
@@ -144,8 +147,8 @@ func TestCreatePolicy(t *testing.T) {
 	}{
 		{
 			title: "error in creating policy",
-			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, policy model.Policy) ([]model.Policy, error) {
-				return []model.Policy{}, errors.New("some error")
+			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+				return []policy.Policy{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
 				NamespaceId: "team",
@@ -157,14 +160,14 @@ func TestCreatePolicy(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, policy model.Policy) ([]model.Policy, error) {
-				return []model.Policy{
+			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+				return []policy.Policy{
 					{
 						Id: "test",
-						Action: model.Action{
+						Action: action.Action{
 							Id:   "read",
 							Name: "Read",
-							Namespace: model.Namespace{
+							Namespace: namespace.Namespace{
 								Id:        "resource-1",
 								Name:      "Resource 1",
 								CreatedAt: time.Time{},
@@ -173,17 +176,17 @@ func TestCreatePolicy(t *testing.T) {
 							CreatedAt: time.Time{},
 							UpdatedAt: time.Time{},
 						},
-						Namespace: model.Namespace{
+						Namespace: namespace.Namespace{
 							Id:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: time.Time{},
 							UpdatedAt: time.Time{},
 						},
-						Role: model.Role{
+						Role: role.Role{
 							Id:       "reader",
 							Name:     "Reader",
 							Metadata: map[string]any{},
-							Namespace: model.Namespace{
+							Namespace: namespace.Namespace{
 								Id:        "resource-1",
 								Name:      "Resource 1",
 								CreatedAt: time.Time{},
@@ -253,24 +256,24 @@ func TestCreatePolicy(t *testing.T) {
 }
 
 type mockPolicySrv struct {
-	GetPolicyFunc    func(ctx context.Context, id string) (model.Policy, error)
-	CreatePolicyFunc func(ctx context.Context, policy model.Policy) ([]model.Policy, error)
-	ListPoliciesFunc func(ctx context.Context) ([]model.Policy, error)
-	UpdatePolicyFunc func(ctx context.Context, id string, policy model.Policy) ([]model.Policy, error)
+	GetPolicyFunc    func(ctx context.Context, id string) (policy.Policy, error)
+	CreatePolicyFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
+	ListPoliciesFunc func(ctx context.Context) ([]policy.Policy, error)
+	UpdatePolicyFunc func(ctx context.Context, id string, pol policy.Policy) ([]policy.Policy, error)
 }
 
-func (m mockPolicySrv) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
+func (m mockPolicySrv) GetPolicy(ctx context.Context, id string) (policy.Policy, error) {
 	return m.GetPolicyFunc(ctx, id)
 }
 
-func (m mockPolicySrv) ListPolicies(ctx context.Context) ([]model.Policy, error) {
+func (m mockPolicySrv) ListPolicies(ctx context.Context) ([]policy.Policy, error) {
 	return m.ListPoliciesFunc(ctx)
 }
 
-func (m mockPolicySrv) CreatePolicy(ctx context.Context, policy model.Policy) ([]model.Policy, error) {
-	return m.CreatePolicyFunc(ctx, policy)
+func (m mockPolicySrv) CreatePolicy(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+	return m.CreatePolicyFunc(ctx, pol)
 }
 
-func (m mockPolicySrv) UpdatePolicy(ctx context.Context, id string, policy model.Policy) ([]model.Policy, error) {
-	return m.UpdatePolicyFunc(ctx, id, policy)
+func (m mockPolicySrv) UpdatePolicy(ctx context.Context, id string, pol policy.Policy) ([]policy.Policy, error) {
+	return m.UpdatePolicyFunc(ctx, id, pol)
 }

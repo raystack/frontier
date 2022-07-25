@@ -20,5 +20,5 @@ func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, 
 
 	// grpc gateway api will have version endpoints
 	s.SetGateway("/admin", gw)
-	v1beta1.RegisterV1(ctx, s, gw, deps.V1beta1)
+	v1beta1.Register(ctx, s, gw, deps.V1beta1)
 }

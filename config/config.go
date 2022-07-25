@@ -62,6 +62,7 @@ type Service struct {
 	// ResourcesPath is a directory path where resources is defined
 	// that this service should implement
 	ResourcesConfigPath string `yaml:"resources_config_path" mapstructure:"resources_config_path"`
+
 	// ResourcesPathSecretSecret could be a env name, file path or actual value required
 	// to access ResourcesPathSecretPath files
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`

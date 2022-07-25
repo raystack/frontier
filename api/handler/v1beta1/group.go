@@ -2,14 +2,15 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"strings"
+
+	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/internal/group"
-	"github.com/odpf/shield/model"
-	shieldError "github.com/odpf/shield/utils/errors"
+	"github.com/odpf/shield/core/group"
+	"github.com/odpf/shield/core/organization"
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
@@ -20,16 +21,17 @@ import (
 )
 
 type GroupService interface {
-	CreateGroup(ctx context.Context, grp model.Group) (model.Group, error)
-	GetGroup(ctx context.Context, id string) (model.Group, error)
-	ListGroups(ctx context.Context, org model.Organization) ([]model.Group, error)
-	UpdateGroup(ctx context.Context, grp model.Group) (model.Group, error)
-	AddUsersToGroup(ctx context.Context, groupId string, userIds []string) ([]model.User, error)
-	ListGroupUsers(ctx context.Context, groupId string) ([]model.User, error)
-	ListGroupAdmins(ctx context.Context, groupId string) ([]model.User, error)
-	RemoveUserFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error)
-	AddAdminsToGroup(ctx context.Context, groupId string, userIds []string) ([]model.User, error)
-	RemoveAdminFromGroup(ctx context.Context, groupId string, userId string) ([]model.User, error)
+	CreateGroup(ctx context.Context, grp group.Group) (group.Group, error)
+	GetGroup(ctx context.Context, id string) (group.Group, error)
+	ListGroups(ctx context.Context, org organization.Organization) ([]group.Group, error)
+	UpdateGroup(ctx context.Context, grp group.Group) (group.Group, error)
+	AddUsersToGroup(ctx context.Context, groupId string, userIds []string) ([]user.User, error)
+	ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error)
+	ListGroupUsers(ctx context.Context, groupId string) ([]user.User, error)
+	ListGroupAdmins(ctx context.Context, groupId string) ([]user.User, error)
+	RemoveUserFromGroup(ctx context.Context, groupId string, userId string) ([]user.User, error)
+	AddAdminsToGroup(ctx context.Context, groupId string, userIds []string) ([]user.User, error)
+	RemoveAdminFromGroup(ctx context.Context, groupId string, userId string) ([]user.User, error)
 }
 
 var (
@@ -41,8 +43,8 @@ func (v Dep) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRe
 
 	var groups []*shieldv1beta1.Group
 
-	groupList, err := v.GroupService.ListGroups(ctx, model.Organization{Id: request.OrgId})
-	if errors.Is(err, group.GroupDoesntExist) {
+	groupList, err := v.GroupService.ListGroups(ctx, organization.Organization{Id: request.OrgId})
+	if errors.Is(err, group.ErrNotExist) {
 		return nil, nil
 	} else if err != nil {
 		logger.Error(err.Error())
@@ -76,7 +78,7 @@ func (v Dep) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroup
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newGroup, err := v.GroupService.CreateGroup(ctx, model.Group{
+	newGroup, err := v.GroupService.CreateGroup(ctx, group.Group{
 		Name:           request.Body.Name,
 		Slug:           slug,
 		OrganizationId: request.Body.OrgId,
@@ -112,9 +114,9 @@ func (v Dep) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupReques
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.ErrNotExist):
 			return nil, grpcGroupNotFoundErr
-		case errors.Is(err, group.InvalidUUID):
+		case errors.Is(err, group.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -166,9 +168,9 @@ func (v Dep) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGroupUs
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
-		case errors.Is(err, shieldError.Unauthorzied):
+		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
@@ -198,9 +200,9 @@ func (v Dep) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.RemoveG
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
-		case errors.Is(err, shieldError.Unauthorzied):
+		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
@@ -224,17 +226,17 @@ func (v Dep) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateGroup
 		return nil, grpcBadBodyError
 	}
 
-	updatedGroup, err := v.GroupService.UpdateGroup(ctx, model.Group{
+	updatedGroup, err := v.GroupService.UpdateGroup(ctx, group.Group{
 		Id:           request.GetId(),
 		Name:         request.GetBody().GetName(),
 		Slug:         request.GetBody().GetSlug(),
-		Organization: model.Organization{Id: request.GetBody().OrgId},
+		Organization: organization.Organization{Id: request.GetBody().OrgId},
 		Metadata:     metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
 		default:
 			return nil, grpcInternalServerError
@@ -284,9 +286,9 @@ func (v Dep) AddGroupAdmin(ctx context.Context, request *shieldv1beta1.AddGroupA
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
-		case errors.Is(err, shieldError.Unauthorzied):
+		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
@@ -316,9 +318,9 @@ func (v Dep) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.Remove
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.GroupDoesntExist):
+		case errors.Is(err, group.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
-		case errors.Is(err, shieldError.Unauthorzied):
+		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
@@ -330,7 +332,7 @@ func (v Dep) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.Remove
 	}, nil
 }
 
-func transformGroupToPB(grp model.Group) (shieldv1beta1.Group, error) {
+func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(grp.Metadata))
 	if err != nil {
 		return shieldv1beta1.Group{}, err

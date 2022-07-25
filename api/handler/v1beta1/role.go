@@ -5,8 +5,7 @@ import (
 	"errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/internal/roles"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/role"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -14,10 +13,10 @@ import (
 )
 
 type RoleService interface {
-	Get(ctx context.Context, id string) (model.Role, error)
-	Create(ctx context.Context, toCreate model.Role) (model.Role, error)
-	List(ctx context.Context) ([]model.Role, error)
-	Update(ctx context.Context, toUpdate model.Role) (model.Role, error)
+	Get(ctx context.Context, id string) (role.Role, error)
+	Create(ctx context.Context, toCreate role.Role) (role.Role, error)
+	List(ctx context.Context) ([]role.Role, error)
+	Update(ctx context.Context, toUpdate role.Role) (role.Role, error)
 }
 
 func (v Dep) ListRoles(ctx context.Context, request *shieldv1beta1.ListRolesRequest) (*shieldv1beta1.ListRolesResponse, error) {
@@ -51,7 +50,7 @@ func (v Dep) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRoleRe
 		return nil, grpcBadBodyError
 	}
 
-	newRole, err := v.RoleService.Create(ctx, model.Role{
+	newRole, err := v.RoleService.Create(ctx, role.Role{
 		Id:          request.GetBody().Id,
 		Name:        request.GetBody().Name,
 		Types:       request.GetBody().Types,
@@ -79,9 +78,9 @@ func (v Dep) GetRole(ctx context.Context, request *shieldv1beta1.GetRoleRequest)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, roles.RoleDoesntExist):
+		case errors.Is(err, role.ErrNotExist):
 			return nil, grpcProjectNotFoundErr
-		case errors.Is(err, roles.InvalidUUID):
+		case errors.Is(err, role.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -105,7 +104,7 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRoleRe
 		return nil, grpcBadBodyError
 	}
 
-	updatedRole, err := v.RoleService.Update(ctx, model.Role{
+	updatedRole, err := v.RoleService.Update(ctx, role.Role{
 		Id:          request.GetBody().Id,
 		Name:        request.GetBody().Name,
 		Types:       request.GetBody().Types,
@@ -126,7 +125,7 @@ func (v Dep) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRoleRe
 	return &shieldv1beta1.UpdateRoleResponse{Role: &rolePB}, nil
 }
 
-func transformRoleToPB(from model.Role) (shieldv1beta1.Role, error) {
+func transformRoleToPB(from role.Role) (shieldv1beta1.Role, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(from.Metadata))
 	if err != nil {
 		return shieldv1beta1.Role{}, err

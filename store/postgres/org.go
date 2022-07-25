@@ -11,9 +11,10 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/org"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/core/user"
 )
 
 type Organization struct {
@@ -75,9 +76,9 @@ func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
 		"r.object_id":            goqu.L("$1"),
-		"r.role_id":              definition.OrganizationAdminRole.Id,
-		"r.subject_namespace_id": definition.UserNamespace.Id,
-		"r.object_namespace_id":  definition.OrgNamespace.Id,
+		"r.role_id":              role.DefinitionOrganizationAdmin.Id,
+		"r.subject_namespace_id": namespace.DefinitionUser.Id,
+		"r.object_namespace_id":  namespace.DefinitionOrg.Id,
 	}).ToSQL()
 
 	return listOrganizationAdmins, err
@@ -113,7 +114,7 @@ func buildUpdateOrganizationByIdQuery(dialect goqu.DialectWrapper) (string, erro
 	return updateOrganizationQuery, err
 }
 
-func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
+func (s Store) GetOrg(ctx context.Context, id string) (organization.Organization, error) {
 	var fetchedOrg Organization
 	var getOrganizationsQuery string
 	var err error
@@ -126,7 +127,7 @@ func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error
 		getOrganizationsQuery, err = buildGetOrganizationsBySlugQuery(dialect)
 	}
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if isUuid {
@@ -140,32 +141,32 @@ func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error
 	}
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Organization{}, org.OrgDoesntExist
+		return organization.Organization{}, organization.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Organization{}, org.InvalidUUID
+		return organization.Organization{}, organization.ErrInvalidUUID
 	} else if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := transformToOrg(fetchedOrg)
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedOrg, nil
 }
 
-func (s Store) CreateOrg(ctx context.Context, orgToCreate model.Organization) (model.Organization, error) {
+func (s Store) CreateOrg(ctx context.Context, orgToCreate organization.Organization) (organization.Organization, error) {
 	marshaledMetadata, err := json.Marshal(orgToCreate.Metadata)
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	createOrganizationQuery, err := buildCreateOrganizationQuery(dialect)
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var newOrg Organization
@@ -174,22 +175,22 @@ func (s Store) CreateOrg(ctx context.Context, orgToCreate model.Organization) (m
 	})
 
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := transformToOrg(newOrg)
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedOrg, nil
 }
 
-func (s Store) ListOrg(ctx context.Context) ([]model.Organization, error) {
+func (s Store) ListOrg(ctx context.Context) ([]organization.Organization, error) {
 	var fetchedOrgs []Organization
 	listOrganizationsQuery, err := buildListOrganizationsQuery(dialect)
 	if err != nil {
-		return []model.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -197,19 +198,19 @@ func (s Store) ListOrg(ctx context.Context) ([]model.Organization, error) {
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Organization{}, org.OrgDoesntExist
+		return []organization.Organization{}, organization.ErrNotExist
 	}
 
 	if err != nil {
-		return []model.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedOrgs []model.Organization
+	var transformedOrgs []organization.Organization
 
 	for _, o := range fetchedOrgs {
 		transformedOrg, err := transformToOrg(o)
 		if err != nil {
-			return []model.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedOrgs = append(transformedOrgs, transformedOrg)
@@ -218,12 +219,12 @@ func (s Store) ListOrg(ctx context.Context) ([]model.Organization, error) {
 	return transformedOrgs, nil
 }
 
-func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (model.Organization, error) {
+func (s Store) UpdateOrg(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
 	var updatedOrg Organization
 
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var updateOrganizationQuery string
@@ -235,7 +236,7 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (mode
 		updateOrganizationQuery, err = buildUpdateOrganizationBySlugQuery(dialect)
 	}
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if isUuid {
@@ -248,28 +249,28 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate model.Organization) (mode
 		})
 	}
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+		return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
 	}
 
 	toUpdate, err = transformToOrg(updatedOrg)
 	if err != nil {
-		return model.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return toUpdate, nil
 }
 
-func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, error) {
+func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]user.User, error) {
 	var fetchedUsers []User
 	listOrganizationAdmins, err := buildListOrganizationAdmins(dialect)
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	id = strings.TrimSpace(id)
 	fetchedOrg, err := s.GetOrg(ctx, id)
 	if err != nil {
-		return []model.User{}, err
+		return []user.User{}, err
 	}
 	id = fetchedOrg.Id
 
@@ -278,18 +279,18 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.User{}, org.NoAdminsExist
+		return []user.User{}, organization.ErrNoAdminsExist
 	}
 
 	if err != nil {
-		return []model.User{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedUsers []model.User
+	var transformedUsers []user.User
 	for _, u := range fetchedUsers {
 		transformedUser, err := transformToUser(u)
 		if err != nil {
-			return []model.User{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedUsers = append(transformedUsers, transformedUser)
@@ -298,13 +299,13 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 	return transformedUsers, nil
 }
 
-func transformToOrg(from Organization) (model.Organization, error) {
+func transformToOrg(from Organization) (organization.Organization, error) {
 	var unmarshalledMetadata map[string]any
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return model.Organization{}, err
+		return organization.Organization{}, err
 	}
 
-	return model.Organization{
+	return organization.Organization{
 		Id:        from.Id,
 		Name:      from.Name,
 		Slug:      from.Slug,

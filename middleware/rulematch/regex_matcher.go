@@ -4,16 +4,15 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/odpf/shield/store"
-	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/core/rule"
 )
 
 type RegexMatcher struct {
-	ruleRepo store.RuleRepository
+	ruleService RuleService
 }
 
-func (m RegexMatcher) Match(ctx context.Context, reqMethod string, reqURL *url.URL) (*structs.Rule, error) {
-	ruleset, err := m.ruleRepo.GetAll(ctx)
+func (m RegexMatcher) Match(ctx context.Context, reqMethod string, reqURL *url.URL) (*rule.Rule, error) {
+	ruleset, err := m.ruleService.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -29,11 +28,11 @@ func (m RegexMatcher) Match(ctx context.Context, reqMethod string, reqURL *url.U
 			}
 		}
 	}
-	return nil, ErrUnknownRule
+	return nil, rule.ErrUnknown
 }
 
-func NewRegexMatcher(ruleRepo store.RuleRepository) *RegexMatcher {
+func NewRegexMatcher(ruleService RuleService) *RegexMatcher {
 	return &RegexMatcher{
-		ruleRepo: ruleRepo,
+		ruleService: ruleService,
 	}
 }

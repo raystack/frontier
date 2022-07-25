@@ -10,9 +10,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type Action struct {
@@ -72,16 +71,16 @@ func buildUpdateActionQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateActionQuery, err
 }
 
-func (s Store) GetAction(ctx context.Context, id string) (model.Action, error) {
+func (s Store) GetAction(ctx context.Context, id string) (action.Action, error) {
 	fetchedAction, err := s.selectAction(ctx, id, nil)
 	return fetchedAction, err
 }
 
-func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model.Action, error) {
+func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (action.Action, error) {
 	var fetchedAction Action
 	getActionQuery, err := buildGetActionQuery(dialect)
 	if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -89,30 +88,30 @@ func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (model
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Action{}, schema.ActionDoesntExist
+		return action.Action{}, action.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Action{}, schema.InvalidUUID
+		return action.Action{}, action.ErrInvalidUUID
 	} else if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedAction, err := transformToAction(fetchedAction)
 	if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", parseErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedAction, nil
 }
 
-func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (model.Action, error) {
+func (s Store) CreateAction(ctx context.Context, actionToCreate action.Action) (action.Action, error) {
 	var newAction Action
 
-	nsId := utils.DefaultStringIfEmpty(actionToCreate.Namespace.Id, actionToCreate.NamespaceId)
+	nsId := str.DefaultStringIfEmpty(actionToCreate.Namespace.Id, actionToCreate.NamespaceId)
 	createActionQuery, err := buildCreateActionQuery(dialect)
 	if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -120,22 +119,22 @@ func (s Store) CreateAction(ctx context.Context, actionToCreate model.Action) (m
 	})
 
 	if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedAction, err := transformToAction(newAction)
 	if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", parseErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedAction, nil
 }
 
-func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
+func (s Store) ListActions(ctx context.Context) ([]action.Action, error) {
 	var fetchedActions []Action
 	listActionsQuery, err := buildListActionsQuery(dialect)
 	if err != nil {
-		return []model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -143,19 +142,19 @@ func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Action{}, schema.ActionDoesntExist
+		return []action.Action{}, action.ErrNotExist
 	}
 
 	if err != nil {
-		return []model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedActions []model.Action
+	var transformedActions []action.Action
 
 	for _, o := range fetchedActions {
 		transformedAction, err := transformToAction(o)
 		if err != nil {
-			return []model.Action{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []action.Action{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedActions = append(transformedActions, transformedAction)
@@ -164,11 +163,11 @@ func (s Store) ListActions(ctx context.Context) ([]model.Action, error) {
 	return transformedActions, nil
 }
 
-func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.Action, error) {
+func (s Store) UpdateAction(ctx context.Context, toUpdate action.Action) (action.Action, error) {
 	var updatedAction Action
 	updateActionQuery, err := buildUpdateActionQuery(dialect)
 	if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", queryErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -176,27 +175,27 @@ func (s Store) UpdateAction(ctx context.Context, toUpdate model.Action) (model.A
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Action{}, schema.ActionDoesntExist
+		return action.Action{}, action.ErrNotExist
 	} else if err != nil {
-		return model.Action{}, fmt.Errorf("%w: %s", dbErr, err)
+		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedAction, err := transformToAction(updatedAction)
 	if err != nil {
-		return model.Action{}, fmt.Errorf("%s: %w", parseErr, err)
+		return action.Action{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return transformedAction, nil
 }
 
-func transformToAction(from Action) (model.Action, error) {
+func transformToAction(from Action) (action.Action, error) {
 	from.Namespace.Id = from.NamespaceID
 	namespace, err := transformToNamespace(from.Namespace)
 	if err != nil {
-		return model.Action{}, err
+		return action.Action{}, err
 	}
 
-	return model.Action{
+	return action.Action{
 		Id:          from.Id,
 		Name:        from.Name,
 		NamespaceId: from.NamespaceID,

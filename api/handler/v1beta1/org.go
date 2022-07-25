@@ -2,14 +2,14 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"strings"
+
+	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/internal/org"
-	"github.com/odpf/shield/model"
-	shieldError "github.com/odpf/shield/utils/errors"
+	"github.com/odpf/shield/core/organization"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,13 +20,13 @@ import (
 )
 
 type OrganizationService interface {
-	Get(ctx context.Context, id string) (model.Organization, error)
-	Create(ctx context.Context, org model.Organization) (model.Organization, error)
-	List(ctx context.Context) ([]model.Organization, error)
-	Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
-	AddAdmin(ctx context.Context, id string, userIds []string) ([]model.User, error)
-	ListAdmins(ctx context.Context, id string) ([]model.User, error)
-	RemoveAdmin(ctx context.Context, id string, userId string) ([]model.User, error)
+	Get(ctx context.Context, id string) (organization.Organization, error)
+	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
+	List(ctx context.Context) ([]organization.Organization, error)
+	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
+	AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error)
+	ListAdmins(ctx context.Context, id string) ([]user.User, error)
+	RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error)
 }
 
 func (v Dep) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
@@ -73,7 +73,7 @@ func (v Dep) CreateOrganization(ctx context.Context, request *shieldv1beta1.Crea
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newOrg, err := v.OrgService.Create(ctx, model.Organization{
+	newOrg, err := v.OrgService.Create(ctx, organization.Organization{
 		Name:     request.GetBody().Name,
 		Slug:     slug,
 		Metadata: metaDataMap,
@@ -107,9 +107,9 @@ func (v Dep) GetOrganization(ctx context.Context, request *shieldv1beta1.GetOrga
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, org.OrgDoesntExist):
+		case errors.Is(err, organization.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "organization not found")
-		case errors.Is(err, org.InvalidUUID):
+		case errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -139,7 +139,7 @@ func (v Dep) UpdateOrganization(ctx context.Context, request *shieldv1beta1.Upda
 		return nil, grpcBadBodyError
 	}
 
-	updatedOrg, err := v.OrgService.Update(ctx, model.Organization{
+	updatedOrg, err := v.OrgService.Update(ctx, organization.Organization{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
@@ -168,9 +168,9 @@ func (v Dep) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.Ad
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, org.OrgDoesntExist):
+		case errors.Is(err, organization.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
-		case errors.Is(err, shieldError.Unauthorzied):
+		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
@@ -198,7 +198,7 @@ func (v Dep) ListOrganizationAdmins(ctx context.Context, request *shieldv1beta1.
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, org.OrgDoesntExist):
+		case errors.Is(err, organization.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
 		default:
 			return nil, grpcInternalServerError
@@ -226,9 +226,9 @@ func (v Dep) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1beta1
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, org.OrgDoesntExist):
+		case errors.Is(err, organization.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
-		case errors.Is(err, shieldError.Unauthorzied):
+		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
@@ -240,7 +240,7 @@ func (v Dep) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1beta1
 	}, nil
 }
 
-func transformOrgToPB(org model.Organization) (shieldv1beta1.Organization, error) {
+func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(org.Metadata))
 	if err != nil {
 		return shieldv1beta1.Organization{}, err

@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
@@ -17,11 +18,11 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testActionMap = map[string]model.Action{
+var testActionMap = map[string]action.Action{
 	"read": {
 		Id:   "read",
 		Name: "Read",
-		Namespace: model.Namespace{
+		Namespace: namespace.Namespace{
 			Id:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
@@ -33,7 +34,7 @@ var testActionMap = map[string]model.Action{
 	"write": {
 		Id:   "write",
 		Name: "Write",
-		Namespace: model.Namespace{
+		Namespace: namespace.Namespace{
 			Id:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
@@ -45,7 +46,7 @@ var testActionMap = map[string]model.Action{
 	"manage": {
 		Id:   "manage",
 		Name: "Manage",
-		Namespace: model.Namespace{
+		Namespace: namespace.Namespace{
 			Id:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
@@ -67,16 +68,16 @@ func TestListActions(t *testing.T) {
 	}{
 		{
 			title: "error in Action Service",
-			mockActionSrc: mockActionSrv{ListActionsFunc: func(ctx context.Context) (actions []model.Action, err error) {
-				return []model.Action{}, errors.New("some error")
+			mockActionSrc: mockActionSrv{ListActionsFunc: func(ctx context.Context) (actions []action.Action, err error) {
+				return []action.Action{}, errors.New("some error")
 			}},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		},
 		{
 			title: "success",
-			mockActionSrc: mockActionSrv{ListActionsFunc: func(ctx context.Context) (actions []model.Action, err error) {
-				var testActionList []model.Action
+			mockActionSrc: mockActionSrv{ListActionsFunc: func(ctx context.Context) (actions []action.Action, err error) {
+				var testActionList []action.Action
 				for _, act := range testActionMap {
 					testActionList = append(testActionList, act)
 				}
@@ -153,8 +154,8 @@ func TestCreateAction(t *testing.T) {
 	}{
 		{
 			title: "error in creating action",
-			mockActionSrv: mockActionSrv{CreateActionFunc: func(ctx context.Context, act model.Action) (model.Action, error) {
-				return model.Action{}, errors.New("some error")
+			mockActionSrv: mockActionSrv{CreateActionFunc: func(ctx context.Context, act action.Action) (action.Action, error) {
+				return action.Action{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.CreateActionRequest{Body: &shieldv1beta1.ActionRequestBody{
 				Id:          "read",
@@ -166,11 +167,11 @@ func TestCreateAction(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockActionSrv: mockActionSrv{CreateActionFunc: func(ctx context.Context, act model.Action) (model.Action, error) {
-				return model.Action{
+			mockActionSrv: mockActionSrv{CreateActionFunc: func(ctx context.Context, act action.Action) (action.Action, error) {
+				return action.Action{
 					Id:   "read",
 					Name: "Read",
-					Namespace: model.Namespace{
+					Namespace: namespace.Namespace{
 						Id:   "team",
 						Name: "Team",
 					},
@@ -210,24 +211,24 @@ func TestCreateAction(t *testing.T) {
 }
 
 type mockActionSrv struct {
-	GetActionFunc    func(ctx context.Context, id string) (model.Action, error)
-	CreateActionFunc func(ctx context.Context, act model.Action) (model.Action, error)
-	ListActionsFunc  func(ctx context.Context) ([]model.Action, error)
-	UpdateActionFunc func(ctx context.Context, id string, act model.Action) (model.Action, error)
+	GetActionFunc    func(ctx context.Context, id string) (action.Action, error)
+	CreateActionFunc func(ctx context.Context, act action.Action) (action.Action, error)
+	ListActionsFunc  func(ctx context.Context) ([]action.Action, error)
+	UpdateActionFunc func(ctx context.Context, id string, act action.Action) (action.Action, error)
 }
 
-func (m mockActionSrv) GetAction(ctx context.Context, id string) (model.Action, error) {
+func (m mockActionSrv) GetAction(ctx context.Context, id string) (action.Action, error) {
 	return m.GetActionFunc(ctx, id)
 }
 
-func (m mockActionSrv) ListActions(ctx context.Context) ([]model.Action, error) {
+func (m mockActionSrv) ListActions(ctx context.Context) ([]action.Action, error) {
 	return m.ListActionsFunc(ctx)
 }
 
-func (m mockActionSrv) CreateAction(ctx context.Context, act model.Action) (model.Action, error) {
+func (m mockActionSrv) CreateAction(ctx context.Context, act action.Action) (action.Action, error) {
 	return m.CreateActionFunc(ctx, act)
 }
 
-func (m mockActionSrv) UpdateAction(ctx context.Context, id string, act model.Action) (model.Action, error) {
+func (m mockActionSrv) UpdateAction(ctx context.Context, id string, act action.Action) (action.Action, error) {
 	return m.UpdateActionFunc(ctx, id, act)
 }

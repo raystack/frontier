@@ -13,8 +13,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/ghodss/yaml"
-	"github.com/odpf/shield/store"
-	"github.com/odpf/shield/structs"
+	"github.com/odpf/shield/core/rule"
 	"github.com/pkg/errors"
 	"gocloud.dev/blob"
 )
@@ -58,11 +57,11 @@ type RuleRepository struct {
 	mu  *sync.Mutex
 
 	cron   *cron.Cron
-	bucket store.Bucket
-	cached []structs.Ruleset
+	bucket Bucket
+	cached []rule.Ruleset
 }
 
-func (repo *RuleRepository) GetAll(ctx context.Context) ([]structs.Ruleset, error) {
+func (repo *RuleRepository) GetAll(ctx context.Context) ([]rule.Ruleset, error) {
 	repo.mu.Lock()
 	currentCache := repo.cached
 	repo.mu.Unlock()
@@ -76,7 +75,7 @@ func (repo *RuleRepository) GetAll(ctx context.Context) ([]structs.Ruleset, erro
 }
 
 func (repo *RuleRepository) refresh(ctx context.Context) error {
-	var ruleset []structs.Ruleset
+	var ruleset []rule.Ruleset
 
 	// get all items
 	it := repo.bucket.List(&blob.ListOptions{})
@@ -109,32 +108,32 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 		}
 
 		// transforming yaml parse ruleset to clean iterable ruleset in middlewares
-		targetRuleSet := structs.Ruleset{}
-		for _, rule := range s.Rules {
-			for _, backend := range rule.Backends {
+		targetRuleSet := rule.Ruleset{}
+		for _, theRule := range s.Rules {
+			for _, backend := range theRule.Backends {
 				for _, frontend := range backend.Frontends {
-					middlewares := structs.MiddlewareSpecs{}
+					middlewares := rule.MiddlewareSpecs{}
 					for _, middleware := range frontend.Middlewares {
-						middlewares = append(middlewares, structs.MiddlewareSpec{
+						middlewares = append(middlewares, rule.MiddlewareSpec{
 							Name:   middleware.Name,
 							Config: middleware.Config,
 						})
 					}
 
-					hooks := structs.HookSpecs{}
+					hooks := rule.HookSpecs{}
 					for _, hook := range frontend.Hooks {
-						hooks = append(hooks, structs.HookSpec{
+						hooks = append(hooks, rule.HookSpec{
 							Name:   hook.Name,
 							Config: hook.Config,
 						})
 					}
 
-					targetRuleSet.Rules = append(targetRuleSet.Rules, structs.Rule{
-						Frontend: structs.Frontend{
+					targetRuleSet.Rules = append(targetRuleSet.Rules, rule.Rule{
+						Frontend: rule.Frontend{
 							URL:    frontend.Path,
 							Method: frontend.Method,
 						},
-						Backend:     structs.Backend{URL: backend.Target, Namespace: backend.Name, Prefix: backend.Prefix},
+						Backend:     rule.Backend{URL: backend.Target, Namespace: backend.Name, Prefix: backend.Prefix},
 						Middlewares: middlewares,
 						Hooks:       hooks,
 					})
@@ -190,7 +189,7 @@ func (repo *RuleRepository) Close() error {
 	return repo.bucket.Close()
 }
 
-func NewRuleRepository(logger log.Logger, b store.Bucket) *RuleRepository {
+func NewRuleRepository(logger log.Logger, b Bucket) *RuleRepository {
 	return &RuleRepository{
 		log:    logger,
 		bucket: b,

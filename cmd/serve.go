@@ -10,30 +10,31 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/odpf/shield/internal/permission"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/bootstrap"
+	"github.com/odpf/shield/core/group"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/core/rule"
+	"github.com/odpf/shield/core/user"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/odpf/shield/internal/bootstrap"
-	"github.com/odpf/shield/internal/group"
-
-	"github.com/odpf/shield/internal/relation"
-	"github.com/odpf/shield/internal/resource"
 
 	"github.com/odpf/shield/api/handler"
 	v1 "github.com/odpf/shield/api/handler/v1beta1"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/hook"
 	authz_hook "github.com/odpf/shield/hook/authz"
-	"github.com/odpf/shield/internal/authz"
-	"github.com/odpf/shield/internal/org"
-	"github.com/odpf/shield/internal/project"
-	"github.com/odpf/shield/internal/roles"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/internal/user"
 	"github.com/odpf/shield/pkg/sql"
 	"github.com/odpf/shield/proxy"
 	blobstore "github.com/odpf/shield/store/blob"
 	"github.com/odpf/shield/store/postgres"
+	"github.com/odpf/shield/store/spicedb"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/server"
@@ -83,20 +84,17 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 	}
 
 	serviceStore := postgres.NewStore(db)
-	authzService := authz.New(appConfig, logger)
-	deps, err := apiDependencies(ctx, db, appConfig, resourceConfig, logger, serviceStore, authzService)
+	authzStore, err := spicedb.New(appConfig.SpiceDB, logger)
 	if err != nil {
 		return err
 	}
 
-	AuthzCheckService := permission.NewCheckService(permission.Service{
-		Authz:               authzService,
-		Store:               serviceStore,
-		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
-		ResourcesRepository: resourceConfig,
-	}, serviceStore)
+	deps, err := apiDependencies(ctx, logger, db, appConfig, resourceConfig, serviceStore, authzStore)
+	if err != nil {
+		return err
+	}
 
-	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies, AuthzCheckService)
+	cleanUpFunc, cleanUpProxies, err = startProxy(logger, appConfig, ctx, deps, cleanUpFunc, cleanUpProxies)
 	if err != nil {
 		return err
 	}
@@ -175,14 +173,16 @@ func loadResourceConfig(ctx context.Context, logger log.Logger, appConfig *confi
 	if err != nil {
 		return nil, err
 	}
+
 	resourceRepo := blobstore.NewResourcesRepository(logger, resourceBlobFS)
 	if err := resourceRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 		return nil, err
 	}
+
 	return resourceRepo, nil
 }
 
-func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, deps handler.Deps, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error, authzCheckService permission.CheckService) ([]func() error, []func(ctx context.Context) error, error) {
+func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context, deps handler.Deps, cleanUpFunc []func() error, cleanUpProxies []func(ctx context.Context) error) ([]func() error, []func(ctx context.Context) error, error) {
 	for _, service := range appConfig.Proxy.Services {
 		h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(logger, buildHookPipeline(logger, deps)), proxy.NewDirector())
 
@@ -200,8 +200,11 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 			return nil, nil, err
 		}
 
+		ruleService := rule.NewService(ruleRepo)
+		deps.V1beta1.RuleService = ruleService
+
 		cleanUpFunc = append(cleanUpFunc, ruleRepo.Close)
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, ruleRepo, appConfig.App.IdentityProxyHeader, deps, authzCheckService)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, appConfig.App.IdentityProxyHeader, deps)
 		go func(thisService config.Service, handler http.Handler) {
 			proxyURL := fmt.Sprintf("%s:%d", thisService.Host, thisService.Port)
 			logger.Info("starting h2c proxy", "url", proxyURL)
@@ -255,67 +258,45 @@ func healthCheck() http.HandlerFunc {
 	}
 }
 
-func apiDependencies(ctx context.Context, db *sql.SQL, appConfig *config.Shield, resourceConfig *blobstore.ResourcesRepository, logger log.Logger, serviceStore postgres.Store, authzService *authz.Authz) (handler.Deps, error) {
-	permissions := permission.Service{
-		Authz:               authzService,
-		IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
-		Store:               serviceStore,
-		ResourcesRepository: resourceConfig,
-	}
-
-	schemaService := schema.Service{
-		Store: serviceStore,
-		Authz: authzService,
-	}
-
-	roleService := roles.Service{
-		Store: serviceStore,
-	}
-
-	bootstrapService := bootstrap.Service{
-		SchemaService: schemaService,
-		RoleService:   roleService,
-		Logger:        logger,
-	}
+func apiDependencies(
+	ctx context.Context,
+	logger log.Logger,
+	db *sql.SQL,
+	appConfig *config.Shield,
+	blobStore *blobstore.ResourcesRepository,
+	serviceStore postgres.Store,
+	authzStore *spicedb.SpiceDB) (handler.Deps, error) {
+	actionService := action.NewService(serviceStore)
+	namespaceService := namespace.NewService(serviceStore)
+	userService := user.NewService(appConfig.App.IdentityProxyHeader, serviceStore)
+	relationService := relation.NewService(serviceStore, authzStore)
+	groupService := group.NewService(serviceStore, relationService, userService)
+	organizationService := organization.NewService(serviceStore, relationService, userService)
+	projectService := project.NewService(serviceStore, relationService, userService)
+	policyService := policy.NewService(serviceStore, authzStore)
+	roleService := role.NewService(serviceStore)
+	bootstrapService := bootstrap.NewService(logger, policyService, actionService, namespaceService, roleService, blobStore)
+	resourceService := resource.NewService(serviceStore, authzStore, blobStore, relationService, userService)
 
 	bootstrapService.BootstrapDefaultDefinitions(ctx)
-	err := bootstrapService.BootstrapResources(ctx, resourceConfig)
-
+	err := bootstrapService.BootstrapResources(ctx)
 	if err != nil {
 		return handler.Deps{}, err
 	}
 
 	dependencies := handler.Deps{
 		V1beta1: v1.Dep{
-			OrgService: org.Service{
-				Store:       serviceStore,
-				Permissions: permissions,
-			},
-			UserService: user.Service{
-				Store: serviceStore,
-			},
-			ProjectService: project.Service{
-				Store:       serviceStore,
-				Permissions: permissions,
-			},
-			GroupService: group.Service{
-				Store:       serviceStore,
-				Permissions: permissions,
-			},
-			RelationService: relation.Service{
-				Store: serviceStore,
-				Authz: authzService,
-			},
-			ResourceService: resource.Service{
-				Store:       serviceStore,
-				Permissions: permissions,
-			},
-			RoleService:            roleService,
-			PolicyService:          schemaService,
-			ActionService:          schemaService,
-			NamespaceService:       schemaService,
-			IdentityProxyHeader:    appConfig.App.IdentityProxyHeader,
-			PermissionCheckService: permission.NewCheckService(permissions, serviceStore),
+			OrgService:          organizationService,
+			UserService:         userService,
+			ProjectService:      projectService,
+			GroupService:        groupService,
+			RelationService:     relationService,
+			ResourceService:     resourceService,
+			RoleService:         roleService,
+			PolicyService:       policyService,
+			ActionService:       actionService,
+			NamespaceService:    namespaceService,
+			IdentityProxyHeader: appConfig.App.IdentityProxyHeader,
 		},
 	}
 	return dependencies, nil
