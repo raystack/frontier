@@ -137,7 +137,6 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 	templateMap := map[string]interface{}{}
 	for res, attr := range conf.Scope.Attributes {
 		templateMap[res] = ""
-
 		switch attr.Type {
 		case middleware.AttributeTypeGRPCPayload:
 			// check if grpc request
@@ -162,7 +161,7 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 			}
 			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&req.Body, attr.Key)
 			if err != nil {
-				w.log.Error("middleware: failed to parse grpc payload", "err", err)
+				w.log.Error("middleware: failed to parse json payload", "err", err)
 				return false
 			}
 
