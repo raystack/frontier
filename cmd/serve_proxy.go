@@ -20,11 +20,6 @@ import (
 	"github.com/odpf/shield/internal/store/blob"
 )
 
-type RequestDirector interface {
-	// Build prepares a request that will be sent to backend service
-	Direct(*http.Request)
-}
-
 func serveProxies(
 	ctx context.Context,
 	logger log.Logger,
