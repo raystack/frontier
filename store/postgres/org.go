@@ -40,7 +40,6 @@ func buildGetOrganizationsByIdQuery(dialect goqu.DialectWrapper) (string, error)
 		"id":   goqu.L("$1"),
 		"slug": goqu.L("$2"),
 	}).ToSQL()
-
 	return getOrganizationsByIdQuery, err
 }
 
