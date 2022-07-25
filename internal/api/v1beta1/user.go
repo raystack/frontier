@@ -18,12 +18,12 @@ import (
 )
 
 type UserService interface {
-	GetUser(ctx context.Context, id string) (user.User, error)
-	GetUserByEmail(ctx context.Context, email string) (user.User, error)
-	CreateUser(ctx context.Context, user user.User) (user.User, error)
-	ListUsers(ctx context.Context, limit int32, page int32, keyword string) (user.PagedUsers, error)
-	UpdateUser(ctx context.Context, toUpdate user.User) (user.User, error)
-	UpdateCurrentUser(ctx context.Context, toUpdate user.User) (user.User, error)
+	GetByID(ctx context.Context, id string) (user.User, error)
+	GetByEmail(ctx context.Context, email string) (user.User, error)
+	Create(ctx context.Context, user user.User) (user.User, error)
+	List(ctx context.Context, flt user.Filter) (user.PagedUsers, error)
+	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
+	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
@@ -34,21 +34,18 @@ var (
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
-	limit := request.PageSize
-	page := request.PageNum
-	keyword := request.Keyword
-	if page < 1 {
-		page = 1
-	}
 
-	userResp, err := h.userService.ListUsers(ctx, limit, page, keyword)
-	userList := userResp.Users
-
+	userResp, err := h.userService.List(ctx, user.Filter{
+		Limit:   request.GetPageSize(),
+		Page:    request.GetPageNum(),
+		Keyword: request.GetKeyword(),
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
+	userList := userResp.Users
 	for _, user := range userList {
 		userPB, err := transformUserToPB(user)
 		if err != nil {
@@ -89,7 +86,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		Email:    email,
 		Metadata: metaDataMap,
 	}
-	newUser, err := h.userService.CreateUser(ctx, userT)
+	newUser, err := h.userService.Create(ctx, userT)
 
 	if err != nil {
 		logger.Error(err.Error())
@@ -115,13 +112,13 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest) (*shieldv1beta1.GetUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedUser, err := h.userService.GetUser(ctx, request.GetId())
+	fetchedUser, err := h.userService.GetByID(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "user not found")
-		case errors.Is(err, user.ErrInvalidUUID):
+		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -151,13 +148,13 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		return nil, emptyEmailId
 	}
 
-	fetchedUser, err := h.userService.GetUserByEmail(ctx, email)
+	fetchedUser, err := h.userService.GetByEmail(ctx, email)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "user not found")
-		case errors.Is(err, user.ErrInvalidUUID):
+		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -187,7 +184,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
-	updatedUser, err := h.userService.UpdateUser(ctx, user.User{
+	updatedUser, err := h.userService.UpdateByID(ctx, user.User{
 		ID:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Email:    request.GetBody().Email,
@@ -234,7 +231,7 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		return nil, grpcBadBodyError
 	}
 
-	updatedUser, err := h.userService.UpdateCurrentUser(ctx, user.User{
+	updatedUser, err := h.userService.UpdateByEmail(ctx, user.User{
 		Name:     request.GetBody().Name,
 		Email:    email,
 		Metadata: metaDataMap,

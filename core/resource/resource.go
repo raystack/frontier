@@ -20,19 +20,16 @@ var (
 	ErrInvalidUUID = errors.New("invalid syntax of uuid")
 )
 
-type Store interface {
-	GetResource(ctx context.Context, id string) (Resource, error)
-	GetResourceByURN(ctx context.Context, urn string) (Resource, error)
-	CreateResource(ctx context.Context, resource Resource) (Resource, error)
-	ListResources(ctx context.Context, filters Filters) ([]Resource, error)
-	UpdateResource(ctx context.Context, id string, resource Resource) (Resource, error)
+type Repository interface {
+	Get(ctx context.Context, id string) (Resource, error)
+	GetByURN(ctx context.Context, urn string) (Resource, error)
+	Create(ctx context.Context, resource Resource) (Resource, error)
+	List(ctx context.Context, filters Filters) ([]Resource, error)
+	Update(ctx context.Context, id string, resource Resource) (Resource, error)
 }
 
-type AuthzStore interface {
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
-}
-
-type BlobStore interface {
+type ConfigRepository interface {
+	GetAll(ctx context.Context) ([]YAML, error)
 	GetRelationsForNamespace(ctx context.Context, namespaceID string) (map[string]bool, error)
 }
 

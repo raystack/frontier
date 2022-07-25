@@ -1,18 +1,15 @@
 package postgres
 
 import (
-	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"time"
+
+	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 
 	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type Policy struct {
@@ -108,107 +105,6 @@ func buildUpdatePolicyQuery(dialect goqu.DialectWrapper) (string, error) {
 	}).Returning(&PolicyCols{}).ToSQL()
 
 	return updatePolicyQuery, err
-}
-
-func (s Store) GetPolicy(ctx context.Context, id string) (policy.Policy, error) {
-	fetchedPolicy, err := s.selectPolicy(ctx, id)
-	return fetchedPolicy, err
-}
-
-func (s Store) selectPolicy(ctx context.Context, id string) (policy.Policy, error) {
-	var fetchedPolicy Policy
-	getPolicyQuery, err := buildGetPolicyQuery(dialect)
-	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedPolicy, getPolicyQuery, id)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return policy.Policy{}, policy.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		// TODO: this uuid syntax is a error defined in db, not in library
-		// need to look into better ways to implement this
-		return policy.Policy{}, policy.ErrInvalidUUID
-	} else if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	transformedPolicy, err := transformToPolicy(fetchedPolicy)
-	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedPolicy, nil
-}
-
-func (s Store) ListPolicies(ctx context.Context) ([]policy.Policy, error) {
-	var fetchedPolicies []Policy
-	listPolicyQuery, err := buildListPolicyQuery(dialect)
-	if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedPolicies, listPolicyQuery)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return []policy.Policy{}, project.ErrNotExist
-	} else if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedPolicies []policy.Policy
-	for _, p := range fetchedPolicies {
-		transformedPolicy, err := transformToPolicy(p)
-		if err != nil {
-			return []policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedPolicies = append(transformedPolicies, transformedPolicy)
-	}
-
-	return transformedPolicies, nil
-}
-
-func (s Store) CreatePolicy(ctx context.Context, policyToCreate policy.Policy) ([]policy.Policy, error) {
-	var newPolicy Policy
-
-	roleID := str.DefaultStringIfEmpty(policyToCreate.Role.ID, policyToCreate.RoleID)
-	actionID := str.DefaultStringIfEmpty(policyToCreate.Action.ID, policyToCreate.ActionID)
-	nsID := str.DefaultStringIfEmpty(policyToCreate.Namespace.ID, policyToCreate.NamespaceID)
-	createPolicyQuery, err := buildCreatePolicyQuery(dialect)
-	if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsID, roleID, sql.NullString{String: actionID, Valid: actionID != ""})
-	})
-	if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-	return s.ListPolicies(ctx)
-}
-
-func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate policy.Policy) ([]policy.Policy, error) {
-	var updatedPolicy Policy
-	updatePolicyQuery, err := buildUpdatePolicyQuery(dialect)
-	if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedPolicy, updatePolicyQuery, id, toUpdate.NamespaceID, toUpdate.RoleID, sql.NullString{String: toUpdate.ActionID, Valid: toUpdate.ActionID != ""})
-	})
-
-	if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	return s.ListPolicies(ctx)
 }
 
 func transformToPolicy(from Policy) (policy.Policy, error) {

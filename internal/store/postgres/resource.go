@@ -1,11 +1,9 @@
 package postgres
 
 import (
-	"context"
-	"database/sql"
-	"errors"
-	"fmt"
 	"time"
+
+	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/group"
@@ -14,7 +12,6 @@ import (
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type Resource struct {
@@ -110,177 +107,177 @@ func buildUpdateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateResourceQuery, err
 }
 
-func (s Store) CreateResource(ctx context.Context, resourceToCreate resource.Resource) (resource.Resource, error) {
-	var newResource Resource
+// func (s Store) CreateResource(ctx context.Context, resourceToCreate resource.Resource) (resource.Resource, error) {
+// 	var newResource Resource
 
-	userID := sql.NullString{String: resourceToCreate.UserID, Valid: resourceToCreate.UserID != ""}
-	groupID := sql.NullString{String: resourceToCreate.GroupID, Valid: resourceToCreate.GroupID != ""}
-	createResourceQuery, err := buildCreateResourceQuery(dialect)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	userID := sql.NullString{String: resourceToCreate.UserID, Valid: resourceToCreate.UserID != ""}
+// 	groupID := sql.NullString{String: resourceToCreate.GroupID, Valid: resourceToCreate.GroupID != ""}
+// 	createResourceQuery, err := buildCreateResourceQuery(dialect)
+// 	if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.URN, resourceToCreate.Name, resourceToCreate.ProjectID, groupID, resourceToCreate.OrganizationID, resourceToCreate.NamespaceID, userID)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.URN, resourceToCreate.Name, resourceToCreate.ProjectID, groupID, resourceToCreate.OrganizationID, resourceToCreate.NamespaceID, userID)
+// 	})
 
-	if err != nil {
-		return resource.Resource{}, err
-	}
+// 	if err != nil {
+// 		return resource.Resource{}, err
+// 	}
 
-	transformedResource, err := transformToResource(newResource)
+// 	transformedResource, err := transformToResource(newResource)
 
-	if err != nil {
-		return resource.Resource{}, err
-	}
+// 	if err != nil {
+// 		return resource.Resource{}, err
+// 	}
 
-	return transformedResource, nil
-}
+// 	return transformedResource, nil
+// }
 
-func (s Store) ListResources(ctx context.Context, filters resource.Filters) ([]resource.Resource, error) {
-	var fetchedResources []Resource
-	filterQueryMap, err := str.StructToStringMap(filters)
-	if err != nil {
-		return []resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// func (s Store) ListResources(ctx context.Context, filters resource.Filters) ([]resource.Resource, error) {
+// 	var fetchedResources []Resource
+// 	filterQueryMap, err := str.StructToStringMap(filters)
+// 	if err != nil {
+// 		return []resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	listResourcesStatement := buildListResourcesStatement(dialect)
+// 	listResourcesStatement := buildListResourcesStatement(dialect)
 
-	for key, value := range filterQueryMap {
-		if value != "" {
-			listResourcesStatement = listResourcesStatement.Where(goqu.Ex{key: value})
-		}
-	}
+// 	for key, value := range filterQueryMap {
+// 		if value != "" {
+// 			listResourcesStatement = listResourcesStatement.Where(goqu.Ex{key: value})
+// 		}
+// 	}
 
-	listResourcesQuery, _, err := listResourcesStatement.ToSQL()
-	if err != nil {
-		return []resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	listResourcesQuery, _, err := listResourcesStatement.ToSQL()
+// 	if err != nil {
+// 		return []resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedResources, listResourcesQuery)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.SelectContext(ctx, &fetchedResources, listResourcesQuery)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return []resource.Resource{}, resource.ErrNotExist
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return []resource.Resource{}, resource.ErrNotExist
+// 	}
 
-	if err != nil {
-		return []resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if err != nil {
+// 		return []resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	var transformedResources []resource.Resource
+// 	var transformedResources []resource.Resource
 
-	for _, r := range fetchedResources {
-		transformedResource, err := transformToResource(r)
-		if err != nil {
-			return []resource.Resource{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
+// 	for _, r := range fetchedResources {
+// 		transformedResource, err := transformToResource(r)
+// 		if err != nil {
+// 			return []resource.Resource{}, fmt.Errorf("%w: %s", parseErr, err)
+// 		}
 
-		transformedResources = append(transformedResources, transformedResource)
-	}
+// 		transformedResources = append(transformedResources, transformedResource)
+// 	}
 
-	return transformedResources, nil
-}
+// 	return transformedResources, nil
+// }
 
-func (s Store) GetResource(ctx context.Context, id string) (resource.Resource, error) {
-	var fetchedResource Resource
+// func (s Store) GetResource(ctx context.Context, id string) (resource.Resource, error) {
+// 	var fetchedResource Resource
 
-	getResourcesByIDQuery, err := buildGetResourcesByIDQuery(dialect)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	getResourcesByIDQuery, err := buildGetResourcesByIDQuery(dialect)
+// 	if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByIDQuery, id)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByIDQuery, id)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return resource.Resource{}, resource.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		// TODO: this uuid syntax is a error defined in db, not in library
-		// need to look into better ways to implement this
-		return resource.Resource{}, resource.ErrInvalidUUID
-	} else if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return resource.Resource{}, resource.ErrNotExist
+// 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+// 		// TODO: this uuid syntax is a error defined in db, not in library
+// 		// need to look into better ways to implement this
+// 		return resource.Resource{}, resource.ErrInvalidUUID
+// 	} else if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	if err != nil {
-		return resource.Resource{}, err
-	}
+// 	if err != nil {
+// 		return resource.Resource{}, err
+// 	}
 
-	transformedResource, err := transformToResource(fetchedResource)
-	if err != nil {
-		return resource.Resource{}, err
-	}
+// 	transformedResource, err := transformToResource(fetchedResource)
+// 	if err != nil {
+// 		return resource.Resource{}, err
+// 	}
 
-	return transformedResource, nil
-}
+// 	return transformedResource, nil
+// }
 
-func (s Store) UpdateResource(ctx context.Context, id string, toUpdate resource.Resource) (resource.Resource, error) {
-	var updatedResource Resource
+// func (s Store) UpdateResource(ctx context.Context, id string, toUpdate resource.Resource) (resource.Resource, error) {
+// 	var updatedResource Resource
 
-	userID := sql.NullString{String: toUpdate.UserID, Valid: toUpdate.UserID != ""}
-	groupID := sql.NullString{String: toUpdate.GroupID, Valid: toUpdate.GroupID != ""}
-	updateResourceQuery, err := buildUpdateResourceQuery(dialect)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	userID := sql.NullString{String: toUpdate.UserID, Valid: toUpdate.UserID != ""}
+// 	groupID := sql.NullString{String: toUpdate.GroupID, Valid: toUpdate.GroupID != ""}
+// 	updateResourceQuery, err := buildUpdateResourceQuery(dialect)
+// 	if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectID, groupID, toUpdate.OrganizationID, toUpdate.NamespaceID, userID, toUpdate.URN)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectID, groupID, toUpdate.OrganizationID, toUpdate.NamespaceID, userID, toUpdate.URN)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return resource.Resource{}, resource.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		// TODO: this uuid syntax is a error defined in db, not in library
-		// need to look into better ways to implement this
-		return resource.Resource{}, fmt.Errorf("%w: %s", resource.ErrInvalidUUID, err)
-	} else if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return resource.Resource{}, resource.ErrNotExist
+// 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+// 		// TODO: this uuid syntax is a error defined in db, not in library
+// 		// need to look into better ways to implement this
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", resource.ErrInvalidUUID, err)
+// 	} else if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	toUpdate, err = transformToResource(updatedResource)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
+// 	toUpdate, err = transformToResource(updatedResource)
+// 	if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%s: %w", parseErr, err)
+// 	}
 
-	return toUpdate, nil
-}
+// 	return toUpdate, nil
+// }
 
-func (s Store) GetResourceByURN(ctx context.Context, urn string) (resource.Resource, error) {
-	var fetchedResource Resource
-	getResourcesByURNQuery, err := buildGetResourcesByURNQuery(dialect)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// func (s Store) GetResourceByURN(ctx context.Context, urn string) (resource.Resource, error) {
+// 	var fetchedResource Resource
+// 	getResourcesByURNQuery, err := buildGetResourcesByURNQuery(dialect)
+// 	if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByURNQuery, urn)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByURNQuery, urn)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return resource.Resource{}, resource.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		// TODO: this uuid syntax is a error defined in db, not in library
-		// need to look into better ways to implement this
-		return resource.Resource{}, resource.ErrInvalidUUID
-	} else if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return resource.Resource{}, resource.ErrNotExist
+// 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+// 		// TODO: this uuid syntax is a error defined in db, not in library
+// 		// need to look into better ways to implement this
+// 		return resource.Resource{}, resource.ErrInvalidUUID
+// 	} else if err != nil {
+// 		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	if err != nil {
-		return resource.Resource{}, err
-	}
+// 	if err != nil {
+// 		return resource.Resource{}, err
+// 	}
 
-	transformedResource, err := transformToResource(fetchedResource)
-	if err != nil {
-		return resource.Resource{}, err
-	}
+// 	transformedResource, err := transformToResource(fetchedResource)
+// 	if err != nil {
+// 		return resource.Resource{}, err
+// 	}
 
-	return transformedResource, nil
-}
+// 	return transformedResource, nil
+// }
 
 func transformToResource(from Resource) (resource.Resource, error) {
 	// TODO: remove *ID

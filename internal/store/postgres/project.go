@@ -1,13 +1,10 @@
 package postgres
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"strings"
 	"time"
+
+	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 
@@ -15,7 +12,6 @@ import (
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/core/user"
 )
 
 type Project struct {
@@ -118,203 +114,6 @@ func buildUpdateProjectByIDQuery(dialect goqu.DialectWrapper) (string, error) {
 	}).Returning(&Project{}).ToSQL()
 
 	return updateProjectQuery, err
-}
-
-func (s Store) GetProject(ctx context.Context, id string) (project.Project, error) {
-	var fetchedProject Project
-	var getProjectsQuery string
-	var err error
-	id = strings.TrimSpace(id)
-	isUuid := isUUID(id)
-
-	if isUuid {
-		getProjectsQuery, err = buildGetProjectsByIDQuery(dialect)
-	} else {
-		getProjectsQuery, err = buildGetProjectsBySlugQuery(dialect)
-	}
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	if isUuid {
-		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id, id)
-		})
-	} else {
-		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
-		})
-	}
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return project.Project{}, project.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		// TODO: this uuid syntax is a error defined in db, not in library
-		// need to look into better ways to implement this
-		return project.Project{}, project.ErrInvalidUUID
-	} else if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	if err != nil {
-		return project.Project{}, err
-	}
-
-	transformedProject, err := transformToProject(fetchedProject)
-	if err != nil {
-		return project.Project{}, err
-	}
-
-	return transformedProject, nil
-}
-
-func (s Store) CreateProject(ctx context.Context, projectToCreate project.Project) (project.Project, error) {
-	marshaledMetadata, err := json.Marshal(projectToCreate.Metadata)
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	var newProject Project
-	createProjectQuery, err := buildCreateProjectQuery(dialect)
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, projectToCreate.Organization.ID, marshaledMetadata)
-	})
-
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	transformedProj, err := transformToProject(newProject)
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedProj, nil
-}
-
-func (s Store) ListProject(ctx context.Context) ([]project.Project, error) {
-	var fetchedProjects []Project
-	listProjectQuery, err := buildListProjectQuery(dialect)
-	if err != nil {
-		return []project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedProjects, listProjectQuery)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return []project.Project{}, project.ErrNotExist
-	}
-
-	if err != nil {
-		return []project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedProjects []project.Project
-
-	for _, p := range fetchedProjects {
-		transformedProj, err := transformToProject(p)
-		if err != nil {
-			return []project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-
-		transformedProjects = append(transformedProjects, transformedProj)
-	}
-
-	return transformedProjects, nil
-}
-
-func (s Store) UpdateProject(ctx context.Context, toUpdate project.Project) (project.Project, error) {
-	var updatedProject Project
-
-	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	var updateProjectQuery string
-	toUpdate.ID = strings.TrimSpace(toUpdate.ID)
-	isUuid := isUUID(toUpdate.ID)
-
-	if isUuid {
-		updateProjectQuery, err = buildUpdateProjectByIDQuery(dialect)
-	} else {
-		updateProjectQuery, err = buildUpdateProjectBySlugQuery(dialect)
-	}
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	if isUuid {
-		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
-		})
-	} else {
-		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
-		})
-	}
-	if errors.Is(err, sql.ErrNoRows) {
-		return project.Project{}, project.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		// TODO: this uuid syntax is a error defined in db, not in library
-		// need to look into better ways to implement this
-		return project.Project{}, fmt.Errorf("%w: %s", project.ErrInvalidUUID, err)
-	} else if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	toUpdate, err = transformToProject(updatedProject)
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return toUpdate, nil
-}
-
-func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]user.User, error) {
-	var fetchedUsers []User
-
-	listProjectAdminsQuery, err := buildListProjectAdminsQuery(dialect)
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	id = strings.TrimSpace(id)
-	fetchedProject, err := s.GetProject(ctx, id)
-	if err != nil {
-		return []user.User{}, err
-	}
-	id = fetchedProject.ID
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedUsers, listProjectAdminsQuery, id)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return []user.User{}, project.ErrNoAdminsExist
-	}
-
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedUsers []user.User
-	for _, u := range fetchedUsers {
-		transformedUser, err := transformToUser(u)
-		if err != nil {
-			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-
-		transformedUsers = append(transformedUsers, transformedUser)
-	}
-
-	return transformedUsers, nil
 }
 
 func transformToProject(from Project) (project.Project, error) {

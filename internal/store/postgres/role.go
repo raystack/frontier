@@ -1,19 +1,13 @@
 package postgres
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
 
-	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type Role struct {
@@ -93,151 +87,151 @@ func buildUpdateRoleQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateRoleQuery, err
 }
 
-func (s Store) GetRole(ctx context.Context, id string) (role.Role, error) {
-	var fetchedRole Role
-	getRoleQuery, err := buildGetRoleQuery(dialect)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// func (s Store) GetRole(ctx context.Context, id string) (role.Role, error) {
+// 	var fetchedRole Role
+// 	getRoleQuery, err := buildGetRoleQuery(dialect)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, id)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, id)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return role.Role{}, project.ErrNotExist
-	} else if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return role.Role{}, project.ErrNotExist
+// 	} else if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	transformedRole, err := transformToRole(fetchedRole)
-	if err != nil {
-		return role.Role{}, err
-	}
+// 	transformedRole, err := transformToRole(fetchedRole)
+// 	if err != nil {
+// 		return role.Role{}, err
+// 	}
 
-	return transformedRole, nil
-}
+// 	return transformedRole, nil
+// }
 
-func (s Store) CreateRole(ctx context.Context, roleToCreate role.Role) (role.Role, error) {
-	marshaledMetadata, err := json.Marshal(roleToCreate.Metadata)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
+// func (s Store) CreateRole(ctx context.Context, roleToCreate role.Role) (role.Role, error) {
+// 	marshaledMetadata, err := json.Marshal(roleToCreate.Metadata)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
 
-	var newRole Role
-	var fetchedRole Role
+// 	var newRole Role
+// 	var fetchedRole Role
 
-	nsID := str.DefaultStringIfEmpty(roleToCreate.Namespace.ID, roleToCreate.NamespaceID)
-	createRoleQuery, err := buildCreateRoleQuery(dialect)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	nsID := str.DefaultStringIfEmpty(roleToCreate.Namespace.ID, roleToCreate.NamespaceID)
+// 	createRoleQuery, err := buildCreateRoleQuery(dialect)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.ID, roleToCreate.Name, pq.StringArray(roleToCreate.Types), nsID, marshaledMetadata)
-	})
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.ID, roleToCreate.Name, pq.StringArray(roleToCreate.Types), nsID, marshaledMetadata)
+// 	})
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	getRoleQuery, err := buildGetRoleQuery(dialect)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	getRoleQuery, err := buildGetRoleQuery(dialect)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, newRole.ID)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, newRole.ID)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return role.Role{}, project.ErrNotExist
-	} else if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return role.Role{}, project.ErrNotExist
+// 	} else if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	transformedRole, err := transformToRole(fetchedRole)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
+// 	transformedRole, err := transformToRole(fetchedRole)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
 
-	return transformedRole, nil
-}
+// 	return transformedRole, nil
+// }
 
-func (s Store) ListRoles(ctx context.Context) ([]role.Role, error) {
-	var fetchedRoles []Role
-	listRolesQuery, err := buildListRolesQuery(dialect)
-	if err != nil {
-		return []role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// func (s Store) ListRoles(ctx context.Context) ([]role.Role, error) {
+// 	var fetchedRoles []Role
+// 	listRolesQuery, err := buildListRolesQuery(dialect)
+// 	if err != nil {
+// 		return []role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedRoles, listRolesQuery)
-	})
-	if errors.Is(err, sql.ErrNoRows) {
-		return []role.Role{}, project.ErrNotExist
-	} else if err != nil {
-		return []role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.SelectContext(ctx, &fetchedRoles, listRolesQuery)
+// 	})
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return []role.Role{}, project.ErrNotExist
+// 	} else if err != nil {
+// 		return []role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	var transformedRoles []role.Role
-	for _, o := range fetchedRoles {
-		transformedOrg, err := transformToRole(o)
-		if err != nil {
-			return []role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
+// 	var transformedRoles []role.Role
+// 	for _, o := range fetchedRoles {
+// 		transformedOrg, err := transformToRole(o)
+// 		if err != nil {
+// 			return []role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+// 		}
 
-		transformedRoles = append(transformedRoles, transformedOrg)
-	}
+// 		transformedRoles = append(transformedRoles, transformedOrg)
+// 	}
 
-	return transformedRoles, nil
-}
+// 	return transformedRoles, nil
+// }
 
-func (s Store) UpdateRole(ctx context.Context, toUpdate role.Role) (role.Role, error) {
-	var updatedRole Role
-	var fetchedRole Role
+// func (s Store) UpdateRole(ctx context.Context, toUpdate role.Role) (role.Role, error) {
+// 	var updatedRole Role
+// 	var fetchedRole Role
 
-	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
+// 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
 
-	updateRoleQuery, err := buildUpdateRoleQuery(dialect)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	updateRoleQuery, err := buildUpdateRoleQuery(dialect)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.ID, toUpdate.Name, pq.StringArray(toUpdate.Types), toUpdate.NamespaceID, marshaledMetadata)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.ID, toUpdate.Name, pq.StringArray(toUpdate.Types), toUpdate.NamespaceID, marshaledMetadata)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return role.Role{}, role.ErrNotExist
-	} else if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return role.Role{}, role.ErrNotExist
+// 	} else if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	getRoleQuery, err := buildGetRoleQuery(dialect)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
+// 	getRoleQuery, err := buildGetRoleQuery(dialect)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, updatedRole.ID)
-	})
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, updatedRole.ID)
+// 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return role.Role{}, project.ErrNotExist
-	} else if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return role.Role{}, project.ErrNotExist
+// 	} else if err != nil {
+// 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
 
-	toUpdate, err = transformToRole(updatedRole)
-	if err != nil {
-		return role.Role{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
+// 	toUpdate, err = transformToRole(updatedRole)
+// 	if err != nil {
+// 		return role.Role{}, fmt.Errorf("%s: %w", parseErr, err)
+// 	}
 
-	return toUpdate, nil
-}
+// 	return toUpdate, nil
+// }
 
 func transformToRole(from Role) (role.Role, error) {
 	var unmarshalledMetadata map[string]any

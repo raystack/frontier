@@ -14,10 +14,10 @@ import (
 )
 
 type PolicyService interface {
-	GetPolicy(ctx context.Context, id string) (policy.Policy, error)
-	ListPolicies(ctx context.Context) ([]policy.Policy, error)
-	CreatePolicy(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
-	UpdatePolicy(ctx context.Context, id string, policy policy.Policy) ([]policy.Policy, error)
+	Get(ctx context.Context, id string) (policy.Policy, error)
+	List(ctx context.Context) ([]policy.Policy, error)
+	Create(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
+	Update(ctx context.Context, id string, policy policy.Policy) ([]policy.Policy, error)
 }
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
@@ -26,7 +26,7 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	policyList, err := h.policyService.ListPolicies(ctx)
+	policyList, err := h.policyService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -49,7 +49,7 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	newPolicies, err := h.policyService.CreatePolicy(ctx, policy.Policy{
+	newPolicies, err := h.policyService.Create(ctx, policy.Policy{
 		RoleID:      request.GetBody().RoleId,
 		NamespaceID: request.GetBody().NamespaceId,
 		ActionID:    request.GetBody().ActionId,
@@ -81,7 +81,7 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicyRequest) (*shieldv1beta1.GetPolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedPolicy, err := h.policyService.GetPolicy(ctx, request.GetId())
+	fetchedPolicy, err := h.policyService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -107,7 +107,7 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	updatedPolices, err := h.policyService.UpdatePolicy(ctx, request.GetId(), policy.Policy{
+	updatedPolices, err := h.policyService.Update(ctx, request.GetId(), policy.Policy{
 		RoleID:      request.GetBody().RoleId,
 		NamespaceID: request.GetBody().NamespaceId,
 		ActionID:    request.GetBody().ActionId,

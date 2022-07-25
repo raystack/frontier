@@ -116,7 +116,7 @@ func TestCreateNamespace(t *testing.T) {
 	}{
 		{
 			title: "error in creating namespace",
-			mockNamespaceSrv: mockNamespaceSrv{CreateNamespaceFunc: func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+			mockNamespaceSrv: mockNamespaceSrv{CreateFunc: func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
 				return namespace.Namespace{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
@@ -128,7 +128,7 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockNamespaceSrv: mockNamespaceSrv{CreateNamespaceFunc: func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+			mockNamespaceSrv: mockNamespaceSrv{CreateFunc: func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
 				return namespace.Namespace{
 					ID:   "team",
 					Name: "Team",
@@ -161,24 +161,24 @@ func TestCreateNamespace(t *testing.T) {
 }
 
 type mockNamespaceSrv struct {
-	GetNamespaceFunc    func(ctx context.Context, id string) (namespace.Namespace, error)
-	CreateNamespaceFunc func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
-	ListNamespacesFunc  func(ctx context.Context) ([]namespace.Namespace, error)
-	UpdateNamespaceFunc func(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error)
+	GetFunc            func(ctx context.Context, id string) (namespace.Namespace, error)
+	CreateFunc         func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
+	ListNamespacesFunc func(ctx context.Context) ([]namespace.Namespace, error)
+	UpdateFunc         func(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
-func (m mockNamespaceSrv) GetNamespace(ctx context.Context, id string) (namespace.Namespace, error) {
-	return m.GetNamespaceFunc(ctx, id)
+func (m mockNamespaceSrv) Get(ctx context.Context, id string) (namespace.Namespace, error) {
+	return m.GetFunc(ctx, id)
 }
 
-func (m mockNamespaceSrv) ListNamespaces(ctx context.Context) ([]namespace.Namespace, error) {
+func (m mockNamespaceSrv) List(ctx context.Context) ([]namespace.Namespace, error) {
 	return m.ListNamespacesFunc(ctx)
 }
 
-func (m mockNamespaceSrv) CreateNamespace(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-	return m.CreateNamespaceFunc(ctx, ns)
+func (m mockNamespaceSrv) Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+	return m.CreateFunc(ctx, ns)
 }
 
-func (m mockNamespaceSrv) UpdateNamespace(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error) {
-	return m.UpdateNamespaceFunc(ctx, id, ns)
+func (m mockNamespaceSrv) Update(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error) {
+	return m.UpdateFunc(ctx, id, ns)
 }

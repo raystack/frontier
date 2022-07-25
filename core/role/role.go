@@ -15,11 +15,11 @@ var (
 	ErrInvalidUUID = errors.New("invalid syntax of uuid")
 )
 
-type Store interface {
-	CreateRole(ctx context.Context, role Role) (Role, error)
-	GetRole(ctx context.Context, id string) (Role, error)
-	ListRoles(ctx context.Context) ([]Role, error)
-	UpdateRole(ctx context.Context, toUpdate Role) (Role, error)
+type Repository interface {
+	Create(ctx context.Context, role Role) (Role, error)
+	Get(ctx context.Context, id string) (Role, error)
+	List(ctx context.Context) ([]Role, error)
+	Update(ctx context.Context, toUpdate Role) (Role, error)
 }
 
 type Role struct {

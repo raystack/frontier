@@ -10,7 +10,17 @@ import (
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )
 
-func (db *SpiceDB) AddRelation(ctx context.Context, rel relation.Relation) error {
+type RelationRepository struct {
+	spiceDB *SpiceDB
+}
+
+func NewRelationRepository(spiceDB *SpiceDB) *RelationRepository {
+	return &RelationRepository{
+		spiceDB: spiceDB,
+	}
+}
+
+func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) error {
 	relationship, err := schema_generator.TransformRelation(rel)
 	if err != nil {
 		return err
@@ -24,16 +34,14 @@ func (db *SpiceDB) AddRelation(ctx context.Context, rel relation.Relation) error
 		},
 	}
 
-	_, err = db.client.WriteRelationships(ctx, request)
-
-	if err != nil {
+	if _, err = r.spiceDB.client.WriteRelationships(ctx, request); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (db *SpiceDB) CheckRelation(ctx context.Context, rel relation.Relation, act action.Action) (bool, error) {
+func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, act action.Action) (bool, error) {
 	relationship, err := schema_generator.TransformCheckRelation(rel)
 	if err != nil {
 		return false, err
@@ -45,8 +53,7 @@ func (db *SpiceDB) CheckRelation(ctx context.Context, rel relation.Relation, act
 		Permission: act.ID,
 	}
 
-	response, err := db.client.CheckPermission(ctx, request)
-
+	response, err := r.spiceDB.client.CheckPermission(ctx, request)
 	if err != nil {
 		return false, err
 	}
@@ -54,7 +61,7 @@ func (db *SpiceDB) CheckRelation(ctx context.Context, rel relation.Relation, act
 	return response.Permissionship == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
 }
 
-func (db *SpiceDB) DeleteRelation(ctx context.Context, rel relation.Relation) error {
+func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
 	relationship, err := schema_generator.TransformRelation(rel)
 	if err != nil {
 		return err
@@ -71,15 +78,14 @@ func (db *SpiceDB) DeleteRelation(ctx context.Context, rel relation.Relation) er
 		},
 	}
 
-	_, err = db.client.DeleteRelationships(ctx, request)
-	if err != nil {
+	if _, err = r.spiceDB.client.DeleteRelationships(ctx, request); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (db *SpiceDB) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
+func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
 	request := &authzedpb.DeleteRelationshipsRequest{
 		RelationshipFilter: &authzedpb.RelationshipFilter{
 			ResourceType:       resourceType,
@@ -87,9 +93,7 @@ func (db *SpiceDB) DeleteSubjectRelations(ctx context.Context, resourceType, opt
 		},
 	}
 
-	_, err := db.client.DeleteRelationships(ctx, request)
-
-	if err != nil {
+	if _, err := r.spiceDB.client.DeleteRelationships(ctx, request); err != nil {
 		return err
 	}
 

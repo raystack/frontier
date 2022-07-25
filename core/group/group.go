@@ -15,16 +15,16 @@ var (
 	ErrInvalidUUID = errors.New("invalid syntax of uuid")
 )
 
-type Store interface {
-	CreateGroup(ctx context.Context, grp Group) (Group, error)
-	GetGroup(ctx context.Context, id string) (Group, error)
-	ListGroups(ctx context.Context, org organization.Organization) ([]Group, error)
-	UpdateGroup(ctx context.Context, toUpdate Group) (Group, error)
-	GetUsersByIDs(ctx context.Context, userIds []string) ([]user.User, error)
-	GetUser(ctx context.Context, userId string) (user.User, error)
+type Repository interface {
+	Create(ctx context.Context, grp Group) (Group, error)
+	Get(ctx context.Context, id string) (Group, error)
+	List(ctx context.Context, org organization.Organization) ([]Group, error)
+	Update(ctx context.Context, toUpdate Group) (Group, error)
+	// GetUsersByIDs(ctx context.Context, userIds []string) ([]user.User, error)
+	// GetUser(ctx context.Context, userId string) (user.User, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error)
-	ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]user.User, error)
-	GetRelationByFields(ctx context.Context, relation relation.Relation) (relation.Relation, error)
+	ListUsers(ctx context.Context, groupId string, roleId string) ([]user.User, error)
+	// GetRelationByFields(ctx context.Context, relation relation.Relation) (relation.Relation, error)
 	ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]relation.Relation, error)
 }
 

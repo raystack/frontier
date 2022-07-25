@@ -1,0 +1,22 @@
+[
+    {
+        "id": "1",
+        "name": "action-post",
+        "namespaceId": "ns1"
+    },
+    {
+        "id": "2",
+        "name": "action-get",
+        "namespaceId": "ns1"
+    },
+    {
+        "id": "3",
+        "name": "action-put",
+        "namespaceId": "ns2"
+    },
+    {
+        "id": "4",
+        "name": "action-delete",
+        "namespaceId": "ns2"
+    }
+]

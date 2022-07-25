@@ -1,19 +1,15 @@
 package postgres
 
 import (
-	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/doug-martin/goqu/v9"
-	"github.com/jmoiron/sqlx"
+	"database/sql"
 
-	"github.com/odpf/shield/core/group"
+	"github.com/doug-martin/goqu/v9"
+
 	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 )
 
@@ -29,8 +25,12 @@ type User struct {
 
 func listUserQueryHelper(page int32, limit int32) (uint, uint) {
 	var defaultLimit int32 = 50
+	var defaultPage int32 = 1
 	if limit < 1 {
 		limit = defaultLimit
+	}
+	if page < 1 {
+		page = defaultPage
 	}
 
 	offset := (page - 1) * limit
@@ -85,16 +85,16 @@ func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, page int32, k
 	return listUsersQuery, err
 }
 
-func buildSelectUserForUpdateQuery(dialect goqu.DialectWrapper) (string, error) {
-	selectUserForUpdateQuery, _, err := dialect.From("users").Prepared(true).Where(
-		goqu.Ex{
-			"id": "id_PH",
-		}).ToSQL()
+// func buildSelectUserForUpdateQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	selectUserForUpdateQuery, _, err := dialect.From("users").Prepared(true).Where(
+// 		goqu.Ex{
+// 			"id": "id_PH",
+// 		}).ToSQL()
 
-	return selectUserForUpdateQuery, err
-}
+// 	return selectUserForUpdateQuery, err
+// }
 
-func buildUpdateUserQuery(dialect goqu.DialectWrapper) (string, error) {
+func buildUpdateUserByIDQuery(dialect goqu.DialectWrapper) (string, error) {
 	updateUserQuery, _, err := dialect.Update("users").Set(
 		goqu.Record{
 			"name":       goqu.L("$2"),
@@ -108,8 +108,8 @@ func buildUpdateUserQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateUserQuery, err
 }
 
-func buildUpdateCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateCurrentUserQuery, _, err := dialect.Update("users").Set(
+func buildUpdateUserByEmailQuery(dialect goqu.DialectWrapper) (string, error) {
+	updateUserByEmailQuery, _, err := dialect.Update("users").Set(
 		goqu.Record{
 			"name":       goqu.L("$2"),
 			"metadata":   goqu.L("$3"),
@@ -118,7 +118,7 @@ func buildUpdateCurrentUserQuery(dialect goqu.DialectWrapper) (string, error) {
 		"email": goqu.L("$1"),
 	}).Returning(&User{}).ToSQL()
 
-	return updateCurrentUserQuery, err
+	return updateUserByEmailQuery, err
 }
 
 func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -144,290 +144,290 @@ func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 	return listUserGroupsQuery, err
 }
 
-func (s Store) GetUser(ctx context.Context, id string) (user.User, error) {
-	fetchedUser, err := s.selectUser(ctx, id, false, nil)
-	return fetchedUser, err
-}
-
-func (s Store) selectUser(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (user.User, error) {
-	var fetchedUser User
-
-	selectUserForUpdateQuery, err := buildSelectUserForUpdateQuery(dialect)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var getUserQuery string
-	getUserQuery, err = buildGetUserQuery(dialect)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		if forUpdate {
-			return txn.GetContext(ctx, &fetchedUser, selectUserForUpdateQuery, id)
-		} else {
-			return s.DB.GetContext(ctx, &fetchedUser, getUserQuery, id)
-		}
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return user.User{}, user.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		// TODO: this uuid syntax is a error defined in db, not in library
-		// need to look into better ways to implement this
-		return user.User{}, user.ErrInvalidUUID
-	} else if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	transformedUser, err := transformToUser(fetchedUser)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedUser, nil
-}
-
-func (s Store) CreateUser(ctx context.Context, userToCreate user.User) (user.User, error) {
-	marshaledMetadata, err := json.Marshal(userToCreate.Metadata)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	var newUser User
-	createUserQuery, err := buildCreateUserQuery(dialect)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newUser, createUserQuery, userToCreate.Name, userToCreate.Email, marshaledMetadata)
-	})
-
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	transformedUser, err := transformToUser(newUser)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedUser, nil
-}
-
-func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) (user.PagedUsers, error) {
-	var fetchedUsers []User
-	listUsersQuery, err := buildListUsersQuery(dialect, limit, page, keyword)
-	if err != nil {
-		return user.PagedUsers{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedUsers, listUsersQuery)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return user.PagedUsers{}, user.ErrNotExist
-	}
-
-	if err != nil {
-		return user.PagedUsers{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedUsers []user.User
-
-	for _, u := range fetchedUsers {
-		transformedUser, err := transformToUser(u)
-		if err != nil {
-			return user.PagedUsers{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-
-		transformedUsers = append(transformedUsers, transformedUser)
-	}
-
-	res := user.PagedUsers{
-		Count: int32(len(fetchedUsers)),
-		Users: transformedUsers,
-	}
-
-	return res, nil
-}
-
-func (s Store) GetUsersByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
-	var fetchedUsers []User
-
-	getUsersByIDsQuery, err := buildGetUsersByIDsQuery(dialect)
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var query string
-	var args []interface{}
-	query, args, err = sqlx.In(getUsersByIDsQuery, userIDs)
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	query = s.DB.Rebind(query)
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedUsers, query, args...)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return []user.User{}, user.ErrNotExist
-	}
-
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedUsers []user.User
-
-	for _, u := range fetchedUsers {
-		transformedUser, err := transformToUser(u)
-		if err != nil {
-			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-
-		transformedUsers = append(transformedUsers, transformedUser)
-	}
-
-	return transformedUsers, nil
-}
-
-func (s Store) UpdateUser(ctx context.Context, toUpdate user.User) (user.User, error) {
-	var updatedUser User
-
-	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	var updateUserQuery string
-	updateUserQuery, err = buildUpdateUserQuery(dialect)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedUser, updateUserQuery, toUpdate.ID, toUpdate.Name, toUpdate.Email, marshaledMetadata)
-	})
-
-	if err != nil {
-		return user.User{}, fmt.Errorf("%s: %w", txnErr, err)
-	}
-
-	transformedUser, err := transformToUser(updatedUser)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return transformedUser, nil
-}
-
-func (s Store) GetUserByEmail(ctx context.Context, email string) (user.User, error) {
-	self, err := s.getUserWithEmailID(ctx, email)
-	return self, err
-}
-
-func (s Store) getUserWithEmailID(ctx context.Context, email string) (user.User, error) {
-	var userSelf User
-
-	getUserByEmailQuery, err := buildGetUserByEmailQuery(dialect)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &userSelf, getUserByEmailQuery, email)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return user.User{}, user.ErrNotExist
-	} else if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	transformedUser, err := transformToUser(userSelf)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedUser, nil
-}
-
-func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate user.User) (user.User, error) {
-	var updatedUser User
-
-	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	var updateCurrentUserQuery string
-	updateCurrentUserQuery, err = buildUpdateCurrentUserQuery(dialect)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedUser, updateCurrentUserQuery, toUpdate.Email, toUpdate.Name, marshaledMetadata)
-	})
-
-	if err != nil {
-		return user.User{}, fmt.Errorf("%s: %w", txnErr, err)
-	}
-
-	transformedUser, err := transformToUser(updatedUser)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return transformedUser, nil
-}
-
-func (s Store) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
-	rlID := role.DefinitionTeamMember.ID
-
-	if roleID == role.DefinitionTeamAdmin.ID {
-		rlID = role.DefinitionTeamAdmin.ID
-	}
-
-	var fetchedGroups []Group
-
-	listUserGroupsQuery, err := buildListUserGroupsQuery(dialect)
-	if err != nil {
-		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userID, rlID)
-	})
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return []group.Group{}, group.ErrNotExist
-	}
-
-	if err != nil {
-		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedGroups []group.Group
-
-	for _, v := range fetchedGroups {
-		transformedGroup, err := transformToGroup(v)
-		if err != nil {
-			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-
-		transformedGroups = append(transformedGroups, transformedGroup)
-	}
-
-	return transformedGroups, nil
-}
+// func (s Store) GetUser(ctx context.Context, id string) (user.User, error) {
+// 	fetchedUser, err := s.selectUser(ctx, id, false, nil)
+// 	return fetchedUser, err
+// }
+
+// func (s Store) selectUser(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (user.User, error) {
+// 	var fetchedUser User
+
+// 	selectUserForUpdateQuery, err := buildSelectUserForUpdateQuery(dialect)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	var getUserQuery string
+// 	getUserQuery, err = buildGetUserQuery(dialect)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		if forUpdate {
+// 			return txn.GetContext(ctx, &fetchedUser, selectUserForUpdateQuery, id)
+// 		} else {
+// 			return s.DB.GetContext(ctx, &fetchedUser, getUserQuery, id)
+// 		}
+// 	})
+
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return user.User{}, user.ErrNotExist
+// 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+// 		// TODO: this uuid syntax is a error defined in db, not in library
+// 		// need to look into better ways to implement this
+// 		return user.User{}, user.ErrInvalidUUID
+// 	} else if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
+
+// 	transformedUser, err := transformToUser(fetchedUser)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
+
+// 	return transformedUser, nil
+// }
+
+// func (s Store) CreateUser(ctx context.Context, userToCreate user.User) (user.User, error) {
+// 	marshaledMetadata, err := json.Marshal(userToCreate.Metadata)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
+
+// 	var newUser User
+// 	createUserQuery, err := buildCreateUserQuery(dialect)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &newUser, createUserQuery, userToCreate.Name, userToCreate.Email, marshaledMetadata)
+// 	})
+
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
+
+// 	transformedUser, err := transformToUser(newUser)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
+
+// 	return transformedUser, nil
+// }
+
+// func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword string) (user.PagedUsers, error) {
+// 	var fetchedUsers []User
+// 	listUsersQuery, err := buildListUsersQuery(dialect, limit, page, keyword)
+// 	if err != nil {
+// 		return user.PagedUsers{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.SelectContext(ctx, &fetchedUsers, listUsersQuery)
+// 	})
+
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return user.PagedUsers{}, user.ErrNotExist
+// 	}
+
+// 	if err != nil {
+// 		return user.PagedUsers{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
+
+// 	var transformedUsers []user.User
+
+// 	for _, u := range fetchedUsers {
+// 		transformedUser, err := transformToUser(u)
+// 		if err != nil {
+// 			return user.PagedUsers{}, fmt.Errorf("%w: %s", parseErr, err)
+// 		}
+
+// 		transformedUsers = append(transformedUsers, transformedUser)
+// 	}
+
+// 	res := user.PagedUsers{
+// 		Count: int32(len(fetchedUsers)),
+// 		Users: transformedUsers,
+// 	}
+
+// 	return res, nil
+// }
+
+// func (s Store) GetUsersByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
+// 	var fetchedUsers []User
+
+// 	getUsersByIDsQuery, err := buildGetUsersByIDsQuery(dialect)
+// 	if err != nil {
+// 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	var query string
+// 	var args []interface{}
+// 	query, args, err = sqlx.In(getUsersByIDsQuery, userIDs)
+// 	if err != nil {
+// 		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
+
+// 	query = s.DB.Rebind(query)
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.SelectContext(ctx, &fetchedUsers, query, args...)
+// 	})
+
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return []user.User{}, user.ErrNotExist
+// 	}
+
+// 	if err != nil {
+// 		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
+
+// 	var transformedUsers []user.User
+
+// 	for _, u := range fetchedUsers {
+// 		transformedUser, err := transformToUser(u)
+// 		if err != nil {
+// 			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+// 		}
+
+// 		transformedUsers = append(transformedUsers, transformedUser)
+// 	}
+
+// 	return transformedUsers, nil
+// }
+
+// func (s Store) UpdateUser(ctx context.Context, toUpdate user.User) (user.User, error) {
+// 	var updatedUser User
+
+// 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
+
+// 	var updateUserQuery string
+// 	updateUserQuery, err = buildUpdateUserQuery(dialect)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &updatedUser, updateUserQuery, toUpdate.ID, toUpdate.Name, toUpdate.Email, marshaledMetadata)
+// 	})
+
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%s: %w", txnErr, err)
+// 	}
+
+// 	transformedUser, err := transformToUser(updatedUser)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
+// 	}
+
+// 	return transformedUser, nil
+// }
+
+// func (s Store) GetUserByEmail(ctx context.Context, email string) (user.User, error) {
+// 	self, err := s.getUserWithEmailID(ctx, email)
+// 	return self, err
+// }
+
+// func (s Store) getUserWithEmailID(ctx context.Context, email string) (user.User, error) {
+// 	var userSelf User
+
+// 	getUserByEmailQuery, err := buildGetUserByEmailQuery(dialect)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &userSelf, getUserByEmailQuery, email)
+// 	})
+
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return user.User{}, user.ErrNotExist
+// 	} else if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
+
+// 	transformedUser, err := transformToUser(userSelf)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
+
+// 	return transformedUser, nil
+// }
+
+// func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate user.User) (user.User, error) {
+// 	var updatedUser User
+
+// 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+// 	}
+
+// 	var updateCurrentUserQuery string
+// 	updateCurrentUserQuery, err = buildUpdateCurrentUserQuery(dialect)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.GetContext(ctx, &updatedUser, updateCurrentUserQuery, toUpdate.Email, toUpdate.Name, marshaledMetadata)
+// 	})
+
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%s: %w", txnErr, err)
+// 	}
+
+// 	transformedUser, err := transformToUser(updatedUser)
+// 	if err != nil {
+// 		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
+// 	}
+
+// 	return transformedUser, nil
+// }
+
+// func (s Store) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
+// 	rlID := role.DefinitionTeamMember.ID
+
+// 	if roleID == role.DefinitionTeamAdmin.ID {
+// 		rlID = role.DefinitionTeamAdmin.ID
+// 	}
+
+// 	var fetchedGroups []Group
+
+// 	listUserGroupsQuery, err := buildListUserGroupsQuery(dialect)
+// 	if err != nil {
+// 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+// 	}
+
+// 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+// 		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userID, rlID)
+// 	})
+
+// 	if errors.Is(err, sql.ErrNoRows) {
+// 		return []group.Group{}, group.ErrNotExist
+// 	}
+
+// 	if err != nil {
+// 		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+// 	}
+
+// 	var transformedGroups []group.Group
+
+// 	for _, v := range fetchedGroups {
+// 		transformedGroup, err := transformToGroup(v)
+// 		if err != nil {
+// 			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+// 		}
+
+// 		transformedGroups = append(transformedGroups, transformedGroup)
+// 	}
+
+// 	return transformedGroups, nil
+// }
 
 func transformToUser(from User) (user.User, error) {
 	var unmarshalledMetadata map[string]any

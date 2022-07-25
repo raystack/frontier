@@ -13,6 +13,7 @@ import (
 	"github.com/odpf/salt/log"
 
 	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/proxy/hook"
 	authz_hook "github.com/odpf/shield/internal/proxy/hook/authz"
@@ -56,7 +57,8 @@ func TestREST(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer ruleRepo.Close()
-	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleRepo)
+	ruleService := rule.NewService(ruleRepo)
+	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService)
 
 	proxyURL := fmt.Sprintf(":%d", restProxyPort)
 	mux := http.NewServeMux()
@@ -185,7 +187,8 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 		b.Fatal(err)
 	}
 	defer ruleRepo.Close()
-	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleRepo)
+	ruleService := rule.NewService(ruleRepo)
+	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService)
 
 	proxyURL := fmt.Sprintf(":%d", restProxyPort)
 	mux := http.NewServeMux()
@@ -287,12 +290,12 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 }
 
 // buildPipeline builds middleware sequence
-func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo *blob.RuleRepository) http.Handler {
+func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Service) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
 	//casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
+	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleService))
 	return matchWare
 }
 

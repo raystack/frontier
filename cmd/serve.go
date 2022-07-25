@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/bootstrap"
@@ -28,7 +29,7 @@ import (
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/internal/store/spicedb"
-	"github.com/odpf/shield/pkg/sql"
+	"github.com/odpf/shield/pkg/db"
 
 	"github.com/odpf/salt/log"
 	salt_server "github.com/odpf/salt/server"
@@ -61,13 +62,13 @@ func serve(logger log.Logger, cfg *config.Shield) error {
 	ctx, cancelFunc := context.WithCancel(salt_server.HandleSignals(context.Background()))
 	defer cancelFunc()
 
-	db, err := setupDB(cfg.DB, logger)
+	dbClient, err := setupDB(cfg.DB, logger)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		logger.Info("cleaning up db")
-		db.Close()
+		dbClient.Close()
 	}()
 
 	// load resource config
@@ -79,18 +80,16 @@ func serve(logger log.Logger, cfg *config.Shield) error {
 	if err != nil {
 		return err
 	}
-	resourceRepository := blob.NewResourcesRepository(logger, resourceBlobFS)
-	if err := resourceRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+	resourceBlobRepository := blob.NewResourcesRepository(logger, resourceBlobFS)
+	if err := resourceBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 		return err
 	}
 	defer func() {
 		logger.Info("cleaning up resource blob")
-		defer resourceRepository.Close()
+		defer resourceBlobRepository.Close()
 	}()
 
-	serviceStore := postgres.NewStore(db)
-
-	authzStore, err := spicedb.New(cfg.SpiceDB, logger)
+	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
 	if err != nil {
 		return err
 	}
@@ -100,7 +99,7 @@ func serve(logger log.Logger, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, cfg.App.IdentityProxyHeader, resourceRepository, serviceStore, authzStore)
+	deps, err := buildAPIDependencies(ctx, logger, cfg.App.IdentityProxyHeader, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -162,22 +161,54 @@ func buildAPIDependencies(
 	ctx context.Context,
 	logger log.Logger,
 	identityProxyHeader string,
-	resourceRepository *blob.ResourcesRepository,
-	serviceStore postgres.Store,
-	authzStore *spicedb.SpiceDB,
+	resourceBlobRepository *blob.ResourcesRepository,
+	dbc *db.Client,
+	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
-	actionService := action.NewService(serviceStore)
-	namespaceService := namespace.NewService(serviceStore)
-	userService := user.NewService(identityProxyHeader, serviceStore)
-	relationService := relation.NewService(serviceStore, authzStore)
-	groupService := group.NewService(serviceStore, relationService, userService)
-	organizationService := organization.NewService(serviceStore, relationService, userService)
-	projectService := project.NewService(serviceStore, relationService, userService)
-	policyService := policy.NewService(serviceStore, authzStore)
-	roleService := role.NewService(serviceStore)
-	bootstrapService := bootstrap.NewService(logger, policyService, actionService, namespaceService, roleService, resourceRepository)
-	resourceService := resource.NewService(serviceStore, authzStore, resourceRepository, relationService, userService)
+	actionRepository := postgres.NewActionRepository(dbc)
+	actionService := action.NewService(actionRepository)
 
+	namespaceRepository := postgres.NewNamespaceRepository(dbc)
+	namespaceService := namespace.NewService(namespaceRepository)
+
+	userRepository := postgres.NewUserRepository(dbc)
+	userService := user.NewService(identityProxyHeader, userRepository)
+
+	relationPGRepository := postgres.NewRelationRepository(dbc)
+	relationSpiceRepository := spicedb.NewRelationRepository(sdb)
+	relationService := relation.NewService(relationPGRepository, relationSpiceRepository)
+
+	groupRepository := postgres.NewGroupRepository(dbc)
+	groupService := group.NewService(groupRepository, relationService, userService)
+
+	organizationRepository := postgres.NewOrganizationRepository(dbc)
+	organizationService := organization.NewService(organizationRepository, relationService, userService)
+
+	projectRepository := postgres.NewProjectRepository(dbc)
+	projectService := project.NewService(projectRepository, relationService, userService)
+
+	policyPGRepository := postgres.NewPolicyRepository(dbc)
+	policySpiceRepository := spicedb.NewPolicyRepository(sdb)
+	policyService := policy.NewService(policyPGRepository, policySpiceRepository)
+
+	roleRepository := postgres.NewRoleRepository(dbc)
+	roleService := role.NewService(roleRepository)
+
+	resourcePGRepository := postgres.NewResourceRepository(dbc)
+	resourceService := resource.NewService(
+		resourcePGRepository,
+		resourceBlobRepository,
+		relationService,
+		userService)
+
+	bootstrapService := bootstrap.NewService(
+		logger,
+		policyService,
+		actionService,
+		namespaceService,
+		roleService,
+		resourceService,
+	)
 	bootstrapService.BootstrapDefaultDefinitions(ctx)
 	err := bootstrapService.BootstrapResources(ctx)
 	if err != nil {
@@ -214,15 +245,12 @@ func setupNewRelic(cfg config.NewRelic, logger log.Logger) (newrelic.Application
 	return nil, nil
 }
 
-func setupDB(cfg postgres.Config, logger log.Logger) (db *sql.SQL, err error) {
-	db, err = sql.New(sql.Config{
-		Driver:              cfg.Driver,
-		URL:                 cfg.URL,
-		MaxIdleConns:        cfg.MaxIdleConns,
-		MaxOpenConns:        cfg.MaxOpenConns,
-		ConnMaxLifeTime:     cfg.ConnMaxLifeTime,
-		MaxQueryTimeoutInMS: cfg.MaxQueryTimeout,
-	})
+func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {
+	// prefer use pgx instead of lib/pq for postgres to catch pg error
+	if cfg.Driver == "postgres" {
+		cfg.Driver = "pgx"
+	}
+	dbc, err = db.New(cfg)
 	if err != nil {
 		err = fmt.Errorf("failed to setup db: %w", err)
 		return

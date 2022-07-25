@@ -21,34 +21,35 @@ type RelationService interface {
 
 type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
+	GetByID(ctx context.Context, id string) (user.User, error)
+	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
 type Service struct {
-	store           Store
+	repository      Repository
 	relationService RelationService
 	userService     UserService
 }
 
-func NewService(store Store, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
 	return &Service{
-		store:           store,
+		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
 	}
 }
 
 func (s Service) Get(ctx context.Context, id string) (Project, error) {
-	return s.store.GetProject(ctx, id)
+	return s.repository.Get(ctx, id)
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	user, err := s.userService.FetchCurrentUser(ctx)
-
 	if err != nil {
 		return Project{}, err
 	}
 
-	newProject, err := s.store.CreateProject(ctx, Project{
+	newProject, err := s.repository.Create(ctx, Project{
 		Name:         prj.Name,
 		Slug:         prj.Slug,
 		Metadata:     prj.Metadata,
@@ -58,15 +59,11 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	err = s.AddAdminToProject(ctx, user, newProject)
-
-	if err != nil {
+	if err = s.AddAdminToProject(ctx, user, newProject); err != nil {
 		return Project{}, err
 	}
 
-	err = s.AddProjectToOrg(ctx, newProject, prj.Organization)
-
-	if err != nil {
+	if err = s.AddProjectToOrg(ctx, newProject, prj.Organization); err != nil {
 		return Project{}, err
 	}
 
@@ -74,11 +71,11 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 }
 
 func (s Service) List(ctx context.Context) ([]Project, error) {
-	return s.store.ListProject(ctx)
+	return s.repository.List(ctx)
 }
 
 func (s Service) Update(ctx context.Context, toUpdate Project) (Project, error) {
-	return s.store.UpdateProject(ctx, toUpdate)
+	return s.repository.Update(ctx, toUpdate)
 }
 
 func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error) {
@@ -88,7 +85,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 	}
 
 	id = strings.TrimSpace(id)
-	project, err := s.store.GetProject(ctx, id)
+	project, err := s.repository.Get(ctx, id)
 
 	if err != nil {
 		return []user.User{}, err
@@ -103,15 +100,13 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 		return []user.User{}, errors.Unauthorized
 	}
 
-	users, err := s.store.GetUsersByIDs(ctx, userIds)
-
+	users, err := s.userService.GetByIDs(ctx, userIds)
 	if err != nil {
 		return []user.User{}, err
 	}
 
 	for _, usr := range users {
-		err = s.AddAdminToProject(ctx, usr, project)
-		if err != nil {
+		if err = s.AddAdminToProject(ctx, usr, project); err != nil {
 			return []user.User{}, err
 		}
 	}
@@ -119,7 +114,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 }
 
 func (s Service) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
-	return s.store.ListProjectAdmins(ctx, id)
+	return s.repository.ListAdmins(ctx, id)
 }
 
 func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error) {
@@ -129,7 +124,7 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 	}
 
 	id = strings.TrimSpace(id)
-	project, err := s.store.GetProject(ctx, id)
+	project, err := s.repository.Get(ctx, id)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -143,13 +138,12 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err := s.store.GetUser(ctx, userId)
+	usr, err := s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	err = s.RemoveAdminFromProject(ctx, usr, project)
-	if err != nil {
+	if err = s.RemoveAdminFromProject(ctx, usr, project); err != nil {
 		return []user.User{}, err
 	}
 
@@ -167,8 +161,7 @@ func (s Service) AddAdminToProject(ctx context.Context, usr user.User, prj Proje
 			Namespace: namespace.DefinitionProject,
 		},
 	}
-	_, err := s.relationService.Create(ctx, rel)
-	if err != nil {
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}
 
@@ -201,8 +194,8 @@ func (s Service) AddProjectToOrg(ctx context.Context, prj Project, org organizat
 		},
 		RelationType: relation.RelationTypes.Namespace,
 	}
-	_, err := s.relationService.Create(ctx, rel)
-	if err != nil {
+
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}
 

@@ -2,17 +2,15 @@ package postgres
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/google/uuid"
-
-	"github.com/odpf/shield/pkg/sql"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
-
-type Store struct {
-	DB *sql.SQL
-}
 
 var (
 	parseErr = errors.New("parsing error")
@@ -35,13 +33,24 @@ const (
 	TABLE_USER      = "users"
 )
 
-func NewStore(db *sql.SQL) Store {
-	return Store{
-		DB: db,
-	}
-}
-
 func isUUID(key string) bool {
 	_, err := uuid.Parse(key)
 	return err == nil
+}
+
+func checkPostgresError(err error) error {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case pgerrcode.UniqueViolation:
+			return fmt.Errorf("%w [%s]", errDuplicateKey, pgErr.Detail)
+		case pgerrcode.CheckViolation:
+			return fmt.Errorf("%w [%s]", errCheckViolation, pgErr.Detail)
+		case pgerrcode.ForeignKeyViolation:
+			return fmt.Errorf("%w [%s]", errForeignKeyViolation, pgErr.Detail)
+		case pgerrcode.InvalidTextRepresentation:
+			return fmt.Errorf("%w [%s]", errInvalidTexRepresentation, pgErr.Detail)
+		}
+	}
+	return err
 }

@@ -14,14 +14,12 @@ var (
 	ErrInvalidUUID   = errors.New("invalid syntax of uuid")
 )
 
-type Store interface {
-	GetOrg(ctx context.Context, id string) (Organization, error)
-	CreateOrg(ctx context.Context, org Organization) (Organization, error)
-	ListOrg(ctx context.Context) ([]Organization, error)
-	UpdateOrg(ctx context.Context, toUpdate Organization) (Organization, error)
-	GetUsersByIDs(ctx context.Context, userIds []string) ([]user.User, error)
-	GetUser(ctx context.Context, userId string) (user.User, error)
-	ListOrgAdmins(ctx context.Context, id string) ([]user.User, error)
+type Repository interface {
+	Get(ctx context.Context, id string) (Organization, error)
+	Create(ctx context.Context, org Organization) (Organization, error)
+	List(ctx context.Context) ([]Organization, error)
+	Update(ctx context.Context, toUpdate Organization) (Organization, error)
+	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
 type Organization struct {

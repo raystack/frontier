@@ -5,45 +5,43 @@ import (
 )
 
 type Service struct {
-	store      Store
-	authzStore AuthzStore
+	repository      Repository
+	authzRepository AuthzRepository
 }
 
-func NewService(store Store, authzStore AuthzStore) *Service {
+func NewService(repository Repository, authzRepository AuthzRepository) *Service {
 	return &Service{
-		store:      store,
-		authzStore: authzStore,
+		repository:      repository,
+		authzRepository: authzRepository,
 	}
 }
 
-func (s Service) GetPolicy(ctx context.Context, id string) (Policy, error) {
-	return s.store.GetPolicy(ctx, id)
+func (s Service) Get(ctx context.Context, id string) (Policy, error) {
+	return s.repository.Get(ctx, id)
 }
 
-func (s Service) ListPolicies(ctx context.Context) ([]Policy, error) {
-	return s.store.ListPolicies(ctx)
+func (s Service) List(ctx context.Context) ([]Policy, error) {
+	return s.repository.List(ctx)
 }
 
-func (s Service) CreatePolicy(ctx context.Context, policy Policy) ([]Policy, error) {
-	policies, err := s.store.CreatePolicy(ctx, policy)
+func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
+	policies, err := s.repository.Create(ctx, policy)
 	if err != nil {
 		return []Policy{}, err
 	}
-	err = s.authzStore.AddPolicy(ctx, policies)
-	if err != nil {
+	if err = s.authzRepository.Add(ctx, policies); err != nil {
 		return []Policy{}, err
 	}
 	return policies, err
 }
 
-func (s Service) UpdatePolicy(ctx context.Context, id string, policy Policy) ([]Policy, error) {
-	policies, err := s.store.UpdatePolicy(ctx, id, policy)
+func (s Service) Update(ctx context.Context, id string, policy Policy) ([]Policy, error) {
+	policies, err := s.repository.Update(ctx, id, policy)
 	if err != nil {
 		return []Policy{}, err
 	}
 
-	err = s.authzStore.AddPolicy(ctx, policies)
-	if err != nil {
+	if err = s.authzRepository.Add(ctx, policies); err != nil {
 		return []Policy{}, err
 	}
 	return policies, err

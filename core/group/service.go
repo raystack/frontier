@@ -22,71 +22,70 @@ type RelationService interface {
 
 type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
+	GetByID(ctx context.Context, id string) (user.User, error)
+	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
 type Service struct {
-	store           Store
+	repository      Repository
 	relationService RelationService
 	userService     UserService
 }
 
-func NewService(store Store, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
 	return &Service{
-		store:           store,
+		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
 	}
 }
 
-func (s Service) CreateGroup(ctx context.Context, grp Group) (Group, error) {
+func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	user, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Group{}, err
 	}
 
-	newGroup, err := s.store.CreateGroup(ctx, grp)
+	newGroup, err := s.repository.Create(ctx, grp)
 	if err != nil {
 		return Group{}, err
 	}
 
-	err = s.AddTeamToOrg(ctx, newGroup, organization.Organization{ID: grp.OrganizationID})
-	if err != nil {
+	if err = s.addTeamToOrg(ctx, newGroup, organization.Organization{ID: grp.OrganizationID}); err != nil {
 		return Group{}, err
 	}
 
-	err = s.AddAdminToTeam(ctx, user, newGroup)
-	if err != nil {
+	if err = s.addAdminToTeam(ctx, user, newGroup); err != nil {
 		return Group{}, err
 	}
 
-	err = s.AddMemberToTeam(ctx, user, newGroup)
-	if err != nil {
+	if err = s.addMemberToTeam(ctx, user, newGroup); err != nil {
 		return Group{}, err
 	}
 
 	return newGroup, nil
 }
 
-func (s Service) GetGroup(ctx context.Context, id string) (Group, error) {
-	return s.store.GetGroup(ctx, id)
+func (s Service) Get(ctx context.Context, id string) (Group, error) {
+	return s.repository.Get(ctx, id)
 }
 
-func (s Service) ListGroups(ctx context.Context, org organization.Organization) ([]Group, error) {
-	return s.store.ListGroups(ctx, org)
+func (s Service) List(ctx context.Context, org organization.Organization) ([]Group, error) {
+	return s.repository.List(ctx, org)
 }
 
-func (s Service) UpdateGroup(ctx context.Context, grp Group) (Group, error) {
-	return s.store.UpdateGroup(ctx, grp)
+func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
+	return s.repository.Update(ctx, grp)
 }
 
-func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []string) ([]user.User, error) {
+func (s Service) AddUsers(ctx context.Context, groupId string, userIds []string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
 	groupId = strings.TrimSpace(groupId)
-	group, err := s.store.GetGroup(ctx, groupId)
+	group, err := s.repository.Get(ctx, groupId)
 
 	if err != nil {
 		return []user.User{}, err
@@ -101,28 +100,28 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 		return []user.User{}, errors.Unauthorized
 	}
 
-	users, err := s.store.GetUsersByIDs(ctx, userIds)
+	users, err := s.userService.GetByIDs(ctx, userIds)
 	if err != nil {
 		return []user.User{}, err
 	}
 
 	for _, usr := range users {
-		err = s.AddMemberToTeam(ctx, usr, group)
+		err = s.addMemberToTeam(ctx, usr, group)
 		if err != nil {
 			return []user.User{}, err
 		}
 	}
-	return s.ListGroupUsers(ctx, groupId)
+	return s.ListUsers(ctx, groupId)
 }
 
-func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId string) ([]user.User, error) {
+func (s Service) RemoveUser(ctx context.Context, groupId string, userId string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
 	groupId = strings.TrimSpace(groupId)
-	group, err := s.store.GetGroup(ctx, groupId)
+	group, err := s.repository.Get(ctx, groupId)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -137,12 +136,12 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err := s.store.GetUser(ctx, userId)
+	usr, err := s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	relations, err := s.store.ListUserGroupRelations(ctx, usr.ID, group.ID)
+	relations, err := s.repository.ListUserGroupRelations(ctx, usr.ID, group.ID)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -153,29 +152,29 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		}
 	}
 
-	return s.ListGroupUsers(ctx, groupId)
+	return s.ListUsers(ctx, groupId)
 }
 
 func (s Service) ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error) {
-	return s.store.ListUserGroups(ctx, userId, roleId)
+	return s.repository.ListUserGroups(ctx, userId, roleId)
 }
 
-func (s Service) ListGroupUsers(ctx context.Context, groupId string) ([]user.User, error) {
-	return s.store.ListGroupUsers(ctx, groupId, role.DefinitionTeamMember.ID)
+func (s Service) ListUsers(ctx context.Context, groupId string) ([]user.User, error) {
+	return s.repository.ListUsers(ctx, groupId, role.DefinitionTeamMember.ID)
 }
 
-func (s Service) ListGroupAdmins(ctx context.Context, groupId string) ([]user.User, error) {
-	return s.store.ListGroupUsers(ctx, groupId, role.DefinitionTeamAdmin.ID)
+func (s Service) ListAdmins(ctx context.Context, groupId string) ([]user.User, error) {
+	return s.repository.ListUsers(ctx, groupId, role.DefinitionTeamAdmin.ID)
 }
 
-func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds []string) ([]user.User, error) {
+func (s Service) AddAdmins(ctx context.Context, groupId string, userIds []string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
 	groupId = strings.TrimSpace(groupId)
-	group, err := s.store.GetGroup(ctx, groupId)
+	group, err := s.repository.Get(ctx, groupId)
 
 	if err != nil {
 		return []user.User{}, err
@@ -190,34 +189,33 @@ func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds [
 		return []user.User{}, errors.Unauthorized
 	}
 
-	users, err := s.store.GetUsersByIDs(ctx, userIds)
-
+	users, err := s.userService.GetByIDs(ctx, userIds)
 	if err != nil {
 		return []user.User{}, err
 	}
 
 	for _, usr := range users {
-		err = s.AddMemberToTeam(ctx, usr, group)
+		err = s.addMemberToTeam(ctx, usr, group)
 		if err != nil {
 			return []user.User{}, err
 		}
 
-		err = s.AddAdminToTeam(ctx, usr, group)
+		err = s.addAdminToTeam(ctx, usr, group)
 		if err != nil {
 			return []user.User{}, err
 		}
 	}
-	return s.ListGroupAdmins(ctx, groupId)
+	return s.ListAdmins(ctx, groupId)
 }
 
-func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userId string) ([]user.User, error) {
+func (s Service) RemoveAdmin(ctx context.Context, groupId string, userId string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
 	groupId = strings.TrimSpace(groupId)
-	group, err := s.store.GetGroup(ctx, groupId)
+	group, err := s.repository.Get(ctx, groupId)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -231,7 +229,7 @@ func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userI
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err := s.store.GetUser(ctx, userId)
+	usr, err := s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -241,10 +239,10 @@ func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userI
 		return []user.User{}, err
 	}
 
-	return s.ListGroupAdmins(ctx, groupId)
+	return s.ListAdmins(ctx, groupId)
 }
 
-func (s Service) AddTeamToOrg(ctx context.Context, team Group, org organization.Organization) error {
+func (s Service) addTeamToOrg(ctx context.Context, team Group, org organization.Organization) error {
 	orgId := str.DefaultStringIfEmpty(org.ID, team.OrganizationID)
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
@@ -266,7 +264,7 @@ func (s Service) AddTeamToOrg(ctx context.Context, team Group, org organization.
 	return nil
 }
 
-func (s Service) AddAdminToTeam(ctx context.Context, user user.User, team Group) error {
+func (s Service) addAdminToTeam(ctx context.Context, user user.User, team Group) error {
 	rel := s.GetTeamAdminRelation(user, team)
 	_, err := s.relationService.Create(ctx, rel)
 	if err != nil {
@@ -276,7 +274,7 @@ func (s Service) AddAdminToTeam(ctx context.Context, user user.User, team Group)
 	return nil
 }
 
-func (s Service) AddMemberToTeam(ctx context.Context, user user.User, team Group) error {
+func (s Service) addMemberToTeam(ctx context.Context, user user.User, team Group) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
 		ObjectID:         team.ID,
@@ -295,7 +293,7 @@ func (s Service) AddMemberToTeam(ctx context.Context, user user.User, team Group
 	return nil
 }
 
-func (s Service) RemoveMemberFromTeam(ctx context.Context, user user.User, team Group) error {
+func (s Service) removeMemberFromTeam(ctx context.Context, user user.User, team Group) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
 		ObjectID:         team.ID,
