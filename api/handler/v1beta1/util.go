@@ -17,22 +17,22 @@ var (
 	grpcPermissionDenied    = status.Error(codes.PermissionDenied, permissionDeniedError.Error())
 )
 
-func mapOfStringValues(m map[string]interface{}) (map[string]string, error) {
-	newMap := make(map[string]string)
+func mapOfStringValues(m map[string]interface{}) (map[string]any, error) {
+	newMap := make(map[string]any)
 
 	for key, value := range m {
 		switch value := value.(type) {
-		case string:
+		case any:
 			newMap[key] = value
 		default:
-			return map[string]string{}, fmt.Errorf("value for %s key is not string", key)
+			return map[string]any{}, fmt.Errorf("value for %s key is not string", key)
 		}
 	}
 
 	return newMap, nil
 }
 
-func mapOfInterfaceValues(m map[string]string) map[string]interface{} {
+func mapOfInterfaceValues(m map[string]any) map[string]interface{} {
 	newMap := make(map[string]interface{})
 
 	for key, value := range m {

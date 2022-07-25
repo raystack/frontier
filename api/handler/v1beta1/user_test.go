@@ -23,8 +23,10 @@ var testUserMap = map[string]model.User{
 		Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name:  "User 1",
 		Email: "test@test.com",
-		Metadata: map[string]string{
-			"foo": "bar",
+		Metadata: map[string]any{
+			"foo":    "bar",
+			"age":    21,
+			"intern": true,
 		},
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
@@ -79,7 +81,9 @@ func TestListUsers(t *testing.T) {
 						Email: "test@test.com",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{
-								"foo": structpb.NewStringValue("bar"),
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
 							},
 						},
 						CreatedAt: timestamppb.New(time.Time{}),
@@ -221,7 +225,7 @@ func TestGetCurrentUser(t *testing.T) {
 					Id:    "user-id-1",
 					Name:  "some user",
 					Email: "someuser@test.com",
-					Metadata: map[string]string{
+					Metadata: map[string]any{
 						"foo": "bar",
 					},
 					CreatedAt: time.Time{},
@@ -324,7 +328,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 					Id:    "user-id-1",
 					Name:  "abc user",
 					Email: "abcuser@test.com",
-					Metadata: map[string]string{
+					Metadata: map[string]any{
 						"foo": "bar",
 					},
 					CreatedAt: time.Time{},

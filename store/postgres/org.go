@@ -25,13 +25,23 @@ type Organization struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
-func buildGetOrganizationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getOrganizationsQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.Ex{
-		"id": goqu.L("$1"),
+func buildGetOrganizationsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
+	getOrganizationsBySlugQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.Ex{
+		"slug": goqu.L("$1"),
 	}).ToSQL()
 
-	return getOrganizationsQuery, err
+	return getOrganizationsBySlugQuery, err
 }
+
+func buildGetOrganizationsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	getOrganizationsByIdQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.Or(
+		goqu.C("id").Eq(goqu.L("$1")),
+		goqu.C("slug").Eq(goqu.L("$2")),
+	)).ToSQL()
+
+	return getOrganizationsByIdQuery, err
+}
+
 func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
 	createOrganizationQuery, _, err := dialect.Insert(TABLE_ORG).Rows(
 		goqu.Record{
@@ -83,14 +93,28 @@ func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 
 func (s Store) GetOrg(ctx context.Context, id string) (model.Organization, error) {
 	var fetchedOrg Organization
-	getOrganizationsQuery, err := buildGetOrganizationsQuery(dialect)
+	var getOrganizationsQuery string
+	var err error
+	var isUuid = isUUID(id)
+
+	if isUuid {
+		getOrganizationsQuery, err = buildGetOrganizationsByIdQuery(dialect)
+	} else {
+		getOrganizationsQuery, err = buildGetOrganizationsBySlugQuery(dialect)
+	}
 	if err != nil {
 		return model.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id)
-	})
+	if isUuid {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id, id)
+		})
+	} else {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id)
+		})
+	}
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Organization{}, org.OrgDoesntExist
@@ -233,7 +257,7 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]model.User, erro
 }
 
 func transformToOrg(from Organization) (model.Organization, error) {
-	var unmarshalledMetadata map[string]string
+	var unmarshalledMetadata map[string]any
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 		return model.Organization{}, err
 	}

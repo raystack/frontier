@@ -27,6 +27,14 @@ type Group struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
+func buildGetGroupsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
+	getGroupsBySlugQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
+		"slug": goqu.L("$1"),
+	}).ToSQL()
+
+	return getGroupsBySlugQuery, err
+}
+
 func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
 	createGroupsQuery, _, err := dialect.Insert(TABLE_GROUPS).Rows(
 		goqu.Record{
@@ -38,12 +46,13 @@ func buildCreateGroupQuery(dialect goqu.DialectWrapper) (string, error) {
 	return createGroupsQuery, err
 }
 
-func buildGetGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getGroupsQuery, _, err := dialect.Select(&Group{}).From(TABLE_GROUPS).Where(goqu.Ex{
-		"id": goqu.L("$1"),
-	}).ToSQL()
+func buildGetGroupsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+	getGroupsByIdQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.Or(
+		goqu.C("id").Eq(goqu.L("$1")),
+		goqu.C("slug").Eq(goqu.L("$2")),
+	)).ToSQL()
 
-	return getGroupsQuery, err
+	return getGroupsByIdQuery, err
 }
 
 func buildListGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -101,14 +110,28 @@ func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, erro
 
 func (s Store) GetGroup(ctx context.Context, id string) (model.Group, error) {
 	var fetchedGroup Group
-	getGroupsQuery, err := buildGetGroupsQuery(dialect)
+	var getGroupsQuery string
+	var err error
+	var isUuid = isUUID(id)
+
+	if isUuid {
+		getGroupsQuery, err = buildGetGroupsByIdQuery(dialect)
+	} else {
+		getGroupsQuery, err = buildGetGroupsBySlugQuery(dialect)
+	}
 	if err != nil {
 		return model.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
-	})
+	if isUuid {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id, id)
+		})
+	} else {
+		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+			return s.DB.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
+		})
+	}
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Group{}, group.GroupDoesntExist
@@ -298,7 +321,7 @@ func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupI
 }
 
 func transformToGroup(from Group) (model.Group, error) {
-	var unmarshalledMetadata map[string]string
+	var unmarshalledMetadata map[string]any
 	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 		return model.Group{}, err
 	}
