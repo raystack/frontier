@@ -2,19 +2,23 @@ package authz
 
 import (
 	"fmt"
-	"net/http"
-	"strings"
-
-	"github.com/odpf/shield/api/handler"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/hook"
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	syslog "log"
+	"net/http"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	"golang.org/x/net/context"
+
 	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/api/handler"
+	"github.com/odpf/shield/api/handler/v1beta1"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/user"
 )
 
 type Authz struct {
@@ -169,7 +173,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
-	resources, err := createResources(attributes)
+	resources, err := createResources(res.Request.Context(), attributes, a.Deps.V1beta1)
 	if err != nil {
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
@@ -186,16 +190,27 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	return a.next.ServeHook(res, nil)
 }
 
-func createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
+func createResources(ctx context.Context, permissionAttributes map[string]interface{}, v v1beta1.Dep) ([]resource.Resource, error) {
+	syslog.Println("\n", permissionAttributes)
+
 	var resources []resource.Resource
 	projects, err := getAttributesValues(permissionAttributes["project"])
 	if err != nil {
 		return nil, err
 	}
 
-	orgs, err := getAttributesValues(permissionAttributes["organization"])
-	if err != nil {
-		return nil, err
+	var orgs []string
+	for _, proj := range projects {
+		req := shieldv1beta1.GetProjectRequest{
+			Id: proj,
+		}
+		project, err := v.GetProject(ctx, &req)
+		fmt.Println(project)
+		if err != nil {
+			return nil, err
+		}
+		orgId := project.GetProject().OrgId
+		orgs = append(orgs, orgId)
 	}
 
 	teams, err := getAttributesValues(permissionAttributes["team"])
