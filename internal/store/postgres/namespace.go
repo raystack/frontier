@@ -14,7 +14,7 @@ import (
 )
 
 type Namespace struct {
-	Id        string       `db:"id"`
+	ID        string       `db:"id"`
 	Name      string       `db:"name"`
 	CreatedAt time.Time    `db:"created_at"`
 	UpdatedAt time.Time    `db:"updated_at"`
@@ -99,7 +99,7 @@ func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate namespace.
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.Id, namespaceToCreate.Name)
+		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.ID, namespaceToCreate.Name)
 	})
 
 	if err != nil {
@@ -155,7 +155,7 @@ func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate namespac
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedNamespace, updateNamespaceQuery, id, toUpdate.Id, toUpdate.Name)
+		return s.DB.GetContext(ctx, &updatedNamespace, updateNamespaceQuery, id, toUpdate.ID, toUpdate.Name)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -174,7 +174,7 @@ func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate namespac
 
 func transformToNamespace(from Namespace) (namespace.Namespace, error) {
 	return namespace.Namespace{
-		Id:        from.Id,
+		ID:        from.ID,
 		Name:      from.Name,
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,

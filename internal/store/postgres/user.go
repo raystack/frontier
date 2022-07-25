@@ -18,7 +18,7 @@ import (
 )
 
 type User struct {
-	Id        string       `db:"id"`
+	ID        string       `db:"id"`
 	Name      string       `db:"name"`
 	Email     string       `db:"email"`
 	Metadata  []byte       `db:"metadata"`
@@ -47,11 +47,11 @@ func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
 	return getUserQuery, err
 }
 
-func buildGetUsersByIdsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getUsersByIdsQuery, _, err := goqu.From("users").Prepared(true).Where(
+func buildGetUsersByIDsQuery(dialect goqu.DialectWrapper) (string, error) {
+	getUsersByIDsQuery, _, err := goqu.From("users").Prepared(true).Where(
 		goqu.C("id").In("id_PH")).ToSQL()
 
-	return getUsersByIdsQuery, err
+	return getUsersByIDsQuery, err
 }
 
 func buildGetUserByEmailQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -135,8 +135,8 @@ func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 			goqu.I("g.id").Cast("VARCHAR").
 				Eq(goqu.I("r.object_id")),
 		)).Where(goqu.Ex{
-		"r.object_namespace_id": namespace.DefinitionTeam.Id,
-		"subject_namespace_id":  namespace.DefinitionUser.Id,
+		"r.object_namespace_id": namespace.DefinitionTeam.ID,
+		"subject_namespace_id":  namespace.DefinitionUser.ID,
 		"subject_id":            goqu.L("$1"),
 		"role_id":               goqu.L("$2"),
 	}).ToSQL()
@@ -255,17 +255,17 @@ func (s Store) ListUsers(ctx context.Context, limit int32, page int32, keyword s
 	return res, nil
 }
 
-func (s Store) GetUsersByIds(ctx context.Context, userIds []string) ([]user.User, error) {
+func (s Store) GetUsersByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
 	var fetchedUsers []User
 
-	getUsersByIdsQuery, err := buildGetUsersByIdsQuery(dialect)
+	getUsersByIDsQuery, err := buildGetUsersByIDsQuery(dialect)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var query string
 	var args []interface{}
-	query, args, err = sqlx.In(getUsersByIdsQuery, userIds)
+	query, args, err = sqlx.In(getUsersByIDsQuery, userIDs)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -313,7 +313,7 @@ func (s Store) UpdateUser(ctx context.Context, toUpdate user.User) (user.User, e
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedUser, updateUserQuery, toUpdate.Id, toUpdate.Name, toUpdate.Email, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedUser, updateUserQuery, toUpdate.ID, toUpdate.Name, toUpdate.Email, marshaledMetadata)
 	})
 
 	if err != nil {
@@ -389,11 +389,11 @@ func (s Store) UpdateCurrentUser(ctx context.Context, toUpdate user.User) (user.
 	return transformedUser, nil
 }
 
-func (s Store) ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error) {
-	rlID := role.DefinitionTeamMember.Id
+func (s Store) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
+	rlID := role.DefinitionTeamMember.ID
 
-	if roleId == role.DefinitionTeamAdmin.Id {
-		rlID = role.DefinitionTeamAdmin.Id
+	if roleID == role.DefinitionTeamAdmin.ID {
+		rlID = role.DefinitionTeamAdmin.ID
 	}
 
 	var fetchedGroups []Group
@@ -404,7 +404,7 @@ func (s Store) ListUserGroups(ctx context.Context, userId string, roleId string)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userId, rlID)
+		return s.DB.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userID, rlID)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -436,7 +436,7 @@ func transformToUser(from User) (user.User, error) {
 	}
 
 	return user.User{
-		Id:        from.Id,
+		ID:        from.ID,
 		Name:      from.Name,
 		Email:     from.Email,
 		Metadata:  unmarshalledMetadata,

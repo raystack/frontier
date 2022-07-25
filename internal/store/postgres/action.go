@@ -15,7 +15,7 @@ import (
 )
 
 type Action struct {
-	Id          string    `db:"id"`
+	ID          string    `db:"id"`
 	Name        string    `db:"name"`
 	Namespace   Namespace `db:"namespace"`
 	NamespaceID string    `db:"namespace_id"`
@@ -24,7 +24,7 @@ type Action struct {
 }
 
 type actionColumns struct {
-	Id          string    `db:"id"`
+	ID          string    `db:"id"`
 	Name        string    `db:"name"`
 	NamespaceID string    `db:"namespace_id"`
 	CreatedAt   time.Time `db:"created_at"`
@@ -108,14 +108,14 @@ func (s Store) selectAction(ctx context.Context, id string, txn *sqlx.Tx) (actio
 func (s Store) CreateAction(ctx context.Context, actionToCreate action.Action) (action.Action, error) {
 	var newAction Action
 
-	nsId := str.DefaultStringIfEmpty(actionToCreate.Namespace.Id, actionToCreate.NamespaceId)
+	nsID := str.DefaultStringIfEmpty(actionToCreate.Namespace.ID, actionToCreate.NamespaceID)
 	createActionQuery, err := buildCreateActionQuery(dialect)
 	if err != nil {
 		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.Id, actionToCreate.Name, nsId)
+		return s.DB.GetContext(ctx, &newAction, createActionQuery, actionToCreate.ID, actionToCreate.Name, nsID)
 	})
 
 	if err != nil {
@@ -171,7 +171,7 @@ func (s Store) UpdateAction(ctx context.Context, toUpdate action.Action) (action
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedAction, updateActionQuery, toUpdate.Id, toUpdate.Name, toUpdate.NamespaceId)
+		return s.DB.GetContext(ctx, &updatedAction, updateActionQuery, toUpdate.ID, toUpdate.Name, toUpdate.NamespaceID)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -189,16 +189,16 @@ func (s Store) UpdateAction(ctx context.Context, toUpdate action.Action) (action
 }
 
 func transformToAction(from Action) (action.Action, error) {
-	from.Namespace.Id = from.NamespaceID
+	from.Namespace.ID = from.NamespaceID
 	namespace, err := transformToNamespace(from.Namespace)
 	if err != nil {
 		return action.Action{}, err
 	}
 
 	return action.Action{
-		Id:          from.Id,
+		ID:          from.ID,
 		Name:        from.Name,
-		NamespaceId: from.NamespaceID,
+		NamespaceID: from.NamespaceID,
 		Namespace:   namespace,
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,

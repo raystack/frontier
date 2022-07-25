@@ -27,17 +27,17 @@ type AuthzStore interface {
 }
 
 type Policy struct {
-	Id          string
+	ID          string
 	Role        role.Role
-	RoleId      string `json:"role_id"`
+	RoleID      string `json:"role_id"`
 	Namespace   namespace.Namespace
-	NamespaceId string `json:"namespace_id"`
+	NamespaceID string `json:"namespace_id"`
 	Action      action.Action
-	ActionId    string `json:"action_id"`
+	ActionID    string `json:"action_id"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
 type Filters struct {
-	NamespaceId string
+	NamespaceID string
 }

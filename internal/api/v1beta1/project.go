@@ -72,7 +72,7 @@ func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.Creat
 		Name:         request.GetBody().Name,
 		Slug:         slug,
 		Metadata:     metaDataMap,
-		Organization: organization.Organization{Id: request.GetBody().OrgId},
+		Organization: organization.Organization{ID: request.GetBody().OrgId},
 	})
 
 	if err != nil {
@@ -87,7 +87,7 @@ func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.Creat
 	}
 
 	return &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
-		Id:        newProject.Id,
+		Id:        newProject.ID,
 		Name:      newProject.Name,
 		Slug:      newProject.Slug,
 		Metadata:  metaData,
@@ -130,10 +130,10 @@ func (h Handler) UpdateProject(ctx context.Context, request *shieldv1beta1.Updat
 	}
 
 	updatedProject, err := h.projectService.Update(ctx, project.Project{
-		Id:           request.GetId(),
+		ID:           request.GetId(),
 		Name:         request.GetBody().Name,
 		Slug:         request.GetBody().Slug,
-		Organization: organization.Organization{Id: request.GetBody().OrgId},
+		Organization: organization.Organization{ID: request.GetBody().OrgId},
 		Metadata:     metaDataMap,
 	})
 	if err != nil {
@@ -233,10 +233,10 @@ func transformProjectToPB(prj project.Project) (shieldv1beta1.Project, error) {
 	}
 
 	return shieldv1beta1.Project{
-		Id:        prj.Id,
+		Id:        prj.ID,
 		Name:      prj.Name,
 		Slug:      prj.Slug,
-		OrgId:     prj.Organization.Id,
+		OrgId:     prj.Organization.ID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(prj.CreatedAt),
 		UpdatedAt: timestamppb.New(prj.UpdatedAt),

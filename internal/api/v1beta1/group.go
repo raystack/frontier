@@ -43,7 +43,7 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 
 	var groups []*shieldv1beta1.Group
 
-	groupList, err := h.groupService.ListGroups(ctx, organization.Organization{Id: request.OrgId})
+	groupList, err := h.groupService.ListGroups(ctx, organization.Organization{ID: request.OrgId})
 	if errors.Is(err, group.ErrNotExist) {
 		return nil, nil
 	} else if err != nil {
@@ -81,7 +81,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	newGroup, err := h.groupService.CreateGroup(ctx, group.Group{
 		Name:           request.Body.Name,
 		Slug:           slug,
-		OrganizationId: request.Body.OrgId,
+		OrganizationID: request.Body.OrgId,
 		Metadata:       metaDataMap,
 	})
 
@@ -97,10 +97,10 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	}
 
 	return &shieldv1beta1.CreateGroupResponse{Group: &shieldv1beta1.Group{
-		Id:        newGroup.Id,
+		Id:        newGroup.ID,
 		Name:      newGroup.Name,
 		Slug:      newGroup.Slug,
-		OrgId:     newGroup.Organization.Id,
+		OrgId:     newGroup.Organization.ID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(newGroup.CreatedAt),
 		UpdatedAt: timestamppb.New(newGroup.UpdatedAt),
@@ -227,10 +227,10 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	}
 
 	updatedGroup, err := h.groupService.UpdateGroup(ctx, group.Group{
-		Id:           request.GetId(),
+		ID:           request.GetId(),
 		Name:         request.GetBody().GetName(),
 		Slug:         request.GetBody().GetSlug(),
-		Organization: organization.Organization{Id: request.GetBody().OrgId},
+		Organization: organization.Organization{ID: request.GetBody().OrgId},
 		Metadata:     metaDataMap,
 	})
 	if err != nil {
@@ -339,10 +339,10 @@ func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
 	}
 
 	return shieldv1beta1.Group{
-		Id:        grp.Id,
+		Id:        grp.ID,
 		Name:      grp.Name,
 		Slug:      grp.Slug,
-		OrgId:     grp.Organization.Id,
+		OrgId:     grp.Organization.ID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(grp.CreatedAt),
 		UpdatedAt: timestamppb.New(grp.UpdatedAt),

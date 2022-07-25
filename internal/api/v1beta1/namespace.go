@@ -48,7 +48,7 @@ func (h Handler) CreateNamespace(ctx context.Context, request *shieldv1beta1.Cre
 	logger := grpczap.Extract(ctx)
 
 	newNS, err := h.namespaceService.CreateNamespace(ctx, namespace.Namespace{
-		Id:   request.GetBody().Id,
+		ID:   request.GetBody().Id,
 		Name: request.GetBody().Name,
 	})
 
@@ -96,7 +96,7 @@ func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.Upd
 	logger := grpczap.Extract(ctx)
 
 	updatedNS, err := h.namespaceService.UpdateNamespace(ctx, request.GetId(), namespace.Namespace{
-		Id:   request.GetBody().Id,
+		ID:   request.GetBody().Id,
 		Name: request.GetBody().Name,
 	})
 
@@ -116,7 +116,7 @@ func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.Upd
 
 func transformNamespaceToPB(ns namespace.Namespace) (shieldv1beta1.Namespace, error) {
 	return shieldv1beta1.Namespace{
-		Id:        ns.Id,
+		Id:        ns.ID,
 		Name:      ns.Name,
 		CreatedAt: timestamppb.New(ns.CreatedAt),
 		UpdatedAt: timestamppb.New(ns.UpdatedAt),

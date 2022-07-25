@@ -14,29 +14,29 @@ import (
 )
 
 type Relation struct {
-	Id                 string         `db:"id"`
-	SubjectNamespaceId string         `db:"subject_namespace_id"`
+	ID                 string         `db:"id"`
+	SubjectNamespaceID string         `db:"subject_namespace_id"`
 	SubjectNamespace   Namespace      `db:"subject_namespace"`
-	SubjectId          string         `db:"subject_id"`
-	ObjectNamespaceId  string         `db:"object_namespace_id"`
+	SubjectID          string         `db:"subject_id"`
+	ObjectNamespaceID  string         `db:"object_namespace_id"`
 	ObjectNamespace    Namespace      `db:"object_namespace"`
-	ObjectId           string         `db:"object_id"`
-	RoleId             sql.NullString `db:"role_id"`
+	ObjectID           string         `db:"object_id"`
+	RoleID             sql.NullString `db:"role_id"`
 	Role               Role           `db:"role"`
-	NamespaceId        sql.NullString `db:"namespace_id"`
+	NamespaceID        sql.NullString `db:"namespace_id"`
 	CreatedAt          time.Time      `db:"created_at"`
 	UpdatedAt          time.Time      `db:"updated_at"`
 	DeletedAt          sql.NullTime   `db:"deleted_at"`
 }
 
 type relationCols struct {
-	Id                 string         `db:"id"`
-	SubjectNamespaceId string         `db:"subject_namespace_id"`
-	SubjectId          string         `db:"subject_id"`
-	ObjectNamespaceId  string         `db:"object_namespace_id"`
-	ObjectId           string         `db:"object_id"`
-	RoleId             sql.NullString `db:"role_id"`
-	NamespaceId        sql.NullString `db:"namespace_id"`
+	ID                 string         `db:"id"`
+	SubjectNamespaceID string         `db:"subject_namespace_id"`
+	SubjectID          string         `db:"subject_id"`
+	ObjectNamespaceID  string         `db:"object_namespace_id"`
+	ObjectID           string         `db:"object_id"`
+	RoleID             sql.NullString `db:"role_id"`
+	NamespaceID        sql.NullString `db:"namespace_id"`
 	CreatedAt          time.Time      `db:"created_at"`
 	UpdatedAt          time.Time      `db:"updated_at"`
 }
@@ -110,25 +110,25 @@ func buildGetRelationByFieldsQuery(dialect goqu.DialectWrapper) (string, error) 
 	return getRelationByFieldsQuery, err
 }
 
-func buildDeleteRelationByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	deleteRelationByIdQuery, _, err := dialect.Delete(TABLE_RELATION).Where(goqu.Ex{
+func buildDeleteRelationByIDQuery(dialect goqu.DialectWrapper) (string, error) {
+	deleteRelationByIDQuery, _, err := dialect.Delete(TABLE_RELATION).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 
-	return deleteRelationByIdQuery, err
+	return deleteRelationByIDQuery, err
 }
 
 func (s Store) CreateRelation(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
 	var newRelation Relation
 
-	subjectNamespaceId := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.Id, relationToCreate.SubjectNamespaceId)
-	objectNamespaceId := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.Id, relationToCreate.ObjectNamespaceId)
-	roleId := str.DefaultStringIfEmpty(relationToCreate.Role.Id, relationToCreate.RoleId)
-	var nsId string
+	subjectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.ID, relationToCreate.SubjectNamespaceID)
+	objectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.ID, relationToCreate.ObjectNamespaceID)
+	roleID := str.DefaultStringIfEmpty(relationToCreate.Role.ID, relationToCreate.RoleID)
+	var nsID string
 
 	if relationToCreate.RelationType == relation.RelationTypes.Namespace {
-		nsId = roleId
-		roleId = ""
+		nsID = roleID
+		roleID = ""
 	}
 
 	createRelationQuery, err := buildCreateRelationQuery(dialect)
@@ -141,12 +141,12 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate relation.Rel
 			ctx,
 			&newRelation,
 			createRelationQuery,
-			subjectNamespaceId,
-			relationToCreate.SubjectId,
-			objectNamespaceId,
-			relationToCreate.ObjectId,
-			sql.NullString{String: roleId, Valid: roleId != ""},
-			sql.NullString{String: nsId, Valid: nsId != ""},
+			subjectNamespaceID,
+			relationToCreate.SubjectID,
+			objectNamespaceID,
+			relationToCreate.ObjectID,
+			sql.NullString{String: roleID, Valid: roleID != ""},
+			sql.NullString{String: nsID, Valid: nsID != ""},
 		)
 	})
 
@@ -229,14 +229,14 @@ func (s Store) GetRelation(ctx context.Context, id string) (relation.Relation, e
 	return transformedRelation, nil
 }
 
-func (s Store) DeleteRelationById(ctx context.Context, id string) error {
-	deleteRelationByIdQuery, err := buildDeleteRelationByIdQuery(dialect)
+func (s Store) DeleteRelationByID(ctx context.Context, id string) error {
+	deleteRelationByIDQuery, err := buildDeleteRelationByIDQuery(dialect)
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		result, err := s.DB.ExecContext(ctx, deleteRelationByIdQuery, id)
+		result, err := s.DB.ExecContext(ctx, deleteRelationByIDQuery, id)
 		if err == nil {
 			count, err := result.RowsAffected()
 			if err == nil {
@@ -253,14 +253,14 @@ func (s Store) DeleteRelationById(ctx context.Context, id string) error {
 func (s Store) GetRelationByFields(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
 	var fetchedRelation Relation
 
-	subjectNamespaceId := str.DefaultStringIfEmpty(rel.SubjectNamespace.Id, rel.SubjectNamespaceId)
-	objectNamespaceId := str.DefaultStringIfEmpty(rel.ObjectNamespace.Id, rel.ObjectNamespaceId)
-	roleId := str.DefaultStringIfEmpty(rel.Role.Id, rel.RoleId)
-	var nsId string
+	subjectNamespaceID := str.DefaultStringIfEmpty(rel.SubjectNamespace.ID, rel.SubjectNamespaceID)
+	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
+	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
+	var nsID string
 
 	if rel.RelationType == relation.RelationTypes.Namespace {
-		nsId = roleId
-		roleId = ""
+		nsID = roleID
+		roleID = ""
 	}
 
 	getRelationByFieldsQuery, err := buildGetRelationByFieldsQuery(dialect)
@@ -272,12 +272,12 @@ func (s Store) GetRelationByFields(ctx context.Context, rel relation.Relation) (
 		return s.DB.GetContext(ctx,
 			&fetchedRelation,
 			getRelationByFieldsQuery,
-			subjectNamespaceId,
-			rel.SubjectId,
-			objectNamespaceId,
-			rel.ObjectId,
-			sql.NullString{String: roleId, Valid: roleId != ""},
-			sql.NullString{String: nsId, Valid: nsId != ""},
+			subjectNamespaceID,
+			rel.SubjectID,
+			objectNamespaceID,
+			rel.ObjectID,
+			sql.NullString{String: roleID, Valid: roleID != ""},
+			sql.NullString{String: nsID, Valid: nsID != ""},
 		)
 	})
 
@@ -306,14 +306,14 @@ func (s Store) GetRelationByFields(ctx context.Context, rel relation.Relation) (
 func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate relation.Relation) (relation.Relation, error) {
 	var updatedRelation Relation
 
-	subjectNamespaceId := str.DefaultStringIfEmpty(toUpdate.SubjectNamespace.Id, toUpdate.SubjectNamespaceId)
-	objectNamespaceId := str.DefaultStringIfEmpty(toUpdate.ObjectNamespace.Id, toUpdate.ObjectNamespaceId)
-	roleId := str.DefaultStringIfEmpty(toUpdate.Role.Id, toUpdate.RoleId)
-	var nsId string
+	subjectNamespaceID := str.DefaultStringIfEmpty(toUpdate.SubjectNamespace.ID, toUpdate.SubjectNamespaceID)
+	objectNamespaceID := str.DefaultStringIfEmpty(toUpdate.ObjectNamespace.ID, toUpdate.ObjectNamespaceID)
+	roleID := str.DefaultStringIfEmpty(toUpdate.Role.ID, toUpdate.RoleID)
+	var nsID string
 
 	if toUpdate.RelationType == relation.RelationTypes.Namespace {
-		nsId = roleId
-		roleId = ""
+		nsID = roleID
+		roleID = ""
 	}
 
 	updateRelationQuery, err := buildUpdateRelationQuery(dialect)
@@ -327,12 +327,12 @@ func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate relation.
 			&updatedRelation,
 			updateRelationQuery,
 			id,
-			subjectNamespaceId,
-			toUpdate.SubjectId,
-			objectNamespaceId,
-			toUpdate.ObjectId,
-			sql.NullString{String: roleId, Valid: roleId != ""},
-			sql.NullString{String: nsId, Valid: nsId != ""},
+			subjectNamespaceID,
+			toUpdate.SubjectID,
+			objectNamespaceID,
+			toUpdate.ObjectID,
+			sql.NullString{String: roleID, Valid: roleID != ""},
+			sql.NullString{String: nsID, Valid: nsID != ""},
 		)
 	})
 
@@ -356,20 +356,20 @@ func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate relation.
 
 func transformToRelation(from Relation) (relation.Relation, error) {
 	relationType := relation.RelationTypes.Role
-	roleId := from.RoleId.String
+	roleID := from.RoleID.String
 
-	if from.NamespaceId.Valid {
-		roleId = from.NamespaceId.String
+	if from.NamespaceID.Valid {
+		roleID = from.NamespaceID.String
 		relationType = relation.RelationTypes.Namespace
 	}
 
 	return relation.Relation{
-		Id:                 from.Id,
-		SubjectNamespaceId: from.SubjectNamespaceId,
-		SubjectId:          from.SubjectId,
-		ObjectNamespaceId:  from.ObjectNamespaceId,
-		ObjectId:           from.ObjectId,
-		RoleId:             roleId,
+		ID:                 from.ID,
+		SubjectNamespaceID: from.SubjectNamespaceID,
+		SubjectID:          from.SubjectID,
+		ObjectNamespaceID:  from.ObjectNamespaceID,
+		ObjectID:           from.ObjectID,
+		RoleID:             roleID,
 		RelationType:       relationType,
 		CreatedAt:          from.CreatedAt,
 		UpdatedAt:          from.UpdatedAt,

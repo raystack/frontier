@@ -23,21 +23,21 @@ type Store interface {
 }
 
 type Role struct {
-	Id          string
+	ID          string
 	Name        string
 	Types       []string
 	Namespace   namespace.Namespace
-	NamespaceId string
+	NamespaceID string
 	Metadata    map[string]any
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
 func GetOwnerRole(ns namespace.Namespace) Role {
-	id := fmt.Sprintf("%s_%s", ns.Id, "owner")
-	name := fmt.Sprintf("%s_%s", strings.Title(ns.Id), "Owner")
+	id := fmt.Sprintf("%s_%s", ns.ID, "owner")
+	name := fmt.Sprintf("%s_%s", strings.Title(ns.ID), "Owner")
 	return Role{
-		Id:        id,
+		ID:        id,
 		Name:      name,
 		Types:     []string{UserType},
 		Namespace: ns,

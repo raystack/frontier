@@ -42,7 +42,7 @@ func (db *SpiceDB) CheckRelation(ctx context.Context, rel relation.Relation, act
 	request := &authzedpb.CheckPermissionRequest{
 		Resource:   relationship.Resource,
 		Subject:    relationship.Subject,
-		Permission: act.Id,
+		Permission: act.ID,
 	}
 
 	response, err := db.client.CheckPermission(ctx, request)

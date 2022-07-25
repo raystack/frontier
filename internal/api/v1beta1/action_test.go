@@ -20,10 +20,10 @@ import (
 
 var testActionMap = map[string]action.Action{
 	"read": {
-		Id:   "read",
+		ID:   "read",
 		Name: "Read",
 		Namespace: namespace.Namespace{
-			Id:        "resource-1",
+			ID:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
@@ -32,10 +32,10 @@ var testActionMap = map[string]action.Action{
 		UpdatedAt: time.Time{},
 	},
 	"write": {
-		Id:   "write",
+		ID:   "write",
 		Name: "Write",
 		Namespace: namespace.Namespace{
-			Id:        "resource-1",
+			ID:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
@@ -44,10 +44,10 @@ var testActionMap = map[string]action.Action{
 		UpdatedAt: time.Time{},
 	},
 	"manage": {
-		Id:   "manage",
+		ID:   "manage",
 		Name: "Manage",
 		Namespace: namespace.Namespace{
-			Id:        "resource-1",
+			ID:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
@@ -83,7 +83,7 @@ func TestListActions(t *testing.T) {
 				}
 
 				sort.Slice(testActionList[:], func(i, j int) bool {
-					return strings.Compare(testActionList[i].Id, testActionList[j].Id) < 1
+					return strings.Compare(testActionList[i].ID, testActionList[j].ID) < 1
 				})
 				return testActionList, nil
 			}},
@@ -169,10 +169,10 @@ func TestCreateAction(t *testing.T) {
 			title: "success",
 			mockActionSrv: mockActionSrv{CreateActionFunc: func(ctx context.Context, act action.Action) (action.Action, error) {
 				return action.Action{
-					Id:   "read",
+					ID:   "read",
 					Name: "Read",
 					Namespace: namespace.Namespace{
-						Id:   "team",
+						ID:   "team",
 						Name: "Team",
 					},
 				}, nil

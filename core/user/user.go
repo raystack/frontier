@@ -21,7 +21,7 @@ type Store interface {
 }
 
 type User struct {
-	Id        string
+	ID        string
 	Name      string
 	Email     string
 	Metadata  map[string]any

@@ -83,7 +83,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.Id, action.DefinitionManageOrganization)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -92,7 +92,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 		return []user.User{}, errors.Unauthorized
 	}
 
-	users, err := s.store.GetUsersByIds(ctx, userIds)
+	users, err := s.store.GetUsersByIDs(ctx, userIds)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -123,7 +123,7 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.Id, action.DefinitionManageOrganization)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -148,11 +148,11 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 func (s Service) RemoveAdminFromOrg(ctx context.Context, user user.User, org Organization) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionOrg,
-		ObjectId:         org.Id,
-		SubjectId:        user.Id,
+		ObjectID:         org.ID,
+		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			Id:        role.DefinitionOrganizationAdmin.Id,
+			ID:        role.DefinitionOrganizationAdmin.ID,
 			Namespace: namespace.DefinitionOrg,
 		},
 	}
@@ -162,11 +162,11 @@ func (s Service) RemoveAdminFromOrg(ctx context.Context, user user.User, org Org
 func (s Service) AddAdminToOrg(ctx context.Context, user user.User, org Organization) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionOrg,
-		ObjectId:         org.Id,
-		SubjectId:        user.Id,
+		ObjectID:         org.ID,
+		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			Id:        role.DefinitionOrganizationAdmin.Id,
+			ID:        role.DefinitionOrganizationAdmin.ID,
 			Namespace: namespace.DefinitionOrg,
 		},
 	}

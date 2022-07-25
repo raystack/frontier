@@ -18,33 +18,33 @@ import (
 )
 
 type Resource struct {
-	Id             string         `db:"id"`
-	Urn            string         `db:"urn"`
+	ID             string         `db:"id"`
+	URN            string         `db:"urn"`
 	Name           string         `db:"name"`
-	ProjectId      string         `db:"project_id"`
+	ProjectID      string         `db:"project_id"`
 	Project        Project        `db:"project"`
-	GroupId        sql.NullString `db:"group_id"`
+	GroupID        sql.NullString `db:"group_id"`
 	Group          Group          `db:"group"`
-	OrganizationId string         `db:"org_id"`
+	OrganizationID string         `db:"org_id"`
 	Organization   Organization   `db:"organization"`
-	NamespaceId    string         `db:"namespace_id"`
+	NamespaceID    string         `db:"namespace_id"`
 	Namespace      Namespace      `db:"namespace"`
 	User           User           `db:"user"`
-	UserId         sql.NullString `db:"user_id"`
+	UserID         sql.NullString `db:"user_id"`
 	CreatedAt      time.Time      `db:"created_at"`
 	UpdatedAt      time.Time      `db:"updated_at"`
 	DeletedAt      sql.NullTime   `db:"deleted_at"`
 }
 
 type ResourceCols struct {
-	Id             string         `db:"id"`
-	Urn            string         `db:"urn"`
+	ID             string         `db:"id"`
+	URN            string         `db:"urn"`
 	Name           string         `db:"name"`
-	ProjectId      string         `db:"project_id"`
-	GroupId        sql.NullString `db:"group_id"`
-	OrganizationId string         `db:"org_id"`
-	NamespaceId    string         `db:"namespace_id"`
-	UserId         sql.NullString `db:"user_id"`
+	ProjectID      string         `db:"project_id"`
+	GroupID        sql.NullString `db:"group_id"`
+	OrganizationID string         `db:"org_id"`
+	NamespaceID    string         `db:"namespace_id"`
+	UserID         sql.NullString `db:"user_id"`
 	CreatedAt      time.Time      `db:"created_at"`
 	UpdatedAt      time.Time      `db:"updated_at"`
 }
@@ -55,12 +55,12 @@ func buildListResourcesStatement(dialect goqu.DialectWrapper) *goqu.SelectDatase
 	return listResourcesStatement
 }
 
-func buildGetResourcesByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	getResourcesByIdQuery, _, err := buildListResourcesStatement(dialect).Where(goqu.Ex{
+func buildGetResourcesByIDQuery(dialect goqu.DialectWrapper) (string, error) {
+	getResourcesByIDQuery, _, err := buildListResourcesStatement(dialect).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 
-	return getResourcesByIdQuery, err
+	return getResourcesByIDQuery, err
 }
 
 func buildCreateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -113,15 +113,15 @@ func buildUpdateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
 func (s Store) CreateResource(ctx context.Context, resourceToCreate resource.Resource) (resource.Resource, error) {
 	var newResource Resource
 
-	userId := sql.NullString{String: resourceToCreate.UserId, Valid: resourceToCreate.UserId != ""}
-	groupId := sql.NullString{String: resourceToCreate.GroupId, Valid: resourceToCreate.GroupId != ""}
+	userID := sql.NullString{String: resourceToCreate.UserID, Valid: resourceToCreate.UserID != ""}
+	groupID := sql.NullString{String: resourceToCreate.GroupID, Valid: resourceToCreate.GroupID != ""}
 	createResourceQuery, err := buildCreateResourceQuery(dialect)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.Urn, resourceToCreate.Name, resourceToCreate.ProjectId, groupId, resourceToCreate.OrganizationId, resourceToCreate.NamespaceId, userId)
+		return s.DB.GetContext(ctx, &newResource, createResourceQuery, resourceToCreate.URN, resourceToCreate.Name, resourceToCreate.ProjectID, groupID, resourceToCreate.OrganizationID, resourceToCreate.NamespaceID, userID)
 	})
 
 	if err != nil {
@@ -186,13 +186,13 @@ func (s Store) ListResources(ctx context.Context, filters resource.Filters) ([]r
 func (s Store) GetResource(ctx context.Context, id string) (resource.Resource, error) {
 	var fetchedResource Resource
 
-	getResourcesByIdQuery, err := buildGetResourcesByIdQuery(dialect)
+	getResourcesByIDQuery, err := buildGetResourcesByIDQuery(dialect)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByIdQuery, id)
+		return s.DB.GetContext(ctx, &fetchedResource, getResourcesByIDQuery, id)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -220,15 +220,15 @@ func (s Store) GetResource(ctx context.Context, id string) (resource.Resource, e
 func (s Store) UpdateResource(ctx context.Context, id string, toUpdate resource.Resource) (resource.Resource, error) {
 	var updatedResource Resource
 
-	userId := sql.NullString{String: toUpdate.UserId, Valid: toUpdate.UserId != ""}
-	groupId := sql.NullString{String: toUpdate.GroupId, Valid: toUpdate.GroupId != ""}
+	userID := sql.NullString{String: toUpdate.UserID, Valid: toUpdate.UserID != ""}
+	groupID := sql.NullString{String: toUpdate.GroupID, Valid: toUpdate.GroupID != ""}
 	updateResourceQuery, err := buildUpdateResourceQuery(dialect)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectId, groupId, toUpdate.OrganizationId, toUpdate.NamespaceId, userId, toUpdate.Urn)
+		return s.DB.GetContext(ctx, &updatedResource, updateResourceQuery, id, toUpdate.Name, toUpdate.ProjectID, groupID, toUpdate.OrganizationID, toUpdate.NamespaceID, userID, toUpdate.URN)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -283,20 +283,20 @@ func (s Store) GetResourceByURN(ctx context.Context, urn string) (resource.Resou
 }
 
 func transformToResource(from Resource) (resource.Resource, error) {
-	// TODO: remove *Id
+	// TODO: remove *ID
 	return resource.Resource{
-		Idxa:           from.Id,
-		Urn:            from.Urn,
+		Idxa:           from.ID,
+		URN:            from.URN,
 		Name:           from.Name,
-		Project:        project.Project{Id: from.ProjectId},
-		ProjectId:      from.ProjectId,
-		Namespace:      namespace.Namespace{Id: from.NamespaceId},
-		NamespaceId:    from.NamespaceId,
-		Organization:   organization.Organization{Id: from.OrganizationId},
-		OrganizationId: from.OrganizationId,
-		GroupId:        from.GroupId.String,
-		Group:          group.Group{Id: from.GroupId.String},
-		User:           user.User{Id: from.UserId.String},
+		Project:        project.Project{ID: from.ProjectID},
+		ProjectID:      from.ProjectID,
+		Namespace:      namespace.Namespace{ID: from.NamespaceID},
+		NamespaceID:    from.NamespaceID,
+		Organization:   organization.Organization{ID: from.OrganizationID},
+		OrganizationID: from.OrganizationID,
+		GroupID:        from.GroupID.String,
+		Group:          group.Group{ID: from.GroupID.String},
+		User:           user.User{ID: from.UserID.String},
 		CreatedAt:      from.CreatedAt,
 		UpdatedAt:      from.UpdatedAt,
 	}, nil

@@ -7,67 +7,67 @@ import (
 )
 
 var DefinitionOrganizationManage = Policy{
-	NamespaceId: namespace.DefinitionOrg.Id,
-	RoleId:      role.DefinitionOrganizationAdmin.Id,
-	ActionId:    action.DefinitionManageOrganization.Id,
+	NamespaceID: namespace.DefinitionOrg.ID,
+	RoleID:      role.DefinitionOrganizationAdmin.ID,
+	ActionID:    action.DefinitionManageOrganization.ID,
 }
 
 var DefinitionCreateProject = Policy{
-	NamespaceId: namespace.DefinitionOrg.Id,
-	RoleId:      role.DefinitionOrganizationAdmin.Id,
-	ActionId:    action.DefinitionCreateProject.Id,
+	NamespaceID: namespace.DefinitionOrg.ID,
+	RoleID:      role.DefinitionOrganizationAdmin.ID,
+	ActionID:    action.DefinitionCreateProject.ID,
 }
 
 var DefinitionCreateTeam = Policy{
-	NamespaceId: namespace.DefinitionOrg.Id,
-	RoleId:      role.DefinitionOrganizationAdmin.Id,
-	ActionId:    action.DefinitionCreateTeam.Id,
+	NamespaceID: namespace.DefinitionOrg.ID,
+	RoleID:      role.DefinitionOrganizationAdmin.ID,
+	ActionID:    action.DefinitionCreateTeam.ID,
 }
 
 var DefinitionManageTeam = Policy{
-	NamespaceId: namespace.DefinitionTeam.Id,
-	RoleId:      role.DefinitionTeamAdmin.Id,
-	ActionId:    action.DefinitionManageTeam.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
+	RoleID:      role.DefinitionTeamAdmin.ID,
+	ActionID:    action.DefinitionManageTeam.ID,
 }
 
 var DefinitionViewTeamAdmin = Policy{
-	NamespaceId: namespace.DefinitionTeam.Id,
-	RoleId:      role.DefinitionTeamAdmin.Id,
-	ActionId:    action.DefinitionViewTeam.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
+	RoleID:      role.DefinitionTeamAdmin.ID,
+	ActionID:    action.DefinitionViewTeam.ID,
 }
 
 var DefinitionViewTeamMember = Policy{
-	NamespaceId: namespace.DefinitionTeam.Id,
-	RoleId:      role.DefinitionTeamMember.Id,
-	ActionId:    action.DefinitionViewTeam.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
+	RoleID:      role.DefinitionTeamMember.ID,
+	ActionID:    action.DefinitionViewTeam.ID,
 }
 
 var DefinitionManageProject = Policy{
-	NamespaceId: namespace.DefinitionProject.Id,
-	RoleId:      role.DefinitionProjectAdmin.Id,
-	ActionId:    action.DefinitionManageProject.Id,
+	NamespaceID: namespace.DefinitionProject.ID,
+	RoleID:      role.DefinitionProjectAdmin.ID,
+	ActionID:    action.DefinitionManageProject.ID,
 }
 
 var DefinitionManageProjectOrg = Policy{
-	NamespaceId: namespace.DefinitionProject.Id,
-	RoleId:      role.DefinitionOrganizationAdmin.Id,
-	ActionId:    action.DefinitionManageProject.Id,
+	NamespaceID: namespace.DefinitionProject.ID,
+	RoleID:      role.DefinitionOrganizationAdmin.ID,
+	ActionID:    action.DefinitionManageProject.ID,
 }
 
 var DefinitionTeamOrgAdmin = Policy{
-	NamespaceId: namespace.DefinitionTeam.Id,
-	RoleId:      role.DefinitionOrganizationAdmin.Id,
-	ActionId:    action.DefinitionTeamAll.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
+	RoleID:      role.DefinitionOrganizationAdmin.ID,
+	ActionID:    action.DefinitionTeamAll.ID,
 }
 
 var DefinitionManageTeamOrgAdmin = Policy{
-	NamespaceId: namespace.DefinitionTeam.Id,
-	RoleId:      role.DefinitionOrganizationAdmin.Id,
-	ActionId:    action.DefinitionManageTeam.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
+	RoleID:      role.DefinitionOrganizationAdmin.ID,
+	ActionID:    action.DefinitionManageTeam.ID,
 }
 
 var DefinitionProjectOrgAdmin = Policy{
-	NamespaceId: namespace.DefinitionTeam.Id,
-	RoleId:      role.DefinitionProjectAdmin.Id,
-	ActionId:    action.DefinitionTeamAll.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
+	RoleID:      role.DefinitionProjectAdmin.ID,
+	ActionID:    action.DefinitionTeamAll.ID,
 }

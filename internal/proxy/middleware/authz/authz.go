@@ -69,7 +69,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	req.Header.Set(userIDHeader, usr.Id)
+	req.Header.Set(userIDHeader, usr.ID)
 
 	rule, ok := middleware.ExtractRule(req)
 	if !ok {
@@ -209,8 +209,8 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 	for _, resource := range resources {
 		isAuthorized := false
-		for _, actionId := range config.Actions {
-			isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), resource, action.Action{Id: actionId})
+		for _, actionID := range config.Actions {
+			isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), resource, action.Action{ID: actionID})
 			if err != nil {
 				c.log.Error("error while creating resource obj", "err", err)
 				c.notAllowed(rw)
@@ -267,8 +267,8 @@ func createResources(permissionAttributes map[string]interface{}) ([]resource.Re
 	for _, res := range resourceList {
 		resources = append(resources, resource.Resource{
 			Name:        res,
-			NamespaceId: namespace.CreateID(backendNamespace[0], resourceType[0]),
-			ProjectId:   project[0],
+			NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
+			ProjectID:   project[0],
 		})
 	}
 	return resources, nil

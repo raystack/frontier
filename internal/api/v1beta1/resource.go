@@ -29,10 +29,10 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 	var resources []*shieldv1beta1.Resource
 
 	filters := resource.Filters{
-		NamespaceId:    request.NamespaceId,
-		OrganizationId: request.OrganizationId,
-		ProjectId:      request.ProjectId,
-		GroupId:        request.GroupId,
+		NamespaceID:    request.NamespaceId,
+		OrganizationID: request.OrganizationId,
+		ProjectID:      request.ProjectId,
+		GroupID:        request.GroupId,
 	}
 
 	resourcesList, err := h.resourceService.List(ctx, filters)
@@ -63,12 +63,12 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
-		OrganizationId: request.GetBody().OrganizationId,
-		ProjectId:      request.GetBody().ProjectId,
-		GroupId:        request.GetBody().GroupId,
-		NamespaceId:    request.GetBody().NamespaceId,
+		OrganizationID: request.GetBody().OrganizationId,
+		ProjectID:      request.GetBody().ProjectId,
+		GroupID:        request.GetBody().GroupId,
+		NamespaceID:    request.GetBody().NamespaceId,
 		Name:           request.GetBody().Name,
-		UserId:         request.GetBody().UserId,
+		UserID:         request.GetBody().UserId,
 	})
 
 	if err != nil {
@@ -124,12 +124,12 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	}
 
 	updatedResource, err := h.resourceService.Update(ctx, request.Id, resource.Resource{
-		OrganizationId: request.GetBody().OrganizationId,
-		ProjectId:      request.GetBody().ProjectId,
-		GroupId:        request.GetBody().GroupId,
-		NamespaceId:    request.GetBody().NamespaceId,
+		OrganizationID: request.GetBody().OrganizationId,
+		ProjectID:      request.GetBody().ProjectId,
+		GroupID:        request.GetBody().GroupId,
+		NamespaceID:    request.GetBody().NamespaceId,
 		Name:           request.GetBody().Name,
-		UserId:         request.GetBody().UserId,
+		UserID:         request.GetBody().UserId,
 	})
 
 	if err != nil {
@@ -183,7 +183,7 @@ func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, erro
 
 	return shieldv1beta1.Resource{
 		Id:           from.Idxa,
-		Urn:          from.Urn,
+		Urn:          from.URN,
 		Name:         from.Name,
 		Namespace:    &namespace,
 		Organization: &org,

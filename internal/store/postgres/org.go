@@ -18,7 +18,7 @@ import (
 )
 
 type Organization struct {
-	Id        string       `db:"id"`
+	ID        string       `db:"id"`
 	Name      string       `db:"name"`
 	Slug      string       `db:"slug"`
 	Metadata  []byte       `db:"metadata"`
@@ -36,12 +36,12 @@ func buildGetOrganizationsBySlugQuery(dialect goqu.DialectWrapper) (string, erro
 	return getOrganizationsBySlugQuery, err
 }
 
-func buildGetOrganizationsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	getOrganizationsByIdQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.ExOr{
+func buildGetOrganizationsByIDQuery(dialect goqu.DialectWrapper) (string, error) {
+	getOrganizationsByIDQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.ExOr{
 		"id":   goqu.L("$1"),
 		"slug": goqu.L("$2"),
 	}).ToSQL()
-	return getOrganizationsByIdQuery, err
+	return getOrganizationsByIDQuery, err
 }
 
 // *Create Organization Query
@@ -76,9 +76,9 @@ func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
 		"r.object_id":            goqu.L("$1"),
-		"r.role_id":              role.DefinitionOrganizationAdmin.Id,
-		"r.subject_namespace_id": namespace.DefinitionUser.Id,
-		"r.object_namespace_id":  namespace.DefinitionOrg.Id,
+		"r.role_id":              role.DefinitionOrganizationAdmin.ID,
+		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+		"r.object_namespace_id":  namespace.DefinitionOrg.ID,
 	}).ToSQL()
 
 	return listOrganizationAdmins, err
@@ -99,7 +99,7 @@ func buildUpdateOrganizationBySlugQuery(dialect goqu.DialectWrapper) (string, er
 	return updateOrganizationQuery, err
 }
 
-func buildUpdateOrganizationByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+func buildUpdateOrganizationByIDQuery(dialect goqu.DialectWrapper) (string, error) {
 	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORG).Set(
 		goqu.Record{
 			"name":       goqu.L("$3"),
@@ -122,7 +122,7 @@ func (s Store) GetOrg(ctx context.Context, id string) (organization.Organization
 	isUuid := isUUID(id)
 
 	if isUuid {
-		getOrganizationsQuery, err = buildGetOrganizationsByIdQuery(dialect)
+		getOrganizationsQuery, err = buildGetOrganizationsByIDQuery(dialect)
 	} else {
 		getOrganizationsQuery, err = buildGetOrganizationsBySlugQuery(dialect)
 	}
@@ -228,10 +228,10 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate organization.Organization
 	}
 
 	var updateOrganizationQuery string
-	isUuid := isUUID(toUpdate.Id)
+	isUuid := isUUID(toUpdate.ID)
 
 	if isUuid {
-		updateOrganizationQuery, err = buildUpdateOrganizationByIdQuery(dialect)
+		updateOrganizationQuery, err = buildUpdateOrganizationByIDQuery(dialect)
 	} else {
 		updateOrganizationQuery, err = buildUpdateOrganizationBySlugQuery(dialect)
 	}
@@ -241,11 +241,11 @@ func (s Store) UpdateOrg(ctx context.Context, toUpdate organization.Organization
 
 	if isUuid {
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
+			return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
 		})
 	} else {
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
+			return s.DB.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.ID, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
 		})
 	}
 	if err != nil {
@@ -272,7 +272,7 @@ func (s Store) ListOrgAdmins(ctx context.Context, id string) ([]user.User, error
 	if err != nil {
 		return []user.User{}, err
 	}
-	id = fetchedOrg.Id
+	id = fetchedOrg.ID
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedUsers, listOrganizationAdmins, id)
@@ -306,7 +306,7 @@ func transformToOrg(from Organization) (organization.Organization, error) {
 	}
 
 	return organization.Organization{
-		Id:        from.Id,
+		ID:        from.ID,
 		Name:      from.Name,
 		Slug:      from.Slug,
 		Metadata:  unmarshalledMetadata,

@@ -81,20 +81,20 @@ func (s Service) Delete(ctx context.Context, rel Relation) error {
 		return err
 	}
 
-	err = s.store.DeleteRelationById(ctx, fetchedRel.Id)
+	err = s.store.DeleteRelationByID(ctx, fetchedRel.ID)
 
 	return err
 }
 
 func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error) {
 	// resourceNS := namespace.Namespace{
-	// 	Id: str.DefaultStringIfEmpty(resource.NamespaceId, resource.Namespace.Id),
+	// 	ID: str.DefaultStringIfEmpty(resource.NamespaceID, resource.Namespace.ID),
 	// }
 
 	return s.authzStore.CheckRelation(ctx, Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         resourceIdxa,
-		SubjectId:        usr.Id,
+		ObjectID:         resourceIdxa,
+		SubjectID:        usr.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 	}, action)
 }

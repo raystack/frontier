@@ -128,14 +128,14 @@ func BuildPolicyDefinitions(policies []policy.Policy) ([]definition, error) {
 	defMap := make(map[string]map[string][]role)
 
 	for _, p := range policies {
-		namespaceId := p.Namespace.Id
-		def, ok := defMap[namespaceId]
+		namespaceID := p.Namespace.ID
+		def, ok := defMap[namespaceID]
 		if !ok {
 			def = make(map[string][]role)
-			defMap[namespaceId] = def
+			defMap[namespaceID] = def
 		}
 
-		keyName := fmt.Sprintf("%s_%s_%s", p.Role.Id, p.Role.NamespaceId, namespaceId)
+		keyName := fmt.Sprintf("%s_%s_%s", p.Role.ID, p.Role.NamespaceID, namespaceID)
 
 		r, ok := def[keyName]
 		if !ok {
@@ -143,17 +143,17 @@ func BuildPolicyDefinitions(policies []policy.Policy) ([]definition, error) {
 			def[keyName] = r
 		}
 
-		actionNs := str.DefaultStringIfEmpty(p.Action.Namespace.Id, p.Action.NamespaceId)
-		actionId := str.DefaultStringIfEmpty(p.Action.Id, p.ActionId)
-		if actionNs != "" && actionNs != namespaceId {
-			return []definition{}, errors.New(fmt.Sprintf("actions (%s) namespace `%s` doesnt match with `%s`", actionId, actionNs, namespaceId))
+		actionNs := str.DefaultStringIfEmpty(p.Action.Namespace.ID, p.Action.NamespaceID)
+		actionID := str.DefaultStringIfEmpty(p.Action.ID, p.ActionID)
+		if actionNs != "" && actionNs != namespaceID {
+			return []definition{}, errors.New(fmt.Sprintf("actions (%s) namespace `%s` doesnt match with `%s`", actionID, actionNs, namespaceID))
 		}
 
 		def[keyName] = append(r, role{
-			name:        p.Role.Id,
+			name:        p.Role.ID,
 			types:       p.Role.Types,
-			namespace:   p.Role.NamespaceId,
-			permissions: []string{actionId},
+			namespace:   p.Role.NamespaceID,
+			permissions: []string{actionID},
 		})
 	}
 
@@ -199,9 +199,9 @@ func BuildPolicyDefinitions(policies []policy.Policy) ([]definition, error) {
 
 	var finalDefinitions []definition
 	for _, defns := range definitions {
-		if Has([]string{namespace.DefinitionTeam.Id, namespace.DefinitionOrg.Id, namespace.DefinitionProject.Id}, defns.name) {
+		if Has([]string{namespace.DefinitionTeam.ID, namespace.DefinitionOrg.ID, namespace.DefinitionProject.ID}, defns.name) {
 			for _, d := range definitions {
-				if Has([]string{namespace.DefinitionTeam.Id, namespace.DefinitionOrg.Id, namespace.DefinitionProject.Id}, d.name) {
+				if Has([]string{namespace.DefinitionTeam.ID, namespace.DefinitionOrg.ID, namespace.DefinitionProject.ID}, d.name) {
 					continue
 				}
 

@@ -188,7 +188,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			a.log.Error(err.Error())
 			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 		}
-		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.Urn, newResource.Idxa))
+		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idxa))
 	}
 
 	return a.next.ServeHook(res, nil)
@@ -237,18 +237,18 @@ func createResources(permissionAttributes map[string]interface{}) ([]resource.Re
 					for _, team := range teams {
 						resources = append(resources, resource.Resource{
 							Name:           res,
-							OrganizationId: org,
-							ProjectId:      project,
-							GroupId:        team,
-							NamespaceId:    namespace.CreateID(backendNamespace[0], resourceType[0]),
+							OrganizationID: org,
+							ProjectID:      project,
+							GroupID:        team,
+							NamespaceID:    namespace.CreateID(backendNamespace[0], resourceType[0]),
 						})
 					}
 				} else {
 					resources = append(resources, resource.Resource{
 						Name:           res,
-						OrganizationId: org,
-						ProjectId:      project,
-						NamespaceId:    namespace.CreateID(backendNamespace[0], resourceType[0]),
+						OrganizationID: org,
+						ProjectID:      project,
+						NamespaceID:    namespace.CreateID(backendNamespace[0], resourceType[0]),
 					})
 				}
 			}

@@ -21,7 +21,7 @@ import (
 
 var testOrgMap = map[string]organization.Organization{
 	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
-		Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
+		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name: "Org 1",
 		Slug: "org-1",
 		Metadata: map[string]any{
@@ -132,7 +132,7 @@ func TestCreateOrganization(t *testing.T) {
 			title: "success",
 			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
 				return organization.Organization{
-					Id:       "new-abc",
+					ID:       "new-abc",
 					Name:     "some org",
 					Slug:     "abc",
 					Metadata: nil,

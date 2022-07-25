@@ -21,12 +21,12 @@ import (
 
 var testPolicyMap = map[string]policy.Policy{
 	"test": {
-		Id: "test",
+		ID: "test",
 		Action: action.Action{
-			Id:   "read",
+			ID:   "read",
 			Name: "Read",
 			Namespace: namespace.Namespace{
-				Id:        "resource-1",
+				ID:        "resource-1",
 				Name:      "Resource 1",
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
@@ -35,17 +35,17 @@ var testPolicyMap = map[string]policy.Policy{
 			UpdatedAt: time.Time{},
 		},
 		Namespace: namespace.Namespace{
-			Id:        "resource-1",
+			ID:        "resource-1",
 			Name:      "Resource 1",
 			CreatedAt: time.Time{},
 			UpdatedAt: time.Time{},
 		},
 		Role: role.Role{
-			Id:       "reader",
+			ID:       "reader",
 			Name:     "Reader",
 			Metadata: map[string]any{},
 			Namespace: namespace.Namespace{
-				Id:        "resource-1",
+				ID:        "resource-1",
 				Name:      "Resource 1",
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
@@ -163,12 +163,12 @@ func TestCreatePolicy(t *testing.T) {
 			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
 				return []policy.Policy{
 					{
-						Id: "test",
+						ID: "test",
 						Action: action.Action{
-							Id:   "read",
+							ID:   "read",
 							Name: "Read",
 							Namespace: namespace.Namespace{
-								Id:        "resource-1",
+								ID:        "resource-1",
 								Name:      "Resource 1",
 								CreatedAt: time.Time{},
 								UpdatedAt: time.Time{},
@@ -177,17 +177,17 @@ func TestCreatePolicy(t *testing.T) {
 							UpdatedAt: time.Time{},
 						},
 						Namespace: namespace.Namespace{
-							Id:        "resource-1",
+							ID:        "resource-1",
 							Name:      "Resource 1",
 							CreatedAt: time.Time{},
 							UpdatedAt: time.Time{},
 						},
 						Role: role.Role{
-							Id:       "reader",
+							ID:       "reader",
 							Name:     "Reader",
 							Metadata: map[string]any{},
 							Namespace: namespace.Namespace{
-								Id:        "resource-1",
+								ID:        "resource-1",
 								Name:      "Resource 1",
 								CreatedAt: time.Time{},
 								UpdatedAt: time.Time{},

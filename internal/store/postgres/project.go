@@ -19,10 +19,10 @@ import (
 )
 
 type Project struct {
-	Id        string       `db:"id"`
+	ID        string       `db:"id"`
 	Name      string       `db:"name"`
 	Slug      string       `db:"slug"`
-	OrgId     string       `db:"org_id"`
+	OrgID     string       `db:"org_id"`
 	Metadata  []byte       `db:"metadata"`
 	CreatedAt time.Time    `db:"created_at"`
 	UpdatedAt time.Time    `db:"updated_at"`
@@ -38,13 +38,13 @@ func buildGetProjectsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
 	return getProjectsBySlugQuery, err
 }
 
-func buildGetProjectsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	getProjectsByIdQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
+func buildGetProjectsByIDQuery(dialect goqu.DialectWrapper) (string, error) {
+	getProjectsByIDQuery, _, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
 		"id":   goqu.L("$1"),
 		"slug": goqu.L("$2"),
 	}).ToSQL()
 
-	return getProjectsByIdQuery, err
+	return getProjectsByIDQuery, err
 }
 
 // *Create Project Query
@@ -74,9 +74,9 @@ func buildListProjectAdminsQuery(dialect goqu.DialectWrapper) (string, error) {
 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
 		"r.object_id":            goqu.L("$1"),
-		"r.role_id":              role.DefinitionProjectAdmin.Id,
-		"r.subject_namespace_id": namespace.DefinitionUser.Id,
-		"r.object_namespace_id":  namespace.DefinitionProject.Id,
+		"r.role_id":              role.DefinitionProjectAdmin.ID,
+		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+		"r.object_namespace_id":  namespace.DefinitionProject.ID,
 	}).ToSQL()
 
 	return listProjectAdminsQuery, err
@@ -104,7 +104,7 @@ func buildUpdateProjectBySlugQuery(dialect goqu.DialectWrapper) (string, error) 
 	return updateProjectQuery, err
 }
 
-func buildUpdateProjectByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+func buildUpdateProjectByIDQuery(dialect goqu.DialectWrapper) (string, error) {
 	updateProjectQuery, _, err := dialect.Update(TABLE_PROJECTS).Set(
 		goqu.Record{
 			"name":       goqu.L("$3"),
@@ -128,7 +128,7 @@ func (s Store) GetProject(ctx context.Context, id string) (project.Project, erro
 	isUuid := isUUID(id)
 
 	if isUuid {
-		getProjectsQuery, err = buildGetProjectsByIdQuery(dialect)
+		getProjectsQuery, err = buildGetProjectsByIDQuery(dialect)
 	} else {
 		getProjectsQuery, err = buildGetProjectsBySlugQuery(dialect)
 	}
@@ -181,7 +181,7 @@ func (s Store) CreateProject(ctx context.Context, projectToCreate project.Projec
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, projectToCreate.Organization.Id, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, projectToCreate.Organization.ID, marshaledMetadata)
 	})
 
 	if err != nil {
@@ -238,11 +238,11 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate project.Project) (pro
 	}
 
 	var updateProjectQuery string
-	toUpdate.Id = strings.TrimSpace(toUpdate.Id)
-	isUuid := isUUID(toUpdate.Id)
+	toUpdate.ID = strings.TrimSpace(toUpdate.ID)
+	isUuid := isUUID(toUpdate.ID)
 
 	if isUuid {
-		updateProjectQuery, err = buildUpdateProjectByIdQuery(dialect)
+		updateProjectQuery, err = buildUpdateProjectByIDQuery(dialect)
 	} else {
 		updateProjectQuery, err = buildUpdateProjectBySlugQuery(dialect)
 	}
@@ -252,11 +252,11 @@ func (s Store) UpdateProject(ctx context.Context, toUpdate project.Project) (pro
 
 	if isUuid {
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
 		})
 	} else {
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+			return s.DB.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
 		})
 	}
 	if errors.Is(err, sql.ErrNoRows) {
@@ -290,7 +290,7 @@ func (s Store) ListProjectAdmins(ctx context.Context, id string) ([]user.User, e
 	if err != nil {
 		return []user.User{}, err
 	}
-	id = fetchedProject.Id
+	id = fetchedProject.ID
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedUsers, listProjectAdminsQuery, id)
@@ -324,10 +324,10 @@ func transformToProject(from Project) (project.Project, error) {
 	}
 
 	return project.Project{
-		Id:           from.Id,
+		ID:           from.ID,
 		Name:         from.Name,
 		Slug:         from.Slug,
-		Organization: organization.Organization{Id: from.OrgId},
+		Organization: organization.Organization{ID: from.OrgID},
 		Metadata:     unmarshalledMetadata,
 		CreatedAt:    from.CreatedAt,
 		UpdatedAt:    from.UpdatedAt,

@@ -37,13 +37,13 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should generate tuple from relation model", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "team",
-			ObjectId:           "team_1",
-			SubjectNamespaceId: "user",
-			SubjectId:          "user_1",
+			ObjectNamespaceID:  "team",
+			ObjectID:           "team_1",
+			SubjectNamespaceID: "user",
+			SubjectID:          "user_1",
 			Role: shieldRole.Role{
-				Id:          "team_member",
-				NamespaceId: "team",
+				ID:          "team_member",
+				NamespaceID: "team",
 			},
 		}
 		output, _ := TransformRelation(input)
@@ -70,13 +70,13 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should generate tuple from relation model", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "project",
-			ObjectId:           "project_1",
-			SubjectNamespaceId: "team",
-			SubjectId:          "team_1",
+			ObjectNamespaceID:  "project",
+			ObjectID:           "project_1",
+			SubjectNamespaceID: "team",
+			SubjectID:          "team_1",
 			Role: shieldRole.Role{
-				Id:          "editor",
-				NamespaceId: "project",
+				ID:          "editor",
+				NamespaceID: "project",
 			},
 		}
 		output, _ := TransformRelation(input)
@@ -103,13 +103,13 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should should throw error if role doesnt exist in object", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "project",
-			ObjectId:           "project_1",
-			SubjectNamespaceId: "team",
-			SubjectId:          "team_1",
+			ObjectNamespaceID:  "project",
+			ObjectID:           "project_1",
+			SubjectNamespaceID: "team",
+			SubjectID:          "team_1",
 			Role: shieldRole.Role{
-				Id:          "editor",
-				NamespaceId: "org",
+				ID:          "editor",
+				NamespaceID: "org",
 			},
 		}
 		output, err := TransformRelation(input)
@@ -120,13 +120,13 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should add org to team", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "team",
-			ObjectId:           "team_1",
-			SubjectNamespaceId: "organization",
-			SubjectId:          "org_1",
+			ObjectNamespaceID:  "team",
+			ObjectID:           "team_1",
+			SubjectNamespaceID: "organization",
+			SubjectID:          "org_1",
 			Role: shieldRole.Role{
-				Id:          "organization",
-				NamespaceId: "team",
+				ID:          "organization",
+				NamespaceID: "team",
 			},
 		}
 		output, err := TransformRelation(input)
@@ -154,13 +154,13 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should team to resource", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "resource/dagger",
-			ObjectId:           "dagger_1",
-			SubjectNamespaceId: "team",
-			SubjectId:          "team_1",
+			ObjectNamespaceID:  "resource/dagger",
+			ObjectID:           "dagger_1",
+			SubjectNamespaceID: "team",
+			SubjectID:          "team_1",
 			Role: shieldRole.Role{
-				Id:          "team",
-				NamespaceId: "resource/dagger",
+				ID:          "team",
+				NamespaceID: "resource/dagger",
 			},
 		}
 		output, err := TransformRelation(input)
@@ -188,13 +188,13 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should project to resource", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "resource/dagger",
-			ObjectId:           "dagger_1",
-			SubjectNamespaceId: "project",
-			SubjectId:          "project_1",
+			ObjectNamespaceID:  "resource/dagger",
+			ObjectID:           "dagger_1",
+			SubjectNamespaceID: "project",
+			SubjectID:          "project_1",
 			Role: shieldRole.Role{
-				Id:          "project",
-				NamespaceId: "resource/dagger",
+				ID:          "project",
+				NamespaceID: "resource/dagger",
 			},
 		}
 		output, err := TransformRelation(input)
@@ -222,14 +222,14 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should editor role to team members", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "resource/dagger",
-			ObjectId:           "dagger_1",
-			SubjectNamespaceId: "team",
-			SubjectId:          "team_1",
-			SubjectRoleId:      "team_member",
+			ObjectNamespaceID:  "resource/dagger",
+			ObjectID:           "dagger_1",
+			SubjectNamespaceID: "team",
+			SubjectID:          "team_1",
+			SubjectRoleID:      "team_member",
 			Role: shieldRole.Role{
-				Id:          "editor",
-				NamespaceId: "resource/dagger",
+				ID:          "editor",
+				NamespaceID: "resource/dagger",
 			},
 		}
 		output, err := TransformRelation(input)
@@ -257,13 +257,13 @@ func TestTransformRelation(t *testing.T) {
 
 	t.Run("should admin to team", func(t *testing.T) {
 		input := relation.Relation{
-			ObjectNamespaceId:  "team",
-			ObjectId:           "team_1",
-			SubjectNamespaceId: "user",
-			SubjectId:          "user_1",
+			ObjectNamespaceID:  "team",
+			ObjectID:           "team_1",
+			SubjectNamespaceID: "user",
+			SubjectID:          "user_1",
 			Role: shieldRole.Role{
-				Id:          "team_admin",
-				NamespaceId: "team",
+				ID:          "team_admin",
+				NamespaceID: "team",
 			},
 		}
 		output, err := TransformRelation(input)

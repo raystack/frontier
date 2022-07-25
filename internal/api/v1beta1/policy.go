@@ -50,9 +50,9 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 	var policies []*shieldv1beta1.Policy
 
 	newPolicies, err := h.policyService.CreatePolicy(ctx, policy.Policy{
-		RoleId:      request.GetBody().RoleId,
-		NamespaceId: request.GetBody().NamespaceId,
-		ActionId:    request.GetBody().ActionId,
+		RoleID:      request.GetBody().RoleId,
+		NamespaceID: request.GetBody().NamespaceId,
+		ActionID:    request.GetBody().ActionId,
 	})
 
 	if err != nil {
@@ -108,9 +108,9 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 	var policies []*shieldv1beta1.Policy
 
 	updatedPolices, err := h.policyService.UpdatePolicy(ctx, request.GetId(), policy.Policy{
-		RoleId:      request.GetBody().RoleId,
-		NamespaceId: request.GetBody().NamespaceId,
-		ActionId:    request.GetBody().ActionId,
+		RoleID:      request.GetBody().RoleId,
+		NamespaceID: request.GetBody().NamespaceId,
+		ActionID:    request.GetBody().ActionId,
 	})
 
 	if err != nil {
@@ -154,7 +154,7 @@ func transformPolicyToPB(policy policy.Policy) (shieldv1beta1.Policy, error) {
 	}
 
 	return shieldv1beta1.Policy{
-		Id:        policy.Id,
+		Id:        policy.ID,
 		Role:      &role,
 		Action:    &action,
 		Namespace: &namespace,

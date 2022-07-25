@@ -29,8 +29,8 @@ func (h Handler) CheckResourcePermission(ctx context.Context, in *shieldv1beta1.
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 		Name:        in.ResourceId,
-		NamespaceId: in.NamespaceId,
-	}, action.Action{Id: in.ActionId})
+		NamespaceID: in.NamespaceId,
+	}, action.Action{ID: in.ActionId})
 	if err != nil {
 		formattedErr := fmt.Errorf("%s: %w", internalServerErr, err)
 		logger.Error(formattedErr.Error())

@@ -1,23 +1,23 @@
 package namespace
 
-var systemIdsDefinition = []string{DefinitionTeam.Id, DefinitionUser.Id, DefinitionOrg.Id, DefinitionProject.Id}
+var systemIdsDefinition = []string{DefinitionTeam.ID, DefinitionUser.ID, DefinitionOrg.ID, DefinitionProject.ID}
 
 var DefinitionOrg = Namespace{
-	Id:   "organization",
+	ID:   "organization",
 	Name: "Organization",
 }
 
 var DefinitionProject = Namespace{
-	Id:   "project",
+	ID:   "project",
 	Name: "Project",
 }
 
 var DefinitionTeam = Namespace{
-	Id:   "team",
+	ID:   "team",
 	Name: "Team",
 }
 
 var DefinitionUser = Namespace{
-	Id:   "user",
+	ID:   "user",
 	Name: "User",
 }

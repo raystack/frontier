@@ -103,7 +103,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	}
 
 	return &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
-		Id:        newUser.Id,
+		Id:        newUser.ID,
 		Name:      newUser.Name,
 		Email:     newUser.Email,
 		Metadata:  metaData,
@@ -188,7 +188,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	}
 
 	updatedUser, err := h.userService.UpdateUser(ctx, user.User{
-		Id:       request.GetId(),
+		ID:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Email:    request.GetBody().Email,
 		Metadata: metaDataMap,
@@ -261,7 +261,7 @@ func transformUserToPB(user user.User) (shieldv1beta1.User, error) {
 	}
 
 	return shieldv1beta1.User{
-		Id:        user.Id,
+		Id:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
 		Metadata:  metaData,

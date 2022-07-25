@@ -24,7 +24,7 @@ var testProjectIDList = []string{"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", "c7772c
 
 var testProjectMap = map[string]project.Project{
 	"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
-		Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		ID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name: "Prj 1",
 		Slug: "prj-1",
 		Metadata: map[string]any{
@@ -34,7 +34,7 @@ var testProjectMap = map[string]project.Project{
 		UpdatedAt: time.Time{},
 	},
 	"c7772c63-fca4-4c7c-bf93-c8f85115de4b": {
-		Id:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+		ID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
 		Name: "Prj 2",
 		Slug: "prj-2",
 		Metadata: map[string]any{
@@ -99,7 +99,7 @@ func TestCreateProject(t *testing.T) {
 				return testProjectMap[testProjectID], nil
 			}},
 			want: &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
-				Id:   testProjectMap[testProjectID].Id,
+				Id:   testProjectMap[testProjectID].ID,
 				Name: testProjectMap[testProjectID].Name,
 				Slug: testProjectMap[testProjectID].Slug,
 				Metadata: &structpb.Struct{
@@ -240,7 +240,7 @@ func TestGetProject(t *testing.T) {
 				return testProjectMap[testProjectID], nil
 			}},
 			want: &shieldv1beta1.GetProjectResponse{Project: &shieldv1beta1.Project{
-				Id:   testProjectMap[testProjectID].Id,
+				Id:   testProjectMap[testProjectID].ID,
 				Name: testProjectMap[testProjectID].Name,
 				Slug: testProjectMap[testProjectID].Slug,
 				Metadata: &structpb.Struct{

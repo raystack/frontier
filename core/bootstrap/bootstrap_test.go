@@ -10,33 +10,33 @@ import (
 
 func TestGetResourceRole(t *testing.T) {
 	t.Run("should create role for team", func(t *testing.T) {
-		output := getResourceRole("admin", namespace.Namespace{Id: "team"})
+		output := getResourceRole("admin", namespace.Namespace{ID: "team"})
 		expected := role.Role{
-			Id:        "team_admin",
+			ID:        "team_admin",
 			Name:      "team_admin",
-			Namespace: namespace.Namespace{Id: "team", Name: "Team"},
+			Namespace: namespace.Namespace{ID: "team", Name: "Team"},
 			Types:     []string{"user"},
 		}
 		assert.EqualValues(t, expected, output)
 	})
 
 	t.Run("should create role for resource", func(t *testing.T) {
-		output := getResourceRole("admin", namespace.Namespace{Id: "kafka"})
+		output := getResourceRole("admin", namespace.Namespace{ID: "kafka"})
 		expected := role.Role{
-			Id:        "kafka_admin",
+			ID:        "kafka_admin",
 			Name:      "kafka_admin",
-			Namespace: namespace.Namespace{Id: "kafka"},
+			Namespace: namespace.Namespace{ID: "kafka"},
 			Types:     []string{"user", "team#team_member"},
 		}
 		assert.EqualValues(t, expected, output)
 	})
 
 	t.Run("should assign role for other namespace for resources", func(t *testing.T) {
-		output := getResourceRole("organization.organization_admin", namespace.Namespace{Id: "team"})
+		output := getResourceRole("organization.organization_admin", namespace.Namespace{ID: "team"})
 		expected := role.Role{
-			Id:        "organization_admin",
+			ID:        "organization_admin",
 			Name:      "organization_admin",
-			Namespace: namespace.Namespace{Id: "organization"},
+			Namespace: namespace.Namespace{ID: "organization"},
 			Types:     []string{"user", "team#team_member"},
 		}
 		assert.EqualValues(t, expected, output)

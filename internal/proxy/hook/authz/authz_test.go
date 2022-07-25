@@ -40,11 +40,11 @@ func TestCreateResources(t *testing.T) {
 		output, err := createResources(input)
 		expected := []resource.Resource{
 			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
+				ProjectID:      "project1",
+				OrganizationID: "org1",
+				GroupID:        "team1",
 				Name:           "res1",
-				NamespaceId:    "ns1_type",
+				NamespaceID:    "ns1_type",
 			},
 		}
 		assert.EqualValues(t, expected, output)
@@ -63,25 +63,25 @@ func TestCreateResources(t *testing.T) {
 		output, err := createResources(input)
 		expected := []resource.Resource{
 			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
+				ProjectID:      "project1",
+				OrganizationID: "org1",
+				GroupID:        "team1",
 				Name:           "res1",
-				NamespaceId:    "ns1_kind",
+				NamespaceID:    "ns1_kind",
 			},
 			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
+				ProjectID:      "project1",
+				OrganizationID: "org1",
+				GroupID:        "team1",
 				Name:           "res2",
-				NamespaceId:    "ns1_kind",
+				NamespaceID:    "ns1_kind",
 			},
 			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
+				ProjectID:      "project1",
+				OrganizationID: "org1",
+				GroupID:        "team1",
 				Name:           "res3",
-				NamespaceId:    "ns1_kind",
+				NamespaceID:    "ns1_kind",
 			},
 		}
 		assert.EqualValues(t, expected, output)

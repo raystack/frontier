@@ -16,31 +16,31 @@ func TransformRelation(relation relation.Relation) (*pb.Relationship, error) {
 		return nil, err
 	}
 
-	roleId := strings.ReplaceAll(str.DefaultStringIfEmpty(relation.Role.Id, relation.RoleId), "-", "_")
-	roleNSId := str.DefaultStringIfEmpty(relation.Role.Namespace.Id, relation.Role.NamespaceId)
-	if roleNSId != "" && roleNSId != transformedRelation.Resource.ObjectType {
-		return &pb.Relationship{}, errors.New(fmt.Sprintf("Role %s doesnt exist in %s", roleId, transformedRelation.Resource.ObjectType))
+	roleID := strings.ReplaceAll(str.DefaultStringIfEmpty(relation.Role.ID, relation.RoleID), "-", "_")
+	roleNSID := str.DefaultStringIfEmpty(relation.Role.Namespace.ID, relation.Role.NamespaceID)
+	if roleNSID != "" && roleNSID != transformedRelation.Resource.ObjectType {
+		return &pb.Relationship{}, errors.New(fmt.Sprintf("Role %s doesnt exist in %s", roleID, transformedRelation.Resource.ObjectType))
 	}
 
-	transformedRelation.Relation = roleId
+	transformedRelation.Relation = roleID
 	return transformedRelation, nil
 }
 
 func transformObjectAndSubject(relation relation.Relation) (*pb.Relationship, error) {
-	objectNSId := strings.ReplaceAll(str.DefaultStringIfEmpty(relation.ObjectNamespace.Id, relation.ObjectNamespaceId), "-", "_")
-	subjectNSId := strings.ReplaceAll(str.DefaultStringIfEmpty(relation.SubjectNamespace.Id, relation.SubjectNamespaceId), "-", "_")
+	objectNSID := strings.ReplaceAll(str.DefaultStringIfEmpty(relation.ObjectNamespace.ID, relation.ObjectNamespaceID), "-", "_")
+	subjectNSID := strings.ReplaceAll(str.DefaultStringIfEmpty(relation.SubjectNamespace.ID, relation.SubjectNamespaceID), "-", "_")
 
 	return &pb.Relationship{
 		Resource: &pb.ObjectReference{
-			ObjectId:   relation.ObjectId,
-			ObjectType: objectNSId,
+			ObjectId:   relation.ObjectID,
+			ObjectType: objectNSID,
 		},
 		Subject: &pb.SubjectReference{
 			Object: &pb.ObjectReference{
-				ObjectId:   relation.SubjectId,
-				ObjectType: subjectNSId,
+				ObjectId:   relation.SubjectID,
+				ObjectType: subjectNSID,
 			},
-			OptionalRelation: relation.SubjectRoleId,
+			OptionalRelation: relation.SubjectRoleID,
 		},
 	}, nil
 }

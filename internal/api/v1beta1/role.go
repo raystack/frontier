@@ -51,10 +51,10 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 	}
 
 	newRole, err := h.roleService.Create(ctx, role.Role{
-		Id:          request.GetBody().Id,
+		ID:          request.GetBody().Id,
 		Name:        request.GetBody().Name,
 		Types:       request.GetBody().Types,
-		NamespaceId: request.GetBody().NamespaceId,
+		NamespaceID: request.GetBody().NamespaceId,
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
@@ -105,10 +105,10 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 	}
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
-		Id:          request.GetBody().Id,
+		ID:          request.GetBody().Id,
 		Name:        request.GetBody().Name,
 		Types:       request.GetBody().Types,
-		NamespaceId: request.GetBody().NamespaceId,
+		NamespaceID: request.GetBody().NamespaceId,
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
@@ -137,7 +137,7 @@ func transformRoleToPB(from role.Role) (shieldv1beta1.Role, error) {
 	}
 
 	return shieldv1beta1.Role{
-		Id:        from.Id,
+		Id:        from.ID,
 		Name:      from.Name,
 		Types:     from.Types,
 		Namespace: &namespace,

@@ -19,7 +19,7 @@ import (
 )
 
 type Group struct {
-	Id        string       `db:"id"`
+	ID        string       `db:"id"`
 	Name      string       `db:"name"`
 	Slug      string       `db:"slug"`
 	OrgID     string       `db:"org_id"`
@@ -38,13 +38,13 @@ func buildGetGroupsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
 	return getGroupsBySlugQuery, err
 }
 
-func buildGetGroupsByIdQuery(dialect goqu.DialectWrapper) (string, error) {
-	getGroupsByIdQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.ExOr{
+func buildGetGroupsByIDQuery(dialect goqu.DialectWrapper) (string, error) {
+	getGroupsByIDQuery, _, err := dialect.From(TABLE_GROUPS).Where(goqu.ExOr{
 		"id":   goqu.L("$1"),
 		"slug": goqu.L("$2"),
 	}).ToSQL()
 
-	return getGroupsByIdQuery, err
+	return getGroupsByIDQuery, err
 }
 
 // *Create Group Query
@@ -81,8 +81,8 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 		)).Where(goqu.Ex{
 		"r.object_id":            goqu.L("$1"),
 		"r.role_id":              goqu.L("$2"),
-		"r.subject_namespace_id": namespace.DefinitionUser.Id,
-		"r.object_namespace_id":  namespace.DefinitionTeam.Id,
+		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+		"r.object_namespace_id":  namespace.DefinitionTeam.ID,
 	}).ToSQL()
 
 	return listGroupUsersQuery, err
@@ -90,8 +90,8 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 
 func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
 	listUserGroupRelationsQuery, _, err := dialect.From(TABLE_RELATION).Where(goqu.Ex{
-		"subject_namespace_id": goqu.L(namespace.DefinitionUser.Id),
-		"object_namespace_id":  goqu.L(namespace.DefinitionTeam.Id),
+		"subject_namespace_id": goqu.L(namespace.DefinitionUser.ID),
+		"object_namespace_id":  goqu.L(namespace.DefinitionTeam.ID),
 		"subject_id":           goqu.L("$1"),
 		"object_id":            goqu.L("$2"),
 	}).ToSQL()
@@ -115,7 +115,7 @@ func buildUpdateGroupBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updateGroupQuery, err
 }
 
-func buildUpdateGroupByIdQuery(dialect goqu.DialectWrapper) (string, error) {
+func buildUpdateGroupByIDQuery(dialect goqu.DialectWrapper) (string, error) {
 	updateGroupQuery, _, err := dialect.Update(TABLE_GROUPS).Set(
 		goqu.Record{
 			"name":       goqu.L("$3"),
@@ -139,7 +139,7 @@ func (s Store) GetGroup(ctx context.Context, id string) (group.Group, error) {
 	isUuid := isUUID(id)
 
 	if isUuid {
-		getGroupsQuery, err = buildGetGroupsByIdQuery(dialect)
+		getGroupsQuery, err = buildGetGroupsByIDQuery(dialect)
 	} else {
 		getGroupsQuery, err = buildGetGroupsBySlugQuery(dialect)
 	}
@@ -188,7 +188,7 @@ func (s Store) CreateGroup(ctx context.Context, grp group.Group) (group.Group, e
 
 	var newGroup Group
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newGroup, createGroupsQuery, grp.Name, grp.Slug, grp.OrganizationId, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newGroup, createGroupsQuery, grp.Name, grp.Slug, grp.OrganizationID, marshaledMetadata)
 	})
 
 	if err != nil {
@@ -211,8 +211,8 @@ func (s Store) ListGroups(ctx context.Context, org organization.Organization) ([
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if org.Id != "" {
-		query = query + fmt.Sprintf(" WHERE org_id='%s'", org.Id)
+	if org.ID != "" {
+		query = query + fmt.Sprintf(" WHERE org_id='%s'", org.ID)
 	}
 
 	query = query + ";"
@@ -249,11 +249,11 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate group.Group) (group.Gro
 	}
 
 	var updateGroupQuery string
-	toUpdate.Id = strings.TrimSpace(toUpdate.Id)
-	isUuid := isUUID(toUpdate.Id)
+	toUpdate.ID = strings.TrimSpace(toUpdate.ID)
+	isUuid := isUUID(toUpdate.ID)
 
 	if isUuid {
-		updateGroupQuery, err = buildUpdateGroupByIdQuery(dialect)
+		updateGroupQuery, err = buildUpdateGroupByIDQuery(dialect)
 	} else {
 		updateGroupQuery, err = buildUpdateGroupBySlugQuery(dialect)
 	}
@@ -265,11 +265,11 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate group.Group) (group.Gro
 
 	if isUuid {
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+			return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
 		})
 	} else {
 		err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-			return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.Id, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.Id, marshaledMetadata)
+			return s.DB.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
 		})
 	}
 
@@ -287,18 +287,18 @@ func (s Store) UpdateGroup(ctx context.Context, toUpdate group.Group) (group.Gro
 	return updated, nil
 }
 
-func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string) ([]user.User, error) {
-	var role = role.DefinitionTeamMember.Id
-	if roleId != "" {
-		role = roleId
+func (s Store) ListGroupUsers(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
+	var role = role.DefinitionTeamMember.ID
+	if roleID != "" {
+		role = roleID
 	}
 
-	groupId = strings.TrimSpace(groupId) //groupId can be uuid or slug
-	fetchedGroup, err := s.GetGroup(ctx, groupId)
+	groupID = strings.TrimSpace(groupID) //groupID can be uuid or slug
+	fetchedGroup, err := s.GetGroup(ctx, groupID)
 	if err != nil {
 		return []user.User{}, err
 	}
-	groupId = fetchedGroup.Id
+	groupID = fetchedGroup.ID
 
 	listGroupUsersQuery, err := buildListGroupUsersQuery(dialect)
 	if err != nil {
@@ -307,7 +307,7 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 
 	var fetchedUsers []User
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedUsers, listGroupUsersQuery, groupId, role)
+		return s.DB.SelectContext(ctx, &fetchedUsers, listGroupUsersQuery, groupID, role)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -332,7 +332,7 @@ func (s Store) ListGroupUsers(ctx context.Context, groupId string, roleId string
 	return transformedUsers, nil
 }
 
-func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupId string) ([]relation.Relation, error) {
+func (s Store) ListUserGroupRelations(ctx context.Context, userID string, groupID string) ([]relation.Relation, error) {
 	var fetchedRelations []Relation
 
 	listUserGroupRelationsQuery, err := buildListUserGroupRelationsQuery(dialect)
@@ -340,15 +340,15 @@ func (s Store) ListUserGroupRelations(ctx context.Context, userId string, groupI
 		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	groupId = strings.TrimSpace(groupId)
-	fetchedGroup, err := s.GetGroup(ctx, groupId)
+	groupID = strings.TrimSpace(groupID)
+	fetchedGroup, err := s.GetGroup(ctx, groupID)
 	if err != nil {
 		return []relation.Relation{}, err
 	}
-	groupId = fetchedGroup.Id
+	groupID = fetchedGroup.ID
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.SelectContext(ctx, &fetchedRelations, listUserGroupRelationsQuery, userId, groupId)
+		return s.DB.SelectContext(ctx, &fetchedRelations, listUserGroupRelationsQuery, userID, groupID)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -380,11 +380,11 @@ func transformToGroup(from Group) (group.Group, error) {
 	}
 
 	return group.Group{
-		Id:             from.Id,
+		ID:             from.ID,
 		Name:           from.Name,
 		Slug:           from.Slug,
-		Organization:   organization.Organization{Id: from.OrgID},
-		OrganizationId: from.OrgID,
+		Organization:   organization.Organization{ID: from.OrgID},
+		OrganizationID: from.OrgID,
 		Metadata:       unmarshalledMetadata,
 		CreatedAt:      from.CreatedAt,
 		UpdatedAt:      from.UpdatedAt,

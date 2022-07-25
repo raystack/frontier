@@ -17,7 +17,7 @@ import (
 )
 
 type Role struct {
-	Id          string         `db:"id"`
+	ID          string         `db:"id"`
 	Name        string         `db:"name"`
 	Types       pq.StringArray `db:"types"`
 	Namespace   Namespace      `db:"namespace"`
@@ -127,14 +127,14 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate role.Role) (role.Rol
 	var newRole Role
 	var fetchedRole Role
 
-	nsId := str.DefaultStringIfEmpty(roleToCreate.Namespace.Id, roleToCreate.NamespaceId)
+	nsID := str.DefaultStringIfEmpty(roleToCreate.Namespace.ID, roleToCreate.NamespaceID)
 	createRoleQuery, err := buildCreateRoleQuery(dialect)
 	if err != nil {
 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.Id, roleToCreate.Name, pq.StringArray(roleToCreate.Types), nsId, marshaledMetadata)
+		return s.DB.GetContext(ctx, &newRole, createRoleQuery, roleToCreate.ID, roleToCreate.Name, pq.StringArray(roleToCreate.Types), nsID, marshaledMetadata)
 	})
 	if err != nil {
 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -146,7 +146,7 @@ func (s Store) CreateRole(ctx context.Context, roleToCreate role.Role) (role.Rol
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, newRole.Id)
+		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, newRole.ID)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -207,7 +207,7 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate role.Role) (role.Role, e
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.Id, toUpdate.Name, pq.StringArray(toUpdate.Types), toUpdate.NamespaceId, marshaledMetadata)
+		return s.DB.GetContext(ctx, &updatedRole, updateRoleQuery, toUpdate.ID, toUpdate.Name, pq.StringArray(toUpdate.Types), toUpdate.NamespaceID, marshaledMetadata)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -222,7 +222,7 @@ func (s Store) UpdateRole(ctx context.Context, toUpdate role.Role) (role.Role, e
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, updatedRole.Id)
+		return s.DB.GetContext(ctx, &fetchedRole, getRoleQuery, updatedRole.ID)
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -252,11 +252,11 @@ func transformToRole(from Role) (role.Role, error) {
 		return role.Role{}, err
 	}
 	return role.Role{
-		Id:          from.Id,
+		ID:          from.ID,
 		Name:        from.Name,
 		Types:       from.Types,
 		Namespace:   namespace,
-		NamespaceId: from.NamespaceID,
+		NamespaceID: from.NamespaceID,
 		Metadata:    unmarshalledMetadata,
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,

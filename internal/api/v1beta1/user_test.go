@@ -22,7 +22,7 @@ import (
 
 var testUserMap = map[string]user.User{
 	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
-		Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+		ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name:  "User 1",
 		Email: "test@test.com",
 		Metadata: map[string]any{
@@ -151,7 +151,7 @@ func TestCreateUser(t *testing.T) {
 			title: "success",
 			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u user.User) (user.User, error) {
 				return user.User{
-					Id:       "new-abc",
+					ID:       "new-abc",
 					Name:     "some user",
 					Email:    "abc@test.com",
 					Metadata: nil,
@@ -224,7 +224,7 @@ func TestGetCurrentUser(t *testing.T) {
 			title: "success",
 			mockUserSrv: mockUserSrv{GetUserByEmailFunc: func(ctx context.Context, email string) (usr user.User, err error) {
 				return user.User{
-					Id:    "user-id-1",
+					ID:    "user-id-1",
 					Name:  "some user",
 					Email: "someuser@test.com",
 					Metadata: map[string]any{
@@ -327,7 +327,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			title: "success",
 			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
 				return user.User{
-					Id:    "user-id-1",
+					ID:    "user-id-1",
 					Name:  "abc user",
 					Email: "abcuser@test.com",
 					Metadata: map[string]any{

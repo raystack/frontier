@@ -91,7 +91,7 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 	}
 
 	return &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
-		Id:        newOrg.Id,
+		Id:        newOrg.ID,
 		Name:      newOrg.Name,
 		Slug:      newOrg.Slug,
 		Metadata:  metaData,
@@ -140,7 +140,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	}
 
 	updatedOrg, err := h.orgService.Update(ctx, organization.Organization{
-		Id:       request.GetId(),
+		ID:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Slug:     request.GetBody().Slug,
 		Metadata: metaDataMap,
@@ -247,7 +247,7 @@ func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization
 	}
 
 	return shieldv1beta1.Organization{
-		Id:        org.Id,
+		Id:        org.ID,
 		Name:      org.Name,
 		Slug:      org.Slug,
 		Metadata:  metaData,

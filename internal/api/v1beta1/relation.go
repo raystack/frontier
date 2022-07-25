@@ -54,11 +54,11 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	newRelation, err := h.relationService.Create(ctx, relation.Relation{
-		SubjectNamespaceId: request.GetBody().SubjectType,
-		SubjectId:          request.GetBody().SubjectId,
-		ObjectNamespaceId:  request.GetBody().ObjectType,
-		ObjectId:           request.GetBody().ObjectId,
-		RoleId:             request.GetBody().RoleId,
+		SubjectNamespaceID: request.GetBody().SubjectType,
+		SubjectID:          request.GetBody().SubjectId,
+		ObjectNamespaceID:  request.GetBody().ObjectType,
+		ObjectID:           request.GetBody().ObjectId,
+		RoleID:             request.GetBody().RoleId,
 	})
 
 	if err != nil {
@@ -114,11 +114,11 @@ func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.Upda
 	}
 
 	updatedRelation, err := h.relationService.Update(ctx, request.GetId(), relation.Relation{
-		SubjectNamespaceId: request.GetBody().SubjectType,
-		SubjectId:          request.GetBody().SubjectId,
-		ObjectNamespaceId:  request.GetBody().ObjectType,
-		ObjectId:           request.GetBody().ObjectId,
-		RoleId:             request.GetBody().RoleId,
+		SubjectNamespaceID: request.GetBody().SubjectType,
+		SubjectID:          request.GetBody().SubjectId,
+		ObjectNamespaceID:  request.GetBody().ObjectType,
+		ObjectID:           request.GetBody().ObjectId,
+		RoleID:             request.GetBody().RoleId,
 	})
 
 	if err != nil {
@@ -165,11 +165,11 @@ func transformRelationToPB(relation relation.Relation) (shieldv1beta1.Relation, 
 	}
 
 	return shieldv1beta1.Relation{
-		Id:          relation.Id,
+		Id:          relation.ID,
 		SubjectType: &subjectType,
-		SubjectId:   relation.SubjectId,
+		SubjectId:   relation.SubjectID,
 		ObjectType:  &objectType,
-		ObjectId:    relation.ObjectId,
+		ObjectId:    relation.ObjectID,
 		Role:        &role,
 		CreatedAt:   timestamppb.New(relation.CreatedAt),
 		UpdatedAt:   timestamppb.New(relation.UpdatedAt),

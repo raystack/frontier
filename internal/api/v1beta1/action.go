@@ -48,9 +48,9 @@ func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.Create
 	logger := grpczap.Extract(ctx)
 
 	newAction, err := h.actionService.CreateAction(ctx, action.Action{
-		Id:          request.GetBody().Id,
+		ID:          request.GetBody().Id,
 		Name:        request.GetBody().Name,
-		NamespaceId: request.GetBody().NamespaceId,
+		NamespaceID: request.GetBody().NamespaceId,
 	})
 
 	if err != nil {
@@ -97,9 +97,9 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 	logger := grpczap.Extract(ctx)
 
 	updatedAction, err := h.actionService.UpdateAction(ctx, request.GetId(), action.Action{
-		Id:          request.GetId(),
+		ID:          request.GetId(),
 		Name:        request.GetBody().Name,
-		NamespaceId: request.GetBody().NamespaceId,
+		NamespaceID: request.GetBody().NamespaceId,
 	})
 
 	if err != nil {
@@ -122,7 +122,7 @@ func transformActionToPB(act action.Action) (shieldv1beta1.Action, error) {
 		return shieldv1beta1.Action{}, err
 	}
 	return shieldv1beta1.Action{
-		Id:        act.Id,
+		Id:        act.ID,
 		Name:      act.Name,
 		Namespace: &namespace,
 		CreatedAt: timestamppb.New(act.CreatedAt),

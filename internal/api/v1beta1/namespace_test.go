@@ -19,19 +19,19 @@ import (
 
 var testNsMap = map[string]namespace.Namespace{
 	"team": {
-		Id:        "team",
+		ID:        "team",
 		Name:      "Team",
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
 	},
 	"org": {
-		Id:        "org",
+		ID:        "org",
 		Name:      "Org",
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
 	},
 	"project": {
-		Id:        "project",
+		ID:        "project",
 		Name:      "Project",
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
@@ -63,7 +63,7 @@ func TestListNamespaces(t *testing.T) {
 					testNSList = append(testNSList, ns)
 				}
 				sort.Slice(testNSList[:], func(i, j int) bool {
-					return strings.Compare(testNSList[i].Id, testNSList[j].Id) < 1
+					return strings.Compare(testNSList[i].ID, testNSList[j].ID) < 1
 				})
 				return testNSList, nil
 			}},
@@ -130,7 +130,7 @@ func TestCreateNamespace(t *testing.T) {
 			title: "success",
 			mockNamespaceSrv: mockNamespaceSrv{CreateNamespaceFunc: func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
 				return namespace.Namespace{
-					Id:   "team",
+					ID:   "team",
 					Name: "Team",
 				}, nil
 			}},
