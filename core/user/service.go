@@ -25,8 +25,8 @@ func (s Service) GetUser(ctx context.Context, id string) (User, error) {
 	return s.store.GetUser(ctx, id)
 }
 
-func (s Service) GetCurrentUser(ctx context.Context, email string) (User, error) {
-	return s.store.GetCurrentUser(ctx, email)
+func (s Service) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	return s.store.GetUserByEmail(ctx, email)
 }
 
 func (s Service) CreateUser(ctx context.Context, user User) (User, error) {
@@ -61,7 +61,7 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 		return User{}, err
 	}
 
-	fetchedUser, err := s.store.GetCurrentUser(ctx, email)
+	fetchedUser, err := s.store.GetUserByEmail(ctx, email)
 	if err != nil {
 		return User{}, err
 	}
@@ -69,6 +69,7 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 	return fetchedUser, nil
 }
 
+// TODO need to simplify this, service package should not depend on grpc metadata
 func fetchEmailFromMetadata(ctx context.Context, headerKey string) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {

@@ -54,19 +54,19 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	userId := res.UserId
+	userId := res.UserID
 	if userId == "" {
-		userId = usr.Id
+		userId = usr.ID
 	}
 
 	newResource, err := s.store.CreateResource(ctx, Resource{
-		Urn:            urn,
+		URN:            urn,
 		Name:           res.Name,
-		OrganizationId: res.OrganizationId,
-		ProjectId:      res.ProjectId,
-		GroupId:        res.GroupId,
-		NamespaceId:    res.NamespaceId,
-		UserId:         userId,
+		OrganizationID: res.OrganizationID,
+		ProjectID:      res.ProjectID,
+		GroupID:        res.GroupID,
+		NamespaceID:    res.NamespaceID,
+		UserID:         userId,
 	})
 
 	if err != nil {
@@ -77,27 +77,27 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if newResource.GroupId != "" {
-		err = s.AddTeamToResource(ctx, group.Group{Id: res.GroupId}, newResource)
+	if newResource.GroupID != "" {
+		err = s.AddTeamToResource(ctx, group.Group{ID: res.GroupID}, newResource)
 		if err != nil {
 			return Resource{}, err
 		}
 	}
 
 	if userId != "" {
-		err = s.AddOwnerToResource(ctx, user.User{Id: userId}, newResource)
+		err = s.AddOwnerToResource(ctx, user.User{ID: userId}, newResource)
 		if err != nil {
 			return Resource{}, err
 		}
 	}
 
-	err = s.AddProjectToResource(ctx, project.Project{Id: res.ProjectId}, newResource)
+	err = s.AddProjectToResource(ctx, project.Project{ID: res.ProjectID}, newResource)
 
 	if err != nil {
 		return Resource{}, err
 	}
 
-	err = s.AddOrgToResource(ctx, organization.Organization{Id: res.OrganizationId}, newResource)
+	err = s.AddOrgToResource(ctx, organization.Organization{ID: res.OrganizationID}, newResource)
 
 	if err != nil {
 		return Resource{}, err
@@ -116,16 +116,16 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 
 func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {
 	resourceNS := namespace.Namespace{
-		Id: res.NamespaceId,
+		ID: res.NamespaceID,
 	}
 
 	rel := relation.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         res.Idxa,
-		SubjectId:        project.Id,
+		ObjectID:         res.Idxa,
+		SubjectID:        project.ID,
 		SubjectNamespace: namespace.DefinitionProject,
 		Role: role.Role{
-			Id:        namespace.DefinitionProject.Id,
+			ID:        namespace.DefinitionProject.ID,
 			Namespace: resourceNS,
 		},
 		RelationType: relation.RelationTypes.Namespace,
@@ -140,16 +140,16 @@ func (s Service) AddProjectToResource(ctx context.Context, project project.Proje
 
 func (s Service) AddOrgToResource(ctx context.Context, org organization.Organization, res Resource) error {
 	resourceNS := namespace.Namespace{
-		Id: res.NamespaceId,
+		ID: res.NamespaceID,
 	}
 
 	rel := relation.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         res.Idxa,
-		SubjectId:        org.Id,
+		ObjectID:         res.Idxa,
+		SubjectID:        org.ID,
 		SubjectNamespace: namespace.DefinitionOrg,
 		Role: role.Role{
-			Id:        namespace.DefinitionOrg.Id,
+			ID:        namespace.DefinitionOrg.ID,
 			Namespace: resourceNS,
 		},
 		RelationType: relation.RelationTypes.Namespace,
@@ -164,16 +164,16 @@ func (s Service) AddOrgToResource(ctx context.Context, org organization.Organiza
 
 func (s Service) AddTeamToResource(ctx context.Context, team group.Group, res Resource) error {
 	resourceNS := namespace.Namespace{
-		Id: res.NamespaceId,
+		ID: res.NamespaceID,
 	}
 
 	rel := relation.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         res.Idxa,
-		SubjectId:        team.Id,
+		ObjectID:         res.Idxa,
+		SubjectID:        team.ID,
 		SubjectNamespace: namespace.DefinitionTeam,
 		Role: role.Role{
-			Id:        namespace.DefinitionTeam.Id,
+			ID:        namespace.DefinitionTeam.ID,
 			Namespace: resourceNS,
 		},
 		RelationType: relation.RelationTypes.Namespace,
@@ -187,10 +187,10 @@ func (s Service) AddTeamToResource(ctx context.Context, team group.Group, res Re
 }
 
 func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Resource) error {
-	nsId := str.DefaultStringIfEmpty(res.NamespaceId, res.Namespace.Id)
+	nsId := str.DefaultStringIfEmpty(res.NamespaceID, res.Namespace.ID)
 
 	resourceNS := namespace.Namespace{
-		Id: nsId,
+		ID: nsId,
 	}
 
 	relationSet, err := s.blobStore.GetRelationsForNamespace(ctx, nsId)
@@ -200,14 +200,14 @@ func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Res
 
 	rl := role.GetOwnerRole(resourceNS)
 
-	if !relationSet[rl.Id] {
+	if !relationSet[rl.ID] {
 		return nil
 	}
 
 	rel := relation.Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectId:         res.Idxa,
-		SubjectId:        user.Id,
+		ObjectID:         res.Idxa,
+		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role:             rl,
 	}
@@ -220,7 +220,7 @@ func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Res
 	return nil
 }
 func (s Service) DeleteSubjectRelations(ctx context.Context, res Resource) error {
-	return s.authzStore.DeleteSubjectRelations(ctx, res.NamespaceId, res.Idxa)
+	return s.authzStore.DeleteSubjectRelations(ctx, res.NamespaceID, res.Idxa)
 }
 
 func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action) (bool, error) {
@@ -229,15 +229,15 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 		return false, err
 	}
 
-	res.Urn = CreateURN(res)
+	res.URN = CreateURN(res)
 
-	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceId)
+	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	fetchedResource := res
 
 	if isSystemNS {
-		fetchedResource.Idxa = res.Urn
+		fetchedResource.Idxa = res.URN
 	} else {
-		fetchedResource, err = s.store.GetResourceByURN(ctx, res.Urn)
+		fetchedResource, err = s.store.GetResourceByURN(ctx, res.URN)
 		if err != nil {
 			return false, err
 		}

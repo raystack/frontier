@@ -20,13 +20,13 @@ type Store interface {
 	CreateProject(ctx context.Context, org Project) (Project, error)
 	ListProject(ctx context.Context) ([]Project, error)
 	UpdateProject(ctx context.Context, toUpdate Project) (Project, error)
-	GetUsersByIds(ctx context.Context, userIds []string) ([]user.User, error)
+	GetUsersByIDs(ctx context.Context, userIds []string) ([]user.User, error)
 	GetUser(ctx context.Context, userId string) (user.User, error)
 	ListProjectAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
 type Project struct {
-	Id           string
+	ID           string
 	Name         string
 	Slug         string
 	Organization organization.Organization

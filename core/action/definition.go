@@ -3,49 +3,49 @@ package action
 import "github.com/odpf/shield/core/namespace"
 
 var DefinitionManageOrganization = Action{
-	Id:          "manage_organization",
+	ID:          "manage_organization",
 	Name:        "Manage Organization",
-	NamespaceId: namespace.DefinitionOrg.Id,
+	NamespaceID: namespace.DefinitionOrg.ID,
 }
 
 var DefinitionCreateProject = Action{
-	Id:          "create_project",
+	ID:          "create_project",
 	Name:        "Create Project",
-	NamespaceId: namespace.DefinitionOrg.Id,
+	NamespaceID: namespace.DefinitionOrg.ID,
 }
 
 var DefinitionCreateTeam = Action{
-	Id:          "create_team",
+	ID:          "create_team",
 	Name:        "Create Team",
-	NamespaceId: namespace.DefinitionOrg.Id,
+	NamespaceID: namespace.DefinitionOrg.ID,
 }
 
 var DefinitionManageTeam = Action{
-	Id:          "manage_team",
+	ID:          "manage_team",
 	Name:        "Manage Team",
-	NamespaceId: namespace.DefinitionTeam.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
 }
 
 var DefinitionViewTeam = Action{
-	Id:          "view_team",
+	ID:          "view_team",
 	Name:        "View Team",
-	NamespaceId: namespace.DefinitionTeam.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
 }
 
 var DefinitionManageProject = Action{
-	Id:          "manage_project",
+	ID:          "manage_project",
 	Name:        "Manage Project",
-	NamespaceId: namespace.DefinitionProject.Id,
+	NamespaceID: namespace.DefinitionProject.ID,
 }
 
 var DefinitionTeamAll = Action{
-	Id:          "all_actions_team",
+	ID:          "all_actions_team",
 	Name:        "All Actions Team",
-	NamespaceId: namespace.DefinitionTeam.Id,
+	NamespaceID: namespace.DefinitionTeam.ID,
 }
 
 var DefinitionProjectAll = Action{
-	Id:          "all_actions_project",
+	ID:          "all_actions_project",
 	Name:        "All Actions Project",
-	NamespaceId: namespace.DefinitionProject.Id,
+	NamespaceID: namespace.DefinitionProject.ID,
 }

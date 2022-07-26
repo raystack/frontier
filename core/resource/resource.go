@@ -38,27 +38,27 @@ type BlobStore interface {
 
 type Resource struct {
 	Idxa           string
-	Urn            string
+	URN            string
 	Name           string
-	ProjectId      string `json:"project_id"`
+	ProjectID      string `json:"project_id"`
 	Project        project.Project
-	GroupId        string `json:"group_id"`
+	GroupID        string `json:"group_id"`
 	Group          group.Group
-	OrganizationId string `json:"organization_id"`
+	OrganizationID string `json:"organization_id"`
 	Organization   organization.Organization
-	NamespaceId    string `json:"namespace_id"`
+	NamespaceID    string `json:"namespace_id"`
 	Namespace      namespace.Namespace
 	User           user.User
-	UserId         string `json:"user_id"`
+	UserID         string `json:"user_id"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
 
 type Filters struct {
-	ProjectId      string `json:"project_id"`
-	GroupId        string `json:"group_id"`
-	OrganizationId string `json:"org_id"`
-	NamespaceId    string `json:"namespace_id"`
+	ProjectID      string `json:"project_id"`
+	GroupID        string `json:"group_id"`
+	OrganizationID string `json:"org_id"`
+	NamespaceID    string `json:"namespace_id"`
 }
 
 type YAML struct {
@@ -70,12 +70,12 @@ type YAML struct {
  /project/uuid/
 */
 func CreateURN(res Resource) string {
-	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceId)
+	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	if isSystemNS {
 		return res.Name
 	}
 	if res.Name == NON_RESOURCE_ID {
-		return fmt.Sprintf("p/%s/%s", res.ProjectId, res.NamespaceId)
+		return fmt.Sprintf("p/%s/%s", res.ProjectID, res.NamespaceID)
 	}
-	return fmt.Sprintf("r/%s/%s", res.NamespaceId, res.Name)
+	return fmt.Sprintf("r/%s/%s", res.NamespaceID, res.Name)
 }

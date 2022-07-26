@@ -13,7 +13,7 @@ var (
 
 type Store interface {
 	GetUser(ctx context.Context, id string) (User, error)
-	GetCurrentUser(ctx context.Context, email string) (User, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	CreateUser(ctx context.Context, user User) (User, error)
 	ListUsers(ctx context.Context, limit int32, page int32, keyword string) (PagedUsers, error)
 	UpdateUser(ctx context.Context, toUpdate User) (User, error)
@@ -21,7 +21,7 @@ type Store interface {
 }
 
 type User struct {
-	Id        string
+	ID        string
 	Name      string
 	Email     string
 	Metadata  map[string]any

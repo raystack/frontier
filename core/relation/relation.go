@@ -21,7 +21,7 @@ type Store interface {
 	ListRelations(ctx context.Context) ([]Relation, error)
 	UpdateRelation(ctx context.Context, id string, toUpdate Relation) (Relation, error)
 	GetRelationByFields(ctx context.Context, relation Relation) (Relation, error)
-	DeleteRelationById(ctx context.Context, id string) error
+	DeleteRelationByID(ctx context.Context, id string) error
 }
 
 type AuthzStore interface {
@@ -32,16 +32,16 @@ type AuthzStore interface {
 }
 
 type Relation struct {
-	Id                 string
+	ID                 string
 	SubjectNamespace   namespace.Namespace
-	SubjectNamespaceId string `json:"subject_namespace_id"`
-	SubjectId          string `json:"subject_id"`
-	SubjectRoleId      string `json:"subject_role_id"`
+	SubjectNamespaceID string `json:"subject_namespace_id"`
+	SubjectID          string `json:"subject_id"`
+	SubjectRoleID      string `json:"subject_role_id"`
 	ObjectNamespace    namespace.Namespace
-	ObjectNamespaceId  string `json:"object_namespace_id"`
-	ObjectId           string `json:"object_id"`
+	ObjectNamespaceID  string `json:"object_namespace_id"`
+	ObjectID           string `json:"object_id"`
 	Role               role.Role
-	RoleId             string       `json:"role_id"`
+	RoleID             string       `json:"role_id"`
 	RelationType       RelationType `json:"role_type"`
 	CreatedAt          time.Time
 	UpdatedAt          time.Time

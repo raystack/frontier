@@ -20,7 +20,7 @@ type Store interface {
 }
 
 type Namespace struct {
-	Id        string
+	ID        string
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time

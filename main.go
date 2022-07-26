@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	shieldlogger "github.com/odpf/shield/logger"
+	shieldlogger "github.com/odpf/shield/pkg/logger"
 
 	"github.com/odpf/shield/cmd"
 	"github.com/odpf/shield/config"
@@ -13,8 +13,11 @@ import (
 )
 
 func main() {
-	appConfig := config.Load()
-	logger := shieldlogger.InitLogger(appConfig)
+	appConfig, err := config.Load()
+	if err != nil {
+		panic(err)
+	}
+	logger := shieldlogger.InitLogger(appConfig.Log)
 
 	if err := cmd.New(logger, appConfig).Execute(); err != nil {
 		fmt.Printf("%+v", err)
