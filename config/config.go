@@ -4,68 +4,24 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/odpf/salt/config"
+	"github.com/odpf/shield/internal/proxy"
+	"github.com/odpf/shield/internal/server"
+	"github.com/odpf/shield/internal/store/postgres"
+	"github.com/odpf/shield/internal/store/spicedb"
+	"github.com/odpf/shield/pkg/logger"
 )
 
 type Shield struct {
 	// configuration version
-	Version  int           `yaml:"version"`
-	Proxy    ProxyConfig   `yaml:"proxy"`
-	Log      LogConfig     `yaml:"log"`
-	NewRelic NewRelic      `yaml:"new_relic"`
-	App      Service       `yaml:"app"`
-	DB       DBConfig      `yaml:"db"`
-	SpiceDB  SpiceDBConfig `yaml:"spice_db"`
-}
-
-type LogConfig struct {
-	// log level - debug, info, warning, error, fatal
-	Level string `yaml:"level" mapstructure:"level" default:"info"`
-
-	// format strategy - plain, json
-	Format string `yaml:"format" mapstructure:"format" default:"json"`
-}
-
-type ProxyConfig struct {
-	Services []Service `yaml:"services" mapstructure:"services"`
-}
-
-type SpiceDBConfig struct {
-	Host         string `yaml:"host"`
-	Port         string `yaml:"port" default:"50051"`
-	PreSharedKey string `yaml:"pre_shared_key" mapstructure:"pre_shared_key"`
-}
-
-type Service struct {
-	// port to listen on
-	Port int `yaml:"port" mapstructure:"port" default:"8080"`
-	// the network interface to listen on
-	Host string `yaml:"host" mapstructure:"host" default:"127.0.0.1"`
-
-	Name string
-
-	// RulesPath is a directory path where ruleset is defined
-	// that this service should implement
-	RulesPath string `yaml:"ruleset" mapstructure:"ruleset"`
-	// RulesPathSecret could be a env name, file path or actual value required
-	// to access RulesPath files
-	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
-
-	// Headers which will have user's email id
-	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:"X-Shield-Email"`
-
-	// Header which will have user_id
-	UserIDHeader string `yaml:"user_id_header" mapstructure:"user_id_header" default:"X-Shield-User-Id"`
-
-	// ResourcesPath is a directory path where resources is defined
-	// that this service should implement
-	ResourcesConfigPath string `yaml:"resources_config_path" mapstructure:"resources_config_path"`
-
-	// ResourcesPathSecretSecret could be a env name, file path or actual value required
-	// to access ResourcesPathSecretPath files
-	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
+	Version  int                  `yaml:"version"`
+	Proxy    proxy.ServicesConfig `yaml:"proxy"`
+	Log      logger.Config        `yaml:"log"`
+	NewRelic NewRelic             `yaml:"new_relic"`
+	App      server.Config        `yaml:"app"`
+	DB       postgres.Config      `yaml:"db"`
+	SpiceDB  spicedb.Config       `yaml:"spice_db"`
 }
 
 type NewRelic struct {
@@ -74,16 +30,7 @@ type NewRelic struct {
 	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
 }
 
-type DBConfig struct {
-	Driver          string        `yaml:"driver" mapstructure:"driver"`
-	URL             string        `yaml:"url" mapstructure:"url"`
-	MaxIdleConns    int           `yaml:"max_idle_conns" mapstructure:"max_idle_conns" default:"10"`
-	MaxOpenConns    int           `yaml:"max_open_conns" mapstructure:"max_open_conns" default:"10"`
-	ConnMaxLifeTime time.Duration `yaml:"conn_max_life_time" mapstructure:"conn_max_life_time" default:"10ms"`
-	MaxQueryTimeout time.Duration `yaml:"max_query_timeout" mapstructure:"max_query_timeout" default:"100ms"`
-}
-
-func Load() *Shield {
+func Load() (*Shield, error) {
 	conf := &Shield{}
 
 	var options []config.LoaderOption
@@ -104,10 +51,10 @@ func Load() *Shield {
 	l := config.NewLoader(options...)
 	if err := l.Load(conf); err != nil {
 		if errors.As(err, &config.ConfigFileNotFoundError{}) {
-			panic("config file not found")
+			return nil, errors.New("config file not found")
 		} else {
-			panic(err)
+			return nil, err
 		}
 	}
-	return conf
+	return conf, nil
 }

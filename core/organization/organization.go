@@ -19,13 +19,13 @@ type Store interface {
 	CreateOrg(ctx context.Context, org Organization) (Organization, error)
 	ListOrg(ctx context.Context) ([]Organization, error)
 	UpdateOrg(ctx context.Context, toUpdate Organization) (Organization, error)
-	GetUsersByIds(ctx context.Context, userIds []string) ([]user.User, error)
+	GetUsersByIDs(ctx context.Context, userIds []string) ([]user.User, error)
 	GetUser(ctx context.Context, userId string) (user.User, error)
 	ListOrgAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
 type Organization struct {
-	Id        string
+	ID        string
 	Name      string
 	Slug      string
 	Metadata  map[string]any

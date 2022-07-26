@@ -49,7 +49,7 @@ func (s Service) CreateGroup(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	err = s.AddTeamToOrg(ctx, newGroup, organization.Organization{Id: grp.OrganizationId})
+	err = s.AddTeamToOrg(ctx, newGroup, organization.Organization{ID: grp.OrganizationID})
 	if err != nil {
 		return Group{}, err
 	}
@@ -92,7 +92,7 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.Id, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.ID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -101,7 +101,7 @@ func (s Service) AddUsersToGroup(ctx context.Context, groupId string, userIds []
 		return []user.User{}, errors.Unauthorized
 	}
 
-	users, err := s.store.GetUsersByIds(ctx, userIds)
+	users, err := s.store.GetUsersByIDs(ctx, userIds)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -127,7 +127,7 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.Id, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.ID, action.DefinitionManageTeam)
 
 	if err != nil {
 		return []user.User{}, err
@@ -142,7 +142,7 @@ func (s Service) RemoveUserFromGroup(ctx context.Context, groupId string, userId
 		return []user.User{}, err
 	}
 
-	relations, err := s.store.ListUserGroupRelations(ctx, usr.Id, group.Id)
+	relations, err := s.store.ListUserGroupRelations(ctx, usr.ID, group.ID)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -161,11 +161,11 @@ func (s Service) ListUserGroups(ctx context.Context, userId string, roleId strin
 }
 
 func (s Service) ListGroupUsers(ctx context.Context, groupId string) ([]user.User, error) {
-	return s.store.ListGroupUsers(ctx, groupId, role.DefinitionTeamMember.Id)
+	return s.store.ListGroupUsers(ctx, groupId, role.DefinitionTeamMember.ID)
 }
 
 func (s Service) ListGroupAdmins(ctx context.Context, groupId string) ([]user.User, error) {
-	return s.store.ListGroupUsers(ctx, groupId, role.DefinitionTeamAdmin.Id)
+	return s.store.ListGroupUsers(ctx, groupId, role.DefinitionTeamAdmin.ID)
 }
 
 func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds []string) ([]user.User, error) {
@@ -181,7 +181,7 @@ func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds [
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.Id, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.ID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -190,7 +190,7 @@ func (s Service) AddAdminsToGroup(ctx context.Context, groupId string, userIds [
 		return []user.User{}, errors.Unauthorized
 	}
 
-	users, err := s.store.GetUsersByIds(ctx, userIds)
+	users, err := s.store.GetUsersByIDs(ctx, userIds)
 
 	if err != nil {
 		return []user.User{}, err
@@ -222,7 +222,7 @@ func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userI
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.Id, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, group.ID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -245,14 +245,14 @@ func (s Service) RemoveAdminFromGroup(ctx context.Context, groupId string, userI
 }
 
 func (s Service) AddTeamToOrg(ctx context.Context, team Group, org organization.Organization) error {
-	orgId := str.DefaultStringIfEmpty(org.Id, team.OrganizationId)
+	orgId := str.DefaultStringIfEmpty(org.ID, team.OrganizationID)
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
-		ObjectId:         team.Id,
-		SubjectId:        orgId,
+		ObjectID:         team.ID,
+		SubjectID:        orgId,
 		SubjectNamespace: namespace.DefinitionOrg,
 		Role: role.Role{
-			Id:        namespace.DefinitionOrg.Id,
+			ID:        namespace.DefinitionOrg.ID,
 			Namespace: namespace.DefinitionTeam,
 		},
 		RelationType: relation.RelationTypes.Namespace,
@@ -279,11 +279,11 @@ func (s Service) AddAdminToTeam(ctx context.Context, user user.User, team Group)
 func (s Service) AddMemberToTeam(ctx context.Context, user user.User, team Group) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
-		ObjectId:         team.Id,
-		SubjectId:        user.Id,
+		ObjectID:         team.ID,
+		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			Id:        role.DefinitionTeamMember.Id,
+			ID:        role.DefinitionTeamMember.ID,
 			Namespace: namespace.DefinitionTeam,
 		},
 	}
@@ -298,11 +298,11 @@ func (s Service) AddMemberToTeam(ctx context.Context, user user.User, team Group
 func (s Service) RemoveMemberFromTeam(ctx context.Context, user user.User, team Group) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
-		ObjectId:         team.Id,
-		SubjectId:        user.Id,
+		ObjectID:         team.ID,
+		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			Id:        role.DefinitionTeamMember.Id,
+			ID:        role.DefinitionTeamMember.ID,
 			Namespace: namespace.DefinitionTeam,
 		},
 	}
@@ -312,11 +312,11 @@ func (s Service) RemoveMemberFromTeam(ctx context.Context, user user.User, team 
 func (s Service) GetTeamAdminRelation(user user.User, team Group) relation.Relation {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
-		ObjectId:         team.Id,
-		SubjectId:        user.Id,
+		ObjectID:         team.ID,
+		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			Id:        role.DefinitionTeamAdmin.Id,
+			ID:        role.DefinitionTeamAdmin.ID,
 			Namespace: namespace.DefinitionTeam,
 		},
 	}

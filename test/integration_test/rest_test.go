@@ -10,19 +10,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/api/handler"
-
 	"github.com/odpf/salt/log"
 
-	"github.com/odpf/shield/hook"
-	authz_hook "github.com/odpf/shield/hook/authz"
-	basic_auth "github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/prefix"
-	"github.com/odpf/shield/middleware/rulematch"
-	"github.com/odpf/shield/proxy"
-	"github.com/odpf/shield/store/blob"
-	blobstore "github.com/odpf/shield/store/blob"
-
+	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/internal/proxy"
+	"github.com/odpf/shield/internal/proxy/hook"
+	authz_hook "github.com/odpf/shield/internal/proxy/hook/authz"
+	basic_auth "github.com/odpf/shield/internal/proxy/middleware/basic_auth"
+	"github.com/odpf/shield/internal/proxy/middleware/prefix"
+	"github.com/odpf/shield/internal/proxy/middleware/rulematch"
+	"github.com/odpf/shield/internal/store/blob"
 	"github.com/stretchr/testify/assert"
 
 	"gocloud.dev/blob/fileblob"
@@ -54,7 +51,7 @@ func TestREST(t *testing.T) {
 
 	responseHooks := hookPipeline(log.NewNoop())
 	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), responseHooks), proxy.NewDirector())
-	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
+	ruleRepo := blob.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +180,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 	}
 
 	h2cProxy := proxy.NewH2c(proxy.NewH2cRoundTripper(log.NewNoop(), hook.New()), proxy.NewDirector())
-	ruleRepo := blobstore.NewRuleRepository(log.NewNoop(), blobFS)
+	ruleRepo := blob.NewRuleRepository(log.NewNoop(), blobFS)
 	if err := ruleRepo.InitCache(baseCtx, time.Minute); err != nil {
 		b.Fatal(err)
 	}
@@ -293,7 +290,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo *blob.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	//casbinAuthz := authz.New(logger, "", handler.Deps{}, prefixWare)
+	//casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare
@@ -301,7 +298,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo *blob.RuleRep
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, handler.Deps{})
+	return authz_hook.New(log, rootHook, rootHook, "", &resource.Service{})
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {

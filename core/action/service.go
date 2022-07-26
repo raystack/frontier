@@ -35,8 +35,8 @@ func (s Service) ListActions(ctx context.Context) ([]Action, error) {
 func (s Service) UpdateAction(ctx context.Context, id string, action Action) (Action, error) {
 	updatedAction, err := s.store.UpdateAction(ctx, Action{
 		Name:        action.Name,
-		Id:          id,
-		NamespaceId: action.NamespaceId,
+		ID:          id,
+		NamespaceID: action.NamespaceID,
 	})
 
 	if err != nil {

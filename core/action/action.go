@@ -21,9 +21,9 @@ type Store interface {
 }
 
 type Action struct {
-	Id          string
+	ID          string
 	Name        string
-	NamespaceId string
+	NamespaceID string
 	Namespace   namespace.Namespace
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

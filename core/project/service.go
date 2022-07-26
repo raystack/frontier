@@ -94,7 +94,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, project.Id, action.DefinitionManageProject)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, project.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -103,7 +103,7 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 		return []user.User{}, errors.Unauthorized
 	}
 
-	users, err := s.store.GetUsersByIds(ctx, userIds)
+	users, err := s.store.GetUsersByIDs(ctx, userIds)
 
 	if err != nil {
 		return []user.User{}, err
@@ -134,7 +134,7 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, project.Id, action.DefinitionManageProject)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, project.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -159,11 +159,11 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 func (s Service) AddAdminToProject(ctx context.Context, usr user.User, prj Project) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionProject,
-		ObjectId:         prj.Id,
-		SubjectId:        usr.Id,
+		ObjectID:         prj.ID,
+		SubjectID:        usr.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			Id:        role.DefinitionProjectAdmin.Id,
+			ID:        role.DefinitionProjectAdmin.ID,
 			Namespace: namespace.DefinitionProject,
 		},
 	}
@@ -178,11 +178,11 @@ func (s Service) AddAdminToProject(ctx context.Context, usr user.User, prj Proje
 func (s Service) RemoveAdminFromProject(ctx context.Context, usr user.User, prj Project) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionProject,
-		ObjectId:         prj.Id,
-		SubjectId:        usr.Id,
+		ObjectID:         prj.ID,
+		SubjectID:        usr.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			Id:        role.DefinitionProjectAdmin.Id,
+			ID:        role.DefinitionProjectAdmin.ID,
 			Namespace: namespace.DefinitionProject,
 		},
 	}
@@ -192,11 +192,11 @@ func (s Service) RemoveAdminFromProject(ctx context.Context, usr user.User, prj 
 func (s Service) AddProjectToOrg(ctx context.Context, prj Project, org organization.Organization) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionProject,
-		ObjectId:         prj.Id,
-		SubjectId:        org.Id,
+		ObjectID:         prj.ID,
+		SubjectID:        org.ID,
 		SubjectNamespace: namespace.DefinitionOrg,
 		Role: role.Role{
-			Id:        namespace.DefinitionOrg.Id,
+			ID:        namespace.DefinitionOrg.ID,
 			Namespace: namespace.DefinitionProject,
 		},
 		RelationType: relation.RelationTypes.Namespace,

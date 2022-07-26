@@ -145,18 +145,18 @@ func getResourceDefaultPolicies(ns namespace.Namespace, action action.Action, ow
 
 func getResourceRole(r string, ns namespace.Namespace) role.Role {
 	roleNs := ns
-	roleId := fmt.Sprintf("%s_%s", ns.Id, r)
+	roleId := fmt.Sprintf("%s_%s", ns.ID, r)
 
 	rSlice := strings.Split(r, ".")
 
 	if len(rSlice) == 2 {
-		roleNs = namespace.Namespace{Id: rSlice[0]}
+		roleNs = namespace.Namespace{ID: rSlice[0]}
 		roleId = rSlice[1]
 	}
 
-	if roleNs.Id == namespace.DefinitionTeam.Id {
+	if roleNs.ID == namespace.DefinitionTeam.ID {
 		return role.Role{
-			Id:        roleId,
+			ID:        roleId,
 			Name:      roleId,
 			Namespace: namespace.DefinitionTeam,
 			Types:     []string{role.UserType},
@@ -164,7 +164,7 @@ func getResourceRole(r string, ns namespace.Namespace) role.Role {
 	}
 
 	role := role.Role{
-		Id:        roleId,
+		ID:        roleId,
 		Name:      roleId,
 		Namespace: roleNs,
 		Types:     []string{role.UserType, role.TeamMemberType},
@@ -173,10 +173,10 @@ func getResourceRole(r string, ns namespace.Namespace) role.Role {
 }
 
 func getResourceAction(actionStr string, ns namespace.Namespace) action.Action {
-	actId := fmt.Sprintf("%s_%s", ns.Id, actionStr)
-	actionName := fmt.Sprintf("%s %s", strings.Title(strings.ToLower(ns.Id)), strings.Title(strings.ToLower(actionStr)))
+	actId := fmt.Sprintf("%s_%s", ns.ID, actionStr)
+	actionName := fmt.Sprintf("%s %s", strings.Title(strings.ToLower(ns.ID)), strings.Title(strings.ToLower(actionStr)))
 	act := action.Action{
-		Id:        actId,
+		ID:        actId,
 		Name:      actionName,
 		Namespace: ns,
 	}
@@ -187,7 +187,7 @@ func getResourceNamespace(resYAML resource.YAML) namespace.Namespace {
 	nsID := str.Slugify(resYAML.Name, str.SlugifyOptions{})
 	ns := namespace.Namespace{
 		Name: resYAML.Name,
-		Id:   nsID,
+		ID:   nsID,
 	}
 	return ns
 }

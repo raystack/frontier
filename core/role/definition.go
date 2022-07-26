@@ -7,34 +7,34 @@ import (
 )
 
 var (
-	UserType       = namespace.DefinitionUser.Id
-	TeamMemberType = fmt.Sprintf("%s#%s", namespace.DefinitionTeam.Id, DefinitionTeamMember.Id)
+	UserType       = namespace.DefinitionUser.ID
+	TeamMemberType = fmt.Sprintf("%s#%s", namespace.DefinitionTeam.ID, DefinitionTeamMember.ID)
 )
 
 var DefinitionOrganizationAdmin = Role{
 	Name:        "Organization Admin",
-	Id:          "organization_admin",
-	NamespaceId: namespace.DefinitionOrg.Id,
+	ID:          "organization_admin",
+	NamespaceID: namespace.DefinitionOrg.ID,
 	Types:       []string{UserType, TeamMemberType},
 }
 
 var DefinitionProjectAdmin = Role{
 	Name:        "Project Admin",
-	Id:          "project_admin",
-	NamespaceId: namespace.DefinitionProject.Id,
+	ID:          "project_admin",
+	NamespaceID: namespace.DefinitionProject.ID,
 	Types:       []string{UserType, TeamMemberType},
 }
 
 var DefinitionTeamAdmin = Role{
 	Name:        "Team Admin",
-	Id:          "team_admin",
-	NamespaceId: namespace.DefinitionTeam.Id,
+	ID:          "team_admin",
+	NamespaceID: namespace.DefinitionTeam.ID,
 	Types:       []string{UserType},
 }
 
 var DefinitionTeamMember = Role{
 	Name:        "Team Member",
-	Id:          "team_member",
-	NamespaceId: namespace.DefinitionTeam.Id,
+	ID:          "team_member",
+	NamespaceID: namespace.DefinitionTeam.ID,
 	Types:       []string{UserType},
 }
