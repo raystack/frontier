@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/internal/api"
 	"testing"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/internal/api"
 )
 
 var testPermissionAttributesMap = map[string]any{
