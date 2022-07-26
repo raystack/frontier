@@ -10,14 +10,13 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/api/handler"
-	"github.com/odpf/shield/internal/permission"
 	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
 
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/store"
+	blobstore "github.com/odpf/shield/store/blob"
 	"github.com/pkg/errors"
 
 	"gocloud.dev/blob"
@@ -30,18 +29,18 @@ import (
 )
 
 // buildPipeline builds middleware sequence
-func buildMiddlewarePipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository, identityProxyHeader string, deps handler.Deps, authZCheckService permission.CheckService) http.Handler {
+func buildMiddlewarePipeline(logger log.Logger, proxy http.Handler, identityProxyHeader string, deps handler.Deps) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, identityProxyHeader, deps, prefixWare, authZCheckService, authZCheckService.PermissionsService)
+	casbinAuthz := authz.New(logger, identityProxyHeader, deps, prefixWare, deps.V1beta1.ResourceService, deps.V1beta1.UserService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
+	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(deps.V1beta1.RuleService))
 	return matchWare
 }
 
 type blobFactory struct{}
 
-func (o *blobFactory) New(ctx context.Context, storagePath, storageSecret string) (store.Bucket, error) {
+func (o *blobFactory) New(ctx context.Context, storagePath, storageSecret string) (blobstore.Bucket, error) {
 	var errBadSecretURL = errors.Errorf(`unsupported storage config %s, possible schemes supported: "env:// file:// val://" for example: "val://username:password"`, storageSecret)
 	var errBadStorageURL = errors.Errorf("unsupported storage config %s", storagePath)
 

@@ -8,9 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/odpf/shield/store"
-	"github.com/odpf/shield/structs"
-	"github.com/odpf/shield/utils"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/resource"
 
 	"github.com/ghodss/yaml"
 	"github.com/odpf/salt/log"
@@ -48,11 +47,11 @@ type ResourcesRepository struct {
 	mu  *sync.Mutex
 
 	cron   *cron.Cron
-	bucket store.Bucket
-	cached []structs.Resource
+	bucket Bucket
+	cached []resource.YAML
 }
 
-func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]structs.Resource, error) {
+func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]resource.YAML, error) {
 	repo.mu.Lock()
 	currentCache := repo.cached
 	repo.mu.Unlock()
@@ -95,7 +94,7 @@ func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, n
 }
 
 func (repo *ResourcesRepository) refresh(ctx context.Context) error {
-	var resources []structs.Resource
+	var resources []resource.YAML
 
 	// get all items
 	it := repo.bucket.List(&blob.ListOptions{})
@@ -129,8 +128,8 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 
 		for _, resourceBackend := range resourceBackends.Backends {
 			for _, resourceType := range resourceBackend.ResourceTypes {
-				resources = append(resources, structs.Resource{
-					Name:    utils.CreateNamespaceID(resourceBackend.Name, resourceType.Name),
+				resources = append(resources, resource.YAML{
+					Name:    namespace.CreateID(resourceBackend.Name, resourceType.Name),
 					Actions: resourceType.Actions,
 				})
 			}
@@ -166,7 +165,7 @@ func (repo *ResourcesRepository) Close() error {
 	return repo.bucket.Close()
 }
 
-func NewResourcesRepository(logger log.Logger, b store.Bucket) *ResourcesRepository {
+func NewResourcesRepository(logger log.Logger, b Bucket) *ResourcesRepository {
 	return &ResourcesRepository{
 		log:    logger,
 		bucket: b,

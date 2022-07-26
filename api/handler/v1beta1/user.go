@@ -12,20 +12,19 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/odpf/shield/internal/user"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/str"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 type UserService interface {
-	GetUser(ctx context.Context, id string) (model.User, error)
-	GetCurrentUser(ctx context.Context, email string) (model.User, error)
-	CreateUser(ctx context.Context, user model.User) (model.User, error)
-	ListUsers(ctx context.Context, limit int32, page int32, keyword string) (model.PagedUsers, error)
-	UpdateUser(ctx context.Context, toUpdate model.User) (model.User, error)
-	UpdateCurrentUser(ctx context.Context, toUpdate model.User) (model.User, error)
-	ListUserGroups(ctx context.Context, userId string, roleId string) ([]model.Group, error)
+	GetUser(ctx context.Context, id string) (user.User, error)
+	GetCurrentUser(ctx context.Context, email string) (user.User, error)
+	CreateUser(ctx context.Context, user user.User) (user.User, error)
+	ListUsers(ctx context.Context, limit int32, page int32, keyword string) (user.PagedUsers, error)
+	UpdateUser(ctx context.Context, toUpdate user.User) (user.User, error)
+	UpdateCurrentUser(ctx context.Context, toUpdate user.User) (user.User, error)
+	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
 var (
@@ -84,8 +83,8 @@ func (v Dep) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRe
 		logger.Error(emptyEmailId.Error())
 		return nil, emptyEmailId
 	}
-	email := utils.DefaultStringIfEmpty(request.GetBody().Email, currentUserEmail)
-	userT := model.User{
+	email := str.DefaultStringIfEmpty(request.GetBody().Email, currentUserEmail)
+	userT := user.User{
 		Name:     request.GetBody().Name,
 		Email:    email,
 		Metadata: metaDataMap,
@@ -120,9 +119,9 @@ func (v Dep) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.UserDoesntExist):
+		case errors.Is(err, user.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "user not found")
-		case errors.Is(err, user.InvalidUUID):
+		case errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -156,9 +155,9 @@ func (v Dep) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurre
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.UserDoesntExist):
+		case errors.Is(err, user.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "user not found")
-		case errors.Is(err, user.InvalidUUID):
+		case errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -188,7 +187,7 @@ func (v Dep) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRe
 		return nil, grpcBadBodyError
 	}
 
-	updatedUser, err := v.UserService.UpdateUser(ctx, model.User{
+	updatedUser, err := v.UserService.UpdateUser(ctx, user.User{
 		Id:       request.GetId(),
 		Name:     request.GetBody().Name,
 		Email:    request.GetBody().Email,
@@ -235,7 +234,7 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.Updat
 		return nil, grpcBadBodyError
 	}
 
-	updatedUser, err := v.UserService.UpdateCurrentUser(ctx, model.User{
+	updatedUser, err := v.UserService.UpdateCurrentUser(ctx, user.User{
 		Name:     request.GetBody().Name,
 		Email:    email,
 		Metadata: metaDataMap,
@@ -255,7 +254,7 @@ func (v Dep) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.Updat
 	return &shieldv1beta1.UpdateCurrentUserResponse{User: &userPB}, nil
 }
 
-func transformUserToPB(user model.User) (shieldv1beta1.User, error) {
+func transformUserToPB(user user.User) (shieldv1beta1.User, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(user.Metadata))
 	if err != nil {
 		return shieldv1beta1.User{}, err
@@ -274,7 +273,7 @@ func transformUserToPB(user model.User) (shieldv1beta1.User, error) {
 func (v Dep) ListUserGroups(ctx context.Context, request *shieldv1beta1.ListUserGroupsRequest) (*shieldv1beta1.ListUserGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var groups []*shieldv1beta1.Group
-	groupsList, err := v.UserService.ListUserGroups(ctx, request.Id, request.Role)
+	groupsList, err := v.GroupService.ListUserGroups(ctx, request.Id, request.Role)
 
 	if err != nil {
 		logger.Error(err.Error())

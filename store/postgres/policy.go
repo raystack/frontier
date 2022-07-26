@@ -9,10 +9,10 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/odpf/shield/internal/project"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type Policy struct {
@@ -110,16 +110,16 @@ func buildUpdatePolicyQuery(dialect goqu.DialectWrapper) (string, error) {
 	return updatePolicyQuery, err
 }
 
-func (s Store) GetPolicy(ctx context.Context, id string) (model.Policy, error) {
+func (s Store) GetPolicy(ctx context.Context, id string) (policy.Policy, error) {
 	fetchedPolicy, err := s.selectPolicy(ctx, id)
 	return fetchedPolicy, err
 }
 
-func (s Store) selectPolicy(ctx context.Context, id string) (model.Policy, error) {
+func (s Store) selectPolicy(ctx context.Context, id string) (policy.Policy, error) {
 	var fetchedPolicy Policy
 	getPolicyQuery, err := buildGetPolicyQuery(dialect)
 	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -127,28 +127,28 @@ func (s Store) selectPolicy(ctx context.Context, id string) (model.Policy, error
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Policy{}, schema.PolicyDoesntExist
+		return policy.Policy{}, policy.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Policy{}, schema.InvalidUUID
+		return policy.Policy{}, policy.ErrInvalidUUID
 	} else if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedPolicy, err := transformToPolicy(fetchedPolicy)
 	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	return transformedPolicy, nil
 }
 
-func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
+func (s Store) ListPolicies(ctx context.Context) ([]policy.Policy, error) {
 	var fetchedPolicies []Policy
 	listPolicyQuery, err := buildListPolicyQuery(dialect)
 	if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -156,16 +156,16 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Policy{}, project.ProjectDoesntExist
+		return []policy.Policy{}, project.ErrNotExist
 	} else if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedPolicies []model.Policy
+	var transformedPolicies []policy.Policy
 	for _, p := range fetchedPolicies {
 		transformedPolicy, err := transformToPolicy(p)
 		if err != nil {
-			return []model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 		transformedPolicies = append(transformedPolicies, transformedPolicy)
 	}
@@ -173,31 +173,31 @@ func (s Store) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 	return transformedPolicies, nil
 }
 
-func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([]model.Policy, error) {
+func (s Store) CreatePolicy(ctx context.Context, policyToCreate policy.Policy) ([]policy.Policy, error) {
 	var newPolicy Policy
 
-	roleId := utils.DefaultStringIfEmpty(policyToCreate.Role.Id, policyToCreate.RoleId)
-	actionId := utils.DefaultStringIfEmpty(policyToCreate.Action.Id, policyToCreate.ActionId)
-	nsId := utils.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
+	roleId := str.DefaultStringIfEmpty(policyToCreate.Role.Id, policyToCreate.RoleId)
+	actionId := str.DefaultStringIfEmpty(policyToCreate.Action.Id, policyToCreate.ActionId)
+	nsId := str.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
 	createPolicyQuery, err := buildCreatePolicyQuery(dialect)
 	if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsId, roleId, sql.NullString{String: actionId, Valid: actionId != ""})
 	})
 	if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 	return s.ListPolicies(ctx)
 }
 
-func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Policy) ([]model.Policy, error) {
+func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate policy.Policy) ([]policy.Policy, error) {
 	var updatedPolicy Policy
 	updatePolicyQuery, err := buildUpdatePolicyQuery(dialect)
 	if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -205,36 +205,36 @@ func (s Store) UpdatePolicy(ctx context.Context, id string, toUpdate model.Polic
 	})
 
 	if err != nil {
-		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return s.ListPolicies(ctx)
 }
 
-func transformToPolicy(from Policy) (model.Policy, error) {
-	var role model.Role
+func transformToPolicy(from Policy) (policy.Policy, error) {
+	var rl role.Role
 	var err error
 
 	if from.Role.Id != "" {
-		role, err = transformToRole(from.Role)
+		rl, err = transformToRole(from.Role)
 		if err != nil {
-			return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+			return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 	}
 
 	action, err := transformToAction(from.Action)
 	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	namespace, err := transformToNamespace(from.Namespace)
 	if err != nil {
-		return model.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	return model.Policy{
+	return policy.Policy{
 		Id:          from.Id,
-		Role:        role,
+		Role:        rl,
 		RoleId:      from.RoleID,
 		Action:      action,
 		ActionId:    from.ActionID.String,

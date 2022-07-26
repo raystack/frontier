@@ -3,7 +3,7 @@ package authz
 import (
 	"testing"
 
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/resource"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ func TestCreateResources(t *testing.T) {
 			"abc": "abc",
 		}
 		output, err := createResources(input)
-		var expected []model.Resource
+		var expected []resource.Resource
 		assert.EqualValues(t, expected, output)
 		assert.Error(t, err)
 	})
@@ -23,7 +23,7 @@ func TestCreateResources(t *testing.T) {
 			"project": "abc",
 		}
 		output, err := createResources(input)
-		var expected []model.Resource
+		var expected []resource.Resource
 		assert.EqualValues(t, expected, output)
 		assert.Error(t, err)
 	})
@@ -38,7 +38,7 @@ func TestCreateResources(t *testing.T) {
 			"resource_type": "type",
 		}
 		output, err := createResources(input)
-		expected := []model.Resource{
+		expected := []resource.Resource{
 			{
 				ProjectId:      "project1",
 				OrganizationId: "org1",
@@ -61,7 +61,7 @@ func TestCreateResources(t *testing.T) {
 			"resource_type": "kind",
 		}
 		output, err := createResources(input)
-		expected := []model.Resource{
+		expected := []resource.Resource{
 			{
 				ProjectId:      "project1",
 				OrganizationId: "org1",

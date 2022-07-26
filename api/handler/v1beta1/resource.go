@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/internal/relation"
-	"github.com/odpf/shield/internal/resource"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/core/resource"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,10 +15,11 @@ import (
 )
 
 type ResourceService interface {
-	Get(ctx context.Context, id string) (model.Resource, error)
-	List(ctx context.Context, filters model.ResourceFilters) ([]model.Resource, error)
-	Create(ctx context.Context, resource model.Resource) (model.Resource, error)
-	Update(ctx context.Context, id string, resource model.Resource) (model.Resource, error)
+	Get(ctx context.Context, id string) (resource.Resource, error)
+	List(ctx context.Context, filters resource.Filters) ([]resource.Resource, error)
+	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
+	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
+	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -27,7 +28,7 @@ func (v Dep) ListResources(ctx context.Context, request *shieldv1beta1.ListResou
 	logger := grpczap.Extract(ctx)
 	var resources []*shieldv1beta1.Resource
 
-	filters := model.ResourceFilters{
+	filters := resource.Filters{
 		NamespaceId:    request.NamespaceId,
 		OrganizationId: request.OrganizationId,
 		ProjectId:      request.ProjectId,
@@ -61,7 +62,7 @@ func (v Dep) CreateResource(ctx context.Context, request *shieldv1beta1.CreateRe
 		return nil, grpcBadBodyError
 	}
 
-	newResource, err := v.ResourceService.Create(ctx, model.Resource{
+	newResource, err := v.ResourceService.Create(ctx, resource.Resource{
 		OrganizationId: request.GetBody().OrganizationId,
 		ProjectId:      request.GetBody().ProjectId,
 		GroupId:        request.GetBody().GroupId,
@@ -95,9 +96,9 @@ func (v Dep) GetResource(ctx context.Context, request *shieldv1beta1.GetResource
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, resource.ResourceDoesntExist):
+		case errors.Is(err, resource.ErrNotExist):
 			return nil, grpcResourceNotFoundErr
-		case errors.Is(err, relation.InvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -122,7 +123,7 @@ func (v Dep) UpdateResource(ctx context.Context, request *shieldv1beta1.UpdateRe
 		return nil, grpcBadBodyError
 	}
 
-	updatedResource, err := v.ResourceService.Update(ctx, request.Id, model.Resource{
+	updatedResource, err := v.ResourceService.Update(ctx, request.Id, resource.Resource{
 		OrganizationId: request.GetBody().OrganizationId,
 		ProjectId:      request.GetBody().ProjectId,
 		GroupId:        request.GetBody().GroupId,
@@ -134,9 +135,9 @@ func (v Dep) UpdateResource(ctx context.Context, request *shieldv1beta1.UpdateRe
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, resource.ResourceDoesntExist):
+		case errors.Is(err, resource.ErrNotExist):
 			return nil, grpcResourceNotFoundErr
-		case errors.Is(err, relation.InvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -154,7 +155,7 @@ func (v Dep) UpdateResource(ctx context.Context, request *shieldv1beta1.UpdateRe
 	}, nil
 }
 
-func transformResourceToPB(from model.Resource) (shieldv1beta1.Resource, error) {
+func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
 	namespace, err := transformNamespaceToPB(from.Namespace)
 	if err != nil {
 		return shieldv1beta1.Resource{}, err

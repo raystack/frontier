@@ -5,8 +5,7 @@ import (
 	"errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/namespace"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,10 +13,10 @@ import (
 )
 
 type NamespaceService interface {
-	GetNamespace(ctx context.Context, id string) (model.Namespace, error)
-	ListNamespaces(ctx context.Context) ([]model.Namespace, error)
-	CreateNamespace(ctx context.Context, ns model.Namespace) (model.Namespace, error)
-	UpdateNamespace(ctx context.Context, id string, ns model.Namespace) (model.Namespace, error)
+	GetNamespace(ctx context.Context, id string) (namespace.Namespace, error)
+	ListNamespaces(ctx context.Context) ([]namespace.Namespace, error)
+	CreateNamespace(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
+	UpdateNamespace(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
 var grpcNamespaceNotFoundErr = status.Errorf(codes.NotFound, "namespace doesn't exist")
@@ -48,7 +47,7 @@ func (v Dep) ListNamespaces(ctx context.Context, request *shieldv1beta1.ListName
 func (v Dep) CreateNamespace(ctx context.Context, request *shieldv1beta1.CreateNamespaceRequest) (*shieldv1beta1.CreateNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	newNS, err := v.NamespaceService.CreateNamespace(ctx, model.Namespace{
+	newNS, err := v.NamespaceService.CreateNamespace(ctx, namespace.Namespace{
 		Id:   request.GetBody().Id,
 		Name: request.GetBody().Name,
 	})
@@ -75,9 +74,9 @@ func (v Dep) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNamespa
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, schema.NamespaceDoesntExist):
+		case errors.Is(err, namespace.ErrNotExist):
 			return nil, grpcNamespaceNotFoundErr
-		case errors.Is(err, schema.InvalidUUID):
+		case errors.Is(err, namespace.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -96,7 +95,7 @@ func (v Dep) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNamespa
 func (v Dep) UpdateNamespace(ctx context.Context, request *shieldv1beta1.UpdateNamespaceRequest) (*shieldv1beta1.UpdateNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	updatedNS, err := v.NamespaceService.UpdateNamespace(ctx, request.GetId(), model.Namespace{
+	updatedNS, err := v.NamespaceService.UpdateNamespace(ctx, request.GetId(), namespace.Namespace{
 		Id:   request.GetBody().Id,
 		Name: request.GetBody().Name,
 	})
@@ -115,7 +114,7 @@ func (v Dep) UpdateNamespace(ctx context.Context, request *shieldv1beta1.UpdateN
 	return &shieldv1beta1.UpdateNamespaceResponse{Namespace: &nsPB}, nil
 }
 
-func transformNamespaceToPB(ns model.Namespace) (shieldv1beta1.Namespace, error) {
+func transformNamespaceToPB(ns namespace.Namespace) (shieldv1beta1.Namespace, error) {
 	return shieldv1beta1.Namespace{
 		Id:        ns.Id,
 		Name:      ns.Name,

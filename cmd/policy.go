@@ -86,7 +86,7 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created policy"))
+			logger.Info("successfully created policy")
 			return nil
 		},
 	}
@@ -144,7 +144,7 @@ func editPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited policy"))
+			logger.Info("successfully edited policy")
 			return nil
 		},
 	}

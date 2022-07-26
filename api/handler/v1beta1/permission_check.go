@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/resource"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -18,10 +19,6 @@ var (
 	internalServerErr        = fmt.Errorf("internal server error")
 )
 
-type PermissionCheckService interface {
-	CheckAuthz(ctx context.Context, resource model.Resource, action model.Action) (bool, error)
-}
-
 func (v Dep) CheckResourcePermission(ctx context.Context, in *shieldv1beta1.ResourceActionAuthzRequest) (*shieldv1beta1.ResourceActionAuthzResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := in.ValidateAll(); err != nil {
@@ -30,10 +27,10 @@ func (v Dep) CheckResourcePermission(ctx context.Context, in *shieldv1beta1.Reso
 		return nil, status.Errorf(codes.NotFound, formattedErr.Error())
 	}
 
-	result, err := v.PermissionCheckService.CheckAuthz(ctx, model.Resource{
+	result, err := v.ResourceService.CheckAuthz(ctx, resource.Resource{
 		Name:        in.ResourceId,
 		NamespaceId: in.NamespaceId,
-	}, model.Action{Id: in.ActionId})
+	}, action.Action{Id: in.ActionId})
 	if err != nil {
 		formattedErr := fmt.Errorf("%s: %w", internalServerErr, err)
 		logger.Error(formattedErr.Error())

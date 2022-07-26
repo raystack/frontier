@@ -5,10 +5,12 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/odpf/shield/core/user"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/internal/project"
-	"github.com/odpf/shield/model"
+	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/project"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,13 +23,13 @@ import (
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
 
 type ProjectService interface {
-	Get(ctx context.Context, id string) (model.Project, error)
-	Create(ctx context.Context, project model.Project) (model.Project, error)
-	List(ctx context.Context) ([]model.Project, error)
-	Update(ctx context.Context, toUpdate model.Project) (model.Project, error)
-	AddAdmin(ctx context.Context, id string, userIds []string) ([]model.User, error)
-	ListAdmins(ctx context.Context, id string) ([]model.User, error)
-	RemoveAdmin(ctx context.Context, id string, userId string) ([]model.User, error)
+	Get(ctx context.Context, id string) (project.Project, error)
+	Create(ctx context.Context, project project.Project) (project.Project, error)
+	List(ctx context.Context) ([]project.Project, error)
+	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
+	AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error)
+	ListAdmins(ctx context.Context, id string) ([]user.User, error)
+	RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error)
 }
 
 func (v Dep) ListProjects(ctx context.Context, request *shieldv1beta1.ListProjectsRequest) (*shieldv1beta1.ListProjectsResponse, error) {
@@ -66,11 +68,11 @@ func (v Dep) CreateProject(ctx context.Context, request *shieldv1beta1.CreatePro
 		slug = generateSlug(request.GetBody().Name)
 	}
 
-	newProject, err := v.ProjectService.Create(ctx, model.Project{
+	newProject, err := v.ProjectService.Create(ctx, project.Project{
 		Name:         request.GetBody().Name,
 		Slug:         slug,
 		Metadata:     metaDataMap,
-		Organization: model.Organization{Id: request.GetBody().OrgId},
+		Organization: organization.Organization{Id: request.GetBody().OrgId},
 	})
 
 	if err != nil {
@@ -101,9 +103,9 @@ func (v Dep) GetProject(ctx context.Context, request *shieldv1beta1.GetProjectRe
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, project.ProjectDoesntExist):
+		case errors.Is(err, project.ErrNotExist):
 			return nil, grpcProjectNotFoundErr
-		case errors.Is(err, project.InvalidUUID):
+		case errors.Is(err, project.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -127,11 +129,11 @@ func (v Dep) UpdateProject(ctx context.Context, request *shieldv1beta1.UpdatePro
 		return nil, grpcBadBodyError
 	}
 
-	updatedProject, err := v.ProjectService.Update(ctx, model.Project{
+	updatedProject, err := v.ProjectService.Update(ctx, project.Project{
 		Id:           request.GetId(),
 		Name:         request.GetBody().Name,
 		Slug:         request.GetBody().Slug,
-		Organization: model.Organization{Id: request.GetBody().OrgId},
+		Organization: organization.Organization{Id: request.GetBody().OrgId},
 		Metadata:     metaDataMap,
 	})
 	if err != nil {
@@ -156,7 +158,7 @@ func (v Dep) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.AddProj
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, project.ProjectDoesntExist):
+		case errors.Is(err, project.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
 		default:
 			return nil, grpcInternalServerError
@@ -184,7 +186,7 @@ func (v Dep) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.ListP
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, project.ProjectDoesntExist):
+		case errors.Is(err, project.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
 		default:
 			return nil, grpcInternalServerError
@@ -212,7 +214,7 @@ func (v Dep) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.Remo
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, project.ProjectDoesntExist):
+		case errors.Is(err, project.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
 		default:
 			return nil, grpcInternalServerError
@@ -224,7 +226,7 @@ func (v Dep) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.Remo
 	}, nil
 }
 
-func transformProjectToPB(prj model.Project) (shieldv1beta1.Project, error) {
+func transformProjectToPB(prj project.Project) (shieldv1beta1.Project, error) {
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(prj.Metadata))
 	if err != nil {
 		return shieldv1beta1.Project{}, err

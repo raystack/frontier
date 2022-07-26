@@ -9,9 +9,8 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/odpf/shield/internal/relation"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type Relation struct {
@@ -27,6 +26,7 @@ type Relation struct {
 	NamespaceId        sql.NullString `db:"namespace_id"`
 	CreatedAt          time.Time      `db:"created_at"`
 	UpdatedAt          time.Time      `db:"updated_at"`
+	DeletedAt          sql.NullTime   `db:"deleted_at"`
 }
 
 type relationCols struct {
@@ -118,22 +118,22 @@ func buildDeleteRelationByIdQuery(dialect goqu.DialectWrapper) (string, error) {
 	return deleteRelationByIdQuery, err
 }
 
-func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relation) (model.Relation, error) {
+func (s Store) CreateRelation(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
 	var newRelation Relation
 
-	subjectNamespaceId := utils.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.Id, relationToCreate.SubjectNamespaceId)
-	objectNamespaceId := utils.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.Id, relationToCreate.ObjectNamespaceId)
-	roleId := utils.DefaultStringIfEmpty(relationToCreate.Role.Id, relationToCreate.RoleId)
+	subjectNamespaceId := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.Id, relationToCreate.SubjectNamespaceId)
+	objectNamespaceId := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.Id, relationToCreate.ObjectNamespaceId)
+	roleId := str.DefaultStringIfEmpty(relationToCreate.Role.Id, relationToCreate.RoleId)
 	var nsId string
 
-	if relationToCreate.RelationType == model.RelationTypes.Namespace {
+	if relationToCreate.RelationType == relation.RelationTypes.Namespace {
 		nsId = roleId
 		roleId = ""
 	}
 
 	createRelationQuery, err := buildCreateRelationQuery(dialect)
 	if err != nil {
-		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -151,23 +151,23 @@ func (s Store) CreateRelation(ctx context.Context, relationToCreate model.Relati
 	})
 
 	if err != nil {
-		return model.Relation{}, err
+		return relation.Relation{}, err
 	}
 
 	transformedRelation, err := transformToRelation(newRelation)
 
 	if err != nil {
-		return model.Relation{}, err
+		return relation.Relation{}, err
 	}
 
 	return transformedRelation, nil
 }
 
-func (s Store) ListRelations(ctx context.Context) ([]model.Relation, error) {
+func (s Store) ListRelations(ctx context.Context) ([]relation.Relation, error) {
 	var fetchedRelations []Relation
 	listRelationQuery, err := buildListRelationQuery(dialect)
 	if err != nil {
-		return []model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -175,19 +175,19 @@ func (s Store) ListRelations(ctx context.Context) ([]model.Relation, error) {
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return []model.Relation{}, relation.RelationDoesntExist
+		return []relation.Relation{}, relation.ErrNotExist
 	}
 
 	if err != nil {
-		return []model.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedRelations []model.Relation
+	var transformedRelations []relation.Relation
 
 	for _, r := range fetchedRelations {
 		transformedRelation, err := transformToRelation(r)
 		if err != nil {
-			return []model.Relation{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []relation.Relation{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
 
 		transformedRelations = append(transformedRelations, transformedRelation)
@@ -196,11 +196,11 @@ func (s Store) ListRelations(ctx context.Context) ([]model.Relation, error) {
 	return transformedRelations, nil
 }
 
-func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, error) {
+func (s Store) GetRelation(ctx context.Context, id string) (relation.Relation, error) {
 	var fetchedRelation Relation
 	getRelationsQuery, err := buildGetRelationsQuery(dialect)
 	if err != nil {
-		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -208,22 +208,22 @@ func (s Store) GetRelation(ctx context.Context, id string) (model.Relation, erro
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Relation{}, relation.RelationDoesntExist
+		return relation.Relation{}, relation.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Relation{}, relation.InvalidUUID
+		return relation.Relation{}, relation.ErrInvalidUUID
 	} else if err != nil {
-		return model.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	if err != nil {
-		return model.Relation{}, err
+		return relation.Relation{}, err
 	}
 
 	transformedRelation, err := transformToRelation(fetchedRelation)
 	if err != nil {
-		return model.Relation{}, err
+		return relation.Relation{}, err
 	}
 
 	return transformedRelation, nil
@@ -250,22 +250,22 @@ func (s Store) DeleteRelationById(ctx context.Context, id string) error {
 	return err
 }
 
-func (s Store) GetRelationByFields(ctx context.Context, rel model.Relation) (model.Relation, error) {
+func (s Store) GetRelationByFields(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
 	var fetchedRelation Relation
 
-	subjectNamespaceId := utils.DefaultStringIfEmpty(rel.SubjectNamespace.Id, rel.SubjectNamespaceId)
-	objectNamespaceId := utils.DefaultStringIfEmpty(rel.ObjectNamespace.Id, rel.ObjectNamespaceId)
-	roleId := utils.DefaultStringIfEmpty(rel.Role.Id, rel.RoleId)
+	subjectNamespaceId := str.DefaultStringIfEmpty(rel.SubjectNamespace.Id, rel.SubjectNamespaceId)
+	objectNamespaceId := str.DefaultStringIfEmpty(rel.ObjectNamespace.Id, rel.ObjectNamespaceId)
+	roleId := str.DefaultStringIfEmpty(rel.Role.Id, rel.RoleId)
 	var nsId string
 
-	if rel.RelationType == model.RelationTypes.Namespace {
+	if rel.RelationType == relation.RelationTypes.Namespace {
 		nsId = roleId
 		roleId = ""
 	}
 
 	getRelationByFieldsQuery, err := buildGetRelationByFieldsQuery(dialect)
 	if err != nil {
-		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -282,43 +282,43 @@ func (s Store) GetRelationByFields(ctx context.Context, rel model.Relation) (mod
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Relation{}, relation.RelationDoesntExist
+		return relation.Relation{}, relation.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Relation{}, relation.InvalidUUID
+		return relation.Relation{}, relation.ErrInvalidUUID
 	} else if err != nil {
-		return model.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	if err != nil {
-		return model.Relation{}, err
+		return relation.Relation{}, err
 	}
 
 	transformedRelation, err := transformToRelation(fetchedRelation)
 	if err != nil {
-		return model.Relation{}, err
+		return relation.Relation{}, err
 	}
 
 	return transformedRelation, nil
 }
 
-func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate model.Relation) (model.Relation, error) {
+func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate relation.Relation) (relation.Relation, error) {
 	var updatedRelation Relation
 
-	subjectNamespaceId := utils.DefaultStringIfEmpty(toUpdate.SubjectNamespace.Id, toUpdate.SubjectNamespaceId)
-	objectNamespaceId := utils.DefaultStringIfEmpty(toUpdate.ObjectNamespace.Id, toUpdate.ObjectNamespaceId)
-	roleId := utils.DefaultStringIfEmpty(toUpdate.Role.Id, toUpdate.RoleId)
+	subjectNamespaceId := str.DefaultStringIfEmpty(toUpdate.SubjectNamespace.Id, toUpdate.SubjectNamespaceId)
+	objectNamespaceId := str.DefaultStringIfEmpty(toUpdate.ObjectNamespace.Id, toUpdate.ObjectNamespaceId)
+	roleId := str.DefaultStringIfEmpty(toUpdate.Role.Id, toUpdate.RoleId)
 	var nsId string
 
-	if toUpdate.RelationType == model.RelationTypes.Namespace {
+	if toUpdate.RelationType == relation.RelationTypes.Namespace {
 		nsId = roleId
 		roleId = ""
 	}
 
 	updateRelationQuery, err := buildUpdateRelationQuery(dialect)
 	if err != nil {
-		return model.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
@@ -337,33 +337,33 @@ func (s Store) UpdateRelation(ctx context.Context, id string, toUpdate model.Rel
 	})
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.Relation{}, relation.RelationDoesntExist
+		return relation.Relation{}, relation.ErrNotExist
 	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
 		// TODO: this uuid syntax is a error defined in db, not in library
 		// need to look into better ways to implement this
-		return model.Relation{}, fmt.Errorf("%w: %s", relation.InvalidUUID, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", relation.ErrInvalidUUID, err)
 	} else if err != nil {
-		return model.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	toUpdate, err = transformToRelation(updatedRelation)
 	if err != nil {
-		return model.Relation{}, fmt.Errorf("%s: %w", parseErr, err)
+		return relation.Relation{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
 	return toUpdate, nil
 }
 
-func transformToRelation(from Relation) (model.Relation, error) {
-	relationType := model.RelationTypes.Role
+func transformToRelation(from Relation) (relation.Relation, error) {
+	relationType := relation.RelationTypes.Role
 	roleId := from.RoleId.String
 
 	if from.NamespaceId.Valid {
 		roleId = from.NamespaceId.String
-		relationType = model.RelationTypes.Namespace
+		relationType = relation.RelationTypes.Namespace
 	}
 
-	return model.Relation{
+	return relation.Relation{
 		Id:                 from.Id,
 		SubjectNamespaceId: from.SubjectNamespaceId,
 		SubjectId:          from.SubjectId,

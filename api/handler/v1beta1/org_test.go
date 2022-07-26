@@ -6,25 +6,28 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/odpf/shield/core/user"
 
-	"github.com/odpf/shield/model"
+	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/odpf/shield/core/organization"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
-var testOrgMap = map[string]model.Organization{
+var testOrgMap = map[string]organization.Organization{
 	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 		Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name: "Org 1",
 		Slug: "org-1",
-		Metadata: map[string]string{
-			"email": "org1@org1.com",
+		Metadata: map[string]any{
+			"email":  "org1@org1.com",
+			"age":    21,
+			"intern": true,
 		},
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
@@ -42,15 +45,15 @@ func TestListOrganizations(t *testing.T) {
 	}{
 		{
 			title: "error in Org Service",
-			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []model.Organization, err error) {
-				return []model.Organization{}, errors.New("some error")
+			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
+				return []organization.Organization{}, errors.New("some error")
 			}},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		}, {
 			title: "success",
-			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []model.Organization, err error) {
-				var testOrgList []model.Organization
+			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
+				var testOrgList []organization.Organization
 				for _, o := range testOrgMap {
 					testOrgList = append(testOrgList, o)
 				}
@@ -63,7 +66,9 @@ func TestListOrganizations(t *testing.T) {
 					Slug: "org-1",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
-							"email": structpb.NewStringValue("org1@org1.com"),
+							"email":  structpb.NewStringValue("org1@org1.com"),
+							"age":    structpb.NewNumberValue(21),
+							"intern": structpb.NewBoolValue(true),
 						},
 					},
 					CreatedAt: timestamppb.New(time.Time{}),
@@ -98,8 +103,8 @@ func TestCreateOrganization(t *testing.T) {
 	}{
 		{
 			title: "error in fetching org list",
-			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o model.Organization) (model.Organization, error) {
-				return model.Organization{}, errors.New("some error")
+			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
+				return organization.Organization{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "some org",
@@ -125,8 +130,8 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o model.Organization) (model.Organization, error) {
-				return model.Organization{
+			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
+				return organization.Organization{
 					Id:       "new-abc",
 					Name:     "some org",
 					Slug:     "abc",
@@ -167,39 +172,39 @@ func TestCreateOrganization(t *testing.T) {
 }
 
 type mockOrgSrv struct {
-	GetOrganizationFunc    func(ctx context.Context, id string) (model.Organization, error)
-	CreateOrganizationFunc func(ctx context.Context, org model.Organization) (model.Organization, error)
-	ListOrganizationsFunc  func(ctx context.Context) ([]model.Organization, error)
-	UpdateOrganizationFunc func(ctx context.Context, toUpdate model.Organization) (model.Organization, error)
-	AddAdminFunc           func(ctx context.Context, id string, userIds []string) ([]model.User, error)
-	ListAdminsFunc         func(ctx context.Context, id string) ([]model.User, error)
-	RemoveAdminFunc        func(ctx context.Context, id string, userId string) ([]model.User, error)
+	GetOrganizationFunc    func(ctx context.Context, id string) (organization.Organization, error)
+	CreateOrganizationFunc func(ctx context.Context, org organization.Organization) (organization.Organization, error)
+	ListOrganizationsFunc  func(ctx context.Context) ([]organization.Organization, error)
+	UpdateOrganizationFunc func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
+	AddAdminFunc           func(ctx context.Context, id string, userIds []string) ([]user.User, error)
+	ListAdminsFunc         func(ctx context.Context, id string) ([]user.User, error)
+	RemoveAdminFunc        func(ctx context.Context, id string, userId string) ([]user.User, error)
 }
 
-func (m mockOrgSrv) Get(ctx context.Context, id string) (model.Organization, error) {
+func (m mockOrgSrv) Get(ctx context.Context, id string) (organization.Organization, error) {
 	return m.GetOrganizationFunc(ctx, id)
 }
 
-func (m mockOrgSrv) Create(ctx context.Context, org model.Organization) (model.Organization, error) {
+func (m mockOrgSrv) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
 	return m.CreateOrganizationFunc(ctx, org)
 }
 
-func (m mockOrgSrv) List(ctx context.Context) ([]model.Organization, error) {
+func (m mockOrgSrv) List(ctx context.Context) ([]organization.Organization, error) {
 	return m.ListOrganizationsFunc(ctx)
 }
 
-func (m mockOrgSrv) Update(ctx context.Context, toUpdate model.Organization) (model.Organization, error) {
+func (m mockOrgSrv) Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
 	return m.UpdateOrganizationFunc(ctx, toUpdate)
 }
 
-func (m mockOrgSrv) AddAdmin(ctx context.Context, id string, userIds []string) ([]model.User, error) {
+func (m mockOrgSrv) AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error) {
 	return m.AddAdminFunc(ctx, id, userIds)
 }
 
-func (m mockOrgSrv) ListAdmins(ctx context.Context, id string) ([]model.User, error) {
+func (m mockOrgSrv) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
 	return m.ListAdminsFunc(ctx, id)
 }
 
-func (m mockOrgSrv) RemoveAdmin(ctx context.Context, id string, userId string) ([]model.User, error) {
+func (m mockOrgSrv) RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error) {
 	return m.RemoveAdminFunc(ctx, id, userId)
 }

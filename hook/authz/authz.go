@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/api/handler"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/hook"
-	"github.com/odpf/shield/internal/permission"
 	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/model"
 	"github.com/odpf/shield/pkg/body_extractor"
-	"github.com/odpf/shield/utils"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
@@ -55,7 +55,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, err)
 	}
 
-	rule, ok := hook.ExtractRule(res.Request)
+	ruleFromRequest, ok := hook.ExtractRule(res.Request)
 	if !ok {
 		return a.next.ServeHook(res, nil)
 	}
@@ -70,15 +70,15 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.next.ServeHook(res, nil)
 	}
 
-	if rule.Backend.Namespace == "" {
+	if ruleFromRequest.Backend.Namespace == "" {
 		return a.next.ServeHook(res, fmt.Errorf("namespace variable not defined in rules"))
 	}
 
 	attributes := map[string]interface{}{}
-	attributes["namespace"] = rule.Backend.Namespace
+	attributes["namespace"] = ruleFromRequest.Backend.Namespace
 
 	attributes["user"] = res.Request.Header.Get(a.Deps.V1beta1.IdentityProxyHeader)
-	res.Request = res.Request.WithContext(permission.SetEmailToContext(res.Request.Context(), res.Request.Header.Get(a.Deps.V1beta1.IdentityProxyHeader)))
+	res.Request = res.Request.WithContext(user.SetEmailToContext(res.Request.Context(), res.Request.Header.Get(a.Deps.V1beta1.IdentityProxyHeader)))
 
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)
@@ -112,6 +112,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 				a.log.Error("middleware: payload key field empty")
 				return a.escape.ServeHook(res, fmt.Errorf("payload key field empty"))
 			}
+
 			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(bodySource, attr.Key)
 			if err != nil {
 				a.log.Error("middleware: failed to parse json payload", "err", err)
@@ -185,8 +186,8 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	return a.next.ServeHook(res, nil)
 }
 
-func createResources(permissionAttributes map[string]interface{}) ([]model.Resource, error) {
-	var resources []model.Resource
+func createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
+	var resources []resource.Resource
 	projects, err := getAttributesValues(permissionAttributes["project"])
 	if err != nil {
 		return nil, err
@@ -226,20 +227,20 @@ func createResources(permissionAttributes map[string]interface{}) ([]model.Resou
 			for _, res := range resourceList {
 				if len(teams) > 0 {
 					for _, team := range teams {
-						resources = append(resources, model.Resource{
+						resources = append(resources, resource.Resource{
 							Name:           res,
 							OrganizationId: org,
 							ProjectId:      project,
 							GroupId:        team,
-							NamespaceId:    utils.CreateNamespaceID(backendNamespace[0], resourceType[0]),
+							NamespaceId:    namespace.CreateID(backendNamespace[0], resourceType[0]),
 						})
 					}
 				} else {
-					resources = append(resources, model.Resource{
+					resources = append(resources, resource.Resource{
 						Name:           res,
 						OrganizationId: org,
 						ProjectId:      project,
-						NamespaceId:    utils.CreateNamespaceID(backendNamespace[0], resourceType[0]),
+						NamespaceId:    namespace.CreateID(backendNamespace[0], resourceType[0]),
 					})
 				}
 			}

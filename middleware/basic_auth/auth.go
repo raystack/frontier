@@ -9,7 +9,6 @@ import (
 
 	"github.com/odpf/shield/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
-	"github.com/odpf/shield/structs"
 
 	goauth "github.com/abbot/go-http-auth"
 	"github.com/mitchellh/mapstructure"
@@ -64,8 +63,8 @@ func New(logger log.Logger, next http.Handler) *BasicAuth {
 	}
 }
 
-func (w BasicAuth) Info() *structs.MiddlewareInfo {
-	return &structs.MiddlewareInfo{
+func (w BasicAuth) Info() *middleware.MiddlewareInfo {
+	return &middleware.MiddlewareInfo{
 		Name:        "basic_auth",
 		Description: "basic username password authentication",
 	}
