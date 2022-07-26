@@ -2,11 +2,6 @@ package authz
 
 import (
 	"fmt"
-	"github.com/odpf/shield/hook"
-	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/pkg/body_extractor"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
-	syslog "log"
 	"net/http"
 	"strings"
 
@@ -15,10 +10,13 @@ import (
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/api/handler"
-	"github.com/odpf/shield/api/handler/v1beta1"
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/hook"
+	"github.com/odpf/shield/middleware"
+	"github.com/odpf/shield/pkg/body_extractor"
 )
 
 type Authz struct {
@@ -31,6 +29,10 @@ type Authz struct {
 	escape hook.Service
 
 	Deps handler.Deps
+}
+
+type ProjectService interface {
+	Get(ctx context.Context, id string) (project.Project, error)
 }
 
 func New(log log.Logger, next, escape hook.Service, deps handler.Deps) Authz {
@@ -173,7 +175,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
-	resources, err := createResources(res.Request.Context(), attributes, a.Deps.V1beta1)
+	resources, err := createResources(res.Request.Context(), attributes, a.Deps.V1beta1.ProjectService)
 	if err != nil {
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
@@ -190,9 +192,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	return a.next.ServeHook(res, nil)
 }
 
-func createResources(ctx context.Context, permissionAttributes map[string]interface{}, v v1beta1.Dep) ([]resource.Resource, error) {
-	syslog.Println("\n", permissionAttributes)
-
+func createResources(ctx context.Context, permissionAttributes map[string]interface{}, p ProjectService) ([]resource.Resource, error) {
 	var resources []resource.Resource
 	projects, err := getAttributesValues(permissionAttributes["project"])
 	if err != nil {
@@ -200,17 +200,18 @@ func createResources(ctx context.Context, permissionAttributes map[string]interf
 	}
 
 	var orgs []string
+	var projIds []string
 	for _, proj := range projects {
-		req := shieldv1beta1.GetProjectRequest{
-			Id: proj,
-		}
-		project, err := v.GetProject(ctx, &req)
-		fmt.Println(project)
+		project, err := p.Get(ctx, proj)
 		if err != nil {
 			return nil, err
 		}
-		orgId := project.GetProject().OrgId
+
+		orgId := project.Organization.Id
 		orgs = append(orgs, orgId)
+
+		projId := project.Id
+		projIds = append(projIds, projId)
 	}
 
 	teams, err := getAttributesValues(permissionAttributes["team"])
@@ -234,11 +235,11 @@ func createResources(ctx context.Context, permissionAttributes map[string]interf
 	}
 
 	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
-		return nil, fmt.Errorf("namespace, resource type, projects, organizations, resource, and team are required")
+		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
 
 	for _, org := range orgs {
-		for _, project := range projects {
+		for _, project := range projIds {
 			for _, res := range resourceList {
 				if len(teams) > 0 {
 					for _, team := range teams {

@@ -3,21 +3,23 @@ package authz
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/resource"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/odpf/shield/api/handler/v1beta1"
+	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/core/resource"
 )
 
-var projectIdList = []string{"projcet1", "project2"}
-
 var testPermissionAttributesMap = map[string]any{
-	"project": "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+	"project":       "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+	"team":          "team1",
+	"resource":      []string{"resc1", "resc2"},
+	"namespace":     "ns1",
+	"resource_type": "kind",
 }
 
 var testProjectMap = map[string]project.Project{
@@ -51,6 +53,37 @@ var testProjectMap = map[string]project.Project{
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
 	},
+	"project-3-slug": {
+		Id:   "c3772d61-faa1-4d8d-fff3-c8fa5a1fdc4b",
+		Name: "Prj 3",
+		Slug: "project-3-slug",
+		Metadata: map[string]any{
+			"email": "org1@org2.com",
+		},
+		Organization: organization.Organization{
+			Id:   "org2",
+			Name: "Org 2",
+			Slug: "Org Slug 2",
+		},
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+}
+
+var expectedResources = []resource.Resource{
+	{
+		ProjectId:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		OrganizationId: "org1",
+		GroupId:        "team1",
+		Name:           "resc1",
+		NamespaceId:    "ns1_kind",
+	}, {
+		ProjectId:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		OrganizationId: "org1",
+		GroupId:        "team1",
+		Name:           "resc2",
+		NamespaceId:    "ns1_kind",
+	},
 }
 
 func TestCreateResources(t *testing.T) {
@@ -58,117 +91,96 @@ func TestCreateResources(t *testing.T) {
 
 	table := []struct {
 		title                string
-		mockResourcesServ    mockResources
+		mockProjectServ      mockProject
 		permissionAttributes map[string]any
 		v                    v1beta1.Dep
 		want                 []resource.Resource
 		err                  error
 	}{
 		{
-			title: "success",
-			mockResourcesServ: mockResources{
+			title: "success/should return multiple resources",
+			mockProjectServ: mockProject{
+				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
+					return testProjectMap[id], nil
+				}},
+			permissionAttributes: testPermissionAttributesMap,
+			v:                    v1beta1.Dep{},
+			want:                 expectedResources,
+			err:                  nil,
+		}, {
+			title: "should should throw error if project is missing",
+			mockProjectServ: mockProject{
+				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
+					return project.Project{}, fmt.Errorf("Project ID not found")
+				},
+			},
+			permissionAttributes: map[string]any{
+				"team":          "team1",
+				"resource":      []string{"resc1", "resc2"},
+				"namespace":     "ns1",
+				"resource_type": "kind",
+			},
+			v:    v1beta1.Dep{},
+			want: nil,
+			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
+		}, {
+			title: "should should throw error if team is missing",
+			mockProjectServ: mockProject{
 				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
 					return testProjectMap[id], nil
 				},
-				createResourcesFunc: func(ctx context.Context, permissionAttributes map[string]interface{}, v v1beta1.Dep) ([]resource.Resource, error) {
-					return nil, nil
+			},
+			permissionAttributes: map[string]any{
+				"project":       "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+				"resource":      []string{"resc1", "resc2"},
+				"namespace":     "ns1",
+				"resource_type": "kind",
+			},
+			v:    v1beta1.Dep{},
+			want: nil,
+			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
+		}, {
+			title: "success/should return resource",
+			mockProjectServ: mockProject{
+				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
+					return testProjectMap[id], nil
+				}},
+			permissionAttributes: map[string]any{
+				"project":       "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+				"team":          "team1",
+				"resource":      "res1",
+				"namespace":     "ns1",
+				"resource_type": "type",
+			},
+			v: v1beta1.Dep{},
+			want: []resource.Resource{
+				{
+					ProjectId:      "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+					OrganizationId: "org2",
+					GroupId:        "team1",
+					Name:           "res1",
+					NamespaceId:    "ns1_type",
 				},
 			},
+			err: nil,
 		},
 	}
 
-	fmt.Println(table)
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			t.Parallel()
 
-	t.Run("should should throw error if project is missing", func(t *testing.T) {
-		input := map[string]interface{}{
-			"abc": "abc",
-		}
-		output, err := createResources(input)
-		var expected []resource.Resource
-		assert.EqualValues(t, expected, output)
-		assert.Error(t, err)
-	})
-
-	t.Run("should should throw error if team is missing", func(t *testing.T) {
-		input := map[string]interface{}{
-			"project": "abc",
-		}
-		output, err := createResources(input)
-		var expected []resource.Resource
-		assert.EqualValues(t, expected, output)
-		assert.Error(t, err)
-	})
-
-	t.Run("should return resource", func(t *testing.T) {
-		input := map[string]interface{}{
-			"project":       "project1",
-			"team":          "team1",
-			"organization":  "org1",
-			"resource":      "res1",
-			"namespace":     "ns1",
-			"resource_type": "type",
-		}
-		output, err := createResources(input)
-		expected := []resource.Resource{
-			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
-				Name:           "res1",
-				NamespaceId:    "ns1_type",
-			},
-		}
-		assert.EqualValues(t, expected, output)
-		assert.NoError(t, err)
-	})
-
-	t.Run("should return multiple resource", func(t *testing.T) {
-		input := map[string]interface{}{
-			"project":       "project1",
-			"team":          "team1",
-			"organization":  "org1",
-			"namespace":     "ns1",
-			"resource":      []string{"res1", "res2", "res3"},
-			"resource_type": "kind",
-		}
-		output, err := createResources(input)
-		expected := []resource.Resource{
-			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
-				Name:           "res1",
-				NamespaceId:    "ns1_kind",
-			},
-			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
-				Name:           "res2",
-				NamespaceId:    "ns1_kind",
-			},
-			{
-				ProjectId:      "project1",
-				OrganizationId: "org1",
-				GroupId:        "team1",
-				Name:           "res3",
-				NamespaceId:    "ns1_kind",
-			},
-		}
-		assert.EqualValues(t, expected, output)
-		assert.NoError(t, err)
-	})
+			resp, err := createResources(context.Background(), tt.permissionAttributes, tt.mockProjectServ)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.err, err)
+		})
+	}
 }
 
-type mockResources struct {
-	GetProjectFunc      func(ctx context.Context, id string) (project.Project, error)
-	createResourcesFunc func(ctx context.Context, permissionAttributes map[string]interface{}, v v1beta1.Dep) ([]resource.Resource, error)
+type mockProject struct {
+	GetProjectFunc func(ctx context.Context, id string) (project.Project, error)
 }
 
-func (m mockResources) GetProject(ctx context.Context, id string) (project.Project, error) {
+func (m mockProject) Get(ctx context.Context, id string) (project.Project, error) {
 	return m.GetProjectFunc(ctx, id)
-}
-
-func (m mockResources) createResources(ctx context.Context, permissionAttributes map[string]interface{}, v v1beta1.Dep) ([]resource.Resource, error) {
-	return m.createResourcesFunc(ctx, permissionAttributes, v)
 }
