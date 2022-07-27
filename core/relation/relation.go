@@ -2,7 +2,6 @@ package relation
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/odpf/shield/core/action"
@@ -10,16 +9,11 @@ import (
 	"github.com/odpf/shield/core/role"
 )
 
-var (
-	ErrNotExist    = errors.New("relation doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
 type Repository interface {
 	Get(ctx context.Context, id string) (Relation, error)
 	Create(ctx context.Context, relation Relation) (Relation, error)
 	List(ctx context.Context) ([]Relation, error)
-	Update(ctx context.Context, id string, toUpdate Relation) (Relation, error)
+	Update(ctx context.Context, toUpdate Relation) (Relation, error)
 	GetByFields(ctx context.Context, relation Relation) (Relation, error)
 	DeleteByID(ctx context.Context, id string) error
 }

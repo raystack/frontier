@@ -11,6 +11,7 @@ import (
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/store/postgres"
@@ -277,239 +278,27 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 	return insertedData, nil
 }
 
-// func bootstrapReceiver(client *postgres.Client) ([]receiver.Receiver, error) {
-// 	filePath := "./testdata/mock-receiver.json"
-// 	testFixtureJSON, err := ioutil.ReadFile(filePath)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func bootstrapRelation(client *db.Client) ([]relation.Relation, error) {
+	relationRepository := postgres.NewRelationRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-relation.json")
+	if err != nil {
+		return nil, err
+	}
 
-// 	var data []receiver.Receiver
-// 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-// 		return nil, err
-// 	}
+	var data []relation.Relation
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
 
-// 	var insertedData []receiver.Receiver
-// 	for _, d := range data {
-// 		var mdl model.Receiver
-// 		mdl.FromDomain(&d)
+	var insertedData []relation.Relation
+	for _, d := range data {
+		domain, err := relationRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
 
-// 		result := client.GetDB(context.TODO()).Create(&mdl)
-// 		if result.Error != nil {
-// 			return nil, result.Error
-// 		}
+		insertedData = append(insertedData, domain)
+	}
 
-// 		insertedData = append(insertedData, *mdl.ToDomain())
-// 	}
-
-// 	return insertedData, nil
-// }
-
-// func bootstrapAlert(client *postgres.Client) ([]alert.Alert, error) {
-// 	filePath := "./testdata/mock-alert.json"
-// 	testFixtureJSON, err := ioutil.ReadFile(filePath)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var data []alert.Alert
-// 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-// 		return nil, err
-// 	}
-
-// 	var insertedData []alert.Alert
-// 	for _, d := range data {
-// 		var mdl model.Alert
-// 		mdl.FromDomain(&d)
-
-// 		result := client.GetDB(context.TODO()).Create(&mdl)
-// 		if result.Error != nil {
-// 			return nil, result.Error
-// 		}
-
-// 		dmn := mdl.ToDomain()
-// 		insertedData = append(insertedData, *dmn)
-// 	}
-
-// 	return insertedData, nil
-// }
-
-// func bootstrapTemplate(client *postgres.Client) ([]template.Template, error) {
-// 	filePath := "./testdata/mock-template.json"
-// 	testFixtureJSON, err := ioutil.ReadFile(filePath)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var data []template.Template
-// 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-// 		return nil, err
-// 	}
-
-// 	var insertedData []template.Template
-// 	for _, d := range data {
-// 		var mdl model.Template
-// 		if err := mdl.FromDomain(&d); err != nil {
-// 			return nil, err
-// 		}
-
-// 		result := client.GetDB(context.TODO()).Create(&mdl)
-// 		if result.Error != nil {
-// 			return nil, result.Error
-// 		}
-
-// 		dmn, err := mdl.ToDomain()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		insertedData = append(insertedData, *dmn)
-// 	}
-
-// 	return insertedData, nil
-// }
-
-// func bootstrapRule(client *postgres.Client) ([]rule.Rule, error) {
-// 	filePath := "./testdata/mock-rule.json"
-// 	testFixtureJSON, err := ioutil.ReadFile(filePath)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var data []rule.Rule
-// 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-// 		return nil, err
-// 	}
-
-// 	var insertedData []rule.Rule
-// 	for _, d := range data {
-// 		var mdl model.Rule
-// 		if err := mdl.FromDomain(&d); err != nil {
-// 			return nil, err
-// 		}
-
-// 		result := client.GetDB(context.TODO()).Create(&mdl)
-// 		if result.Error != nil {
-// 			return nil, result.Error
-// 		}
-
-// 		dmn, err := mdl.ToDomain()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		insertedData = append(insertedData, *dmn)
-// 	}
-
-// 	return insertedData, nil
-// }
-
-// func bootstrapSubscription(client *postgres.Client) ([]subscription.Subscription, error) {
-// 	filePath := "./testdata/mock-subscription.json"
-// 	testFixtureJSON, err := ioutil.ReadFile(filePath)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var data []subscription.Subscription
-// 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-// 		return nil, err
-// 	}
-
-// 	var insertedData []subscription.Subscription
-// 	for _, d := range data {
-// 		var mdl model.Subscription
-// 		mdl.FromDomain(&d)
-
-// 		result := client.GetDB(context.TODO()).Create(&mdl)
-// 		if result.Error != nil {
-// 			return nil, result.Error
-// 		}
-
-// 		insertedData = append(insertedData, *mdl.ToDomain())
-// 	}
-
-// 	return insertedData, nil
-// }
-
-// func TestMigration(t *testing.T) {
-// 	t.Run("successfully migrate if there is no problem", func(t *testing.T) {
-// 		logger := log.NewZap()
-// 		client, pool, resource, err := newTestClient(logger)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-
-// 		if err = client.Migrate(); err != nil {
-// 			t.Fatal(err)
-// 		}
-
-// 		if err = purgeDocker(pool, resource); err != nil {
-// 			t.Fatal(err)
-// 		}
-// 	})
-
-// }
-
-// func TestLogs(t *testing.T) {
-// 	wrongPGConfig := postgres.Config{
-// 		Host:     "localhost",
-// 		User:     "test_user",
-// 		Password: "test_pass",
-// 		Name:     "test_db",
-// 		SSLMode:  "disable",
-// 	}
-
-// 	t.Run("failed migrate if there is a problem with log level error", func(t *testing.T) {
-// 		zapConfig := zap.NewProductionConfig()
-// 		zapConfig.Level = zap.NewAtomicLevelAt(zap.ErrorLevel)
-// 		logger := log.NewZap(log.ZapWithConfig(zapConfig))
-
-// 		_, err := postgres.NewClient(logger, wrongPGConfig)
-// 		if err == nil {
-// 			t.Fatal("should throw error")
-// 		}
-// 	})
-
-// 	t.Run("failed migrate if there is a problem with log level warn", func(t *testing.T) {
-// 		zapConfig := zap.NewProductionConfig()
-// 		zapConfig.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
-// 		logger := log.NewZap(log.ZapWithConfig(zapConfig))
-
-// 		_, err := postgres.NewClient(logger, wrongPGConfig)
-// 		if err == nil {
-// 			t.Fatal("should throw error")
-// 		}
-// 	})
-
-// 	t.Run("failed migrate if there is a problem with log level info", func(t *testing.T) {
-// 		zapConfig := zap.NewProductionConfig()
-// 		zapConfig.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
-// 		logger := log.NewZap(log.ZapWithConfig(zapConfig))
-
-// 		_, err := postgres.NewClient(logger, wrongPGConfig)
-// 		if err == nil {
-// 			t.Fatal("should throw error")
-// 		}
-// 	})
-
-// 	t.Run("failed migrate if there is a problem with log level debug", func(t *testing.T) {
-// 		zapConfig := zap.NewProductionConfig()
-// 		zapConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
-// 		logger := log.NewZap(log.ZapWithConfig(zapConfig))
-
-// 		_, err := postgres.NewClient(logger, wrongPGConfig)
-// 		if err == nil {
-// 			t.Fatal("should throw error")
-// 		}
-// 	})
-
-// 	t.Run("failed migrate if there is a problem with other log level", func(t *testing.T) {
-// 		zapConfig := zap.NewProductionConfig()
-// 		zapConfig.Level = zap.NewAtomicLevelAt(zap.DPanicLevel)
-// 		logger := log.NewZap(log.ZapWithConfig(zapConfig))
-
-// 		_, err := postgres.NewClient(logger, wrongPGConfig)
-// 		if err == nil {
-// 			t.Fatal("should throw error")
-// 		}
-// 	})
-// }
+	return insertedData, nil
+}

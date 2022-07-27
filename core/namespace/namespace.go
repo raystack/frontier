@@ -8,9 +8,9 @@ import (
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Namespace, error)
-	Create(ctx context.Context, namespace Namespace) (Namespace, error)
+	Create(ctx context.Context, ns Namespace) (Namespace, error)
 	List(ctx context.Context) ([]Namespace, error)
-	Update(ctx context.Context, id string, namespace Namespace) (Namespace, error)
+	Update(ctx context.Context, ns Namespace) (Namespace, error)
 }
 
 type Namespace struct {

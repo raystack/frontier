@@ -16,7 +16,7 @@ type NamespaceService interface {
 	Get(ctx context.Context, id string) (namespace.Namespace, error)
 	List(ctx context.Context) ([]namespace.Namespace, error)
 	Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
-	Update(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error)
+	Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
 var grpcNamespaceNotFoundErr = status.Errorf(codes.NotFound, "namespace doesn't exist")
@@ -95,7 +95,7 @@ func (h Handler) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNam
 func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.UpdateNamespaceRequest) (*shieldv1beta1.UpdateNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	updatedNS, err := h.namespaceService.Update(ctx, request.GetId(), namespace.Namespace{
+	updatedNS, err := h.namespaceService.Update(ctx, namespace.Namespace{
 		ID:   request.GetBody().Id,
 		Name: request.GetBody().Name,
 	})

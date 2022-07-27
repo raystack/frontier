@@ -41,13 +41,13 @@ func (s Service) List(ctx context.Context) ([]Relation, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) Update(ctx context.Context, id string, toUpdate Relation) (Relation, error) {
-	oldRelation, err := s.repository.Get(ctx, id)
+func (s Service) Update(ctx context.Context, toUpdate Relation) (Relation, error) {
+	oldRelation, err := s.repository.Get(ctx, toUpdate.ID)
 	if err != nil {
 		return Relation{}, err
 	}
 
-	newRelation, err := s.repository.Update(ctx, id, toUpdate)
+	newRelation, err := s.repository.Update(ctx, toUpdate)
 	if err != nil {
 		return Relation{}, err
 	}

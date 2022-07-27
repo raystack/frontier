@@ -259,7 +259,7 @@ type mockPolicySrv struct {
 	GetFunc    func(ctx context.Context, id string) (policy.Policy, error)
 	CreateFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
 	ListFunc   func(ctx context.Context) ([]policy.Policy, error)
-	UpdateFunc func(ctx context.Context, id string, pol policy.Policy) ([]policy.Policy, error)
+	UpdateFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
 }
 
 func (m mockPolicySrv) Get(ctx context.Context, id string) (policy.Policy, error) {
@@ -274,6 +274,6 @@ func (m mockPolicySrv) Create(ctx context.Context, pol policy.Policy) ([]policy.
 	return m.CreateFunc(ctx, pol)
 }
 
-func (m mockPolicySrv) Update(ctx context.Context, id string, pol policy.Policy) ([]policy.Policy, error) {
-	return m.UpdateFunc(ctx, id, pol)
+func (m mockPolicySrv) Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+	return m.UpdateFunc(ctx, pol)
 }

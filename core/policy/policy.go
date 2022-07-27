@@ -12,8 +12,8 @@ import (
 type Repository interface {
 	Get(ctx context.Context, id string) (Policy, error)
 	List(ctx context.Context) ([]Policy, error)
-	Create(ctx context.Context, policy Policy) ([]Policy, error)
-	Update(ctx context.Context, id string, policy Policy) ([]Policy, error)
+	Create(ctx context.Context, pol Policy) (string, error)
+	Update(ctx context.Context, pol Policy) (string, error)
 }
 
 type AuthzRepository interface {

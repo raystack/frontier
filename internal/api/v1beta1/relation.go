@@ -17,7 +17,7 @@ type RelationService interface {
 	Get(ctx context.Context, id string) (relation.Relation, error)
 	List(ctx context.Context) ([]relation.Relation, error)
 	Create(ctx context.Context, relation relation.Relation) (relation.Relation, error)
-	Update(ctx context.Context, id string, relation relation.Relation) (relation.Relation, error)
+	Update(ctx context.Context, relation relation.Relation) (relation.Relation, error)
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
@@ -113,7 +113,8 @@ func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.Upda
 		return nil, grpcBadBodyError
 	}
 
-	updatedRelation, err := h.relationService.Update(ctx, request.GetId(), relation.Relation{
+	updatedRelation, err := h.relationService.Update(ctx, relation.Relation{
+		ID:                 request.GetId(),
 		SubjectNamespaceID: request.GetBody().SubjectType,
 		SubjectID:          request.GetBody().SubjectId,
 		ObjectNamespaceID:  request.GetBody().ObjectType,

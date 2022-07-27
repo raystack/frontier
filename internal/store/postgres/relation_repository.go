@@ -7,6 +7,7 @@ import (
 
 	"database/sql"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/str"
@@ -23,7 +24,7 @@ func NewRelationRepository(dbc *db.Client) *RelationRepository {
 }
 
 func (r RelationRepository) Create(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
-	var newRelation Relation
+	// TODO check role and ns cannot be empty
 
 	subjectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.ID, relationToCreate.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.ID, relationToCreate.ObjectNamespaceID)
@@ -35,28 +36,34 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		roleID = ""
 	}
 
-	createRelationQuery, err := buildCreateRelationQuery(dialect)
+	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(
+		goqu.Record{
+			"subject_namespace_id": subjectNamespaceID,
+			"subject_id":           relationToCreate.SubjectID,
+			"object_namespace_id":  objectNamespaceID,
+			"object_id":            relationToCreate.ObjectID,
+			"role_id":              sql.NullString{String: roleID, Valid: roleID != ""},
+			"namespace_id":         sql.NullString{String: nsID, Valid: nsID != ""},
+		}).OnConflict(
+		goqu.DoUpdate("subject_namespace_id, subject_id, object_namespace_id,  object_id, COALESCE(role_id, ''), COALESCE(namespace_id, '')", goqu.Record{
+			"subject_namespace_id": subjectNamespaceID,
+		})).Returning(&relationCols{}).ToSQL()
 	if err != nil {
 		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var relationModel Relation
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(
-			ctx,
-			&newRelation,
-			createRelationQuery,
-			subjectNamespaceID,
-			relationToCreate.SubjectID,
-			objectNamespaceID,
-			relationToCreate.ObjectID,
-			sql.NullString{String: roleID, Valid: roleID != ""},
-			sql.NullString{String: nsID, Valid: nsID != ""},
-		)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&relationModel)
 	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, errForeignKeyViolation) {
+			return relation.Relation{}, relation.ErrNotExist
+		}
 		return relation.Relation{}, err
 	}
 
-	transformedRelation, err := transformToRelation(newRelation)
+	transformedRelation, err := transformToRelation(relationModel)
 	if err != nil {
 		return relation.Relation{}, err
 	}
@@ -65,23 +72,23 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 }
 
 func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, error) {
-	var fetchedRelations []Relation
-	listRelationQuery, err := buildListRelationQuery(dialect)
+	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).ToSQL()
 	if err != nil {
 		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var fetchedRelations []Relation
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedRelations, listRelationQuery)
+		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
+		// List should return empty list and no error instead
 		if errors.Is(err, sql.ErrNoRows) {
-			return []relation.Relation{}, relation.ErrNotExist
+			return []relation.Relation{}, nil
 		}
 		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedRelations []relation.Relation
-
 	for _, r := range fetchedRelations {
 		transformedRelation, err := transformToRelation(r)
 		if err != nil {
@@ -94,15 +101,23 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, erro
 }
 
 func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relation, error) {
-	var fetchedRelation Relation
-	getRelationsQuery, err := buildGetRelationsQuery(dialect)
+	if id == "" {
+		return relation.Relation{}, relation.ErrInvalidID
+	}
+
+	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).
+		Where(goqu.Ex{
+			"id": id,
+		}).ToSQL()
 	if err != nil {
 		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var relationModel Relation
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &fetchedRelation, getRelationsQuery, id)
+		return r.dbc.GetContext(ctx, &relationModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return relation.Relation{}, relation.ErrNotExist
 		}
@@ -112,7 +127,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 		return relation.Relation{}, err
 	}
 
-	transformedRelation, err := transformToRelation(fetchedRelation)
+	transformedRelation, err := transformToRelation(relationModel)
 	if err != nil {
 		return relation.Relation{}, err
 	}
@@ -121,14 +136,23 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 }
 
 func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
-	deleteRelationByIDQuery, err := buildDeleteRelationByIDQuery(dialect)
+	if id == "" {
+		return relation.ErrInvalidID
+	}
+	query, params, err := dialect.Delete(TABLE_RELATIONS).Where(goqu.Ex{
+		"id": id,
+	}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	return r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		result, err := r.dbc.ExecContext(ctx, deleteRelationByIDQuery, id)
+		result, err := r.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
+			err = checkPostgresError(err)
+			if errors.Is(err, errInvalidTexRepresentation) {
+				return relation.ErrInvalidUUID
+			}
 			return err
 		}
 
@@ -137,12 +161,12 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 			return err
 		}
 
-		if count == 1 {
+		if count > 0 {
 			return nil
 		}
 
 		// TODO make this idempotent
-		return errors.New("relation id not found")
+		return relation.ErrNotExist
 	})
 }
 
@@ -159,28 +183,32 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 		roleID = ""
 	}
 
-	getRelationByFieldsQuery, err := buildGetRelationByFieldsQuery(dialect)
+	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(goqu.Ex{
+		"subject_namespace_id": subjectNamespaceID,
+		"subject_id":           rel.SubjectID,
+		"object_namespace_id":  objectNamespaceID,
+		"object_id":            rel.ObjectID,
+	}, goqu.And(
+		goqu.Or(
+			goqu.C("role_id").IsNull(),
+			goqu.C("role_id").Eq(sql.NullString{String: roleID, Valid: roleID != ""}),
+		)),
+		goqu.And(
+			goqu.Or(
+				goqu.C("namespace_id").IsNull(),
+				goqu.C("namespace_id").Eq(sql.NullString{String: nsID, Valid: nsID != ""}),
+			),
+		)).ToSQL()
 	if err != nil {
 		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx,
-			&fetchedRelation,
-			getRelationByFieldsQuery,
-			subjectNamespaceID,
-			rel.SubjectID,
-			objectNamespaceID,
-			rel.ObjectID,
-			sql.NullString{String: roleID, Valid: roleID != ""},
-			sql.NullString{String: nsID, Valid: nsID != ""},
-		)
+		return r.dbc.GetContext(ctx, &fetchedRelation, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return relation.Relation{}, relation.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
-			return relation.Relation{}, relation.ErrInvalidUUID
 		}
 		return relation.Relation{}, err
 	}
@@ -193,51 +221,58 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	return transformedRelation, nil
 }
 
-func (r RelationRepository) Update(ctx context.Context, id string, toUpdate relation.Relation) (relation.Relation, error) {
-	var updatedRelation Relation
+func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
+	if rel.ID == "" {
+		return relation.Relation{}, relation.ErrInvalidID
+	}
 
-	subjectNamespaceID := str.DefaultStringIfEmpty(toUpdate.SubjectNamespace.ID, toUpdate.SubjectNamespaceID)
-	objectNamespaceID := str.DefaultStringIfEmpty(toUpdate.ObjectNamespace.ID, toUpdate.ObjectNamespaceID)
-	roleID := str.DefaultStringIfEmpty(toUpdate.Role.ID, toUpdate.RoleID)
+	subjectNamespaceID := str.DefaultStringIfEmpty(rel.SubjectNamespace.ID, rel.SubjectNamespaceID)
+	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
+	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
 	var nsID string
 
-	if toUpdate.RelationType == relation.RelationTypes.Namespace {
+	if rel.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""
 	}
 
-	updateRelationQuery, err := buildUpdateRelationQuery(dialect)
+	query, params, err := goqu.Update(TABLE_RELATIONS).Set(
+		goqu.Record{
+			"subject_namespace_id": subjectNamespaceID,
+			"subject_id":           rel.SubjectID,
+			"object_namespace_id":  objectNamespaceID,
+			"object_id":            rel.ObjectID,
+			"role_id":              sql.NullString{String: roleID, Valid: roleID != ""},
+			"namespace_id":         sql.NullString{String: nsID, Valid: nsID != ""},
+		}).Where(goqu.Ex{
+		"id": rel.ID,
+	}).Returning(&relationCols{}).ToSQL()
+
 	if err != nil {
 		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var relationModel Relation
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(
-			ctx,
-			&updatedRelation,
-			updateRelationQuery,
-			id,
-			subjectNamespaceID,
-			toUpdate.SubjectID,
-			objectNamespaceID,
-			toUpdate.ObjectID,
-			sql.NullString{String: roleID, Valid: roleID != ""},
-			sql.NullString{String: nsID, Valid: nsID != ""},
-		)
+		return r.dbc.GetContext(ctx, &relationModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return relation.Relation{}, relation.ErrNotExist
 		}
+		if errors.Is(err, errForeignKeyViolation) {
+			return relation.Relation{}, relation.ErrNotExist
+		}
 		if errors.Is(err, errInvalidTexRepresentation) {
-			return relation.Relation{}, fmt.Errorf("%w: %s", relation.ErrInvalidUUID, err)
+			return relation.Relation{}, relation.ErrInvalidUUID
 		}
 		return relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	toUpdate, err = transformToRelation(updatedRelation)
+	rel, err = transformToRelation(relationModel)
 	if err != nil {
 		return relation.Relation{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
-	return toUpdate, nil
+	return rel, nil
 }

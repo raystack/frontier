@@ -26,11 +26,8 @@ func (s Service) List(ctx context.Context) ([]Namespace, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) Update(ctx context.Context, id string, ns Namespace) (Namespace, error) {
-	updatedNamespace, err := s.repository.Update(ctx, id, Namespace{
-		Name: ns.Name,
-		ID:   ns.ID,
-	})
+func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
+	updatedNamespace, err := s.repository.Update(ctx, ns)
 	if err != nil {
 		return Namespace{}, err
 	}

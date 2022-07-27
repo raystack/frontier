@@ -164,7 +164,7 @@ type mockNamespaceSrv struct {
 	GetFunc            func(ctx context.Context, id string) (namespace.Namespace, error)
 	CreateFunc         func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 	ListNamespacesFunc func(ctx context.Context) ([]namespace.Namespace, error)
-	UpdateFunc         func(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error)
+	UpdateFunc         func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
 func (m mockNamespaceSrv) Get(ctx context.Context, id string) (namespace.Namespace, error) {
@@ -179,6 +179,6 @@ func (m mockNamespaceSrv) Create(ctx context.Context, ns namespace.Namespace) (n
 	return m.CreateFunc(ctx, ns)
 }
 
-func (m mockNamespaceSrv) Update(ctx context.Context, id string, ns namespace.Namespace) (namespace.Namespace, error) {
-	return m.UpdateFunc(ctx, id, ns)
+func (m mockNamespaceSrv) Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+	return m.UpdateFunc(ctx, ns)
 }

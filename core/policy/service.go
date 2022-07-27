@@ -38,14 +38,16 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 	return policies, err
 }
 
-func (s Service) Update(ctx context.Context, id string, policy Policy) ([]Policy, error) {
-	if _, err := s.repository.Update(ctx, id, policy); err != nil {
+func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
+	if _, err := s.repository.Update(ctx, pol); err != nil {
 		return []Policy{}, err
 	}
+
 	policies, err := s.repository.List(ctx)
 	if err != nil {
 		return []Policy{}, err
 	}
+
 	if err = s.authzRepository.Add(ctx, policies); err != nil {
 		return []Policy{}, err
 	}

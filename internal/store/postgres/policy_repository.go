@@ -118,13 +118,13 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 }
 
 //TODO this is actually upsert
-func (r PolicyRepository) Create(ctx context.Context, policyToCreate policy.Policy) (string, error) {
+func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
 	// TODO need to check actionID != ""
 
 	//TODO need to find a way to deprecate this
-	roleID := str.DefaultStringIfEmpty(policyToCreate.Role.ID, policyToCreate.RoleID)
-	actionID := str.DefaultStringIfEmpty(policyToCreate.Action.ID, policyToCreate.ActionID)
-	nsID := str.DefaultStringIfEmpty(policyToCreate.Namespace.ID, policyToCreate.NamespaceID)
+	roleID := str.DefaultStringIfEmpty(pol.Role.ID, pol.RoleID)
+	actionID := str.DefaultStringIfEmpty(pol.Action.ID, pol.ActionID)
+	nsID := str.DefaultStringIfEmpty(pol.Namespace.ID, pol.NamespaceID)
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
 		goqu.Record{
