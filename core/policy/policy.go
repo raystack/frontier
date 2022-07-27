@@ -2,17 +2,11 @@ package policy
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
-)
-
-var (
-	ErrNotExist    = errors.New("policies doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
 )
 
 type Repository interface {

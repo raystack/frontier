@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"database/sql"
@@ -23,67 +22,61 @@ type User struct {
 	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
-func listUserQueryHelper(page int32, limit int32) (uint, uint) {
-	var defaultLimit int32 = 50
-	var defaultPage int32 = 1
-	if limit < 1 {
-		limit = defaultLimit
-	}
-	if page < 1 {
-		page = defaultPage
-	}
+// func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	getUserQuery, _, err := dialect.From(TABLE_USERS).Select(&User{}).
+// 		Where(goqu.Ex{
+// 			"id": goqu.L("$1"),
+// 		}).ToSQL()
 
-	offset := (page - 1) * limit
+// 	return getUserQuery, err
+// }
 
-	return uint(limit), uint(offset)
-}
+// func buildGetUsersByIDsQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	getUsersByIDsQuery, _, err := dialect.From(TABLE_USERS).Select(&User{}).Prepared(true).Where(
+// 		goqu.C("id").In("id_PH")).ToSQL()
 
-func buildGetUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	getUserQuery, _, err := dialect.From("users").
-		Where(goqu.Ex{
-			"id": goqu.L("$1"),
-		}).ToSQL()
+// 	return getUsersByIDsQuery, err
+// }
 
-	return getUserQuery, err
-}
+// func buildGetUserByEmailQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	getCurrentUserQuery, _, err := dialect.From("users").Where(
+// 		goqu.Ex{
+// 			"email": goqu.L("$1"),
+// 		}).ToSQL()
 
-func buildGetUsersByIDsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getUsersByIDsQuery, _, err := goqu.From("users").Prepared(true).Where(
-		goqu.C("id").In("id_PH")).ToSQL()
+// 	return getCurrentUserQuery, err
+// }
 
-	return getUsersByIDsQuery, err
-}
+// func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	createUserQuery, _, err := dialect.Insert("users").Rows(
+// 		goqu.Record{
+// 			"name":     goqu.L("$1"),
+// 			"email":    goqu.L("$2"),
+// 			"metadata": goqu.L("$3"),
+// 		}).Returning(&User{}).ToSQL()
 
-func buildGetUserByEmailQuery(dialect goqu.DialectWrapper) (string, error) {
-	getCurrentUserQuery, _, err := dialect.From("users").Where(
-		goqu.Ex{
-			"email": goqu.L("$1"),
-		}).ToSQL()
+// 	return createUserQuery, err
+// }
 
-	return getCurrentUserQuery, err
-}
+// func buildListUsersQuery(dialect goqu.DialectWrapper, limit uint, page uint, keyword string) (string, error) {
+// 	var defaultLimit uint = 50
+// 	var defaultPage uint = 1
+// 	if limit < 1 {
+// 		limit = defaultLimit
+// 	}
+// 	if page < 1 {
+// 		page = defaultPage
+// 	}
 
-func buildCreateUserQuery(dialect goqu.DialectWrapper) (string, error) {
-	createUserQuery, _, err := dialect.Insert("users").Rows(
-		goqu.Record{
-			"name":     goqu.L("$1"),
-			"email":    goqu.L("$2"),
-			"metadata": goqu.L("$3"),
-		}).Returning(&User{}).ToSQL()
+// 	offset := (page - 1) * limit
 
-	return createUserQuery, err
-}
+// 	listUsersQuery, _, err := dialect.From("users").Where(goqu.Or(
+// 		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
+// 		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
+// 	)).Limit(limit).Offset(offset).ToSQL()
 
-func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, page int32, keyword string) (string, error) {
-	limitRows, offset := listUserQueryHelper(page, limit)
-
-	listUsersQuery, _, err := dialect.From("users").Where(goqu.Or(
-		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", keyword)),
-		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", keyword)),
-	)).Limit(limitRows).Offset(offset).ToSQL()
-
-	return listUsersQuery, err
-}
+// 	return listUsersQuery, err
+// }
 
 // func buildSelectUserForUpdateQuery(dialect goqu.DialectWrapper) (string, error) {
 // 	selectUserForUpdateQuery, _, err := dialect.From("users").Prepared(true).Where(
@@ -94,32 +87,32 @@ func buildListUsersQuery(dialect goqu.DialectWrapper, limit int32, page int32, k
 // 	return selectUserForUpdateQuery, err
 // }
 
-func buildUpdateUserByIDQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateUserQuery, _, err := dialect.Update("users").Set(
-		goqu.Record{
-			"name":       goqu.L("$2"),
-			"email":      goqu.L("$3"),
-			"metadata":   goqu.L("$4"),
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"id": goqu.L("$1"),
-	}).Returning(&User{}).ToSQL()
+// func buildUpdateUserByIDQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	updateUserQuery, _, err := dialect.Update("users").Set(
+// 		goqu.Record{
+// 			"name":       goqu.L("$2"),
+// 			"email":      goqu.L("$3"),
+// 			"metadata":   goqu.L("$4"),
+// 			"updated_at": goqu.L("now()"),
+// 		}).Where(goqu.Ex{
+// 		"id": goqu.L("$1"),
+// 	}).Returning(&User{}).ToSQL()
 
-	return updateUserQuery, err
-}
+// 	return updateUserQuery, err
+// }
 
-func buildUpdateUserByEmailQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateUserByEmailQuery, _, err := dialect.Update("users").Set(
-		goqu.Record{
-			"name":       goqu.L("$2"),
-			"metadata":   goqu.L("$3"),
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"email": goqu.L("$1"),
-	}).Returning(&User{}).ToSQL()
+// func buildUpdateUserByEmailQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	updateUserByEmailQuery, _, err := dialect.Update("users").Set(
+// 		goqu.Record{
+// 			"name":       goqu.L("$2"),
+// 			"metadata":   goqu.L("$3"),
+// 			"updated_at": goqu.L("now()"),
+// 		}).Where(goqu.Ex{
+// 		"email": goqu.L("$1"),
+// 	}).Returning(&User{}).ToSQL()
 
-	return updateUserByEmailQuery, err
-}
+// 	return updateUserByEmailQuery, err
+// }
 
 func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
 	listUserGroupsQuery, _, err := dialect.Select(

@@ -25,7 +25,10 @@ func (s Service) List(ctx context.Context) ([]Policy, error) {
 }
 
 func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
-	policies, err := s.repository.Create(ctx, policy)
+	if _, err := s.repository.Create(ctx, policy); err != nil {
+		return []Policy{}, err
+	}
+	policies, err := s.repository.List(ctx)
 	if err != nil {
 		return []Policy{}, err
 	}
@@ -36,11 +39,13 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, policy Policy) ([]Policy, error) {
-	policies, err := s.repository.Update(ctx, id, policy)
+	if _, err := s.repository.Update(ctx, id, policy); err != nil {
+		return []Policy{}, err
+	}
+	policies, err := s.repository.List(ctx)
 	if err != nil {
 		return []Policy{}, err
 	}
-
 	if err = s.authzRepository.Add(ctx, policies); err != nil {
 		return []Policy{}, err
 	}

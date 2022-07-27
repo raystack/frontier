@@ -10,6 +10,8 @@ import (
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/internal/store/postgres/migrations"
@@ -215,6 +217,56 @@ func bootstrapUser(client *db.Client) ([]user.User, error) {
 	var insertedData []user.User
 	for _, d := range data {
 		domain, err := userRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, domain)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapRole(client *db.Client) ([]string, error) {
+	roleRepository := postgres.NewRoleRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-role.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []role.Role
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []string
+	for _, d := range data {
+		domain, err := roleRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, domain)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapPolicy(client *db.Client) ([]string, error) {
+	policyRepository := postgres.NewPolicyRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-policy.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []policy.Policy
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []string
+	for _, d := range data {
+		domain, err := policyRepository.Create(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}

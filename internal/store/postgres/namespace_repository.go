@@ -7,6 +7,7 @@ import (
 
 	"database/sql"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -22,14 +23,20 @@ func NewNamespaceRepository(dbc *db.Client) *NamespaceRepository {
 }
 
 func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Namespace, error) {
-	var fetchedNamespace Namespace
-	getNamespaceQuery, err := buildGetNamespaceQuery(dialect)
+	if id == "" {
+		return namespace.Namespace{}, namespace.ErrInvalidID
+	}
+
+	query, params, err := dialect.Select(&Namespace{}).From(TABLE_NAMESPACES).Where(goqu.Ex{
+		"id": id,
+	}).ToSQL()
 	if err != nil {
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var fetchedNamespace Namespace
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &fetchedNamespace, getNamespaceQuery, id)
+		return r.dbc.GetContext(ctx, &fetchedNamespace, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return namespace.Namespace{}, namespace.ErrNotExist
@@ -46,20 +53,32 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 }
 
 // TODO this is actually an upsert
-func (r NamespaceRepository) Create(ctx context.Context, namespaceToCreate namespace.Namespace) (namespace.Namespace, error) {
-	if namespaceToCreate.ID == "" {
+func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+	if ns.ID == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 
-	createNamespaceQuery, err := buildCreateNamespaceQuery(dialect)
+	query, params, err := dialect.Insert(TABLE_NAMESPACES).Rows(
+		goqu.Record{
+			"id":   ns.ID,
+			"name": ns.Name,
+		}).OnConflict(
+		goqu.DoUpdate("id", goqu.Record{
+			"name":       ns.Name,
+			"updated_at": goqu.L("now()"),
+		})).Returning(&Namespace{}).ToSQL()
 	if err != nil {
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var nsModel Namespace
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, createNamespaceQuery, namespaceToCreate.ID, namespaceToCreate.Name).StructScan(&nsModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&nsModel)
 	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, errDuplicateKey) {
+			return namespace.Namespace{}, namespace.ErrConflict
+		}
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
@@ -72,14 +91,14 @@ func (r NamespaceRepository) Create(ctx context.Context, namespaceToCreate names
 }
 
 func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, error) {
-	var fetchedNamespaces []Namespace
-	listNamespacesQuery, err := buildListNamespacesQuery(dialect)
+	query, params, err := dialect.Select(&Namespace{}).From(TABLE_NAMESPACES).ToSQL()
 	if err != nil {
 		return []namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var fetchedNamespaces []Namespace
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedNamespaces, listNamespacesQuery)
+		return r.dbc.SelectContext(ctx, &fetchedNamespaces, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []namespace.Namespace{}, namespace.ErrNotExist
@@ -94,29 +113,41 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 		if err != nil {
 			return []namespace.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
-
 		transformedNamespaces = append(transformedNamespaces, transformedNamespace)
 	}
 
 	return transformedNamespaces, nil
 }
 
-func (r NamespaceRepository) Update(ctx context.Context, toUpdate namespace.Namespace) (namespace.Namespace, error) {
-	if toUpdate.ID == "" {
+func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+	if ns.ID == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 
-	updateNamespaceQuery, err := buildUpdateNamespaceQuery(dialect)
+	query, params, err := dialect.Update(TABLE_NAMESPACES).Set(
+		goqu.Record{
+			"id":         ns.ID,
+			"name":       ns.Name,
+			"updated_at": goqu.L("now()"),
+		}).Where(
+		goqu.Ex{
+			"id": ns.ID,
+		},
+	).Returning(&Namespace{}).ToSQL()
 	if err != nil {
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var nsModel Namespace
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, updateNamespaceQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name).StructScan(&nsModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&nsModel)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return namespace.Namespace{}, namespace.ErrNotExist
+		}
+		if errors.Is(err, errDuplicateKey) {
+			return namespace.Namespace{}, namespace.ErrConflict
 		}
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

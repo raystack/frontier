@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/doug-martin/goqu/v9"
 	"github.com/lib/pq"
-
 	"github.com/odpf/shield/core/role"
 )
 
@@ -21,71 +19,73 @@ type Role struct {
 	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
-func buildRoleSelectStatement(dialect goqu.DialectWrapper) *goqu.SelectDataset {
-	roleSelectStatement := dialect.Select(
-		goqu.I("r.id"),
-		goqu.I("r.name"),
-		goqu.I("r.types"),
-		goqu.I("r.namespace_id"),
-		goqu.I("r.metadata"),
-		goqu.I("namespaces.id").As(goqu.C("namespace.id")),
-		goqu.I("namespaces.name").As(goqu.C("namespace.name")),
-	).From(goqu.T(TABLE_ROLES).As("r"))
+// func buildRoleSelectStatement(dialect goqu.DialectWrapper) *goqu.SelectDataset {
+// 	roleSelectStatement := dialect.Select(
+// 		goqu.I("r.id"),
+// 		goqu.I("r.name"),
+// 		goqu.I("r.types"),
+// 		goqu.I("r.namespace_id"),
+// 		goqu.I("r.metadata"),
+// 		goqu.I("namespaces.id").As(goqu.C("namespace.id")),
+// 		goqu.I("namespaces.name").As(goqu.C("namespace.name")),
+// 	).From(goqu.T(TABLE_ROLES).As("r"))
 
-	return roleSelectStatement
-}
+// 	return roleSelectStatement
+// }
 
-func buildRoleJoinStatement(selectStatement *goqu.SelectDataset) *goqu.SelectDataset {
-	roleJoinStatement := selectStatement.Join(goqu.T(TABLE_NAMESPACE), goqu.On(
-		goqu.I("namespaces.id").Eq(goqu.I("r.namespace_id"))))
+// func buildRoleJoinStatement(selectStatement *goqu.SelectDataset) *goqu.SelectDataset {
+// 	roleJoinStatement := selectStatement.Join(goqu.T(TABLE_NAMESPACES), goqu.On(
+// 		goqu.I("namespaces.id").Eq(goqu.I("r.namespace_id"))))
 
-	return roleJoinStatement
-}
+// 	return roleJoinStatement
+// }
 
-func buildCreateRoleQuery(dialect goqu.DialectWrapper) (string, error) {
-	createRoleQuery, _, err := dialect.Insert(TABLE_ROLES).Rows(
-		goqu.Record{
-			"id":           goqu.L("$1"),
-			"name":         goqu.L("$2"),
-			"types":        goqu.L("$3"),
-			"namespace_id": goqu.L("$4"),
-			"metadata":     goqu.L("$5"),
-		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
-		"name": goqu.L("$2"),
-	})).Returning("id").ToSQL()
+// func buildCreateRoleQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	createRoleQuery, _, err := dialect.Insert(TABLE_ROLES).Rows(
+// 		goqu.Record{
+// 			"id":           goqu.L("$1"),
+// 			"name":         goqu.L("$2"),
+// 			"types":        goqu.L("$3"),
+// 			"namespace_id": goqu.L("$4"),
+// 			"metadata":     goqu.L("$5"),
+// 		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
+// 		"name": goqu.L("$2"),
+// 	})).Returning("id").ToSQL()
 
-	return createRoleQuery, err
-}
-func buildGetRoleQuery(dialect goqu.DialectWrapper) (string, error) {
-	selectStatement := buildRoleSelectStatement(dialect)
-	joinStatement := buildRoleJoinStatement(selectStatement)
-	getRoleQuery, _, err := joinStatement.Where(goqu.Ex{
-		"r.id": goqu.L("$1"),
-	}).ToSQL()
+// 	return createRoleQuery, err
+// }
 
-	return getRoleQuery, err
-}
-func buildListRolesQuery(dialect goqu.DialectWrapper) (string, error) {
-	selectStatement := buildRoleSelectStatement(dialect)
-	joinStatement := buildRoleJoinStatement(selectStatement)
-	listRolesQuery, _, err := joinStatement.ToSQL()
+// func buildGetRoleQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	selectStatement := buildRoleSelectStatement(dialect)
+// 	joinStatement := buildRoleJoinStatement(selectStatement)
+// 	getRoleQuery, _, err := joinStatement.Where(goqu.Ex{
+// 		"r.id": goqu.L("$1"),
+// 	}).ToSQL()
 
-	return listRolesQuery, err
-}
-func buildUpdateRoleQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateRoleQuery, _, err := dialect.Update(TABLE_ROLES).Set(
-		goqu.Record{
-			"name":         goqu.L("$2"),
-			"types":        goqu.L("$3"),
-			"namespace_id": goqu.L("$4"),
-			"metadata":     goqu.L("$5"),
-			"updated_at":   goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"id": goqu.L("$1"),
-	}).Returning("id").ToSQL()
+// 	return getRoleQuery, err
+// }
+// func buildListRolesQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	selectStatement := buildRoleSelectStatement(dialect)
+// 	joinStatement := buildRoleJoinStatement(selectStatement)
+// 	listRolesQuery, _, err := joinStatement.ToSQL()
 
-	return updateRoleQuery, err
-}
+// 	return listRolesQuery, err
+// }
+
+// func buildUpdateRoleQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	updateRoleQuery, _, err := dialect.Update(TABLE_ROLES).Set(
+// 		goqu.Record{
+// 			"name":         goqu.L("$2"),
+// 			"types":        goqu.L("$3"),
+// 			"namespace_id": goqu.L("$4"),
+// 			"metadata":     goqu.L("$5"),
+// 			"updated_at":   goqu.L("now()"),
+// 		}).Where(goqu.Ex{
+// 		"id": goqu.L("$1"),
+// 	}).Returning("id").ToSQL()
+
+// 	return updateRoleQuery, err
+// }
 
 // func (s Store) GetRole(ctx context.Context, id string) (role.Role, error) {
 // 	var fetchedRole Role

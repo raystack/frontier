@@ -67,8 +67,8 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T(TABLE_RELATION).As("r")).
-		Join(goqu.T(TABLE_USER).As("u"), goqu.On(
+	).From(goqu.T(TABLE_RELATIONS).As("r")).
+		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
 			goqu.I("u.id").Cast("VARCHAR").
 				Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
@@ -82,7 +82,7 @@ func buildListGroupUsersQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildListUserGroupRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	listUserGroupRelationsQuery, _, err := dialect.From(TABLE_RELATION).Where(goqu.Ex{
+	listUserGroupRelationsQuery, _, err := dialect.From(TABLE_RELATIONS).Where(goqu.Ex{
 		"subject_namespace_id": goqu.L(namespace.DefinitionUser.ID),
 		"object_namespace_id":  goqu.L(namespace.DefinitionTeam.ID),
 		"subject_id":           goqu.L("$1"),

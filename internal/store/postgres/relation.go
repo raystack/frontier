@@ -41,7 +41,7 @@ type relationCols struct {
 func buildCreateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
 	// TODO: Look for a better way to implement goqu.OnConflict with multiple columns
 
-	createRelationQuery, _, err := dialect.Insert(TABLE_RELATION).Rows(
+	createRelationQuery, _, err := dialect.Insert(TABLE_RELATIONS).Rows(
 		goqu.Record{
 			"subject_namespace_id": goqu.L("$1"),
 			"subject_id":           goqu.L("$2"),
@@ -57,13 +57,13 @@ func buildCreateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildListRelationQuery(dialect goqu.DialectWrapper) (string, error) {
-	listRelationQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).ToSQL()
+	listRelationQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).ToSQL()
 
 	return listRelationQuery, err
 }
 
 func buildGetRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getRelationsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).Where(goqu.Ex{
+	getRelationsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 
@@ -71,7 +71,7 @@ func buildGetRelationsQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildUpdateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateRelationQuery, _, err := goqu.Update(TABLE_RELATION).Set(
+	updateRelationQuery, _, err := goqu.Update(TABLE_RELATIONS).Set(
 		goqu.Record{
 			"subject_namespace_id": goqu.L("$2"),
 			"subject_id":           goqu.L("$3"),
@@ -87,7 +87,7 @@ func buildUpdateRelationQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetRelationByFieldsQuery(dialect goqu.DialectWrapper) (string, error) {
-	getRelationByFieldsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATION).Where(goqu.Ex{
+	getRelationByFieldsQuery, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(goqu.Ex{
 		"subject_namespace_id": goqu.L("$1"),
 		"subject_id":           goqu.L("$2"),
 		"object_namespace_id":  goqu.L("$3"),
@@ -108,7 +108,7 @@ func buildGetRelationByFieldsQuery(dialect goqu.DialectWrapper) (string, error) 
 }
 
 func buildDeleteRelationByIDQuery(dialect goqu.DialectWrapper) (string, error) {
-	deleteRelationByIDQuery, _, err := dialect.Delete(TABLE_RELATION).Where(goqu.Ex{
+	deleteRelationByIDQuery, _, err := dialect.Delete(TABLE_RELATIONS).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).ToSQL()
 

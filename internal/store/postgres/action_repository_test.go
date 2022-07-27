@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
@@ -65,7 +66,7 @@ func (s *ActionRepositoryTestSuite) TearDownTest() {
 
 func (s *ActionRepositoryTestSuite) cleanup() error {
 	queries := []string{
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ACTION),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ACTIONS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }
@@ -81,9 +82,9 @@ func (s *ActionRepositoryTestSuite) TestGet() {
 	var testCases = []testCase{
 		{
 			Description: "should get an action",
-			SelectedID:  "2",
+			SelectedID:  "action2",
 			ExpectedAction: action.Action{
-				ID:          "2",
+				ID:          "action2",
 				Name:        "action-get",
 				NamespaceID: "ns1",
 			},
@@ -92,6 +93,10 @@ func (s *ActionRepositoryTestSuite) TestGet() {
 			Description: "should return error no exist if can't found action",
 			SelectedID:  "10000",
 			ErrString:   action.ErrNotExist.Error(),
+		},
+		{
+			Description: "should return error if id is empty",
+			ErrString:   action.ErrInvalidID.Error(),
 		},
 	}
 
@@ -114,7 +119,7 @@ func (s *ActionRepositoryTestSuite) TestCreate() {
 	type testCase struct {
 		Description    string
 		ActionToCreate action.Action
-		ExpectedID     string
+		ExpectedAction action.Action
 		ErrString      string
 	}
 
@@ -126,7 +131,23 @@ func (s *ActionRepositoryTestSuite) TestCreate() {
 				Name:        "action-123",
 				NamespaceID: "ns2",
 			},
-			ExpectedID: "123",
+			ExpectedAction: action.Action{
+				ID:          "123",
+				Name:        "action-123",
+				NamespaceID: "ns2",
+				Namespace: namespace.Namespace{
+					ID: "ns2",
+				},
+			},
+		},
+		{
+			Description: "should return error if namespace id not exist",
+			ActionToCreate: action.Action{
+				ID:          "12345",
+				Name:        "action-123",
+				NamespaceID: "random-ns",
+			},
+			ErrString: action.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if action id is empty",
@@ -142,8 +163,8 @@ func (s *ActionRepositoryTestSuite) TestCreate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if tc.ExpectedID != "" && (got.ID != tc.ExpectedID) {
-				s.T().Fatalf("got result %+v, expected was %+v", got.ID, tc.ExpectedID)
+			if !cmp.Equal(got, tc.ExpectedAction, cmpopts.IgnoreFields(action.Action{}, "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedAction)
 			}
 		})
 	}
@@ -161,22 +182,22 @@ func (s *ActionRepositoryTestSuite) TestList() {
 			Description: "should get all actions",
 			ExpectedActions: []action.Action{
 				{
-					ID:          "1",
+					ID:          "action1",
 					Name:        "action-post",
 					NamespaceID: "ns1",
 				},
 				{
-					ID:          "2",
+					ID:          "action2",
 					Name:        "action-get",
 					NamespaceID: "ns1",
 				},
 				{
-					ID:          "3",
+					ID:          "action3",
 					Name:        "action-put",
 					NamespaceID: "ns2",
 				},
 				{
-					ID:          "4",
+					ID:          "action4",
 					Name:        "action-delete",
 					NamespaceID: "ns2",
 				},
@@ -203,7 +224,7 @@ func (s *ActionRepositoryTestSuite) TestUpdate() {
 	type testCase struct {
 		Description    string
 		ActionToUpdate action.Action
-		ExpectedID     string
+		ExpectedAction action.Action
 		ErrString      string
 	}
 
@@ -211,11 +232,27 @@ func (s *ActionRepositoryTestSuite) TestUpdate() {
 		{
 			Description: "should update an action",
 			ActionToUpdate: action.Action{
-				ID:          "2",
+				ID:          "action2",
 				Name:        "action-get-updated",
 				NamespaceID: "ns2",
 			},
-			ExpectedID: "2",
+			ExpectedAction: action.Action{
+				ID:          "action2",
+				Name:        "action-get-updated",
+				NamespaceID: "ns2",
+				Namespace: namespace.Namespace{
+					ID: "ns2",
+				},
+			},
+		},
+		{
+			Description: "should return error if namespace id does not exist",
+			ActionToUpdate: action.Action{
+				ID:          "action2",
+				Name:        "action-get-updated",
+				NamespaceID: "random-ns2",
+			},
+			ErrString: action.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if action not found",
@@ -239,8 +276,8 @@ func (s *ActionRepositoryTestSuite) TestUpdate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if tc.ExpectedID != "" && (got.ID != tc.ExpectedID) {
-				s.T().Fatalf("got result %+v, expected was %+v", got.ID, tc.ExpectedID)
+			if !cmp.Equal(got, tc.ExpectedAction, cmpopts.IgnoreFields(action.Action{}, "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedAction)
 			}
 		})
 	}

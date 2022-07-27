@@ -62,7 +62,7 @@ func (s *UserRepositoryTestSuite) TearDownTest() {
 
 func (s *UserRepositoryTestSuite) cleanup() error {
 	queries := []string{
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USER),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }

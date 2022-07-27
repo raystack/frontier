@@ -47,7 +47,7 @@ type ResourceCols struct {
 }
 
 func buildListResourcesStatement(dialect goqu.DialectWrapper) *goqu.SelectDataset {
-	listResourcesStatement := dialect.From(TABLE_RESOURCE)
+	listResourcesStatement := dialect.From(TABLE_RESOURCES)
 
 	return listResourcesStatement
 }
@@ -61,7 +61,7 @@ func buildGetResourcesByIDQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildCreateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
-	createResourceQuery, _, err := dialect.Insert(TABLE_RESOURCE).Rows(
+	createResourceQuery, _, err := dialect.Insert(TABLE_RESOURCES).Rows(
 		goqu.Record{
 			"urn":          goqu.L("$1"),
 			"name":         goqu.L("$2"),
@@ -83,7 +83,7 @@ func buildCreateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildGetResourcesByURNQuery(dialect goqu.DialectWrapper) (string, error) {
-	getResourcesByURNQuery, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCE).Where(goqu.Ex{
+	getResourcesByURNQuery, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
 		"urn": goqu.L("$1"),
 	}).ToSQL()
 
@@ -91,7 +91,7 @@ func buildGetResourcesByURNQuery(dialect goqu.DialectWrapper) (string, error) {
 }
 
 func buildUpdateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateResourceQuery, _, err := dialect.Update(TABLE_RESOURCE).Set(
+	updateResourceQuery, _, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
 			"name":         goqu.L("$2"),
 			"project_id":   goqu.L("$3"),

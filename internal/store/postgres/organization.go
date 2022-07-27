@@ -25,7 +25,7 @@ type Organization struct {
 
 // *Get Organizations Query
 func buildGetOrganizationsBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
-	getOrganizationsBySlugQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.Ex{
+	getOrganizationsBySlugQuery, _, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"slug": goqu.L("$1"),
 	}).ToSQL()
 
@@ -33,7 +33,7 @@ func buildGetOrganizationsBySlugQuery(dialect goqu.DialectWrapper) (string, erro
 }
 
 func buildGetOrganizationsByIDQuery(dialect goqu.DialectWrapper) (string, error) {
-	getOrganizationsByIDQuery, _, err := dialect.From(TABLE_ORG).Where(goqu.ExOr{
+	getOrganizationsByIDQuery, _, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.ExOr{
 		"id":   goqu.L("$1"),
 		"slug": goqu.L("$2"),
 	}).ToSQL()
@@ -42,7 +42,7 @@ func buildGetOrganizationsByIDQuery(dialect goqu.DialectWrapper) (string, error)
 
 // *Create Organization Query
 func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
-	createOrganizationQuery, _, err := dialect.Insert(TABLE_ORG).Rows(
+	createOrganizationQuery, _, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(
 		goqu.Record{
 			"name":     goqu.L("$1"),
 			"slug":     goqu.L("$2"),
@@ -54,7 +54,7 @@ func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
 
 // *List Organization Query
 func buildListOrganizationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	listOrganizationsQuery, _, err := dialect.From(TABLE_ORG).ToSQL()
+	listOrganizationsQuery, _, err := dialect.From(TABLE_ORGANIZATIONS).ToSQL()
 
 	return listOrganizationsQuery, err
 }
@@ -67,8 +67,8 @@ func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T(TABLE_RELATION).As("r")).
-		Join(goqu.T(TABLE_USER).As("u"), goqu.On(
+	).From(goqu.T(TABLE_RELATIONS).As("r")).
+		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
 		"r.object_id":            goqu.L("$1"),
@@ -82,7 +82,7 @@ func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
 
 // *Update Organization Query
 func buildUpdateOrganizationBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORG).Set(
+	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
 			"name":       goqu.L("$2"),
 			"slug":       goqu.L("$3"),
@@ -96,7 +96,7 @@ func buildUpdateOrganizationBySlugQuery(dialect goqu.DialectWrapper) (string, er
 }
 
 func buildUpdateOrganizationByIDQuery(dialect goqu.DialectWrapper) (string, error) {
-	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORG).Set(
+	updateOrganizationQuery, _, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
 			"name":       goqu.L("$3"),
 			"slug":       goqu.L("$4"),

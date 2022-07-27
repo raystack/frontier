@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/pkg/db"
 
 	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type ActionRepository struct {
@@ -23,14 +23,22 @@ func NewActionRepository(dbc *db.Client) *ActionRepository {
 }
 
 func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, error) {
+	if id == "" {
+		return action.Action{}, action.ErrInvalidID
+	}
+
 	var fetchedAction Action
-	getActionQuery, err := buildGetActionQuery(dialect)
+	query, params, err := dialect.Select(&returnedActionColumns{}).From(TABLE_ACTIONS).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
 	if err != nil {
 		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &fetchedAction, getActionQuery, id)
+		return r.dbc.GetContext(ctx, &fetchedAction, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return action.Action{}, action.ErrNotExist
@@ -47,21 +55,32 @@ func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, er
 }
 
 // TODO this is actually an upsert
-func (r ActionRepository) Create(ctx context.Context, actionToCreate action.Action) (action.Action, error) {
-	if actionToCreate.ID == "" {
+func (r ActionRepository) Create(ctx context.Context, act action.Action) (action.Action, error) {
+	if act.ID == "" {
 		return action.Action{}, action.ErrInvalidID
 	}
 
-	nsID := str.DefaultStringIfEmpty(actionToCreate.Namespace.ID, actionToCreate.NamespaceID)
-	createActionQuery, err := buildCreateActionQuery(dialect)
+	query, params, err := dialect.Insert(TABLE_ACTIONS).Rows(
+		goqu.Record{
+			"id":           act.ID,
+			"name":         act.Name,
+			"namespace_id": act.NamespaceID,
+		}).OnConflict(
+		goqu.DoUpdate("id", goqu.Record{
+			"name": act.Name,
+		})).Returning(&returnedActionColumns{}).ToSQL()
 	if err != nil {
 		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var actionModel Action
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, createActionQuery, actionToCreate.ID, actionToCreate.Name, nsID).StructScan(&actionModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, errForeignKeyViolation) {
+			return action.Action{}, action.ErrNotExist
+		}
 		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
@@ -75,13 +94,13 @@ func (r ActionRepository) Create(ctx context.Context, actionToCreate action.Acti
 
 func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
 	var fetchedActions []Action
-	listActionsQuery, err := buildListActionsQuery(dialect)
+	query, params, err := dialect.Select(&returnedActionColumns{}).From(TABLE_ACTIONS).ToSQL()
 	if err != nil {
 		return []action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedActions, listActionsQuery)
+		return r.dbc.SelectContext(ctx, &fetchedActions, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []action.Action{}, nil
@@ -101,21 +120,32 @@ func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
 	return transformedActions, nil
 }
 
-func (r ActionRepository) Update(ctx context.Context, toUpdate action.Action) (action.Action, error) {
-	if toUpdate.ID == "" {
+func (r ActionRepository) Update(ctx context.Context, act action.Action) (action.Action, error) {
+	if act.ID == "" {
 		return action.Action{}, action.ErrInvalidID
 	}
 
-	updateActionQuery, err := buildUpdateActionQuery(dialect)
+	query, params, err := dialect.Update(TABLE_ACTIONS).Set(
+		goqu.Record{
+			"name":         act.Name,
+			"namespace_id": act.NamespaceID,
+			"updated_at":   goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": act.ID,
+	}).Returning(&returnedActionColumns{}).ToSQL()
 	if err != nil {
 		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var actionModel Action
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, updateActionQuery, toUpdate.ID, toUpdate.Name, toUpdate.NamespaceID).StructScan(&actionModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
+			return action.Action{}, action.ErrNotExist
+		}
+		if errors.Is(err, errForeignKeyViolation) {
 			return action.Action{}, action.ErrNotExist
 		}
 		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)

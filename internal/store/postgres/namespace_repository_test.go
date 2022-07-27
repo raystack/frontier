@@ -60,7 +60,7 @@ func (s *NamespaceRepositoryTestSuite) TearDownTest() {
 
 func (s *NamespaceRepositoryTestSuite) cleanup() error {
 	queries := []string{
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_NAMESPACE),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_NAMESPACES),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }
@@ -87,6 +87,10 @@ func (s *NamespaceRepositoryTestSuite) TestGet() {
 			SelectedID:  "10000",
 			ErrString:   namespace.ErrNotExist.Error(),
 		},
+		{
+			Description: "should return error if id empty",
+			ErrString:   namespace.ErrInvalidID.Error(),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -108,7 +112,7 @@ func (s *NamespaceRepositoryTestSuite) TestCreate() {
 	type testCase struct {
 		Description       string
 		NamespaceToCreate namespace.Namespace
-		ExpectedID        string
+		ExpectedNamespace namespace.Namespace
 		ErrString         string
 	}
 
@@ -119,7 +123,18 @@ func (s *NamespaceRepositoryTestSuite) TestCreate() {
 				ID:   "ns3",
 				Name: "ns3",
 			},
-			ExpectedID: "ns3",
+			ExpectedNamespace: namespace.Namespace{
+				ID:   "ns3",
+				Name: "ns3",
+			},
+		},
+		{
+			Description: "should return error if namespace name already exist",
+			NamespaceToCreate: namespace.Namespace{
+				ID:   "ns-new",
+				Name: "ns2",
+			},
+			ErrString: namespace.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if namespace id is empty",
@@ -135,8 +150,8 @@ func (s *NamespaceRepositoryTestSuite) TestCreate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if tc.ExpectedID != "" && (got.ID != tc.ExpectedID) {
-				s.T().Fatalf("got result %+v, expected was %+v", got.ID, tc.ExpectedID)
+			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespace)
 			}
 		})
 	}
@@ -184,7 +199,7 @@ func (s *NamespaceRepositoryTestSuite) TestUpdate() {
 	type testCase struct {
 		Description       string
 		NamespaceToUpdate namespace.Namespace
-		ExpectedID        string
+		ExpectedNamespace namespace.Namespace
 		ErrString         string
 	}
 
@@ -195,7 +210,18 @@ func (s *NamespaceRepositoryTestSuite) TestUpdate() {
 				ID:   "ns1",
 				Name: "ns1-update",
 			},
-			ExpectedID: "ns1",
+			ExpectedNamespace: namespace.Namespace{
+				ID:   "ns1",
+				Name: "ns1-update",
+			},
+		},
+		{
+			Description: "should return error if namespace name already exist",
+			NamespaceToUpdate: namespace.Namespace{
+				ID:   "ns2",
+				Name: "ns1-update",
+			},
+			ErrString: namespace.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if namespace not found",
@@ -219,8 +245,8 @@ func (s *NamespaceRepositoryTestSuite) TestUpdate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if tc.ExpectedID != "" && (got.ID != tc.ExpectedID) {
-				s.T().Fatalf("got result %+v, expected was %+v", got.ID, tc.ExpectedID)
+			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespace)
 			}
 		})
 	}

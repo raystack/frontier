@@ -2,7 +2,6 @@ package role
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -10,16 +9,11 @@ import (
 	"github.com/odpf/shield/core/namespace"
 )
 
-var (
-	ErrNotExist    = errors.New("role doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
 type Repository interface {
-	Create(ctx context.Context, role Role) (Role, error)
 	Get(ctx context.Context, id string) (Role, error)
 	List(ctx context.Context) ([]Role, error)
-	Update(ctx context.Context, toUpdate Role) (Role, error)
+	Create(ctx context.Context, role Role) (string, error)
+	Update(ctx context.Context, toUpdate Role) (string, error)
 }
 
 type Role struct {

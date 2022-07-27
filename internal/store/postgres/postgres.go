@@ -21,16 +21,16 @@ var (
 )
 
 const (
-	TABLE_ACTION    = "actions"
-	TABLE_GROUPS    = "groups"
-	TABLE_NAMESPACE = "namespaces"
-	TABLE_ORG       = "organizations"
-	TABLE_POLICY    = "policies"
-	TABLE_PROJECTS  = "projects"
-	TABLE_RELATION  = "relations"
-	TABLE_RESOURCE  = "resources"
-	TABLE_ROLES     = "roles"
-	TABLE_USER      = "users"
+	TABLE_ACTIONS       = "actions"
+	TABLE_GROUPS        = "groups"
+	TABLE_NAMESPACES    = "namespaces"
+	TABLE_ORGANIZATIONS = "organizations"
+	TABLE_POLICIES      = "policies"
+	TABLE_PROJECTS      = "projects"
+	TABLE_RELATIONS     = "relations"
+	TABLE_RESOURCES     = "resources"
+	TABLE_ROLES         = "roles"
+	TABLE_USERS         = "users"
 )
 
 func isUUID(key string) bool {
