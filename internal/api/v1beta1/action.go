@@ -52,10 +52,14 @@ func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.Create
 		Name:        request.GetBody().Name,
 		NamespaceID: request.GetBody().NamespaceId,
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, action.ErrNotExist):
+			return nil, grpcActionNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	actionPB, err := transformActionToPB(newAction)
@@ -104,7 +108,12 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, action.ErrNotExist):
+			return nil, grpcActionNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	actionPB, err := transformActionToPB(updatedAction)

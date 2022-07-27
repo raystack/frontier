@@ -45,14 +45,14 @@ func TestListOrganizations(t *testing.T) {
 	}{
 		{
 			title: "error in Org Service",
-			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
+			mockOrgSrv: mockOrgSrv{ListFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
 				return []organization.Organization{}, errors.New("some error")
 			}},
 			want: nil,
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		}, {
 			title: "success",
-			mockOrgSrv: mockOrgSrv{ListOrganizationsFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
+			mockOrgSrv: mockOrgSrv{ListFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
 				var testOrgList []organization.Organization
 				for _, o := range testOrgMap {
 					testOrgList = append(testOrgList, o)
@@ -103,7 +103,7 @@ func TestCreateOrganization(t *testing.T) {
 	}{
 		{
 			title: "error in fetching org list",
-			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
+			mockOrgSrv: mockOrgSrv{CreateFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
 				return organization.Organization{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
@@ -130,7 +130,7 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockOrgSrv: mockOrgSrv{CreateOrganizationFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
+			mockOrgSrv: mockOrgSrv{CreateFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
 				return organization.Organization{
 					ID:       "new-abc",
 					Name:     "some org",
@@ -172,39 +172,59 @@ func TestCreateOrganization(t *testing.T) {
 }
 
 type mockOrgSrv struct {
-	GetOrganizationFunc    func(ctx context.Context, id string) (organization.Organization, error)
-	CreateOrganizationFunc func(ctx context.Context, org organization.Organization) (organization.Organization, error)
-	ListOrganizationsFunc  func(ctx context.Context) ([]organization.Organization, error)
-	UpdateOrganizationFunc func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	AddAdminFunc           func(ctx context.Context, id string, userIds []string) ([]user.User, error)
-	ListAdminsFunc         func(ctx context.Context, id string) ([]user.User, error)
-	RemoveAdminFunc        func(ctx context.Context, id string, userId string) ([]user.User, error)
+	GetByIDFunc           func(ctx context.Context, id string) (organization.Organization, error)
+	GetBySlugFunc         func(ctx context.Context, slug string) (organization.Organization, error)
+	CreateFunc            func(ctx context.Context, org organization.Organization) (organization.Organization, error)
+	ListFunc              func(ctx context.Context) ([]organization.Organization, error)
+	UpdateByIDFunc        func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
+	UpdateBySlugFunc      func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
+	AddAdminByIDFunc      func(ctx context.Context, id string, userIds []string) ([]user.User, error)
+	AddAdminBySlugFunc    func(ctx context.Context, slug string, userIds []string) ([]user.User, error)
+	RemoveAdminByIDFunc   func(ctx context.Context, id string, userId string) ([]user.User, error)
+	RemoveAdminBySlugFunc func(ctx context.Context, slug string, userId string) ([]user.User, error)
+	ListAdminsFunc        func(ctx context.Context, id string) ([]user.User, error)
 }
 
-func (m mockOrgSrv) Get(ctx context.Context, id string) (organization.Organization, error) {
-	return m.GetOrganizationFunc(ctx, id)
+func (m mockOrgSrv) GetByID(ctx context.Context, id string) (organization.Organization, error) {
+	return m.GetByIDFunc(ctx, id)
+}
+
+func (m mockOrgSrv) GetBySlug(ctx context.Context, id string) (organization.Organization, error) {
+	return m.GetBySlugFunc(ctx, id)
 }
 
 func (m mockOrgSrv) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	return m.CreateOrganizationFunc(ctx, org)
+	return m.CreateFunc(ctx, org)
 }
 
 func (m mockOrgSrv) List(ctx context.Context) ([]organization.Organization, error) {
-	return m.ListOrganizationsFunc(ctx)
+	return m.ListFunc(ctx)
 }
 
-func (m mockOrgSrv) Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
-	return m.UpdateOrganizationFunc(ctx, toUpdate)
+func (m mockOrgSrv) UpdateByID(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
+	return m.UpdateByIDFunc(ctx, toUpdate)
 }
 
-func (m mockOrgSrv) AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error) {
-	return m.AddAdminFunc(ctx, id, userIds)
+func (m mockOrgSrv) UpdateBySlug(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
+	return m.UpdateBySlugFunc(ctx, toUpdate)
+}
+
+func (m mockOrgSrv) AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error) {
+	return m.AddAdminByIDFunc(ctx, id, userIds)
+}
+
+func (m mockOrgSrv) AddAdminBySlug(ctx context.Context, id string, userIds []string) ([]user.User, error) {
+	return m.AddAdminBySlugFunc(ctx, id, userIds)
+}
+
+func (m mockOrgSrv) RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error) {
+	return m.RemoveAdminByIDFunc(ctx, id, userId)
+}
+
+func (m mockOrgSrv) RemoveAdminBySlug(ctx context.Context, id string, userId string) ([]user.User, error) {
+	return m.RemoveAdminBySlugFunc(ctx, id, userId)
 }
 
 func (m mockOrgSrv) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
 	return m.ListAdminsFunc(ctx, id)
-}
-
-func (m mockOrgSrv) RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error) {
-	return m.RemoveAdminFunc(ctx, id, userId)
 }

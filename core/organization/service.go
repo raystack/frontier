@@ -2,7 +2,6 @@ package organization
 
 import (
 	"context"
-	"strings"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
@@ -38,8 +37,13 @@ func NewService(repository Repository, relationService RelationService, userServ
 	}
 }
 
-func (s Service) Get(ctx context.Context, id string) (Organization, error) {
-	return s.repository.Get(ctx, id)
+func (s Service) GetByID(ctx context.Context, id string) (Organization, error) {
+	return s.repository.GetByID(ctx, id)
+}
+
+func (s Service) GetBySlug(ctx context.Context, slug string) (Organization, error) {
+
+	return s.repository.GetBySlug(ctx, slug)
 }
 
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
@@ -68,21 +72,43 @@ func (s Service) List(ctx context.Context) ([]Organization, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) Update(ctx context.Context, toUpdate Organization) (Organization, error) {
-	return s.repository.Update(ctx, toUpdate)
+func (s Service) UpdateByID(ctx context.Context, org Organization) (Organization, error) {
+	return s.repository.UpdateByID(ctx, org)
 }
 
-func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error) {
+func (s Service) UpdateBySlug(ctx context.Context, org Organization) (Organization, error) {
+	return s.repository.UpdateBySlug(ctx, org)
+}
+
+func (s Service) AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	id = strings.TrimSpace(id)
-	org, err := s.repository.Get(ctx, id)
+	org, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		return []user.User{}, err
 	}
+
+	return s.addAdmin(ctx, currentUser, org, userIds)
+}
+
+func (s Service) AddAdminBySlug(ctx context.Context, id string, userIds []string) ([]user.User, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	org, err := s.repository.GetBySlug(ctx, id)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	return s.addAdmin(ctx, currentUser, org, userIds)
+}
+
+func (s Service) addAdmin(ctx context.Context, currentUser user.User, org Organization, userIds []string) ([]user.User, error) {
 
 	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
@@ -103,24 +129,40 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 			return []user.User{}, err
 		}
 	}
-	return s.ListAdmins(ctx, id)
+	return s.ListAdmins(ctx, org.ID)
 }
 
 func (s Service) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
 	return s.repository.ListAdmins(ctx, id)
 }
 
-func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error) {
+func (s Service) RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	id = strings.TrimSpace(id)
-	org, err := s.repository.Get(ctx, id)
+	org, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		return []user.User{}, err
 	}
+	return s.removeAdmin(ctx, currentUser, org, userId)
+}
+
+func (s Service) RemoveAdminBySlug(ctx context.Context, id string, userId string) ([]user.User, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	org, err := s.repository.GetBySlug(ctx, id)
+	if err != nil {
+		return []user.User{}, err
+	}
+	return s.removeAdmin(ctx, currentUser, org, userId)
+}
+
+func (s Service) removeAdmin(ctx context.Context, currentUser user.User, org Organization, userId string) ([]user.User, error) {
 
 	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
@@ -136,14 +178,14 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 		return []user.User{}, err
 	}
 
-	if err = s.RemoveAdminFromOrg(ctx, usr, org); err != nil {
+	if err = s.removeAdminFromOrg(ctx, usr, org); err != nil {
 		return []user.User{}, err
 	}
 
-	return s.ListAdmins(ctx, id)
+	return s.ListAdmins(ctx, org.ID)
 }
 
-func (s Service) RemoveAdminFromOrg(ctx context.Context, user user.User, org Organization) error {
+func (s Service) removeAdminFromOrg(ctx context.Context, user user.User, org Organization) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionOrg,
 		ObjectID:         org.ID,

@@ -33,11 +33,6 @@ const (
 	TABLE_USERS         = "users"
 )
 
-func isUUID(key string) bool {
-	_, err := uuid.Parse(key)
-	return err == nil
-}
-
 func checkPostgresError(err error) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
@@ -53,4 +48,10 @@ func checkPostgresError(err error) error {
 		}
 	}
 	return err
+}
+
+//TODO to be removed
+func isUUID(key string) bool {
+	_, err := uuid.Parse(key)
+	return err == nil
 }

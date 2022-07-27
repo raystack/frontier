@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/odpf/salt/server"
 	"github.com/odpf/shield/internal/api"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -51,4 +52,9 @@ func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, 
 			identityProxyHeader: deps.IdentityProxyHeader,
 		},
 	)
+}
+
+func isUUID(key string) bool {
+	_, err := uuid.Parse(key)
+	return err == nil
 }

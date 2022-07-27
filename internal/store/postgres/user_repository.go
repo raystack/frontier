@@ -9,7 +9,6 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/jmoiron/sqlx"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -28,11 +27,6 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	if id == "" {
 		return user.User{}, user.ErrInvalidID
 	}
-	fetchedUser, err := r.selectUser(ctx, id, false, nil)
-	return fetchedUser, err
-}
-
-func (r UserRepository) selectUser(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (user.User, error) {
 	var fetchedUser User
 
 	query, params, err := dialect.From(TABLE_USERS).Select(&User{}).

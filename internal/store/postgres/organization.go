@@ -8,9 +8,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/role"
 )
 
 type Organization struct {
@@ -21,6 +19,22 @@ type Organization struct {
 	CreatedAt time.Time    `db:"created_at"`
 	UpdatedAt time.Time    `db:"updated_at"`
 	DeletedAt sql.NullTime `db:"deleted_at"`
+}
+
+func (from Organization) transformToOrg() (organization.Organization, error) {
+	var unmarshalledMetadata map[string]any
+	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+		return organization.Organization{}, err
+	}
+
+	return organization.Organization{
+		ID:        from.ID,
+		Name:      from.Name,
+		Slug:      from.Slug,
+		Metadata:  unmarshalledMetadata,
+		CreatedAt: from.CreatedAt,
+		UpdatedAt: from.UpdatedAt,
+	}, nil
 }
 
 // *Get Organizations Query
@@ -40,45 +54,45 @@ func buildGetOrganizationsByIDQuery(dialect goqu.DialectWrapper) (string, error)
 	return getOrganizationsByIDQuery, err
 }
 
-// *Create Organization Query
-func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
-	createOrganizationQuery, _, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(
-		goqu.Record{
-			"name":     goqu.L("$1"),
-			"slug":     goqu.L("$2"),
-			"metadata": goqu.L("$3"),
-		}).Returning(&Organization{}).ToSQL()
+// // *Create Organization Query
+// func buildCreateOrganizationQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	createOrganizationQuery, _, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(
+// 		goqu.Record{
+// 			"name":     goqu.L("$1"),
+// 			"slug":     goqu.L("$2"),
+// 			"metadata": goqu.L("$3"),
+// 		}).Returning(&Organization{}).ToSQL()
 
-	return createOrganizationQuery, err
-}
+// 	return createOrganizationQuery, err
+// }
 
-// *List Organization Query
-func buildListOrganizationsQuery(dialect goqu.DialectWrapper) (string, error) {
-	listOrganizationsQuery, _, err := dialect.From(TABLE_ORGANIZATIONS).ToSQL()
+// // *List Organization Query
+// func buildListOrganizationsQuery(dialect goqu.DialectWrapper) (string, error) {
+// 	listOrganizationsQuery, _, err := dialect.From(TABLE_ORGANIZATIONS).ToSQL()
 
-	return listOrganizationsQuery, err
-}
+// 	return listOrganizationsQuery, err
+// }
 
-func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
-	listOrganizationAdmins, _, err := dialect.Select(
-		goqu.I("u.id").As("id"),
-		goqu.I("u.name").As("name"),
-		goqu.I("u.email").As("email"),
-		goqu.I("u.metadata").As("metadata"),
-		goqu.I("u.created_at").As("created_at"),
-		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T(TABLE_RELATIONS).As("r")).
-		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
-			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
-		)).Where(goqu.Ex{
-		"r.object_id":            goqu.L("$1"),
-		"r.role_id":              role.DefinitionOrganizationAdmin.ID,
-		"r.subject_namespace_id": namespace.DefinitionUser.ID,
-		"r.object_namespace_id":  namespace.DefinitionOrg.ID,
-	}).ToSQL()
+// func buildListOrganizationAdmins(dialect goqu.DialectWrapper) (string, error) {
+// 	listOrganizationAdmins, _, err := dialect.Select(
+// 		goqu.I("u.id").As("id"),
+// 		goqu.I("u.name").As("name"),
+// 		goqu.I("u.email").As("email"),
+// 		goqu.I("u.metadata").As("metadata"),
+// 		goqu.I("u.created_at").As("created_at"),
+// 		goqu.I("u.updated_at").As("updated_at"),
+// 	).From(goqu.T(TABLE_RELATIONS).As("r")).
+// 		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
+// 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
+// 		)).Where(goqu.Ex{
+// 		"r.object_id":            goqu.L("$1"),
+// 		"r.role_id":              role.DefinitionOrganizationAdmin.ID,
+// 		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+// 		"r.object_namespace_id":  namespace.DefinitionOrg.ID,
+// 	}).ToSQL()
 
-	return listOrganizationAdmins, err
-}
+// 	return listOrganizationAdmins, err
+// }
 
 // *Update Organization Query
 func buildUpdateOrganizationBySlugQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -108,20 +122,4 @@ func buildUpdateOrganizationByIDQuery(dialect goqu.DialectWrapper) (string, erro
 	}).Returning(&Organization{}).ToSQL()
 
 	return updateOrganizationQuery, err
-}
-
-func transformToOrg(from Organization) (organization.Organization, error) {
-	var unmarshalledMetadata map[string]any
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return organization.Organization{}, err
-	}
-
-	return organization.Organization{
-		ID:        from.ID,
-		Name:      from.Name,
-		Slug:      from.Slug,
-		Metadata:  unmarshalledMetadata,
-		CreatedAt: from.CreatedAt,
-		UpdatedAt: from.UpdatedAt,
-	}, nil
 }

@@ -13,6 +13,7 @@ import (
 
 var (
 	grpcInternalServerError = status.Errorf(codes.Internal, internalServerError.Error())
+	grpcConflictError       = status.Errorf(codes.AlreadyExists, badRequestError.Error())
 	grpcBadBodyError        = status.Error(codes.InvalidArgument, badRequestError.Error())
 	grpcPermissionDenied    = status.Error(codes.PermissionDenied, permissionDeniedError.Error())
 )

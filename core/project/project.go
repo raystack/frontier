@@ -16,10 +16,12 @@ var (
 )
 
 type Repository interface {
-	Get(ctx context.Context, id string) (Project, error)
+	GetByID(ctx context.Context, id string) (Project, error)
+	GetBySlug(ctx context.Context, slug string) (Project, error)
 	Create(ctx context.Context, org Project) (Project, error)
 	List(ctx context.Context) ([]Project, error)
-	Update(ctx context.Context, toUpdate Project) (Project, error)
+	UpdateByID(ctx context.Context, toUpdate Project) (Project, error)
+	UpdateBySlug(ctx context.Context, toUpdate Project) (Project, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 

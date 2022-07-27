@@ -64,7 +64,12 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		policyPB, err := transformPolicyToPB(p)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			switch {
+			case errors.Is(err, policy.ErrNotExist):
+				return nil, grpcPolicyNotFoundErr
+			default:
+				return nil, grpcInternalServerError
+			}
 		}
 
 		policies = append(policies, &policyPB)
@@ -87,7 +92,7 @@ func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicy
 		switch {
 		case errors.Is(err, policy.ErrNotExist):
 			return nil, grpcPolicyNotFoundErr
-		case errors.Is(err, policy.ErrInvalidUUID):
+		case errors.Is(err, policy.ErrInvalidUUID), errors.Is(err, policy.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -123,7 +128,14 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 		policyPB, err := transformPolicyToPB(p)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			switch {
+			case errors.Is(err, policy.ErrNotExist):
+				return nil, grpcPolicyNotFoundErr
+			case errors.Is(err, policy.ErrConflict):
+				return nil, grpcConflictError
+			default:
+				return nil, grpcInternalServerError
+			}
 		}
 
 		policies = append(policies, &policyPB)

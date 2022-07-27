@@ -39,7 +39,7 @@ func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.Select
 
 func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 	if id == "" {
-		return role.Role{}, role.ErrInvalidUUID
+		return role.Role{}, role.ErrInvalidID
 	}
 
 	query, params, err := r.buildListQuery(dialect).

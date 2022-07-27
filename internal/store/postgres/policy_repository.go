@@ -99,8 +99,8 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 		return r.dbc.SelectContext(ctx, &fetchedPolicies, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errInvalidTexRepresentation) {
-			return []policy.Policy{}, policy.ErrInvalidUUID
+		if errors.Is(err, sql.ErrNoRows) {
+			return []policy.Policy{}, nil
 		}
 		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

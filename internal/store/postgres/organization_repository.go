@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"database/sql"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -24,33 +26,22 @@ func NewOrganizationRepository(dbc *db.Client) *OrganizationRepository {
 	}
 }
 
-func (r OrganizationRepository) Get(ctx context.Context, id string) (organization.Organization, error) {
-	var fetchedOrg Organization
-	var getOrganizationsQuery string
-	var err error
-	id = strings.TrimSpace(id)
-	isUuid := isUUID(id)
-
-	//TODO decouple these to make these cleaner
-	if isUuid {
-		getOrganizationsQuery, err = buildGetOrganizationsByIDQuery(dialect)
-	} else {
-		getOrganizationsQuery, err = buildGetOrganizationsBySlugQuery(dialect)
+func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organization.Organization, error) {
+	if id == "" {
+		return organization.Organization{}, organization.ErrInvalidUUID
 	}
+
+	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
+		"id": id,
+	}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if isUuid {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id, id)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedOrg, getOrganizationsQuery, id)
-		})
-	}
-	if err != nil {
+	var orgModel Organization
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &orgModel, query, params...)
+	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return organization.Organization{}, organization.ErrNotExist
 		}
@@ -60,7 +51,7 @@ func (r OrganizationRepository) Get(ctx context.Context, id string) (organizatio
 		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedOrg, err := transformToOrg(fetchedOrg)
+	transformedOrg, err := orgModel.transformToOrg()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -68,25 +59,63 @@ func (r OrganizationRepository) Get(ctx context.Context, id string) (organizatio
 	return transformedOrg, nil
 }
 
-func (r OrganizationRepository) Create(ctx context.Context, orgToCreate organization.Organization) (organization.Organization, error) {
-	marshaledMetadata, err := json.Marshal(orgToCreate.Metadata)
-	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (organization.Organization, error) {
+	if slug == "" {
+		return organization.Organization{}, organization.ErrInvalidUUID
 	}
 
-	createOrganizationQuery, err := buildCreateOrganizationQuery(dialect)
+	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
+		"slug": slug,
+	}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var newOrg Organization
+	var orgModel Organization
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &newOrg, createOrganizationQuery, orgToCreate.Name, orgToCreate.Slug, marshaledMetadata)
+		return r.dbc.GetContext(ctx, &orgModel, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return organization.Organization{}, organization.ErrNotExist
+		}
+		if errors.Is(err, errInvalidTexRepresentation) {
+			return organization.Organization{}, organization.ErrInvalidUUID
+		}
+		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	transformedOrg, err := orgModel.transformToOrg()
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	return transformedOrg, nil
+}
+
+func (r OrganizationRepository) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
+	marshaledMetadata, err := json.Marshal(org.Metadata)
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	query, params, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(
+		goqu.Record{
+			"name":     org.Name,
+			"slug":     org.Slug,
+			"metadata": marshaledMetadata,
+		}).Returning(&Organization{}).ToSQL()
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var orgModel Organization
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedOrg, err := transformToOrg(newOrg)
+	transformedOrg, err := orgModel.transformToOrg()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -95,14 +124,15 @@ func (r OrganizationRepository) Create(ctx context.Context, orgToCreate organiza
 }
 
 func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organization, error) {
-	var fetchedOrgs []Organization
-	listOrganizationsQuery, err := buildListOrganizationsQuery(dialect)
+
+	query, params, err := dialect.From(TABLE_ORGANIZATIONS).ToSQL()
 	if err != nil {
 		return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var orgModels []Organization
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedOrgs, listOrganizationsQuery)
+		return r.dbc.SelectContext(ctx, &orgModels, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []organization.Organization{}, organization.ErrNotExist
@@ -111,8 +141,8 @@ func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organi
 	}
 
 	var transformedOrgs []organization.Organization
-	for _, o := range fetchedOrgs {
-		transformedOrg, err := transformToOrg(o)
+	for _, o := range orgModels {
+		transformedOrg, err := o.transformToOrg()
 		if err != nil {
 			return []organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
@@ -122,63 +152,112 @@ func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organi
 	return transformedOrgs, nil
 }
 
-func (r OrganizationRepository) Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
-	var updatedOrg Organization
+func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization.Organization) (organization.Organization, error) {
+	if org.ID == "" {
+		return organization.Organization{}, organization.ErrInvalidID
+	}
 
-	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var updateOrganizationQuery string
-	isUuid := isUUID(toUpdate.ID)
-
-	if isUuid {
-		updateOrganizationQuery, err = buildUpdateOrganizationByIDQuery(dialect)
-	} else {
-		updateOrganizationQuery, err = buildUpdateOrganizationBySlugQuery(dialect)
-	}
+	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
+		goqu.Record{
+			"name":       org.Name,
+			"slug":       org.Slug,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": org.ID,
+	}).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if isUuid {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &updatedOrg, updateOrganizationQuery, toUpdate.ID, toUpdate.Name, toUpdate.Slug, marshaledMetadata)
-		})
-	}
-	if err != nil {
+	var orgModel Organization
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
+	}); err != nil {
 		return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
 	}
 
-	toUpdate, err = transformToOrg(updatedOrg)
+	org, err = orgModel.transformToOrg()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
-	return toUpdate, nil
+	return org, nil
 }
 
-func (r OrganizationRepository) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
-	var fetchedUsers []User
-	listOrganizationAdmins, err := buildListOrganizationAdmins(dialect)
+func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organization.Organization) (organization.Organization, error) {
+	if org.Slug == "" {
+		return organization.Organization{}, organization.ErrInvalidID
+	}
+
+	marshaledMetadata, err := json.Marshal(org.Metadata)
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
+		goqu.Record{
+			"name":       org.Name,
+			"slug":       org.Slug,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
+		}).Where(
+		goqu.Ex{
+			"slug": org.Slug,
+		}).Returning(&Organization{}).ToSQL()
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var orgModel Organization
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
+	}); err != nil {
+		return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+	}
+
+	org, err = orgModel.transformToOrg()
+	if err != nil {
+		return organization.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
+	return org, nil
+}
+
+func (r OrganizationRepository) ListAdmins(ctx context.Context, orgID string) ([]user.User, error) {
+	if orgID != "" {
+		return []user.User{}, organization.ErrInvalidID
+	}
+
+	query, params, err := dialect.Select(
+		goqu.I("u.id").As("id"),
+		goqu.I("u.name").As("name"),
+		goqu.I("u.email").As("email"),
+		goqu.I("u.metadata").As("metadata"),
+		goqu.I("u.created_at").As("created_at"),
+		goqu.I("u.updated_at").As("updated_at"),
+	).
+		From(goqu.T(TABLE_RELATIONS).As("r")).
+		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
+			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
+		)).Where(goqu.Ex{
+		"r.object_id":            orgID,
+		"r.role_id":              role.DefinitionOrganizationAdmin.ID,
+		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+		"r.object_namespace_id":  namespace.DefinitionOrg.ID,
+	}).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	id = strings.TrimSpace(id)
-	fetchedOrg, err := r.Get(ctx, id)
-	if err != nil {
-		return []user.User{}, err
-	}
-	id = fetchedOrg.ID
-
+	var userModels []User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedUsers, listOrganizationAdmins, id)
+		return r.dbc.SelectContext(ctx, &userModels, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []user.User{}, organization.ErrNoAdminsExist
@@ -187,7 +266,7 @@ func (r OrganizationRepository) ListAdmins(ctx context.Context, id string) ([]us
 	}
 
 	var transformedUsers []user.User
-	for _, u := range fetchedUsers {
+	for _, u := range userModels {
 		transformedUser, err := u.transformToUser()
 		if err != nil {
 			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)

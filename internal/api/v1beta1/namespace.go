@@ -54,11 +54,15 @@ func (h Handler) CreateNamespace(ctx context.Context, request *shieldv1beta1.Cre
 
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, namespace.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	nsPB, err := transformNamespaceToPB(newNS)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -102,7 +106,14 @@ func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.Upd
 
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, namespace.ErrNotExist):
+			return nil, grpcNamespaceNotFoundErr
+		case errors.Is(err, namespace.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	nsPB, err := transformNamespaceToPB(updatedNS)

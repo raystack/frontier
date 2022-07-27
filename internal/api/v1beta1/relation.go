@@ -63,11 +63,15 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, relation.ErrNotExist):
+			return nil, grpcPolicyNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	relationPB, err := transformRelationToPB(newRelation)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -87,7 +91,7 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 		switch {
 		case errors.Is(err, relation.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "relation not found")
-		case errors.Is(err, relation.ErrInvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID), errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -127,15 +131,16 @@ func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.Upda
 		switch {
 		case errors.Is(err, relation.ErrNotExist):
 			return nil, grpcRelationNotFoundErr
-		case errors.Is(err, relation.ErrInvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID), errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcBadBodyError
+		case errors.Is(err, relation.ErrConflict):
+			return nil, grpcConflictError
 		default:
 			return nil, grpcInternalServerError
 		}
 	}
 
 	relationPB, err := transformRelationToPB(updatedRelation)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

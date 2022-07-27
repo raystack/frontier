@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"database/sql"
 
+	"github.com/doug-martin/goqu/v9"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -24,33 +26,18 @@ func NewProjectRepository(dbc *db.Client) *ProjectRepository {
 	}
 }
 
-func (r ProjectRepository) Get(ctx context.Context, id string) (project.Project, error) {
-	var fetchedProject Project
-	var getProjectsQuery string
-	var err error
-	id = strings.TrimSpace(id)
-	isUuid := isUUID(id)
-
-	//TODO needs to decouple this to make this cleaner
-	if isUuid {
-		getProjectsQuery, err = buildGetProjectsByIDQuery(dialect)
-	} else {
-		getProjectsQuery, err = buildGetProjectsBySlugQuery(dialect)
-	}
+func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Project, error) {
+	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
+		"id": id,
+	}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if isUuid {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedProject, getProjectsQuery, id, id)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedProject, getProjectsQuery, id)
-		})
-	}
-	if err != nil {
+	var projectModel Project
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &projectModel, query, params...)
+	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return project.Project{}, project.ErrNotExist
 		}
@@ -60,7 +47,7 @@ func (r ProjectRepository) Get(ctx context.Context, id string) (project.Project,
 		return project.Project{}, err
 	}
 
-	transformedProject, err := transformToProject(fetchedProject)
+	transformedProject, err := projectModel.transformToProject()
 	if err != nil {
 		return project.Project{}, err
 	}
@@ -68,25 +55,61 @@ func (r ProjectRepository) Get(ctx context.Context, id string) (project.Project,
 	return transformedProject, nil
 }
 
-func (r ProjectRepository) Create(ctx context.Context, projectToCreate project.Project) (project.Project, error) {
-	marshaledMetadata, err := json.Marshal(projectToCreate.Metadata)
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	var newProject Project
-	createProjectQuery, err := buildCreateProjectQuery(dialect)
+func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.Project, error) {
+	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
+		"slug": slug,
+	}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var projectModel Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &newProject, createProjectQuery, projectToCreate.Name, projectToCreate.Slug, projectToCreate.Organization.ID, marshaledMetadata)
+		return r.dbc.GetContext(ctx, &projectModel, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return project.Project{}, project.ErrNotExist
+		}
+		if errors.Is(err, errInvalidTexRepresentation) {
+			return project.Project{}, project.ErrInvalidUUID
+		}
+		return project.Project{}, err
+	}
+
+	transformedProject, err := projectModel.transformToProject()
+	if err != nil {
+		return project.Project{}, err
+	}
+
+	return transformedProject, nil
+}
+
+func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (project.Project, error) {
+	marshaledMetadata, err := json.Marshal(prj.Metadata)
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	query, params, err := dialect.Insert(TABLE_PROJECTS).Rows(
+		goqu.Record{
+			"name":     prj.Name,
+			"slug":     prj.Slug,
+			"org_id":   prj.Organization.ID,
+			"metadata": marshaledMetadata,
+		}).Returning(&Project{}).ToSQL()
+
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var projectModel Project
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&projectModel)
 	}); err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedProj, err := transformToProject(newProject)
+	transformedProj, err := projectModel.transformToProject()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -95,14 +118,14 @@ func (r ProjectRepository) Create(ctx context.Context, projectToCreate project.P
 }
 
 func (r ProjectRepository) List(ctx context.Context) ([]project.Project, error) {
-	var fetchedProjects []Project
-	listProjectQuery, err := buildListProjectQuery(dialect)
+	query, params, err := dialect.From(TABLE_PROJECTS).ToSQL()
 	if err != nil {
 		return []project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var projectModels []Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedProjects, listProjectQuery)
+		return r.dbc.SelectContext(ctx, &projectModels, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []project.Project{}, project.ErrNotExist
@@ -111,8 +134,8 @@ func (r ProjectRepository) List(ctx context.Context) ([]project.Project, error) 
 	}
 
 	var transformedProjects []project.Project
-	for _, p := range fetchedProjects {
-		transformedProj, err := transformToProject(p)
+	for _, p := range projectModels {
+		transformedProj, err := p.transformToProject()
 		if err != nil {
 			return []project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
@@ -123,37 +146,32 @@ func (r ProjectRepository) List(ctx context.Context) ([]project.Project, error) 
 	return transformedProjects, nil
 }
 
-func (r ProjectRepository) Update(ctx context.Context, toUpdate project.Project) (project.Project, error) {
+func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) (project.Project, error) {
 	var updatedProject Project
 
-	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var updateProjectQuery string
-	toUpdate.ID = strings.TrimSpace(toUpdate.ID)
-	isUuid := isUUID(toUpdate.ID)
-
-	if isUuid {
-		updateProjectQuery, err = buildUpdateProjectByIDQuery(dialect)
-	} else {
-		updateProjectQuery, err = buildUpdateProjectBySlugQuery(dialect)
-	}
+	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
+		goqu.Record{
+			"name":       prj.Name,
+			"slug":       prj.Slug,
+			"org_id":     prj.Organization.ID,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"id": prj.ID,
+	}).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if isUuid {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &updatedProject, updateProjectQuery, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
-		})
-	}
-	if err != nil {
+	var projectModel Project
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &updatedProject, query, params...)
+	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return project.Project{}, project.ErrNotExist
 		}
@@ -163,31 +181,82 @@ func (r ProjectRepository) Update(ctx context.Context, toUpdate project.Project)
 		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	toUpdate, err = transformToProject(updatedProject)
+	prj, err = projectModel.transformToProject()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
-	return toUpdate, nil
+	return prj, nil
 }
 
-func (r ProjectRepository) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
+func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project) (project.Project, error) {
+	marshaledMetadata, err := json.Marshal(prj.Metadata)
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
+		goqu.Record{
+			"name":       prj.Name,
+			"slug":       prj.Slug,
+			"org_id":     prj.Organization.ID,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"slug": prj.Slug,
+	}).Returning(&Project{}).ToSQL()
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var projectModel Project
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &projectModel, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return project.Project{}, project.ErrNotExist
+		}
+		if errors.Is(err, errInvalidTexRepresentation) {
+			return project.Project{}, fmt.Errorf("%w: %s", project.ErrInvalidUUID, err)
+		}
+		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	prj, err = projectModel.transformToProject()
+	if err != nil {
+		return project.Project{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
+	return prj, nil
+}
+
+func (r ProjectRepository) ListAdmins(ctx context.Context, projectID string) ([]user.User, error) {
 	var fetchedUsers []User
 
-	listProjectAdminsQuery, err := buildListProjectAdminsQuery(dialect)
+	query, params, err := dialect.Select(
+		goqu.I("u.id").As("id"),
+		goqu.I("u.name").As("name"),
+		goqu.I("u.email").As("email"),
+		goqu.I("u.metadata").As("metadata"),
+		goqu.I("u.created_at").As("created_at"),
+		goqu.I("u.updated_at").As("updated_at"),
+	).
+		From(goqu.T(TABLE_RELATIONS).As("r")).Join(
+		goqu.T(TABLE_USERS).As("u"), goqu.On(
+			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
+		)).Where(goqu.Ex{
+		"r.object_id":            projectID,
+		"r.role_id":              role.DefinitionProjectAdmin.ID,
+		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+		"r.object_namespace_id":  namespace.DefinitionProject.ID,
+	}).ToSQL()
+
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	id = strings.TrimSpace(id)
-	fetchedProject, err := r.Get(ctx, id)
-	if err != nil {
-		return []user.User{}, err
-	}
-	id = fetchedProject.ID
-
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedUsers, listProjectAdminsQuery, id)
+		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []user.User{}, project.ErrNoAdminsExist

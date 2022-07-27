@@ -90,14 +90,14 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedNamespaces, query, params...)
 	}); err != nil {
+		// should not throw error but return empty instead
 		if errors.Is(err, sql.ErrNoRows) {
-			return []namespace.Namespace{}, namespace.ErrNotExist
+			return []namespace.Namespace{}, nil
 		}
 		return []namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedNamespaces []namespace.Namespace
-
 	for _, o := range fetchedNamespaces {
 		transformedNamespaces = append(transformedNamespaces, o.transformToNamespace())
 	}

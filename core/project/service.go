@@ -2,7 +2,6 @@ package project
 
 import (
 	"context"
-	"strings"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
@@ -39,8 +38,12 @@ func NewService(repository Repository, relationService RelationService, userServ
 	}
 }
 
-func (s Service) Get(ctx context.Context, id string) (Project, error) {
-	return s.repository.Get(ctx, id)
+func (s Service) GetByID(ctx context.Context, id string) (Project, error) {
+	return s.repository.GetByID(ctx, id)
+}
+
+func (s Service) GetBySlug(ctx context.Context, slug string) (Project, error) {
+	return s.repository.GetBySlug(ctx, slug)
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
@@ -59,11 +62,11 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	if err = s.AddAdminToProject(ctx, user, newProject); err != nil {
+	if err = s.addAdminToProject(ctx, user, newProject); err != nil {
 		return Project{}, err
 	}
 
-	if err = s.AddProjectToOrg(ctx, newProject, prj.Organization); err != nil {
+	if err = s.addProjectToOrg(ctx, newProject, prj.Organization); err != nil {
 		return Project{}, err
 	}
 
@@ -74,24 +77,45 @@ func (s Service) List(ctx context.Context) ([]Project, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) Update(ctx context.Context, toUpdate Project) (Project, error) {
-	return s.repository.Update(ctx, toUpdate)
+func (s Service) UpdateByID(ctx context.Context, toUpdate Project) (Project, error) {
+	return s.repository.UpdateByID(ctx, toUpdate)
 }
 
-func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error) {
+func (s Service) UpdateBySlug(ctx context.Context, toUpdate Project) (Project, error) {
+	return s.repository.UpdateBySlug(ctx, toUpdate)
+}
+
+func (s Service) AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	id = strings.TrimSpace(id)
-	project, err := s.repository.Get(ctx, id)
-
+	prj, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, project.ID, action.DefinitionManageProject)
+	return s.addAdmin(ctx, currentUser, prj, userIds)
+}
+
+func (s Service) AddAdminBySlug(ctx context.Context, slug string, userIds []string) ([]user.User, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	prj, err := s.repository.GetByID(ctx, slug)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	return s.addAdmin(ctx, currentUser, prj, userIds)
+}
+
+func (s Service) addAdmin(ctx context.Context, currentUser user.User, prj Project, userIds []string) ([]user.User, error) {
+
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -106,30 +130,48 @@ func (s Service) AddAdmin(ctx context.Context, id string, userIds []string) ([]u
 	}
 
 	for _, usr := range users {
-		if err = s.AddAdminToProject(ctx, usr, project); err != nil {
+		if err = s.addAdminToProject(ctx, usr, prj); err != nil {
 			return []user.User{}, err
 		}
 	}
-	return s.ListAdmins(ctx, id)
+	return s.ListAdmins(ctx, prj.ID)
 }
 
 func (s Service) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
 	return s.repository.ListAdmins(ctx, id)
 }
 
-func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error) {
+func (s Service) RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	id = strings.TrimSpace(id)
-	project, err := s.repository.Get(ctx, id)
+	prj, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, project.ID, action.DefinitionManageProject)
+	return s.removeAdmin(ctx, currentUser, prj, userId)
+}
+
+func (s Service) RemoveAdminBySlug(ctx context.Context, slug string, userId string) ([]user.User, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	prj, err := s.repository.GetBySlug(ctx, slug)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	return s.removeAdmin(ctx, currentUser, prj, userId)
+}
+
+func (s Service) removeAdmin(ctx context.Context, currentUser user.User, prj Project, userId string) ([]user.User, error) {
+
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -143,14 +185,14 @@ func (s Service) RemoveAdmin(ctx context.Context, id string, userId string) ([]u
 		return []user.User{}, err
 	}
 
-	if err = s.RemoveAdminFromProject(ctx, usr, project); err != nil {
+	if err = s.removeAdminFromProject(ctx, usr, prj); err != nil {
 		return []user.User{}, err
 	}
 
-	return s.ListAdmins(ctx, id)
+	return s.ListAdmins(ctx, prj.ID)
 }
 
-func (s Service) AddAdminToProject(ctx context.Context, usr user.User, prj Project) error {
+func (s Service) addAdminToProject(ctx context.Context, usr user.User, prj Project) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionProject,
 		ObjectID:         prj.ID,
@@ -168,7 +210,7 @@ func (s Service) AddAdminToProject(ctx context.Context, usr user.User, prj Proje
 	return nil
 }
 
-func (s Service) RemoveAdminFromProject(ctx context.Context, usr user.User, prj Project) error {
+func (s Service) removeAdminFromProject(ctx context.Context, usr user.User, prj Project) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionProject,
 		ObjectID:         prj.ID,
@@ -182,7 +224,7 @@ func (s Service) RemoveAdminFromProject(ctx context.Context, usr user.User, prj 
 	return s.relationService.Delete(ctx, rel)
 }
 
-func (s Service) AddProjectToOrg(ctx context.Context, prj Project, org organization.Organization) error {
+func (s Service) addProjectToOrg(ctx context.Context, prj Project, org organization.Organization) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionProject,
 		ObjectID:         prj.ID,

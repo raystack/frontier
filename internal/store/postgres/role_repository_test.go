@@ -98,6 +98,10 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 			},
 		},
 		{
+			Description: "should return error if id is empty",
+			ErrString:   role.ErrInvalidID.Error(),
+		},
+		{
 			Description: "should return error no exist if can't found role",
 			SelectedID:  "10000",
 			ErrString:   role.ErrNotExist.Error(),

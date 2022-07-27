@@ -20,13 +20,17 @@ import (
 )
 
 type OrganizationService interface {
-	Get(ctx context.Context, id string) (organization.Organization, error)
+	GetByID(ctx context.Context, id string) (organization.Organization, error)
+	GetBySlug(ctx context.Context, slug string) (organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
 	List(ctx context.Context) ([]organization.Organization, error)
-	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error)
+	UpdateByID(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
+	UpdateBySlug(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
+	AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error)
+	AddAdminBySlug(ctx context.Context, slug string, userIds []string) ([]user.User, error)
+	RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error)
+	RemoveAdminBySlug(ctx context.Context, slug string, userId string) ([]user.User, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
-	RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error)
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
@@ -103,7 +107,13 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.GetOrganizationRequest) (*shieldv1beta1.GetOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedOrg, err := h.orgService.Get(ctx, request.GetId())
+	var err error
+	var fetchedOrg organization.Organization
+	if isUUID(request.GetId()) {
+		fetchedOrg, err = h.orgService.GetByID(ctx, request.GetId())
+	} else {
+		fetchedOrg, err = h.orgService.GetBySlug(ctx, request.GetId())
+	}
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -139,13 +149,21 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcBadBodyError
 	}
 
-	updatedOrg, err := h.orgService.Update(ctx, organization.Organization{
-		ID:       request.GetId(),
-		Name:     request.GetBody().Name,
-		Slug:     request.GetBody().Slug,
-		Metadata: metaDataMap,
-	})
-
+	var updatedOrg organization.Organization
+	if isUUID(request.GetId()) {
+		updatedOrg, err = h.orgService.UpdateByID(ctx, organization.Organization{
+			ID:       request.GetId(),
+			Name:     request.GetBody().Name,
+			Slug:     request.GetBody().Slug,
+			Metadata: metaDataMap,
+		})
+	} else {
+		updatedOrg, err = h.orgService.UpdateBySlug(ctx, organization.Organization{
+			Name:     request.GetBody().Name,
+			Slug:     request.GetBody().Slug,
+			Metadata: metaDataMap,
+		})
+	}
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, internalServerError
@@ -162,9 +180,14 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 
 func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.AddOrganizationAdminRequest) (*shieldv1beta1.AddOrganizationAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
-	userIds := request.GetBody().UserIds
 
-	addedUsers, err := h.orgService.AddAdmin(ctx, request.GetId(), userIds)
+	var err error
+	var addedUsers []user.User
+	if isUUID(request.GetId()) {
+		addedUsers, err = h.orgService.AddAdminByID(ctx, request.GetId(), request.GetBody().GetUserIds())
+	} else {
+		addedUsers, err = h.orgService.AddAdminBySlug(ctx, request.GetId(), request.GetBody().GetUserIds())
+	}
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -222,7 +245,12 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1beta1.RemoveOrganizationAdminRequest) (*shieldv1beta1.RemoveOrganizationAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	_, err := h.orgService.RemoveAdmin(ctx, request.GetId(), request.GetUserId())
+	var err error
+	if isUUID(request.GetId()) {
+		_, err = h.orgService.RemoveAdminByID(ctx, request.GetId(), request.GetUserId())
+	} else {
+		_, err = h.orgService.RemoveAdminBySlug(ctx, request.GetId(), request.GetUserId())
+	}
 	if err != nil {
 		logger.Error(err.Error())
 		switch {

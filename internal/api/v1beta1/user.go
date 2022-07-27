@@ -17,6 +17,8 @@ import (
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
+var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")
+
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
@@ -87,10 +89,14 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		Metadata: metaDataMap,
 	}
 	newUser, err := h.userService.Create(ctx, userT)
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, user.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	metaData, err := structpb.NewStruct(mapOfInterfaceValues(newUser.Metadata))
@@ -118,7 +124,7 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "user not found")
-		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -190,10 +196,16 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		Email:    request.GetBody().Email,
 		Metadata: metaDataMap,
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, internalServerError
+		switch {
+		case errors.Is(err, user.ErrNotExist):
+			return nil, grpcUserNotFoundError
+		case errors.Is(err, user.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	userPB, err := transformUserToPB(updatedUser)
@@ -236,10 +248,14 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		Email:    email,
 		Metadata: metaDataMap,
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, user.ErrNotExist):
+			return nil, grpcUserNotFoundError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	userPB, err := transformUserToPB(updatedUser)
