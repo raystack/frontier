@@ -10,6 +10,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
@@ -27,6 +28,10 @@ func NewProjectRepository(dbc *db.Client) *ProjectRepository {
 }
 
 func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Project, error) {
+	if id == "" {
+		return project.Project{}, project.ErrInvalidID
+	}
+
 	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
 		"id": id,
 	}).ToSQL()
@@ -38,6 +43,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return project.Project{}, project.ErrNotExist
 		}
@@ -56,6 +62,10 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 }
 
 func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.Project, error) {
+	if slug == "" {
+		return project.Project{}, project.ErrInvalidID
+	}
+
 	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
 		"slug": slug,
 	}).ToSQL()
@@ -67,13 +77,15 @@ func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return project.Project{}, project.ErrInvalidUUID
+		default:
+			return project.Project{}, err
 		}
-		return project.Project{}, err
 	}
 
 	transformedProject, err := projectModel.transformToProject()
@@ -106,7 +118,17 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&projectModel)
 	}); err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errForeignKeyViolation):
+			return project.Project{}, project.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return project.Project{}, organization.ErrInvalidUUID
+		case errors.Is(err, errDuplicateKey):
+			return project.Project{}, project.ErrConflict
+		default:
+			return project.Project{}, err
+		}
 	}
 
 	transformedProj, err := projectModel.transformToProject()
@@ -147,7 +169,9 @@ func (r ProjectRepository) List(ctx context.Context) ([]project.Project, error) 
 }
 
 func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) (project.Project, error) {
-	var updatedProject Project
+	if prj.ID == "" {
+		return project.Project{}, project.ErrInvalidID
+	}
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
@@ -170,15 +194,21 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 
 	var projectModel Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &updatedProject, query, params...)
+		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return project.Project{}, project.ErrInvalidUUID
+		case errors.Is(err, errDuplicateKey):
+			return project.Project{}, project.ErrConflict
+		case errors.Is(err, errForeignKeyViolation):
+			return project.Project{}, organization.ErrNotExist
+		default:
+			return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
-		if errors.Is(err, errInvalidTexRepresentation) {
-			return project.Project{}, fmt.Errorf("%w: %s", project.ErrInvalidUUID, err)
-		}
-		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	prj, err = projectModel.transformToProject()
@@ -190,6 +220,10 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 }
 
 func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project) (project.Project, error) {
+	if prj.Slug == "" {
+		return project.Project{}, project.ErrInvalidID
+	}
+
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -213,13 +247,19 @@ func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return project.Project{}, project.ErrInvalidUUID
+		case errors.Is(err, errDuplicateKey):
+			return project.Project{}, project.ErrConflict
+		case errors.Is(err, errForeignKeyViolation):
+			return project.Project{}, organization.ErrNotExist
+		default:
+			return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
-		if errors.Is(err, errInvalidTexRepresentation) {
-			return project.Project{}, fmt.Errorf("%w: %s", project.ErrInvalidUUID, err)
-		}
-		return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	prj, err = projectModel.transformToProject()
@@ -250,7 +290,6 @@ func (r ProjectRepository) ListAdmins(ctx context.Context, projectID string) ([]
 		"r.subject_namespace_id": namespace.DefinitionUser.ID,
 		"r.object_namespace_id":  namespace.DefinitionProject.ID,
 	}).ToSQL()
-
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -259,7 +298,7 @@ func (r ProjectRepository) ListAdmins(ctx context.Context, projectID string) ([]
 		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []user.User{}, project.ErrNoAdminsExist
+			return []user.User{}, nil
 		}
 		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

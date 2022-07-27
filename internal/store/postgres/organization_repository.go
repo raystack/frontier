@@ -28,7 +28,7 @@ func NewOrganizationRepository(dbc *db.Client) *OrganizationRepository {
 
 func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organization.Organization, error) {
 	if id == "" {
-		return organization.Organization{}, organization.ErrInvalidUUID
+		return organization.Organization{}, organization.ErrInvalidID
 	}
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
@@ -42,6 +42,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &orgModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return organization.Organization{}, organization.ErrNotExist
 		}
@@ -61,7 +62,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 
 func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (organization.Organization, error) {
 	if slug == "" {
-		return organization.Organization{}, organization.ErrInvalidUUID
+		return organization.Organization{}, organization.ErrInvalidID
 	}
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
@@ -75,6 +76,7 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &orgModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return organization.Organization{}, organization.ErrNotExist
 		}
@@ -112,6 +114,10 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, errDuplicateKey) {
+			return organization.Organization{}, organization.ErrConflict
+		}
 		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
@@ -124,7 +130,6 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 }
 
 func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organization, error) {
-
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).ToSQL()
 	if err != nil {
 		return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -135,7 +140,7 @@ func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organi
 		return r.dbc.SelectContext(ctx, &orgModels, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []organization.Organization{}, organization.ErrNotExist
+			return []organization.Organization{}, nil
 		}
 		return []organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -179,7 +184,17 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
-		return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return organization.Organization{}, organization.ErrNotExist
+		case errors.Is(err, errDuplicateKey):
+			return organization.Organization{}, organization.ErrConflict
+		case errors.Is(err, errInvalidTexRepresentation):
+			return organization.Organization{}, organization.ErrInvalidUUID
+		default:
+			return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+		}
 	}
 
 	org, err = orgModel.transformToOrg()
@@ -218,7 +233,15 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
-		return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return organization.Organization{}, organization.ErrNotExist
+		case errors.Is(err, errDuplicateKey):
+			return organization.Organization{}, organization.ErrConflict
+		default:
+			return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+		}
 	}
 
 	org, err = orgModel.transformToOrg()
@@ -230,7 +253,7 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 }
 
 func (r OrganizationRepository) ListAdmins(ctx context.Context, orgID string) ([]user.User, error) {
-	if orgID != "" {
+	if orgID == "" {
 		return []user.User{}, organization.ErrInvalidID
 	}
 
@@ -259,8 +282,9 @@ func (r OrganizationRepository) ListAdmins(ctx context.Context, orgID string) ([
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &userModels, query, params...)
 	}); err != nil {
+		// List should not return error if empty
 		if errors.Is(err, sql.ErrNoRows) {
-			return []user.User{}, organization.ErrNoAdminsExist
+			return []user.User{}, nil
 		}
 		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

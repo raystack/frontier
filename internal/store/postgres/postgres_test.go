@@ -10,7 +10,9 @@ import (
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
@@ -301,4 +303,69 @@ func bootstrapRelation(client *db.Client) ([]relation.Relation, error) {
 	}
 
 	return insertedData, nil
+}
+
+func bootstrapOrganization(client *db.Client) ([]organization.Organization, error) {
+	orgRepository := postgres.NewOrganizationRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-organization.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []organization.Organization
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []organization.Organization
+	for _, d := range data {
+		domain, err := orgRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, domain)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapProject(client *db.Client) ([]project.Project, []organization.Organization, error) {
+	orgs, err := bootstrapOrganization(client)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	projectRepository := postgres.NewProjectRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-project.json")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var data []project.Project
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, nil, err
+	}
+
+	var insertedData []project.Project
+	for _, d := range data {
+		switch d.Name {
+		case "project1":
+			d.Organization = organization.Organization{ID: orgs[0].ID}
+		case "project2":
+			d.Organization = organization.Organization{ID: orgs[0].ID}
+		case "project3":
+			d.Organization = organization.Organization{ID: orgs[1].ID}
+		default:
+			d.Organization = organization.Organization{ID: orgs[1].ID}
+		}
+		domain, err := projectRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		insertedData = append(insertedData, domain)
+	}
+
+	return insertedData, orgs, nil
 }

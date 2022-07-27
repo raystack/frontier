@@ -173,7 +173,7 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 		},
 		{
 			Description: "should return error if role id is empty",
-			ErrString:   "role id is invalid",
+			ErrString:   role.ErrInvalidID.Error(),
 		},
 	}
 
@@ -314,11 +314,11 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 				ID:   "123131",
 				Name: "not-exist",
 			},
-			ErrString: "role doesn't exist",
+			ErrString: role.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if role id is empty",
-			ErrString:   "role id is invalid",
+			ErrString:   role.ErrInvalidID.Error(),
 		},
 	}
 

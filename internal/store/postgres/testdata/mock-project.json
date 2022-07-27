@@ -1,0 +1,22 @@
+[
+    {
+        "name": "project1",
+        "slug": "project-1"
+    },
+    {
+        "name": "project2",
+        "slug": "project-2",
+        "metadata": {
+            "key-string": "value-string",
+            "key-integer": 123,
+            "key-json": {
+                "k1": "v1",
+                "k2": "v2"
+            }
+        }
+    },
+    {
+        "name": "project3",
+        "slug": "project-3"
+    }
+]

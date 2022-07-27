@@ -2,17 +2,10 @@ package project
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
-)
-
-var (
-	ErrNotExist      = errors.New("project doesn't exist")
-	ErrNoAdminsExist = errors.New("no admins exist")
-	ErrInvalidUUID   = errors.New("invalid syntax of uuid")
 )
 
 type Repository interface {
