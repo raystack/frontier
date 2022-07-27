@@ -60,7 +60,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedRole, err := transformToRole(roleModel)
+	transformedRole, err := roleModel.transformToRole()
 	if err != nil {
 		return role.Role{}, err
 	}
@@ -129,7 +129,7 @@ func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
 
 	var transformedRoles []role.Role
 	for _, o := range fetchedRoles {
-		transformedOrg, err := transformToRole(o)
+		transformedOrg, err := o.transformToRole()
 		if err != nil {
 			return []role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 		}

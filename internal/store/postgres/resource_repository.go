@@ -39,12 +39,7 @@ func (r ResourceRepository) Create(ctx context.Context, resourceToCreate resourc
 		return resource.Resource{}, err
 	}
 
-	transformedResource, err := transformToResource(newResource)
-	if err != nil {
-		return resource.Resource{}, err
-	}
-
-	return transformedResource, nil
+	return newResource.transformToResource(), nil
 }
 
 func (r ResourceRepository) List(ctx context.Context, filters resource.Filters) ([]resource.Resource, error) {
@@ -78,11 +73,7 @@ func (r ResourceRepository) List(ctx context.Context, filters resource.Filters) 
 
 	var transformedResources []resource.Resource
 	for _, r := range fetchedResources {
-		transformedResource, err := transformToResource(r)
-		if err != nil {
-			return []resource.Resource{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedResources = append(transformedResources, transformedResource)
+		transformedResources = append(transformedResources, r.transformToResource())
 	}
 
 	return transformedResources, nil
@@ -108,12 +99,7 @@ func (r ResourceRepository) Get(ctx context.Context, id string) (resource.Resour
 		return resource.Resource{}, err
 	}
 
-	transformedResource, err := transformToResource(fetchedResource)
-	if err != nil {
-		return resource.Resource{}, err
-	}
-
-	return transformedResource, nil
+	return fetchedResource.transformToResource(), nil
 }
 
 func (r ResourceRepository) Update(ctx context.Context, id string, toUpdate resource.Resource) (resource.Resource, error) {
@@ -138,12 +124,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, toUpdate reso
 		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	toUpdate, err = transformToResource(updatedResource)
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return toUpdate, nil
+	return updatedResource.transformToResource(), nil
 }
 
 func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.Resource, error) {
@@ -166,10 +147,5 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 		return resource.Resource{}, err
 	}
 
-	transformedResource, err := transformToResource(fetchedResource)
-	if err != nil {
-		return resource.Resource{}, err
-	}
-
-	return transformedResource, nil
+	return fetchedResource.transformToResource(), nil
 }

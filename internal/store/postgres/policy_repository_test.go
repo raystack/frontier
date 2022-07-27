@@ -380,6 +380,16 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 			},
 			ErrString: policy.ErrNotExist.Error(),
 		},
+		{
+			Description: "should return error if role,namespace,action id already exist",
+			PolicyToUpdate: policy.Policy{
+				ID:          s.policyIDs[0],
+				RoleID:      "role2",
+				ActionID:    "action3",
+				NamespaceID: "ns1",
+			},
+			ErrString: policy.ErrConflict.Error(),
+		},
 	}
 
 	for _, tc := range testCases {

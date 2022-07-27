@@ -197,7 +197,7 @@ func (r ProjectRepository) ListAdmins(ctx context.Context, id string) ([]user.Us
 
 	var transformedUsers []user.User
 	for _, u := range fetchedUsers {
-		transformedUser, err := transformToUser(u)
+		transformedUser, err := u.transformToUser()
 		if err != nil {
 			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 		}

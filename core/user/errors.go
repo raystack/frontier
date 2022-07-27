@@ -7,4 +7,5 @@ var (
 	ErrInvalidID    = errors.New("user id is invalid")
 	ErrInvalidEmail = errors.New("user email is invalid")
 	ErrNotUUID      = errors.New("invalid syntax of uuid")
+	ErrConflict     = errors.New("user already exist")
 )

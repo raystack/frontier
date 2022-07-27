@@ -471,6 +471,19 @@ func (s *RelationRepositoryTestSuite) TestUpdate() {
 			ErrString: relation.ErrNotExist.Error(),
 		},
 		{
+			Description: "should return error if subject_namespace_id, subject_id, object_namespace_id, object_id already exist",
+			RelationToUpdate: relation.Relation{
+				ID:                 s.relations[0].ID,
+				SubjectNamespaceID: "ns2",
+				SubjectID:          "uuid3",
+				ObjectNamespaceID:  "ns2",
+				ObjectID:           "uuid4",
+				RoleID:             "role2",
+				RelationType:       relation.RelationTypes.Role,
+			},
+			ErrString: relation.ErrConflict.Error(),
+		},
+		{
 			Description: "should return error if id is empty",
 			ErrString:   relation.ErrInvalidID.Error(),
 		},

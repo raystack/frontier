@@ -80,7 +80,7 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 		return policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedPolicy, err := transformToPolicy(policyModel)
+	transformedPolicy, err := policyModel.transformToPolicy()
 	if err != nil {
 		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -107,7 +107,7 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 
 	var transformedPolicies []policy.Policy
 	for _, p := range fetchedPolicies {
-		transformedPolicy, err := transformToPolicy(p)
+		transformedPolicy, err := p.transformToPolicy()
 		if err != nil {
 			return []policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
@@ -175,6 +175,9 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", policy.ErrNotExist
+		}
+		if errors.Is(err, errDuplicateKey) {
+			return "", policy.ErrConflict
 		}
 		if errors.Is(err, errForeignKeyViolation) {
 			return "", policy.ErrNotExist

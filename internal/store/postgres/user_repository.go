@@ -35,12 +35,6 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 func (r UserRepository) selectUser(ctx context.Context, id string, forUpdate bool, txn *sqlx.Tx) (user.User, error) {
 	var fetchedUser User
 
-	//TODO to be confirmed
-	// selectUserForUpdateQuery, err := buildSelectUserForUpdateQuery(dialect)
-	// if err != nil {
-	// 	return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	// }
-
 	query, params, err := dialect.From(TABLE_USERS).Select(&User{}).
 		Where(goqu.Ex{
 			"id": id,
@@ -50,13 +44,12 @@ func (r UserRepository) selectUser(ctx context.Context, id string, forUpdate boo
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		// if forUpdate {
-		// 	return txn.GetContext(ctx, &fetchedUser, selectUserForUpdateQuery, id)
-		// } else {
 		return r.dbc.GetContext(ctx, &fetchedUser, query, params...)
-		// }
 	}); err != nil {
 		err = checkPostgresError(err)
+		if errors.Is(err, errDuplicateKey) {
+			return user.User{}, user.ErrConflict
+		}
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, user.ErrNotExist
 		}
@@ -66,7 +59,7 @@ func (r UserRepository) selectUser(ctx context.Context, id string, forUpdate boo
 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedUser, err := transformToUser(fetchedUser)
+	transformedUser, err := fetchedUser.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -94,10 +87,14 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, errDuplicateKey) {
+			return user.User{}, user.ErrConflict
+		}
 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedUser, err := transformToUser(userModel)
+	transformedUser, err := userModel.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -138,7 +135,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 
 	var transformedUsers []user.User
 	for _, u := range fetchedUsers {
-		transformedUser, err := transformToUser(u)
+		transformedUser, err := u.transformToUser()
 		if err != nil {
 			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
@@ -175,7 +172,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 
 	var transformedUsers []user.User
 	for _, u := range fetchedUsers {
-		transformedUser, err := transformToUser(u)
+		transformedUser, err := u.transformToUser()
 		if err != nil {
 			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
@@ -220,7 +217,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		return user.User{}, fmt.Errorf("%s: %w", txnErr, err)
 	}
 
-	transformedUser, err := transformToUser(userModel)
+	transformedUser, err := userModel.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
@@ -257,13 +254,17 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, errDuplicateKey) {
+			return user.User{}, user.ErrConflict
+		}
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, user.ErrNotExist
 		}
 		return user.User{}, fmt.Errorf("%s: %w", txnErr, err)
 	}
 
-	transformedUser, err := transformToUser(userModel)
+	transformedUser, err := userModel.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
@@ -295,7 +296,7 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedUser, err := transformToUser(userModel)
+	transformedUser, err := userModel.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}

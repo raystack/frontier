@@ -205,7 +205,7 @@ func (r GroupRepository) ListUsers(ctx context.Context, groupID string, roleID s
 
 	var transformedUsers []user.User
 	for _, u := range fetchedUsers {
-		transformedUser, err := transformToUser(u)
+		transformedUser, err := u.transformToUser()
 		if err != nil {
 			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
@@ -241,11 +241,7 @@ func (r GroupRepository) ListUserGroupRelations(ctx context.Context, userID stri
 
 	var transformedRelations []relation.Relation
 	for _, v := range fetchedRelations {
-		transformedGroup, err := transformToRelation(v)
-		if err != nil {
-			return []relation.Relation{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedRelations = append(transformedRelations, transformedGroup)
+		transformedRelations = append(transformedRelations, v.transformToRelation())
 	}
 
 	return transformedRelations, nil

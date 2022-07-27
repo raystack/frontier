@@ -187,6 +187,14 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			},
 			ExpectedEmail: "new.user@odpf.io",
 		},
+		{
+			Description: "should return error if user already exist",
+			UserToCreate: user.User{
+				Name:  "new user",
+				Email: "new.user@odpf.io",
+			},
+			ErrString: user.ErrConflict.Error(),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -316,11 +324,11 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			UserToUpdate: user.User{
 				Email: "random@email.com",
 			},
-			ErrString: "user doesn't exist",
+			ErrString: user.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if user email is empty",
-			ErrString:   "user email is invalid",
+			ErrString:   user.ErrInvalidEmail.Error(),
 		},
 	}
 
@@ -362,11 +370,20 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			UserToUpdate: user.User{
 				ID: uuid.NewString(),
 			},
-			ErrString: "user doesn't exist",
+			ErrString: user.ErrNotExist.Error(),
+		},
+		{
+			Description: "should return error if user already exist",
+			UserToUpdate: user.User{
+				ID:    s.users[1].ID,
+				Name:  "Doe John",
+				Email: "john.doe@odpf.io",
+			},
+			ErrString: user.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if user id is empty",
-			ErrString:   "user id is invalid",
+			ErrString:   user.ErrInvalidID.Error(),
 		},
 	}
 

@@ -63,12 +63,7 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		return relation.Relation{}, err
 	}
 
-	transformedRelation, err := transformToRelation(relationModel)
-	if err != nil {
-		return relation.Relation{}, err
-	}
-
-	return transformedRelation, nil
+	return relationModel.transformToRelation(), nil
 }
 
 func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, error) {
@@ -90,11 +85,7 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, erro
 
 	var transformedRelations []relation.Relation
 	for _, r := range fetchedRelations {
-		transformedRelation, err := transformToRelation(r)
-		if err != nil {
-			return []relation.Relation{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedRelations = append(transformedRelations, transformedRelation)
+		transformedRelations = append(transformedRelations, r.transformToRelation())
 	}
 
 	return transformedRelations, nil
@@ -127,12 +118,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 		return relation.Relation{}, err
 	}
 
-	transformedRelation, err := transformToRelation(relationModel)
-	if err != nil {
-		return relation.Relation{}, err
-	}
-
-	return transformedRelation, nil
+	return relationModel.transformToRelation(), nil
 }
 
 func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
@@ -213,12 +199,7 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 		return relation.Relation{}, err
 	}
 
-	transformedRelation, err := transformToRelation(fetchedRelation)
-	if err != nil {
-		return relation.Relation{}, err
-	}
-
-	return transformedRelation, nil
+	return fetchedRelation.transformToRelation(), nil
 }
 
 func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
@@ -260,6 +241,9 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 		if errors.Is(err, sql.ErrNoRows) {
 			return relation.Relation{}, relation.ErrNotExist
 		}
+		if errors.Is(err, errDuplicateKey) {
+			return relation.Relation{}, relation.ErrConflict
+		}
 		if errors.Is(err, errForeignKeyViolation) {
 			return relation.Relation{}, relation.ErrNotExist
 		}
@@ -269,10 +253,5 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 		return relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	rel, err = transformToRelation(relationModel)
-	if err != nil {
-		return relation.Relation{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return rel, nil
+	return relationModel.transformToRelation(), nil
 }

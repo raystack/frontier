@@ -46,12 +46,7 @@ func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, er
 		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedAction, err := transformToAction(fetchedAction)
-	if err != nil {
-		return action.Action{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedAction, nil
+	return fetchedAction.transformToAction(), nil
 }
 
 // TODO this is actually an upsert
@@ -84,12 +79,7 @@ func (r ActionRepository) Create(ctx context.Context, act action.Action) (action
 		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedAction, err := transformToAction(actionModel)
-	if err != nil {
-		return action.Action{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedAction, nil
+	return actionModel.transformToAction(), nil
 }
 
 func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
@@ -110,11 +100,7 @@ func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
 
 	var transformedActions []action.Action
 	for _, o := range fetchedActions {
-		transformedAction, err := transformToAction(o)
-		if err != nil {
-			return []action.Action{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedActions = append(transformedActions, transformedAction)
+		transformedActions = append(transformedActions, o.transformToAction())
 	}
 
 	return transformedActions, nil
@@ -151,10 +137,5 @@ func (r ActionRepository) Update(ctx context.Context, act action.Action) (action
 		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedAction, err := transformToAction(actionModel)
-	if err != nil {
-		return action.Action{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return transformedAction, nil
+	return actionModel.transformToAction(), nil
 }

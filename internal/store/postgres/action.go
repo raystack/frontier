@@ -23,59 +23,15 @@ type returnedActionColumns struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
-// func buildGetActionQuery(dialect goqu.DialectWrapper) (string, error) {
-// 	getActionQuery, _, err := dialect.Select(&returnedActionColumns{}).From(TABLE_ACTIONS).Where(goqu.Ex{
-// 		"id": goqu.L("$1"),
-// 	}).ToSQL()
-
-// 	return getActionQuery, err
-// }
-
-// func buildCreateActionQuery(dialect goqu.DialectWrapper) (string, error) {
-// 	createActionQuery, _, err := dialect.Insert(TABLE_ACTIONS).Rows(
-// 		goqu.Record{
-// 			"id":           goqu.L("$1"),
-// 			"name":         goqu.L("$2"),
-// 			"namespace_id": goqu.L("$3"),
-// 		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
-// 		"name": goqu.L("$2"),
-// 	})).Returning(&returnedActionColumns{}).ToSQL()
-
-// 	return createActionQuery, err
-// }
-
-// func buildListActionsQuery(dialect goqu.DialectWrapper) (string, error) {
-// 	listActionsQuery, _, err := dialect.Select(&returnedActionColumns{}).From(TABLE_ACTIONS).ToSQL()
-
-// 	return listActionsQuery, err
-// }
-
-// func buildUpdateActionQuery(dialect goqu.DialectWrapper) (string, error) {
-// 	updateActionQuery, _, err := dialect.Update(TABLE_ACTIONS).Set(
-// 		goqu.Record{
-// 			"name":         goqu.L("$2"),
-// 			"namespace_id": goqu.L("$3"),
-// 			"updated_at":   goqu.L("now()"),
-// 		}).Where(goqu.Ex{
-// 		"id": goqu.L("$1"),
-// 	}).Returning(&returnedActionColumns{}).ToSQL()
-
-// 	return updateActionQuery, err
-// }
-
-func transformToAction(from Action) (action.Action, error) {
+func (from Action) transformToAction() action.Action {
 	from.Namespace.ID = from.NamespaceID
-	namespace, err := transformToNamespace(from.Namespace)
-	if err != nil {
-		return action.Action{}, err
-	}
 
 	return action.Action{
 		ID:          from.ID,
 		Name:        from.Name,
 		NamespaceID: from.NamespaceID,
-		Namespace:   namespace,
+		Namespace:   from.Namespace.transformToNamespace(),
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,
-	}, nil
+	}
 }

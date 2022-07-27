@@ -44,12 +44,7 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedNamespace, err := transformToNamespace(fetchedNamespace)
-	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedNamespace, nil
+	return fetchedNamespace.transformToNamespace(), nil
 }
 
 // TODO this is actually an upsert
@@ -82,12 +77,7 @@ func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace)
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedNamespace, err := transformToNamespace(nsModel)
-	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedNamespace, nil
+	return nsModel.transformToNamespace(), nil
 }
 
 func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, error) {
@@ -109,11 +99,7 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 	var transformedNamespaces []namespace.Namespace
 
 	for _, o := range fetchedNamespaces {
-		transformedNamespace, err := transformToNamespace(o)
-		if err != nil {
-			return []namespace.Namespace{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedNamespaces = append(transformedNamespaces, transformedNamespace)
+		transformedNamespaces = append(transformedNamespaces, o.transformToNamespace())
 	}
 
 	return transformedNamespaces, nil
@@ -152,10 +138,5 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedNamespace, err := transformToNamespace(nsModel)
-	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return transformedNamespace, nil
+	return nsModel.transformToNamespace(), nil
 }
