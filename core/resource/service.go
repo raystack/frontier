@@ -42,7 +42,7 @@ func NewService(repository Repository, configRepository ConfigRepository, relati
 }
 
 func (s Service) Get(ctx context.Context, id string) (Resource, error) {
-	return s.repository.Get(ctx, id)
+	return s.repository.GetByID(ctx, id)
 }
 
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {

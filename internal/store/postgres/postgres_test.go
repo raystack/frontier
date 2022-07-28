@@ -15,6 +15,7 @@ import (
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/store/postgres"
@@ -382,6 +383,55 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 	var insertedData []group.Group
 	for _, d := range data {
 		domain, err := groupRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, domain)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapResource(
+	client *db.Client,
+	groups []group.Group,
+	projects []project.Project,
+	orgs []organization.Organization,
+	namespaces []namespace.Namespace,
+	users []user.User) ([]resource.Resource, error) {
+	resRepository := postgres.NewResourceRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-resource.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []resource.Resource
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	data[0].GroupID = groups[0].ID
+	data[0].ProjectID = projects[0].ID
+	data[0].OrganizationID = orgs[0].ID
+	data[0].NamespaceID = namespaces[0].ID
+	data[0].UserID = users[0].ID
+
+	data[1].GroupID = groups[1].ID
+	data[1].ProjectID = projects[1].ID
+	data[1].OrganizationID = orgs[1].ID
+	data[1].NamespaceID = namespaces[1].ID
+	data[1].UserID = users[1].ID
+
+	data[2].GroupID = groups[2].ID
+	data[2].ProjectID = projects[2].ID
+	data[2].OrganizationID = orgs[1].ID
+	data[2].NamespaceID = namespaces[1].ID
+	data[2].UserID = users[1].ID
+
+	var insertedData []resource.Resource
+	for _, d := range data {
+		domain, err := resRepository.Create(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}

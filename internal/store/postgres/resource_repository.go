@@ -23,6 +23,9 @@ func NewResourceRepository(dbc *db.Client) *ResourceRepository {
 }
 
 func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (resource.Resource, error) {
+	if res.URN == "" {
+		return resource.Resource{}, resource.ErrInvalidURN
+	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
 	groupID := sql.NullString{String: res.GroupID, Valid: res.GroupID != ""}
@@ -53,7 +56,15 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
 	}); err != nil {
-		return resource.Resource{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errForeignKeyViolation):
+			return resource.Resource{}, resource.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return resource.Resource{}, resource.ErrInvalidUUID
+		default:
+			return resource.Resource{}, err
+		}
 	}
 
 	return resourceModel.transformToResource(), nil
@@ -97,7 +108,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	return transformedResources, nil
 }
 
-func (r ResourceRepository) Get(ctx context.Context, id string) (resource.Resource, error) {
+func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Resource, error) {
 	if id == "" {
 		return resource.Resource{}, resource.ErrInvalidID
 	}
@@ -113,6 +124,7 @@ func (r ResourceRepository) Get(ctx context.Context, id string) (resource.Resour
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &resourceModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return resource.Resource{}, resource.ErrNotExist
 		}
@@ -126,6 +138,12 @@ func (r ResourceRepository) Get(ctx context.Context, id string) (resource.Resour
 }
 
 func (r ResourceRepository) Update(ctx context.Context, id string, res resource.Resource) (resource.Resource, error) {
+	if id == "" {
+		return resource.Resource{}, resource.ErrInvalidID
+	}
+	if res.URN == "" {
+		return resource.Resource{}, resource.ErrInvalidURN
+	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
 	groupID := sql.NullString{String: res.GroupID, Valid: res.GroupID != ""}
@@ -139,9 +157,10 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 			"namespace_id": res.NamespaceID,
 			"user_id":      userID,
 			"urn":          res.URN,
-		}).Where(goqu.Ex{
+		},
+	).Where(goqu.Ex{
 		"id": id,
-	}).ToSQL()
+	}).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -150,11 +169,18 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return resource.Resource{}, resource.ErrNotExist
 		}
+		if errors.Is(err, errDuplicateKey) {
+			return resource.Resource{}, resource.ErrConflict
+		}
+		if errors.Is(err, errForeignKeyViolation) {
+			return resource.Resource{}, resource.ErrNotExist
+		}
 		if errors.Is(err, errInvalidTexRepresentation) {
-			return resource.Resource{}, fmt.Errorf("%w: %s", resource.ErrInvalidUUID, err)
+			return resource.Resource{}, resource.ErrInvalidUUID
 		}
 		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -181,9 +207,6 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return resource.Resource{}, resource.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
-			return resource.Resource{}, resource.ErrInvalidUUID
 		}
 		return resource.Resource{}, err
 	}

@@ -53,6 +53,11 @@ func (s *ProjectRepositoryTestSuite) SetupSuite() {
 		s.T().Fatal(err)
 	}
 
+	s.orgs, err = bootstrapOrganization(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
 	s.relationRepository = postgres.NewRelationRepository(s.client)
 	s.namespaceRepository = postgres.NewNamespaceRepository(s.client)
 	s.roleRepository = postgres.NewRoleRepository(s.client)
