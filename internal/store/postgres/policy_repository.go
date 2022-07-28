@@ -70,13 +70,14 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 		return r.dbc.GetContext(ctx, &policyModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return policy.Policy{}, policy.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return policy.Policy{}, policy.ErrInvalidUUID
+		default:
+			return policy.Policy{}, err
 		}
-		return policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedPolicy, err := policyModel.transformToPolicy()
@@ -98,10 +99,12 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 		return r.dbc.SelectContext(ctx, &fetchedPolicies, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return []policy.Policy{}, nil
+		default:
+			return []policy.Policy{}, err
 		}
-		return []policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedPolicies []policy.Policy
@@ -142,10 +145,12 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&policyID)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errForeignKeyViolation) {
+		switch {
+		case errors.Is(err, errForeignKeyViolation):
 			return "", policy.ErrNotExist
+		default:
+			return "", fmt.Errorf("%w: %s", dbErr, err)
 		}
-		return "", fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return policyID, nil
@@ -172,16 +177,16 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&policyID)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return "", policy.ErrNotExist
-		}
-		if errors.Is(err, errDuplicateKey) {
+		case errors.Is(err, errDuplicateKey):
 			return "", policy.ErrConflict
-		}
-		if errors.Is(err, errForeignKeyViolation) {
+		case errors.Is(err, errForeignKeyViolation):
 			return "", policy.ErrNotExist
+		default:
+			return "", err
 		}
-		return "", fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return policyID, nil

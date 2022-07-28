@@ -101,13 +101,14 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errDuplicateKey) {
+		switch {
+		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
-		}
-		if errors.Is(err, errForeignKeyViolation) {
+		case errors.Is(err, errForeignKeyViolation):
 			return "", role.ErrNotExist
+		default:
+			return "", err
 		}
-		return "", fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return roleID, nil
@@ -168,16 +169,16 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return "", role.ErrNotExist
-		}
-		if errors.Is(err, errForeignKeyViolation) {
+		case errors.Is(err, errForeignKeyViolation):
 			return "", role.ErrNotExist
-		}
-		if errors.Is(err, errDuplicateKey) {
+		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
+		default:
+			return "", err
 		}
-		return "", fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return roleID, nil

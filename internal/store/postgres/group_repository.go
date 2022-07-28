@@ -44,13 +44,14 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 		return r.dbc.GetContext(ctx, &groupModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return group.Group{}, group.ErrInvalidUUID
+		default:
+			return group.Group{}, err
 		}
-		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedGroup, err := groupModel.transformToGroup()
@@ -79,10 +80,12 @@ func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Grou
 		return r.dbc.GetContext(ctx, &groupModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
+		default:
+			return group.Group{}, err
 		}
-		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedGroup, err := groupModel.transformToGroup()
@@ -299,8 +302,11 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return []user.User{}, nil
+		default:
+			return []user.User{}, err
 		}
 	}
 
@@ -352,8 +358,11 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return []user.User{}, nil
+		default:
+			return []user.User{}, err
 		}
 	}
 
@@ -389,10 +398,12 @@ func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID st
 		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return []relation.Relation{}, nil
+		default:
+			return []relation.Relation{}, err
 		}
-		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedRelations []relation.Relation
@@ -428,13 +439,14 @@ func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID 
 		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return []relation.Relation{}, sql.ErrNoRows
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return []relation.Relation{}, group.ErrInvalidUUID
+		default:
+			return []relation.Relation{}, err
 		}
-		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedRelations []relation.Relation

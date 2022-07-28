@@ -57,10 +57,12 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&relationModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errForeignKeyViolation) {
+		switch {
+		case errors.Is(err, errForeignKeyViolation):
 			return relation.Relation{}, relation.ErrNotExist
+		default:
+			return relation.Relation{}, err
 		}
-		return relation.Relation{}, err
 	}
 
 	return relationModel.transformToRelation(), nil
@@ -109,13 +111,14 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 		return r.dbc.GetContext(ctx, &relationModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return relation.Relation{}, relation.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return relation.Relation{}, relation.ErrInvalidUUID
+		default:
+			return relation.Relation{}, err
 		}
-		return relation.Relation{}, err
 	}
 
 	return relationModel.transformToRelation(), nil
@@ -136,10 +139,12 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 		result, err := r.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
-			if errors.Is(err, errInvalidTexRepresentation) {
+			switch {
+			case errors.Is(err, errInvalidTexRepresentation):
 				return relation.ErrInvalidUUID
+			default:
+				return err
 			}
-			return err
 		}
 
 		count, err := result.RowsAffected()
@@ -193,10 +198,12 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 		return r.dbc.GetContext(ctx, &fetchedRelation, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return relation.Relation{}, relation.ErrNotExist
+		default:
+			return relation.Relation{}, err
 		}
-		return relation.Relation{}, err
 	}
 
 	return fetchedRelation.transformToRelation(), nil
@@ -238,19 +245,18 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 		return r.dbc.GetContext(ctx, &relationModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return relation.Relation{}, relation.ErrNotExist
-		}
-		if errors.Is(err, errDuplicateKey) {
+		case errors.Is(err, errDuplicateKey):
 			return relation.Relation{}, relation.ErrConflict
-		}
-		if errors.Is(err, errForeignKeyViolation) {
+		case errors.Is(err, errForeignKeyViolation):
 			return relation.Relation{}, relation.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return relation.Relation{}, relation.ErrInvalidUUID
+		default:
+			return relation.Relation{}, err
 		}
-		return relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return relationModel.transformToRelation(), nil

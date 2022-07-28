@@ -125,13 +125,14 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 		return r.dbc.GetContext(ctx, &resourceModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return resource.Resource{}, resource.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return resource.Resource{}, resource.ErrInvalidUUID
+		default:
+			return resource.Resource{}, err
 		}
-		return resource.Resource{}, err
 	}
 
 	return resourceModel.transformToResource(), nil
@@ -170,19 +171,18 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return resource.Resource{}, resource.ErrNotExist
-		}
-		if errors.Is(err, errDuplicateKey) {
+		case errors.Is(err, errDuplicateKey):
 			return resource.Resource{}, resource.ErrConflict
-		}
-		if errors.Is(err, errForeignKeyViolation) {
+		case errors.Is(err, errForeignKeyViolation):
 			return resource.Resource{}, resource.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return resource.Resource{}, resource.ErrInvalidUUID
+		default:
+			return resource.Resource{}, err
 		}
-		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return resourceModel.transformToResource(), nil

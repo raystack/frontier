@@ -73,10 +73,12 @@ func (r ActionRepository) Create(ctx context.Context, act action.Action) (action
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errForeignKeyViolation) {
+		switch {
+		case errors.Is(err, errForeignKeyViolation):
 			return action.Action{}, action.ErrNotExist
+		default:
+			return action.Action{}, err
 		}
-		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return actionModel.transformToAction(), nil
@@ -128,13 +130,14 @@ func (r ActionRepository) Update(ctx context.Context, act action.Action) (action
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return action.Action{}, action.ErrNotExist
-		}
-		if errors.Is(err, errForeignKeyViolation) {
+		case errors.Is(err, errForeignKeyViolation):
 			return action.Action{}, action.ErrNotExist
+		default:
+			return action.Action{}, err
 		}
-		return action.Action{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return actionModel.transformToAction(), nil

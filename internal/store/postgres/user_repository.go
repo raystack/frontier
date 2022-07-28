@@ -41,16 +41,16 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 		return r.dbc.GetContext(ctx, &fetchedUser, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errDuplicateKey) {
+		switch {
+		case errors.Is(err, errDuplicateKey):
 			return user.User{}, user.ErrConflict
-		}
-		if errors.Is(err, sql.ErrNoRows) {
+		case errors.Is(err, sql.ErrNoRows):
 			return user.User{}, user.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return user.User{}, user.ErrNotUUID
+		default:
+			return user.User{}, err
 		}
-		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedUser, err := fetchedUser.transformToUser()
@@ -82,10 +82,12 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errDuplicateKey) {
+		switch {
+		case errors.Is(err, errDuplicateKey):
 			return user.User{}, user.ErrConflict
+		default:
+			return user.User{}, err
 		}
-		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedUser, err := userModel.transformToUser()
@@ -155,13 +157,14 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return []user.User{}, user.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return []user.User{}, user.ErrNotUUID
+		default:
+			return []user.User{}, err
 		}
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedUsers []user.User
@@ -249,13 +252,14 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errDuplicateKey) {
+		switch {
+		case errors.Is(err, errDuplicateKey):
 			return user.User{}, user.ErrConflict
-		}
-		if errors.Is(err, sql.ErrNoRows) {
+		case errors.Is(err, sql.ErrNoRows):
 			return user.User{}, user.ErrNotExist
+		default:
+			return user.User{}, err
 		}
-		return user.User{}, fmt.Errorf("%s: %w", txnErr, err)
 	}
 
 	transformedUser, err := userModel.transformToUser()

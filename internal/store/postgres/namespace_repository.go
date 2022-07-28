@@ -71,10 +71,12 @@ func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace)
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&nsModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errDuplicateKey) {
+		switch {
+		case errors.Is(err, errDuplicateKey):
 			return namespace.Namespace{}, namespace.ErrConflict
+		default:
+			return namespace.Namespace{}, err
 		}
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return nsModel.transformToNamespace(), nil
@@ -129,13 +131,14 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&nsModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return namespace.Namespace{}, namespace.ErrNotExist
-		}
-		if errors.Is(err, errDuplicateKey) {
+		case errors.Is(err, errDuplicateKey):
 			return namespace.Namespace{}, namespace.ErrConflict
+		default:
+			return namespace.Namespace{}, err
 		}
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return nsModel.transformToNamespace(), nil

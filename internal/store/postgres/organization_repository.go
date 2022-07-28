@@ -43,13 +43,14 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 		return r.dbc.GetContext(ctx, &orgModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return organization.Organization{}, organization.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
+		default:
+			return organization.Organization{}, err
 		}
-		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := orgModel.transformToOrg()
@@ -77,13 +78,14 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 		return r.dbc.GetContext(ctx, &orgModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return organization.Organization{}, organization.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
+		default:
+			return organization.Organization{}, err
 		}
-		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := orgModel.transformToOrg()
@@ -115,10 +117,12 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, errDuplicateKey) {
+		switch {
+		case errors.Is(err, errDuplicateKey):
 			return organization.Organization{}, organization.ErrConflict
+		default:
+			return organization.Organization{}, err
 		}
-		return organization.Organization{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	transformedOrg, err := orgModel.transformToOrg()

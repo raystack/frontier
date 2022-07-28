@@ -44,13 +44,14 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		case errors.Is(err, errInvalidTexRepresentation):
 			return project.Project{}, project.ErrInvalidUUID
+		default:
+			return project.Project{}, err
 		}
-		return project.Project{}, err
 	}
 
 	transformedProject, err := projectModel.transformToProject()
