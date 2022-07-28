@@ -34,26 +34,3 @@ func (from User) transformToUser() (user.User, error) {
 		UpdatedAt: from.UpdatedAt,
 	}, nil
 }
-
-// func buildListUserGroupsQuery(dialect goqu.DialectWrapper) (string, error) {
-// 	listUserGroupsQuery, _, err := dialect.Select(
-// 		goqu.I("g.id").As("id"),
-// 		goqu.I("g.metadata").As("metadata"),
-// 		goqu.I("g.name").As("name"),
-// 		goqu.I("g.slug").As("slug"),
-// 		goqu.I("g.updated_at").As("updated_at"),
-// 		goqu.I("g.created_at").As("created_at"),
-// 		goqu.I("g.org_id").As("org_id"),
-// 	).From(goqu.L("relations r")).
-// 		Join(goqu.L("groups g"), goqu.On(
-// 			goqu.I("g.id").Cast("VARCHAR").
-// 				Eq(goqu.I("r.object_id")),
-// 		)).Where(goqu.Ex{
-// 		"r.object_namespace_id": namespace.DefinitionTeam.ID,
-// 		"subject_namespace_id":  namespace.DefinitionUser.ID,
-// 		"subject_id":            goqu.L("$1"),
-// 		"role_id":               goqu.L("$2"),
-// 	}).ToSQL()
-
-// 	return listUserGroupsQuery, err
-// }
