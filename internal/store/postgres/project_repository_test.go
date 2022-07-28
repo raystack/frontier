@@ -423,7 +423,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 					ID: "not-uuid",
 				},
 			},
-			ErrString: organization.ErrInvalidUUID.Error(),
+			ErrString: project.ErrInvalidUUID.Error(),
 		},
 		{
 			Description: "should return error if org id not exist",

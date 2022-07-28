@@ -9,6 +9,7 @@ import (
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/policy"
@@ -331,11 +332,6 @@ func bootstrapOrganization(client *db.Client) ([]organization.Organization, erro
 }
 
 func bootstrapProject(client *db.Client, orgs []organization.Organization) ([]project.Project, error) {
-	orgs, err := bootstrapOrganization(client)
-	if err != nil {
-		return nil, err
-	}
-
 	projectRepository := postgres.NewProjectRepository(client)
 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-project.json")
 	if err != nil {
@@ -364,40 +360,34 @@ func bootstrapProject(client *db.Client, orgs []organization.Organization) ([]pr
 	return insertedData, nil
 }
 
-// func bootstrapResource(client *db.Client,
-// 	projects []project.Project,
-// 	groups []group.Group,
-// 	namespaces []namespace.Namespace,
-// 	users []user.User) ([]resource.Resource, error) {
+func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]group.Group, error) {
+	groupRepository := postgres.NewGroupRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-group.json")
+	if err != nil {
+		return nil, err
+	}
 
-// 	resourceRepository := postgres.NewResourceRepository(client)
-// 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-resource.json")
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	var data []group.Group
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
 
-// 	var data []resource.Resource
-// 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-// 		return nil, err
-// 	}
+	data[0].Organization = organization.Organization{ID: orgs[0].ID}
+	data[0].OrganizationID = orgs[0].ID
+	data[1].Organization = organization.Organization{ID: orgs[0].ID}
+	data[1].OrganizationID = orgs[0].ID
+	data[2].Organization = organization.Organization{ID: orgs[1].ID}
+	data[2].OrganizationID = orgs[1].ID
 
-// 	data[0].ProjectID = projects[0].ID
-// 	data[0].GroupID = groups[0].ID
-// 	data[0].NamespaceID = projects[0].ID
-// 	data[0].UserID = projects[0].ID
+	var insertedData []group.Group
+	for _, d := range data {
+		domain, err := groupRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
 
-// 	data[1].Organization = organization.Organization{ID: orgs[0].ID}
-// 	data[2].Organization = organization.Organization{ID: orgs[1].ID}
+		insertedData = append(insertedData, domain)
+	}
 
-// 	var insertedData []resource.Resource
-// 	for _, d := range data {
-// 		domain, err := resourceRepository.Create(context.Background(), d)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		insertedData = append(insertedData, domain)
-// 	}
-
-// 	return insertedData, nil
-// }
+	return insertedData, nil
+}

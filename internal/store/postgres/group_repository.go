@@ -10,6 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
@@ -42,6 +43,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &groupModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return group.Group{}, group.ErrNotExist
 		}
@@ -76,11 +78,9 @@ func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Grou
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &groupModel, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return group.Group{}, group.ErrNotExist
-		}
-		if errors.Is(err, errInvalidTexRepresentation) {
-			return group.Group{}, group.ErrInvalidUUID
 		}
 		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -114,7 +114,17 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
 	}); err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errForeignKeyViolation):
+			return group.Group{}, organization.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return group.Group{}, group.ErrInvalidUUID
+		case errors.Is(err, errDuplicateKey):
+			return group.Group{}, group.ErrConflict
+		default:
+			return group.Group{}, err
+		}
 	}
 
 	transformedGroup, err := groupModel.transformToGroup()
@@ -130,7 +140,6 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	if flt.OrganizationID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
 	}
-
 	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -162,6 +171,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 	if grp.ID == "" {
 		return group.Group{}, group.ErrInvalidID
 	}
+
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -183,12 +193,21 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 
 	var groupModel Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(groupModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
 	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return group.Group{}, group.ErrInvalidUUID
+		case errors.Is(err, errDuplicateKey):
+			return group.Group{}, group.ErrConflict
+		case errors.Is(err, errForeignKeyViolation):
+			return group.Group{}, organization.ErrNotExist
+		default:
+			return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
-		return group.Group{}, fmt.Errorf("%s: %w", dbErr, err)
 	}
 
 	updated, err := groupModel.transformToGroup()
@@ -226,10 +245,19 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
 	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return group.Group{}, group.ErrInvalidUUID
+		case errors.Is(err, errDuplicateKey):
+			return group.Group{}, group.ErrConflict
+		case errors.Is(err, errForeignKeyViolation):
+			return group.Group{}, organization.ErrNotExist
+		default:
+			return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
-		return group.Group{}, fmt.Errorf("%s: %w", dbErr, err)
 	}
 
 	updated, err := groupModel.transformToGroup()
@@ -244,17 +272,6 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 	if groupID == "" || roleID == "" {
 		return nil, group.ErrInvalidID
 	}
-	// var role = role.DefinitionTeamMember.ID
-	// if roleID != "" {
-	// 	role = roleID
-	// }
-
-	// groupID = strings.TrimSpace(groupID) //groupID can be uuid or slug
-	// fetchedGroup, err := r.Get(ctx, groupID)
-	// if err != nil {
-	// 	return []user.User{}, err
-	// }
-	// groupID = fetchedGroup.ID
 
 	query, params, err := dialect.Select(
 		goqu.I("u.id").As("id"),
@@ -281,10 +298,10 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return []user.User{}, nil
 		}
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedUsers []user.User
@@ -303,11 +320,6 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 	if groupSlug == "" || roleID == "" {
 		return nil, group.ErrInvalidID
 	}
-
-	// var role = role.DefinitionTeamMember.ID
-	// if roleID != "" {
-	// 	role = roleID
-	// }
 
 	fetchedGroup, err := r.GetBySlug(ctx, groupSlug)
 	if err != nil {
@@ -339,10 +351,10 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return []user.User{}, nil
 		}
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedUsers []user.User
@@ -363,8 +375,8 @@ func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID st
 	}
 
 	query, params, err := dialect.From(TABLE_RELATIONS).Where(goqu.Ex{
-		"subject_namespace_id": goqu.L(namespace.DefinitionUser.ID),
-		"object_namespace_id":  goqu.L(namespace.DefinitionTeam.ID),
+		"subject_namespace_id": namespace.DefinitionUser.ID,
+		"object_namespace_id":  namespace.DefinitionTeam.ID,
 		"subject_id":           userID,
 		"object_id":            groupID,
 	}).ToSQL()
@@ -376,8 +388,9 @@ func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID st
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
-			return []relation.Relation{}, sql.ErrNoRows
+			return []relation.Relation{}, nil
 		}
 		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -391,6 +404,9 @@ func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID st
 }
 
 func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID string, groupSlug string) ([]relation.Relation, error) {
+	if groupSlug == "" || userID == "" {
+		return nil, group.ErrInvalidID
+	}
 	var fetchedRelations []Relation
 
 	fetchedGroup, err := r.GetBySlug(ctx, groupSlug)
@@ -399,8 +415,8 @@ func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID 
 	}
 
 	query, params, err := dialect.From(TABLE_RELATIONS).Where(goqu.Ex{
-		"subject_namespace_id": goqu.L(namespace.DefinitionUser.ID),
-		"object_namespace_id":  goqu.L(namespace.DefinitionTeam.ID),
+		"subject_namespace_id": namespace.DefinitionUser.ID,
+		"object_namespace_id":  namespace.DefinitionTeam.ID,
 		"subject_id":           userID,
 		"object_id":            fetchedGroup.ID,
 	}).ToSQL()
@@ -411,8 +427,12 @@ func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return []relation.Relation{}, sql.ErrNoRows
+		}
+		if errors.Is(err, errInvalidTexRepresentation) {
+			return []relation.Relation{}, group.ErrInvalidUUID
 		}
 		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -429,12 +449,6 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 	if roleID == "" || userID == "" {
 		return nil, group.ErrInvalidID
 	}
-
-	// rlID := role.DefinitionTeamMember.ID
-
-	// if roleID == role.DefinitionTeamAdmin.ID {
-	// 	rlID = role.DefinitionTeamAdmin.ID
-	// }
 
 	query, params, err := dialect.Select(
 		goqu.I("g.id").As("id"),
@@ -460,10 +474,10 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 
 	var fetchedGroups []Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params)
+		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []group.Group{}, group.ErrNotExist
+			return []group.Group{}, nil
 		}
 		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
