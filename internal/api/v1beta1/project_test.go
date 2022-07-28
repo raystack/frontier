@@ -212,7 +212,7 @@ func TestGetProject(t *testing.T) {
 		{
 			title: "project doesnt exist",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetByIDFunc: func(ctx context.Context, id string) (project.Project, error) {
+			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
 				return project.Project{}, project.ErrNotExist
 			}},
 			err: grpcProjectNotFoundErr,
@@ -220,7 +220,7 @@ func TestGetProject(t *testing.T) {
 		{
 			title: "uuid syntax error",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetByIDFunc: func(ctx context.Context, id string) (project.Project, error) {
+			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
 				return project.Project{}, project.ErrInvalidUUID
 			}},
 			err: grpcBadBodyError,
@@ -228,7 +228,7 @@ func TestGetProject(t *testing.T) {
 		{
 			title: "service error",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetByIDFunc: func(ctx context.Context, id string) (project.Project, error) {
+			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
 				return project.Project{}, errors.New("some error")
 			}},
 			err: grpcInternalServerError,
@@ -236,7 +236,7 @@ func TestGetProject(t *testing.T) {
 		{
 			title: "success",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetByIDFunc: func(ctx context.Context, id string) (project.Project, error) {
+			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
 				return testProjectMap[testProjectID], nil
 			}},
 			want: &shieldv1beta1.GetProjectResponse{Project: &shieldv1beta1.Project{
@@ -268,17 +268,13 @@ func TestGetProject(t *testing.T) {
 }
 
 type mockProject struct {
-	GetByIDFunc           func(ctx context.Context, id string) (project.Project, error)
-	GetBySlugFunc         func(ctx context.Context, slug string) (project.Project, error)
-	CreateFunc            func(ctx context.Context, prj project.Project) (project.Project, error)
-	ListFunc              func(ctx context.Context) ([]project.Project, error)
-	UpdateByIDFunc        func(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	UpdateBySlugFunc      func(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	AddAdminByIDFunc      func(ctx context.Context, id string, userIds []string) ([]user.User, error)
-	AddAdminBySlugFunc    func(ctx context.Context, slug string, userIds []string) ([]user.User, error)
-	RemoveAdminByIDFunc   func(ctx context.Context, id string, userId string) ([]user.User, error)
-	RemoveAdminBySlugFunc func(ctx context.Context, slug string, userId string) ([]user.User, error)
-	ListAdminsFunc        func(ctx context.Context, id string) ([]user.User, error)
+	GetFunc         func(ctx context.Context, idOrSlug string) (project.Project, error)
+	CreateFunc      func(ctx context.Context, prj project.Project) (project.Project, error)
+	ListFunc        func(ctx context.Context) ([]project.Project, error)
+	UpdateFunc      func(ctx context.Context, toUpdate project.Project) (project.Project, error)
+	AddAdminFunc    func(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
+	RemoveAdminFunc func(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
+	ListAdminsFunc  func(ctx context.Context, id string) ([]user.User, error)
 }
 
 func (m mockProject) List(ctx context.Context) ([]project.Project, error) {
@@ -289,36 +285,22 @@ func (m mockProject) Create(ctx context.Context, project project.Project) (proje
 	return m.CreateFunc(ctx, project)
 }
 
-func (m mockProject) GetByID(ctx context.Context, id string) (project.Project, error) {
-	return m.GetByIDFunc(ctx, id)
+func (m mockProject) Get(ctx context.Context, idOrSlug string) (project.Project, error) {
+	return m.GetFunc(ctx, idOrSlug)
 }
 
-func (m mockProject) GetBySlug(ctx context.Context, slug string) (project.Project, error) {
-	return m.GetBySlugFunc(ctx, slug)
+func (m mockProject) Update(ctx context.Context, toUpdate project.Project) (project.Project, error) {
+	return m.UpdateFunc(ctx, toUpdate)
 }
 
-func (m mockProject) UpdateByID(ctx context.Context, toUpdate project.Project) (project.Project, error) {
-	return m.UpdateByIDFunc(ctx, toUpdate)
+func (m mockProject) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
+	return m.AddAdminFunc(ctx, idOrSlug, userIds)
 }
 
-func (m mockProject) UpdateBySlug(ctx context.Context, toUpdate project.Project) (project.Project, error) {
-	return m.UpdateBySlugFunc(ctx, toUpdate)
-}
-
-func (m mockProject) AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error) {
-	return m.AddAdminBySlugFunc(ctx, id, userIds)
-}
-
-func (m mockProject) AddAdminBySlug(ctx context.Context, slug string, userIds []string) ([]user.User, error) {
-	return m.AddAdminBySlugFunc(ctx, slug, userIds)
-}
 func (m mockProject) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
 	return m.ListAdminsFunc(ctx, id)
 }
 
-func (m mockProject) RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error) {
-	return m.RemoveAdminBySlugFunc(ctx, id, userId)
-}
-func (m mockProject) RemoveAdminBySlug(ctx context.Context, slug string, userId string) ([]user.User, error) {
-	return m.RemoveAdminBySlugFunc(ctx, slug, userId)
+func (m mockProject) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
+	return m.RemoveAdminFunc(ctx, idOrSlug, userId)
 }

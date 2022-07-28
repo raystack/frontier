@@ -330,42 +330,74 @@ func bootstrapOrganization(client *db.Client) ([]organization.Organization, erro
 	return insertedData, nil
 }
 
-func bootstrapProject(client *db.Client) ([]project.Project, []organization.Organization, error) {
+func bootstrapProject(client *db.Client, orgs []organization.Organization) ([]project.Project, error) {
 	orgs, err := bootstrapOrganization(client)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	projectRepository := postgres.NewProjectRepository(client)
 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-project.json")
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var data []project.Project
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
+
+	data[0].Organization = organization.Organization{ID: orgs[0].ID}
+	data[1].Organization = organization.Organization{ID: orgs[0].ID}
+	data[2].Organization = organization.Organization{ID: orgs[1].ID}
 
 	var insertedData []project.Project
 	for _, d := range data {
-		switch d.Name {
-		case "project1":
-			d.Organization = organization.Organization{ID: orgs[0].ID}
-		case "project2":
-			d.Organization = organization.Organization{ID: orgs[0].ID}
-		case "project3":
-			d.Organization = organization.Organization{ID: orgs[1].ID}
-		default:
-			d.Organization = organization.Organization{ID: orgs[1].ID}
-		}
 		domain, err := projectRepository.Create(context.Background(), d)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		insertedData = append(insertedData, domain)
 	}
 
-	return insertedData, orgs, nil
+	return insertedData, nil
 }
+
+// func bootstrapResource(client *db.Client,
+// 	projects []project.Project,
+// 	groups []group.Group,
+// 	namespaces []namespace.Namespace,
+// 	users []user.User) ([]resource.Resource, error) {
+
+// 	resourceRepository := postgres.NewResourceRepository(client)
+// 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-resource.json")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	var data []resource.Resource
+// 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+// 		return nil, err
+// 	}
+
+// 	data[0].ProjectID = projects[0].ID
+// 	data[0].GroupID = groups[0].ID
+// 	data[0].NamespaceID = projects[0].ID
+// 	data[0].UserID = projects[0].ID
+
+// 	data[1].Organization = organization.Organization{ID: orgs[0].ID}
+// 	data[2].Organization = organization.Organization{ID: orgs[1].ID}
+
+// 	var insertedData []resource.Resource
+// 	for _, d := range data {
+// 		domain, err := resourceRepository.Create(context.Background(), d)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+
+// 		insertedData = append(insertedData, domain)
+// 	}
+
+// 	return insertedData, nil
+// }

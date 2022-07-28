@@ -16,7 +16,7 @@ import (
 
 type ResourceService interface {
 	Get(ctx context.Context, id string) (resource.Resource, error)
-	List(ctx context.Context, filters resource.Filters) ([]resource.Resource, error)
+	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
@@ -28,11 +28,11 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 	logger := grpczap.Extract(ctx)
 	var resources []*shieldv1beta1.Resource
 
-	filters := resource.Filters{
-		NamespaceID:    request.NamespaceId,
-		OrganizationID: request.OrganizationId,
-		ProjectID:      request.ProjectId,
-		GroupID:        request.GroupId,
+	filters := resource.Filter{
+		NamespaceID:    request.GetNamespaceId(),
+		OrganizationID: request.GetOrganizationId(),
+		ProjectID:      request.GetProjectId(),
+		GroupID:        request.GetGroupId(),
 	}
 
 	resourcesList, err := h.resourceService.List(ctx, filters)

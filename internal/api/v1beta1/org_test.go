@@ -172,25 +172,17 @@ func TestCreateOrganization(t *testing.T) {
 }
 
 type mockOrgSrv struct {
-	GetByIDFunc           func(ctx context.Context, id string) (organization.Organization, error)
-	GetBySlugFunc         func(ctx context.Context, slug string) (organization.Organization, error)
-	CreateFunc            func(ctx context.Context, org organization.Organization) (organization.Organization, error)
-	ListFunc              func(ctx context.Context) ([]organization.Organization, error)
-	UpdateByIDFunc        func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	UpdateBySlugFunc      func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	AddAdminByIDFunc      func(ctx context.Context, id string, userIds []string) ([]user.User, error)
-	AddAdminBySlugFunc    func(ctx context.Context, slug string, userIds []string) ([]user.User, error)
-	RemoveAdminByIDFunc   func(ctx context.Context, id string, userId string) ([]user.User, error)
-	RemoveAdminBySlugFunc func(ctx context.Context, slug string, userId string) ([]user.User, error)
-	ListAdminsFunc        func(ctx context.Context, id string) ([]user.User, error)
+	GetFunc         func(ctx context.Context, idOrSlug string) (organization.Organization, error)
+	CreateFunc      func(ctx context.Context, org organization.Organization) (organization.Organization, error)
+	ListFunc        func(ctx context.Context) ([]organization.Organization, error)
+	UpdateFunc      func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
+	AddAdminsFunc   func(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
+	RemoveAdminFunc func(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
+	ListAdminsFunc  func(ctx context.Context, id string) ([]user.User, error)
 }
 
-func (m mockOrgSrv) GetByID(ctx context.Context, id string) (organization.Organization, error) {
-	return m.GetByIDFunc(ctx, id)
-}
-
-func (m mockOrgSrv) GetBySlug(ctx context.Context, id string) (organization.Organization, error) {
-	return m.GetBySlugFunc(ctx, id)
+func (m mockOrgSrv) Get(ctx context.Context, idOrSlug string) (organization.Organization, error) {
+	return m.GetFunc(ctx, idOrSlug)
 }
 
 func (m mockOrgSrv) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
@@ -201,28 +193,16 @@ func (m mockOrgSrv) List(ctx context.Context) ([]organization.Organization, erro
 	return m.ListFunc(ctx)
 }
 
-func (m mockOrgSrv) UpdateByID(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
-	return m.UpdateByIDFunc(ctx, toUpdate)
+func (m mockOrgSrv) Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
+	return m.UpdateFunc(ctx, toUpdate)
 }
 
-func (m mockOrgSrv) UpdateBySlug(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
-	return m.UpdateBySlugFunc(ctx, toUpdate)
+func (m mockOrgSrv) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
+	return m.AddAdmins(ctx, idOrSlug, userIds)
 }
 
-func (m mockOrgSrv) AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error) {
-	return m.AddAdminByIDFunc(ctx, id, userIds)
-}
-
-func (m mockOrgSrv) AddAdminBySlug(ctx context.Context, id string, userIds []string) ([]user.User, error) {
-	return m.AddAdminBySlugFunc(ctx, id, userIds)
-}
-
-func (m mockOrgSrv) RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error) {
-	return m.RemoveAdminByIDFunc(ctx, id, userId)
-}
-
-func (m mockOrgSrv) RemoveAdminBySlug(ctx context.Context, id string, userId string) ([]user.User, error) {
-	return m.RemoveAdminBySlugFunc(ctx, id, userId)
+func (m mockOrgSrv) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
+	return m.RemoveAdminFunc(ctx, idOrSlug, userId)
 }
 
 func (m mockOrgSrv) ListAdmins(ctx context.Context, id string) ([]user.User, error) {

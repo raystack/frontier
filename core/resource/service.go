@@ -98,8 +98,8 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	return newResource, nil
 }
 
-func (s Service) List(ctx context.Context, filters Filters) ([]Resource, error) {
-	return s.repository.List(ctx, filters)
+func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
+	return s.repository.List(ctx, flt)
 }
 
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {

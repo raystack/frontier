@@ -9,6 +9,7 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
+	"github.com/odpf/shield/pkg/uuid"
 )
 
 type RelationService interface {
@@ -37,13 +38,11 @@ func NewService(repository Repository, relationService RelationService, userServ
 	}
 }
 
-func (s Service) GetByID(ctx context.Context, id string) (Organization, error) {
-	return s.repository.GetByID(ctx, id)
-}
-
-func (s Service) GetBySlug(ctx context.Context, slug string) (Organization, error) {
-
-	return s.repository.GetBySlug(ctx, slug)
+func (s Service) Get(ctx context.Context, idOrSlug string) (Organization, error) {
+	if uuid.IsValid(idOrSlug) {
+		return s.repository.GetByID(ctx, idOrSlug)
+	}
+	return s.repository.GetBySlug(ctx, idOrSlug)
 }
 
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
@@ -72,43 +71,28 @@ func (s Service) List(ctx context.Context) ([]Organization, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) UpdateByID(ctx context.Context, org Organization) (Organization, error) {
-	return s.repository.UpdateByID(ctx, org)
-}
-
-func (s Service) UpdateBySlug(ctx context.Context, org Organization) (Organization, error) {
+func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
+	if org.ID != "" {
+		return s.repository.UpdateByID(ctx, org)
+	}
 	return s.repository.UpdateBySlug(ctx, org)
 }
 
-func (s Service) AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error) {
+func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	org, err := s.repository.GetByID(ctx, id)
+	var org Organization
+	if uuid.IsValid(idOrSlug) {
+		org, err = s.repository.GetByID(ctx, idOrSlug)
+	} else {
+		org, err = s.repository.GetBySlug(ctx, idOrSlug)
+	}
 	if err != nil {
 		return []user.User{}, err
 	}
-
-	return s.addAdmin(ctx, currentUser, org, userIds)
-}
-
-func (s Service) AddAdminBySlug(ctx context.Context, id string, userIds []string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	org, err := s.repository.GetBySlug(ctx, id)
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	return s.addAdmin(ctx, currentUser, org, userIds)
-}
-
-func (s Service) addAdmin(ctx context.Context, currentUser user.User, org Organization, userIds []string) ([]user.User, error) {
 
 	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
@@ -136,33 +120,21 @@ func (s Service) ListAdmins(ctx context.Context, id string) ([]user.User, error)
 	return s.repository.ListAdmins(ctx, id)
 }
 
-func (s Service) RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error) {
+func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	org, err := s.repository.GetByID(ctx, id)
+	var org Organization
+	if uuid.IsValid(idOrSlug) {
+		org, err = s.repository.GetByID(ctx, idOrSlug)
+	} else {
+		org, err = s.repository.GetBySlug(ctx, idOrSlug)
+	}
 	if err != nil {
 		return []user.User{}, err
 	}
-	return s.removeAdmin(ctx, currentUser, org, userId)
-}
-
-func (s Service) RemoveAdminBySlug(ctx context.Context, id string, userId string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	org, err := s.repository.GetBySlug(ctx, id)
-	if err != nil {
-		return []user.User{}, err
-	}
-	return s.removeAdmin(ctx, currentUser, org, userId)
-}
-
-func (s Service) removeAdmin(ctx context.Context, currentUser user.User, org Organization, userId string) ([]user.User, error) {
 
 	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {

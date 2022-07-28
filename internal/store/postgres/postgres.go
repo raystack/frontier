@@ -6,7 +6,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	"github.com/google/uuid"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -48,10 +47,4 @@ func checkPostgresError(err error) error {
 		}
 	}
 	return err
-}
-
-//TODO to be removed
-func isUUID(key string) bool {
-	_, err := uuid.Parse(key)
-	return err == nil
 }

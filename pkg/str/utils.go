@@ -1,7 +1,6 @@
 package str
 
 import (
-	"encoding/json"
 	"strings"
 )
 
@@ -31,14 +30,4 @@ func Slugify(str string, options SlugifyOptions) string {
 		str = strings.ReplaceAll(str, "#", "_")
 	}
 	return str
-}
-
-func StructToStringMap(s interface{}) (map[string]string, error) {
-	var myMap map[string]string
-	data, _ := json.Marshal(s)
-	err := json.Unmarshal(data, &myMap)
-	if err != nil {
-		return map[string]string{}, err
-	}
-	return myMap, nil
 }

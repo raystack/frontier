@@ -6,12 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -26,33 +25,23 @@ func NewGroupRepository(dbc *db.Client) *GroupRepository {
 	}
 }
 
-func (r GroupRepository) Get(ctx context.Context, id string) (group.Group, error) {
-	var fetchedGroup Group
-	var getGroupsQuery string
-	var err error
-	id = strings.TrimSpace(id)
-	isUuid := isUUID(id)
-
-	if isUuid {
-		getGroupsQuery, err = buildGetGroupsByIDQuery(dialect)
-	} else {
-		getGroupsQuery, err = buildGetGroupsBySlugQuery(dialect)
+func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, error) {
+	if id == "" {
+		return group.Group{}, group.ErrInvalidID
 	}
+
+	query, params, err := dialect.From(TABLE_GROUPS).Where(
+		goqu.Ex{
+			"id": id,
+		}).ToSQL()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if isUuid {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedGroup, getGroupsQuery, id, id)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedGroup, getGroupsQuery, id)
-		})
-	}
-
-	if err != nil {
+	var groupModel Group
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &groupModel, query, params...)
+	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return group.Group{}, group.ErrNotExist
 		}
@@ -62,7 +51,41 @@ func (r GroupRepository) Get(ctx context.Context, id string) (group.Group, error
 		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedGroup, err := transformToGroup(fetchedGroup)
+	transformedGroup, err := groupModel.transformToGroup()
+	if err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	return transformedGroup, nil
+}
+
+func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Group, error) {
+	if slug == "" {
+		return group.Group{}, group.ErrInvalidID
+	}
+
+	query, params, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
+		"slug": slug,
+	}).ToSQL()
+
+	if err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var groupModel Group
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &groupModel, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return group.Group{}, group.ErrNotExist
+		}
+		if errors.Is(err, errInvalidTexRepresentation) {
+			return group.Group{}, group.ErrInvalidUUID
+		}
+		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	transformedGroup, err := groupModel.transformToGroup()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -76,19 +99,25 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	createGroupsQuery, err := buildCreateGroupQuery(dialect)
+	query, params, err := dialect.Insert(TABLE_GROUPS).Rows(
+		goqu.Record{
+			"name":     grp.Name,
+			"slug":     grp.Slug,
+			"org_id":   grp.OrganizationID,
+			"metadata": marshaledMetadata,
+		}).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var newGroup Group
+	var groupModel Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &newGroup, createGroupsQuery, grp.Name, grp.Slug, grp.OrganizationID, marshaledMetadata)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
 	}); err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedGroup, err := transformToGroup(newGroup)
+	transformedGroup, err := groupModel.transformToGroup()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -96,21 +125,20 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 	return transformedGroup, nil
 }
 
-func (r GroupRepository) List(ctx context.Context, org organization.Organization) ([]group.Group, error) {
-	var fetchedGroups []Group
+func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Group, error) {
+	sqlStatement := dialect.From(TABLE_GROUPS)
+	if flt.OrganizationID != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
+	}
 
-	query, err := buildListGroupsQuery(dialect)
+	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if org.ID != "" {
-		query = query + fmt.Sprintf(" WHERE org_id='%s'", org.ID)
-	}
-
-	query = query + ";"
+	var fetchedGroups []Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedGroups, query)
+		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []group.Group{}, group.ErrNotExist
@@ -120,7 +148,7 @@ func (r GroupRepository) List(ctx context.Context, org organization.Organization
 
 	var transformedGroups []group.Group
 	for _, v := range fetchedGroups {
-		transformedGroup, err := transformToGroup(v)
+		transformedGroup, err := v.transformToGroup()
 		if err != nil {
 			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
@@ -130,44 +158,40 @@ func (r GroupRepository) List(ctx context.Context, org organization.Organization
 	return transformedGroups, nil
 }
 
-func (r GroupRepository) Update(ctx context.Context, toUpdate group.Group) (group.Group, error) {
-	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
+func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group.Group, error) {
+	if grp.ID == "" {
+		return group.Group{}, group.ErrInvalidID
+	}
+	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var updateGroupQuery string
-	toUpdate.ID = strings.TrimSpace(toUpdate.ID)
-	isUuid := isUUID(toUpdate.ID)
-
-	if isUuid {
-		updateGroupQuery, err = buildUpdateGroupByIDQuery(dialect)
-	} else {
-		updateGroupQuery, err = buildUpdateGroupBySlugQuery(dialect)
-	}
+	query, params, err := dialect.Update(TABLE_GROUPS).Set(
+		goqu.Record{
+			"name":       grp.Name,
+			"slug":       grp.Slug,
+			"org_id":     grp.OrganizationID,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.ExOr{
+		"id": grp.ID,
+	}).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var updatedGroup Group
-
-	if isUuid {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.ID, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &updatedGroup, updateGroupQuery, toUpdate.ID, toUpdate.Name, toUpdate.Slug, toUpdate.Organization.ID, marshaledMetadata)
-		})
-	}
-	if err != nil {
+	var groupModel Group
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(groupModel)
+	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return group.Group{}, group.ErrNotExist
 		}
 		return group.Group{}, fmt.Errorf("%s: %w", dbErr, err)
 	}
 
-	updated, err := transformToGroup(updatedGroup)
+	updated, err := groupModel.transformToGroup()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
@@ -175,30 +199,90 @@ func (r GroupRepository) Update(ctx context.Context, toUpdate group.Group) (grou
 	return updated, nil
 }
 
-func (r GroupRepository) ListUsers(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
-	var role = role.DefinitionTeamMember.ID
-	if roleID != "" {
-		role = roleID
+func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (group.Group, error) {
+	if grp.Slug == "" {
+		return group.Group{}, group.ErrInvalidID
 	}
 
-	groupID = strings.TrimSpace(groupID) //groupID can be uuid or slug
-	fetchedGroup, err := r.Get(ctx, groupID)
+	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
-		return []user.User{}, err
+		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
-	groupID = fetchedGroup.ID
 
-	listGroupUsersQuery, err := buildListGroupUsersQuery(dialect)
+	query, params, err := dialect.Update(TABLE_GROUPS).Set(
+		goqu.Record{
+			"name":       grp.Name,
+			"org_id":     grp.OrganizationID,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
+		}).Where(goqu.Ex{
+		"slug": grp.Slug,
+	}).Returning(&Group{}).ToSQL()
+	if err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var groupModel Group
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return group.Group{}, group.ErrNotExist
+		}
+		return group.Group{}, fmt.Errorf("%s: %w", dbErr, err)
+	}
+
+	updated, err := groupModel.transformToGroup()
+	if err != nil {
+		return group.Group{}, fmt.Errorf("%s: %w", parseErr, err)
+	}
+
+	return updated, nil
+}
+
+func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
+	if groupID == "" || roleID == "" {
+		return nil, group.ErrInvalidID
+	}
+	// var role = role.DefinitionTeamMember.ID
+	// if roleID != "" {
+	// 	role = roleID
+	// }
+
+	// groupID = strings.TrimSpace(groupID) //groupID can be uuid or slug
+	// fetchedGroup, err := r.Get(ctx, groupID)
+	// if err != nil {
+	// 	return []user.User{}, err
+	// }
+	// groupID = fetchedGroup.ID
+
+	query, params, err := dialect.Select(
+		goqu.I("u.id").As("id"),
+		goqu.I("u.name").As("name"),
+		goqu.I("u.email").As("email"),
+		goqu.I("u.metadata").As("metadata"),
+		goqu.I("u.created_at").As("created_at"),
+		goqu.I("u.updated_at").As("updated_at"),
+	).From(goqu.T(TABLE_RELATIONS).As("r")).
+		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
+			goqu.I("u.id").Cast("VARCHAR").
+				Eq(goqu.I("r.subject_id")),
+		)).Where(goqu.Ex{
+		"r.object_id":            groupID,
+		"r.role_id":              roleID,
+		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+		"r.object_namespace_id":  namespace.DefinitionTeam.ID,
+	}).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var fetchedUsers []User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedUsers, listGroupUsersQuery, groupID, role)
+		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []user.User{}, user.ErrNotExist
+			return []user.User{}, nil
 		}
 		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -215,23 +299,117 @@ func (r GroupRepository) ListUsers(ctx context.Context, groupID string, roleID s
 	return transformedUsers, nil
 }
 
-func (r GroupRepository) ListUserGroupRelations(ctx context.Context, userID string, groupID string) ([]relation.Relation, error) {
-	var fetchedRelations []Relation
+func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug string, roleID string) ([]user.User, error) {
+	if groupSlug == "" || roleID == "" {
+		return nil, group.ErrInvalidID
+	}
 
-	listUserGroupRelationsQuery, err := buildListUserGroupRelationsQuery(dialect)
+	// var role = role.DefinitionTeamMember.ID
+	// if roleID != "" {
+	// 	role = roleID
+	// }
+
+	fetchedGroup, err := r.GetBySlug(ctx, groupSlug)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	query, params, err := dialect.Select(
+		goqu.I("u.id").As("id"),
+		goqu.I("u.name").As("name"),
+		goqu.I("u.email").As("email"),
+		goqu.I("u.metadata").As("metadata"),
+		goqu.I("u.created_at").As("created_at"),
+		goqu.I("u.updated_at").As("updated_at"),
+	).From(goqu.T(TABLE_RELATIONS).As("r")).
+		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
+			goqu.I("u.id").Cast("VARCHAR").
+				Eq(goqu.I("r.subject_id")),
+		)).Where(goqu.Ex{
+		"r.object_id":            fetchedGroup.ID,
+		"r.role_id":              roleID,
+		"r.subject_namespace_id": namespace.DefinitionUser.ID,
+		"r.object_namespace_id":  namespace.DefinitionTeam.ID,
+	}).ToSQL()
+	if err != nil {
+		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var fetchedUsers []User
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []user.User{}, nil
+		}
+		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedUsers []user.User
+	for _, u := range fetchedUsers {
+		transformedUser, err := u.transformToUser()
+		if err != nil {
+			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+		transformedUsers = append(transformedUsers, transformedUser)
+	}
+
+	return transformedUsers, nil
+}
+
+func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID string, groupID string) ([]relation.Relation, error) {
+	if groupID == "" || userID == "" {
+		return nil, group.ErrInvalidID
+	}
+
+	query, params, err := dialect.From(TABLE_RELATIONS).Where(goqu.Ex{
+		"subject_namespace_id": goqu.L(namespace.DefinitionUser.ID),
+		"object_namespace_id":  goqu.L(namespace.DefinitionTeam.ID),
+		"subject_id":           userID,
+		"object_id":            groupID,
+	}).ToSQL()
 	if err != nil {
 		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	groupID = strings.TrimSpace(groupID)
-	fetchedGroup, err := r.Get(ctx, groupID)
+	var fetchedRelations []Relation
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []relation.Relation{}, sql.ErrNoRows
+		}
+		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedRelations []relation.Relation
+	for _, v := range fetchedRelations {
+		transformedRelations = append(transformedRelations, v.transformToRelation())
+	}
+
+	return transformedRelations, nil
+}
+
+func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID string, groupSlug string) ([]relation.Relation, error) {
+	var fetchedRelations []Relation
+
+	fetchedGroup, err := r.GetBySlug(ctx, groupSlug)
 	if err != nil {
 		return []relation.Relation{}, err
 	}
-	groupID = fetchedGroup.ID
+
+	query, params, err := dialect.From(TABLE_RELATIONS).Where(goqu.Ex{
+		"subject_namespace_id": goqu.L(namespace.DefinitionUser.ID),
+		"object_namespace_id":  goqu.L(namespace.DefinitionTeam.ID),
+		"subject_id":           userID,
+		"object_id":            fetchedGroup.ID,
+	}).ToSQL()
+	if err != nil {
+		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedRelations, listUserGroupRelationsQuery, userID, groupID)
+		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []relation.Relation{}, sql.ErrNoRows
@@ -248,21 +426,41 @@ func (r GroupRepository) ListUserGroupRelations(ctx context.Context, userID stri
 }
 
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
-	rlID := role.DefinitionTeamMember.ID
-
-	if roleID == role.DefinitionTeamAdmin.ID {
-		rlID = role.DefinitionTeamAdmin.ID
+	if roleID == "" || userID == "" {
+		return nil, group.ErrInvalidID
 	}
 
-	var fetchedGroups []Group
+	// rlID := role.DefinitionTeamMember.ID
 
-	listUserGroupsQuery, err := buildListUserGroupsQuery(dialect)
+	// if roleID == role.DefinitionTeamAdmin.ID {
+	// 	rlID = role.DefinitionTeamAdmin.ID
+	// }
+
+	query, params, err := dialect.Select(
+		goqu.I("g.id").As("id"),
+		goqu.I("g.metadata").As("metadata"),
+		goqu.I("g.name").As("name"),
+		goqu.I("g.slug").As("slug"),
+		goqu.I("g.updated_at").As("updated_at"),
+		goqu.I("g.created_at").As("created_at"),
+		goqu.I("g.org_id").As("org_id"),
+	).From(goqu.L("relations r")).
+		Join(goqu.L("groups g"), goqu.On(
+			goqu.I("g.id").Cast("VARCHAR").
+				Eq(goqu.I("r.object_id")),
+		)).Where(goqu.Ex{
+		"r.object_namespace_id": namespace.DefinitionTeam.ID,
+		"subject_namespace_id":  namespace.DefinitionUser.ID,
+		"subject_id":            userID,
+		"role_id":               roleID,
+	}).ToSQL()
 	if err != nil {
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var fetchedGroups []Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedGroups, listUserGroupsQuery, userID, rlID)
+		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []group.Group{}, group.ErrNotExist
@@ -272,7 +470,7 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 
 	var transformedGroups []group.Group
 	for _, v := range fetchedGroups {
-		transformedGroup, err := transformToGroup(v)
+		transformedGroup, err := v.transformToGroup()
 		if err != nil {
 			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 		}

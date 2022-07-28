@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -23,16 +24,12 @@ import (
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
 
 type ProjectService interface {
-	GetByID(ctx context.Context, id string) (project.Project, error)
-	GetBySlug(ctx context.Context, slug string) (project.Project, error)
+	Get(ctx context.Context, idOrSlugd string) (project.Project, error)
 	Create(ctx context.Context, project project.Project) (project.Project, error)
 	List(ctx context.Context) ([]project.Project, error)
-	UpdateByID(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	UpdateBySlug(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	AddAdminByID(ctx context.Context, id string, userIds []string) ([]user.User, error)
-	AddAdminBySlug(ctx context.Context, slug string, userIds []string) ([]user.User, error)
-	RemoveAdminByID(ctx context.Context, id string, userId string) ([]user.User, error)
-	RemoveAdminBySlug(ctx context.Context, slug string, userId string) ([]user.User, error)
+	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
+	AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
+	RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
@@ -103,13 +100,7 @@ func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.Creat
 func (h Handler) GetProject(ctx context.Context, request *shieldv1beta1.GetProjectRequest) (*shieldv1beta1.GetProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var err error
-	var fetchedProject project.Project
-	if isUUID(request.GetId()) {
-		fetchedProject, err = h.projectService.GetByID(ctx, request.GetId())
-	} else {
-		fetchedProject, err = h.projectService.GetBySlug(ctx, request.GetId())
-	}
+	fetchedProject, err := h.projectService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -134,24 +125,25 @@ func (h Handler) GetProject(ctx context.Context, request *shieldv1beta1.GetProje
 func (h Handler) UpdateProject(ctx context.Context, request *shieldv1beta1.UpdateProjectRequest) (*shieldv1beta1.UpdateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := mapOfStringValues(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
+
 	var updatedProject project.Project
-	if isUUID(request.GetId()) {
-		updatedProject, err = h.projectService.UpdateByID(ctx, project.Project{
+	if uuid.IsValid(request.GetId()) {
+		updatedProject, err = h.projectService.Update(ctx, project.Project{
 			ID:           request.GetId(),
-			Name:         request.GetBody().Name,
-			Slug:         request.GetBody().Slug,
-			Organization: organization.Organization{ID: request.GetBody().OrgId},
+			Name:         request.GetBody().GetName(),
+			Slug:         request.GetBody().GetSlug(),
+			Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
 			Metadata:     metaDataMap,
 		})
 	} else {
-		updatedProject, err = h.projectService.UpdateBySlug(ctx, project.Project{
-			Name:         request.GetBody().Name,
-			Slug:         request.GetBody().Slug,
-			Organization: organization.Organization{ID: request.GetBody().OrgId},
+		updatedProject, err = h.projectService.Update(ctx, project.Project{
+			Name:         request.GetBody().GetName(),
+			Slug:         request.GetId(),
+			Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
 			Metadata:     metaDataMap,
 		})
 	}
@@ -174,11 +166,8 @@ func (h Handler) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.Add
 
 	var err error
 	var admins []user.User
-	if isUUID(request.GetId()) {
-		admins, err = h.projectService.AddAdminByID(ctx, request.GetId(), request.GetBody().GetUserIds())
-	} else {
-		admins, err = h.projectService.AddAdminBySlug(ctx, request.GetId(), request.GetBody().GetUserIds())
-	}
+
+	admins, err = h.projectService.AddAdmins(ctx, request.GetId(), request.GetBody().GetUserIds())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -234,13 +223,7 @@ func (h Handler) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.L
 func (h Handler) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.RemoveProjectAdminRequest) (*shieldv1beta1.RemoveProjectAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var err error
-	if isUUID(request.GetId()) {
-		_, err = h.projectService.RemoveAdminByID(ctx, request.GetId(), request.GetUserId())
-	} else {
-		_, err = h.projectService.RemoveAdminBySlug(ctx, request.GetId(), request.GetUserId())
-	}
-	if err != nil {
+	if _, err := h.projectService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, project.ErrNotExist):

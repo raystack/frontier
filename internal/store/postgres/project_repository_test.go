@@ -61,7 +61,7 @@ func (s *ProjectRepositoryTestSuite) SetupSuite() {
 
 func (s *ProjectRepositoryTestSuite) SetupTest() {
 	var err error
-	s.projects, s.orgs, err = bootstrapProject(s.client)
+	s.projects, err = bootstrapProject(s.client, s.orgs)
 	if err != nil {
 		s.T().Fatal(err)
 	}

@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -15,16 +14,11 @@ import (
 
 const NON_RESOURCE_ID = "*"
 
-var (
-	ErrNotExist    = errors.New("resource doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
 type Repository interface {
 	Get(ctx context.Context, id string) (Resource, error)
 	GetByURN(ctx context.Context, urn string) (Resource, error)
 	Create(ctx context.Context, resource Resource) (Resource, error)
-	List(ctx context.Context, filters Filters) ([]Resource, error)
+	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, id string, resource Resource) (Resource, error)
 }
 
@@ -51,7 +45,7 @@ type Resource struct {
 	UpdatedAt      time.Time
 }
 
-type Filters struct {
+type Filter struct {
 	ProjectID      string `json:"project_id"`
 	GroupID        string `json:"group_id"`
 	OrganizationID string `json:"org_id"`
