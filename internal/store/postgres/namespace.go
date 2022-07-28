@@ -14,11 +14,13 @@ import (
 )
 
 type Namespace struct {
-	ID        string       `db:"id"`
-	Name      string       `db:"name"`
-	CreatedAt time.Time    `db:"created_at"`
-	UpdatedAt time.Time    `db:"updated_at"`
-	DeletedAt sql.NullTime `db:"deleted_at"`
+	ID           string       `db:"id"`
+	Name         string       `db:"name"`
+	Backend      string       `db:"backend"`
+	ResourceType string       `db:"resource_type"`
+	CreatedAt    time.Time    `db:"created_at"`
+	UpdatedAt    time.Time    `db:"updated_at"`
+	DeletedAt    sql.NullTime `db:"deleted_at"`
 }
 
 func buildGetNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
@@ -31,10 +33,14 @@ func buildGetNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
 func buildCreateNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
 	createNamespaceQuery, _, err := dialect.Insert(TABLE_NAMESPACE).Rows(
 		goqu.Record{
-			"id":   goqu.L("$1"),
-			"name": goqu.L("$2"),
+			"id":            goqu.L("$1"),
+			"name":          goqu.L("$2"),
+			"backend":       goqu.L("$3"),
+			"resource_type": goqu.L("$4"),
 		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
-		"name": goqu.L("$2"),
+		"name":          goqu.L("$2"),
+		"backend":       goqu.L("$3"),
+		"resource_type": goqu.L("$4"),
 	})).Returning(&Namespace{}).ToSQL()
 
 	return createNamespaceQuery, err
@@ -44,12 +50,16 @@ func buildListNamespacesQuery(dialect goqu.DialectWrapper) (string, error) {
 
 	return listNamespacesQuery, err
 }
+
+// TODO: @krtkvrm
 func buildUpdateNamespaceQuery(dialect goqu.DialectWrapper) (string, error) {
 	updateNamespaceQuery, _, err := dialect.Update(TABLE_NAMESPACE).Set(
 		goqu.Record{
-			"id":         goqu.L("$2"),
-			"name":       goqu.L("$3"),
-			"updated_at": goqu.L("now()"),
+			"id":            goqu.L("$2"),
+			"name":          goqu.L("$3"),
+			"backend":       goqu.L("$4"),
+			"resource_type": goqu.L("$5"),
+			"updated_at":    goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": goqu.L("$1"),
 	}).Returning(&Namespace{}).ToSQL()
@@ -99,7 +109,7 @@ func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate namespace.
 	}
 
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
-		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.ID, namespaceToCreate.Name)
+		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.ID, namespaceToCreate.Name, namespaceToCreate.Backend, namespaceToCreate.ResourceType)
 	})
 
 	if err != nil {
@@ -174,9 +184,11 @@ func (s Store) UpdateNamespace(ctx context.Context, id string, toUpdate namespac
 
 func transformToNamespace(from Namespace) (namespace.Namespace, error) {
 	return namespace.Namespace{
-		ID:        from.ID,
-		Name:      from.Name,
-		CreatedAt: from.CreatedAt,
-		UpdatedAt: from.UpdatedAt,
+		ID:           from.ID,
+		Name:         from.Name,
+		Backend:      from.Backend,
+		ResourceType: from.ResourceType,
+		CreatedAt:    from.CreatedAt,
+		UpdatedAt:    from.UpdatedAt,
 	}, nil
 }

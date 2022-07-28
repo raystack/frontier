@@ -129,8 +129,10 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 		for _, resourceBackend := range resourceBackends.Backends {
 			for _, resourceType := range resourceBackend.ResourceTypes {
 				resources = append(resources, resource.YAML{
-					Name:    namespace.CreateID(resourceBackend.Name, resourceType.Name),
-					Actions: resourceType.Actions,
+					Name:         namespace.CreateID(resourceBackend.Name, resourceType.Name),
+					Backend:      resourceBackend.Name,
+					ResourceType: resourceType.Name,
+					Actions:      resourceType.Actions,
 				})
 			}
 		}

@@ -186,8 +186,10 @@ func getResourceAction(actionStr string, ns namespace.Namespace) action.Action {
 func getResourceNamespace(resYAML resource.YAML) namespace.Namespace {
 	nsID := str.Slugify(resYAML.Name, str.SlugifyOptions{})
 	ns := namespace.Namespace{
-		Name: resYAML.Name,
-		ID:   nsID,
+		Name:         resYAML.Name,
+		Backend:      resYAML.Backend,
+		ResourceType: resYAML.ResourceType,
+		ID:           nsID,
 	}
 	return ns
 }

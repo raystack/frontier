@@ -74,7 +74,7 @@ services:
     depends_on:
       pg2:
         condition: service_healthy
-        
+
   spicedb:
     image: quay.io/authzed/spicedb:v1.0.0
     ports:

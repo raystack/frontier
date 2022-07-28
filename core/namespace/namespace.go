@@ -20,10 +20,12 @@ type Store interface {
 }
 
 type Namespace struct {
-	ID        string
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID           string
+	Name         string
+	Backend      string
+	ResourceType string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func strListHas(list []string, a string) bool {
