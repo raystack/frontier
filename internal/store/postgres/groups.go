@@ -212,10 +212,14 @@ func (s Store) ListGroups(ctx context.Context, org organization.Organization) ([
 	}
 
 	if org.ID != "" {
-		query = query + fmt.Sprintf(" WHERE org_id='%s'", org.ID)
+		organization, err := s.GetOrg(ctx, org.ID)
+		if err != nil {
+			return []group.Group{}, err
+		}
+
+		query = query + fmt.Sprintf(" WHERE org_id='%s'", organization.ID)
 	}
 
-	query = query + ";"
 	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.SelectContext(ctx, &fetchedGroups, query)
 	})
