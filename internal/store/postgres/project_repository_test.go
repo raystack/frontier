@@ -61,7 +61,6 @@ func (s *ProjectRepositoryTestSuite) SetupSuite() {
 	s.relationRepository = postgres.NewRelationRepository(s.client)
 	s.namespaceRepository = postgres.NewNamespaceRepository(s.client)
 	s.roleRepository = postgres.NewRoleRepository(s.client)
-
 }
 
 func (s *ProjectRepositoryTestSuite) SetupTest() {

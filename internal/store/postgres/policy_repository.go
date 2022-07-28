@@ -48,7 +48,6 @@ func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
 	)).Join(goqu.T(TABLE_NAMESPACES), goqu.On(
 		goqu.I("namespaces.id").Eq(goqu.I("p.namespace_id")),
 	))
-
 }
 
 func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, error) {

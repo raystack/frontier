@@ -114,7 +114,6 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 }
 
 func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
-
 	query, params, err := r.buildListQuery(dialect).ToSQL()
 	if err != nil {
 		return []role.Role{}, fmt.Errorf("%w: %s", queryErr, err)

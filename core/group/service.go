@@ -315,6 +315,7 @@ func (s Service) addMemberToTeam(ctx context.Context, userID, groupID string) er
 	return nil
 }
 
+//nolint:unused
 func (s Service) removeMemberFromTeam(ctx context.Context, userID, groupID string) error {
 	rel := relation.Relation{
 		ObjectNamespace:  namespace.DefinitionTeam,
