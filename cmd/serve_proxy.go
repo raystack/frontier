@@ -44,19 +44,18 @@ func serveProxies(
 			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
 
-		blobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
+		ruleBlobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		ruleRepo := blob.NewRuleRepository(logger, blobFS)
-		if err := ruleRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+		ruleBlobRepository := blob.NewRuleRepository(logger, ruleBlobFS)
+		if err := ruleBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 			return nil, nil, err
 		}
+		cleanUpBlobs = append(cleanUpBlobs, ruleBlobRepository.Close)
 
-		ruleService := rule.NewService(ruleRepo)
-
-		cleanUpBlobs = append(cleanUpBlobs, ruleRepo.Close)
+		ruleService := rule.NewService(ruleBlobRepository)
 
 		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeader, resourceService, userService, ruleService)
 

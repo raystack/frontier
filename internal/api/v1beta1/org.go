@@ -6,6 +6,7 @@ import (
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
+	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -20,13 +21,13 @@ import (
 )
 
 type OrganizationService interface {
-	Get(ctx context.Context, id string) (organization.Organization, error)
+	Get(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
 	List(ctx context.Context) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	AddAdmin(ctx context.Context, id string, userIds []string) ([]user.User, error)
+	AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
+	RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
-	RemoveAdmin(ctx context.Context, id string, userId string) ([]user.User, error)
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
@@ -139,13 +140,21 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcBadBodyError
 	}
 
-	updatedOrg, err := h.orgService.Update(ctx, organization.Organization{
-		ID:       request.GetId(),
-		Name:     request.GetBody().Name,
-		Slug:     request.GetBody().Slug,
-		Metadata: metaDataMap,
-	})
-
+	var updatedOrg organization.Organization
+	if uuid.IsValid(request.GetId()) {
+		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
+			ID:       request.GetId(),
+			Name:     request.GetBody().Name,
+			Slug:     request.GetBody().Slug,
+			Metadata: metaDataMap,
+		})
+	} else {
+		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
+			Name:     request.GetBody().Name,
+			Slug:     request.GetId(),
+			Metadata: metaDataMap,
+		})
+	}
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, internalServerError
@@ -162,9 +171,8 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 
 func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.AddOrganizationAdminRequest) (*shieldv1beta1.AddOrganizationAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
-	userIds := request.GetBody().UserIds
 
-	addedUsers, err := h.orgService.AddAdmin(ctx, request.GetId(), userIds)
+	addedUsers, err := h.orgService.AddAdmins(ctx, request.GetId(), request.GetBody().GetUserIds())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -222,8 +230,7 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1beta1.RemoveOrganizationAdminRequest) (*shieldv1beta1.RemoveOrganizationAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	_, err := h.orgService.RemoveAdmin(ctx, request.GetId(), request.GetUserId())
-	if err != nil {
+	if _, err := h.orgService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrNotExist):

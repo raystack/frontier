@@ -2,7 +2,6 @@ package policy
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/odpf/shield/core/action"
@@ -10,20 +9,15 @@ import (
 	"github.com/odpf/shield/core/role"
 )
 
-var (
-	ErrNotExist    = errors.New("policies doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
-type Store interface {
-	GetPolicy(ctx context.Context, id string) (Policy, error)
-	ListPolicies(ctx context.Context) ([]Policy, error)
-	CreatePolicy(ctx context.Context, policy Policy) ([]Policy, error)
-	UpdatePolicy(ctx context.Context, id string, policy Policy) ([]Policy, error)
+type Repository interface {
+	Get(ctx context.Context, id string) (Policy, error)
+	List(ctx context.Context) ([]Policy, error)
+	Create(ctx context.Context, pol Policy) (string, error)
+	Update(ctx context.Context, pol Policy) (string, error)
 }
 
-type AuthzStore interface {
-	AddPolicy(ctx context.Context, policies []Policy) error
+type AuthzRepository interface {
+	Add(ctx context.Context, policies []Policy) error
 }
 
 type Policy struct {

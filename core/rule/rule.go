@@ -10,7 +10,7 @@ var (
 	ErrUnknown = errors.New("undefined proxy rule")
 )
 
-type RuleRepository interface {
+type ConfigRepository interface {
 	GetAll(ctx context.Context) ([]Ruleset, error)
 }
 

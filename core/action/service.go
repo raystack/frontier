@@ -5,22 +5,21 @@ import (
 )
 
 type Service struct {
-	store Store
+	repository Repository
 }
 
-func NewService(store Store) *Service {
+func NewService(repository Repository) *Service {
 	return &Service{
-		store: store,
+		repository: repository,
 	}
 }
 
-func (s Service) GetAction(ctx context.Context, id string) (Action, error) {
-	return s.store.GetAction(ctx, id)
+func (s Service) Get(ctx context.Context, id string) (Action, error) {
+	return s.repository.Get(ctx, id)
 }
 
-func (s Service) CreateAction(ctx context.Context, action Action) (Action, error) {
-	newAction, err := s.store.CreateAction(ctx, action)
-
+func (s Service) Create(ctx context.Context, action Action) (Action, error) {
+	newAction, err := s.repository.Create(ctx, action)
 	if err != nil {
 		return Action{}, err
 	}
@@ -28,17 +27,16 @@ func (s Service) CreateAction(ctx context.Context, action Action) (Action, error
 	return newAction, nil
 }
 
-func (s Service) ListActions(ctx context.Context) ([]Action, error) {
-	return s.store.ListActions(ctx)
+func (s Service) List(ctx context.Context) ([]Action, error) {
+	return s.repository.List(ctx)
 }
 
-func (s Service) UpdateAction(ctx context.Context, id string, action Action) (Action, error) {
-	updatedAction, err := s.store.UpdateAction(ctx, Action{
+func (s Service) Update(ctx context.Context, id string, action Action) (Action, error) {
+	updatedAction, err := s.repository.Update(ctx, Action{
 		Name:        action.Name,
 		ID:          id,
 		NamespaceID: action.NamespaceID,
 	})
-
 	if err != nil {
 		return Action{}, err
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 type RuleService interface {
-	GetAll(ctx context.Context) ([]rule.Ruleset, error)
+	GetAllConfigs(ctx context.Context) ([]rule.Ruleset, error)
 }
 
 type RuleMatcher interface {

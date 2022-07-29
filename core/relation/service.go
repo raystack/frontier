@@ -9,29 +9,28 @@ import (
 )
 
 type Service struct {
-	store      Store
-	authzStore AuthzStore
+	repository      Repository
+	authzRepository AuthzRepository
 }
 
-func NewService(store Store, authzStore AuthzStore) *Service {
+func NewService(repository Repository, authzRepository AuthzRepository) *Service {
 	return &Service{
-		store:      store,
-		authzStore: authzStore,
+		repository:      repository,
+		authzRepository: authzRepository,
 	}
 }
 
 func (s Service) Get(ctx context.Context, id string) (Relation, error) {
-	return s.store.GetRelation(ctx, id)
+	return s.repository.Get(ctx, id)
 }
 
 func (s Service) Create(ctx context.Context, rel Relation) (Relation, error) {
-	rel, err := s.store.CreateRelation(ctx, rel)
+	rel, err := s.repository.Create(ctx, rel)
 	if err != nil {
 		return Relation{}, err
 	}
 
-	err = s.authzStore.AddRelation(ctx, rel)
-	if err != nil {
+	if err = s.authzRepository.Add(ctx, rel); err != nil {
 		return Relation{}, err
 	}
 
@@ -39,31 +38,25 @@ func (s Service) Create(ctx context.Context, rel Relation) (Relation, error) {
 }
 
 func (s Service) List(ctx context.Context) ([]Relation, error) {
-	return s.store.ListRelations(ctx)
+	return s.repository.List(ctx)
 }
 
-func (s Service) Update(ctx context.Context, id string, toUpdate Relation) (Relation, error) {
-	oldRelation, err := s.store.GetRelation(ctx, id)
-
+func (s Service) Update(ctx context.Context, toUpdate Relation) (Relation, error) {
+	oldRelation, err := s.repository.Get(ctx, toUpdate.ID)
 	if err != nil {
 		return Relation{}, err
 	}
 
-	newRelation, err := s.store.UpdateRelation(ctx, id, toUpdate)
-
+	newRelation, err := s.repository.Update(ctx, toUpdate)
 	if err != nil {
 		return Relation{}, err
 	}
 
-	err = s.authzStore.DeleteRelation(ctx, oldRelation)
-
-	if err != nil {
+	if err = s.authzRepository.Delete(ctx, oldRelation); err != nil {
 		return Relation{}, err
 	}
 
-	err = s.authzStore.AddRelation(ctx, newRelation)
-
-	if err != nil {
+	if err = s.authzRepository.Add(ctx, newRelation); err != nil {
 		return Relation{}, err
 	}
 
@@ -71,26 +64,27 @@ func (s Service) Update(ctx context.Context, id string, toUpdate Relation) (Rela
 }
 
 func (s Service) Delete(ctx context.Context, rel Relation) error {
-	fetchedRel, err := s.store.GetRelationByFields(ctx, rel)
+	fetchedRel, err := s.repository.GetByFields(ctx, rel)
 	if err != nil {
 		return err
 	}
 
-	err = s.authzStore.DeleteRelation(ctx, rel)
-	if err != nil {
+	if err = s.authzRepository.Delete(ctx, rel); err != nil {
 		return err
 	}
 
-	err = s.store.DeleteRelationByID(ctx, fetchedRel.ID)
-
-	return err
+	return s.repository.DeleteByID(ctx, fetchedRel.ID)
 }
 
 func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error) {
-	return s.authzStore.CheckRelation(ctx, Relation{
+	return s.authzRepository.Check(ctx, Relation{
 		ObjectNamespace:  resourceNS,
 		ObjectID:         resourceIdxa,
 		SubjectID:        usr.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 	}, action)
+}
+
+func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
+	return s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
 }

@@ -12,7 +12,7 @@ type RegexMatcher struct {
 }
 
 func (m RegexMatcher) Match(ctx context.Context, reqMethod string, reqURL *url.URL) (*rule.Rule, error) {
-	ruleset, err := m.ruleService.GetAll(ctx)
+	ruleset, err := m.ruleService.GetAllConfigs(ctx)
 	if err != nil {
 		return nil, err
 	}

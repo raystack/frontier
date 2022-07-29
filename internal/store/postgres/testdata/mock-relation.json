@@ -1,0 +1,26 @@
+[
+    {
+        "subject_namespace_id": "ns1",
+        "subject_id": "uuid1",
+        "object_namespace_id": "ns1",
+        "object_id": "uuid2",
+        "role_id": "role1",
+        "role_type": "role"
+    },
+    {
+        "subject_namespace_id": "ns2",
+        "subject_id": "uuid3",
+        "object_namespace_id": "ns2",
+        "object_id": "uuid4",
+        "role_id": "role2",
+        "role_type": "role"
+    },
+    {
+        "subject_namespace_id": "ns1",
+        "subject_id": "uuid1",
+        "object_namespace_id": "ns2",
+        "object_id": "uuid4",
+        "role_id": "ns2",
+        "role_type": "namespace"
+    }
+]

@@ -1,0 +1,14 @@
+[
+    {
+        "name": "resource-1",
+        "urn": "resource-1-urn"
+    },
+    {
+        "name": "resource-2",
+        "urn": "resource-2-urn"
+    },
+    {
+        "name": "resource-3",
+        "urn": "resource-3-urn"
+    }
+]

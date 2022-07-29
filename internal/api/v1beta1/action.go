@@ -13,10 +13,10 @@ import (
 )
 
 type ActionService interface {
-	GetAction(ctx context.Context, id string) (action.Action, error)
-	ListActions(ctx context.Context) ([]action.Action, error)
-	CreateAction(ctx context.Context, action action.Action) (action.Action, error)
-	UpdateAction(ctx context.Context, id string, action action.Action) (action.Action, error)
+	Get(ctx context.Context, id string) (action.Action, error)
+	List(ctx context.Context) ([]action.Action, error)
+	Create(ctx context.Context, action action.Action) (action.Action, error)
+	Update(ctx context.Context, id string, action action.Action) (action.Action, error)
 }
 
 var grpcActionNotFoundErr = status.Errorf(codes.NotFound, "action doesn't exist")
@@ -25,7 +25,7 @@ func (h Handler) ListActions(ctx context.Context, request *shieldv1beta1.ListAct
 	logger := grpczap.Extract(ctx)
 	var actions []*shieldv1beta1.Action
 
-	actionsList, err := h.actionService.ListActions(ctx)
+	actionsList, err := h.actionService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -47,15 +47,19 @@ func (h Handler) ListActions(ctx context.Context, request *shieldv1beta1.ListAct
 func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.CreateActionRequest) (*shieldv1beta1.CreateActionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	newAction, err := h.actionService.CreateAction(ctx, action.Action{
+	newAction, err := h.actionService.Create(ctx, action.Action{
 		ID:          request.GetBody().Id,
 		Name:        request.GetBody().Name,
 		NamespaceID: request.GetBody().NamespaceId,
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, action.ErrNotExist):
+			return nil, grpcActionNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	actionPB, err := transformActionToPB(newAction)
@@ -71,13 +75,13 @@ func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.Create
 func (h Handler) GetAction(ctx context.Context, request *shieldv1beta1.GetActionRequest) (*shieldv1beta1.GetActionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedAction, err := h.actionService.GetAction(ctx, request.GetId())
+	fetchedAction, err := h.actionService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, action.ErrNotExist):
 			return nil, grpcActionNotFoundErr
-		case errors.Is(err, action.ErrInvalidUUID):
+		case errors.Is(err, action.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -96,7 +100,7 @@ func (h Handler) GetAction(ctx context.Context, request *shieldv1beta1.GetAction
 func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.UpdateActionRequest) (*shieldv1beta1.UpdateActionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	updatedAction, err := h.actionService.UpdateAction(ctx, request.GetId(), action.Action{
+	updatedAction, err := h.actionService.Update(ctx, request.GetId(), action.Action{
 		ID:          request.GetId(),
 		Name:        request.GetBody().Name,
 		NamespaceID: request.GetBody().NamespaceId,
@@ -104,7 +108,12 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, action.ErrNotExist):
+			return nil, grpcActionNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	actionPB, err := transformActionToPB(updatedAction)

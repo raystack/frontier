@@ -2,7 +2,6 @@ package relation
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/odpf/shield/core/action"
@@ -10,24 +9,19 @@ import (
 	"github.com/odpf/shield/core/role"
 )
 
-var (
-	ErrNotExist    = errors.New("relation doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
-type Store interface {
-	GetRelation(ctx context.Context, id string) (Relation, error)
-	CreateRelation(ctx context.Context, relation Relation) (Relation, error)
-	ListRelations(ctx context.Context) ([]Relation, error)
-	UpdateRelation(ctx context.Context, id string, toUpdate Relation) (Relation, error)
-	GetRelationByFields(ctx context.Context, relation Relation) (Relation, error)
-	DeleteRelationByID(ctx context.Context, id string) error
+type Repository interface {
+	Get(ctx context.Context, id string) (Relation, error)
+	Create(ctx context.Context, relation Relation) (Relation, error)
+	List(ctx context.Context) ([]Relation, error)
+	Update(ctx context.Context, toUpdate Relation) (Relation, error)
+	GetByFields(ctx context.Context, relation Relation) (Relation, error)
+	DeleteByID(ctx context.Context, id string) error
 }
 
-type AuthzStore interface {
-	AddRelation(ctx context.Context, rel Relation) error
-	CheckRelation(ctx context.Context, rel Relation, act action.Action) (bool, error)
-	DeleteRelation(ctx context.Context, rel Relation) error
+type AuthzRepository interface {
+	Add(ctx context.Context, rel Relation) error
+	Check(ctx context.Context, rel Relation, act action.Action) (bool, error)
+	Delete(ctx context.Context, rel Relation) error
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 }
 

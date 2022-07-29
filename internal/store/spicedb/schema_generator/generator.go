@@ -195,8 +195,6 @@ func BuildPolicyDefinitions(policies []policy.Policy) ([]definition, error) {
 		return strings.Compare(definitions[i].name, definitions[j].name) < 1
 	})
 
-	//return definitions, nil
-
 	var finalDefinitions []definition
 	for _, defns := range definitions {
 		if Has([]string{namespace.DefinitionTeam.ID, namespace.DefinitionOrg.ID, namespace.DefinitionProject.ID}, defns.name) {

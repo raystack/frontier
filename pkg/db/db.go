@@ -1,4 +1,4 @@
-package sql
+package db
 
 import (
 	"context"
@@ -10,22 +10,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Config struct {
-	Driver              string
-	URL                 string
-	MaxIdleConns        int
-	MaxOpenConns        int
-	ConnMaxLifeTime     time.Duration
-	MaxQueryTimeoutInMS time.Duration
-}
-
-type SQL struct {
+type Client struct {
 	*sqlx.DB
 	queryTimeOut time.Duration
 }
 
-func New(config Config) (*SQL, error) {
-	d, err := sqlx.Open(config.Driver, config.URL)
+func New(cfg Config) (*Client, error) {
+	d, err := sqlx.Open(cfg.Driver, cfg.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -34,23 +25,23 @@ func New(config Config) (*SQL, error) {
 		return nil, err
 	}
 
-	d.SetMaxIdleConns(config.MaxIdleConns)
-	d.SetMaxOpenConns(config.MaxOpenConns)
-	d.SetConnMaxLifetime(config.ConnMaxLifeTime)
+	d.SetMaxIdleConns(cfg.MaxIdleConns)
+	d.SetMaxOpenConns(cfg.MaxOpenConns)
+	d.SetConnMaxLifetime(cfg.ConnMaxLifeTime)
 
-	return &SQL{DB: d, queryTimeOut: config.MaxQueryTimeoutInMS}, err
+	return &Client{DB: d, queryTimeOut: cfg.MaxQueryTimeoutInMS}, err
 }
 
-func (s SQL) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, s.queryTimeOut)
+func (c Client) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.queryTimeOut)
 	defer cancel()
 
 	return op(ctxWithTimeout)
 }
 
 // Handling transactions: https://stackoverflow.com/a/23502629/8244298
-func (s SQL) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc func(*sqlx.Tx) error) (err error) {
-	txn, err := s.BeginTxx(ctx, &txnOptions)
+func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc func(*sqlx.Tx) error) (err error) {
+	txn, err := c.BeginTxx(ctx, &txnOptions)
 	if err != nil {
 		return err
 	}
