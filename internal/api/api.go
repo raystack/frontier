@@ -15,16 +15,16 @@ import (
 )
 
 type Deps struct {
-	OrgService          *organization.Service
-	ProjectService      *project.Service
-	GroupService        *group.Service
-	RoleService         *role.Service
-	PolicyService       *policy.Service
-	UserService         *user.Service
-	NamespaceService    *namespace.Service
-	ActionService       *action.Service
-	RelationService     *relation.Service
-	ResourceService     *resource.Service
-	RuleService         *rule.Service
-	IdentityProxyHeader string
+	OrgService       *organization.Service
+	ProjectService   *project.Service
+	GroupService     *group.Service
+	RoleService      *role.Service
+	PolicyService    *policy.Service
+	UserService      *user.Service
+	NamespaceService *namespace.Service
+	ActionService    *action.Service
+	RelationService  *relation.Service
+	ResourceService  *resource.Service
+	RuleService      *rule.Service
+	// IdentityProxyHeader string
 }

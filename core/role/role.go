@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 type Repository interface {
@@ -22,7 +23,7 @@ type Role struct {
 	Types       []string
 	Namespace   namespace.Namespace
 	NamespaceID string
-	Metadata    map[string]any
+	Metadata    metadata.Metadata
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

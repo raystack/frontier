@@ -2,10 +2,10 @@ package v1beta1
 
 import (
 	"context"
-	"strings"
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
+	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -14,7 +14,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -59,33 +58,31 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 	logger := grpczap.Extract(ctx)
 
 	// TODO (@krtkvrm): Add validations using Proto
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
 
-	slug := request.GetBody().Slug
-	if strings.TrimSpace(slug) == "" {
-		slug = generateSlug(request.GetBody().Name)
-	}
-
-	newOrg, err := h.orgService.Create(ctx, organization.Organization{
-		Name:     request.GetBody().Name,
-		Slug:     slug,
+	org := organization.Organization{
+		Name:     request.GetBody().GetName(),
+		Slug:     request.GetBody().GetSlug(),
 		Metadata: metaDataMap,
-	})
+	}
+	org.Slug = org.GenerateSlug()
+
+	newOrg, err := h.orgService.Create(ctx, org)
 
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(newOrg.Metadata))
+	metaData, err := newOrg.Metadata.ToStructPB()
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -131,11 +128,11 @@ func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.Get
 func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.UpdateOrganizationRequest) (*shieldv1beta1.UpdateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
@@ -144,13 +141,13 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	if uuid.IsValid(request.GetId()) {
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
 			ID:       request.GetId(),
-			Name:     request.GetBody().Name,
-			Slug:     request.GetBody().Slug,
+			Name:     request.GetBody().GetName(),
+			Slug:     request.GetBody().GetSlug(),
 			Metadata: metaDataMap,
 		})
 	} else {
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
-			Name:     request.GetBody().Name,
+			Name:     request.GetBody().GetName(),
 			Slug:     request.GetId(),
 			Metadata: metaDataMap,
 		})
@@ -248,7 +245,7 @@ func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1b
 }
 
 func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization, error) {
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(org.Metadata))
+	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {
 		return shieldv1beta1.Organization{}, err
 	}

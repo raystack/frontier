@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 
 	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -24,7 +24,7 @@ var testUserMap = map[string]user.User{
 		ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name:  "User 1",
 		Email: "test@test.com",
-		Metadata: map[string]any{
+		Metadata: metadata.Metadata{
 			"foo":    "bar",
 			"age":    21,
 			"intern": true,
@@ -185,9 +185,8 @@ func TestCreateUser(t *testing.T) {
 			var resp *shieldv1beta1.CreateUserResponse
 			var err error
 			if tt.title == "success" {
-				mockDep := Handler{userService: tt.mockUserSrv, identityProxyHeader: "x-auth-email"}
-				md := metadata.Pairs(mockDep.identityProxyHeader, tt.header)
-				ctx := metadata.NewIncomingContext(context.Background(), md)
+				mockDep := Handler{userService: tt.mockUserSrv}
+				ctx := user.SetContextWithEmail(context.Background(), tt.header)
 				resp, err = mockDep.CreateUser(ctx, tt.req)
 			} else {
 				mockDep := Handler{userService: tt.mockUserSrv}
@@ -226,7 +225,7 @@ func TestGetCurrentUser(t *testing.T) {
 					ID:    "user-id-1",
 					Name:  "some user",
 					Email: "someuser@test.com",
-					Metadata: map[string]any{
+					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
 					CreatedAt: time.Time{},
@@ -254,9 +253,8 @@ func TestGetCurrentUser(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{userService: tt.mockUserSrv, identityProxyHeader: "x-auth-email"}
-			md := metadata.Pairs(mockDep.identityProxyHeader, tt.header)
-			ctx := metadata.NewIncomingContext(context.Background(), md)
+			mockDep := Handler{userService: tt.mockUserSrv}
+			ctx := user.SetContextWithEmail(context.Background(), tt.header)
 
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
@@ -329,7 +327,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 					ID:    "user-id-1",
 					Name:  "abc user",
 					Email: "abcuser@test.com",
-					Metadata: map[string]any{
+					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
 					CreatedAt: time.Time{},
@@ -366,9 +364,8 @@ func TestUpdateCurrentUser(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{userService: tt.mockUserSrv, identityProxyHeader: "x-auth-email"}
-			md := metadata.Pairs(mockDep.identityProxyHeader, tt.header)
-			ctx := metadata.NewIncomingContext(context.Background(), md)
+			mockDep := Handler{userService: tt.mockUserSrv}
+			ctx := user.SetContextWithEmail(context.Background(), tt.header)
 
 			resp, err := mockDep.UpdateCurrentUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)

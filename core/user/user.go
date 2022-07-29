@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"time"
+
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 type Repository interface {
@@ -19,7 +21,7 @@ type User struct {
 	ID        string
 	Name      string
 	Email     string
-	Metadata  map[string]any
+	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

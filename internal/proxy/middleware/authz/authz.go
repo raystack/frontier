@@ -17,10 +17,6 @@ import (
 	"github.com/odpf/salt/log"
 )
 
-const (
-	userIDHeader = "X-Shield-User-Id"
-)
-
 type ResourceService interface {
 	CheckAuthz(ctx context.Context, resource resource.Resource, act action.Action) (bool, error)
 }
@@ -32,6 +28,7 @@ type UserService interface {
 type Authz struct {
 	log                 log.Logger
 	identityProxyHeader string
+	userIDHeader        string
 	next                http.Handler
 	resourceService     ResourceService
 	userService         UserService
@@ -42,10 +39,16 @@ type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
-func New(log log.Logger, next http.Handler, identityProxyHeader string, resourceService ResourceService, userService UserService) *Authz {
+func New(
+	log log.Logger,
+	next http.Handler,
+	identityProxyHeader, userIDHeader string,
+	resourceService ResourceService,
+	userService UserService) *Authz {
 	return &Authz{
 		log:                 log,
 		identityProxyHeader: identityProxyHeader,
+		userIDHeader:        userIDHeader,
 		next:                next,
 		resourceService:     resourceService,
 		userService:         userService,
@@ -60,7 +63,7 @@ func (c Authz) Info() *middleware.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	req = req.WithContext(user.SetEmailToContext(req.Context(), req.Header.Get(c.identityProxyHeader)))
+	req = req.WithContext(user.SetContextWithEmail(req.Context(), req.Header.Get(c.identityProxyHeader)))
 
 	usr, err := c.userService.FetchCurrentUser(req.Context())
 	if err != nil {
@@ -69,7 +72,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	req.Header.Set(userIDHeader, usr.ID)
+	req.Header.Set(c.userIDHeader, usr.ID)
 
 	rule, ok := middleware.ExtractRule(req)
 	if !ok {
@@ -235,7 +238,6 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 func (w Authz) notAllowed(rw http.ResponseWriter) {
 	rw.WriteHeader(http.StatusUnauthorized)
-	return
 }
 
 func createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
@@ -276,15 +278,14 @@ func createResources(permissionAttributes map[string]interface{}) ([]resource.Re
 
 func getAttributesValues(attributes interface{}) ([]string, error) {
 	var values []string
-	switch attributes.(type) {
+
+	switch attributes := attributes.(type) {
 	case []string:
-		for _, i := range attributes.([]string) {
-			values = append(values, i)
-		}
+		values = append(values, attributes...)
 	case string:
-		values = append(values, attributes.(string))
+		values = append(values, attributes)
 	case []interface{}:
-		for _, i := range attributes.([]interface{}) {
+		for _, i := range attributes {
 			values = append(values, i.(string))
 		}
 	case interface{}:

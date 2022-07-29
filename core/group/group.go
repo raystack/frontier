@@ -2,11 +2,13 @@ package group
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 type Repository interface {
@@ -29,7 +31,18 @@ type Group struct {
 	Slug           string
 	Organization   organization.Organization
 	OrganizationID string `json:"orgId"`
-	Metadata       map[string]any
+	Metadata       metadata.Metadata
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+func (g Group) GenerateSlug() string {
+	if strings.TrimSpace(g.Slug) != "" {
+		return g.Slug
+	}
+	preProcessed := strings.ReplaceAll(strings.TrimSpace(strings.TrimSpace(g.Name)), "_", "-")
+	return strings.Join(
+		strings.Split(preProcessed, " "),
+		"-",
+	)
 }

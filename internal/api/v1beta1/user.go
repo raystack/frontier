@@ -7,12 +7,11 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
@@ -67,24 +66,29 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRequest) (*shieldv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	currentUserEmail, ok := user.GetEmailFromContext(ctx)
+	if !ok {
+		return nil, grpcBadBodyError
+	}
+
+	if len(currentUserEmail) == 0 {
+		logger.Error(emptyEmailId.Error())
+		return nil, emptyEmailId
+	}
+
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
 
-	currentUserEmail, _ := fetchEmailFromMetadata(ctx, h.identityProxyHeader)
-	if len(currentUserEmail) == 0 {
-		logger.Error(emptyEmailId.Error())
-		return nil, emptyEmailId
-	}
-	email := str.DefaultStringIfEmpty(request.GetBody().Email, currentUserEmail)
+	email := str.DefaultStringIfEmpty(request.GetBody().GetEmail(), currentUserEmail)
 	userT := user.User{
-		Name:     request.GetBody().Name,
+		Name:     request.GetBody().GetName(),
 		Email:    email,
 		Metadata: metaDataMap,
 	}
@@ -99,7 +103,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		}
 	}
 
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(newUser.Metadata))
+	metaData, err := newUser.Metadata.ToStructPB()
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -145,10 +149,11 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurrentUserRequest) (*shieldv1beta1.GetCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	email, err := fetchEmailFromMetadata(ctx, h.identityProxyHeader)
-	if err != nil {
+	email, ok := user.GetEmailFromContext(ctx)
+	if !ok {
 		return nil, grpcBadBodyError
 	}
+
 	if len(email) == 0 {
 		logger.Error(emptyEmailId.Error())
 		return nil, emptyEmailId
@@ -181,19 +186,19 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRequest) (*shieldv1beta1.UpdateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
 
 	updatedUser, err := h.userService.UpdateByID(ctx, user.User{
 		ID:       request.GetId(),
-		Name:     request.GetBody().Name,
-		Email:    request.GetBody().Email,
+		Name:     request.GetBody().GetName(),
+		Email:    request.GetBody().GetEmail(),
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -220,12 +225,12 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.UpdateCurrentUserRequest) (*shieldv1beta1.UpdateCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	email, err := fetchEmailFromMetadata(ctx, h.identityProxyHeader)
-	if err != nil {
+	email, ok := user.GetEmailFromContext(ctx)
+	if !ok {
 		return nil, grpcBadBodyError
 	}
 
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 	if len(email) == 0 {
@@ -233,18 +238,18 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		return nil, emptyEmailId
 	}
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
 
 	// if email in request body is different from the email in the header
-	if request.GetBody().Email != email {
+	if request.GetBody().GetEmail() != email {
 		return nil, grpcBadBodyError
 	}
 
 	updatedUser, err := h.userService.UpdateByEmail(ctx, user.User{
-		Name:     request.GetBody().Name,
+		Name:     request.GetBody().GetName(),
 		Email:    email,
 		Metadata: metaDataMap,
 	})
@@ -267,26 +272,26 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 	return &shieldv1beta1.UpdateCurrentUserResponse{User: &userPB}, nil
 }
 
-func transformUserToPB(user user.User) (shieldv1beta1.User, error) {
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(user.Metadata))
+func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {
+	metaData, err := usr.Metadata.ToStructPB()
 	if err != nil {
 		return shieldv1beta1.User{}, err
 	}
 
 	return shieldv1beta1.User{
-		Id:        user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
+		Id:        usr.ID,
+		Name:      usr.Name,
+		Email:     usr.Email,
 		Metadata:  metaData,
-		CreatedAt: timestamppb.New(user.CreatedAt),
-		UpdatedAt: timestamppb.New(user.UpdatedAt),
+		CreatedAt: timestamppb.New(usr.CreatedAt),
+		UpdatedAt: timestamppb.New(usr.UpdatedAt),
 	}, nil
 }
 
 func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.ListUserGroupsRequest) (*shieldv1beta1.ListUserGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var groups []*shieldv1beta1.Group
-	groupsList, err := h.groupService.ListUserGroups(ctx, request.Id, request.Role)
+	groupsList, err := h.groupService.ListUserGroups(ctx, request.GetId(), request.GetRole())
 
 	if err != nil {
 		logger.Error(err.Error())
@@ -306,18 +311,4 @@ func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.List
 	return &shieldv1beta1.ListUserGroupsResponse{
 		Groups: groups,
 	}, nil
-}
-
-func fetchEmailFromMetadata(ctx context.Context, headerKey string) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", grpcBadBodyError
-	}
-
-	var email string
-	metadataValues := md.Get(headerKey)
-	if len(metadataValues) > 0 {
-		email = metadataValues[0]
-	}
-	return email, nil
 }

@@ -23,7 +23,7 @@ import (
 func serveProxies(
 	ctx context.Context,
 	logger log.Logger,
-	identityProxyHeader string,
+	identityProxyHeader, userIDHeader string,
 	cfg proxy.ServicesConfig,
 	resourceService *resource.Service,
 	userService *user.Service,
@@ -57,7 +57,7 @@ func serveProxies(
 
 		ruleService := rule.NewService(ruleBlobRepository)
 
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeader, resourceService, userService, ruleService)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeader, userIDHeader, resourceService, userService, ruleService)
 
 		cps := proxy.Serve(ctx, logger, svcConfig, middlewarePipeline)
 		cleanUpProxies = append(cleanUpProxies, cps)
@@ -76,14 +76,14 @@ func buildHookPipeline(log log.Logger, identityProxyHeader string, resourceServi
 func buildMiddlewarePipeline(
 	logger log.Logger,
 	proxy http.Handler,
-	identityProxyHeader string,
+	identityProxyHeader, userIDHeader string,
 	resourceService *resource.Service,
 	userService *user.Service,
 	ruleService *rule.Service,
 ) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, prefixWare, identityProxyHeader, resourceService, userService)
+	casbinAuthz := authz.New(logger, prefixWare, identityProxyHeader, userIDHeader, resourceService, userService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleService))
 	return matchWare

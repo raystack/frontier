@@ -2,22 +2,16 @@ package user
 
 import (
 	"context"
-	"fmt"
-
-	"google.golang.org/grpc/metadata"
+	"errors"
 )
 
-var emailContext = struct{}{}
-
 type Service struct {
-	repository          Repository
-	identityProxyHeader string
+	repository Repository
 }
 
-func NewService(identityProxyHeader string, repository Repository) *Service {
+func NewService(repository Repository) *Service {
 	return &Service{
-		identityProxyHeader: identityProxyHeader,
-		repository:          repository,
+		repository: repository,
 	}
 }
 
@@ -67,9 +61,9 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 }
 
 func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
-	email, err := fetchEmailFromMetadata(ctx, s.identityProxyHeader)
-	if err != nil {
-		return User{}, err
+	email, ok := GetEmailFromContext(ctx)
+	if !ok {
+		return User{}, errors.New("unable to fetch email from context")
 	}
 
 	fetchedUser, err := s.repository.GetByEmail(ctx, email)
@@ -78,34 +72,4 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 	}
 
 	return fetchedUser, nil
-}
-
-// TODO need to simplify this, service package should not depend on grpc metadata
-func fetchEmailFromMetadata(ctx context.Context, headerKey string) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		val, ok := GetEmailFromContext(ctx)
-		if !ok {
-			return "", fmt.Errorf("unable to fetch context from incoming")
-		}
-
-		return val, nil
-	}
-
-	var email string
-	metadataValues := md.Get(headerKey)
-	if len(metadataValues) > 0 {
-		email = metadataValues[0]
-	}
-	return email, nil
-}
-
-func SetEmailToContext(ctx context.Context, email string) context.Context {
-	return context.WithValue(ctx, emailContext, email)
-}
-
-func GetEmailFromContext(ctx context.Context) (string, bool) {
-	val, ok := ctx.Value(emailContext).(string)
-
-	return val, ok
 }

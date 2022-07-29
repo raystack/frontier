@@ -15,7 +15,7 @@ type Config struct {
 	// to access RulesPath files
 	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
 
-	// TODO might not suitable here
+	// TODO might not suitable here because it is also being used by proxy
 	// Headers which will have user's email id
 	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:"X-Shield-Email"`
 

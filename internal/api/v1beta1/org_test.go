@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 
 	"github.com/stretchr/testify/assert"
 
@@ -24,7 +25,7 @@ var testOrgMap = map[string]organization.Organization{
 		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name: "Org 1",
 		Slug: "org-1",
-		Metadata: map[string]any{
+		Metadata: metadata.Metadata{
 			"email":  "org1@org1.com",
 			"age":    21,
 			"intern": true,

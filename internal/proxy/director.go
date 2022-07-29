@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/internal/proxy/middleware"
+	"github.com/odpf/shield/pkg/httputil"
 )
 
 var ctxRequestErrorKey = struct{}{}
@@ -41,9 +42,9 @@ func (h Director) Direct(req *http.Request) {
 	} else {
 		req.URL.RawQuery = target.RawQuery + "&" + req.URL.RawQuery
 	}
-	if _, ok := req.Header["User-Agent"]; !ok {
+	if _, ok := req.Header[httputil.HeaderUserAgent]; !ok {
 		// explicitly disable User-Agent so it's not set to default value
-		req.Header.Set("User-Agent", "")
+		req.Header.Set(httputil.HeaderUserAgent, "")
 	}
 	req.Header.Set("proxy-by", "shield")
 }

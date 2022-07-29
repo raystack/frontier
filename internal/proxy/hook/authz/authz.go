@@ -30,7 +30,6 @@ type Authz struct {
 	// To skip all the next hooks and just respond back
 	escape hook.Service
 
-	// TODO need to figure out what best to pass this
 	identityProxyHeader string
 
 	resourceService ResourceService
@@ -85,8 +84,9 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	attributes := map[string]interface{}{}
 	attributes["namespace"] = ruleFromRequest.Backend.Namespace
 
-	attributes["user"] = res.Request.Header.Get(a.identityProxyHeader)
-	res.Request = res.Request.WithContext(user.SetEmailToContext(res.Request.Context(), res.Request.Header.Get(a.identityProxyHeader)))
+	identityProxyHeaderValue := res.Request.Header.Get(a.identityProxyHeader)
+	attributes["user"] = identityProxyHeaderValue
+	res.Request = res.Request.WithContext(user.SetContextWithEmail(res.Request.Context(), identityProxyHeaderValue))
 
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)

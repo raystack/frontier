@@ -2,9 +2,9 @@ package v1beta1
 
 import (
 	"context"
-	"strings"
 
 	"github.com/odpf/shield/pkg/errors"
+	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -17,7 +17,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -68,30 +67,29 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroupRequest) (*shieldv1beta1.CreateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
 
-	slug := request.GetBody().Slug
-	if strings.TrimSpace(slug) == "" {
-		slug = generateSlug(request.GetBody().Name)
+	grp := group.Group{
+		Name:           request.GetBody().GetName(),
+		Slug:           request.GetBody().GetSlug(),
+		OrganizationID: request.GetBody().GetOrgId(),
+		Metadata:       metaDataMap,
 	}
 
-	newGroup, err := h.groupService.Create(ctx, group.Group{
-		Name:           request.Body.Name,
-		Slug:           slug,
-		OrganizationID: request.Body.OrgId,
-		Metadata:       metaDataMap,
-	})
+	grp.Slug = grp.GenerateSlug()
+
+	newGroup, err := h.groupService.Create(ctx, grp)
 
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(newGroup.Metadata))
+	metaData, err := newGroup.Metadata.ToStructPB()
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -160,9 +158,10 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.List
 
 func (h Handler) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGroupUserRequest) (*shieldv1beta1.AddGroupUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
+
 	updatedUsers, err := h.groupService.AddUsers(ctx, request.GetId(), request.GetBody().GetUserIds())
 	if err != nil {
 		logger.Error(err.Error())
@@ -177,7 +176,6 @@ func (h Handler) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGro
 	}
 
 	var users []*shieldv1beta1.User
-
 	for _, u := range updatedUsers {
 		userPB, err := transformUserToPB(u)
 		if err != nil {
@@ -214,11 +212,11 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.Rem
 func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateGroupRequest) (*shieldv1beta1.UpdateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
@@ -285,7 +283,7 @@ func (h Handler) ListGroupAdmins(ctx context.Context, request *shieldv1beta1.Lis
 
 func (h Handler) AddGroupAdmin(ctx context.Context, request *shieldv1beta1.AddGroupAdminRequest) (*shieldv1beta1.AddGroupAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 	updatedUsers, err := h.groupService.AddAdmins(ctx, request.GetId(), request.GetBody().GetUserIds())
@@ -340,7 +338,7 @@ func (h Handler) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.Re
 }
 
 func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(grp.Metadata))
+	metaData, err := grp.Metadata.ToStructPB()
 	if err != nil {
 		return shieldv1beta1.Group{}, err
 	}

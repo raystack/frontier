@@ -58,17 +58,17 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 
 func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.CreateResourceRequest) (*shieldv1beta1.CreateResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
-		OrganizationID: request.GetBody().OrganizationId,
-		ProjectID:      request.GetBody().ProjectId,
-		GroupID:        request.GetBody().GroupId,
-		NamespaceID:    request.GetBody().NamespaceId,
-		Name:           request.GetBody().Name,
-		UserID:         request.GetBody().UserId,
+		OrganizationID: request.GetBody().GetOrganizationId(),
+		ProjectID:      request.GetBody().GetProjectId(),
+		GroupID:        request.GetBody().GetGroupId(),
+		NamespaceID:    request.GetBody().GetNamespaceId(),
+		Name:           request.GetBody().GetName(),
+		UserID:         request.GetBody().GetUserId(),
 	})
 
 	if err != nil {
@@ -91,8 +91,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 func (h Handler) GetResource(ctx context.Context, request *shieldv1beta1.GetResourceRequest) (*shieldv1beta1.GetResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedResource, err := h.resourceService.Get(ctx, request.Id)
-
+	fetchedResource, err := h.resourceService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -119,17 +118,17 @@ func (h Handler) GetResource(ctx context.Context, request *shieldv1beta1.GetReso
 func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.UpdateResourceRequest) (*shieldv1beta1.UpdateResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	updatedResource, err := h.resourceService.Update(ctx, request.Id, resource.Resource{
-		OrganizationID: request.GetBody().OrganizationId,
-		ProjectID:      request.GetBody().ProjectId,
-		GroupID:        request.GetBody().GroupId,
-		NamespaceID:    request.GetBody().NamespaceId,
-		Name:           request.GetBody().Name,
-		UserID:         request.GetBody().UserId,
+	updatedResource, err := h.resourceService.Update(ctx, request.GetId(), resource.Resource{
+		OrganizationID: request.GetBody().GetOrganizationId(),
+		ProjectID:      request.GetBody().GetProjectId(),
+		GroupID:        request.GetBody().GetGroupId(),
+		NamespaceID:    request.GetBody().GetNamespaceId(),
+		Name:           request.GetBody().GetName(),
+		UserID:         request.GetBody().GetUserId(),
 	})
 
 	if err != nil {

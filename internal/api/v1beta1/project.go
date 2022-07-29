@@ -3,9 +3,9 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -15,7 +15,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -58,30 +57,28 @@ func (h Handler) ListProjects(ctx context.Context, request *shieldv1beta1.ListPr
 
 func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.CreateProjectRequest) (*shieldv1beta1.CreateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
 
-	slug := request.GetBody().Slug
-	if strings.TrimSpace(slug) == "" {
-		slug = generateSlug(request.GetBody().Name)
-	}
-
-	newProject, err := h.projectService.Create(ctx, project.Project{
-		Name:         request.GetBody().Name,
-		Slug:         slug,
+	prj := project.Project{
+		Name:         request.GetBody().GetName(),
+		Slug:         request.GetBody().GetSlug(),
 		Metadata:     metaDataMap,
-		Organization: organization.Organization{ID: request.GetBody().OrgId},
-	})
+		Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
+	}
+	prj.Slug = prj.GenerateSlug()
+
+	newProject, err := h.projectService.Create(ctx, prj)
 
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(newProject.Metadata))
+	metaData, err := newProject.Metadata.ToStructPB()
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -125,7 +122,7 @@ func (h Handler) GetProject(ctx context.Context, request *shieldv1beta1.GetProje
 func (h Handler) UpdateProject(ctx context.Context, request *shieldv1beta1.UpdateProjectRequest) (*shieldv1beta1.UpdateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().GetMetadata().AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
@@ -239,7 +236,7 @@ func (h Handler) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.
 }
 
 func transformProjectToPB(prj project.Project) (shieldv1beta1.Project, error) {
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(prj.Metadata))
+	metaData, err := prj.Metadata.ToStructPB()
 	if err != nil {
 		return shieldv1beta1.Project{}, err
 	}
