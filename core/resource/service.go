@@ -46,7 +46,7 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 }
 
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
-	urn := CreateURN(res)
+	urn := res.CreateURN()
 
 	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
@@ -218,7 +218,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 		return false, err
 	}
 
-	res.URN = CreateURN(res)
+	res.URN = res.CreateURN()
 
 	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	fetchedResource := res
