@@ -3,9 +3,11 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
+	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -69,7 +71,10 @@ func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.Creat
 		Metadata:     metaDataMap,
 		Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
 	}
-	prj.Slug = prj.GenerateSlug()
+
+	if strings.TrimSpace(prj.Slug) == "" {
+		prj.Slug = str.GenerateSlug(prj.Name)
+	}
 
 	newProject, err := h.projectService.Create(ctx, prj)
 

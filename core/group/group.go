@@ -2,7 +2,6 @@ package group
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/odpf/shield/core/organization"
@@ -34,15 +33,4 @@ type Group struct {
 	Metadata       metadata.Metadata
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-}
-
-func (g Group) GenerateSlug() string {
-	if strings.TrimSpace(g.Slug) != "" {
-		return g.Slug
-	}
-	preProcessed := strings.ReplaceAll(strings.TrimSpace(strings.TrimSpace(g.Name)), "_", "-")
-	return strings.Join(
-		strings.Split(preProcessed, " "),
-		"-",
-	)
 }

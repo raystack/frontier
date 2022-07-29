@@ -2,7 +2,6 @@ package organization
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/odpf/shield/core/user"
@@ -26,15 +25,4 @@ type Organization struct {
 	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time
-}
-
-func (o Organization) GenerateSlug() string {
-	if strings.TrimSpace(o.Slug) != "" {
-		return o.Slug
-	}
-	preProcessed := strings.ReplaceAll(strings.TrimSpace(strings.TrimSpace(o.Name)), "_", "-")
-	return strings.Join(
-		strings.Split(preProcessed, " "),
-		"-",
-	)
 }

@@ -2,10 +2,12 @@ package v1beta1
 
 import (
 	"context"
+	"strings"
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
+	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -73,7 +75,10 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		Slug:     request.GetBody().GetSlug(),
 		Metadata: metaDataMap,
 	}
-	org.Slug = org.GenerateSlug()
+
+	if strings.TrimSpace(org.Slug) == "" {
+		org.Slug = str.GenerateSlug(org.Name)
+	}
 
 	newOrg, err := h.orgService.Create(ctx, org)
 

@@ -2,9 +2,11 @@ package v1beta1
 
 import (
 	"context"
+	"strings"
 
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
+	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -80,7 +82,9 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		Metadata:       metaDataMap,
 	}
 
-	grp.Slug = grp.GenerateSlug()
+	if strings.TrimSpace(grp.Slug) == "" {
+		grp.Slug = str.GenerateSlug(grp.Name)
+	}
 
 	newGroup, err := h.groupService.Create(ctx, grp)
 
