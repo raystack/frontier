@@ -3,15 +3,14 @@ package authz
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strings"
-
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
+	"net/http"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
@@ -266,9 +265,15 @@ func createResources(permissionAttributes map[string]interface{}) ([]resource.Re
 
 	for _, res := range resourceList {
 		resources = append(resources, resource.Resource{
-			Name:        res,
-			NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
-			ProjectID:   project[0],
+			Name: res,
+			//NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
+			Namespace: namespace.Namespace{
+				ID:           "", // <---- TODO: DEC: do i need id ?
+				Name:         "", // <---- TODO: DEC: do i need name ?
+				Backend:      backendNamespace[0],
+				ResourceType: resourceType[0],
+			},
+			ProjectID: project[0],
 		})
 	}
 	return resources, nil

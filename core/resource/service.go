@@ -223,13 +223,12 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, res Resource) error
 	return s.authzStore.DeleteSubjectRelations(ctx, res.NamespaceID, res.Idxa)
 }
 
+// TODO: krkvrm | Seperate Authz for Resources & System Namespaces
 func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action) (bool, error) {
 	user, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return false, err
 	}
-
-	res.URN = CreateURN(res)
 
 	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	fetchedResource := res
@@ -237,7 +236,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	if isSystemNS {
 		fetchedResource.Idxa = res.URN
 	} else {
-		fetchedResource, err = s.store.GetResourceByURN(ctx, res.URN)
+		fetchedResource, err = s.store.GetResourceByNamespace(ctx, res.Name, res.Namespace)
 		if err != nil {
 			return false, err
 		}

@@ -26,6 +26,7 @@ type Store interface {
 	CreateResource(ctx context.Context, resource Resource) (Resource, error)
 	ListResources(ctx context.Context, filters Filters) ([]Resource, error)
 	UpdateResource(ctx context.Context, id string, resource Resource) (Resource, error)
+	GetResourceByNamespace(ctx context.Context, name string, ns namespace.Namespace) (Resource, error)
 }
 
 type AuthzStore interface {

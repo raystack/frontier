@@ -93,6 +93,24 @@ func buildGetResourcesByURNQuery(dialect goqu.DialectWrapper) (string, error) {
 	return getResourcesByURNQuery, err
 }
 
+func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, withResourceType bool) (string, error) {
+	namespaceQueryExpression := goqu.Ex{
+		"backend": goqu.L("$2"),
+	}
+
+	if withResourceType {
+		namespaceQueryExpression["resouce_type"] = goqu.L("$3")
+	}
+
+	getNamespaceQuery := dialect.Select(&Namespace{}).From(TABLE_NAMESPACE).Where(namespaceQueryExpression)
+	getResourcesByURNQuery, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCE).Where(goqu.Ex{
+		"urn":          goqu.L("$1"),
+		"namespace_id": goqu.Op{"in": getNamespaceQuery},
+	}).ToSQL()
+
+	return getResourcesByURNQuery, err
+}
+
 func buildUpdateResourceQuery(dialect goqu.DialectWrapper) (string, error) {
 	updateResourceQuery, _, err := dialect.Update(TABLE_RESOURCE).Set(
 		goqu.Record{
@@ -247,6 +265,41 @@ func (s Store) UpdateResource(ctx context.Context, id string, toUpdate resource.
 	}
 
 	return toUpdate, nil
+}
+
+func (s Store) GetResourceByNamespace(ctx context.Context, name string, ns namespace.Namespace) (resource.Resource, error) {
+	var fetchedResource Resource
+
+	//build query
+	getResourceByNamespace, err := buildGetResourcesByNamespaceQuery(dialect, ns.ResourceType != "")
+	if err != nil {
+		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	err = s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		return s.DB.GetContext(ctx, &fetchedResource, getResourceByNamespace, name, ns.Backend, ns.ResourceType)
+	})
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return resource.Resource{}, resource.ErrNotExist
+	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
+		// TODO: this uuid syntax is a error defined in db, not in library
+		// need to look into better ways to implement this
+		return resource.Resource{}, resource.ErrInvalidUUID
+	} else if err != nil {
+		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	if err != nil {
+		return resource.Resource{}, err
+	}
+
+	transformedResource, err := transformToResource(fetchedResource)
+	if err != nil {
+		return resource.Resource{}, err
+	}
+
+	return transformedResource, nil
 }
 
 func (s Store) GetResourceByURN(ctx context.Context, urn string) (resource.Resource, error) {
