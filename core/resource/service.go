@@ -223,7 +223,7 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, res Resource) error
 	return s.authzStore.DeleteSubjectRelations(ctx, res.NamespaceID, res.Idxa)
 }
 
-// TODO: krkvrm | Seperate Authz for Resources & System Namespaces
+// TODO: krkvrm | Separate Authz for Resources & System Namespaces
 func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action) (bool, error) {
 	user, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {

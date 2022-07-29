@@ -99,7 +99,7 @@ func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, withResource
 	}
 
 	if withResourceType {
-		namespaceQueryExpression["resouce_type"] = goqu.L("$3")
+		namespaceQueryExpression["resource_type"] = goqu.L("$3")
 	}
 
 	getNamespaceQuery := dialect.Select(&Namespace{}).From(TABLE_NAMESPACE).Where(namespaceQueryExpression)

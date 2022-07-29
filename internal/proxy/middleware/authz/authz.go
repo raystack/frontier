@@ -3,14 +3,15 @@ package authz
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
-	"net/http"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
