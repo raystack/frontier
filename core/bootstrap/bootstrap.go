@@ -91,9 +91,10 @@ func (s Service) onboardResource(ctx context.Context, resYAML resource.YAML) err
 		for _, r := range rolesList {
 			role := getResourceRole(r, ns)
 			policy := policy.Policy{
-				Action:    act,
-				Namespace: ns,
-				Role:      role,
+				Action:      act,
+				Namespace:   ns,
+				NamespaceID: ns.ID,
+				Role:        role,
 			}
 			resourceRoles = append(resourceRoles, role)
 			policies = append(policies, policy)
@@ -161,10 +162,11 @@ func getResourceRole(r string, ns namespace.Namespace) role.Role {
 	}
 
 	role := role.Role{
-		ID:        roleId,
-		Name:      roleId,
-		Namespace: roleNs,
-		Types:     []string{role.UserType, role.TeamMemberType},
+		ID:          roleId,
+		Name:        roleId,
+		Namespace:   roleNs,
+		NamespaceID: roleNs.ID,
+		Types:       []string{role.UserType, role.TeamMemberType},
 	}
 	return role
 }
@@ -173,9 +175,10 @@ func getResourceAction(actionStr string, ns namespace.Namespace) action.Action {
 	actId := fmt.Sprintf("%s_%s", ns.ID, actionStr)
 	actionName := fmt.Sprintf("%s %s", strings.Title(strings.ToLower(ns.ID)), strings.Title(strings.ToLower(actionStr)))
 	act := action.Action{
-		ID:        actId,
-		Name:      actionName,
-		Namespace: ns,
+		ID:          actId,
+		Name:        actionName,
+		Namespace:   ns,
+		NamespaceID: ns.ID,
 	}
 	return act
 }
