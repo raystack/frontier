@@ -185,7 +185,6 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
-	//resources, err := createResources(res.Request.Context(), attributes, a.Deps.V1beta1.ProjectService)
 	resources, err := createResources(res.Request.Context(), attributes, a.Deps.ProjectService)
 	if err != nil {
 		a.log.Error(err.Error())
