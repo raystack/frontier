@@ -26,12 +26,12 @@ type UserService interface {
 }
 
 type Authz struct {
-	log                 log.Logger
-	identityProxyHeader string
-	userIDHeader        string
-	next                http.Handler
-	resourceService     ResourceService
-	userService         UserService
+	log                    log.Logger
+	identityProxyHeaderKey string
+	userIDHeaderKey        string
+	next                   http.Handler
+	resourceService        ResourceService
+	userService            UserService
 }
 
 type Config struct {
@@ -42,16 +42,16 @@ type Config struct {
 func New(
 	log log.Logger,
 	next http.Handler,
-	identityProxyHeader, userIDHeader string,
+	identityProxyHeaderKey, userIDHeaderKey string,
 	resourceService ResourceService,
 	userService UserService) *Authz {
 	return &Authz{
-		log:                 log,
-		identityProxyHeader: identityProxyHeader,
-		userIDHeader:        userIDHeader,
-		next:                next,
-		resourceService:     resourceService,
-		userService:         userService,
+		log:                    log,
+		identityProxyHeaderKey: identityProxyHeaderKey,
+		userIDHeaderKey:        userIDHeaderKey,
+		next:                   next,
+		resourceService:        resourceService,
+		userService:            userService,
 	}
 }
 
@@ -63,7 +63,7 @@ func (c Authz) Info() *middleware.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	req = req.WithContext(user.SetContextWithEmail(req.Context(), req.Header.Get(c.identityProxyHeader)))
+	req = req.WithContext(user.SetContextWithEmail(req.Context(), req.Header.Get(c.identityProxyHeaderKey)))
 
 	usr, err := c.userService.FetchCurrentUser(req.Context())
 	if err != nil {
@@ -72,7 +72,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	req.Header.Set(c.userIDHeader, usr.ID)
+	req.Header.Set(c.userIDHeaderKey, usr.ID)
 
 	rule, ok := middleware.ExtractRule(req)
 	if !ok {
@@ -104,7 +104,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	permissionAttributes["namespace"] = rule.Backend.Namespace
 
-	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeader)
+	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeaderKey)
 
 	for res, attr := range config.Attributes {
 		_ = res

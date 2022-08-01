@@ -26,5 +26,4 @@ type Deps struct {
 	RelationService  *relation.Service
 	ResourceService  *resource.Service
 	RuleService      *rule.Service
-	// IdentityProxyHeader string
 }

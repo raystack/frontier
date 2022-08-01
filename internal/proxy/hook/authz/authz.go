@@ -30,18 +30,18 @@ type Authz struct {
 	// To skip all the next hooks and just respond back
 	escape hook.Service
 
-	identityProxyHeader string
+	identityProxyHeaderKey string
 
 	resourceService ResourceService
 }
 
-func New(log log.Logger, next, escape hook.Service, identityProxyHeader string, resourceService ResourceService) Authz {
+func New(log log.Logger, next, escape hook.Service, identityProxyHeaderKey string, resourceService ResourceService) Authz {
 	return Authz{
-		log:                 log,
-		next:                next,
-		escape:              escape,
-		identityProxyHeader: identityProxyHeader,
-		resourceService:     resourceService,
+		log:                    log,
+		next:                   next,
+		escape:                 escape,
+		identityProxyHeaderKey: identityProxyHeaderKey,
+		resourceService:        resourceService,
 	}
 }
 
@@ -84,7 +84,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	attributes := map[string]interface{}{}
 	attributes["namespace"] = ruleFromRequest.Backend.Namespace
 
-	identityProxyHeaderValue := res.Request.Header.Get(a.identityProxyHeader)
+	identityProxyHeaderValue := res.Request.Header.Get(a.identityProxyHeaderKey)
 	attributes["user"] = identityProxyHeaderValue
 	res.Request = res.Request.WithContext(user.SetContextWithEmail(res.Request.Context(), identityProxyHeaderValue))
 
