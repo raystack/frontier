@@ -11,7 +11,6 @@ import (
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/internal/api"
 )
 
 var testPermissionAttributesMap = map[string]any{
@@ -91,27 +90,29 @@ func TestCreateResources(t *testing.T) {
 
 	table := []struct {
 		title                string
-		mockProjectServ      mockProject
 		permissionAttributes map[string]any
-		v                    api.Deps
+		a                    Authz
 		want                 []resource.Resource
 		err                  error
 	}{
 		{
-			title: "success/should return multiple resources",
-			mockProjectServ: mockProject{
-				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-					return testProjectMap[id], nil
-				}},
+			title:                "success/should return multiple resources",
 			permissionAttributes: testPermissionAttributesMap,
-			v:                    api.Deps{},
-			want:                 expectedResources,
-			err:                  nil,
+			a: Authz{
+				projectService: mockProject{
+					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
+						return testProjectMap[id], nil
+					}},
+			},
+			want: expectedResources,
+			err:  nil,
 		}, {
 			title: "should should throw error if project is missing",
-			mockProjectServ: mockProject{
-				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-					return project.Project{}, fmt.Errorf("Project ID not found")
+			a: Authz{
+				projectService: mockProject{
+					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
+						return project.Project{}, fmt.Errorf("Project ID not found")
+					},
 				},
 			},
 			permissionAttributes: map[string]any{
@@ -120,14 +121,15 @@ func TestCreateResources(t *testing.T) {
 				"namespace":     "ns1",
 				"resource_type": "kind",
 			},
-			v:    api.Deps{},
 			want: nil,
 			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
 		}, {
 			title: "should should throw error if team is missing",
-			mockProjectServ: mockProject{
-				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-					return testProjectMap[id], nil
+			a: Authz{
+				projectService: mockProject{
+					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
+						return testProjectMap[id], nil
+					},
 				},
 			},
 			permissionAttributes: map[string]any{
@@ -136,15 +138,16 @@ func TestCreateResources(t *testing.T) {
 				"namespace":     "ns1",
 				"resource_type": "kind",
 			},
-			v:    api.Deps{},
 			want: nil,
 			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
 		}, {
 			title: "success/should return resource",
-			mockProjectServ: mockProject{
-				GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-					return testProjectMap[id], nil
-				}},
+			a: Authz{
+				projectService: mockProject{
+					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
+						return testProjectMap[id], nil
+					}},
+			},
 			permissionAttributes: map[string]any{
 				"project":       "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
 				"team":          "team1",
@@ -152,7 +155,6 @@ func TestCreateResources(t *testing.T) {
 				"namespace":     "ns1",
 				"resource_type": "type",
 			},
-			v: api.Deps{},
 			want: []resource.Resource{
 				{
 					ProjectID:      "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
@@ -170,7 +172,7 @@ func TestCreateResources(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			resp, err := createResources(context.Background(), tt.permissionAttributes, tt.mockProjectServ)
+			resp, err := tt.a.createResources(context.Background(), tt.permissionAttributes)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
