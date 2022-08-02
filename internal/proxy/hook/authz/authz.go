@@ -185,7 +185,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
-	resources, err := createResources(res.Request.Context(), attributes, a.projectService)
+	resources, err := a.createResources(res.Request.Context(), attributes)
 	if err != nil {
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
