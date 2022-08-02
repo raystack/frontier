@@ -13,7 +13,6 @@ import (
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/api"
 	"github.com/odpf/shield/internal/proxy/hook"
 	"github.com/odpf/shield/internal/proxy/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
@@ -32,7 +31,7 @@ type Authz struct {
 	// To skip all the next hooks and just respond back
 	escape hook.Service
 
-	Deps api.Deps
+	projectService ProjectService
 
 	// TODO need to figure out what best to pass this
 	identityProxyHeader string
@@ -44,13 +43,14 @@ type ProjectService interface {
 	Get(ctx context.Context, id string) (project.Project, error)
 }
 
-func New(log log.Logger, next, escape hook.Service, identityProxyHeader string, resourceService ResourceService) Authz {
+func New(log log.Logger, next, escape hook.Service, identityProxyHeader string, resourceService ResourceService, projectService ProjectService) Authz {
 	return Authz{
 		log:                 log,
 		next:                next,
 		escape:              escape,
 		identityProxyHeader: identityProxyHeader,
 		resourceService:     resourceService,
+		projectService:      projectService,
 	}
 }
 
@@ -185,7 +185,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
-	resources, err := createResources(res.Request.Context(), attributes, a.Deps.ProjectService)
+	resources, err := createResources(res.Request.Context(), attributes, a.projectService)
 	if err != nil {
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
@@ -209,19 +209,19 @@ func createResources(ctx context.Context, permissionAttributes map[string]interf
 		return nil, err
 	}
 
-	var orgs []string
-	var projIds []string
+	var organizationIds []string
+	var projectIds []string
 	for _, proj := range projects {
 		project, err := p.Get(ctx, proj)
 		if err != nil {
 			return nil, err
 		}
 
-		orgId := project.Organization.ID
-		orgs = append(orgs, orgId)
+		organizationId := project.Organization.ID
+		organizationIds = append(organizationIds, organizationId)
 
-		projId := project.ID
-		projIds = append(projIds, projId)
+		projectId := project.ID
+		projectIds = append(projectIds, projectId)
 	}
 
 	teams, err := getAttributesValues(permissionAttributes["team"])
@@ -244,12 +244,12 @@ func createResources(ctx context.Context, permissionAttributes map[string]interf
 		return nil, err
 	}
 
-	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
+	if len(projects) < 1 || len(organizationIds) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
 		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
 
-	for _, org := range orgs {
-		for _, project := range projIds {
+	for _, org := range organizationIds {
+		for _, project := range projectIds {
 			for _, res := range resourceList {
 				if len(teams) > 0 {
 					for _, team := range teams {

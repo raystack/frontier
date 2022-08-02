@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/core/user"
@@ -27,12 +28,13 @@ func serveProxies(
 	cfg proxy.ServicesConfig,
 	resourceService *resource.Service,
 	userService *user.Service,
+	projectService *project.Service,
 ) ([]func() error, []func(ctx context.Context) error, error) {
 	var cleanUpBlobs []func() error
 	var cleanUpProxies []func(ctx context.Context) error
 
 	for _, svcConfig := range cfg.Services {
-		hookPipeline := buildHookPipeline(logger, identityProxyHeader, resourceService)
+		hookPipeline := buildHookPipeline(logger, identityProxyHeader, resourceService, projectService)
 
 		h2cProxy := proxy.NewH2c(
 			proxy.NewH2cRoundTripper(logger, hookPipeline),
@@ -68,9 +70,9 @@ func serveProxies(
 	return cleanUpBlobs, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger, identityProxyHeader string, resourceService v1beta1.ResourceService) hook.Service {
+func buildHookPipeline(log log.Logger, identityProxyHeader string, resourceService v1beta1.ResourceService, projectService v1beta1.ProjectService) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, identityProxyHeader, resourceService)
+	return authz_hook.New(log, rootHook, rootHook, identityProxyHeader, resourceService, projectService)
 }
 
 // buildPipeline builds middleware sequence

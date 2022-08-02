@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/odpf/salt/log"
-
+	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/proxy/hook"
@@ -298,7 +298,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo *blob.RuleRep
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, "", &resource.Service{})
+	return authz_hook.New(log, rootHook, rootHook, "", &resource.Service{}, &project.Service{})
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {

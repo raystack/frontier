@@ -106,7 +106,7 @@ func serve(logger log.Logger, cfg *config.Shield) error {
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.Proxy, deps.ResourceService, deps.UserService)
+	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.Proxy, deps.ResourceService, deps.UserService, deps.ProjectService)
 	if err != nil {
 		return err
 	}
