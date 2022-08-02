@@ -211,7 +211,7 @@ func (a Authz) createResources(ctx context.Context, permissionAttributes map[str
 	var organizationIds []string
 	var projectIds []string
 	for _, proj := range projects {
-		project, err := p.Get(ctx, proj)
+		project, err := a.projectService.Get(ctx, proj)
 		if err != nil {
 			return nil, err
 		}
