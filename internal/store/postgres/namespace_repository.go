@@ -60,12 +60,16 @@ func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace)
 
 	query, params, err := dialect.Insert(TABLE_NAMESPACES).Rows(
 		goqu.Record{
-			"id":   ns.ID,
-			"name": ns.Name,
+			"id":            ns.ID,
+			"name":          ns.Name,
+			"backend":       ns.Backend,
+			"resource_type": ns.ResourceType,
 		}).OnConflict(
 		goqu.DoUpdate("id", goqu.Record{
-			"name":       ns.Name,
-			"updated_at": goqu.L("now()"),
+			"name":          ns.Name,
+			"updated_at":    goqu.L("now()"),
+			"backend":       ns.Backend,
+			"resource_type": ns.ResourceType,
 		})).Returning(&Namespace{}).ToSQL()
 	if err != nil {
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -123,9 +127,11 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 
 	query, params, err := dialect.Update(TABLE_NAMESPACES).Set(
 		goqu.Record{
-			"id":         ns.ID,
-			"name":       ns.Name,
-			"updated_at": goqu.L("now()"),
+			"id":            ns.ID,
+			"name":          ns.Name,
+			"updated_at":    goqu.L("now()"),
+			"backend":       ns.Backend,
+			"resource_type": ns.ResourceType,
 		}).Where(
 		goqu.Ex{
 			"id": ns.ID,
