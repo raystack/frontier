@@ -235,9 +235,9 @@ func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, withResource
 		namespaceQueryExpression["resource_type"] = goqu.L("$3")
 	}
 
-	getNamespaceQuery := dialect.Select(&Namespace{}).From(TABLE_NAMESPACES).Where(namespaceQueryExpression)
+	getNamespaceQuery := dialect.Select("id").From(TABLE_NAMESPACES).Where(namespaceQueryExpression)
 	getResourcesByURNQuery, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
-		"urn":          goqu.L("$1"),
+		"name":         goqu.L("$1"),
 		"namespace_id": goqu.Op{"in": getNamespaceQuery},
 	}).ToSQL()
 
@@ -247,20 +247,23 @@ func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, withResource
 func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns namespace.Namespace) (resource.Resource, error) {
 	var fetchedResource Resource
 
-	//build query
 	getResourceByNamespace, err := buildGetResourcesByNamespaceQuery(dialect, ns.ResourceType != "")
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &fetchedResource, getResourceByNamespace, name, ns.Backend, ns.ResourceType)
-	})
+	if ns.ResourceType == "" {
+		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+			return r.dbc.GetContext(ctx, &fetchedResource, getResourceByNamespace, name, ns.Backend)
+		})
+	} else {
+		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+			return r.dbc.GetContext(ctx, &fetchedResource, getResourceByNamespace, name, ns.Backend, ns.ResourceType)
+		})
+	}
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return resource.Resource{}, resource.ErrNotExist
-	} else if err != nil && fmt.Sprintf("%s", err.Error()[0:38]) == "pq: invalid input syntax for type uuid" {
-		return resource.Resource{}, resource.ErrInvalidUUID
 	} else if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

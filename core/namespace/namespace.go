@@ -17,7 +17,7 @@ type Namespace struct {
 	ID           string
 	Name         string
 	Backend      string
-	ResourceType string
+	ResourceType string `json:"resource_type"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -36,5 +36,9 @@ func IsSystemNamespaceID(nsID string) bool {
 }
 
 func CreateID(backend, resourceType string) string {
+	if resourceType == "" {
+		return backend
+	}
+
 	return fmt.Sprintf("%s_%s", backend, resourceType)
 }

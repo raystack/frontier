@@ -101,7 +101,6 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedNamespaces, query, params...)
 	}); err != nil {
-		// should not throw error but return empty instead
 		if errors.Is(err, sql.ErrNoRows) {
 			return []namespace.Namespace{}, nil
 		}
