@@ -202,13 +202,12 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	return a.next.ServeHook(res, nil)
 }
 
-func createResources(ctx context.Context, permissionAttributes map[string]interface{}, p ProjectService) ([]resource.Resource, error) {
+func (a Authz) createResources(ctx context.Context, permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
 	var resources []resource.Resource
 	projects, err := getAttributesValues(permissionAttributes["project"])
 	if err != nil {
 		return nil, err
 	}
-
 	var organizationIds []string
 	var projectIds []string
 	for _, proj := range projects {
