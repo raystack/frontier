@@ -8,6 +8,7 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/str"
@@ -121,7 +122,9 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 
 //TODO this is actually upsert
 func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
-	// TODO need to check actionID != ""
+	if str.IsStringEmpty(pol.ActionID) {
+		return "", policy.ErrInvalidDetail
+	}
 
 	//TODO need to find a way to deprecate this
 	roleID := str.DefaultStringIfEmpty(pol.Role.ID, pol.RoleID)
@@ -147,7 +150,7 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return "", policy.ErrNotExist
+			return "", policy.ErrNotExist //TODO might not be suitable if we use policy.ErrNotExist here
 		default:
 			return "", fmt.Errorf("%w: %s", dbErr, err)
 		}
@@ -157,7 +160,13 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 }
 
 func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (string, error) {
-	// TODO need to check actionID != ""
+	if str.IsStringEmpty(toUpdate.ID) {
+		return "", policy.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(toUpdate.ActionID) {
+		return "", policy.ErrInvalidDetail
+	}
 
 	query, params, err := dialect.Update(TABLE_POLICIES).Set(
 		goqu.Record{
@@ -182,8 +191,10 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 			return "", policy.ErrNotExist
 		case errors.Is(err, errDuplicateKey):
 			return "", policy.ErrConflict
+		case errors.Is(err, errInvalidTexRepresentation):
+			return "", policy.ErrInvalidUUID
 		case errors.Is(err, errForeignKeyViolation):
-			return "", policy.ErrNotExist
+			return "", namespace.ErrNotExist
 		default:
 			return "", err
 		}

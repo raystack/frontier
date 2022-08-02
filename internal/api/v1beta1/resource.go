@@ -6,7 +6,6 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/resource"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
@@ -70,10 +69,15 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		Name:           request.GetBody().GetName(),
 		UserID:         request.GetBody().GetUserId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, resource.ErrInvalidUUID),
+			errors.Is(err, resource.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	resourcePB, err := transformResourceToPB(newResource)
@@ -95,10 +99,10 @@ func (h Handler) GetResource(ctx context.Context, request *shieldv1beta1.GetReso
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, resource.ErrNotExist):
+		case errors.Is(err, resource.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidUUID),
+			errors.Is(err, resource.ErrInvalidID):
 			return nil, grpcResourceNotFoundErr
-		case errors.Is(err, relation.ErrInvalidUUID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -130,13 +134,13 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 		Name:           request.GetBody().GetName(),
 		UserID:         request.GetBody().GetUserId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, resource.ErrNotExist):
 			return nil, grpcResourceNotFoundErr
-		case errors.Is(err, relation.ErrInvalidUUID):
+		case errors.Is(err, resource.ErrInvalidUUID),
+			errors.Is(err, resource.ErrInvalidURN):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError

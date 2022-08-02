@@ -18,6 +18,7 @@ import (
 
 var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")
 
+//go:generate mockery --name=UserService -r --case underscore --with-expecter --structname UserService --filename user_service.go --output=./mocks
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
@@ -27,10 +28,6 @@ type UserService interface {
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
-
-var (
-	emptyEmailId = errors.New("email id is empty")
-)
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
@@ -66,18 +63,18 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRequest) (*shieldv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.GetBody() == nil {
-		return nil, grpcBadBodyError
-	}
-
 	currentUserEmail, ok := user.GetEmailFromContext(ctx)
 	if !ok {
-		return nil, grpcBadBodyError
+		return nil, grpcPermissionDenied
 	}
 
 	if len(currentUserEmail) == 0 {
-		logger.Error(emptyEmailId.Error())
-		return nil, emptyEmailId
+		logger.Error(ErrEmptyEmailID.Error())
+		return nil, grpcPermissionDenied
+	}
+
+	if request.GetBody() == nil || str.IsStringEmpty(request.GetBody().GetEmail()) {
+		return nil, grpcBadBodyError
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -86,13 +83,12 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcBadBodyError
 	}
 
-	email := str.DefaultStringIfEmpty(request.GetBody().GetEmail(), currentUserEmail)
-	userT := user.User{
+	// TODO might need to check the valid email form
+	newUser, err := h.userService.Create(ctx, user.User{
 		Name:     request.GetBody().GetName(),
-		Email:    email,
+		Email:    request.GetBody().GetEmail(),
 		Metadata: metaDataMap,
-	}
-	newUser, err := h.userService.Create(ctx, userT)
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -126,10 +122,8 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrNotExist):
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
 			return nil, status.Errorf(codes.NotFound, "user not found")
-		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -138,7 +132,7 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, internalServerError.Error())
+		return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
 	}
 
 	return &shieldv1beta1.GetUserResponse{
@@ -151,22 +145,20 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 
 	email, ok := user.GetEmailFromContext(ctx)
 	if !ok {
-		return nil, grpcBadBodyError
+		return nil, grpcPermissionDenied
 	}
 
-	if len(email) == 0 {
-		logger.Error(emptyEmailId.Error())
-		return nil, emptyEmailId
+	if str.IsStringEmpty(email) {
+		logger.Error(ErrEmptyEmailID.Error())
+		return nil, grpcPermissionDenied
 	}
 
 	fetchedUser, err := h.userService.GetByEmail(ctx, email)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrNotExist):
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
 			return nil, status.Errorf(codes.NotFound, "user not found")
-		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -186,6 +178,10 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRequest) (*shieldv1beta1.UpdateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	if str.IsStringEmpty(request.GetId()) {
+		return nil, grpcUserNotFoundError
+	}
+
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -204,8 +200,10 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrNotExist):
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcUserNotFoundError
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcBadBodyError
 		case errors.Is(err, user.ErrConflict):
 			return nil, grpcConflictError
 		default:
@@ -216,7 +214,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	userPB, err := transformUserToPB(updatedUser)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, internalServerError
+		return nil, ErrInternalServer
 	}
 
 	return &shieldv1beta1.UpdateUserResponse{User: &userPB}, nil
@@ -227,15 +225,16 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 
 	email, ok := user.GetEmailFromContext(ctx)
 	if !ok {
-		return nil, grpcBadBodyError
+		return nil, grpcPermissionDenied
+	}
+
+	if len(email) == 0 {
+		logger.Error(ErrEmptyEmailID.Error())
+		return nil, grpcPermissionDenied
 	}
 
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
-	}
-	if len(email) == 0 {
-		logger.Error(emptyEmailId.Error())
-		return nil, emptyEmailId
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -291,8 +290,8 @@ func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {
 func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.ListUserGroupsRequest) (*shieldv1beta1.ListUserGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var groups []*shieldv1beta1.Group
-	groupsList, err := h.groupService.ListUserGroups(ctx, request.GetId(), request.GetRole())
 
+	groupsList, err := h.groupService.ListUserGroups(ctx, request.GetId(), request.GetRole())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

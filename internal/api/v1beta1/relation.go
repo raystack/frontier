@@ -64,8 +64,9 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.ErrNotExist):
-			return nil, grpcPolicyNotFoundErr
+		case errors.Is(err, relation.ErrNotExist),
+			errors.Is(err, relation.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -89,10 +90,10 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.ErrNotExist):
+		case errors.Is(err, relation.ErrNotExist),
+			errors.Is(err, relation.ErrInvalidUUID),
+			errors.Is(err, relation.ErrInvalidID):
 			return nil, status.Errorf(codes.NotFound, "relation not found")
-		case errors.Is(err, relation.ErrInvalidUUID), errors.Is(err, relation.ErrInvalidID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}

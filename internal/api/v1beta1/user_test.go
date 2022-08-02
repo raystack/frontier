@@ -55,7 +55,7 @@ func TestListUsers(t *testing.T) {
 				Keyword:  "",
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, internalServerError.Error()),
+			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		}, {
 			title: "success",
 			mockUserSrv: mockUserSrv{ListFunc: func(ctx context.Context, flt user.Filter) (users user.PagedUsers, err error) {
@@ -122,7 +122,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			title: "error in fetching user list",
 			mockUserSrv: mockUserSrv{CreateFunc: func(ctx context.Context, u user.User) (user.User, error) {
-				return user.User{}, emptyEmailId
+				return user.User{}, ErrEmptyEmailID
 			}},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:     "some user",
@@ -130,7 +130,7 @@ func TestCreateUser(t *testing.T) {
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
-			err:  emptyEmailId,
+			err:  ErrEmptyEmailID,
 		},
 		{
 			title: "int values in metadata map",

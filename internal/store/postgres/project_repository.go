@@ -15,6 +15,7 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type ProjectRepository struct {
@@ -98,6 +99,10 @@ func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.
 }
 
 func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (project.Project, error) {
+	if str.IsStringEmpty(prj.Name) || str.IsStringEmpty(prj.Slug) {
+		return project.Project{}, project.ErrInvalidDetail
+	}
+
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -170,8 +175,12 @@ func (r ProjectRepository) List(ctx context.Context) ([]project.Project, error) 
 }
 
 func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) (project.Project, error) {
-	if prj.ID == "" {
+	if str.IsStringEmpty(prj.ID) {
 		return project.Project{}, project.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(prj.Name) || str.IsStringEmpty(prj.Slug) {
+		return project.Project{}, project.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
@@ -221,8 +230,12 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 }
 
 func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project) (project.Project, error) {
-	if prj.Slug == "" {
+	if str.IsStringEmpty(prj.Slug) {
 		return project.Project{}, project.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(prj.Name) {
+		return project.Project{}, project.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)

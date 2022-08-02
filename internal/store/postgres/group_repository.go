@@ -14,6 +14,7 @@ import (
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type GroupRepository struct {
@@ -97,6 +98,10 @@ func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Grou
 }
 
 func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Group, error) {
+	if str.IsStringEmpty(grp.Name) || str.IsStringEmpty(grp.Slug) {
+		return group.Group{}, group.ErrInvalidDetail
+	}
+
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -122,7 +127,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 		case errors.Is(err, errForeignKeyViolation):
 			return group.Group{}, organization.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return group.Group{}, group.ErrInvalidUUID
+			return group.Group{}, organization.ErrInvalidUUID
 		case errors.Is(err, errDuplicateKey):
 			return group.Group{}, group.ErrConflict
 		default:
@@ -152,10 +157,15 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params...)
 	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return []group.Group{}, group.ErrNotExist
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return []group.Group{}, nil
+		case errors.Is(err, errInvalidTexRepresentation):
+			return []group.Group{}, nil
+		default:
+			return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
-		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedGroups []group.Group
@@ -171,8 +181,12 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 }
 
 func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group.Group, error) {
-	if grp.ID == "" {
+	if str.IsStringEmpty(grp.ID) {
 		return group.Group{}, group.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(grp.Name) || str.IsStringEmpty(grp.Slug) {
+		return group.Group{}, group.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
@@ -222,8 +236,12 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 }
 
 func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (group.Group, error) {
-	if grp.Slug == "" {
+	if str.IsStringEmpty(grp.Slug) {
 		return group.Group{}, group.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(grp.Name) {
+		return group.Group{}, group.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
@@ -253,7 +271,7 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return group.Group{}, group.ErrInvalidUUID
+			return group.Group{}, organization.ErrInvalidUUID
 		case errors.Is(err, errDuplicateKey):
 			return group.Group{}, group.ErrConflict
 		case errors.Is(err, errForeignKeyViolation):
@@ -482,7 +500,7 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 			"subject_id":            userID,
 		})
 
-	if roleID != "" {
+	if !str.IsStringEmpty(roleID) {
 		sqlStatement = sqlStatement.Where(goqu.Ex{
 			"role_id": roleID,
 		})

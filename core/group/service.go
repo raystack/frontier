@@ -2,6 +2,7 @@ package group
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
@@ -41,9 +42,9 @@ func NewService(repository Repository, relationService RelationService, userServ
 }
 
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
-	user, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Group{}, err
+		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	newGroup, err := s.repository.Create(ctx, grp)
@@ -55,11 +56,11 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	if err = s.addAdminToTeam(ctx, user.ID, newGroup.ID); err != nil {
+	if err = s.addAdminToTeam(ctx, usr.ID, newGroup.ID); err != nil {
 		return Group{}, err
 	}
 
-	if err = s.addMemberToTeam(ctx, user.ID, newGroup.ID); err != nil {
+	if err = s.addMemberToTeam(ctx, usr.ID, newGroup.ID); err != nil {
 		return Group{}, err
 	}
 
@@ -78,16 +79,20 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 }
 
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
-	if grp.ID != "" {
+	if !str.IsStringEmpty(grp.ID) {
 		return s.repository.UpdateByID(ctx, grp)
 	}
 	return s.repository.UpdateBySlug(ctx, grp)
 }
 
 func (s Service) AddUsers(ctx context.Context, groupIdOrSlug string, userIds []string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []user.User{}, err
+		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
+	if len(userIds) < 1 {
+		return nil, user.ErrInvalidID
 	}
 
 	var groupID = groupIdOrSlug
@@ -99,7 +104,7 @@ func (s Service) AddUsers(ctx context.Context, groupIdOrSlug string, userIds []s
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -124,9 +129,9 @@ func (s Service) AddUsers(ctx context.Context, groupIdOrSlug string, userIds []s
 }
 
 func (s Service) RemoveUser(ctx context.Context, groupIdOrSlug string, userId string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []user.User{}, err
+		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	var groupID = groupIdOrSlug
@@ -138,7 +143,7 @@ func (s Service) RemoveUser(ctx context.Context, groupIdOrSlug string, userId st
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -147,7 +152,7 @@ func (s Service) RemoveUser(ctx context.Context, groupIdOrSlug string, userId st
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err := s.userService.GetByID(ctx, userId)
+	usr, err = s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -185,9 +190,13 @@ func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, 
 }
 
 func (s Service) AddAdmins(ctx context.Context, groupIdOrSlug string, userIds []string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []user.User{}, err
+		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
+	if len(userIds) < 1 {
+		return nil, user.ErrInvalidID
 	}
 
 	var groupID = groupIdOrSlug
@@ -199,7 +208,7 @@ func (s Service) AddAdmins(ctx context.Context, groupIdOrSlug string, userIds []
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -228,9 +237,9 @@ func (s Service) AddAdmins(ctx context.Context, groupIdOrSlug string, userIds []
 }
 
 func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []user.User{}, err
+		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	var groupID = groupIdOrSlug
@@ -242,7 +251,7 @@ func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId s
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -251,7 +260,7 @@ func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId s
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err := s.userService.GetByID(ctx, userId)
+	usr, err = s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/odpf/shield/pkg/str"
 
 	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
 )
 
 type ActionRepository struct {
@@ -52,7 +53,7 @@ func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, er
 
 // TODO this is actually an upsert
 func (r ActionRepository) Create(ctx context.Context, act action.Action) (action.Action, error) {
-	if act.ID == "" {
+	if str.IsStringEmpty(act.ID) {
 		return action.Action{}, action.ErrInvalidID
 	}
 
@@ -77,7 +78,7 @@ func (r ActionRepository) Create(ctx context.Context, act action.Action) (action
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return action.Action{}, action.ErrNotExist
+			return action.Action{}, namespace.ErrNotExist
 		default:
 			return action.Action{}, err
 		}
@@ -111,8 +112,12 @@ func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
 }
 
 func (r ActionRepository) Update(ctx context.Context, act action.Action) (action.Action, error) {
-	if act.ID == "" {
+	if str.IsStringEmpty(act.ID) {
 		return action.Action{}, action.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(act.Name) {
+		return action.Action{}, action.ErrInvalidDetail
 	}
 
 	query, params, err := dialect.Update(TABLE_ACTIONS).Set(
@@ -136,7 +141,7 @@ func (r ActionRepository) Update(ctx context.Context, act action.Action) (action
 		case errors.Is(err, sql.ErrNoRows):
 			return action.Action{}, action.ErrNotExist
 		case errors.Is(err, errForeignKeyViolation):
-			return action.Action{}, action.ErrNotExist
+			return action.Action{}, namespace.ErrNotExist
 		default:
 			return action.Action{}, err
 		}

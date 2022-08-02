@@ -2,6 +2,7 @@ package organization
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
@@ -46,9 +47,9 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Organization, error)
 }
 
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
-	user, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Organization{}, err
+		return Organization{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	newOrg, err := s.repository.Create(ctx, Organization{
@@ -60,7 +61,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	if err = s.addAdminToOrg(ctx, user, newOrg); err != nil {
+	if err = s.addAdminToOrg(ctx, usr, newOrg); err != nil {
 		return Organization{}, err
 	}
 
@@ -79,9 +80,13 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 }
 
 func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []user.User{}, err
+		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
+	if len(userIds) < 1 {
+		return nil, user.ErrInvalidID
 	}
 
 	var org Organization
@@ -94,7 +99,7 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -108,6 +113,8 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 		return []user.User{}, err
 	}
 
+	//TODO might need to check len users < 1
+
 	for _, usr := range users {
 		if err = s.addAdminToOrg(ctx, usr, org); err != nil {
 			return []user.User{}, err
@@ -116,14 +123,23 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 	return s.ListAdmins(ctx, org.ID)
 }
 
-func (s Service) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
-	return s.repository.ListAdmins(ctx, id)
+func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, error) {
+	var org Organization
+	var err error
+	if uuid.IsValid(idOrSlug) {
+		return s.repository.ListAdminsByOrgID(ctx, idOrSlug)
+	}
+	org, err = s.repository.GetBySlug(ctx, idOrSlug)
+	if err != nil {
+		return []user.User{}, err
+	}
+	return s.repository.ListAdminsByOrgID(ctx, org.ID)
 }
 
 func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	usr, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []user.User{}, err
+		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	var org Organization
@@ -136,7 +152,7 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -145,7 +161,7 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err := s.userService.GetByID(ctx, userId)
+	usr, err = s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}

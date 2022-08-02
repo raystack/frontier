@@ -260,7 +260,7 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				NamespaceID:    "some-ns",
 				UserID:         s.resources[0].UserID,
 			},
-			ErrString: resource.ErrNotExist.Error(),
+			ErrString: resource.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if org id does not exist",
@@ -273,7 +273,7 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
 			},
-			ErrString: resource.ErrNotExist.Error(),
+			ErrString: resource.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if org id is not uuid",
@@ -300,7 +300,7 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
 			},
-			ErrString: resource.ErrNotExist.Error(),
+			ErrString: resource.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if group id is not uuid",
@@ -326,7 +326,7 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
 			},
-			ErrString: resource.ErrNotExist.Error(),
+			ErrString: resource.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if project id is not uuid",
@@ -579,7 +579,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		},
 		{
 			Description: "should return error if resource urn is empty",
-			ResourceID:  "123",
+			ResourceID:  uuid.NewString(),
 			ErrString:   resource.ErrInvalidURN.Error(),
 		},
 	}

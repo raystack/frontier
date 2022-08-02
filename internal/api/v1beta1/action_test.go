@@ -72,7 +72,7 @@ func TestListActions(t *testing.T) {
 				return []action.Action{}, errors.New("some error")
 			}},
 			want: nil,
-			err:  status.Errorf(codes.Internal, internalServerError.Error()),
+			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		},
 		{
 			title: "success",

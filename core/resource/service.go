@@ -103,6 +103,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
+	// TODO there should be an update logic like create here
 	return s.repository.Update(ctx, id, resource)
 }
 

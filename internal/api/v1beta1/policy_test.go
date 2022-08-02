@@ -70,7 +70,7 @@ func TestListPolicies(t *testing.T) {
 				return []policy.Policy{}, errors.New("some error")
 			}},
 			want: nil,
-			err:  status.Errorf(codes.Internal, internalServerError.Error()),
+			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		},
 		{
 			title: "success",

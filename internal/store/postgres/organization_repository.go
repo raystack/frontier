@@ -14,6 +14,7 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type OrganizationRepository struct {
@@ -97,6 +98,10 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 }
 
 func (r OrganizationRepository) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
+	if str.IsStringEmpty(org.Name) || str.IsStringEmpty(org.Slug) {
+		return organization.Organization{}, organization.ErrInvalidDetail
+	}
+
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -162,8 +167,12 @@ func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organi
 }
 
 func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if org.ID == "" {
+	if str.IsStringEmpty(org.ID) {
 		return organization.Organization{}, organization.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(org.Name) || str.IsStringEmpty(org.Slug) {
+		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
@@ -210,8 +219,12 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 }
 
 func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if org.Slug == "" {
+	if str.IsStringEmpty(org.Slug) {
 		return organization.Organization{}, organization.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(org.Name) {
+		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
@@ -256,7 +269,7 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 	return org, nil
 }
 
-func (r OrganizationRepository) ListAdmins(ctx context.Context, orgID string) ([]user.User, error) {
+func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID string) ([]user.User, error) {
 	if orgID == "" {
 		return []user.User{}, organization.ErrInvalidID
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/metadata"
 	"google.golang.org/grpc/codes"
@@ -64,8 +65,10 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, role.ErrNotExist):
-			return nil, grpcRoleNotFoundErr
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
 		default:
@@ -89,10 +92,8 @@ func (h Handler) GetRole(ctx context.Context, request *shieldv1beta1.GetRoleRequ
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, role.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
-		case errors.Is(err, role.ErrInvalidUUID), errors.Is(err, role.ErrInvalidID):
-			return nil, grpcBadBodyError
+		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
+			return nil, grpcRoleNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -117,14 +118,17 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
 		ID:          request.GetId(),
-		Name:        request.GetBody().Name,
-		Types:       request.GetBody().Types,
-		NamespaceID: request.GetBody().NamespaceId,
+		Name:        request.GetBody().GetName(),
+		Types:       request.GetBody().GetTypes(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		case errors.Is(err, role.ErrNotExist):
 			return nil, grpcRoleNotFoundErr
 		case errors.Is(err, role.ErrConflict):

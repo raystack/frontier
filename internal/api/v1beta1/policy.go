@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
@@ -54,10 +55,15 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		ActionID:    request.GetBody().GetActionId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, policy.ErrInvalidDetail),
+			errors.Is(err, policy.ErrNotExist):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	for _, p := range newPolicies {
@@ -90,10 +96,10 @@ func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicy
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, policy.ErrNotExist):
+		case errors.Is(err, policy.ErrNotExist),
+			errors.Is(err, policy.ErrInvalidUUID),
+			errors.Is(err, policy.ErrInvalidID):
 			return nil, grpcPolicyNotFoundErr
-		case errors.Is(err, policy.ErrInvalidUUID), errors.Is(err, policy.ErrInvalidID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -121,8 +127,13 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, policy.ErrNotExist):
+		case errors.Is(err, policy.ErrNotExist),
+			errors.Is(err, policy.ErrInvalidID),
+			errors.Is(err, policy.ErrInvalidUUID):
 			return nil, grpcPolicyNotFoundErr
+		case errors.Is(err, policy.ErrInvalidDetail),
+			errors.Is(err, namespace.ErrNotExist):
+			return nil, grpcBadBodyError
 		case errors.Is(err, policy.ErrConflict):
 			return nil, grpcConflictError
 		default:

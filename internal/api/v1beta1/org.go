@@ -2,8 +2,8 @@ package v1beta1
 
 import (
 	"context"
-	"strings"
 
+	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
@@ -21,6 +21,7 @@ import (
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
+//go:generate mockery --name=OrganizationService -r --case underscore --with-expecter --structname OrganizationService --filename org_service.go --output=./mocks
 type OrganizationService interface {
 	Get(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
@@ -76,14 +77,21 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		Metadata: metaDataMap,
 	}
 
-	if strings.TrimSpace(org.Slug) == "" {
+	if str.IsStringEmpty(org.Slug) {
 		org.Slug = str.GenerateSlug(org.Name)
 	}
 
 	newOrg, err := h.orgService.Create(ctx, org)
-
 	if err != nil {
 		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcPermissionDenied
+		case errors.Is(err, organization.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		case errors.Is(err, organization.ErrConflict):
+			return nil, grpcConflictError
+		}
 		return nil, grpcInternalServerError
 	}
 
@@ -110,7 +118,7 @@ func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.Get
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, organization.ErrNotExist):
+		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
 			return nil, status.Errorf(codes.NotFound, "organization not found")
 		case errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcBadBodyError
@@ -122,7 +130,7 @@ func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.Get
 	orgPB, err := transformOrgToPB(fetchedOrg)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, internalServerError.Error())
+		return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
 	}
 
 	return &shieldv1beta1.GetOrganizationResponse{
@@ -159,13 +167,20 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	}
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, internalServerError
+		switch {
+		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
+			return nil, status.Errorf(codes.NotFound, "organization not found")
+		case errors.Is(err, organization.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, ErrInternalServer
+		}
 	}
 
 	orgPB, err := transformOrgToPB(updatedOrg)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, internalServerError
+		return nil, ErrInternalServer
 	}
 
 	return &shieldv1beta1.UpdateOrganizationResponse{Organization: &orgPB}, nil
@@ -178,10 +193,14 @@ func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
+		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -192,7 +211,7 @@ func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta
 		userPB, err := transformUserToPB(u)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, internalServerError
+			return nil, ErrInternalServer
 		}
 
 		addedUsersPB = append(addedUsersPB, &userPB)
@@ -220,7 +239,7 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 		u, err := transformUserToPB(user)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, internalServerError
+			return nil, ErrInternalServer
 		}
 
 		adminsPB = append(adminsPB, &u)
@@ -235,10 +254,16 @@ func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1b
 	if _, err := h.orgService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
+		case errors.Is(err, user.ErrInvalidUUID):
+			return nil, grpcUserNotFoundError
+		case errors.Is(err, relation.ErrNotExist):
+			return nil, grpcRelationNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}

@@ -24,8 +24,6 @@ func NewRelationRepository(dbc *db.Client) *RelationRepository {
 }
 
 func (r RelationRepository) Create(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
-	// TODO check role and ns cannot be empty
-
 	subjectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.ID, relationToCreate.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.ID, relationToCreate.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(relationToCreate.Role.ID, relationToCreate.RoleID)
@@ -34,6 +32,11 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 	if relationToCreate.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""
+	}
+
+	if str.IsStringEmpty(subjectNamespaceID) || str.IsStringEmpty(relationToCreate.SubjectID) ||
+		str.IsStringEmpty(objectNamespaceID) || str.IsStringEmpty(relationToCreate.ObjectID) {
+		return relation.Relation{}, relation.ErrInvalidDetail
 	}
 
 	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(

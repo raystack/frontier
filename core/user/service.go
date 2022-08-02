@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 )
 
 type Service struct {
@@ -63,7 +62,7 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 	email, ok := GetEmailFromContext(ctx)
 	if !ok {
-		return User{}, errors.New("unable to fetch email from context")
+		return User{}, ErrMissingEmail
 	}
 
 	fetchedUser, err := s.repository.GetByEmail(ctx, email)

@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/metadata"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,27 +40,27 @@ func TestListOrganizations(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title      string
-		mockOrgSrv mockOrgSrv
-		want       *shieldv1beta1.ListOrganizationsResponse
-		err        error
+		title string
+		setup func(os *mocks.OrganizationService)
+		want  *shieldv1beta1.ListOrganizationsResponse
+		err   error
 	}{
 		{
 			title: "error in Org Service",
-			mockOrgSrv: mockOrgSrv{ListFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
-				return []organization.Organization{}, errors.New("some error")
-			}},
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]organization.Organization{}, errors.New("some error"))
+			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, internalServerError.Error()),
+			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		}, {
 			title: "success",
-			mockOrgSrv: mockOrgSrv{ListFunc: func(ctx context.Context) (organizations []organization.Organization, err error) {
+			setup: func(os *mocks.OrganizationService) {
 				var testOrgList []organization.Organization
 				for _, o := range testOrgMap {
 					testOrgList = append(testOrgList, o)
 				}
-				return testOrgList, nil
-			}},
+				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(testOrgList, nil)
+			},
 			want: &shieldv1beta1.ListOrganizationsResponse{Organizations: []*shieldv1beta1.Organization{
 				{
 					Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -84,7 +85,11 @@ func TestListOrganizations(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{orgService: tt.mockOrgSrv}
+			mockOrgSrv := new(mocks.OrganizationService)
+			mockDep := Handler{orgService: mockOrgSrv}
+			if tt.setup != nil {
+				tt.setup(mockOrgSrv)
+			}
 			resp, err := mockDep.ListOrganizations(context.Background(), nil)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
@@ -96,17 +101,21 @@ func TestCreateOrganization(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title      string
-		mockOrgSrv mockOrgSrv
-		req        *shieldv1beta1.CreateOrganizationRequest
-		want       *shieldv1beta1.CreateOrganizationResponse
-		err        error
+		title string
+		setup func(os *mocks.OrganizationService)
+		req   *shieldv1beta1.CreateOrganizationRequest
+		want  *shieldv1beta1.CreateOrganizationResponse
+		err   error
 	}{
 		{
 			title: "error in fetching org list",
-			mockOrgSrv: mockOrgSrv{CreateFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
-				return organization.Organization{}, errors.New("some error")
-			}},
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					Name:     "some org",
+					Slug:     "abc",
+					Metadata: metadata.Metadata{},
+				}).Return(organization.Organization{}, errors.New("some error"))
+			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "some org",
 				Slug:     "abc",
@@ -131,14 +140,22 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockOrgSrv: mockOrgSrv{CreateFunc: func(ctx context.Context, o organization.Organization) (organization.Organization, error) {
-				return organization.Organization{
-					ID:       "new-abc",
-					Name:     "some org",
-					Slug:     "abc",
-					Metadata: nil,
-				}, nil
-			}},
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					Name: "some org",
+					Slug: "abc",
+					Metadata: metadata.Metadata{
+						"email": "a",
+					},
+				}).Return(organization.Organization{
+					ID:   "new-abc",
+					Name: "some org",
+					Slug: "abc",
+					Metadata: metadata.Metadata{
+						"email": "a",
+					},
+				}, nil)
+			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name: "some org",
 				Slug: "abc",
@@ -149,10 +166,13 @@ func TestCreateOrganization(t *testing.T) {
 				},
 			}},
 			want: &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
-				Id:        "new-abc",
-				Name:      "some org",
-				Slug:      "abc",
-				Metadata:  &structpb.Struct{Fields: map[string]*structpb.Value{}},
+				Id:   "new-abc",
+				Name: "some org",
+				Slug: "abc",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"email": structpb.NewStringValue("a"),
+					}},
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),
 			}},
@@ -163,49 +183,14 @@ func TestCreateOrganization(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
-
-			mockDep := Handler{orgService: tt.mockOrgSrv}
+			mockOrgSrv := new(mocks.OrganizationService)
+			if tt.setup != nil {
+				tt.setup(mockOrgSrv)
+			}
+			mockDep := Handler{orgService: mockOrgSrv}
 			resp, err := mockDep.CreateOrganization(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
 	}
-}
-
-type mockOrgSrv struct {
-	GetFunc         func(ctx context.Context, idOrSlug string) (organization.Organization, error)
-	CreateFunc      func(ctx context.Context, org organization.Organization) (organization.Organization, error)
-	ListFunc        func(ctx context.Context) ([]organization.Organization, error)
-	UpdateFunc      func(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	AddAdminsFunc   func(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
-	RemoveAdminFunc func(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
-	ListAdminsFunc  func(ctx context.Context, id string) ([]user.User, error)
-}
-
-func (m mockOrgSrv) Get(ctx context.Context, idOrSlug string) (organization.Organization, error) {
-	return m.GetFunc(ctx, idOrSlug)
-}
-
-func (m mockOrgSrv) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	return m.CreateFunc(ctx, org)
-}
-
-func (m mockOrgSrv) List(ctx context.Context) ([]organization.Organization, error) {
-	return m.ListFunc(ctx)
-}
-
-func (m mockOrgSrv) Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
-	return m.UpdateFunc(ctx, toUpdate)
-}
-
-func (m mockOrgSrv) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	return m.AddAdmins(ctx, idOrSlug, userIds)
-}
-
-func (m mockOrgSrv) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	return m.RemoveAdminFunc(ctx, idOrSlug, userId)
-}
-
-func (m mockOrgSrv) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
-	return m.ListAdminsFunc(ctx, id)
 }

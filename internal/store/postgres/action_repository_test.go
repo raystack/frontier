@@ -147,7 +147,7 @@ func (s *ActionRepositoryTestSuite) TestCreate() {
 				Name:        "action-123",
 				NamespaceID: "random-ns",
 			},
-			ErrString: action.ErrNotExist.Error(),
+			ErrString: namespace.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if action id is empty",
@@ -252,7 +252,7 @@ func (s *ActionRepositoryTestSuite) TestUpdate() {
 				Name:        "action-get-updated",
 				NamespaceID: "random-ns2",
 			},
-			ErrString: action.ErrNotExist.Error(),
+			ErrString: namespace.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if action not found",

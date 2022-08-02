@@ -43,7 +43,6 @@ require (
 	google.golang.org/grpc v1.46.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	gotest.tools v2.2.0+incompatible
 )
 
 require (
@@ -118,6 +117,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.10.1 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tidwall/match v1.0.3 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect

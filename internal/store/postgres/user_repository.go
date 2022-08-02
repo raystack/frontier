@@ -11,6 +11,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type UserRepository struct {
@@ -27,8 +28,8 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	if id == "" {
 		return user.User{}, user.ErrInvalidID
 	}
-	var fetchedUser User
 
+	var fetchedUser User
 	query, params, err := dialect.From(TABLE_USERS).Select(&User{}).
 		Where(goqu.Ex{
 			"id": id,
@@ -47,7 +48,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 		case errors.Is(err, sql.ErrNoRows):
 			return user.User{}, user.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return user.User{}, user.ErrNotUUID
+			return user.User{}, user.ErrInvalidUUID
 		default:
 			return user.User{}, err
 		}
@@ -62,6 +63,10 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 }
 
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
+	if str.IsStringEmpty(usr.Email) {
+		return user.User{}, user.ErrInvalidEmail
+	}
+
 	marshaledMetadata, err := json.Marshal(usr.Metadata)
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -161,7 +166,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 		case errors.Is(err, sql.ErrNoRows):
 			return []user.User{}, user.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return []user.User{}, user.ErrNotUUID
+			return []user.User{}, user.ErrInvalidUUID
 		default:
 			return []user.User{}, err
 		}
@@ -227,6 +232,10 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return user.User{}, user.ErrInvalidID
 	}
 
+	if usr.Email == "" {
+		return user.User{}, user.ErrInvalidEmail
+	}
+
 	marshaledMetadata, err := json.Marshal(usr.Metadata)
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -257,6 +266,8 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			return user.User{}, user.ErrConflict
 		case errors.Is(err, sql.ErrNoRows):
 			return user.User{}, user.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return user.User{}, user.ErrInvalidUUID
 		default:
 			return user.User{}, err
 		}

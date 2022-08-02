@@ -71,8 +71,12 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 
 //TODO this is actually an upsert
 func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error) {
-	if rl.ID == "" {
+	if str.IsStringEmpty(rl.ID) {
 		return "", role.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(rl.Name) {
+		return "", role.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
@@ -107,7 +111,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
 		case errors.Is(err, errForeignKeyViolation):
-			return "", role.ErrNotExist
+			return "", role.ErrInvalidDetail
 		default:
 			return "", err
 		}
@@ -142,8 +146,12 @@ func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
 }
 
 func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error) {
-	if rl.ID == "" {
+	if str.IsStringEmpty(rl.ID) {
 		return "", role.ErrInvalidID
+	}
+
+	if str.IsStringEmpty(rl.Name) {
+		return "", role.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
@@ -175,7 +183,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 		case errors.Is(err, sql.ErrNoRows):
 			return "", role.ErrNotExist
 		case errors.Is(err, errForeignKeyViolation):
-			return "", role.ErrNotExist
+			return "", role.ErrInvalidDetail
 		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
 		default:

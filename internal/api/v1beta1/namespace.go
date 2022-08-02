@@ -51,10 +51,11 @@ func (h Handler) CreateNamespace(ctx context.Context, request *shieldv1beta1.Cre
 		ID:   request.GetBody().GetId(),
 		Name: request.GetBody().GetName(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, namespace.ErrInvalidID), errors.Is(err, namespace.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		case errors.Is(err, namespace.ErrConflict):
 			return nil, grpcConflictError
 		default:
@@ -101,13 +102,15 @@ func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.Upd
 
 	updatedNS, err := h.namespaceService.Update(ctx, namespace.Namespace{
 		ID:   request.GetId(),
-		Name: request.GetBody().Name,
+		Name: request.GetBody().GetName(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, namespace.ErrNotExist):
 			return nil, grpcNamespaceNotFoundErr
+		case errors.Is(err, namespace.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		case errors.Is(err, namespace.ErrConflict):
 			return nil, grpcConflictError
 		default:
