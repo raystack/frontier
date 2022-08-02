@@ -208,7 +208,6 @@ func (a Authz) createResources(ctx context.Context, permissionAttributes map[str
 	if err != nil {
 		return nil, err
 	}
-
 	var organizationIds []string
 	var projectIds []string
 	for _, proj := range projects {
