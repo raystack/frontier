@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"context"
 	"crypto/tls"
 	"net"
 	"net/http"
@@ -28,6 +29,30 @@ type h2cTransportWrapper struct {
 	hook hook.Service
 }
 
+type Context struct {
+	ctx context.Context
+}
+
+func (c Context) Deadline() (time.Time, bool) {
+	return time.Time{}, false
+}
+
+func (c Context) Done() <-chan struct{} {
+	return nil
+}
+
+func (c Context) Err() error {
+	return nil
+}
+
+func (c Context) Value(key interface{}) interface{} {
+	return c.ctx.Value(key)
+}
+
+func WithoutCancel(ctx context.Context) context.Context {
+	return Context{ctx: ctx}
+}
+
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
 	// we need to apply errors if it failed in Director
 	if err, ok := req.Context().Value(ctxRequestErrorKey).(error); ok {
@@ -41,6 +66,8 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 	if req.Header.Get("Content-Type") == "application/grpc" {
 		transport = t.grpcTransport
 	}
+
+	req = req.WithContext(WithoutCancel(req.Context()))
 
 	res, err := transport.RoundTrip(req)
 	if err != nil {
