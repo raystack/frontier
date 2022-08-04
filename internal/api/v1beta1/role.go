@@ -126,7 +126,7 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, role.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
+			return nil, grpcRoleNotFoundErr
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
 		default:
