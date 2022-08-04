@@ -11,6 +11,13 @@ COPY . .
 
 RUN make build
 
-FROM alpine:3.15
-COPY --from=builder /go/src/app/shield /usr/local/bin/
-ENTRYPOINT [ "shield" ]
+FROM alpine:3.16
+COPY --from=builder /go/src/app/shield /usr/bin/
+RUN apk update
+RUN apk add ca-certificates
+
+# glibc compatibility library, since go binaries 
+# don't work well with musl libc that alpine uses
+RUN apk add libc6-compat
+
+CMD ["shield", "serve"]
