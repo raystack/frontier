@@ -100,10 +100,9 @@ func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.Upd
 	logger := grpczap.Extract(ctx)
 
 	updatedNS, err := h.namespaceService.Update(ctx, namespace.Namespace{
-		ID:   request.GetBody().GetId(),
-		Name: request.GetBody().GetName(),
+		ID:   request.GetId(),
+		Name: request.GetBody().Name,
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {

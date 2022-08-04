@@ -87,7 +87,6 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	}
 
 	newGroup, err := h.groupService.Create(ctx, grp)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -228,18 +227,20 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	var updatedGroup group.Group
 	if uuid.IsValid(request.GetId()) {
 		updatedGroup, err = h.groupService.Update(ctx, group.Group{
-			ID:           request.GetId(),
-			Name:         request.GetBody().GetName(),
-			Slug:         request.GetBody().GetSlug(),
-			Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
-			Metadata:     metaDataMap,
+			ID:             request.GetId(),
+			Name:           request.GetBody().GetName(),
+			Slug:           request.GetBody().GetSlug(),
+			Organization:   organization.Organization{ID: request.GetBody().GetOrgId()},
+			OrganizationID: request.GetBody().GetOrgId(),
+			Metadata:       metaDataMap,
 		})
 	} else {
 		updatedGroup, err = h.groupService.Update(ctx, group.Group{
-			Name:         request.GetBody().GetName(),
-			Slug:         request.GetId(),
-			Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
-			Metadata:     metaDataMap,
+			Name:           request.GetBody().GetName(),
+			Slug:           request.GetId(),
+			Organization:   organization.Organization{ID: request.GetBody().GetOrgId()},
+			OrganizationID: request.GetBody().GetOrgId(),
+			Metadata:       metaDataMap,
 		})
 	}
 	if err != nil {
