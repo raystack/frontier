@@ -19,18 +19,18 @@ var (
 	internalServerErr        = fmt.Errorf("internal server error")
 )
 
-func (h Handler) CheckResourcePermission(ctx context.Context, in *shieldv1beta1.ResourceActionAuthzRequest) (*shieldv1beta1.ResourceActionAuthzResponse, error) {
+func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.ResourceActionAuthzRequest) (*shieldv1beta1.ResourceActionAuthzResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if err := in.ValidateAll(); err != nil {
+	if err := req.ValidateAll(); err != nil {
 		formattedErr := getValidationErrorMessage(err)
 		logger.Error(formattedErr.Error())
 		return nil, status.Errorf(codes.NotFound, formattedErr.Error())
 	}
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		Name:        in.ResourceId,
-		NamespaceID: in.NamespaceId,
-	}, action.Action{ID: in.ActionId})
+		Name:        req.GetResourceId(),
+		NamespaceID: req.GetNamespaceId(),
+	}, action.Action{ID: req.GetActionId()})
 	if err != nil {
 		formattedErr := fmt.Errorf("%s: %w", internalServerErr, err)
 		logger.Error(formattedErr.Error())

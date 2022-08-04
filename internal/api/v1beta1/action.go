@@ -23,7 +23,6 @@ var grpcActionNotFoundErr = status.Errorf(codes.NotFound, "action doesn't exist"
 
 func (h Handler) ListActions(ctx context.Context, request *shieldv1beta1.ListActionsRequest) (*shieldv1beta1.ListActionsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var actions []*shieldv1beta1.Action
 
 	actionsList, err := h.actionService.List(ctx)
 	if err != nil {
@@ -31,13 +30,13 @@ func (h Handler) ListActions(ctx context.Context, request *shieldv1beta1.ListAct
 		return nil, grpcInternalServerError
 	}
 
+	var actions []*shieldv1beta1.Action
 	for _, act := range actionsList {
 		actPB, err := transformActionToPB(act)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-
 		actions = append(actions, &actPB)
 	}
 
@@ -48,9 +47,9 @@ func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.Create
 	logger := grpczap.Extract(ctx)
 
 	newAction, err := h.actionService.Create(ctx, action.Action{
-		ID:          request.GetBody().Id,
-		Name:        request.GetBody().Name,
-		NamespaceID: request.GetBody().NamespaceId,
+		ID:          request.GetBody().GetId(),
+		Name:        request.GetBody().GetName(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -102,8 +101,8 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 
 	updatedAction, err := h.actionService.Update(ctx, request.GetId(), action.Action{
 		ID:          request.GetId(),
-		Name:        request.GetBody().Name,
-		NamespaceID: request.GetBody().NamespaceId,
+		Name:        request.GetBody().GetName(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
 	})
 
 	if err != nil {

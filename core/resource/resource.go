@@ -45,6 +45,20 @@ type Resource struct {
 	UpdatedAt      time.Time
 }
 
+/*
+ /project/uuid/
+*/
+func (res Resource) CreateURN() string {
+	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
+	if isSystemNS {
+		return res.Name
+	}
+	if res.Name == NON_RESOURCE_ID {
+		return fmt.Sprintf("p/%s/%s", res.ProjectID, res.NamespaceID)
+	}
+	return fmt.Sprintf("r/%s/%s", res.NamespaceID, res.Name)
+}
+
 type Filter struct {
 	ProjectID      string
 	GroupID        string
@@ -55,18 +69,4 @@ type Filter struct {
 type YAML struct {
 	Name    string              `json:"name" yaml:"name"`
 	Actions map[string][]string `json:"actions" yaml:"actions"`
-}
-
-/*
- /project/uuid/
-*/
-func CreateURN(res Resource) string {
-	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
-	if isSystemNS {
-		return res.Name
-	}
-	if res.Name == NON_RESOURCE_ID {
-		return fmt.Sprintf("p/%s/%s", res.ProjectID, res.NamespaceID)
-	}
-	return fmt.Sprintf("r/%s/%s", res.NamespaceID, res.Name)
 }

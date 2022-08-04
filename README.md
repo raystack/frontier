@@ -4,7 +4,7 @@
 ![package workflow](https://github.com/odpf/shield/actions/workflows/release.yml/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache)](LICENSE)
 [![Version](https://img.shields.io/github/v/release/odpf/shield?logo=semantic-release)](Version)
-[![Coverage Status](https://coveralls.io/repos/github/odpf/shield/badge.svg?branch=main)]
+[![Coverage Status](https://coveralls.io/repos/github/odpf/shield/badge.svg?branch=main)](https://coveralls.io/github/odpf/shield?branch=main)
 
 Shield is a cloud native role-based authorization aware reverse-proxy service. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
 

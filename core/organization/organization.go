@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 type Repository interface {
@@ -21,7 +22,7 @@ type Organization struct {
 	ID        string
 	Name      string
 	Slug      string
-	Metadata  map[string]any
+	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

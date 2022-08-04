@@ -99,13 +99,13 @@ func serve(logger log.Logger, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, cfg.App.IdentityProxyHeader, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.Proxy, deps.ResourceService, deps.UserService)
+	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.UserService)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,6 @@ func serve(logger log.Logger, cfg *config.Shield) error {
 func buildAPIDependencies(
 	ctx context.Context,
 	logger log.Logger,
-	identityProxyHeader string,
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
@@ -172,7 +171,7 @@ func buildAPIDependencies(
 	namespaceService := namespace.NewService(namespaceRepository)
 
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(identityProxyHeader, userRepository)
+	userService := user.NewService(userRepository)
 
 	relationPGRepository := postgres.NewRelationRepository(dbc)
 	relationSpiceRepository := spicedb.NewRelationRepository(sdb)
@@ -216,17 +215,16 @@ func buildAPIDependencies(
 	}
 
 	dependencies := api.Deps{
-		OrgService:          organizationService,
-		UserService:         userService,
-		ProjectService:      projectService,
-		GroupService:        groupService,
-		RelationService:     relationService,
-		ResourceService:     resourceService,
-		RoleService:         roleService,
-		PolicyService:       policyService,
-		ActionService:       actionService,
-		NamespaceService:    namespaceService,
-		IdentityProxyHeader: identityProxyHeader,
+		OrgService:       organizationService,
+		UserService:      userService,
+		ProjectService:   projectService,
+		GroupService:     groupService,
+		RelationService:  relationService,
+		ResourceService:  resourceService,
+		RoleService:      roleService,
+		PolicyService:    policyService,
+		ActionService:    actionService,
+		NamespaceService: namespaceService,
 	}
 	return dependencies, nil
 }

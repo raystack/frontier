@@ -7,6 +7,7 @@ import (
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 type Repository interface {
@@ -29,7 +30,7 @@ type Group struct {
 	Slug           string
 	Organization   organization.Organization
 	OrganizationID string `json:"orgId"`
-	Metadata       map[string]any
+	Metadata       metadata.Metadata
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

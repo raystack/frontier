@@ -10,6 +10,7 @@ import (
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/pkg/metadata"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,7 @@ var testPolicyMap = map[string]policy.Policy{
 		Role: role.Role{
 			ID:       "reader",
 			Name:     "Reader",
-			Metadata: map[string]any{},
+			Metadata: metadata.Metadata{},
 			Namespace: namespace.Namespace{
 				ID:        "resource-1",
 				Name:      "Resource 1",
@@ -185,7 +186,7 @@ func TestCreatePolicy(t *testing.T) {
 						Role: role.Role{
 							ID:       "reader",
 							Name:     "Reader",
-							Metadata: map[string]any{},
+							Metadata: metadata.Metadata{},
 							Namespace: namespace.Namespace{
 								ID:        "resource-1",
 								Name:      "Resource 1",
