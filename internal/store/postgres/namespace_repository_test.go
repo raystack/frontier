@@ -207,8 +207,6 @@ func (s *NamespaceRepositoryTestSuite) TestList() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedNamespaces, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
-				fmt.Println(got)
-				fmt.Println(tc.ExpectedNamespaces)
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespaces)
 			}
 		})
