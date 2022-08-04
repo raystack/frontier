@@ -226,41 +226,35 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 	return resourceModel.transformToResource(), nil
 }
 
-func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, withResourceType bool) (string, error) {
+func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, ns namespace.Namespace) (string, interface{}, error) {
 	namespaceQueryExpression := goqu.Ex{
-		"backend": goqu.L("$2"),
+		"backend": goqu.L(ns.Backend),
 	}
 
-	if withResourceType {
-		namespaceQueryExpression["resource_type"] = goqu.L("$3")
+	if ns.ResourceType != "" {
+		namespaceQueryExpression["resource_type"] = goqu.L(ns.ResourceType)
 	}
 
 	getNamespaceQuery := dialect.Select("id").From(TABLE_NAMESPACES).Where(namespaceQueryExpression)
-	getResourcesByURNQuery, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
-		"name":         goqu.L("$1"),
+	getResourcesByURNQuery, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
+		"name":         goqu.L(name),
 		"namespace_id": goqu.Op{"in": getNamespaceQuery},
 	}).ToSQL()
 
-	return getResourcesByURNQuery, err
+	return getResourcesByURNQuery, params, err
 }
 
 func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns namespace.Namespace) (resource.Resource, error) {
 	var fetchedResource Resource
 
-	getResourceByNamespace, err := buildGetResourcesByNamespaceQuery(dialect, ns.ResourceType != "")
+	query, params, err := buildGetResourcesByNamespaceQuery(dialect, name, ns)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if ns.ResourceType == "" {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedResource, getResourceByNamespace, name, ns.Backend)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			return r.dbc.GetContext(ctx, &fetchedResource, getResourceByNamespace, name, ns.Backend, ns.ResourceType)
-		})
-	}
+	err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &fetchedResource, query, params)
+	})
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return resource.Resource{}, resource.ErrNotExist
