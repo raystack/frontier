@@ -789,6 +789,17 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 			},
 		},
 		{
+			Description: "should not return error if role id is empty",
+			UserID:      s.users[0].ID,
+			ExpectedGroups: []group.Group{
+				{
+					Name:           "group1",
+					Slug:           "group-1",
+					OrganizationID: s.orgs[0].ID,
+				},
+			},
+		},
+		{
 			Description: "should get empty groups if there is none",
 			UserID:      s.users[1].ID,
 			RoleID:      role.DefinitionTeamMember.ID,
@@ -796,11 +807,6 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 		{
 			Description: "should get error if user id is empty",
 			RoleID:      role.DefinitionTeamMember.ID,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-		{
-			Description: "should get error if group id is empty",
-			UserID:      s.users[0].ID,
 			ErrString:   group.ErrInvalidID.Error(),
 		},
 	}

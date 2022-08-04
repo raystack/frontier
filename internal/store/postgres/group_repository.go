@@ -458,11 +458,11 @@ func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID 
 }
 
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
-	if roleID == "" || userID == "" {
+	if userID == "" {
 		return nil, group.ErrInvalidID
 	}
 
-	query, params, err := dialect.Select(
+	sqlStatement := dialect.Select(
 		goqu.I("g.id").As("id"),
 		goqu.I("g.metadata").As("metadata"),
 		goqu.I("g.name").As("name"),
@@ -470,16 +470,25 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 		goqu.I("g.updated_at").As("updated_at"),
 		goqu.I("g.created_at").As("created_at"),
 		goqu.I("g.org_id").As("org_id"),
-	).From(goqu.L("relations r")).
+	).
+		From(goqu.L("relations r")).
 		Join(goqu.L("groups g"), goqu.On(
 			goqu.I("g.id").Cast("VARCHAR").
 				Eq(goqu.I("r.object_id")),
-		)).Where(goqu.Ex{
-		"r.object_namespace_id": namespace.DefinitionTeam.ID,
-		"subject_namespace_id":  namespace.DefinitionUser.ID,
-		"subject_id":            userID,
-		"role_id":               roleID,
-	}).ToSQL()
+		)).
+		Where(goqu.Ex{
+			"r.object_namespace_id": namespace.DefinitionTeam.ID,
+			"subject_namespace_id":  namespace.DefinitionUser.ID,
+			"subject_id":            userID,
+		})
+
+	if roleID != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{
+			"role_id": roleID,
+		})
+	}
+
+	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

@@ -15,7 +15,7 @@ func NewService(repository Repository) *Service {
 func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 	roleID, err := s.repository.Create(ctx, toCreate)
 	if err != nil {
-		return Role{}, nil
+		return Role{}, err
 	}
 	return s.repository.Get(ctx, roleID)
 }
@@ -31,7 +31,7 @@ func (s Service) List(ctx context.Context) ([]Role, error) {
 func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	roleID, err := s.repository.Update(ctx, toUpdate)
 	if err != nil {
-		return Role{}, nil
+		return Role{}, err
 	}
 	return s.repository.Get(ctx, roleID)
 }

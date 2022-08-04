@@ -116,10 +116,10 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 	}
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
-		ID:          request.GetBody().GetId(),
-		Name:        request.GetBody().GetName(),
-		Types:       request.GetBody().GetTypes(),
-		NamespaceID: request.GetBody().GetNamespaceId(),
+		ID:          request.GetId(),
+		Name:        request.GetBody().Name,
+		Types:       request.GetBody().Types,
+		NamespaceID: request.GetBody().NamespaceId,
 		Metadata:    metaDataMap,
 	})
 	if err != nil {

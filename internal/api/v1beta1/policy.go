@@ -118,26 +118,24 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		ActionID:    request.GetBody().GetActionId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, policy.ErrNotExist):
+			return nil, grpcPolicyNotFoundErr
+		case errors.Is(err, policy.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	for _, p := range updatedPolices {
 		policyPB, err := transformPolicyToPB(p)
 		if err != nil {
 			logger.Error(err.Error())
-			switch {
-			case errors.Is(err, policy.ErrNotExist):
-				return nil, grpcPolicyNotFoundErr
-			case errors.Is(err, policy.ErrConflict):
-				return nil, grpcConflictError
-			default:
-				return nil, grpcInternalServerError
-			}
+			return nil, grpcInternalServerError
 		}
-
 		policies = append(policies, &policyPB)
 	}
 
