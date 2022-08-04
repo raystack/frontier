@@ -3,6 +3,8 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
@@ -17,7 +19,6 @@ import (
 	"github.com/odpf/shield/pkg/uuid"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type ResourceRepositoryTestSuite struct {
