@@ -48,14 +48,14 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	urn := res.CreateURN()
 
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Resource{}, err
 	}
 
 	userId := res.UserID
 	if str.IsStringEmpty(userId) {
-		userId = usr.ID
+		userId = currentUser.ID
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{

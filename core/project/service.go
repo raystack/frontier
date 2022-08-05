@@ -48,7 +48,7 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Project, error) {
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Project{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -63,7 +63,7 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	if err = s.addAdminToProject(ctx, usr, newProject); err != nil {
+	if err = s.addAdminToProject(ctx, currentUser, newProject); err != nil {
 		return Project{}, err
 	}
 
@@ -86,7 +86,7 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 }
 
 func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -105,7 +105,7 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -132,7 +132,7 @@ func (s Service) ListAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
 func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -147,7 +147,7 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -156,12 +156,12 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err = s.userService.GetByID(ctx, userId)
+	removedUser, err := s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if err = s.removeAdminFromProject(ctx, usr, prj); err != nil {
+	if err = s.removeAdminFromProject(ctx, removedUser, prj); err != nil {
 		return []user.User{}, err
 	}
 

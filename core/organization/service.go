@@ -47,7 +47,7 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Organization, error)
 }
 
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Organization{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -61,7 +61,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	if err = s.addAdminToOrg(ctx, usr, newOrg); err != nil {
+	if err = s.addAdminToOrg(ctx, currentUser, newOrg); err != nil {
 		return Organization{}, err
 	}
 
@@ -80,7 +80,7 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 }
 
 func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -99,7 +99,7 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -137,7 +137,7 @@ func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, 
 }
 
 func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -152,7 +152,7 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, usr, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
+	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
@@ -161,12 +161,12 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 		return []user.User{}, errors.Unauthorized
 	}
 
-	usr, err = s.userService.GetByID(ctx, userId)
+	removedUser, err := s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if err = s.removeAdminFromOrg(ctx, usr, org); err != nil {
+	if err = s.removeAdminFromOrg(ctx, removedUser, org); err != nil {
 		return []user.User{}, err
 	}
 
