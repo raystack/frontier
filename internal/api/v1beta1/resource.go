@@ -46,7 +46,6 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-
 		resources = append(resources, &resourcePB)
 	}
 
@@ -81,7 +80,6 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	resourcePB, err := transformResourceToPB(newResource)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

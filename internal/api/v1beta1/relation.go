@@ -100,7 +100,6 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 	}
 
 	relationPB, err := transformRelationToPB(fetchedRelation)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -126,7 +125,6 @@ func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.Upda
 		ObjectID:           request.GetBody().GetObjectId(),
 		RoleID:             request.GetBody().GetRoleId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -160,13 +158,11 @@ func transformRelationToPB(relation relation.Relation) (shieldv1beta1.Relation, 
 	}
 
 	objectType, err := transformNamespaceToPB(relation.ObjectNamespace)
-
 	if err != nil {
 		return shieldv1beta1.Relation{}, err
 	}
 
 	role, err := transformRoleToPB(relation.Role)
-
 	if err != nil {
 		return shieldv1beta1.Relation{}, err
 	}

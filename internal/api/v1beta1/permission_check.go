@@ -13,12 +13,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Errors
-var (
-	requestBodyValidationErr = fmt.Errorf("invalid format for field(s)")
-	internalServerErr        = fmt.Errorf("internal server error")
-)
-
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.ResourceActionAuthzRequest) (*shieldv1beta1.ResourceActionAuthzResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := req.ValidateAll(); err != nil {
@@ -32,9 +26,9 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 		NamespaceID: req.GetNamespaceId(),
 	}, action.Action{ID: req.GetActionId()})
 	if err != nil {
-		formattedErr := fmt.Errorf("%s: %w", internalServerErr, err)
+		formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
 		logger.Error(formattedErr.Error())
-		return nil, status.Errorf(codes.Internal, internalServerErr.Error())
+		return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
 	}
 
 	if !result {
@@ -50,6 +44,6 @@ func getValidationErrorMessage(err error) error {
 		consolidateInvalidFields += validationErr.(shieldv1beta1.ResourceActionAuthzRequestValidationError).Field()
 	}
 
-	formattedErr := fmt.Errorf("%w: %s", requestBodyValidationErr, consolidateInvalidFields)
+	formattedErr := fmt.Errorf("%w: %s", ErrRequestBodyValidation, consolidateInvalidFields)
 	return formattedErr
 }

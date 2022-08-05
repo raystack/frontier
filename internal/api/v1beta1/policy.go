@@ -58,8 +58,7 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, policy.ErrInvalidDetail),
-			errors.Is(err, policy.ErrNotExist):
+		case errors.Is(err, policy.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -70,12 +69,7 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		policyPB, err := transformPolicyToPB(p)
 		if err != nil {
 			logger.Error(err.Error())
-			switch {
-			case errors.Is(err, policy.ErrNotExist):
-				return nil, grpcPolicyNotFoundErr
-			default:
-				return nil, grpcInternalServerError
-			}
+			return nil, grpcInternalServerError
 		}
 
 		policies = append(policies, &policyPB)
