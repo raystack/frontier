@@ -180,7 +180,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 				ActionID:    "action4",
 				NamespaceID: "ns1",
 			},
-			ErrString: policy.ErrNotExist.Error(),
+			ErrString: policy.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if action id does not exist",
@@ -189,7 +189,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 				ActionID:    "action4-random",
 				NamespaceID: "ns1",
 			},
-			ErrString: policy.ErrNotExist.Error(),
+			ErrString: policy.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if namespace id does not exist",
@@ -198,7 +198,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 				ActionID:    "action4",
 				NamespaceID: "ns1-random",
 			},
-			ErrString: policy.ErrNotExist.Error(),
+			ErrString: policy.ErrInvalidDetail.Error(),
 		},
 	}
 

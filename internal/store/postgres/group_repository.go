@@ -289,11 +289,7 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 	return updated, nil
 }
 
-func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
-	if str.IsStringEmpty(groupID) {
-		return nil, group.ErrInvalidID
-	}
-
+func (r GroupRepository) buildListUsersByGroupIDQuery(groupID, roleID string) (string, []interface{}, error) {
 	sqlStatement := dialect.Select(
 		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
@@ -319,7 +315,15 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 		})
 	}
 
-	query, params, err := sqlStatement.ToSQL()
+	return sqlStatement.ToSQL()
+}
+
+func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
+	if str.IsStringEmpty(groupID) {
+		return nil, group.ErrInvalidID
+	}
+
+	query, params, err := r.buildListUsersByGroupIDQuery(groupID, roleID)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -359,33 +363,7 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 		return []user.User{}, err
 	}
 
-	sqlStatement := dialect.Select(
-		goqu.I("u.id").As("id"),
-		goqu.I("u.name").As("name"),
-		goqu.I("u.email").As("email"),
-		goqu.I("u.metadata").As("metadata"),
-		goqu.I("u.created_at").As("created_at"),
-		goqu.I("u.updated_at").As("updated_at"),
-	).
-		From(goqu.T(TABLE_RELATIONS).As("r")).
-		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
-			goqu.I("u.id").Cast("VARCHAR").
-				Eq(goqu.I("r.subject_id")),
-		)).
-		Where(goqu.Ex{
-			"r.object_id":            fetchedGroup.ID,
-			"r.role_id":              roleID,
-			"r.subject_namespace_id": namespace.DefinitionUser.ID,
-			"r.object_namespace_id":  namespace.DefinitionTeam.ID,
-		})
-
-	if !str.IsStringEmpty(roleID) {
-		sqlStatement = sqlStatement.Where(goqu.Ex{
-			"r.role_id": roleID,
-		})
-	}
-
-	query, params, err := sqlStatement.ToSQL()
+	query, params, err := r.buildListUsersByGroupIDQuery(fetchedGroup.ID, roleID)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
