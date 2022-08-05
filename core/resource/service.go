@@ -54,7 +54,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	userId := res.UserID
-	if userId == "" {
+	if str.IsStringEmpty(userId) {
 		userId = usr.ID
 	}
 

@@ -97,7 +97,7 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, erro
 }
 
 func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relation, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return relation.Relation{}, relation.ErrInvalidID
 	}
 
@@ -128,7 +128,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 }
 
 func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return relation.ErrInvalidID
 	}
 	query, params, err := dialect.Delete(TABLE_RELATIONS).Where(goqu.Ex{
@@ -213,7 +213,7 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 }
 
 func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
-	if rel.ID == "" {
+	if str.IsStringEmpty(rel.ID) {
 		return relation.Relation{}, relation.ErrInvalidID
 	}
 

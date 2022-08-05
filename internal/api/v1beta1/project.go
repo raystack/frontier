@@ -3,7 +3,6 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
@@ -74,7 +73,7 @@ func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.Creat
 		Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
 	}
 
-	if strings.TrimSpace(prj.Slug) == "" {
+	if str.IsStringEmpty(prj.Slug) {
 		prj.Slug = str.GenerateSlug(prj.Name)
 	}
 

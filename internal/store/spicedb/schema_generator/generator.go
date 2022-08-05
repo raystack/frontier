@@ -49,7 +49,7 @@ func buildSchema(d definition) string {
 	inheritedNSMap := map[string]bool{}
 
 	for _, r := range d.roles {
-		if r.namespace == "" || r.namespace == d.name {
+		if str.IsStringEmpty(r.namespace) || r.namespace == d.name {
 			relationReference := buildRelationReference(r)
 			relations = append(relations, spicedbns.Relation(
 				r.name,

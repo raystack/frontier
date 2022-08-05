@@ -28,7 +28,7 @@ func NewGroupRepository(dbc *db.Client) *GroupRepository {
 }
 
 func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return group.Group{}, group.ErrInvalidID
 	}
 
@@ -64,7 +64,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 }
 
 func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Group, error) {
-	if slug == "" {
+	if str.IsStringEmpty(slug) {
 		return group.Group{}, group.ErrInvalidID
 	}
 
@@ -290,27 +290,36 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 }
 
 func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
-	if groupID == "" || roleID == "" {
+	if str.IsStringEmpty(groupID) {
 		return nil, group.ErrInvalidID
 	}
 
-	query, params, err := dialect.Select(
+	sqlStatement := dialect.Select(
 		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
 		goqu.I("u.email").As("email"),
 		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T(TABLE_RELATIONS).As("r")).
+	).
+		From(goqu.T(TABLE_RELATIONS).As("r")).
 		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
 			goqu.I("u.id").Cast("VARCHAR").
 				Eq(goqu.I("r.subject_id")),
-		)).Where(goqu.Ex{
-		"r.object_id":            groupID,
-		"r.role_id":              roleID,
-		"r.subject_namespace_id": namespace.DefinitionUser.ID,
-		"r.object_namespace_id":  namespace.DefinitionTeam.ID,
-	}).ToSQL()
+		)).
+		Where(goqu.Ex{
+			"r.object_id":            groupID,
+			"r.subject_namespace_id": namespace.DefinitionUser.ID,
+			"r.object_namespace_id":  namespace.DefinitionTeam.ID,
+		})
+
+	if !str.IsStringEmpty(roleID) {
+		sqlStatement = sqlStatement.Where(goqu.Ex{
+			"r.role_id": roleID,
+		})
+	}
+
+	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -341,7 +350,7 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 }
 
 func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug string, roleID string) ([]user.User, error) {
-	if groupSlug == "" || roleID == "" {
+	if str.IsStringEmpty(groupSlug) {
 		return nil, group.ErrInvalidID
 	}
 
@@ -350,23 +359,33 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 		return []user.User{}, err
 	}
 
-	query, params, err := dialect.Select(
+	sqlStatement := dialect.Select(
 		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
 		goqu.I("u.email").As("email"),
 		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T(TABLE_RELATIONS).As("r")).
+	).
+		From(goqu.T(TABLE_RELATIONS).As("r")).
 		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
 			goqu.I("u.id").Cast("VARCHAR").
 				Eq(goqu.I("r.subject_id")),
-		)).Where(goqu.Ex{
-		"r.object_id":            fetchedGroup.ID,
-		"r.role_id":              roleID,
-		"r.subject_namespace_id": namespace.DefinitionUser.ID,
-		"r.object_namespace_id":  namespace.DefinitionTeam.ID,
-	}).ToSQL()
+		)).
+		Where(goqu.Ex{
+			"r.object_id":            fetchedGroup.ID,
+			"r.role_id":              roleID,
+			"r.subject_namespace_id": namespace.DefinitionUser.ID,
+			"r.object_namespace_id":  namespace.DefinitionTeam.ID,
+		})
+
+	if !str.IsStringEmpty(roleID) {
+		sqlStatement = sqlStatement.Where(goqu.Ex{
+			"r.role_id": roleID,
+		})
+	}
+
+	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -397,7 +416,7 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 }
 
 func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID string, groupID string) ([]relation.Relation, error) {
-	if groupID == "" || userID == "" {
+	if str.IsStringEmpty(groupID) || str.IsStringEmpty(userID) {
 		return nil, group.ErrInvalidID
 	}
 
@@ -433,7 +452,7 @@ func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID st
 }
 
 func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID string, groupSlug string) ([]relation.Relation, error) {
-	if groupSlug == "" || userID == "" {
+	if str.IsStringEmpty(groupSlug) || str.IsStringEmpty(userID) {
 		return nil, group.ErrInvalidID
 	}
 	var fetchedRelations []Relation
@@ -476,7 +495,7 @@ func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID 
 }
 
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
-	if userID == "" {
+	if str.IsStringEmpty(userID) {
 		return nil, group.ErrInvalidID
 	}
 

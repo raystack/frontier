@@ -25,7 +25,7 @@ func NewUserRepository(dbc *db.Client) *UserRepository {
 }
 
 func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return user.User{}, user.ErrInvalidID
 	}
 
@@ -186,7 +186,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 }
 
 func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.User, error) {
-	if usr.Email == "" {
+	if str.IsStringEmpty(usr.Email) {
 		return user.User{}, user.ErrInvalidEmail
 	}
 
@@ -228,11 +228,11 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 }
 
 func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.User, error) {
-	if usr.ID == "" {
+	if str.IsStringEmpty(usr.ID) {
 		return user.User{}, user.ErrInvalidID
 	}
 
-	if usr.Email == "" {
+	if str.IsStringEmpty(usr.Email) {
 		return user.User{}, user.ErrInvalidEmail
 	}
 
@@ -282,7 +282,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 }
 
 func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User, error) {
-	if email == "" {
+	if str.IsStringEmpty(email) {
 		return user.User{}, user.ErrInvalidEmail
 	}
 

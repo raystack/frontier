@@ -28,7 +28,7 @@ func NewOrganizationRepository(dbc *db.Client) *OrganizationRepository {
 }
 
 func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organization.Organization, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
@@ -63,7 +63,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 }
 
 func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (organization.Organization, error) {
-	if slug == "" {
+	if str.IsStringEmpty(slug) {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
@@ -270,7 +270,7 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 }
 
 func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID string) ([]user.User, error) {
-	if orgID == "" {
+	if str.IsStringEmpty(orgID) {
 		return []user.User{}, organization.ErrInvalidID
 	}
 

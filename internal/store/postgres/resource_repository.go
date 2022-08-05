@@ -195,7 +195,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 }
 
 func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.Resource, error) {
-	if urn == "" {
+	if str.IsStringEmpty(urn) {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 

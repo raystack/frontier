@@ -24,7 +24,7 @@ func NewNamespaceRepository(dbc *db.Client) *NamespaceRepository {
 }
 
 func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Namespace, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 

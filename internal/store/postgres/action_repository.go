@@ -25,7 +25,7 @@ func NewActionRepository(dbc *db.Client) *ActionRepository {
 }
 
 func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return action.Action{}, action.ErrInvalidID
 	}
 

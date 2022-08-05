@@ -52,7 +52,7 @@ func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
 }
 
 func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return policy.Policy{}, policy.ErrInvalidID
 	}
 

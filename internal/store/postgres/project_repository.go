@@ -29,7 +29,7 @@ func NewProjectRepository(dbc *db.Client) *ProjectRepository {
 }
 
 func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Project, error) {
-	if id == "" {
+	if str.IsStringEmpty(id) {
 		return project.Project{}, project.ErrInvalidID
 	}
 
@@ -64,7 +64,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 }
 
 func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.Project, error) {
-	if slug == "" {
+	if str.IsStringEmpty(slug) {
 		return project.Project{}, project.ErrInvalidID
 	}
 
