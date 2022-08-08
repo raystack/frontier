@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -41,23 +43,23 @@ var testNsMap = map[string]namespace.Namespace{
 func TestListNamespaces(t *testing.T) {
 	t.Parallel()
 	table := []struct {
-		title            string
-		mockNamespaceSrv mockNamespaceSrv
-		req              *shieldv1beta1.ListNamespacesRequest
-		want             *shieldv1beta1.ListNamespacesResponse
-		err              error
+		title string
+		setup func(ns *mocks.NamespaceService)
+		req   *shieldv1beta1.ListNamespacesRequest
+		want  *shieldv1beta1.ListNamespacesResponse
+		err   error
 	}{
 		{
 			title: "error in Namespace Service",
-			mockNamespaceSrv: mockNamespaceSrv{ListNamespacesFunc: func(ctx context.Context) (namespaces []namespace.Namespace, err error) {
-				return []namespace.Namespace{}, errors.New("some error")
-			}},
+			setup: func(ns *mocks.NamespaceService) {
+				ns.EXPECT().List(mock.Anything).Return([]namespace.Namespace{}, errors.New("some error"))
+			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		},
 		{
 			title: "success",
-			mockNamespaceSrv: mockNamespaceSrv{ListNamespacesFunc: func(ctx context.Context) ([]namespace.Namespace, error) {
+			setup: func(ns *mocks.NamespaceService) {
 				var testNSList []namespace.Namespace
 				for _, ns := range testNsMap {
 					testNSList = append(testNSList, ns)
@@ -65,8 +67,8 @@ func TestListNamespaces(t *testing.T) {
 				sort.Slice(testNSList[:], func(i, j int) bool {
 					return strings.Compare(testNSList[i].ID, testNSList[j].ID) < 1
 				})
-				return testNSList, nil
-			}},
+				ns.EXPECT().List(mock.Anything).Return(testNSList, nil)
+			},
 			want: &shieldv1beta1.ListNamespacesResponse{Namespaces: []*shieldv1beta1.Namespace{
 				{
 					Id:        "org",
@@ -95,7 +97,11 @@ func TestListNamespaces(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{namespaceService: tt.mockNamespaceSrv}
+			mockNamespaceSrv := new(mocks.NamespaceService)
+			if tt.setup != nil {
+				tt.setup(mockNamespaceSrv)
+			}
+			mockDep := Handler{namespaceService: mockNamespaceSrv}
 			resp, err := mockDep.ListNamespaces(context.Background(), tt.req)
 
 			assert.EqualValues(t, tt.want, resp)
@@ -108,17 +114,17 @@ func TestCreateNamespace(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title            string
-		mockNamespaceSrv mockNamespaceSrv
-		req              *shieldv1beta1.CreateNamespaceRequest
-		want             *shieldv1beta1.CreateNamespaceResponse
-		err              error
+		title string
+		setup func(ns *mocks.NamespaceService)
+		req   *shieldv1beta1.CreateNamespaceRequest
+		want  *shieldv1beta1.CreateNamespaceResponse
+		err   error
 	}{
 		{
 			title: "error in creating namespace",
-			mockNamespaceSrv: mockNamespaceSrv{CreateFunc: func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-				return namespace.Namespace{}, errors.New("some error")
-			}},
+			setup: func(ns *mocks.NamespaceService) {
+				ns.EXPECT().Create(mock.Anything, mock.Anything).Return(namespace.Namespace{}, errors.New("some error"))
+			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Id:   "team",
 				Name: "Team",
@@ -128,12 +134,13 @@ func TestCreateNamespace(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockNamespaceSrv: mockNamespaceSrv{CreateFunc: func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-				return namespace.Namespace{
-					ID:   "team",
-					Name: "Team",
-				}, nil
-			}},
+			setup: func(ns *mocks.NamespaceService) {
+				ns.EXPECT().Create(mock.Anything, mock.Anything).Return(
+					namespace.Namespace{
+						ID:   "team",
+						Name: "Team",
+					}, nil)
+			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Id:   "team",
 				Name: "Team",
@@ -152,33 +159,14 @@ func TestCreateNamespace(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{namespaceService: tt.mockNamespaceSrv}
+			mockNamespaceSrv := new(mocks.NamespaceService)
+			if tt.setup != nil {
+				tt.setup(mockNamespaceSrv)
+			}
+			mockDep := Handler{namespaceService: mockNamespaceSrv}
 			resp, err := mockDep.CreateNamespace(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
 	}
-}
-
-type mockNamespaceSrv struct {
-	GetFunc            func(ctx context.Context, id string) (namespace.Namespace, error)
-	CreateFunc         func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
-	ListNamespacesFunc func(ctx context.Context) ([]namespace.Namespace, error)
-	UpdateFunc         func(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
-}
-
-func (m mockNamespaceSrv) Get(ctx context.Context, id string) (namespace.Namespace, error) {
-	return m.GetFunc(ctx, id)
-}
-
-func (m mockNamespaceSrv) List(ctx context.Context) ([]namespace.Namespace, error) {
-	return m.ListNamespacesFunc(ctx)
-}
-
-func (m mockNamespaceSrv) Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-	return m.CreateFunc(ctx, ns)
-}
-
-func (m mockNamespaceSrv) Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-	return m.UpdateFunc(ctx, ns)
 }

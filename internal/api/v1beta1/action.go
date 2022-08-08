@@ -13,6 +13,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+//go:generate mockery --name=ActionService -r --case underscore --with-expecter --structname ActionService --filename action_service.go --output=./mocks
 type ActionService interface {
 	Get(ctx context.Context, id string) (action.Action, error)
 	List(ctx context.Context) ([]action.Action, error)

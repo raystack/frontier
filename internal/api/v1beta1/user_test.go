@@ -6,10 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/metadata"
+	"github.com/odpf/shield/pkg/uuid"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -35,20 +39,18 @@ var testUserMap = map[string]user.User{
 }
 
 func TestListUsers(t *testing.T) {
-	t.Parallel()
-
 	table := []struct {
-		title       string
-		mockUserSrv mockUserSrv
-		req         *shieldv1beta1.ListUsersRequest
-		want        *shieldv1beta1.ListUsersResponse
-		err         error
+		title string
+		setup func(us *mocks.UserService)
+		req   *shieldv1beta1.ListUsersRequest
+		want  *shieldv1beta1.ListUsersResponse
+		err   error
 	}{
 		{
-			title: "error in User Service",
-			mockUserSrv: mockUserSrv{ListFunc: func(ctx context.Context, flt user.Filter) (users user.PagedUsers, err error) {
-				return user.PagedUsers{}, errors.New("some error")
-			}},
+			title: "should return internal error in if user service return some error",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().List(mock.Anything, mock.Anything).Return(user.PagedUsers{}, errors.New("some error"))
+			},
 			req: &shieldv1beta1.ListUsersRequest{
 				PageSize: 50,
 				PageNum:  1,
@@ -57,17 +59,18 @@ func TestListUsers(t *testing.T) {
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		}, {
-			title: "success",
-			mockUserSrv: mockUserSrv{ListFunc: func(ctx context.Context, flt user.Filter) (users user.PagedUsers, err error) {
+			title: "should return all users if user service return all users",
+			setup: func(us *mocks.UserService) {
 				var testUserList []user.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				return user.PagedUsers{
-					Users: testUserList,
-					Count: int32(len(testUserList)),
-				}, nil
-			}},
+				us.EXPECT().List(mock.Anything, mock.Anything).Return(
+					user.PagedUsers{
+						Users: testUserList,
+						Count: int32(len(testUserList)),
+					}, nil)
+			},
 			req: &shieldv1beta1.ListUsersRequest{
 				PageSize: 50,
 				PageNum:  1,
@@ -90,16 +93,19 @@ func TestListUsers(t *testing.T) {
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
-				}},
+				},
+			},
 			err: nil,
 		},
 	}
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
-			mockDep := Handler{userService: tt.mockUserSrv}
+			mockUserSrv := new(mocks.UserService)
+			if tt.setup != nil {
+				tt.setup(mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
 			req := tt.req
 			resp, err := mockDep.ListUsers(context.Background(), req)
 			assert.EqualValues(t, resp, tt.want)
@@ -109,37 +115,35 @@ func TestListUsers(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	t.Parallel()
-
+	email := "user@odpf.io"
 	table := []struct {
-		title       string
-		mockUserSrv mockUserSrv
-		header      string
-		req         *shieldv1beta1.CreateUserRequest
-		want        *shieldv1beta1.CreateUserResponse
-		err         error
+		title string
+		setup func(ctx context.Context, us *mocks.UserService) context.Context
+		req   *shieldv1beta1.CreateUserRequest
+		want  *shieldv1beta1.CreateUserResponse
+		err   error
 	}{
 		{
-			title: "error in fetching user list",
-			mockUserSrv: mockUserSrv{CreateFunc: func(ctx context.Context, u user.User) (user.User, error) {
-				return user.User{}, ErrEmptyEmailID
-			}},
+			title: "should return forbidden error if no auth email header in context",
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:     "some user",
 				Email:    "abc@test.com",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
-			err:  ErrEmptyEmailID,
+			err:  grpcPermissionDenied,
 		},
 		{
-			title: "int values in metadata map",
+			title: "should return bad request error if metadata is not parsable",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				return user.SetContextWithEmail(ctx, email)
+			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
 				Email: "abc@test.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewNumberValue(10),
+						"foo": structpb.NewNullValue(),
 					},
 				},
 			}},
@@ -147,16 +151,60 @@ func TestCreateUser(t *testing.T) {
 			err:  grpcBadBodyError,
 		},
 		{
-			title: "success",
-			mockUserSrv: mockUserSrv{CreateFunc: func(ctx context.Context, u user.User) (user.User, error) {
-				return user.User{
-					ID:       "new-abc",
+			title: "should return bad request error if email is empty",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Name: "some user",
+				}).Return(user.User{}, user.ErrInvalidEmail)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:  "some user",
+				Email: "",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewNullValue(),
+					},
+				},
+			}},
+			want: nil,
+			err:  grpcBadBodyError,
+		},
+
+		{
+			title: "should return already exist error if user service return error conflict",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:     "some user",
 					Email:    "abc@test.com",
-					Metadata: nil,
-				}, nil
+					Metadata: metadata.Metadata{},
+				}).Return(user.User{}, user.ErrConflict)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:     "some user",
+				Email:    "abc@test.com",
+				Metadata: &structpb.Struct{},
 			}},
-			header: "abc@test.com",
+			want: nil,
+			err:  grpcConflictError,
+		},
+		{
+			title: "should return success if user service return nil error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Name:     "some user",
+					Email:    "abc@test.com",
+					Metadata: metadata.Metadata{"foo": "bar"},
+				}).Return(
+					user.User{
+						ID:       "new-abc",
+						Name:     "some user",
+						Email:    "abc@test.com",
+						Metadata: metadata.Metadata{"foo": "bar"},
+					}, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
 				Email: "abc@test.com",
@@ -167,10 +215,14 @@ func TestCreateUser(t *testing.T) {
 				},
 			}},
 			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
-				Id:        "new-abc",
-				Name:      "some user",
-				Email:     "abc@test.com",
-				Metadata:  &structpb.Struct{Fields: map[string]*structpb.Value{}},
+				Id:    "new-abc",
+				Name:  "some user",
+				Email: "abc@test.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),
 			}},
@@ -180,59 +232,158 @@ func TestCreateUser(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
 			var resp *shieldv1beta1.CreateUserResponse
 			var err error
-			if tt.title == "success" {
-				mockDep := Handler{userService: tt.mockUserSrv}
-				ctx := user.SetContextWithEmail(context.Background(), tt.header)
-				resp, err = mockDep.CreateUser(ctx, tt.req)
-			} else {
-				mockDep := Handler{userService: tt.mockUserSrv}
-				resp, err = mockDep.CreateUser(context.Background(), tt.req)
-			}
 
+			ctx := context.Background()
+			mockUserSrv := new(mocks.UserService)
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
+			resp, err = mockDep.CreateUser(ctx, tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
 	}
 }
 
-func TestGetCurrentUser(t *testing.T) {
-	t.Parallel()
-
+func TestGetUser(t *testing.T) {
+	randomID := uuid.NewString()
 	table := []struct {
-		title       string
-		mockUserSrv mockUserSrv
-		header      string
-		want        *shieldv1beta1.GetCurrentUserResponse
-		err         error
+		title string
+		req   *shieldv1beta1.GetUserRequest
+		setup func(us *mocks.UserService)
+		want  *shieldv1beta1.GetUserResponse
+		err   error
 	}{
 		{
-			title: "error in User Service",
-			mockUserSrv: mockUserSrv{GetByEmailFunc: func(ctx context.Context, email string) (usr user.User, err error) {
-				return user.User{}, errors.New("some error")
-			}},
-			header: "email-temp",
-			want:   nil,
-			err:    grpcInternalServerError,
+			title: "should return not found error if user does not exist",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(user.User{}, user.ErrNotExist)
+			},
+			req: &shieldv1beta1.GetUserRequest{
+				Id: randomID,
+			},
+			want: nil,
+			err:  grpcUserNotFoundError,
 		},
 		{
-			title: "success",
-			mockUserSrv: mockUserSrv{GetByEmailFunc: func(ctx context.Context, email string) (usr user.User, err error) {
-				return user.User{
-					ID:    "user-id-1",
-					Name:  "some user",
-					Email: "someuser@test.com",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
+			title: "should return not found error if user id is not uuid",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
+			},
+			req: &shieldv1beta1.GetUserRequest{
+				Id: "some-id",
+			},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return not found error if user id is invalid",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "").Return(user.User{}, user.ErrInvalidID)
+			},
+			req:  &shieldv1beta1.GetUserRequest{},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return user if user service return nil error",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(
+					user.User{
+						ID:    randomID,
+						Name:  "some user",
+						Email: "someuser@test.com",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+			},
+			req: &shieldv1beta1.GetUserRequest{
+				Id: randomID,
+			},
+			want: &shieldv1beta1.GetUserResponse{User: &shieldv1beta1.User{
+				Id:    randomID,
+				Name:  "some user",
+				Email: "someuser@test.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
 					},
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-				}, nil
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
 			}},
-			header: "someuser@test.com",
+			err: nil,
+		},
+	}
+
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			mockUserSrv := new(mocks.UserService)
+			if tt.setup != nil {
+				tt.setup(mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
+			resp, err := mockDep.GetUser(context.Background(), tt.req)
+			assert.EqualValues(t, resp, tt.want)
+			assert.EqualValues(t, err, tt.err)
+		})
+	}
+}
+
+func TestGetCurrentUser(t *testing.T) {
+	email := "user@odpf.io"
+	table := []struct {
+		title  string
+		setup  func(ctx context.Context, us *mocks.UserService) context.Context
+		header string
+		want   *shieldv1beta1.GetCurrentUserResponse
+		err    error
+	}{
+		{
+			title: "should return forbidden error if no auth email header in context",
+			want:  nil,
+			err:   grpcPermissionDenied,
+		},
+		{
+			title: "should return not found error if user does not exist",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, user.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return error if user service return some error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, errors.New("some error"))
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want: nil,
+			err:  grpcInternalServerError,
+		},
+		{
+			title: "should return user if user service return nil error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(
+					user.User{
+						ID:    "user-id-1",
+						Name:  "some user",
+						Email: "someuser@test.com",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
 			want: &shieldv1beta1.GetCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
 				Name:  "some user",
@@ -251,11 +402,12 @@ func TestGetCurrentUser(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
-			mockDep := Handler{userService: tt.mockUserSrv}
-			ctx := user.SetContextWithEmail(context.Background(), tt.header)
-
+			mockUserSrv := new(mocks.UserService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
@@ -263,91 +415,255 @@ func TestGetCurrentUser(t *testing.T) {
 	}
 }
 
-func TestUpdateCurrentUser(t *testing.T) {
-	t.Parallel()
-
+func TestUpdateUser(t *testing.T) {
+	someID := uuid.NewString()
 	table := []struct {
-		title       string
-		mockUserSrv mockUserSrv
-		req         *shieldv1beta1.UpdateCurrentUserRequest
-		header      string
-		want        *shieldv1beta1.UpdateCurrentUserResponse
-		err         error
+		title  string
+		setup  func(us *mocks.UserService)
+		req    *shieldv1beta1.UpdateUserRequest
+		header string
+		want   *shieldv1beta1.UpdateUserResponse
+		err    error
 	}{
 		{
-			title: "error in User Service",
-			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
-				return user.User{}, errors.New("some error")
-			}},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "abc user",
-				Email: "abcuser@test.com",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewStringValue("bar"),
-					},
-				},
-			}},
-			header: "abcuser@test.com",
-			want:   nil,
-			err:    grpcInternalServerError,
-		},
-		{
-			title: "diff emails in header and body",
-			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
-				return user.User{}, nil
-			}},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "abc user",
-				Email: "abcuser123@test.com",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewStringValue("bar"),
-					},
-				},
-			}},
-			header: "abcuser@test.com",
-			want:   nil,
-			err:    grpcBadBodyError,
-		},
-		{
-			title: "empty request body",
-			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
-				return user.User{}, nil
-			}},
-			req:    &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
-			header: "abcuser@test.com",
-			want:   nil,
-			err:    grpcBadBodyError,
-		},
-		{
-			title: "success",
-			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
-				return user.User{
-					ID:    "user-id-1",
+			title: "should return internal error if user service return some error",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:    someID,
 					Name:  "abc user",
-					Email: "abcuser@test.com",
+					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-				}, nil
-			}},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				}).Return(user.User{}, errors.New("some error"))
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: someID,
+				Body: &shieldv1beta1.UserRequestBody{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: nil,
+			err:  grpcInternalServerError,
+		},
+		{
+			title: "should return not found error if id is not uuid",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:    "some-id",
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, user.ErrInvalidUUID)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: "some-id",
+				Body: &shieldv1beta1.UserRequestBody{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return not found error if id is invalid",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, user.ErrInvalidID)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Body: &shieldv1beta1.UserRequestBody{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return not found error if user not exist",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:    "some-id",
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, user.ErrNotExist)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: "some-id",
+				Body: &shieldv1beta1.UserRequestBody{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return already exist error if user service return error conflict",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:    someID,
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, user.ErrConflict)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: someID,
+				Body: &shieldv1beta1.UserRequestBody{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: nil,
+			err:  grpcConflictError,
+		},
+		{
+			title: "should return bad request error if email in request empty",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:   someID,
+					Name: "abc user",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, user.ErrInvalidEmail)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: someID,
+				Body: &shieldv1beta1.UserRequestBody{
+					Name: "abc user",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			},
+			want: nil,
+			err:  grpcBadBodyError,
+		},
+		{
+			title: "should return bad request error if empty request body",
+			req:   &shieldv1beta1.UpdateUserRequest{Id: someID, Body: nil},
+			want:  nil,
+			err:   grpcBadBodyError,
+		},
+		{
+			title: "should return success if user service return nil error",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:    someID,
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(
+					user.User{
+						ID:    someID,
+						Name:  "abc user",
+						Email: "user@odpf.io",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: someID,
+				Body: &shieldv1beta1.UserRequestBody{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
+				Id:    someID,
 				Name:  "abc user",
-				Email: "abcuser@test.com",
+				Email: "user@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
 					},
 				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
 			}},
-			header: "abcuser@test.com",
-			want: &shieldv1beta1.UpdateCurrentUserResponse{User: &shieldv1beta1.User{
-				Id:    "user-id-1",
-				Name:  "abc user",
-				Email: "abcuser@test.com",
+			err: nil,
+		},
+		{
+			title: "should return success even though name is empty",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:    someID,
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(
+					user.User{
+						ID:    someID,
+						Email: "user@odpf.io",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: someID,
+				Body: &shieldv1beta1.UserRequestBody{
+					Email: "user@odpf.io",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
+				Id:    someID,
+				Email: "user@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -362,11 +678,166 @@ func TestUpdateCurrentUser(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
+			mockUserSrv := new(mocks.UserService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				tt.setup(mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
+			resp, err := mockDep.UpdateUser(ctx, tt.req)
+			assert.EqualValues(t, resp, tt.want)
+			assert.EqualValues(t, err, tt.err)
+		})
+	}
+}
 
-			mockDep := Handler{userService: tt.mockUserSrv}
-			ctx := user.SetContextWithEmail(context.Background(), tt.header)
+func TestUpdateCurrentUser(t *testing.T) {
+	email := "user@odpf.io"
+	table := []struct {
+		title  string
+		setup  func(ctx context.Context, us *mocks.UserService) context.Context
+		req    *shieldv1beta1.UpdateCurrentUserRequest
+		header string
+		want   *shieldv1beta1.UpdateCurrentUserResponse
+		err    error
+	}{
+		{
+			title: "should return forbidden error if auth email header not exist",
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:  "abc user",
+				Email: "abcuser123@test.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}},
+			want: nil,
+			err:  grpcPermissionDenied,
+		},
+		{
+			title: "should return internal error if user service return some error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, errors.New("some error"))
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:  "abc user",
+				Email: "user@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}},
+			want: nil,
+			err:  grpcInternalServerError,
+		},
+		{
+			title: "should return not found error if user service return err not exist",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Name:  "abc user",
+					Email: "user@odpf.io",
+					Metadata: metadata.Metadata{
+						"foo": "bar",
+					},
+				}).Return(user.User{}, user.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:  "abc user",
+				Email: "user@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}},
+			want: nil,
+			err:  grpcUserNotFoundError,
+		},
+		{
+			title: "should return bad request error if diff emails in header and body",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:  "abc user",
+				Email: "abcuser123@test.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}},
+			want: nil,
+			err:  grpcBadBodyError,
+		},
+		{
+			title: "should return bad request error if empty request body",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req:  &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
+			want: nil,
+			err:  grpcBadBodyError,
+		},
+		{
+			title: "should return success if user service return nil error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().UpdateByEmail(mock.Anything, mock.Anything).Return(
+					user.User{
+						ID:    "user-id-1",
+						Name:  "abc user",
+						Email: "user@odpf.io",
+						Metadata: metadata.Metadata{
+							"foo": "bar",
+						},
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:  "abc user",
+				Email: "user@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}},
+			want: &shieldv1beta1.UpdateCurrentUserResponse{User: &shieldv1beta1.User{
+				Id:    "user-id-1",
+				Name:  "abc user",
+				Email: "user@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}},
+			err: nil,
+		},
+	}
 
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			mockUserSrv := new(mocks.UserService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
 			resp, err := mockDep.UpdateCurrentUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
@@ -374,40 +845,87 @@ func TestUpdateCurrentUser(t *testing.T) {
 	}
 }
 
-type mockUserSrv struct {
-	GetByIDFunc       func(ctx context.Context, id string) (user.User, error)
-	GetByEmailFunc    func(ctx context.Context, email string) (user.User, error)
-	CreateFunc        func(ctx context.Context, usr user.User) (user.User, error)
-	ListFunc          func(ctx context.Context, flt user.Filter) (user.PagedUsers, error)
-	UpdateByIDFunc    func(ctx context.Context, toUpdate user.User) (user.User, error)
-	UpdateByEmailFunc func(ctx context.Context, toUpdate user.User) (user.User, error)
-	FetchCurrentFunc  func(ctx context.Context) (user.User, error)
-}
+func TestHandler_ListUserGroups(t *testing.T) {
+	someUserID := uuid.NewString()
+	someRoleID := "role-id"
+	tests := []struct {
+		name    string
+		setup   func(gs *mocks.GroupService)
+		request *shieldv1beta1.ListUserGroupsRequest
+		want    *shieldv1beta1.ListUserGroupsResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if group service return some error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return([]group.Group{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.ListUserGroupsRequest{
+				Id:   someUserID,
+				Role: someRoleID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return empty list if user does not exist",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return([]group.Group{}, nil)
+			},
+			request: &shieldv1beta1.ListUserGroupsRequest{
+				Id:   someUserID,
+				Role: someRoleID,
+			},
+			want:    &shieldv1beta1.ListUserGroupsResponse{},
+			wantErr: nil,
+		},
+		// if user id empty, it would not go to this handler
+		{
 
-func (m mockUserSrv) GetByID(ctx context.Context, id string) (user.User, error) {
-	return m.GetByIDFunc(ctx, id)
-}
-
-func (m mockUserSrv) GetByEmail(ctx context.Context, email string) (user.User, error) {
-	return m.GetByEmailFunc(ctx, email)
-}
-
-func (m mockUserSrv) Create(ctx context.Context, usr user.User) (user.User, error) {
-	return m.CreateFunc(ctx, usr)
-}
-
-func (m mockUserSrv) List(ctx context.Context, flt user.Filter) (user.PagedUsers, error) {
-	return m.ListFunc(ctx, flt)
-}
-
-func (m mockUserSrv) UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error) {
-	return m.UpdateByIDFunc(ctx, toUpdate)
-}
-
-func (m mockUserSrv) UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error) {
-	return m.UpdateByEmailFunc(ctx, toUpdate)
-}
-
-func (m mockUserSrv) FetchCurrentUser(ctx context.Context) (user.User, error) {
-	return m.FetchCurrentFunc(ctx)
+			name: "should return groups if group service return not nil",
+			setup: func(gs *mocks.GroupService) {
+				var testGroupList []group.Group
+				for _, g := range testGroupMap {
+					testGroupList = append(testGroupList, g)
+				}
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return(testGroupList, nil)
+			},
+			request: &shieldv1beta1.ListUserGroupsRequest{
+				Id:   someUserID,
+				Role: someRoleID,
+			},
+			want: &shieldv1beta1.ListUserGroupsResponse{
+				Groups: []*shieldv1beta1.Group{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Name:  "Group 1",
+						Slug:  "group-1",
+						OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo": structpb.NewStringValue("bar"),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGroupSvc := new(mocks.GroupService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSvc)
+			}
+			h := Handler{
+				groupService: mockGroupSvc,
+			}
+			got, err := h.ListUserGroups(context.Background(), tt.request)
+			assert.EqualValues(t, got, tt.want)
+			assert.EqualValues(t, err, tt.wantErr)
+		})
+	}
 }

@@ -69,6 +69,10 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroupRequest) (*shieldv1beta1.CreateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	if request.GetBody() == nil {
+		return nil, grpcBadBodyError
+	}
+
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
@@ -95,6 +99,8 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 			return nil, grpcConflictError
 		case errors.Is(err, group.ErrInvalidDetail), errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcBadBodyError
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcPermissionDenied
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -124,10 +130,8 @@ func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRe
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID):
+		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, grpcGroupNotFoundErr
-		case errors.Is(err, group.ErrInvalidUUID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -140,34 +144,6 @@ func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRe
 	}
 
 	return &shieldv1beta1.GetGroupResponse{Group: &groupPB}, nil
-}
-
-func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.ListGroupUsersRequest) (*shieldv1beta1.ListGroupUsersResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	usersList, err := h.groupService.ListUsers(ctx, request.GetId())
-	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, group.ErrNotExist):
-			return nil, grpcGroupNotFoundErr
-		}
-		return nil, grpcInternalServerError
-	}
-
-	var users []*shieldv1beta1.User
-	for _, u := range usersList {
-		userPB, err := transformUserToPB(u)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
-		}
-		users = append(users, &userPB)
-	}
-
-	return &shieldv1beta1.ListGroupUsersResponse{
-		Users: users,
-	}, nil
 }
 
 func (h Handler) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGroupUserRequest) (*shieldv1beta1.AddGroupUserResponse, error) {
@@ -186,7 +162,7 @@ func (h Handler) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGro
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+			return nil, grpcGroupNotFoundErr
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
@@ -220,7 +196,7 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.Rem
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+			return nil, grpcGroupNotFoundErr
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrNotExist):
@@ -271,12 +247,13 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		switch {
 		case errors.Is(err, group.ErrNotExist),
 			errors.Is(err, group.ErrInvalidUUID),
-			errors.Is(err, group.ErrInvalidID),
-			errors.Is(err, organization.ErrInvalidUUID):
-			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+			errors.Is(err, group.ErrInvalidID):
+			return nil, grpcGroupNotFoundErr
 		case errors.Is(err, group.ErrConflict):
 			return nil, grpcConflictError
-		case errors.Is(err, group.ErrInvalidDetail):
+		case errors.Is(err, group.ErrInvalidDetail),
+			errors.Is(err, organization.ErrInvalidUUID),
+			errors.Is(err, organization.ErrNotExist):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -335,7 +312,7 @@ func (h Handler) AddGroupAdmin(ctx context.Context, request *shieldv1beta1.AddGr
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+			return nil, grpcGroupNotFoundErr
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
@@ -370,7 +347,7 @@ func (h Handler) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.Re
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "group to be updated not found")
+			return nil, grpcGroupNotFoundErr
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrNotExist):
@@ -382,6 +359,34 @@ func (h Handler) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.Re
 
 	return &shieldv1beta1.RemoveGroupAdminResponse{
 		Message: "Removed Admin from group",
+	}, nil
+}
+
+func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.ListGroupUsersRequest) (*shieldv1beta1.ListGroupUsersResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	usersList, err := h.groupService.ListUsers(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.ErrNotExist):
+			return nil, grpcGroupNotFoundErr
+		}
+		return nil, grpcInternalServerError
+	}
+
+	var users []*shieldv1beta1.User
+	for _, u := range usersList {
+		userPB, err := transformUserToPB(u)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		users = append(users, &userPB)
+	}
+
+	return &shieldv1beta1.ListGroupUsersResponse{
+		Users: users,
 	}, nil
 }
 

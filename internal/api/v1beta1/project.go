@@ -24,6 +24,7 @@ import (
 
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
 
+//go:generate mockery --name=ProjectService -r --case underscore --with-expecter --structname ProjectService --filename project_service.go --output=./mocks
 type ProjectService interface {
 	Get(ctx context.Context, idOrSlugd string) (project.Project, error)
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
@@ -34,7 +35,10 @@ type ProjectService interface {
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
-func (h Handler) ListProjects(ctx context.Context, request *shieldv1beta1.ListProjectsRequest) (*shieldv1beta1.ListProjectsResponse, error) {
+func (h Handler) ListProjects(
+	ctx context.Context,
+	request *shieldv1beta1.ListProjectsRequest,
+) (*shieldv1beta1.ListProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var projects []*shieldv1beta1.Project
 
@@ -57,7 +61,10 @@ func (h Handler) ListProjects(ctx context.Context, request *shieldv1beta1.ListPr
 	return &shieldv1beta1.ListProjectsResponse{Projects: projects}, nil
 }
 
-func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.CreateProjectRequest) (*shieldv1beta1.CreateProjectResponse, error) {
+func (h Handler) CreateProject(
+	ctx context.Context,
+	request *shieldv1beta1.CreateProjectRequest,
+) (*shieldv1beta1.CreateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -108,7 +115,10 @@ func (h Handler) CreateProject(ctx context.Context, request *shieldv1beta1.Creat
 	}}, nil
 }
 
-func (h Handler) GetProject(ctx context.Context, request *shieldv1beta1.GetProjectRequest) (*shieldv1beta1.GetProjectResponse, error) {
+func (h Handler) GetProject(
+	ctx context.Context,
+	request *shieldv1beta1.GetProjectRequest,
+) (*shieldv1beta1.GetProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedProject, err := h.projectService.Get(ctx, request.GetId())
@@ -131,7 +141,10 @@ func (h Handler) GetProject(ctx context.Context, request *shieldv1beta1.GetProje
 	return &shieldv1beta1.GetProjectResponse{Project: &projectPB}, nil
 }
 
-func (h Handler) UpdateProject(ctx context.Context, request *shieldv1beta1.UpdateProjectRequest) (*shieldv1beta1.UpdateProjectResponse, error) {
+func (h Handler) UpdateProject(
+	ctx context.Context,
+	request *shieldv1beta1.UpdateProjectRequest,
+) (*shieldv1beta1.UpdateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -181,7 +194,10 @@ func (h Handler) UpdateProject(ctx context.Context, request *shieldv1beta1.Updat
 	return &shieldv1beta1.UpdateProjectResponse{Project: &projectPB}, nil
 }
 
-func (h Handler) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.AddProjectAdminRequest) (*shieldv1beta1.AddProjectAdminResponse, error) {
+func (h Handler) AddProjectAdmin(
+	ctx context.Context,
+	request *shieldv1beta1.AddProjectAdminRequest,
+) (*shieldv1beta1.AddProjectAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	var admins []user.User
@@ -214,7 +230,10 @@ func (h Handler) AddProjectAdmin(ctx context.Context, request *shieldv1beta1.Add
 	return &shieldv1beta1.AddProjectAdminResponse{Users: transformedAdmins}, nil
 }
 
-func (h Handler) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.ListProjectAdminsRequest) (*shieldv1beta1.ListProjectAdminsResponse, error) {
+func (h Handler) ListProjectAdmins(
+	ctx context.Context,
+	request *shieldv1beta1.ListProjectAdminsRequest,
+) (*shieldv1beta1.ListProjectAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	admins, err := h.projectService.ListAdmins(ctx, request.GetId())
@@ -242,7 +261,10 @@ func (h Handler) ListProjectAdmins(ctx context.Context, request *shieldv1beta1.L
 	return &shieldv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
 }
 
-func (h Handler) RemoveProjectAdmin(ctx context.Context, request *shieldv1beta1.RemoveProjectAdminRequest) (*shieldv1beta1.RemoveProjectAdminResponse, error) {
+func (h Handler) RemoveProjectAdmin(
+	ctx context.Context,
+	request *shieldv1beta1.RemoveProjectAdminRequest,
+) (*shieldv1beta1.RemoveProjectAdminResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if _, err := h.projectService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {

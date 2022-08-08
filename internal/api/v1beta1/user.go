@@ -123,7 +123,7 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
-			return nil, status.Errorf(codes.NotFound, "user not found")
+			return nil, grpcUserNotFoundError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -158,7 +158,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
-			return nil, status.Errorf(codes.NotFound, "user not found")
+			return nil, grpcUserNotFoundError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -271,22 +271,6 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 	return &shieldv1beta1.UpdateCurrentUserResponse{User: &userPB}, nil
 }
 
-func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {
-	metaData, err := usr.Metadata.ToStructPB()
-	if err != nil {
-		return shieldv1beta1.User{}, err
-	}
-
-	return shieldv1beta1.User{
-		Id:        usr.ID,
-		Name:      usr.Name,
-		Email:     usr.Email,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(usr.CreatedAt),
-		UpdatedAt: timestamppb.New(usr.UpdatedAt),
-	}, nil
-}
-
 func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.ListUserGroupsRequest) (*shieldv1beta1.ListUserGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var groups []*shieldv1beta1.Group
@@ -309,5 +293,21 @@ func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.List
 
 	return &shieldv1beta1.ListUserGroupsResponse{
 		Groups: groups,
+	}, nil
+}
+
+func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {
+	metaData, err := usr.Metadata.ToStructPB()
+	if err != nil {
+		return shieldv1beta1.User{}, err
+	}
+
+	return shieldv1beta1.User{
+		Id:        usr.ID,
+		Name:      usr.Name,
+		Email:     usr.Email,
+		Metadata:  metaData,
+		CreatedAt: timestamppb.New(usr.CreatedAt),
+		UpdatedAt: timestamppb.New(usr.UpdatedAt),
 	}, nil
 }

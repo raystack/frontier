@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+//go:generate mockery --name=NamespaceService -r --case underscore --with-expecter --structname NamespaceService --filename namespace_service.go --output=./mocks
 type NamespaceService interface {
 	Get(ctx context.Context, id string) (namespace.Namespace, error)
 	List(ctx context.Context) ([]namespace.Namespace, error)

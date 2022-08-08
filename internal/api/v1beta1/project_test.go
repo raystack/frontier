@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/metadata"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/odpf/shield/core/project"
 
@@ -50,11 +51,11 @@ func TestCreateProject(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title          string
-		mockProjectSrv mockProject
-		req            *shieldv1beta1.CreateProjectRequest
-		want           *shieldv1beta1.CreateProjectResponse
-		err            error
+		title string
+		setup func(ps *mocks.ProjectService)
+		req   *shieldv1beta1.CreateProjectRequest
+		want  *shieldv1beta1.CreateProjectResponse
+		err   error
 	}{
 		{
 			title: "error in metadata parsing",
@@ -80,9 +81,10 @@ func TestCreateProject(t *testing.T) {
 					},
 				},
 			}},
-			mockProjectSrv: mockProject{CreateFunc: func(ctx context.Context, prj project.Project) (project.Project, error) {
-				return project.Project{}, errors.New("some service error")
-			}},
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Create(mock.Anything, mock.Anything).Return(
+					project.Project{}, errors.New("some service error"))
+			},
 			err: grpcInternalServerError,
 		},
 		{
@@ -96,9 +98,10 @@ func TestCreateProject(t *testing.T) {
 					},
 				},
 			}},
-			mockProjectSrv: mockProject{CreateFunc: func(ctx context.Context, prj project.Project) (project.Project, error) {
-				return testProjectMap[testProjectID], nil
-			}},
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Create(mock.Anything, mock.Anything).Return(
+					testProjectMap[testProjectID], nil)
+			},
 			want: &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
 				Id:   testProjectMap[testProjectID].ID,
 				Name: testProjectMap[testProjectID].Name,
@@ -119,7 +122,11 @@ func TestCreateProject(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{projectService: tt.mockProjectSrv}
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv)
+			}
+			mockDep := Handler{projectService: mockProjectSrv}
 			resp, err := mockDep.CreateProject(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -131,33 +138,33 @@ func TestListProjects(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title          string
-		mockProjectSrv mockProject
-		req            *shieldv1beta1.ListProjectsRequest
-		want           *shieldv1beta1.ListProjectsResponse
-		err            error
+		title string
+		setup func(ps *mocks.ProjectService)
+		req   *shieldv1beta1.ListProjectsRequest
+		want  *shieldv1beta1.ListProjectsResponse
+		err   error
 	}{
 		{
 			title: "error in service",
 			req:   &shieldv1beta1.ListProjectsRequest{},
-			mockProjectSrv: mockProject{ListFunc: func(ctx context.Context) ([]project.Project, error) {
-				return []project.Project{}, errors.New("some store error")
-			}},
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().List(mock.Anything).Return([]project.Project{}, errors.New("some store error"))
+			},
 			want: nil,
 			err:  grpcInternalServerError,
 		},
 		{
 			title: "success",
 			req:   &shieldv1beta1.ListProjectsRequest{},
-			mockProjectSrv: mockProject{ListFunc: func(ctx context.Context) ([]project.Project, error) {
+			setup: func(ps *mocks.ProjectService) {
 				var prjs []project.Project
 
 				for _, projectID := range testProjectIDList {
 					prjs = append(prjs, testProjectMap[projectID])
 				}
 
-				return prjs, nil
-			}},
+				ps.EXPECT().List(mock.Anything).Return(prjs, nil)
+			},
 			want: &shieldv1beta1.ListProjectsResponse{Projects: []*shieldv1beta1.Project{
 				{
 					Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
@@ -192,7 +199,11 @@ func TestListProjects(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{projectService: tt.mockProjectSrv}
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv)
+			}
+			mockDep := Handler{projectService: mockProjectSrv}
 			resp, err := mockDep.ListProjects(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -204,42 +215,45 @@ func TestGetProject(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title          string
-		mockProjectSrv mockProject
-		req            *shieldv1beta1.GetProjectRequest
-		want           *shieldv1beta1.GetProjectResponse
-		err            error
+		title string
+		setup func(ps *mocks.ProjectService)
+		req   *shieldv1beta1.GetProjectRequest
+		want  *shieldv1beta1.GetProjectResponse
+		err   error
 	}{
 		{
 			title: "project doesnt exist",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
-				return project.Project{}, project.ErrNotExist
-			}},
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Get(mock.Anything, mock.Anything).Return(project.Project{}, project.ErrNotExist)
+			},
 			err: grpcProjectNotFoundErr,
 		},
 		{
 			title: "uuid syntax error",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
-				return project.Project{}, project.ErrInvalidUUID
-			}},
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Get(mock.Anything, mock.Anything).Return(
+					project.Project{}, project.ErrInvalidUUID)
+			},
 			err: grpcBadBodyError,
 		},
 		{
 			title: "service error",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
-				return project.Project{}, errors.New("some error")
-			}},
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Get(mock.Anything, mock.Anything).Return(
+					project.Project{}, errors.New("some error"))
+			},
 			err: grpcInternalServerError,
 		},
 		{
 			title: "success",
 			req:   &shieldv1beta1.GetProjectRequest{},
-			mockProjectSrv: mockProject{GetFunc: func(ctx context.Context, id string) (project.Project, error) {
-				return testProjectMap[testProjectID], nil
-			}},
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Get(mock.Anything, mock.Anything).Return(
+					testProjectMap[testProjectID], nil)
+			},
 			want: &shieldv1beta1.GetProjectResponse{Project: &shieldv1beta1.Project{
 				Id:   testProjectMap[testProjectID].ID,
 				Name: testProjectMap[testProjectID].Name,
@@ -260,48 +274,14 @@ func TestGetProject(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{projectService: tt.mockProjectSrv}
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv)
+			}
+			mockDep := Handler{projectService: mockProjectSrv}
 			resp, err := mockDep.GetProject(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
 	}
-}
-
-type mockProject struct {
-	GetFunc         func(ctx context.Context, idOrSlug string) (project.Project, error)
-	CreateFunc      func(ctx context.Context, prj project.Project) (project.Project, error)
-	ListFunc        func(ctx context.Context) ([]project.Project, error)
-	UpdateFunc      func(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	AddAdminFunc    func(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
-	RemoveAdminFunc func(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
-	ListAdminsFunc  func(ctx context.Context, id string) ([]user.User, error)
-}
-
-func (m mockProject) List(ctx context.Context) ([]project.Project, error) {
-	return m.ListFunc(ctx)
-}
-
-func (m mockProject) Create(ctx context.Context, project project.Project) (project.Project, error) {
-	return m.CreateFunc(ctx, project)
-}
-
-func (m mockProject) Get(ctx context.Context, idOrSlug string) (project.Project, error) {
-	return m.GetFunc(ctx, idOrSlug)
-}
-
-func (m mockProject) Update(ctx context.Context, toUpdate project.Project) (project.Project, error) {
-	return m.UpdateFunc(ctx, toUpdate)
-}
-
-func (m mockProject) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	return m.AddAdminFunc(ctx, idOrSlug, userIds)
-}
-
-func (m mockProject) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
-	return m.ListAdminsFunc(ctx, id)
-}
-
-func (m mockProject) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	return m.RemoveAdminFunc(ctx, idOrSlug, userId)
 }

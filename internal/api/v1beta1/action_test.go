@@ -10,9 +10,11 @@ import (
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -60,23 +62,23 @@ var testActionMap = map[string]action.Action{
 func TestListActions(t *testing.T) {
 	t.Parallel()
 	table := []struct {
-		title         string
-		mockActionSrc mockActionSrv
-		req           *shieldv1beta1.ListActionsRequest
-		want          *shieldv1beta1.ListActionsResponse
-		err           error
+		title string
+		setup func(as *mocks.ActionService)
+		req   *shieldv1beta1.ListActionsRequest
+		want  *shieldv1beta1.ListActionsResponse
+		err   error
 	}{
 		{
 			title: "error in Action Service",
-			mockActionSrc: mockActionSrv{ListFunc: func(ctx context.Context) (actions []action.Action, err error) {
-				return []action.Action{}, errors.New("some error")
-			}},
+			setup: func(as *mocks.ActionService) {
+				as.EXPECT().List(mock.Anything).Return([]action.Action{}, errors.New("some error"))
+			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		},
 		{
 			title: "success",
-			mockActionSrc: mockActionSrv{ListFunc: func(ctx context.Context) (actions []action.Action, err error) {
+			setup: func(as *mocks.ActionService) {
 				var testActionList []action.Action
 				for _, act := range testActionMap {
 					testActionList = append(testActionList, act)
@@ -85,8 +87,8 @@ func TestListActions(t *testing.T) {
 				sort.Slice(testActionList[:], func(i, j int) bool {
 					return strings.Compare(testActionList[i].ID, testActionList[j].ID) < 1
 				})
-				return testActionList, nil
-			}},
+				as.EXPECT().List(mock.Anything).Return(testActionList, nil)
+			},
 			want: &shieldv1beta1.ListActionsResponse{Actions: []*shieldv1beta1.Action{
 				{
 					Id:   "manage",
@@ -133,7 +135,11 @@ func TestListActions(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{actionService: tt.mockActionSrc}
+			mockActionSrv := new(mocks.ActionService)
+			if tt.setup != nil {
+				tt.setup(mockActionSrv)
+			}
+			mockDep := Handler{actionService: mockActionSrv}
 			resp, err := mockDep.ListActions(context.Background(), tt.req)
 
 			assert.EqualValues(t, tt.want, resp)
@@ -146,17 +152,25 @@ func TestCreateAction(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title         string
-		mockActionSrv mockActionSrv
-		req           *shieldv1beta1.CreateActionRequest
-		want          *shieldv1beta1.CreateActionResponse
-		err           error
+		title string
+		setup func(as *mocks.ActionService)
+		req   *shieldv1beta1.CreateActionRequest
+		want  *shieldv1beta1.CreateActionResponse
+		err   error
 	}{
 		{
 			title: "error in creating action",
-			mockActionSrv: mockActionSrv{CreateFunc: func(ctx context.Context, act action.Action) (action.Action, error) {
-				return action.Action{}, errors.New("some error")
-			}},
+			setup: func(as *mocks.ActionService) {
+				as.EXPECT().Create(mock.Anything, action.Action{
+					ID:          "read",
+					Name:        "Read",
+					NamespaceID: "team",
+				}).Return(action.Action{
+					ID:          "read",
+					Name:        "Read",
+					NamespaceID: "team",
+				}, errors.New("some error"))
+			},
 			req: &shieldv1beta1.CreateActionRequest{Body: &shieldv1beta1.ActionRequestBody{
 				Id:          "read",
 				Name:        "Read",
@@ -167,16 +181,17 @@ func TestCreateAction(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockActionSrv: mockActionSrv{CreateFunc: func(ctx context.Context, act action.Action) (action.Action, error) {
-				return action.Action{
-					ID:   "read",
-					Name: "Read",
-					Namespace: namespace.Namespace{
-						ID:   "team",
-						Name: "Team",
-					},
-				}, nil
-			}},
+			setup: func(as *mocks.ActionService) {
+				as.EXPECT().Create(mock.Anything, action.Action{}).Return(
+					action.Action{
+						ID:   "read",
+						Name: "Read",
+						Namespace: namespace.Namespace{
+							ID:   "team",
+							Name: "Team",
+						},
+					}, nil)
+			},
 			req: &shieldv1beta1.CreateActionRequest{Body: &shieldv1beta1.ActionRequestBody{
 				Id:          "read",
 				Name:        "Read",
@@ -202,33 +217,14 @@ func TestCreateAction(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{actionService: tt.mockActionSrv}
+			mockActionSrv := new(mocks.ActionService)
+			if tt.setup != nil {
+				tt.setup(mockActionSrv)
+			}
+			mockDep := Handler{actionService: mockActionSrv}
 			resp, err := mockDep.CreateAction(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
 	}
-}
-
-type mockActionSrv struct {
-	GetFunc    func(ctx context.Context, id string) (action.Action, error)
-	CreateFunc func(ctx context.Context, act action.Action) (action.Action, error)
-	ListFunc   func(ctx context.Context) ([]action.Action, error)
-	UpdateFunc func(ctx context.Context, id string, act action.Action) (action.Action, error)
-}
-
-func (m mockActionSrv) Get(ctx context.Context, id string) (action.Action, error) {
-	return m.GetFunc(ctx, id)
-}
-
-func (m mockActionSrv) List(ctx context.Context) ([]action.Action, error) {
-	return m.ListFunc(ctx)
-}
-
-func (m mockActionSrv) Create(ctx context.Context, act action.Action) (action.Action, error) {
-	return m.CreateFunc(ctx, act)
-}
-
-func (m mockActionSrv) Update(ctx context.Context, id string, act action.Action) (action.Action, error) {
-	return m.UpdateFunc(ctx, id, act)
 }

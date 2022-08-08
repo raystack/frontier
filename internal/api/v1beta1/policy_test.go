@@ -10,10 +10,12 @@ import (
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/metadata"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -58,29 +60,29 @@ var testPolicyMap = map[string]policy.Policy{
 func TestListPolicies(t *testing.T) {
 	t.Parallel()
 	table := []struct {
-		title         string
-		MockPolicySrv mockPolicySrv
-		req           *shieldv1beta1.ListPoliciesRequest
-		want          *shieldv1beta1.ListPoliciesResponse
-		err           error
+		title string
+		setup func(ps *mocks.PolicyService)
+		req   *shieldv1beta1.ListPoliciesRequest
+		want  *shieldv1beta1.ListPoliciesResponse
+		err   error
 	}{
 		{
 			title: "error in Policy Service",
-			MockPolicySrv: mockPolicySrv{ListFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
-				return []policy.Policy{}, errors.New("some error")
-			}},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().List(mock.Anything).Return([]policy.Policy{}, errors.New("some error"))
+			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		},
 		{
 			title: "success",
-			MockPolicySrv: mockPolicySrv{ListFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
+			setup: func(ps *mocks.PolicyService) {
 				var testPoliciesList []policy.Policy
 				for _, p := range testPolicyMap {
 					testPoliciesList = append(testPoliciesList, p)
 				}
-				return testPoliciesList, nil
-			}},
+				ps.EXPECT().List(mock.Anything).Return(testPoliciesList, nil)
+			},
 			want: &shieldv1beta1.ListPoliciesResponse{Policies: []*shieldv1beta1.Policy{
 				{
 					Id: "test",
@@ -127,7 +129,11 @@ func TestListPolicies(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{policyService: tt.MockPolicySrv}
+			mockPolicySrv := new(mocks.PolicyService)
+			if tt.setup != nil {
+				tt.setup(mockPolicySrv)
+			}
+			mockDep := Handler{policyService: mockPolicySrv}
 			resp, err := mockDep.ListPolicies(context.Background(), tt.req)
 
 			assert.EqualValues(t, tt.want, resp)
@@ -140,17 +146,17 @@ func TestCreatePolicy(t *testing.T) {
 	t.Parallel()
 
 	table := []struct {
-		title         string
-		mockPolicySrv mockPolicySrv
-		req           *shieldv1beta1.CreatePolicyRequest
-		want          *shieldv1beta1.CreatePolicyResponse
-		err           error
+		title string
+		setup func(ps *mocks.PolicyService)
+		req   *shieldv1beta1.CreatePolicyRequest
+		want  *shieldv1beta1.CreatePolicyResponse
+		err   error
 	}{
 		{
 			title: "error in creating policy",
-			mockPolicySrv: mockPolicySrv{CreateFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
-				return []policy.Policy{}, errors.New("some error")
-			}},
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().Create(mock.Anything, mock.Anything).Return([]policy.Policy{}, errors.New("some error"))
+			},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
 				NamespaceId: "team",
 				RoleId:      "Admin",
@@ -161,8 +167,8 @@ func TestCreatePolicy(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockPolicySrv: mockPolicySrv{CreateFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
-				return []policy.Policy{
+			setup: func(ps *mocks.PolicyService) {
+				ps.EXPECT().Create(mock.Anything, mock.Anything).Return([]policy.Policy{
 					{
 						ID: "test",
 						Action: action.Action{
@@ -195,8 +201,8 @@ func TestCreatePolicy(t *testing.T) {
 							},
 						},
 					},
-				}, nil
-			}},
+				}, nil)
+			},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
 				ActionId:    "read",
 				NamespaceId: "resource-1",
@@ -248,33 +254,14 @@ func TestCreatePolicy(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{policyService: tt.mockPolicySrv}
+			mockPolicySrv := new(mocks.PolicyService)
+			if tt.setup != nil {
+				tt.setup(mockPolicySrv)
+			}
+			mockDep := Handler{policyService: mockPolicySrv}
 			resp, err := mockDep.CreatePolicy(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
 	}
-}
-
-type mockPolicySrv struct {
-	GetFunc    func(ctx context.Context, id string) (policy.Policy, error)
-	CreateFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
-	ListFunc   func(ctx context.Context) ([]policy.Policy, error)
-	UpdateFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
-}
-
-func (m mockPolicySrv) Get(ctx context.Context, id string) (policy.Policy, error) {
-	return m.GetFunc(ctx, id)
-}
-
-func (m mockPolicySrv) List(ctx context.Context) ([]policy.Policy, error) {
-	return m.ListFunc(ctx)
-}
-
-func (m mockPolicySrv) Create(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
-	return m.CreateFunc(ctx, pol)
-}
-
-func (m mockPolicySrv) Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
-	return m.UpdateFunc(ctx, pol)
 }

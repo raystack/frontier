@@ -13,6 +13,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
+//go:generate mockery --name=RelationService -r --case underscore --with-expecter --structname RelationService --filename relation_service.go --output=./mocks
 type RelationService interface {
 	Get(ctx context.Context, id string) (relation.Relation, error)
 	List(ctx context.Context) ([]relation.Relation, error)
