@@ -1,0 +1,17 @@
+[
+    {
+        "role_id": "role1",
+        "action_id": "action1",
+        "namespace_id": "ns1"
+    },
+    {
+        "role_id": "role2",
+        "action_id": "action2",
+        "namespace_id": "ns2"
+    },
+    {
+        "role_id": "role2",
+        "action_id": "action3",
+        "namespace_id": "ns1"
+    }
+]

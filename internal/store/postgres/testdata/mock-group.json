@@ -1,0 +1,22 @@
+[
+    {
+        "name": "group1",
+        "slug": "group-1"
+    },
+    {
+        "name": "group2",
+        "slug": "group-2"
+    },
+    {
+        "name": "group3",
+        "slug": "group-3",
+        "metadata": {
+            "key-string": "value-string",
+            "key-integer": 123,
+            "key-json": {
+                "k1": "v1",
+                "k2": "v2"
+            }
+        }
+    }
+]

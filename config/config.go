@@ -8,8 +8,8 @@ import (
 	"github.com/odpf/salt/config"
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/server"
-	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/internal/store/spicedb"
+	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/logger"
 )
 
@@ -20,7 +20,7 @@ type Shield struct {
 	Log      logger.Config        `yaml:"log"`
 	NewRelic NewRelic             `yaml:"new_relic"`
 	App      server.Config        `yaml:"app"`
-	DB       postgres.Config      `yaml:"db"`
+	DB       db.Config            `yaml:"db"`
 	SpiceDB  spicedb.Config       `yaml:"spice_db"`
 }
 

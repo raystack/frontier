@@ -9,21 +9,30 @@ import (
 	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
 )
 
-func (db *SpiceDB) AddPolicy(ctx context.Context, policies []policy.Policy) error {
-	schemas, err := db.generateSchema(policies)
+type PolicyRepository struct {
+	spiceDB *SpiceDB
+}
+
+func NewPolicyRepository(spiceDB *SpiceDB) *PolicyRepository {
+	return &PolicyRepository{
+		spiceDB: spiceDB,
+	}
+}
+
+func (r PolicyRepository) Add(ctx context.Context, policies []policy.Policy) error {
+	schemas, err := generateSchema(policies)
 	if err != nil {
 		return err
 	}
 	schema := strings.Join(schemas, "\n")
 	request := &authzedpb.WriteSchemaRequest{Schema: schema}
-	_, err = db.client.WriteSchema(ctx, request)
-	if err != nil {
+	if _, err = r.spiceDB.client.WriteSchema(ctx, request); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (db *SpiceDB) generateSchema(policies []policy.Policy) ([]string, error) {
+func generateSchema(policies []policy.Policy) ([]string, error) {
 	definitions, err := schema_generator.BuildPolicyDefinitions(policies)
 	if err != nil {
 		return []string{}, err

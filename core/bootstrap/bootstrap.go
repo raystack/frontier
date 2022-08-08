@@ -14,15 +14,12 @@ import (
 	"github.com/odpf/shield/pkg/str"
 )
 
-// Insert Action
-// Insert Policy
-
 type PolicyService interface {
-	CreatePolicy(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
+	Create(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
 }
 
 type ActionService interface {
-	CreateAction(ctx context.Context, act action.Action) (action.Action, error)
+	Create(ctx context.Context, act action.Action) (action.Action, error)
 }
 
 type RoleService interface {
@@ -30,11 +27,11 @@ type RoleService interface {
 }
 
 type NamespaceService interface {
-	CreateNamespace(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
+	Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
-type BlobStore interface {
-	GetAll(ctx context.Context) ([]resource.YAML, error)
+type ResourceService interface {
+	GetAllConfigs(ctx context.Context) ([]resource.YAML, error)
 }
 
 type Service struct {
@@ -43,7 +40,7 @@ type Service struct {
 	actionService    ActionService
 	namespaceService NamespaceService
 	roleService      RoleService
-	blobStore        BlobStore
+	resourceService  ResourceService
 }
 
 func NewService(
@@ -52,7 +49,7 @@ func NewService(
 	actionService ActionService,
 	namespaceService NamespaceService,
 	roleService RoleService,
-	blobStore BlobStore,
+	resourceService ResourceService,
 ) *Service {
 	return &Service{
 		logger:           logger,
@@ -60,7 +57,7 @@ func NewService(
 		actionService:    actionService,
 		namespaceService: namespaceService,
 		roleService:      roleService,
-		blobStore:        blobStore,
+		resourceService:  resourceService,
 	}
 }
 
@@ -94,9 +91,10 @@ func (s Service) onboardResource(ctx context.Context, resYAML resource.YAML) err
 		for _, r := range rolesList {
 			role := getResourceRole(r, ns)
 			policy := policy.Policy{
-				Action:    act,
-				Namespace: ns,
-				Role:      role,
+				Action:      act,
+				Namespace:   ns,
+				NamespaceID: ns.ID,
+				Role:        role,
 			}
 			resourceRoles = append(resourceRoles, role)
 			policies = append(policies, policy)
@@ -164,10 +162,11 @@ func getResourceRole(r string, ns namespace.Namespace) role.Role {
 	}
 
 	role := role.Role{
-		ID:        roleId,
-		Name:      roleId,
-		Namespace: roleNs,
-		Types:     []string{role.UserType, role.TeamMemberType},
+		ID:          roleId,
+		Name:        roleId,
+		Namespace:   roleNs,
+		NamespaceID: roleNs.ID,
+		Types:       []string{role.UserType, role.TeamMemberType},
 	}
 	return role
 }
@@ -176,9 +175,10 @@ func getResourceAction(actionStr string, ns namespace.Namespace) action.Action {
 	actId := fmt.Sprintf("%s_%s", ns.ID, actionStr)
 	actionName := fmt.Sprintf("%s %s", strings.Title(strings.ToLower(ns.ID)), strings.Title(strings.ToLower(actionStr)))
 	act := action.Action{
-		ID:        actId,
-		Name:      actionName,
-		Namespace: ns,
+		ID:          actId,
+		Name:        actionName,
+		Namespace:   ns,
+		NamespaceID: ns.ID,
 	}
 	return act
 }
@@ -193,7 +193,7 @@ func getResourceNamespace(resYAML resource.YAML) namespace.Namespace {
 }
 
 func (s Service) BootstrapResources(ctx context.Context) error {
-	resources, err := s.blobStore.GetAll(ctx)
+	resources, err := s.resourceService.GetAllConfigs(ctx)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func (s Service) bootstrapPolicies(ctx context.Context) error {
 
 func (s Service) createPolicies(ctx context.Context, policies []policy.Policy) error {
 	for _, policy := range policies {
-		if _, err := s.policyService.CreatePolicy(ctx, policy); err != nil {
+		if _, err := s.policyService.Create(ctx, policy); err != nil {
 			return err
 		}
 	}
@@ -260,7 +260,7 @@ func (s Service) bootstrapActions(ctx context.Context) error {
 
 func (s Service) createActions(ctx context.Context, actions []action.Action) error {
 	for _, action := range actions {
-		if _, err := s.actionService.CreateAction(ctx, action); err != nil {
+		if _, err := s.actionService.Create(ctx, action); err != nil {
 			return err
 		}
 	}
@@ -293,7 +293,7 @@ func (s Service) createRoles(ctx context.Context, roles []role.Role) error {
 
 func (s Service) createNamespaces(ctx context.Context, namespaces []namespace.Namespace) error {
 	for _, ns := range namespaces {
-		if _, err := s.namespaceService.CreateNamespace(ctx, ns); err != nil {
+		if _, err := s.namespaceService.Create(ctx, ns); err != nil {
 			return err
 		}
 	}

@@ -2,21 +2,15 @@ package namespace
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 )
 
-var (
-	ErrNotExist    = errors.New("actions doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
-type Store interface {
-	GetNamespace(ctx context.Context, id string) (Namespace, error)
-	CreateNamespace(ctx context.Context, namespace Namespace) (Namespace, error)
-	ListNamespaces(ctx context.Context) ([]Namespace, error)
-	UpdateNamespace(ctx context.Context, id string, namespace Namespace) (Namespace, error)
+type Repository interface {
+	Get(ctx context.Context, id string) (Namespace, error)
+	Create(ctx context.Context, ns Namespace) (Namespace, error)
+	List(ctx context.Context) ([]Namespace, error)
+	Update(ctx context.Context, ns Namespace) (Namespace, error)
 }
 
 type Namespace struct {

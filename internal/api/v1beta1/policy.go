@@ -14,10 +14,10 @@ import (
 )
 
 type PolicyService interface {
-	GetPolicy(ctx context.Context, id string) (policy.Policy, error)
-	ListPolicies(ctx context.Context) ([]policy.Policy, error)
-	CreatePolicy(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
-	UpdatePolicy(ctx context.Context, id string, policy policy.Policy) ([]policy.Policy, error)
+	Get(ctx context.Context, id string) (policy.Policy, error)
+	List(ctx context.Context) ([]policy.Policy, error)
+	Create(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
+	Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
 }
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
@@ -26,7 +26,7 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	policyList, err := h.policyService.ListPolicies(ctx)
+	policyList, err := h.policyService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -49,10 +49,10 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	newPolicies, err := h.policyService.CreatePolicy(ctx, policy.Policy{
-		RoleID:      request.GetBody().RoleId,
-		NamespaceID: request.GetBody().NamespaceId,
-		ActionID:    request.GetBody().ActionId,
+	newPolicies, err := h.policyService.Create(ctx, policy.Policy{
+		RoleID:      request.GetBody().GetRoleId(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
+		ActionID:    request.GetBody().GetActionId(),
 	})
 
 	if err != nil {
@@ -64,7 +64,12 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		policyPB, err := transformPolicyToPB(p)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			switch {
+			case errors.Is(err, policy.ErrNotExist):
+				return nil, grpcPolicyNotFoundErr
+			default:
+				return nil, grpcInternalServerError
+			}
 		}
 
 		policies = append(policies, &policyPB)
@@ -81,13 +86,13 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicyRequest) (*shieldv1beta1.GetPolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedPolicy, err := h.policyService.GetPolicy(ctx, request.GetId())
+	fetchedPolicy, err := h.policyService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, policy.ErrNotExist):
 			return nil, grpcPolicyNotFoundErr
-		case errors.Is(err, policy.ErrInvalidUUID):
+		case errors.Is(err, policy.ErrInvalidUUID), errors.Is(err, policy.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -107,15 +112,22 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	updatedPolices, err := h.policyService.UpdatePolicy(ctx, request.GetId(), policy.Policy{
-		RoleID:      request.GetBody().RoleId,
-		NamespaceID: request.GetBody().NamespaceId,
-		ActionID:    request.GetBody().ActionId,
+	updatedPolices, err := h.policyService.Update(ctx, policy.Policy{
+		ID:          request.GetId(),
+		RoleID:      request.GetBody().GetRoleId(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
+		ActionID:    request.GetBody().GetActionId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, policy.ErrNotExist):
+			return nil, grpcPolicyNotFoundErr
+		case errors.Is(err, policy.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	for _, p := range updatedPolices {
@@ -124,7 +136,6 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-
 		policies = append(policies, &policyPB)
 	}
 

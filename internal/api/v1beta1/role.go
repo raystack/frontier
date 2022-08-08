@@ -6,11 +6,15 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/role"
-	"google.golang.org/protobuf/types/known/structpb"
+	"github.com/odpf/shield/pkg/metadata"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
+
+var grpcRoleNotFoundErr = status.Errorf(codes.NotFound, "role doesn't exist")
 
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
@@ -44,22 +48,29 @@ func (h Handler) ListRoles(ctx context.Context, request *shieldv1beta1.ListRoles
 
 func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRoleRequest) (*shieldv1beta1.CreateRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
 	}
 
 	newRole, err := h.roleService.Create(ctx, role.Role{
-		ID:          request.GetBody().Id,
-		Name:        request.GetBody().Name,
-		Types:       request.GetBody().Types,
-		NamespaceID: request.GetBody().NamespaceId,
+		ID:          request.GetBody().GetId(),
+		Name:        request.GetBody().GetName(),
+		Types:       request.GetBody().GetTypes(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, role.ErrNotExist):
+			return nil, grpcRoleNotFoundErr
+		case errors.Is(err, role.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	rolePB, err := transformRoleToPB(newRole)
@@ -80,7 +91,7 @@ func (h Handler) GetRole(ctx context.Context, request *shieldv1beta1.GetRoleRequ
 		switch {
 		case errors.Is(err, role.ErrNotExist):
 			return nil, grpcProjectNotFoundErr
-		case errors.Is(err, role.ErrInvalidUUID):
+		case errors.Is(err, role.ErrInvalidUUID), errors.Is(err, role.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -99,13 +110,13 @@ func (h Handler) GetRole(ctx context.Context, request *shieldv1beta1.GetRoleRequ
 func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRoleRequest) (*shieldv1beta1.UpdateRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	metaDataMap, err := mapOfStringValues(request.GetBody().Metadata.AsMap())
+	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
 	}
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
-		ID:          request.GetBody().Id,
+		ID:          request.GetId(),
 		Name:        request.GetBody().Name,
 		Types:       request.GetBody().Types,
 		NamespaceID: request.GetBody().NamespaceId,
@@ -113,7 +124,14 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 	})
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, role.ErrNotExist):
+			return nil, grpcRoleNotFoundErr
+		case errors.Is(err, role.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	rolePB, err := transformRoleToPB(updatedRole)
@@ -126,7 +144,7 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 }
 
 func transformRoleToPB(from role.Role) (shieldv1beta1.Role, error) {
-	metaData, err := structpb.NewStruct(mapOfInterfaceValues(from.Metadata))
+	metaData, err := from.Metadata.ToStructPB()
 	if err != nil {
 		return shieldv1beta1.Role{}, err
 	}

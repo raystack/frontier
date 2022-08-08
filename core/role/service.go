@@ -3,27 +3,35 @@ package role
 import "context"
 
 type Service struct {
-	store Store
+	repository Repository
 }
 
-func NewService(store Store) *Service {
+func NewService(repository Repository) *Service {
 	return &Service{
-		store: store,
+		repository: repository,
 	}
 }
 
 func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
-	return s.store.CreateRole(ctx, toCreate)
+	roleID, err := s.repository.Create(ctx, toCreate)
+	if err != nil {
+		return Role{}, err
+	}
+	return s.repository.Get(ctx, roleID)
 }
 
 func (s Service) Get(ctx context.Context, id string) (Role, error) {
-	return s.store.GetRole(ctx, id)
+	return s.repository.Get(ctx, id)
 }
 
 func (s Service) List(ctx context.Context) ([]Role, error) {
-	return s.store.ListRoles(ctx)
+	return s.repository.List(ctx)
 }
 
 func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
-	return s.store.UpdateRole(ctx, toUpdate)
+	roleID, err := s.repository.Update(ctx, toUpdate)
+	if err != nil {
+		return Role{}, err
+	}
+	return s.repository.Get(ctx, roleID)
 }

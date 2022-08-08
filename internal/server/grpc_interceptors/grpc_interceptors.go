@@ -4,12 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/odpf/shield/core/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-)
-
-const (
-	identityCtx = "identityCtx"
 )
 
 func EnrichCtxWithIdentity(identityHeader string) grpc.UnaryServerInterceptor {
@@ -25,12 +22,7 @@ func EnrichCtxWithIdentity(identityHeader string) grpc.UnaryServerInterceptor {
 			email = metadataValues[0]
 		}
 
-		ctx = context.WithValue(ctx, identityCtx, email)
+		ctx = user.SetContextWithEmail(ctx, email)
 		return handler(ctx, req)
 	}
-}
-
-func GetIdentityHeader(ctx context.Context) (string, bool) {
-	identity, ok := ctx.Value(identityCtx).(string)
-	return identity, ok
 }

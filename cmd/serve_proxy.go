@@ -24,7 +24,8 @@ import (
 func serveProxies(
 	ctx context.Context,
 	logger log.Logger,
-	identityProxyHeader string,
+	identityProxyHeaderKey,
+	userIDHeaderKey string,
 	cfg proxy.ServicesConfig,
 	resourceService *resource.Service,
 	userService *user.Service,
@@ -34,7 +35,7 @@ func serveProxies(
 	var cleanUpProxies []func(ctx context.Context) error
 
 	for _, svcConfig := range cfg.Services {
-		hookPipeline := buildHookPipeline(logger, identityProxyHeader, resourceService, projectService)
+		hookPipeline := buildHookPipeline(logger, identityProxyHeaderKey, resourceService, projectService)
 
 		h2cProxy := proxy.NewH2c(
 			proxy.NewH2cRoundTripper(logger, hookPipeline),
@@ -46,21 +47,20 @@ func serveProxies(
 			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
 
-		blobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
+		ruleBlobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		ruleRepo := blob.NewRuleRepository(logger, blobFS)
-		if err := ruleRepo.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+		ruleBlobRepository := blob.NewRuleRepository(logger, ruleBlobFS)
+		if err := ruleBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 			return nil, nil, err
 		}
+		cleanUpBlobs = append(cleanUpBlobs, ruleBlobRepository.Close)
 
-		ruleService := rule.NewService(ruleRepo)
+		ruleService := rule.NewService(ruleBlobRepository)
 
-		cleanUpBlobs = append(cleanUpBlobs, ruleRepo.Close)
-
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeader, resourceService, userService, ruleService)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, ruleService)
 
 		cps := proxy.Serve(ctx, logger, svcConfig, middlewarePipeline)
 		cleanUpProxies = append(cleanUpProxies, cps)
@@ -70,23 +70,23 @@ func serveProxies(
 	return cleanUpBlobs, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger, identityProxyHeader string, resourceService v1beta1.ResourceService, projectService v1beta1.ProjectService) hook.Service {
+func buildHookPipeline(log log.Logger, identityProxyHeaderKey string, resourceService v1beta1.ResourceService, projectService v1beta1.ProjectService) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, identityProxyHeader, resourceService, projectService)
+	return authz_hook.New(log, rootHook, rootHook, identityProxyHeaderKey, resourceService, projectService)
 }
 
 // buildPipeline builds middleware sequence
 func buildMiddlewarePipeline(
 	logger log.Logger,
 	proxy http.Handler,
-	identityProxyHeader string,
+	identityProxyHeaderKey, userIDHeaderKey string,
 	resourceService *resource.Service,
 	userService *user.Service,
 	ruleService *rule.Service,
 ) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, prefixWare, identityProxyHeader, resourceService, userService)
+	casbinAuthz := authz.New(logger, prefixWare, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleService))
 	return matchWare

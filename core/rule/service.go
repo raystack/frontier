@@ -3,15 +3,15 @@ package rule
 import "context"
 
 type Service struct {
-	ruleRepo RuleRepository
+	configRepository ConfigRepository
 }
 
-func NewService(ruleRepo RuleRepository) *Service {
+func NewService(configRepository ConfigRepository) *Service {
 	return &Service{
-		ruleRepo: ruleRepo,
+		configRepository: configRepository,
 	}
 }
 
-func (s Service) GetAll(ctx context.Context) ([]Ruleset, error) {
-	return s.ruleRepo.GetAll(ctx)
+func (s Service) GetAllConfigs(ctx context.Context) ([]Ruleset, error) {
+	return s.configRepository.GetAll(ctx)
 }

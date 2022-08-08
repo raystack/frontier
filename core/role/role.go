@@ -2,24 +2,19 @@ package role
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/pkg/metadata"
 )
 
-var (
-	ErrNotExist    = errors.New("role doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
-type Store interface {
-	CreateRole(ctx context.Context, role Role) (Role, error)
-	GetRole(ctx context.Context, id string) (Role, error)
-	ListRoles(ctx context.Context) ([]Role, error)
-	UpdateRole(ctx context.Context, toUpdate Role) (Role, error)
+type Repository interface {
+	Get(ctx context.Context, id string) (Role, error)
+	List(ctx context.Context) ([]Role, error)
+	Create(ctx context.Context, role Role) (string, error)
+	Update(ctx context.Context, toUpdate Role) (string, error)
 }
 
 type Role struct {
@@ -28,7 +23,7 @@ type Role struct {
 	Types       []string
 	Namespace   namespace.Namespace
 	NamespaceID string
-	Metadata    map[string]any
+	Metadata    metadata.Metadata
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

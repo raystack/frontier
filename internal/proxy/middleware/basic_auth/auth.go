@@ -9,6 +9,7 @@ import (
 
 	"github.com/odpf/shield/internal/proxy/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
+	"github.com/odpf/shield/pkg/httputil"
 
 	goauth "github.com/abbot/go-http-auth"
 	"github.com/mitchellh/mapstructure"
@@ -95,7 +96,7 @@ func (w *BasicAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	var authedUser string
 	if authedUser = authenticator.CheckAuth(req); authedUser != "" {
-		req.Header.Set("X-User", authedUser)
+		req.Header.Set(httputil.HeaderXUser, authedUser)
 	} else {
 		w.notAllowed(rw)
 		return

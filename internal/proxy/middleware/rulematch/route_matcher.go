@@ -14,7 +14,7 @@ type RouteMatcher struct {
 }
 
 func (r RouteMatcher) Match(req *http.Request) (*rule.Rule, error) {
-	ruleset, err := r.ruleService.GetAll(req.Context())
+	ruleset, err := r.ruleService.GetAllConfigs(req.Context())
 	if err != nil {
 		return nil, err
 	}

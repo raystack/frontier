@@ -2,29 +2,26 @@ package user
 
 import (
 	"context"
-	"errors"
 	"time"
+
+	"github.com/odpf/shield/pkg/metadata"
 )
 
-var (
-	ErrNotExist    = errors.New("user doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
-type Store interface {
-	GetUser(ctx context.Context, id string) (User, error)
-	GetUserByEmail(ctx context.Context, email string) (User, error)
-	CreateUser(ctx context.Context, user User) (User, error)
-	ListUsers(ctx context.Context, limit int32, page int32, keyword string) (PagedUsers, error)
-	UpdateUser(ctx context.Context, toUpdate User) (User, error)
-	UpdateCurrentUser(ctx context.Context, toUpdate User) (User, error)
+type Repository interface {
+	GetByID(ctx context.Context, id string) (User, error)
+	GetByEmail(ctx context.Context, email string) (User, error)
+	GetByIDs(ctx context.Context, userIds []string) ([]User, error)
+	Create(ctx context.Context, user User) (User, error)
+	List(ctx context.Context, flt Filter) ([]User, error)
+	UpdateByID(ctx context.Context, toUpdate User) (User, error)
+	UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 }
 
 type User struct {
 	ID        string
 	Name      string
 	Email     string
-	Metadata  map[string]any
+	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

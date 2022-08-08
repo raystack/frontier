@@ -34,7 +34,7 @@ type Authz struct {
 	projectService ProjectService
 
 	// TODO need to figure out what best to pass this
-	identityProxyHeader string
+	identityProxyHeaderKey string
 
 	resourceService ResourceService
 }
@@ -43,14 +43,14 @@ type ProjectService interface {
 	Get(ctx context.Context, id string) (project.Project, error)
 }
 
-func New(log log.Logger, next, escape hook.Service, identityProxyHeader string, resourceService ResourceService, projectService ProjectService) Authz {
+func New(log log.Logger, next, escape hook.Service, identityProxyHeaderKey string, resourceService ResourceService, projectService ProjectService) Authz {
 	return Authz{
-		log:                 log,
-		next:                next,
-		escape:              escape,
-		identityProxyHeader: identityProxyHeader,
-		resourceService:     resourceService,
-		projectService:      projectService,
+		log:                    log,
+		next:                   next,
+		escape:                 escape,
+		identityProxyHeaderKey: identityProxyHeaderKey,
+		resourceService:        resourceService,
+		projectService:         projectService,
 	}
 }
 
@@ -93,8 +93,9 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	attributes := map[string]interface{}{}
 	attributes["namespace"] = ruleFromRequest.Backend.Namespace
 
-	attributes["user"] = res.Request.Header.Get(a.identityProxyHeader)
-	res.Request = res.Request.WithContext(user.SetEmailToContext(res.Request.Context(), res.Request.Header.Get(a.identityProxyHeader)))
+	identityProxyHeaderValue := res.Request.Header.Get(a.identityProxyHeaderKey)
+	attributes["user"] = identityProxyHeaderValue
+	res.Request = res.Request.WithContext(user.SetContextWithEmail(res.Request.Context(), identityProxyHeaderValue))
 
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)

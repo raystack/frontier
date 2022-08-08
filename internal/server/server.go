@@ -17,7 +17,7 @@ import (
 	"github.com/odpf/salt/server"
 	"github.com/odpf/shield/internal/api"
 	"github.com/odpf/shield/internal/api/v1beta1"
-	"github.com/odpf/shield/pkg/grpc_interceptors"
+	"github.com/odpf/shield/internal/server/grpc_interceptors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

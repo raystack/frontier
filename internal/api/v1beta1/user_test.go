@@ -7,16 +7,15 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 
 	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/odpf/shield/core/group"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
@@ -25,7 +24,7 @@ var testUserMap = map[string]user.User{
 		ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 		Name:  "User 1",
 		Email: "test@test.com",
-		Metadata: map[string]any{
+		Metadata: metadata.Metadata{
 			"foo":    "bar",
 			"age":    21,
 			"intern": true,
@@ -47,7 +46,7 @@ func TestListUsers(t *testing.T) {
 	}{
 		{
 			title: "error in User Service",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users user.PagedUsers, err error) {
+			mockUserSrv: mockUserSrv{ListFunc: func(ctx context.Context, flt user.Filter) (users user.PagedUsers, err error) {
 				return user.PagedUsers{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.ListUsersRequest{
@@ -59,7 +58,7 @@ func TestListUsers(t *testing.T) {
 			err:  status.Errorf(codes.Internal, internalServerError.Error()),
 		}, {
 			title: "success",
-			mockUserSrv: mockUserSrv{ListUsersFunc: func(ctx context.Context, limit int32, page int32, keyword string) (users user.PagedUsers, err error) {
+			mockUserSrv: mockUserSrv{ListFunc: func(ctx context.Context, flt user.Filter) (users user.PagedUsers, err error) {
 				var testUserList []user.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
@@ -122,7 +121,7 @@ func TestCreateUser(t *testing.T) {
 	}{
 		{
 			title: "error in fetching user list",
-			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u user.User) (user.User, error) {
+			mockUserSrv: mockUserSrv{CreateFunc: func(ctx context.Context, u user.User) (user.User, error) {
 				return user.User{}, emptyEmailId
 			}},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
@@ -149,7 +148,7 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockUserSrv: mockUserSrv{CreateUserFunc: func(ctx context.Context, u user.User) (user.User, error) {
+			mockUserSrv: mockUserSrv{CreateFunc: func(ctx context.Context, u user.User) (user.User, error) {
 				return user.User{
 					ID:       "new-abc",
 					Name:     "some user",
@@ -186,9 +185,8 @@ func TestCreateUser(t *testing.T) {
 			var resp *shieldv1beta1.CreateUserResponse
 			var err error
 			if tt.title == "success" {
-				mockDep := Handler{userService: tt.mockUserSrv, identityProxyHeader: "x-auth-email"}
-				md := metadata.Pairs(mockDep.identityProxyHeader, tt.header)
-				ctx := metadata.NewIncomingContext(context.Background(), md)
+				mockDep := Handler{userService: tt.mockUserSrv}
+				ctx := user.SetContextWithEmail(context.Background(), tt.header)
 				resp, err = mockDep.CreateUser(ctx, tt.req)
 			} else {
 				mockDep := Handler{userService: tt.mockUserSrv}
@@ -213,7 +211,7 @@ func TestGetCurrentUser(t *testing.T) {
 	}{
 		{
 			title: "error in User Service",
-			mockUserSrv: mockUserSrv{GetUserByEmailFunc: func(ctx context.Context, email string) (usr user.User, err error) {
+			mockUserSrv: mockUserSrv{GetByEmailFunc: func(ctx context.Context, email string) (usr user.User, err error) {
 				return user.User{}, errors.New("some error")
 			}},
 			header: "email-temp",
@@ -222,12 +220,12 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockUserSrv: mockUserSrv{GetUserByEmailFunc: func(ctx context.Context, email string) (usr user.User, err error) {
+			mockUserSrv: mockUserSrv{GetByEmailFunc: func(ctx context.Context, email string) (usr user.User, err error) {
 				return user.User{
 					ID:    "user-id-1",
 					Name:  "some user",
 					Email: "someuser@test.com",
-					Metadata: map[string]any{
+					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
 					CreatedAt: time.Time{},
@@ -255,9 +253,8 @@ func TestGetCurrentUser(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{userService: tt.mockUserSrv, identityProxyHeader: "x-auth-email"}
-			md := metadata.Pairs(mockDep.identityProxyHeader, tt.header)
-			ctx := metadata.NewIncomingContext(context.Background(), md)
+			mockDep := Handler{userService: tt.mockUserSrv}
+			ctx := user.SetContextWithEmail(context.Background(), tt.header)
 
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
@@ -279,7 +276,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 	}{
 		{
 			title: "error in User Service",
-			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
+			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
 				return user.User{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
@@ -297,7 +294,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "diff emails in header and body",
-			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
+			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
 				return user.User{}, nil
 			}},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
@@ -315,7 +312,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "empty request body",
-			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
+			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
 				return user.User{}, nil
 			}},
 			req:    &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
@@ -325,12 +322,12 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockUserSrv: mockUserSrv{UpdateCurrentUserFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
+			mockUserSrv: mockUserSrv{UpdateByEmailFunc: func(ctx context.Context, toUpdate user.User) (usr user.User, err error) {
 				return user.User{
 					ID:    "user-id-1",
 					Name:  "abc user",
 					Email: "abcuser@test.com",
-					Metadata: map[string]any{
+					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
 					CreatedAt: time.Time{},
@@ -367,9 +364,8 @@ func TestUpdateCurrentUser(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			mockDep := Handler{userService: tt.mockUserSrv, identityProxyHeader: "x-auth-email"}
-			md := metadata.Pairs(mockDep.identityProxyHeader, tt.header)
-			ctx := metadata.NewIncomingContext(context.Background(), md)
+			mockDep := Handler{userService: tt.mockUserSrv}
+			ctx := user.SetContextWithEmail(context.Background(), tt.header)
 
 			resp, err := mockDep.UpdateCurrentUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)
@@ -379,44 +375,39 @@ func TestUpdateCurrentUser(t *testing.T) {
 }
 
 type mockUserSrv struct {
-	GetUserFunc           func(ctx context.Context, id string) (user.User, error)
-	GetUserByEmailFunc    func(ctx context.Context, email string) (user.User, error)
-	CreateUserFunc        func(ctx context.Context, usr user.User) (user.User, error)
-	ListUsersFunc         func(ctx context.Context, limit int32, page int32, keyword string) (user.PagedUsers, error)
-	UpdateUserFunc        func(ctx context.Context, toUpdate user.User) (user.User, error)
-	UpdateCurrentUserFunc func(ctx context.Context, toUpdate user.User) (user.User, error)
-	ListUserGroupsFunc    func(ctx context.Context, userId string, roleId string) ([]group.Group, error)
-	FetchCurrentUserFunc  func(ctx context.Context) (user.User, error)
+	GetByIDFunc       func(ctx context.Context, id string) (user.User, error)
+	GetByEmailFunc    func(ctx context.Context, email string) (user.User, error)
+	CreateFunc        func(ctx context.Context, usr user.User) (user.User, error)
+	ListFunc          func(ctx context.Context, flt user.Filter) (user.PagedUsers, error)
+	UpdateByIDFunc    func(ctx context.Context, toUpdate user.User) (user.User, error)
+	UpdateByEmailFunc func(ctx context.Context, toUpdate user.User) (user.User, error)
+	FetchCurrentFunc  func(ctx context.Context) (user.User, error)
 }
 
-func (m mockUserSrv) GetUser(ctx context.Context, id string) (user.User, error) {
-	return m.GetUserFunc(ctx, id)
+func (m mockUserSrv) GetByID(ctx context.Context, id string) (user.User, error) {
+	return m.GetByIDFunc(ctx, id)
 }
 
-func (m mockUserSrv) GetUserByEmail(ctx context.Context, email string) (user.User, error) {
-	return m.GetUserByEmailFunc(ctx, email)
+func (m mockUserSrv) GetByEmail(ctx context.Context, email string) (user.User, error) {
+	return m.GetByEmailFunc(ctx, email)
 }
 
-func (m mockUserSrv) CreateUser(ctx context.Context, usr user.User) (user.User, error) {
-	return m.CreateUserFunc(ctx, usr)
+func (m mockUserSrv) Create(ctx context.Context, usr user.User) (user.User, error) {
+	return m.CreateFunc(ctx, usr)
 }
 
-func (m mockUserSrv) ListUsers(ctx context.Context, limit int32, page int32, keyword string) (user.PagedUsers, error) {
-	return m.ListUsersFunc(ctx, limit, page, keyword)
+func (m mockUserSrv) List(ctx context.Context, flt user.Filter) (user.PagedUsers, error) {
+	return m.ListFunc(ctx, flt)
 }
 
-func (m mockUserSrv) UpdateUser(ctx context.Context, toUpdate user.User) (user.User, error) {
-	return m.UpdateUserFunc(ctx, toUpdate)
+func (m mockUserSrv) UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error) {
+	return m.UpdateByIDFunc(ctx, toUpdate)
 }
 
-func (m mockUserSrv) UpdateCurrentUser(ctx context.Context, toUpdate user.User) (user.User, error) {
-	return m.UpdateCurrentUserFunc(ctx, toUpdate)
-}
-
-func (m mockUserSrv) ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error) {
-	return m.ListUserGroupsFunc(ctx, userId, roleId)
+func (m mockUserSrv) UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error) {
+	return m.UpdateByEmailFunc(ctx, toUpdate)
 }
 
 func (m mockUserSrv) FetchCurrentUser(ctx context.Context) (user.User, error) {
-	return m.FetchCurrentUserFunc(ctx)
+	return m.FetchCurrentFunc(ctx)
 }

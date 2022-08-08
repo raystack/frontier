@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -15,24 +14,16 @@ import (
 
 const NON_RESOURCE_ID = "*"
 
-var (
-	ErrNotExist    = errors.New("resource doesn't exist")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
-)
-
-type Store interface {
-	GetResource(ctx context.Context, id string) (Resource, error)
-	GetResourceByURN(ctx context.Context, urn string) (Resource, error)
-	CreateResource(ctx context.Context, resource Resource) (Resource, error)
-	ListResources(ctx context.Context, filters Filters) ([]Resource, error)
-	UpdateResource(ctx context.Context, id string, resource Resource) (Resource, error)
+type Repository interface {
+	GetByID(ctx context.Context, id string) (Resource, error)
+	GetByURN(ctx context.Context, urn string) (Resource, error)
+	Create(ctx context.Context, resource Resource) (Resource, error)
+	List(ctx context.Context, flt Filter) ([]Resource, error)
+	Update(ctx context.Context, id string, resource Resource) (Resource, error)
 }
 
-type AuthzStore interface {
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
-}
-
-type BlobStore interface {
+type ConfigRepository interface {
+	GetAll(ctx context.Context) ([]YAML, error)
 	GetRelationsForNamespace(ctx context.Context, namespaceID string) (map[string]bool, error)
 }
 
@@ -54,22 +45,10 @@ type Resource struct {
 	UpdatedAt      time.Time
 }
 
-type Filters struct {
-	ProjectID      string `json:"project_id"`
-	GroupID        string `json:"group_id"`
-	OrganizationID string `json:"org_id"`
-	NamespaceID    string `json:"namespace_id"`
-}
-
-type YAML struct {
-	Name    string              `json:"name" yaml:"name"`
-	Actions map[string][]string `json:"actions" yaml:"actions"`
-}
-
 /*
  /project/uuid/
 */
-func CreateURN(res Resource) string {
+func (res Resource) CreateURN() string {
 	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	if isSystemNS {
 		return res.Name
@@ -78,4 +57,16 @@ func CreateURN(res Resource) string {
 		return fmt.Sprintf("p/%s/%s", res.ProjectID, res.NamespaceID)
 	}
 	return fmt.Sprintf("r/%s/%s", res.NamespaceID, res.Name)
+}
+
+type Filter struct {
+	ProjectID      string
+	GroupID        string
+	OrganizationID string
+	NamespaceID    string
+}
+
+type YAML struct {
+	Name    string              `json:"name" yaml:"name"`
+	Actions map[string][]string `json:"actions" yaml:"actions"`
 }

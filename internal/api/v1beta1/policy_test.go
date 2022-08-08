@@ -10,6 +10,7 @@ import (
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/pkg/metadata"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,7 @@ var testPolicyMap = map[string]policy.Policy{
 		Role: role.Role{
 			ID:       "reader",
 			Name:     "Reader",
-			Metadata: map[string]any{},
+			Metadata: metadata.Metadata{},
 			Namespace: namespace.Namespace{
 				ID:        "resource-1",
 				Name:      "Resource 1",
@@ -65,7 +66,7 @@ func TestListPolicies(t *testing.T) {
 	}{
 		{
 			title: "error in Policy Service",
-			MockPolicySrv: mockPolicySrv{ListPoliciesFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
+			MockPolicySrv: mockPolicySrv{ListFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
 				return []policy.Policy{}, errors.New("some error")
 			}},
 			want: nil,
@@ -73,7 +74,7 @@ func TestListPolicies(t *testing.T) {
 		},
 		{
 			title: "success",
-			MockPolicySrv: mockPolicySrv{ListPoliciesFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
+			MockPolicySrv: mockPolicySrv{ListFunc: func(ctx context.Context) (actions []policy.Policy, err error) {
 				var testPoliciesList []policy.Policy
 				for _, p := range testPolicyMap {
 					testPoliciesList = append(testPoliciesList, p)
@@ -147,7 +148,7 @@ func TestCreatePolicy(t *testing.T) {
 	}{
 		{
 			title: "error in creating policy",
-			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+			mockPolicySrv: mockPolicySrv{CreateFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
 				return []policy.Policy{}, errors.New("some error")
 			}},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
@@ -160,7 +161,7 @@ func TestCreatePolicy(t *testing.T) {
 		},
 		{
 			title: "success",
-			mockPolicySrv: mockPolicySrv{CreatePolicyFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+			mockPolicySrv: mockPolicySrv{CreateFunc: func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
 				return []policy.Policy{
 					{
 						ID: "test",
@@ -185,7 +186,7 @@ func TestCreatePolicy(t *testing.T) {
 						Role: role.Role{
 							ID:       "reader",
 							Name:     "Reader",
-							Metadata: map[string]any{},
+							Metadata: metadata.Metadata{},
 							Namespace: namespace.Namespace{
 								ID:        "resource-1",
 								Name:      "Resource 1",
@@ -256,24 +257,24 @@ func TestCreatePolicy(t *testing.T) {
 }
 
 type mockPolicySrv struct {
-	GetPolicyFunc    func(ctx context.Context, id string) (policy.Policy, error)
-	CreatePolicyFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
-	ListPoliciesFunc func(ctx context.Context) ([]policy.Policy, error)
-	UpdatePolicyFunc func(ctx context.Context, id string, pol policy.Policy) ([]policy.Policy, error)
+	GetFunc    func(ctx context.Context, id string) (policy.Policy, error)
+	CreateFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
+	ListFunc   func(ctx context.Context) ([]policy.Policy, error)
+	UpdateFunc func(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
 }
 
-func (m mockPolicySrv) GetPolicy(ctx context.Context, id string) (policy.Policy, error) {
-	return m.GetPolicyFunc(ctx, id)
+func (m mockPolicySrv) Get(ctx context.Context, id string) (policy.Policy, error) {
+	return m.GetFunc(ctx, id)
 }
 
-func (m mockPolicySrv) ListPolicies(ctx context.Context) ([]policy.Policy, error) {
-	return m.ListPoliciesFunc(ctx)
+func (m mockPolicySrv) List(ctx context.Context) ([]policy.Policy, error) {
+	return m.ListFunc(ctx)
 }
 
-func (m mockPolicySrv) CreatePolicy(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
-	return m.CreatePolicyFunc(ctx, pol)
+func (m mockPolicySrv) Create(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+	return m.CreateFunc(ctx, pol)
 }
 
-func (m mockPolicySrv) UpdatePolicy(ctx context.Context, id string, pol policy.Policy) ([]policy.Policy, error) {
-	return m.UpdatePolicyFunc(ctx, id, pol)
+func (m mockPolicySrv) Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+	return m.UpdateFunc(ctx, pol)
 }

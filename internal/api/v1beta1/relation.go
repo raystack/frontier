@@ -17,7 +17,7 @@ type RelationService interface {
 	Get(ctx context.Context, id string) (relation.Relation, error)
 	List(ctx context.Context) ([]relation.Relation, error)
 	Create(ctx context.Context, relation relation.Relation) (relation.Relation, error)
-	Update(ctx context.Context, id string, relation relation.Relation) (relation.Relation, error)
+	Update(ctx context.Context, relation relation.Relation) (relation.Relation, error)
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
@@ -49,25 +49,29 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 
 func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRelationRequest) (*shieldv1beta1.CreateRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
 	newRelation, err := h.relationService.Create(ctx, relation.Relation{
-		SubjectNamespaceID: request.GetBody().SubjectType,
-		SubjectID:          request.GetBody().SubjectId,
-		ObjectNamespaceID:  request.GetBody().ObjectType,
-		ObjectID:           request.GetBody().ObjectId,
-		RoleID:             request.GetBody().RoleId,
+		SubjectNamespaceID: request.GetBody().GetSubjectType(),
+		SubjectID:          request.GetBody().GetSubjectId(),
+		ObjectNamespaceID:  request.GetBody().GetObjectType(),
+		ObjectID:           request.GetBody().GetObjectId(),
+		RoleID:             request.GetBody().GetRoleId(),
 	})
 
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, relation.ErrNotExist):
+			return nil, grpcPolicyNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	relationPB, err := transformRelationToPB(newRelation)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -87,7 +91,7 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 		switch {
 		case errors.Is(err, relation.ErrNotExist):
 			return nil, status.Errorf(codes.NotFound, "relation not found")
-		case errors.Is(err, relation.ErrInvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID), errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -109,16 +113,17 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.UpdateRelationRequest) (*shieldv1beta1.UpdateRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.Body == nil {
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	updatedRelation, err := h.relationService.Update(ctx, request.GetId(), relation.Relation{
-		SubjectNamespaceID: request.GetBody().SubjectType,
-		SubjectID:          request.GetBody().SubjectId,
-		ObjectNamespaceID:  request.GetBody().ObjectType,
-		ObjectID:           request.GetBody().ObjectId,
-		RoleID:             request.GetBody().RoleId,
+	updatedRelation, err := h.relationService.Update(ctx, relation.Relation{
+		ID:                 request.GetId(),
+		SubjectNamespaceID: request.GetBody().GetSubjectType(),
+		SubjectID:          request.GetBody().GetSubjectId(),
+		ObjectNamespaceID:  request.GetBody().GetObjectType(),
+		ObjectID:           request.GetBody().GetObjectId(),
+		RoleID:             request.GetBody().GetRoleId(),
 	})
 
 	if err != nil {
@@ -126,15 +131,16 @@ func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.Upda
 		switch {
 		case errors.Is(err, relation.ErrNotExist):
 			return nil, grpcRelationNotFoundErr
-		case errors.Is(err, relation.ErrInvalidUUID):
+		case errors.Is(err, relation.ErrInvalidUUID), errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcBadBodyError
+		case errors.Is(err, relation.ErrConflict):
+			return nil, grpcConflictError
 		default:
 			return nil, grpcInternalServerError
 		}
 	}
 
 	relationPB, err := transformRelationToPB(updatedRelation)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
