@@ -40,7 +40,6 @@ var (
 )
 
 func TestListOrganizations(t *testing.T) {
-
 	table := []struct {
 		title string
 		setup func(os *mocks.OrganizationService)

@@ -606,7 +606,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 			wantErr: grpcProjectNotFoundErr,
 		},
 		{
-			name: "should return sucess if project service return nil",
+			name: "should return success if project service return nil",
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(testProjectMap[testProjectID], nil)
 			},
