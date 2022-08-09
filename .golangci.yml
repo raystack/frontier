@@ -9,9 +9,7 @@ linters:
     - vet
     - goimports
     - thelper
-    - tparallel
     - unconvert
-    - wastedassign
     - revive
     - unused
     - gofmt
