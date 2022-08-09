@@ -57,9 +57,12 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 	}
 
 	newRole, err := h.roleService.Create(ctx, role.Role{
-		ID:          request.GetBody().GetId(),
-		Name:        request.GetBody().GetName(),
-		Types:       request.GetBody().GetTypes(),
+		ID:    request.GetBody().GetId(),
+		Name:  request.GetBody().GetName(),
+		Types: request.GetBody().GetTypes(),
+		Namespace: namespace.Namespace{
+			ID: request.GetBody().GetNamespaceId(),
+		},
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		Metadata:    metaDataMap,
 	})
@@ -118,19 +121,22 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 	}
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
-		ID:          request.GetId(),
-		Name:        request.GetBody().GetName(),
-		Types:       request.GetBody().GetTypes(),
+		ID:    request.GetId(),
+		Name:  request.GetBody().GetName(),
+		Types: request.GetBody().GetTypes(),
+		Namespace: namespace.Namespace{
+			ID: request.GetBody().GetNamespaceId(),
+		},
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, role.ErrInvalidID),
-			errors.Is(err, role.ErrInvalidDetail):
+		case errors.Is(err, role.ErrInvalidDetail):
 			return nil, grpcBadBodyError
-		case errors.Is(err, role.ErrNotExist):
+		case errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrNotExist):
 			return nil, grpcRoleNotFoundErr
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError

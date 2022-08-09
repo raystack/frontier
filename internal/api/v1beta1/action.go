@@ -102,18 +102,16 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 	logger := grpczap.Extract(ctx)
 
 	updatedAction, err := h.actionService.Update(ctx, request.GetId(), action.Action{
-		ID:          request.GetId(),
 		Name:        request.GetBody().GetName(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, action.ErrNotExist):
+		case errors.Is(err, action.ErrNotExist),
+			errors.Is(err, action.ErrInvalidID):
 			return nil, grpcActionNotFoundErr
 		case errors.Is(err, namespace.ErrNotExist),
-			errors.Is(err, action.ErrInvalidID),
 			errors.Is(err, action.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:

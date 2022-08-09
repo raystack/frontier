@@ -80,10 +80,9 @@ func (h Handler) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNam
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, namespace.ErrNotExist):
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, namespace.ErrInvalidID):
 			return nil, grpcNamespaceNotFoundErr
-		case errors.Is(err, namespace.ErrInvalidID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
