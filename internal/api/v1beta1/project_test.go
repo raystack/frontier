@@ -12,7 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/core/user"
 
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -48,30 +50,95 @@ var testProjectMap = map[string]project.Project{
 }
 
 func TestCreateProject(t *testing.T) {
-	t.Parallel()
-
+	email := "user@odpf.io"
 	table := []struct {
 		title string
-		setup func(ps *mocks.ProjectService)
+		setup func(ctx context.Context, ps *mocks.ProjectService) context.Context
 		req   *shieldv1beta1.CreateProjectRequest
 		want  *shieldv1beta1.CreateProjectResponse
 		err   error
 	}{
 		{
-			title: "error in metadata parsing",
+			title: "should return forbidden error if auth email in context is empty and project service return invalid user email",
+			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
+				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
+					Name: "odpf 1",
+					Slug: "odpf-1",
+					Metadata: metadata.Metadata{
+						"team": "Platforms",
+					},
+				}).Return(project.Project{}, user.ErrInvalidEmail)
+				return user.SetContextWithEmail(ctx, email)
+			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "odpf 1",
 				Slug: "odpf-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"count": structpb.NewNumberValue(10),
+						"team": structpb.NewStringValue("Platforms"),
+					},
+				},
+			}},
+			err: grpcPermissionDenied,
+		},
+		{
+			title: "should return internal error if project service return some error",
+			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
+				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
+					Name: "odpf 1",
+					Slug: "odpf-1",
+					Metadata: metadata.Metadata{
+						"team": "Platforms",
+					},
+				}).Return(project.Project{}, errors.New("some error"))
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+				Name: "odpf 1",
+				Slug: "odpf-1",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"team": structpb.NewStringValue("Platforms"),
+					},
+				},
+			}},
+			err: grpcInternalServerError,
+		},
+		{
+			title: "should return bad request error if org id is not uuid",
+			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
+				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
+					Name: "odpf 1",
+					Slug: "odpf-1",
+					Metadata: metadata.Metadata{
+						"team": "Platforms",
+					},
+				}).Return(project.Project{}, organization.ErrInvalidUUID)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+				Name: "odpf 1",
+				Slug: "odpf-1",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"team": structpb.NewStringValue("Platforms"),
 					},
 				},
 			}},
 			err: grpcBadBodyError,
 		},
 		{
-			title: "error in service",
+			title: "should return bad request error if org id is not uuid",
+			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
+				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
+					Name: "odpf 1",
+					Slug: "odpf-1",
+					Metadata: metadata.Metadata{
+						"team": "Platforms",
+					},
+				}).Return(project.Project{}, organization.ErrInvalidUUID)
+				return user.SetContextWithEmail(ctx, email)
+			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "odpf 1",
 				Slug: "odpf-1",
@@ -81,14 +148,20 @@ func TestCreateProject(t *testing.T) {
 					},
 				},
 			}},
-			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Create(mock.Anything, mock.Anything).Return(
-					project.Project{}, errors.New("some service error"))
-			},
-			err: grpcInternalServerError,
+			err: grpcBadBodyError,
 		},
 		{
-			title: "success",
+			title: "should return already exist error if group service return error conflict",
+			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
+				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
+					Name: "odpf 1",
+					Slug: "odpf-1",
+					Metadata: metadata.Metadata{
+						"team": "Platforms",
+					},
+				}).Return(project.Project{}, project.ErrConflict)
+				return user.SetContextWithEmail(ctx, email)
+			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "odpf 1",
 				Slug: "odpf-1",
@@ -98,9 +171,56 @@ func TestCreateProject(t *testing.T) {
 					},
 				},
 			}},
-			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Create(mock.Anything, mock.Anything).Return(
-					testProjectMap[testProjectID], nil)
+			err: grpcConflictError,
+		},
+		{
+			title: "should return bad request error if name is empty",
+			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
+				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
+					Slug: "odpf-1",
+					Metadata: metadata.Metadata{
+						"team": "Platforms",
+					},
+				}).Return(project.Project{}, project.ErrInvalidDetail)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+				Slug: "odpf-1",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"team": structpb.NewStringValue("Platforms"),
+					},
+				},
+			}},
+			err: grpcBadBodyError,
+		},
+		{
+			title: "should return success if group service return nil",
+			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+				Name: testProjectMap[testProjectID].Name,
+				Slug: testProjectMap[testProjectID].Slug,
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"email": structpb.NewStringValue("org1@org1.com"),
+					},
+				},
+			}},
+			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
+				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
+					Name: testProjectMap[testProjectID].Name,
+					Slug: testProjectMap[testProjectID].Slug,
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+					},
+				}).Return(project.Project{
+					ID:   testProjectMap[testProjectID].ID,
+					Name: testProjectMap[testProjectID].Name,
+					Slug: testProjectMap[testProjectID].Slug,
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+					},
+				}, nil)
+				return user.SetContextWithEmail(ctx, email)
 			},
 			want: &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
 				Id:   testProjectMap[testProjectID].ID,
@@ -120,14 +240,13 @@ func TestCreateProject(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
 			mockProjectSrv := new(mocks.ProjectService)
+			ctx := context.Background()
 			if tt.setup != nil {
-				tt.setup(mockProjectSrv)
+				ctx = tt.setup(ctx, mockProjectSrv)
 			}
 			mockDep := Handler{projectService: mockProjectSrv}
-			resp, err := mockDep.CreateProject(context.Background(), tt.req)
+			resp, err := mockDep.CreateProject(ctx, tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
@@ -135,8 +254,6 @@ func TestCreateProject(t *testing.T) {
 }
 
 func TestListProjects(t *testing.T) {
-	t.Parallel()
-
 	table := []struct {
 		title string
 		setup func(ps *mocks.ProjectService)
@@ -145,16 +262,16 @@ func TestListProjects(t *testing.T) {
 		err   error
 	}{
 		{
-			title: "error in service",
+			title: "should return internal error if project service return some error",
 			req:   &shieldv1beta1.ListProjectsRequest{},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().List(mock.Anything).Return([]project.Project{}, errors.New("some store error"))
+				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]project.Project{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  grpcInternalServerError,
 		},
 		{
-			title: "success",
+			title: "should return success if project return nil error",
 			req:   &shieldv1beta1.ListProjectsRequest{},
 			setup: func(ps *mocks.ProjectService) {
 				var prjs []project.Project
@@ -163,7 +280,7 @@ func TestListProjects(t *testing.T) {
 					prjs = append(prjs, testProjectMap[projectID])
 				}
 
-				ps.EXPECT().List(mock.Anything).Return(prjs, nil)
+				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(prjs, nil)
 			},
 			want: &shieldv1beta1.ListProjectsResponse{Projects: []*shieldv1beta1.Project{
 				{
@@ -197,8 +314,6 @@ func TestListProjects(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
 			mockProjectSrv := new(mocks.ProjectService)
 			if tt.setup != nil {
 				tt.setup(mockProjectSrv)

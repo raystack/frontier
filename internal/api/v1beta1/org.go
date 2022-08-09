@@ -3,7 +3,6 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
@@ -20,6 +19,8 @@ import (
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
+
+var grpcOrgNotFoundErr = status.Errorf(codes.NotFound, "org doesn't exist")
 
 //go:generate mockery --name=OrganizationService -r --case underscore --with-expecter --structname OrganizationService --filename org_service.go --output=./mocks
 type OrganizationService interface {
@@ -119,7 +120,7 @@ func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.Get
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
-			return nil, status.Errorf(codes.NotFound, "organization not found")
+			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
@@ -169,11 +170,11 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
-			return nil, status.Errorf(codes.NotFound, "organization not found")
+			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, ErrInternalServer
+			return nil, grpcInternalServerError
 		}
 	}
 
@@ -196,7 +197,7 @@ func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
+			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
@@ -228,7 +229,7 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
+			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -257,13 +258,11 @@ func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1b
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "org to be updated not found")
+			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcUserNotFoundError
-		case errors.Is(err, relation.ErrNotExist):
-			return nil, grpcRelationNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}

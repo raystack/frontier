@@ -168,7 +168,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if no auth email header in context and group service return error invalid user email",
+			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name: "some group",
@@ -469,7 +469,7 @@ func TestHandler_AddGroupUser(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if group service return invalid user email",
+			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().AddUsers(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
@@ -632,7 +632,7 @@ func TestHandler_RemoveGroupUser(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if group service return invalid user email",
+			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().RemoveUser(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
@@ -973,6 +973,97 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
+		{
+			name: "should return success if updated by id and group service return nil error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+					ID:             someGroupID,
+					Name:           "new group",
+					Slug:           "new-group",
+					OrganizationID: someOrgID,
+					Organization: organization.Organization{
+						ID: someOrgID,
+					},
+					Metadata: metadata.Metadata{},
+				}).Return(group.Group{
+					ID:             someGroupID,
+					Name:           "new group",
+					Slug:           "new-group",
+					OrganizationID: someOrgID,
+					Organization: organization.Organization{
+						ID: someOrgID,
+					},
+					Metadata: metadata.Metadata{},
+				}, nil)
+			},
+			request: &shieldv1beta1.UpdateGroupRequest{
+				Id: someGroupID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:  "new group",
+					Slug:  "new-group",
+					OrgId: someOrgID,
+				},
+			},
+			want: &shieldv1beta1.UpdateGroupResponse{
+				Group: &shieldv1beta1.Group{
+					Id:    someGroupID,
+					Name:  "new group",
+					Slug:  "new-group",
+					OrgId: someOrgID,
+					Metadata: &structpb.Struct{
+						Fields: make(map[string]*structpb.Value),
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return success if updated by slug and group service return nil error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+					Name:           "new group",
+					Slug:           "some-slug",
+					OrganizationID: someOrgID,
+					Organization: organization.Organization{
+						ID: someOrgID,
+					},
+					Metadata: metadata.Metadata{},
+				}).Return(group.Group{
+					ID:             someGroupID,
+					Name:           "new group",
+					Slug:           "some-slug",
+					OrganizationID: someOrgID,
+					Organization: organization.Organization{
+						ID: someOrgID,
+					},
+					Metadata: metadata.Metadata{},
+				}, nil)
+			},
+			request: &shieldv1beta1.UpdateGroupRequest{
+				Id: "some-slug",
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:  "new group",
+					Slug:  "new-group", // will be ignored
+					OrgId: someOrgID,
+				},
+			},
+			want: &shieldv1beta1.UpdateGroupResponse{
+				Group: &shieldv1beta1.Group{
+					Id:    someGroupID,
+					Name:  "new group",
+					Slug:  "some-slug",
+					OrgId: someOrgID,
+					Metadata: &structpb.Struct{
+						Fields: make(map[string]*structpb.Value),
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1109,7 +1200,7 @@ func TestHandler_AddGroupAdmin(t *testing.T) {
 	}{
 
 		{
-			name: "should return forbidden error if group service return invalid user email",
+			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
@@ -1272,7 +1363,7 @@ func TestHandler_RemoveGroupAdmin(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if group service return invalid user email",
+			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)

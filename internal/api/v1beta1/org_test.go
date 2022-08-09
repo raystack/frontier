@@ -3,23 +3,22 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
+	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
-
+	"github.com/odpf/shield/pkg/uuid"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-
-	"github.com/odpf/shield/core/organization"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 var testOrgMap = map[string]organization.Organization{
@@ -38,7 +37,6 @@ var testOrgMap = map[string]organization.Organization{
 }
 
 func TestListOrganizations(t *testing.T) {
-	t.Parallel()
 
 	table := []struct {
 		title string
@@ -47,14 +45,14 @@ func TestListOrganizations(t *testing.T) {
 		err   error
 	}{
 		{
-			title: "error in Org Service",
+			title: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]organization.Organization{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		}, {
-			title: "success",
+			title: "should return success if org service return nil",
 			setup: func(os *mocks.OrganizationService) {
 				var testOrgList []organization.Organization
 				for _, o := range testOrgMap {
@@ -84,8 +82,6 @@ func TestListOrganizations(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
 			mockOrgSrv := new(mocks.OrganizationService)
 			mockDep := Handler{orgService: mockOrgSrv}
 			if tt.setup != nil {
@@ -99,23 +95,41 @@ func TestListOrganizations(t *testing.T) {
 }
 
 func TestCreateOrganization(t *testing.T) {
-	t.Parallel()
-
+	email := "user@odpf.io"
 	table := []struct {
 		title string
-		setup func(os *mocks.OrganizationService)
+		setup func(ctx context.Context, os *mocks.OrganizationService) context.Context
 		req   *shieldv1beta1.CreateOrganizationRequest
 		want  *shieldv1beta1.CreateOrganizationResponse
 		err   error
 	}{
 		{
-			title: "error in fetching org list",
-			setup: func(os *mocks.OrganizationService) {
+			title: "should return forbidden error if auth email in context is empty and org service return invalid user email",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
 				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					Name:     "some org",
 					Slug:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, errors.New("some error"))
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+				Name:     "some org",
+				Slug:     "abc",
+				Metadata: &structpb.Struct{},
+			}},
+			want: nil,
+			err:  grpcPermissionDenied,
+		},
+		{
+			title: "should return internal error if org service return some error",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					Name:     "some org",
+					Slug:     "abc",
+					Metadata: metadata.Metadata{},
+				}).Return(organization.Organization{}, errors.New("some error"))
+				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "some org",
@@ -126,13 +140,45 @@ func TestCreateOrganization(t *testing.T) {
 			err:  grpcInternalServerError,
 		},
 		{
-			title: "int values in metadata map",
+			title: "should return bad request error if name is empty",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					Slug:     "abc",
+					Metadata: metadata.Metadata{},
+				}).Return(organization.Organization{}, organization.ErrInvalidDetail)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+				Slug:     "abc",
+				Metadata: &structpb.Struct{},
+			}},
+			want: nil,
+			err:  grpcBadBodyError,
+		},
+		{
+			title: "should return already exist error if org service return error conflict",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					Slug:     "abc",
+					Metadata: metadata.Metadata{},
+				}).Return(organization.Organization{}, organization.ErrConflict)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+				Slug:     "abc",
+				Metadata: &structpb.Struct{},
+			}},
+			want: nil,
+			err:  grpcConflictError,
+		},
+		{
+			title: "should return bad request error if metadata is not parsable",
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name: "some org",
 				Slug: "abc",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"count": structpb.NewNumberValue(10),
+						"count": structpb.NewNullValue(),
 					},
 				},
 			}},
@@ -140,8 +186,8 @@ func TestCreateOrganization(t *testing.T) {
 			err:  grpcBadBodyError,
 		},
 		{
-			title: "success",
-			setup: func(os *mocks.OrganizationService) {
+			title: "should return success if org service return nil error",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
 				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					Name: "some org",
 					Slug: "abc",
@@ -156,6 +202,7 @@ func TestCreateOrganization(t *testing.T) {
 						"email": "a",
 					},
 				}, nil)
+				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name: "some org",
@@ -183,15 +230,679 @@ func TestCreateOrganization(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
 			mockOrgSrv := new(mocks.OrganizationService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockOrgSrv)
+			}
+			mockDep := Handler{orgService: mockOrgSrv}
+			resp, err := mockDep.CreateOrganization(ctx, tt.req)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.err, err)
+		})
+	}
+}
+
+func TestHandler_GetOrganization(t *testing.T) {
+	someOrgID := uuid.NewString()
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService)
+		request *shieldv1beta1.GetOrganizationRequest
+		want    *shieldv1beta1.GetOrganizationResponse
+		wantErr error
+	}{
+
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(organization.Organization{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.GetOrganizationRequest{
+				Id: someOrgID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if org id is not uuid (slug) and org not exist",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: &shieldv1beta1.GetOrganizationRequest{
+				Id: someOrgID,
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return not found error if org id is invalid",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(organization.Organization{}, organization.ErrInvalidID)
+			},
+			request: &shieldv1beta1.GetOrganizationRequest{},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "9f256f86-31a3-11ec-8d3d-0242ac130003").Return(testOrgMap["9f256f86-31a3-11ec-8d3d-0242ac130003"], nil)
+			},
+			request: &shieldv1beta1.GetOrganizationRequest{
+				Id: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+			},
+			want: &shieldv1beta1.GetOrganizationResponse{
+				Organization: &shieldv1beta1.Organization{
+					Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					Name: "Org 1",
+					Slug: "org-1",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email":  structpb.NewStringValue("org1@org1.com"),
+							"age":    structpb.NewNumberValue(21),
+							"intern": structpb.NewBoolValue(true),
+						},
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			ctx := context.Background()
 			if tt.setup != nil {
 				tt.setup(mockOrgSrv)
 			}
 			mockDep := Handler{orgService: mockOrgSrv}
-			resp, err := mockDep.CreateOrganization(context.Background(), tt.req)
-			assert.EqualValues(t, tt.want, resp)
-			assert.EqualValues(t, tt.err, err)
+			got, err := mockDep.GetOrganization(ctx, tt.request)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_UpdateOrganization(t *testing.T) {
+	someOrgID := uuid.NewString()
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService)
+		request *shieldv1beta1.UpdateOrganizationRequest
+		want    *shieldv1beta1.UpdateOrganizationResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					ID:   someOrgID,
+					Name: "new org",
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+					Slug: "new-org",
+				}).Return(organization.Organization{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.UpdateOrganizationRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.OrganizationRequestBody{
+					Name: "new org",
+					Slug: "new-org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if org id is not uuid (slug) and not exist",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					ID:   someOrgID,
+					Name: "new org",
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+					Slug: "new-org",
+				}).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: &shieldv1beta1.UpdateOrganizationRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.OrganizationRequestBody{
+					Name: "new org",
+					Slug: "new-org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return already exist error if org service return err conflict",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					ID:   someOrgID,
+					Name: "new org",
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+					Slug: "new-org",
+				}).Return(organization.Organization{}, organization.ErrConflict)
+			},
+			request: &shieldv1beta1.UpdateOrganizationRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.OrganizationRequestBody{
+					Name: "new org",
+					Slug: "new-org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcConflictError,
+		},
+		{
+			name: "should return success if org service is updated by id and return nil error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					ID:   someOrgID,
+					Name: "new org",
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+					Slug: "new-org",
+				}).Return(organization.Organization{
+					ID:   someOrgID,
+					Name: "new org",
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+					Slug: "new-org",
+				}, nil)
+			},
+			request: &shieldv1beta1.UpdateOrganizationRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.OrganizationRequestBody{
+					Name: "new org",
+					Slug: "new-org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+				},
+			},
+			want: &shieldv1beta1.UpdateOrganizationResponse{
+				Organization: &shieldv1beta1.Organization{
+					Id:   someOrgID,
+					Name: "new org",
+					Slug: "new-org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return success if org service is updated by slug and return nil error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					Name: "new org",
+					Slug: "some-slug",
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+				}).Return(organization.Organization{
+					ID:   someOrgID,
+					Name: "new org",
+					Slug: "some-slug",
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+				}, nil)
+			},
+			request: &shieldv1beta1.UpdateOrganizationRequest{
+				Id: "some-slug",
+				Body: &shieldv1beta1.OrganizationRequestBody{
+					Name: "new org",
+					Slug: "new-org", // would be ignored
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+				},
+			},
+			want: &shieldv1beta1.UpdateOrganizationResponse{
+				Organization: &shieldv1beta1.Organization{
+					Id:   someOrgID,
+					Name: "new org",
+					Slug: "some-slug",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				tt.setup(mockOrgSrv)
+			}
+			mockDep := Handler{orgService: mockOrgSrv}
+			got, err := mockDep.UpdateOrganization(ctx, tt.request)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_AddOrganizationAdmin(t *testing.T) {
+	var (
+		email       = "user@odpf.io"
+		someOrgID   = uuid.NewString()
+		someUserIDs = []string{
+			uuid.NewString(),
+			uuid.NewString(),
+			uuid.NewString(),
+		}
+		testUserList []user.User
+		testUserIDs  []string
+	)
+	for _, u := range testUserMap {
+		testUserList = append(testUserList, u)
+		testUserIDs = append(testUserIDs, u.ID)
+	}
+	tests := []struct {
+		name    string
+		setup   func(ctx context.Context, os *mocks.OrganizationService) context.Context
+		request *shieldv1beta1.AddOrganizationAdminRequest
+		want    *shieldv1beta1.AddOrganizationAdminResponse
+		wantErr error
+	}{
+		{
+			name: "should return forbidden error if auth email in context is empty and org service return invalid user email",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID, someUserIDs).Return([]user.User{}, user.ErrInvalidEmail)
+				return ctx
+			},
+			request: &shieldv1beta1.AddOrganizationAdminRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.AddOrganizationAdminRequestBody{
+					UserIds: someUserIDs,
+				},
+			},
+			want:    nil,
+			wantErr: grpcPermissionDenied,
+		},
+		{
+			name: "should return forbidden error if caller is unauthorized",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserIDs).Return([]user.User{}, errors.Unauthorized)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.AddOrganizationAdminRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.AddOrganizationAdminRequestBody{
+					UserIds: someUserIDs,
+				},
+			},
+			want:    nil,
+			wantErr: grpcPermissionDenied,
+		},
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserIDs).Return([]user.User{}, errors.New("some error"))
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.AddOrganizationAdminRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.AddOrganizationAdminRequestBody{
+					UserIds: someUserIDs,
+				},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if org not exist",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserIDs).Return([]user.User{}, organization.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.AddOrganizationAdminRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.AddOrganizationAdminRequestBody{
+					UserIds: someUserIDs,
+				},
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return bad request error if one of user id is not uuid",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserIDs).Return([]user.User{}, user.ErrInvalidUUID)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.AddOrganizationAdminRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.AddOrganizationAdminRequestBody{
+					UserIds: someUserIDs,
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad request error if one of user id is empty",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserIDs).Return([]user.User{}, user.ErrInvalidID)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.AddOrganizationAdminRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.AddOrganizationAdminRequestBody{
+					UserIds: someUserIDs,
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, testUserIDs).Return(testUserList, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.AddOrganizationAdminRequest{
+				Id: someOrgID,
+				Body: &shieldv1beta1.AddOrganizationAdminRequestBody{
+					UserIds: testUserIDs,
+				},
+			},
+			want: &shieldv1beta1.AddOrganizationAdminResponse{
+				Users: []*shieldv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Name:  "User 1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockOrgSrv)
+			}
+			mockDep := Handler{orgService: mockOrgSrv}
+			got, err := mockDep.AddOrganizationAdmin(ctx, tt.request)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListOrganizationAdmins(t *testing.T) {
+	someOrgID := uuid.NewString()
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService)
+		request *shieldv1beta1.ListOrganizationAdminsRequest
+		want    *shieldv1beta1.ListOrganizationAdminsResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return([]user.User{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.ListOrganizationAdminsRequest{
+				Id: someOrgID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if org id is not exist",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return([]user.User{}, organization.ErrNotExist)
+			},
+			request: &shieldv1beta1.ListOrganizationAdminsRequest{
+				Id: someOrgID,
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(os *mocks.OrganizationService) {
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(testUserList, nil)
+			},
+			request: &shieldv1beta1.ListOrganizationAdminsRequest{
+				Id: someOrgID,
+			},
+			want: &shieldv1beta1.ListOrganizationAdminsResponse{
+				Users: []*shieldv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Name:  "User 1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				tt.setup(mockOrgSrv)
+			}
+			mockDep := Handler{orgService: mockOrgSrv}
+			got, err := mockDep.ListOrganizationAdmins(ctx, tt.request)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_RemoveOrganizationAdmin(t *testing.T) {
+	var (
+		email      = "user@odpf.io"
+		someOrgID  = uuid.NewString()
+		someUserID = uuid.NewString()
+	)
+	tests := []struct {
+		name    string
+		setup   func(ctx context.Context, os *mocks.OrganizationService) context.Context
+		request *shieldv1beta1.RemoveOrganizationAdminRequest
+		want    *shieldv1beta1.RemoveOrganizationAdminResponse
+		wantErr error
+	}{
+
+		{
+			name: "should return forbidden error if auth email in context is empty and org service return invalid user email",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.emptyCtx"), someOrgID, someUserID).Return([]user.User{}, user.ErrInvalidEmail)
+				return ctx
+			},
+			request: &shieldv1beta1.RemoveOrganizationAdminRequest{
+				Id:     someOrgID,
+				UserId: someUserID,
+			},
+			want:    nil,
+			wantErr: grpcPermissionDenied,
+		},
+		{
+			name: "should return forbidden error if caller is not an admin",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserID).Return([]user.User{}, errors.Unauthorized)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.RemoveOrganizationAdminRequest{
+				Id:     someOrgID,
+				UserId: someUserID,
+			},
+			want:    nil,
+			wantErr: grpcPermissionDenied,
+		},
+		{
+			name: "should return internal error if org service return some error",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserID).Return([]user.User{}, errors.New("some error"))
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.RemoveOrganizationAdminRequest{
+				Id:     someOrgID,
+				UserId: someUserID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if org id not exist",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserID).Return([]user.User{}, organization.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.RemoveOrganizationAdminRequest{
+				Id:     someOrgID,
+				UserId: someUserID,
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return not found error if user id is not uuid",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someOrgID, "test").Return([]user.User{}, user.ErrInvalidUUID)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.RemoveOrganizationAdminRequest{
+				Id:     someOrgID,
+				UserId: "test",
+			},
+			want:    nil,
+			wantErr: grpcUserNotFoundError,
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserID).Return(testUserList, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.RemoveOrganizationAdminRequest{
+				Id:     someOrgID,
+				UserId: someUserID,
+			},
+			want: &shieldv1beta1.RemoveOrganizationAdminResponse{
+				Message: "Removed Admin from org",
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockOrgSrv := new(mocks.OrganizationService)
+			ctx := context.Background()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockOrgSrv)
+			}
+			mockDep := Handler{orgService: mockOrgSrv}
+			got, err := mockDep.RemoveOrganizationAdmin(ctx, tt.request)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
