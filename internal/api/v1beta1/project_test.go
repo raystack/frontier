@@ -19,38 +19,38 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testProjectID = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
-
-var testProjectIDList = []string{"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", "c7772c63-fca4-4c7c-bf93-c8f85115de4b"}
-
-var testProjectMap = map[string]project.Project{
-	"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
-		ID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		Name: "Prj 1",
-		Slug: "prj-1",
-		Metadata: metadata.Metadata{
-			"email": "org1@org1.com",
+var (
+	testProjectID     = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"
+	testProjectIDList = []string{"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71", "c7772c63-fca4-4c7c-bf93-c8f85115de4b"}
+	testProjectMap    = map[string]project.Project{
+		"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
+			ID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+			Name: "Prj 1",
+			Slug: "prj-1",
+			Metadata: metadata.Metadata{
+				"email": "org1@org1.com",
+			},
+			Organization: organization.Organization{
+				ID: testOrgID,
+			},
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
 		},
-		Organization: organization.Organization{
-			ID: testOrgID,
+		"c7772c63-fca4-4c7c-bf93-c8f85115de4b": {
+			ID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+			Name: "Prj 2",
+			Slug: "prj-2",
+			Metadata: metadata.Metadata{
+				"email": "org1@org2.com",
+			},
+			Organization: organization.Organization{
+				ID: testOrgID,
+			},
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
 		},
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	},
-	"c7772c63-fca4-4c7c-bf93-c8f85115de4b": {
-		ID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-		Name: "Prj 2",
-		Slug: "prj-2",
-		Metadata: metadata.Metadata{
-			"email": "org1@org2.com",
-		},
-		Organization: organization.Organization{
-			ID: testOrgID,
-		},
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	},
-}
+	}
+)
 
 func TestCreateProject(t *testing.T) {
 	email := "user@odpf.io"

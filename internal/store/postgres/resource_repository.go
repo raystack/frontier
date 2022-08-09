@@ -11,6 +11,7 @@ import (
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/str"
+	"github.com/odpf/shield/pkg/uuid"
 )
 
 type ResourceRepository struct {
@@ -148,6 +149,10 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
+	if uuid.IsValid(id) {
+		return resource.Resource{}, resource.ErrInvalidUUID
+	}
+
 	if str.IsStringEmpty(res.URN) {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
@@ -185,7 +190,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		case errors.Is(err, errForeignKeyViolation):
 			return resource.Resource{}, resource.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return resource.Resource{}, resource.ErrInvalidUUID
+			return resource.Resource{}, resource.ErrInvalidDetail
 		default:
 			return resource.Resource{}, err
 		}

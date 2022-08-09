@@ -21,21 +21,23 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testOrgID = "9f256f86-31a3-11ec-8d3d-0242ac130003"
-var testOrgMap = map[string]organization.Organization{
-	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
-		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-		Name: "Org 1",
-		Slug: "org-1",
-		Metadata: metadata.Metadata{
-			"email":  "org1@org1.com",
-			"age":    21,
-			"intern": true,
+var (
+	testOrgID  = "9f256f86-31a3-11ec-8d3d-0242ac130003"
+	testOrgMap = map[string]organization.Organization{
+		"9f256f86-31a3-11ec-8d3d-0242ac130003": {
+			ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
+			Name: "Org 1",
+			Slug: "org-1",
+			Metadata: metadata.Metadata{
+				"email":  "org1@org1.com",
+				"age":    21,
+				"intern": true,
+			},
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
 		},
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	},
-}
+	}
+)
 
 func TestListOrganizations(t *testing.T) {
 

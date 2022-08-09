@@ -17,55 +17,56 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testRelation = relation.Relation{
-	ID: "relation-id-1",
-	SubjectNamespace: namespace.Namespace{
-		ID: "ns1",
-	},
-	SubjectNamespaceID: "ns1",
-	SubjectID:          "subject-id",
-	SubjectRoleID:      "role1",
-	ObjectNamespace: namespace.Namespace{
-		ID: "ns2",
-	},
-	ObjectNamespaceID: "ns2",
-	ObjectID:          "object-id",
-	RoleID:            "role1",
-	Role: role.Role{
-		ID: "role1",
-	},
-	RelationType: "role",
-}
-
-var testRelationPB = &shieldv1beta1.Relation{
-	Id: "relation-id-1",
-	SubjectType: &shieldv1beta1.Namespace{
-		Id:        "ns1",
-		CreatedAt: timestamppb.New(time.Time{}),
-		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-	SubjectId: "subject-id",
-	ObjectType: &shieldv1beta1.Namespace{
-		Id:        "ns2",
-		CreatedAt: timestamppb.New(time.Time{}),
-		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-	ObjectId:  "object-id",
-	CreatedAt: timestamppb.New(time.Time{}),
-	UpdatedAt: timestamppb.New(time.Time{}),
-	Role: &shieldv1beta1.Role{
-		Id: "role1",
-		Namespace: &shieldv1beta1.Namespace{
+var (
+	testRelation = relation.Relation{
+		ID: "relation-id-1",
+		SubjectNamespace: namespace.Namespace{
+			ID: "ns1",
+		},
+		SubjectNamespaceID: "ns1",
+		SubjectID:          "subject-id",
+		SubjectRoleID:      "role1",
+		ObjectNamespace: namespace.Namespace{
+			ID: "ns2",
+		},
+		ObjectNamespaceID: "ns2",
+		ObjectID:          "object-id",
+		RoleID:            "role1",
+		Role: role.Role{
+			ID: "role1",
+		},
+		RelationType: "role",
+	}
+	testRelationPB = &shieldv1beta1.Relation{
+		Id: "relation-id-1",
+		SubjectType: &shieldv1beta1.Namespace{
+			Id:        "ns1",
 			CreatedAt: timestamppb.New(time.Time{}),
 			UpdatedAt: timestamppb.New(time.Time{}),
 		},
-		Metadata: &structpb.Struct{
-			Fields: make(map[string]*structpb.Value),
+		SubjectId: "subject-id",
+		ObjectType: &shieldv1beta1.Namespace{
+			Id:        "ns2",
+			CreatedAt: timestamppb.New(time.Time{}),
+			UpdatedAt: timestamppb.New(time.Time{}),
 		},
+		ObjectId:  "object-id",
 		CreatedAt: timestamppb.New(time.Time{}),
 		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-}
+		Role: &shieldv1beta1.Role{
+			Id: "role1",
+			Namespace: &shieldv1beta1.Namespace{
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			},
+			Metadata: &structpb.Struct{
+				Fields: make(map[string]*structpb.Value),
+			},
+			CreatedAt: timestamppb.New(time.Time{}),
+			UpdatedAt: timestamppb.New(time.Time{}),
+		},
+	}
+)
 
 func TestHandler_ListRelations(t *testing.T) {
 	tests := []struct {

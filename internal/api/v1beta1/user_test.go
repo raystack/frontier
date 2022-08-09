@@ -23,21 +23,23 @@ import (
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
-var testUserID = "9f256f86-31a3-11ec-8d3d-0242ac130003"
-var testUserMap = map[string]user.User{
-	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
-		ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-		Name:  "User 1",
-		Email: "test@test.com",
-		Metadata: metadata.Metadata{
-			"foo":    "bar",
-			"age":    21,
-			"intern": true,
+var (
+	testUserID  = "9f256f86-31a3-11ec-8d3d-0242ac130003"
+	testUserMap = map[string]user.User{
+		"9f256f86-31a3-11ec-8d3d-0242ac130003": {
+			ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+			Name:  "User 1",
+			Email: "test@test.com",
+			Metadata: metadata.Metadata{
+				"foo":    "bar",
+				"age":    21,
+				"intern": true,
+			},
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
 		},
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	},
-}
+	}
+)
 
 func TestListUsers(t *testing.T) {
 	table := []struct {

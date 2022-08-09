@@ -139,11 +139,15 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, resource.ErrNotExist):
+		case errors.Is(err, resource.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidUUID),
+			errors.Is(err, resource.ErrInvalidID):
 			return nil, grpcResourceNotFoundErr
-		case errors.Is(err, resource.ErrInvalidUUID),
+		case errors.Is(err, resource.ErrInvalidDetail),
 			errors.Is(err, resource.ErrInvalidURN):
 			return nil, grpcBadBodyError
+		case errors.Is(err, resource.ErrConflict):
+			return nil, grpcConflictError
 		default:
 			return nil, grpcInternalServerError
 		}

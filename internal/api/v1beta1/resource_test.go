@@ -13,6 +13,7 @@ import (
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
+	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -20,77 +21,78 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testResourceID = "res-id"
-var testResource = resource.Resource{
-	Idxa:      testResourceID,
-	URN:       "res-urn",
-	Name:      "a resource name",
-	ProjectID: testProjectID,
-	Project: project.Project{
-		ID: testProjectID,
-	},
-	GroupID: testGroupID,
-	Group: group.Group{
-		ID: testGroupID,
-	},
-	OrganizationID: testOrgID,
-	Organization: organization.Organization{
-		ID: testOrgID,
-	},
-	NamespaceID: testNSID,
-	Namespace: namespace.Namespace{
-		ID: testNSID,
-	},
-	User: user.User{
-		ID: testUserID,
-	},
-	UserID: testUserID,
-}
-
-var testResourcePB = &shieldv1beta1.Resource{
-	Id:   testResource.Idxa,
-	Name: testResource.Name,
-	Group: &shieldv1beta1.Group{
-		Id: testGroupID,
-		Metadata: &structpb.Struct{
-			Fields: make(map[string]*structpb.Value),
+var (
+	testResourceID = uuid.NewString()
+	testResource   = resource.Resource{
+		Idxa:      testResourceID,
+		URN:       "res-urn",
+		Name:      "a resource name",
+		ProjectID: testProjectID,
+		Project: project.Project{
+			ID: testProjectID,
 		},
-		CreatedAt: timestamppb.New(time.Time{}),
-		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-	Project: &shieldv1beta1.Project{
-		Id: testProjectID,
-		Metadata: &structpb.Struct{
-			Fields: make(map[string]*structpb.Value),
+		GroupID: testGroupID,
+		Group: group.Group{
+			ID: testGroupID,
 		},
-		CreatedAt: timestamppb.New(time.Time{}),
-		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-	Organization: &shieldv1beta1.Organization{
-		Id: testOrgID,
-		Metadata: &structpb.Struct{
-			Fields: make(map[string]*structpb.Value),
+		OrganizationID: testOrgID,
+		Organization: organization.Organization{
+			ID: testOrgID,
 		},
-		CreatedAt: timestamppb.New(time.Time{}),
-		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-	Namespace: &shieldv1beta1.Namespace{
-		Id:        testNSID,
-		CreatedAt: timestamppb.New(time.Time{}),
-		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-	User: &shieldv1beta1.User{
-		Id: testUserID,
-		Metadata: &structpb.Struct{
-			Fields: make(map[string]*structpb.Value),
+		NamespaceID: testNSID,
+		Namespace: namespace.Namespace{
+			ID: testNSID,
 		},
+		User: user.User{
+			ID: testUserID,
+		},
+		UserID: testUserID,
+	}
+	testResourcePB = &shieldv1beta1.Resource{
+		Id:   testResource.Idxa,
+		Name: testResource.Name,
+		Group: &shieldv1beta1.Group{
+			Id: testGroupID,
+			Metadata: &structpb.Struct{
+				Fields: make(map[string]*structpb.Value),
+			},
+			CreatedAt: timestamppb.New(time.Time{}),
+			UpdatedAt: timestamppb.New(time.Time{}),
+		},
+		Project: &shieldv1beta1.Project{
+			Id: testProjectID,
+			Metadata: &structpb.Struct{
+				Fields: make(map[string]*structpb.Value),
+			},
+			CreatedAt: timestamppb.New(time.Time{}),
+			UpdatedAt: timestamppb.New(time.Time{}),
+		},
+		Organization: &shieldv1beta1.Organization{
+			Id: testOrgID,
+			Metadata: &structpb.Struct{
+				Fields: make(map[string]*structpb.Value),
+			},
+			CreatedAt: timestamppb.New(time.Time{}),
+			UpdatedAt: timestamppb.New(time.Time{}),
+		},
+		Namespace: &shieldv1beta1.Namespace{
+			Id:        testNSID,
+			CreatedAt: timestamppb.New(time.Time{}),
+			UpdatedAt: timestamppb.New(time.Time{}),
+		},
+		User: &shieldv1beta1.User{
+			Id: testUserID,
+			Metadata: &structpb.Struct{
+				Fields: make(map[string]*structpb.Value),
+			},
+			CreatedAt: timestamppb.New(time.Time{}),
+			UpdatedAt: timestamppb.New(time.Time{}),
+		},
+		Urn:       testResource.URN,
 		CreatedAt: timestamppb.New(time.Time{}),
 		UpdatedAt: timestamppb.New(time.Time{}),
-	},
-	Urn:       testResource.URN,
-	CreatedAt: timestamppb.New(time.Time{}),
-	UpdatedAt: timestamppb.New(time.Time{}),
-}
+	}
+)
 
 func TestHandler_ListResources(t *testing.T) {
 	tests := []struct {
@@ -101,7 +103,7 @@ func TestHandler_ListResources(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return internal error if relation service return some error",
+			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return([]resource.Resource{}, errors.New("some error"))
 			},
@@ -201,7 +203,7 @@ func TestHandler_CreateResource(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(ctx context.Context, rs *mocks.ResourceService) context.Context {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
 					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
@@ -227,7 +229,7 @@ func TestHandler_CreateResource(t *testing.T) {
 		{
 			name: "should return success if resource service return nil",
 			setup: func(ctx context.Context, rs *mocks.ResourceService) context.Context {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
 					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
@@ -276,7 +278,61 @@ func TestHandler_GetResource(t *testing.T) {
 		want    *shieldv1beta1.GetResourceResponse
 		wantErr error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "should return internal error if resource service return some error",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(resource.Resource{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.GetResourceRequest{
+				Id: testResource.Idxa,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if id is empty",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(resource.Resource{}, resource.ErrInvalidID)
+			},
+			request: &shieldv1beta1.GetResourceRequest{},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return not found error if id is not uuid",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(resource.Resource{}, resource.ErrInvalidUUID)
+			},
+			request: &shieldv1beta1.GetResourceRequest{
+				Id: "some-id",
+			},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return not found error if id not exist",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(resource.Resource{}, resource.ErrNotExist)
+			},
+			request: &shieldv1beta1.GetResourceRequest{
+				Id: testResource.Idxa,
+			},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return success if resource service return nil error",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(testResource, nil)
+			},
+			request: &shieldv1beta1.GetResourceRequest{
+				Id: testResource.Idxa,
+			},
+			want: &shieldv1beta1.GetResourceResponse{
+				Resource: testResourcePB,
+			},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -300,7 +356,189 @@ func TestHandler_UpdateResource(t *testing.T) {
 		want    *shieldv1beta1.UpdateResourceResponse
 		wantErr error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "should return internal error if resource service return some error",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+					Name:           testResource.Name,
+					GroupID:        testResource.GroupID,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+					UserID:         testResource.UserID,
+				}).Return(resource.Resource{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:           testResource.Name,
+					GroupId:        testResource.GroupID,
+					ProjectId:      testResource.ProjectID,
+					OrganizationId: testResource.OrganizationID,
+					NamespaceId:    testResource.NamespaceID,
+					UserId:         testResource.UserID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if id is empty",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "", resource.Resource{
+					Name:           testResource.Name,
+					GroupID:        testResource.GroupID,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+					UserID:         testResource.UserID,
+				}).Return(resource.Resource{}, resource.ErrInvalidID)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:           testResource.Name,
+					GroupId:        testResource.GroupID,
+					ProjectId:      testResource.ProjectID,
+					OrganizationId: testResource.OrganizationID,
+					NamespaceId:    testResource.NamespaceID,
+					UserId:         testResource.UserID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return not found error if id is not exist",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+					Name:           testResource.Name,
+					GroupID:        testResource.GroupID,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+					UserID:         testResource.UserID,
+				}).Return(resource.Resource{}, resource.ErrNotExist)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:           testResource.Name,
+					GroupId:        testResource.GroupID,
+					ProjectId:      testResource.ProjectID,
+					OrganizationId: testResource.OrganizationID,
+					NamespaceId:    testResource.NamespaceID,
+					UserId:         testResource.UserID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return not found error if id is not uuid",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some-id", resource.Resource{
+					Name:           testResource.Name,
+					GroupID:        testResource.GroupID,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+					UserID:         testResource.UserID,
+				}).Return(resource.Resource{}, resource.ErrInvalidUUID)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: "some-id",
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:           testResource.Name,
+					GroupId:        testResource.GroupID,
+					ProjectId:      testResource.ProjectID,
+					OrganizationId: testResource.OrganizationID,
+					NamespaceId:    testResource.NamespaceID,
+					UserId:         testResource.UserID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return bad request error if field value not exist in foreign reference",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+					Name:           testResource.Name,
+					GroupID:        testResource.GroupID,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+					UserID:         testResource.UserID,
+				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:           testResource.Name,
+					GroupId:        testResource.GroupID,
+					ProjectId:      testResource.ProjectID,
+					OrganizationId: testResource.OrganizationID,
+					NamespaceId:    testResource.NamespaceID,
+					UserId:         testResource.UserID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return already exist error if resource service return err conflict",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+					Name:           testResource.Name,
+					GroupID:        testResource.GroupID,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+					UserID:         testResource.UserID,
+				}).Return(resource.Resource{}, resource.ErrConflict)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:           testResource.Name,
+					GroupId:        testResource.GroupID,
+					ProjectId:      testResource.ProjectID,
+					OrganizationId: testResource.OrganizationID,
+					NamespaceId:    testResource.NamespaceID,
+					UserId:         testResource.UserID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcConflictError,
+		},
+		{
+			name: "should return success if resource service return nil",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+					Name:           testResource.Name,
+					GroupID:        testResource.GroupID,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+					UserID:         testResource.UserID,
+				}).Return(testResource, nil)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:           testResource.Name,
+					GroupId:        testResource.GroupID,
+					ProjectId:      testResource.ProjectID,
+					OrganizationId: testResource.OrganizationID,
+					NamespaceId:    testResource.NamespaceID,
+					UserId:         testResource.UserID,
+				},
+			},
+			want: &shieldv1beta1.UpdateResourceResponse{
+				Resource: testResourcePB,
+			},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -19,25 +19,27 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testGroupID = "9f256f86-31a3-11ec-8d3d-0242ac130003"
-var testGroupMap = map[string]group.Group{
-	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
-		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-		Name: "Group 1",
-		Slug: "group-1",
-		Organization: organization.Organization{
+var (
+	testGroupID  = "9f256f86-31a3-11ec-8d3d-0242ac130003"
+	testGroupMap = map[string]group.Group{
+		"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 			ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-			Name: "organization 1",
-			Slug: "org-1",
+			Name: "Group 1",
+			Slug: "group-1",
+			Organization: organization.Organization{
+				ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
+				Name: "organization 1",
+				Slug: "org-1",
+			},
+			Metadata: metadata.Metadata{
+				"foo": "bar",
+			},
+			OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+			CreatedAt:      time.Time{},
+			UpdatedAt:      time.Time{},
 		},
-		Metadata: metadata.Metadata{
-			"foo": "bar",
-		},
-		OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
-		CreatedAt:      time.Time{},
-		UpdatedAt:      time.Time{},
-	},
-}
+	}
+)
 
 func TestHandler_ListGroups(t *testing.T) {
 	randomID := uuid.NewString()
@@ -446,15 +448,17 @@ func TestHandler_GetGroup(t *testing.T) {
 }
 
 func TestHandler_AddGroupUser(t *testing.T) {
-	email := "user@odpf.io"
-	someGroupID := uuid.NewString()
-	someUserIDs := []string{
-		uuid.NewString(),
-		uuid.NewString(),
-		uuid.NewString(),
-	}
-	var testUserList []user.User
-	var testUserIDs []string
+	var (
+		email       = "user@odpf.io"
+		someGroupID = uuid.NewString()
+		someUserIDs = []string{
+			uuid.NewString(),
+			uuid.NewString(),
+			uuid.NewString(),
+		}
+		testUserList []user.User
+		testUserIDs  []string
+	)
 	for _, u := range testUserMap {
 		testUserList = append(testUserList, u)
 		testUserIDs = append(testUserIDs, u.ID)
