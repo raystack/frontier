@@ -194,12 +194,10 @@ func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
-		case errors.Is(err, errors.Unauthorized):
-			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
@@ -255,12 +253,10 @@ func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1b
 	if _, err := h.orgService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
-		case errors.Is(err, errors.Unauthorized):
-			return nil, grpcPermissionDenied
 		case errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcUserNotFoundError
 		default:

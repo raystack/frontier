@@ -21,6 +21,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var testOrgID = "9f256f86-31a3-11ec-8d3d-0242ac130003"
 var testOrgMap = map[string]organization.Organization{
 	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -108,14 +109,13 @@ func TestCreateOrganization(t *testing.T) {
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
 				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					Name:     "some org",
-					Slug:     "abc",
+					Slug:     "some-org",
 					Metadata: metadata.Metadata{},
-				}).Return(organization.Organization{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
+				}).Return(organization.Organization{}, user.ErrInvalidEmail)
+				return ctx
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "some org",
-				Slug:     "abc",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
@@ -124,7 +124,7 @@ func TestCreateOrganization(t *testing.T) {
 		{
 			title: "should return internal error if org service return some error",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
-				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Name:     "some org",
 					Slug:     "abc",
 					Metadata: metadata.Metadata{},
@@ -142,7 +142,7 @@ func TestCreateOrganization(t *testing.T) {
 		{
 			title: "should return bad request error if name is empty",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
-				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Slug:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, organization.ErrInvalidDetail)
@@ -158,7 +158,7 @@ func TestCreateOrganization(t *testing.T) {
 		{
 			title: "should return already exist error if org service return error conflict",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
-				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Slug:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, organization.ErrConflict)
@@ -188,16 +188,16 @@ func TestCreateOrganization(t *testing.T) {
 		{
 			title: "should return success if org service return nil error",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
-				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Name: "some org",
-					Slug: "abc",
+					Slug: "some-org",
 					Metadata: metadata.Metadata{
 						"email": "a",
 					},
 				}).Return(organization.Organization{
 					ID:   "new-abc",
 					Name: "some org",
-					Slug: "abc",
+					Slug: "some-org",
 					Metadata: metadata.Metadata{
 						"email": "a",
 					},
@@ -206,7 +206,6 @@ func TestCreateOrganization(t *testing.T) {
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name: "some org",
-				Slug: "abc",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"email": structpb.NewStringValue("a"),
@@ -216,7 +215,7 @@ func TestCreateOrganization(t *testing.T) {
 			want: &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
 				Id:   "new-abc",
 				Name: "some org",
-				Slug: "abc",
+				Slug: "some-org",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"email": structpb.NewStringValue("a"),
@@ -382,6 +381,35 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			},
 			request: &shieldv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
+				Body: &shieldv1beta1.OrganizationRequestBody{
+					Name: "new org",
+					Slug: "new-org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+							"age":   structpb.NewNumberValue(21),
+							"valid": structpb.NewBoolValue(true),
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return not found error if org id is empty",
+			setup: func(os *mocks.OrganizationService) {
+				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+					Name: "new org",
+					Slug: "", // consider it by slug and assign empty to slug
+					Metadata: metadata.Metadata{
+						"email": "org1@org1.com",
+						"age":   float64(21),
+						"valid": true,
+					},
+				}).Return(organization.Organization{}, organization.ErrInvalidID)
+			},
+			request: &shieldv1beta1.UpdateOrganizationRequest{
 				Body: &shieldv1beta1.OrganizationRequestBody{
 					Name: "new org",
 					Slug: "new-org",
@@ -806,7 +834,6 @@ func TestHandler_RemoveOrganizationAdmin(t *testing.T) {
 		want    *shieldv1beta1.RemoveOrganizationAdminResponse
 		wantErr error
 	}{
-
 		{
 			name: "should return forbidden error if auth email in context is empty and org service return invalid user email",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {

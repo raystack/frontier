@@ -183,7 +183,6 @@ func TestHandler_CreateGroup(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
 				Name:     "some group",
-				Slug:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -206,7 +205,6 @@ func TestHandler_CreateGroup(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
 				Name:     "some group",
-				Slug:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -334,7 +332,6 @@ func TestHandler_CreateGroup(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
 				Name:     "some group",
-				Slug:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -843,6 +840,29 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:  "new group",
+					Slug:  "new-group",
+					OrgId: someOrgID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcGroupNotFoundErr,
+		},
+		{
+			name: "should return not found error if group id is empty",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+					Name:           "new group",
+					Slug:           "", // consider it by slug and make the slug empty
+					OrganizationID: someOrgID,
+					Organization: organization.Organization{
+						ID: someOrgID,
+					},
+					Metadata: metadata.Metadata{},
+				}).Return(group.Group{}, group.ErrInvalidID)
+			},
+			request: &shieldv1beta1.UpdateGroupRequest{
 				Body: &shieldv1beta1.GroupRequestBody{
 					Name:  "new group",
 					Slug:  "new-group",

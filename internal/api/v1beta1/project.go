@@ -2,10 +2,9 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 
-	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
@@ -174,6 +173,7 @@ func (h Handler) UpdateProject(
 		switch {
 		case errors.Is(err, project.ErrNotExist),
 			errors.Is(err, project.ErrInvalidUUID),
+			errors.Is(err, project.ErrInvalidID),
 			errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcProjectNotFoundErr
 		case errors.Is(err, project.ErrConflict):
@@ -205,10 +205,10 @@ func (h Handler) AddProjectAdmin(
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, project.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+			return nil, grpcProjectNotFoundErr
 		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
@@ -270,15 +270,13 @@ func (h Handler) RemoveProjectAdmin(
 	if _, err := h.projectService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, project.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+			return nil, grpcProjectNotFoundErr
 		case errors.Is(err, user.ErrInvalidUUID),
 			errors.Is(err, user.ErrNotExist):
 			return nil, grpcUserNotFoundError
-		case errors.Is(err, relation.ErrNotExist):
-			return nil, grpcRelationNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
