@@ -19,6 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var testGroupID = "9f256f86-31a3-11ec-8d3d-0242ac130003"
 var testGroupMap = map[string]group.Group{
 	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 		ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -90,7 +91,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			want: &shieldv1beta1.ListGroupsResponse{
 				Groups: []*shieldv1beta1.Group{
 					{
-						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Id:    testGroupID,
 						Name:  "Group 1",
 						Slug:  "group-1",
 						OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -123,7 +124,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			want: &shieldv1beta1.ListGroupsResponse{
 				Groups: []*shieldv1beta1.Group{
 					{
-						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Id:    testGroupID,
 						Name:  "Group 1",
 						Slug:  "group-1",
 						OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -407,12 +408,12 @@ func TestHandler_GetGroup(t *testing.T) {
 		{
 			name: "should return success if group service return nil",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "9f256f86-31a3-11ec-8d3d-0242ac130003").Return(testGroupMap["9f256f86-31a3-11ec-8d3d-0242ac130003"], nil)
+				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testGroupID).Return(testGroupMap[testGroupID], nil)
 			},
-			request: &shieldv1beta1.GetGroupRequest{Id: "9f256f86-31a3-11ec-8d3d-0242ac130003"},
+			request: &shieldv1beta1.GetGroupRequest{Id: testGroupID},
 			want: &shieldv1beta1.GetGroupResponse{
 				Group: &shieldv1beta1.Group{
-					Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					Id:    testGroupID,
 					Name:  "Group 1",
 					Slug:  "group-1",
 					OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -853,6 +854,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			name: "should return not found error if group id is empty",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "", // consider it by slug and make the slug empty
 					OrganizationID: someOrgID,

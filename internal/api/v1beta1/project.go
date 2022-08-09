@@ -241,7 +241,7 @@ func (h Handler) ListProjectAdmins(
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, project.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "project to be updated not found")
+			return nil, grpcProjectNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}

@@ -62,7 +62,7 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return relation.Relation{}, relation.ErrNotExist
+			return relation.Relation{}, relation.ErrInvalidDetail
 		default:
 			return relation.Relation{}, err
 		}
@@ -254,7 +254,7 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 		case errors.Is(err, errDuplicateKey):
 			return relation.Relation{}, relation.ErrConflict
 		case errors.Is(err, errForeignKeyViolation):
-			return relation.Relation{}, relation.ErrNotExist
+			return relation.Relation{}, relation.ErrInvalidDetail
 		case errors.Is(err, errInvalidTexRepresentation):
 			return relation.Relation{}, relation.ErrInvalidUUID
 		default:

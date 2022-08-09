@@ -23,6 +23,7 @@ import (
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
+var testUserID = "9f256f86-31a3-11ec-8d3d-0242ac130003"
 var testUserMap = map[string]user.User{
 	"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 		ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",

@@ -816,7 +816,6 @@ func TestHandler_AddProjectAdmin(t *testing.T) {
 }
 
 func TestHandler_ListProjectAdmins(t *testing.T) {
-
 	tests := []struct {
 		name    string
 		setup   func(ps *mocks.ProjectService)
@@ -824,7 +823,60 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		want    *shieldv1beta1.ListProjectAdminsResponse
 		wantErr error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "should return internal error if project service return some error",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return([]user.User{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.ListProjectAdminsRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if org id is not exist",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return([]user.User{}, project.ErrNotExist)
+			},
+			request: &shieldv1beta1.ListProjectAdminsRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcProjectNotFoundErr,
+		},
+		{
+			name: "should return success if org service return nil error",
+			setup: func(ps *mocks.ProjectService) {
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(testUserList, nil)
+			},
+			request: &shieldv1beta1.ListProjectAdminsRequest{
+				Id: testProjectID,
+			},
+			want: &shieldv1beta1.ListProjectAdminsResponse{
+				Users: []*shieldv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Name:  "User 1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

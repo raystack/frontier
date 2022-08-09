@@ -19,6 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var testNSID = "team"
 var testNsMap = map[string]namespace.Namespace{
 	"team": {
 		ID:        "team",

@@ -7,6 +7,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/user"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -72,6 +73,8 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcPermissionDenied
 		case errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidDetail):
 			return nil, grpcBadBodyError
