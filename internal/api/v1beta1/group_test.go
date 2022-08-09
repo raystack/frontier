@@ -858,7 +858,6 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			name: "should return not found error if group id is empty",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
-					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "", // consider it by slug and make the slug empty
 					OrganizationID: someOrgID,

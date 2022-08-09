@@ -87,7 +87,7 @@ func TestListPolicies(t *testing.T) {
 			},
 			want: &shieldv1beta1.ListPoliciesResponse{Policies: []*shieldv1beta1.Policy{
 				{
-					Id: "test",
+					Id: testPolicyID,
 					Action: &shieldv1beta1.Action{
 						Id:   "read",
 						Name: "Read",

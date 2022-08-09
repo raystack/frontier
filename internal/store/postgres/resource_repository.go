@@ -149,7 +149,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
-	if uuid.IsValid(id) {
+	if !uuid.IsValid(id) {
 		return resource.Resource{}, resource.ErrInvalidUUID
 	}
 

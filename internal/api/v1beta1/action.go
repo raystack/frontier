@@ -102,6 +102,7 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 	logger := grpczap.Extract(ctx)
 
 	updatedAction, err := h.actionService.Update(ctx, request.GetId(), action.Action{
+		ID:          request.GetId(),
 		Name:        request.GetBody().GetName(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 	})

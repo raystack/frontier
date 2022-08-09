@@ -362,6 +362,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 			name: "should return internal error if action service return some error",
 			setup: func(as *mocks.ActionService) {
 				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionID, action.Action{
+					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
 				}).Return(action.Action{}, errors.New("some error"))
@@ -380,6 +381,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 			name: "should return not found error if action id not exist",
 			setup: func(as *mocks.ActionService) {
 				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionID, action.Action{
+					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrNotExist)
 			},
@@ -415,6 +417,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 			name: "should return bad request error if namespace id not exist",
 			setup: func(as *mocks.ActionService) {
 				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionMap[testActionID].ID, action.Action{
+					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, namespace.ErrNotExist)
 			},
@@ -433,6 +436,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 			name: "should return bad request error if name is empty",
 			setup: func(as *mocks.ActionService) {
 				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionMap[testActionID].ID, action.Action{
+					ID:          testActionID,
 					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateActionRequest{
@@ -449,6 +453,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 			name: "should return success if action service return nil error",
 			setup: func(as *mocks.ActionService) {
 				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionMap[testActionID].ID, action.Action{
+					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
 				}).Return(testActionMap[testActionID], nil)
