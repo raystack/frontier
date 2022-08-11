@@ -11,6 +11,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type RoleRepository struct {
@@ -79,6 +80,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		return "", fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	nsID := str.DefaultStringIfEmpty(rl.Namespace.ID, rl.NamespaceID)
 	//TODO we have to go with this manually populating data since goqu does not support insert array string
 	query, _, err := dialect.Insert(TABLE_ROLES).Rows(
 		goqu.Record{
@@ -98,7 +100,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, nsID, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

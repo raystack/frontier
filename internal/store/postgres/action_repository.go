@@ -8,6 +8,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/str"
 
 	"github.com/odpf/shield/core/action"
 )
@@ -55,11 +56,12 @@ func (r ActionRepository) Create(ctx context.Context, act action.Action) (action
 		return action.Action{}, action.ErrInvalidID
 	}
 
+	nsID := str.DefaultStringIfEmpty(act.Namespace.ID, act.NamespaceID)
 	query, params, err := dialect.Insert(TABLE_ACTIONS).Rows(
 		goqu.Record{
 			"id":           act.ID,
 			"name":         act.Name,
-			"namespace_id": act.NamespaceID,
+			"namespace_id": nsID,
 		}).OnConflict(
 		goqu.DoUpdate("id", goqu.Record{
 			"name": act.Name,

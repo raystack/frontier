@@ -232,5 +232,8 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 		}
 	}
 
-	return s.relationService.CheckPermission(ctx, user, fetchedResource.Namespace, fetchedResource.Idxa, act)
+	fetchedResourceNS := namespace.Namespace{
+		ID: str.DefaultStringIfEmpty(fetchedResource.NamespaceID, fetchedResource.Namespace.ID),
+	}
+	return s.relationService.CheckPermission(ctx, user, fetchedResourceNS, fetchedResource.Idxa, act)
 }
