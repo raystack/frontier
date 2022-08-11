@@ -32,7 +32,10 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 	// we need to apply errors if it failed in Director
 	if err, ok := req.Context().Value(ctxRequestErrorKey).(error); ok {
 		return nil, err
+	} else if req.Context().Err() != nil {
+		return nil, req.Context().Err()
 	}
+
 	t.log.Debug("proxy request", "host", req.URL.Host, "path", req.URL.Path,
 		"scheme", req.URL.Scheme, "protocol", req.Proto)
 
