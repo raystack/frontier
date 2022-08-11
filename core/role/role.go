@@ -32,9 +32,10 @@ func GetOwnerRole(ns namespace.Namespace) Role {
 	id := fmt.Sprintf("%s_%s", ns.ID, "owner")
 	name := fmt.Sprintf("%s_%s", strings.Title(ns.ID), "Owner")
 	return Role{
-		ID:        id,
-		Name:      name,
-		Types:     []string{UserType},
-		Namespace: ns,
+		ID:          id,
+		Name:        name,
+		Types:       []string{UserType},
+		Namespace:   ns,
+		NamespaceID: ns.ID,
 	}
 }
