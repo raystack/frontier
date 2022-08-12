@@ -1,0 +1,33 @@
+rules:
+  - backends:
+      - name: odin
+        target: "http://localhost:3000"
+        prefix: "/"
+        frontends:
+          - name: test_post # done
+            path: "/test"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: project
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    team:
+                      key: X-Shield-Group
+                      type: header
+                      source: request
+                    project:
+                      key: X-Shield-Project
+                      type: header
+                      source: request
+                    resource_type:
+                      value: firehose
+                      type: constant
