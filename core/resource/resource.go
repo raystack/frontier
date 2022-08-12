@@ -45,7 +45,6 @@ type Resource struct {
 	UpdatedAt      time.Time
 }
 
-// /project/uuid/
 func (res Resource) CreateURN() string {
 	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	if isSystemNS {

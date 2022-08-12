@@ -56,7 +56,7 @@ func bootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) er
 		return err
 	}
 
-	var data []shieldv1beta1.UserRequestBody
+	var data []*shieldv1beta1.UserRequestBody
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return err
 	}
@@ -65,10 +65,9 @@ func bootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) er
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			"X-Shield-Email": "admin1-group1@odpf.io",
 		}))
-		_, err := cl.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
-			Body: &d,
-		})
-		if err != nil {
+		if _, err := cl.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
+			Body: d,
+		}); err != nil {
 			return err
 		}
 	}
@@ -82,7 +81,7 @@ func bootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 		return err
 	}
 
-	var data []shieldv1beta1.OrganizationRequestBody
+	var data []*shieldv1beta1.OrganizationRequestBody
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return err
 	}
@@ -91,10 +90,9 @@ func bootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			"X-Shield-Email": "admin1-group1@odpf.io",
 		}))
-		_, err := cl.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
-			Body: &d,
-		})
-		if err != nil {
+		if _, err := cl.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
+			Body: d,
+		}); err != nil {
 			return err
 		}
 	}
@@ -117,7 +115,7 @@ func bootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient)
 		return errors.New("no organization found")
 	}
 
-	var data []shieldv1beta1.ProjectRequestBody
+	var data []*shieldv1beta1.ProjectRequestBody
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return err
 	}
@@ -128,10 +126,9 @@ func bootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient)
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			"X-Shield-Email": "admin1-group1@odpf.io",
 		}))
-		_, err := cl.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
-			Body: &d,
-		})
-		if err != nil {
+		if _, err := cl.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
+			Body: d,
+		}); err != nil {
 			return err
 		}
 	}
@@ -154,7 +151,7 @@ func bootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) e
 		return errors.New("no organization found")
 	}
 
-	var data []shieldv1beta1.GroupRequestBody
+	var data []*shieldv1beta1.GroupRequestBody
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return err
 	}
@@ -167,10 +164,9 @@ func bootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) e
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			"X-Shield-Email": "admin1-group1@odpf.io",
 		}))
-		_, err := cl.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
-			Body: &d,
-		})
-		if err != nil {
+		if _, err := cl.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
+			Body: d,
+		}); err != nil {
 			return err
 		}
 	}

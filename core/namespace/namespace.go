@@ -33,7 +33,6 @@ func IsSystemNamespaceID(nsID string) bool {
 	return strListHas(systemIdsDefinition, nsID)
 }
 
-// postgres://shield:@:5432/
 func CreateID(backend, resourceType string) string {
 	return fmt.Sprintf("%s_%s", backend, resourceType)
 }
