@@ -1,27 +1,68 @@
 package cmd
 
 import (
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
+	"github.com/MakeNowJust/heredoc"
+	"github.com/odpf/salt/cmdx"
+	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )
 
-func New(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func New(cfg *Config) *cli.Command {
+	cliConfig = cfg
+
 	var cmd = &cli.Command{
-		Use:          "shield",
-		SilenceUsage: true,
+		Use:   "shield <command> <subcommand> [flags]",
+		Short: "A cloud native role-based authorization aware reverse-proxy service",
+		Long: heredoc.Doc(`
+		A cloud native role-based authorization aware reverse-proxy service.`),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		Example: heredoc.Doc(`
+			$ shield group list
+			$ shield organization list
+			$ shield project list
+			$ shield user create --file user.yaml
+		`),
+		Annotations: map[string]string{
+			"group:core": "true",
+			"help:learn": heredoc.Doc(`
+				Use 'shield <command> <subcommand> --help' for more information about a command.
+				Read the manual at https://odpf.github.io/shield/
+			`),
+			"help:feedback": heredoc.Doc(`
+				Open an issue here https://github.com/odpf/shield/issues
+			`),
+			"help:environment": heredoc.Doc(`
+				See 'shield help environment' for the list of supported environment variables.
+			`),
+		},
 	}
 
-	cmd.AddCommand(serveCommand(logger, appConfig))
-	cmd.AddCommand(migrationsCommand(logger, appConfig))
-	cmd.AddCommand(migrationsRollbackCommand(logger, appConfig))
-	cmd.AddCommand(NamespaceCommand(logger, appConfig))
-	cmd.AddCommand(UserCommand(logger, appConfig))
-	cmd.AddCommand(OrganizationCommand(logger, appConfig))
-	cmd.AddCommand(GroupCommand(logger, appConfig))
-	cmd.AddCommand(ProjectCommand(logger, appConfig))
-	cmd.AddCommand(RoleCommand(logger, appConfig))
-	cmd.AddCommand(ActionCommand(logger, appConfig))
-	cmd.AddCommand(PolicyCommand(logger, appConfig))
+	cmd.PersistentPreRunE = func(subCmd *cobra.Command, args []string) error {
+		if IsClientCLI(subCmd) {
+			if !IsClientConfigHostExist(subCmd) {
+				return ErrClientConfigHostNotFound
+			}
+		}
+		return nil
+	}
+
+	cmd.AddCommand(ServerCommand())
+	cmd.AddCommand(NamespaceCommand(cliConfig))
+	cmd.AddCommand(UserCommand(cliConfig))
+	cmd.AddCommand(OrganizationCommand(cliConfig))
+	cmd.AddCommand(GroupCommand(cliConfig))
+	cmd.AddCommand(ProjectCommand(cliConfig))
+	cmd.AddCommand(RoleCommand(cliConfig))
+	cmd.AddCommand(ActionCommand(cliConfig))
+	cmd.AddCommand(PolicyCommand(cliConfig))
+	cmd.AddCommand(configCommand())
+
+	// Help topics
+	cmdx.SetHelp(cmd)
+	cmd.AddCommand(cmdx.SetCompletionCmd("shield"))
+	cmd.AddCommand(cmdx.SetHelpTopic("environment", envHelp))
+	cmd.AddCommand(cmdx.SetHelpTopic("auth", authHelp))
+	cmd.AddCommand(cmdx.SetRefCmd(cmd))
 	return cmd
 }

@@ -4,17 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func ActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func ActionCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "action",
 		Aliases: []string{"actions"},
@@ -33,15 +30,17 @@ func ActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		},
 	}
 
-	cmd.AddCommand(createActionCommand(logger, appConfig))
-	cmd.AddCommand(editActionCommand(logger, appConfig))
-	cmd.AddCommand(viewActionCommand(logger, appConfig))
-	cmd.AddCommand(listActionCommand(logger, appConfig))
+	cmd.AddCommand(createActionCommand(cliConfig))
+	cmd.AddCommand(editActionCommand(cliConfig))
+	cmd.AddCommand(viewActionCommand(cliConfig))
+	cmd.AddCommand(listActionCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createActionCommand(cliConfig *Config) *cli.Command {
 	var filePath, header string
 
 	cmd := &cli.Command{
@@ -68,9 +67,8 @@ func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -86,7 +84,7 @@ func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created action %s with id %s", res.GetAction().GetName(), res.GetAction().GetId()))
+			fmt.Printf("successfully created action %s with id %s\n", res.GetAction().GetName(), res.GetAction().GetId())
 			return nil
 		},
 	}
@@ -99,7 +97,7 @@ func createActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	return cmd
 }
 
-func editActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editActionCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -126,9 +124,8 @@ func editActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -144,7 +141,7 @@ func editActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited action with id %s", actionID))
+			fmt.Printf("successfully edited action with id %s\n", actionID)
 			return nil
 		},
 	}
@@ -155,7 +152,7 @@ func editActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func viewActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewActionCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View an action",
@@ -170,9 +167,8 @@ func viewActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -207,7 +203,7 @@ func viewActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func listActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listActionCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all actions",
@@ -222,9 +218,8 @@ func listActionCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}

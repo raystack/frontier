@@ -4,17 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func GroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func GroupCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "group",
 		Aliases: []string{"groups"},
@@ -30,18 +27,21 @@ func GroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
+			"client":     "true",
 		},
 	}
 
-	cmd.AddCommand(createGroupCommand(logger, appConfig))
-	cmd.AddCommand(editGroupCommand(logger, appConfig))
-	cmd.AddCommand(viewGroupCommand(logger, appConfig))
-	cmd.AddCommand(listGroupCommand(logger, appConfig))
+	cmd.AddCommand(createGroupCommand(cliConfig))
+	cmd.AddCommand(editGroupCommand(cliConfig))
+	cmd.AddCommand(viewGroupCommand(cliConfig))
+	cmd.AddCommand(listGroupCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createGroupCommand(cliConfig *Config) *cli.Command {
 	var filePath, header string
 
 	cmd := &cli.Command{
@@ -68,9 +68,8 @@ func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -86,7 +85,7 @@ func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created group %s with id %s", res.GetGroup().GetName(), res.GetGroup().GetId()))
+			fmt.Printf("successfully created group %s with id %s\n", res.GetGroup().GetName(), res.GetGroup().GetId())
 			return nil
 		},
 	}
@@ -99,7 +98,7 @@ func createGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 	return cmd
 }
 
-func editGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editGroupCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -126,9 +125,8 @@ func editGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -144,7 +142,7 @@ func editGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited group with id %s", groupID))
+			fmt.Printf("successfully edited group with id %s\n", groupID)
 			return nil
 		},
 	}
@@ -155,7 +153,7 @@ func editGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 	return cmd
 }
 
-func viewGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewGroupCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
@@ -172,9 +170,8 @@ func viewGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -229,7 +226,7 @@ func viewGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 	return cmd
 }
 
-func listGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listGroupCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all groups",
@@ -244,9 +241,8 @@ func listGroupCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}

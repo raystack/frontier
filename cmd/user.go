@@ -4,17 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func UserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func UserCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "user",
 		Aliases: []string{"users"},
@@ -30,18 +27,21 @@ func UserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
+			"client":     "true",
 		},
 	}
 
-	cmd.AddCommand(createUserCommand(logger, appConfig))
-	cmd.AddCommand(editUserCommand(logger, appConfig))
-	cmd.AddCommand(viewUserCommand(logger, appConfig))
-	cmd.AddCommand(listUserCommand(logger, appConfig))
+	cmd.AddCommand(createUserCommand(cliConfig))
+	cmd.AddCommand(editUserCommand(cliConfig))
+	cmd.AddCommand(viewUserCommand(cliConfig))
+	cmd.AddCommand(listUserCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createUserCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -68,9 +68,8 @@ func createUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -84,7 +83,7 @@ func createUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created user %s with id %s", res.GetUser().GetName(), res.GetUser().GetId()))
+			fmt.Printf("successfully created user %s with id %s\n", res.GetUser().GetName(), res.GetUser().GetId())
 			return nil
 		},
 	}
@@ -95,7 +94,7 @@ func createUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func editUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editUserCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -122,9 +121,8 @@ func editUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -140,7 +138,7 @@ func editUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited user with id %s", userID))
+			fmt.Printf("successfully edited user with id %s\n", userID)
 			return nil
 		},
 	}
@@ -151,7 +149,7 @@ func editUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	return cmd
 }
 
-func viewUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewUserCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
@@ -168,9 +166,8 @@ func viewUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -219,7 +216,7 @@ func viewUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	return cmd
 }
 
-func listUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listUserCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all users",
@@ -234,9 +231,8 @@ func listUserCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}

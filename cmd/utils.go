@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"google.golang.org/grpc/metadata"
 	"gopkg.in/yaml.v3"
 )
@@ -44,4 +45,59 @@ func setCtxHeader(ctx context.Context, header string) context.Context {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	return ctx
+}
+
+// func CheckAuth(args []string) bool {
+// 	if md, ok := metadata.FromOutgoingContext(ctx); ok {
+// 		return len(md) > 0
+// 	}
+// 	return false
+// }
+
+func IsAuthCheckEnabled(cmd *cobra.Command) bool {
+	switch cmd.Name() {
+	case "help", "config", cobra.ShellCompRequestCmd, cobra.ShellCompNoDescRequestCmd:
+		return false
+	}
+
+	for c := cmd; c.Parent() != nil; c = c.Parent() {
+		if c.Annotations != nil && c.Annotations["skipAuth"] == "true" {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsClientCLI(cmd *cobra.Command) bool {
+	for c := cmd; c.Parent() != nil; c = c.Parent() {
+		if c.Annotations != nil && c.Annotations["client"] == "true" {
+			return true
+		}
+	}
+	return false
+}
+
+func IsClientConfigHostExist(cmd *cobra.Command) bool {
+	host, err := cmd.Flags().GetString("host")
+	fmt.Println(host)
+	if err != nil {
+		return false
+	}
+	if host != "" {
+		return true
+	}
+	return false
+}
+
+func IsClientConfigHeaderExist(cmd *cobra.Command) bool {
+	host, err := cmd.Flags().GetString("header")
+	fmt.Println(host)
+	if err != nil {
+		return false
+	}
+	if host != "" {
+		return true
+	}
+	return false
 }

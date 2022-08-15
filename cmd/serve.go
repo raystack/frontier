@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/action"
@@ -34,24 +35,11 @@ import (
 	"github.com/odpf/salt/log"
 	salt_server "github.com/odpf/salt/server"
 	"github.com/pkg/profile"
-	cli "github.com/spf13/cobra"
 )
 
 var (
 	ruleCacheRefreshDelay = time.Minute * 2
 )
-
-func serveCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
-	c := &cli.Command{
-		Use:     "serve",
-		Short:   "Start server and proxy default on port 8080",
-		Example: "shield serve",
-		RunE: func(cmd *cli.Command, args []string) error {
-			return serve(logger, appConfig)
-		},
-	}
-	return c
-}
 
 func serve(logger log.Logger, cfg *config.Shield) error {
 	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {

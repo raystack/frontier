@@ -4,18 +4,15 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func RoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func RoleCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "role",
 		Aliases: []string{"roles"},
@@ -30,19 +27,22 @@ func RoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			$ shield role list
 		`),
 		Annotations: map[string]string{
-			"role:core": "true",
+			"group:core": "true",
+			"client":     "true",
 		},
 	}
 
-	cmd.AddCommand(createRoleCommand(logger, appConfig))
-	cmd.AddCommand(editRoleCommand(logger, appConfig))
-	cmd.AddCommand(viewRoleCommand(logger, appConfig))
-	cmd.AddCommand(listRoleCommand(logger, appConfig))
+	cmd.AddCommand(createRoleCommand(cliConfig))
+	cmd.AddCommand(editRoleCommand(cliConfig))
+	cmd.AddCommand(viewRoleCommand(cliConfig))
+	cmd.AddCommand(listRoleCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createRoleCommand(cliConfig *Config) *cli.Command {
 	var filePath, header string
 
 	cmd := &cli.Command{
@@ -69,9 +69,8 @@ func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -87,7 +86,7 @@ func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created role %s with id %s", res.GetRole().GetName(), res.GetRole().GetId()))
+			fmt.Printf("successfully created role %s with id %s\n", res.GetRole().GetName(), res.GetRole().GetId())
 			return nil
 		},
 	}
@@ -100,7 +99,7 @@ func createRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func editRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editRoleCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -127,9 +126,8 @@ func editRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -145,7 +143,7 @@ func editRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited role with id %s", roleID))
+			fmt.Printf("successfully edited role with id %s\n", roleID)
 			return nil
 		},
 	}
@@ -156,7 +154,7 @@ func editRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	return cmd
 }
 
-func viewRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewRoleCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
@@ -173,9 +171,8 @@ func viewRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -230,7 +227,7 @@ func viewRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 	return cmd
 }
 
-func listRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listRoleCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all roles",
@@ -245,9 +242,8 @@ func listRoleCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}

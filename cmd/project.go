@@ -4,17 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func ProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func ProjectCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "project",
 		Aliases: []string{"projects"},
@@ -29,19 +26,22 @@ func ProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			$ shield project list
 		`),
 		Annotations: map[string]string{
-			"project:core": "true",
+			"group:core": "true",
+			"client":     "true",
 		},
 	}
 
-	cmd.AddCommand(createProjectCommand(logger, appConfig))
-	cmd.AddCommand(editProjectCommand(logger, appConfig))
-	cmd.AddCommand(viewProjectCommand(logger, appConfig))
-	cmd.AddCommand(listProjectCommand(logger, appConfig))
+	cmd.AddCommand(createProjectCommand(cliConfig))
+	cmd.AddCommand(editProjectCommand(cliConfig))
+	cmd.AddCommand(viewProjectCommand(cliConfig))
+	cmd.AddCommand(listProjectCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createProjectCommand(cliConfig *Config) *cli.Command {
 	var filePath, header string
 
 	cmd := &cli.Command{
@@ -68,9 +68,8 @@ func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -86,7 +85,7 @@ func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created project %s with id %s", res.GetProject().GetName(), res.GetProject().GetId()))
+			fmt.Printf("successfully created project %s with id %s\n", res.GetProject().GetName(), res.GetProject().GetId())
 			return nil
 		},
 	}
@@ -99,7 +98,7 @@ func createProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 	return cmd
 }
 
-func editProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editProjectCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -126,9 +125,8 @@ func editProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -144,7 +142,7 @@ func editProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited project with id %s", projectID))
+			fmt.Printf("successfully edited project with id %s\n", projectID)
 			return nil
 		},
 	}
@@ -155,7 +153,7 @@ func editProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 	return cmd
 }
 
-func viewProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewProjectCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
@@ -172,9 +170,8 @@ func viewProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
@@ -229,7 +226,7 @@ func viewProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 	return cmd
 }
 
-func listProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listProjectCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all projects",
@@ -244,9 +241,8 @@ func listProjectCommand(logger log.Logger, appConfig *config.Shield) *cli.Comman
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
 			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd)
 			if err != nil {
 				return err
 			}
