@@ -43,7 +43,7 @@ func UserCommand(cliConfig *Config) *cli.Command {
 }
 
 func createUserCommand(cliConfig *Config) *cli.Command {
-	var filePath string
+	var filePath, header string
 
 	cmd := &cli.Command{
 		Use:   "create",
@@ -76,7 +76,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
+			res, err := client.CreateUser(setCtxHeader(ctx, header), &shieldv1beta1.CreateUserRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -91,6 +91,8 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the user body file")
 	cmd.MarkFlagRequired("file")
+	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
+	cmd.MarkFlagRequired("header")
 
 	return cmd
 }

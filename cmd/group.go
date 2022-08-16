@@ -76,9 +76,7 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
-
-			res, err := client.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
+			res, err := client.CreateGroup(setCtxHeader(ctx, header), &shieldv1beta1.CreateGroupRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
