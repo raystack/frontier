@@ -10,14 +10,14 @@ var (
 	ErrClientConfigNotFound = errors.New(heredoc.Doc(`
 		Shield client config not found.
 
-		Run "shield config init" or
+		Run "shield config init" to initialize a new client config or
 		Run "shield help environment" for more information.
 	`))
 	ErrClientConfigHostNotFound = errors.New(heredoc.Doc(`
 		Shield client config "host" not found.
 
 		Pass shield server host with "--host" flag or 
-		use shield config.
+		set host in shield config.
 
 		Run "shield config <subcommand>" or
 		"shield help environment" for more information.

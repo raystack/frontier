@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -31,7 +30,6 @@ func isClientCLI(cmd *cobra.Command) bool {
 
 func clientConfigHostExist(cmd *cobra.Command) bool {
 	host, err := cmd.Flags().GetString("host")
-	fmt.Println(host)
 	if err != nil {
 		return false
 	}
