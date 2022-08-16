@@ -37,14 +37,14 @@ func (s *EndToEndAPITestSuite) SetupSuite() {
 			Port:                apiPort,
 			IdentityProxyHeader: "X-Shield-Email",
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", wd, "testdata/configs/resources"),
-			RulesPath:           fmt.Sprintf("file://%s/%s", wd, ".testdata/configs/rules"),
+			RulesPath:           fmt.Sprintf("file://%s/%s", wd, "testdata/configs/rules"),
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{
 				{
 					Name:      "base",
 					Port:      proxyPort,
-					RulesPath: fmt.Sprintf("file://%s/%s", wd, ".testdata/configs/rules"),
+					RulesPath: fmt.Sprintf("file://%s/%s", wd, "testdata/configs/rules"),
 				},
 			},
 		},
