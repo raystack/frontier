@@ -100,7 +100,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		case errors.Is(err, group.ErrInvalidDetail), errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcPermissionDenied
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -159,7 +159,9 @@ func (h Handler) AddGroupUser(ctx context.Context, request *shieldv1beta1.AddGro
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
 			return nil, grpcGroupNotFoundErr
@@ -191,7 +193,9 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.Rem
 	if _, err := h.groupService.RemoveUser(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
 			return nil, grpcGroupNotFoundErr
@@ -305,7 +309,9 @@ func (h Handler) AddGroupAdmin(ctx context.Context, request *shieldv1beta1.AddGr
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
 			return nil, grpcGroupNotFoundErr
@@ -338,7 +344,9 @@ func (h Handler) RemoveGroupAdmin(ctx context.Context, request *shieldv1beta1.Re
 	if _, err := h.groupService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, group.ErrNotExist):
 			return nil, grpcGroupNotFoundErr

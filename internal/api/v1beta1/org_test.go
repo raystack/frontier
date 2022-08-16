@@ -120,7 +120,7 @@ func TestCreateOrganization(t *testing.T) {
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
-			err:  grpcPermissionDenied,
+			err:  grpcUnauthenticated,
 		},
 		{
 			title: "should return internal error if org service return some error",
@@ -618,12 +618,12 @@ func TestHandler_AddOrganizationAdmin(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return forbidden error if caller is unauthorized",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
-				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserIDs).Return([]user.User{}, errors.Unauthorized)
+				os.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserIDs).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.AddOrganizationAdminRequest{
@@ -846,12 +846,12 @@ func TestHandler_RemoveOrganizationAdmin(t *testing.T) {
 				UserId: someUserID,
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return forbidden error if caller is not an admin",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
-				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserID).Return([]user.User{}, errors.Unauthorized)
+				os.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someOrgID, someUserID).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.RemoveOrganizationAdminRequest{

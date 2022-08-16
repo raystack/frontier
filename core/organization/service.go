@@ -99,13 +99,13 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
+	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if !isAuthorized {
-		return []user.User{}, errors.Unauthorized
+	if !isAllowed {
+		return []user.User{}, errors.ErrForbidden
 	}
 
 	users, err := s.userService.GetByIDs(ctx, userIds)
@@ -152,13 +152,13 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 		return []user.User{}, err
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
+	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if !isAuthorized {
-		return []user.User{}, errors.Unauthorized
+	if !isAllowed {
+		return []user.User{}, errors.ErrForbidden
 	}
 
 	removedUser, err := s.userService.GetByID(ctx, userId)

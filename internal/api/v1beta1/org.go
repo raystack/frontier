@@ -87,7 +87,7 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcPermissionDenied
+			return nil, grpcUnauthenticated
 		case errors.Is(err, organization.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		case errors.Is(err, organization.ErrConflict):
@@ -194,7 +194,9 @@ func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
@@ -253,7 +255,9 @@ func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1b
 	if _, err := h.orgService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr

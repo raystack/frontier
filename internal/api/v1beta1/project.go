@@ -88,7 +88,7 @@ func (h Handler) CreateProject(
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcPermissionDenied
+			return nil, grpcUnauthenticated
 		case errors.Is(err, organization.ErrInvalidUUID), errors.Is(err, project.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		case errors.Is(err, project.ErrConflict):
@@ -205,7 +205,9 @@ func (h Handler) AddProjectAdmin(
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, project.ErrNotExist):
 			return nil, grpcProjectNotFoundErr
@@ -270,7 +272,9 @@ func (h Handler) RemoveProjectAdmin(
 	if _, err := h.projectService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, errors.Unauthorized):
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errors.ErrForbidden):
 			return nil, grpcPermissionDenied
 		case errors.Is(err, project.ErrNotExist):
 			return nil, grpcProjectNotFoundErr

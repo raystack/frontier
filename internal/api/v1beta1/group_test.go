@@ -171,7 +171,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
+			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name: "some group",
@@ -190,7 +190,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 				Metadata: &structpb.Struct{},
 			}},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return internal error if group service return some error",
@@ -471,7 +471,7 @@ func TestHandler_AddGroupUser(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
+			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().AddUsers(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
@@ -483,12 +483,12 @@ func TestHandler_AddGroupUser(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return forbidden error if caller is not an admin",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
-				gs.EXPECT().AddUsers(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, errors.Unauthorized)
+				gs.EXPECT().AddUsers(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.AddGroupUserRequest{
@@ -634,7 +634,7 @@ func TestHandler_RemoveGroupUser(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
+			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().RemoveUser(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
@@ -644,12 +644,12 @@ func TestHandler_RemoveGroupUser(t *testing.T) {
 				UserId: someUserID,
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return forbidden error if caller is not an admin",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
-				gs.EXPECT().RemoveUser(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, errors.Unauthorized)
+				gs.EXPECT().RemoveUser(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.RemoveGroupUserRequest{
@@ -1225,7 +1225,7 @@ func TestHandler_AddGroupAdmin(t *testing.T) {
 	}{
 
 		{
-			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
+			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
@@ -1237,7 +1237,7 @@ func TestHandler_AddGroupAdmin(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return internal error if group service return some error",
@@ -1257,7 +1257,7 @@ func TestHandler_AddGroupAdmin(t *testing.T) {
 		{
 			name: "should return forbidden error if caller is not an admin",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
-				gs.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, errors.Unauthorized)
+				gs.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserIDs).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.AddGroupAdminRequest{
@@ -1388,7 +1388,7 @@ func TestHandler_RemoveGroupAdmin(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if auth email in context is empty and group service return invalid user email",
+			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
@@ -1398,7 +1398,7 @@ func TestHandler_RemoveGroupAdmin(t *testing.T) {
 				UserId: someUserID,
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return internal error if group service return some error",
@@ -1416,7 +1416,7 @@ func TestHandler_RemoveGroupAdmin(t *testing.T) {
 		{
 			name: "should return forbidden error if caller is not an admin",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
-				gs.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, errors.Unauthorized)
+				gs.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), someGroupID, someUserID).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.RemoveGroupAdminRequest{

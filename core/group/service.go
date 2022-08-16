@@ -104,13 +104,13 @@ func (s Service) AddUsers(ctx context.Context, groupIdOrSlug string, userIds []s
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if !isAuthorized {
-		return []user.User{}, errors.Unauthorized
+	if !isAllowed {
+		return []user.User{}, errors.ErrForbidden
 	}
 
 	users, err := s.userService.GetByIDs(ctx, userIds)
@@ -143,13 +143,13 @@ func (s Service) RemoveUser(ctx context.Context, groupIdOrSlug string, userId st
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if !isAuthorized {
-		return []user.User{}, errors.Unauthorized
+	if !isAllowed {
+		return []user.User{}, errors.ErrForbidden
 	}
 
 	removedUser, err := s.userService.GetByID(ctx, userId)
@@ -208,13 +208,13 @@ func (s Service) AddAdmins(ctx context.Context, groupIdOrSlug string, userIds []
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if !isAuthorized {
-		return []user.User{}, errors.Unauthorized
+	if !isAllowed {
+		return []user.User{}, errors.ErrForbidden
 	}
 
 	users, err := s.userService.GetByIDs(ctx, userIds)
@@ -251,13 +251,13 @@ func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId s
 		groupID = grp.ID
 	}
 
-	isAuthorized, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
+	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
 	}
 
-	if !isAuthorized {
-		return []user.User{}, errors.Unauthorized
+	if !isAllowed {
+		return []user.User{}, errors.ErrForbidden
 	}
 
 	removedUser, err := s.userService.GetByID(ctx, userId)

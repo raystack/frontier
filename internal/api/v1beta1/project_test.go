@@ -81,7 +81,7 @@ func TestCreateProject(t *testing.T) {
 					},
 				},
 			}},
-			err: grpcPermissionDenied,
+			err: grpcUnauthenticated,
 		},
 		{
 			title: "should return internal error if project service return some error",
@@ -690,12 +690,12 @@ func TestHandler_AddProjectAdmin(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return forbidden error if caller is unauthorized",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
-				ps.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), testProjectID, someUserIDs).Return([]user.User{}, errors.Unauthorized)
+				ps.EXPECT().AddAdmins(mock.AnythingOfType("*context.valueCtx"), testProjectID, someUserIDs).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.AddProjectAdminRequest{
@@ -915,12 +915,12 @@ func TestHandler_RemoveProjectAdmin(t *testing.T) {
 				UserId: someUserID,
 			},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return forbidden error if caller is not an admin",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
-				ps.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), testProjectID, someUserID).Return([]user.User{}, errors.Unauthorized)
+				ps.EXPECT().RemoveAdmin(mock.AnythingOfType("*context.valueCtx"), testProjectID, someUserID).Return([]user.User{}, errors.ErrForbidden)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.RemoveProjectAdminRequest{

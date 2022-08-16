@@ -32,7 +32,7 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	}
 
 	if !result {
-		return nil, status.Errorf(codes.Unauthenticated, "user not allowed to make request")
+		return nil, status.Errorf(codes.PermissionDenied, "user not allowed to make request")
 	}
 
 	return &shieldv1beta1.ResourceActionAuthzResponse{Status: "OK"}, nil

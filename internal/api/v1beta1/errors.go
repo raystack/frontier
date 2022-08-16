@@ -1,8 +1,7 @@
 package v1beta1
 
 import (
-	"errors"
-
+	"github.com/odpf/shield/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -13,13 +12,13 @@ var (
 	ErrInternalServer        = errors.New("internal server error")
 	ErrBadRequest            = errors.New("invalid syntax in body")
 	ErrConflictRequest       = errors.New("already exist")
-	ErrPermissionDenied      = errors.New("permission denied")
 	ErrRequestBodyValidation = errors.New("invalid format for field(s)")
 
 	grpcInternalServerError = status.Errorf(codes.Internal, ErrInternalServer.Error())
 	grpcConflictError       = status.Errorf(codes.AlreadyExists, ErrConflictRequest.Error())
 	grpcBadBodyError        = status.Error(codes.InvalidArgument, ErrBadRequest.Error())
-	grpcPermissionDenied    = status.Error(codes.PermissionDenied, ErrPermissionDenied.Error())
+	grpcPermissionDenied    = status.Error(codes.PermissionDenied, errors.ErrForbidden.Error())
+	grpcUnauthenticated     = status.Error(codes.Unauthenticated, errors.ErrUnauthenticated.Error())
 
 	ErrEmptyEmailID = errors.New("email id is empty")
 )
