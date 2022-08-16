@@ -69,7 +69,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 	return transformedRole, nil
 }
 
-//TODO this is actually an upsert
+// TODO this is actually an upsert
 func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error) {
 	if rl.ID == "" {
 		return "", role.ErrInvalidID

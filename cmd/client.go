@@ -23,6 +23,7 @@ func createClient(cmd *cobra.Command) (shieldv1beta1.ShieldServiceClient, func()
 	dialTimeoutCtx, dialCancel := context.WithTimeout(cmd.Context(), time.Second*2)
 	host, err := cmd.Flags().GetString("host")
 	if err != nil {
+		dialCancel()
 		return nil, nil, err
 	}
 	conn, err := createConnection(dialTimeoutCtx, host)
