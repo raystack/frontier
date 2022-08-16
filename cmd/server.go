@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"path"
+
 	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/store/postgres/migrations"
@@ -17,6 +21,7 @@ func ServerCommand() *cobra.Command {
 		Short:   "Server management",
 		Long:    "Server management commands.",
 		Example: heredoc.Doc(`
+			$ shield server init
 			$ shield server start
 			$ shield server start -c ./config.yaml
 			$ shield server migrate
@@ -26,14 +31,71 @@ func ServerCommand() *cobra.Command {
 		`),
 	}
 
-	cmd.AddCommand(startCommand())
-	cmd.AddCommand(migrateCommand())
-	cmd.AddCommand(migrateRollbackCommand())
+	cmd.AddCommand(serverInitCommand())
+	cmd.AddCommand(serverStartCommand())
+	cmd.AddCommand(serverMigrateCommand())
+	cmd.AddCommand(serverMigrateRollbackCommand())
 
 	return cmd
 }
 
-func startCommand() *cobra.Command {
+func serverInitCommand() *cobra.Command {
+	var configFile string
+	var resourcesURL string
+	var rulesURL string
+
+	c := &cli.Command{
+		Use:   "init",
+		Short: "Initialize server",
+		Long: heredoc.Doc(`
+			Initializing server. Creating a sample of shield server config.
+			Default: ./.shield.yaml
+		`),
+		Example: "shield server init",
+		RunE: func(cmd *cli.Command, args []string) error {
+			cwd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			defaultResourcesURL := fmt.Sprintf("file://%s", path.Join(cwd, "resources_config"))
+			defaultRulesURL := fmt.Sprintf("file://%s", path.Join(cwd, "rules"))
+
+			if resourcesURL == "" {
+				resourcesURL = defaultResourcesURL
+			}
+			if rulesURL == "" {
+				rulesURL = defaultRulesURL
+			}
+
+			if err := config.Init(resourcesURL, rulesURL, configFile); err != nil {
+				return err
+			}
+
+			fmt.Printf("config created: %v\n", configFile)
+			return nil
+		},
+	}
+
+	c.Flags().StringVarP(&configFile, "output", "o", "./.shield.yaml", "Output config file path")
+	c.Flags().StringVarP(&resourcesURL, "resources", "r", "", heredoc.Doc(`
+		URL path of resources. Full path prefixed with scheme where resources config yaml files are kept
+		e.g.:
+		local storage file "file:///tmp/resources_config"
+		GCS Bucket "gs://shield-bucket-example"
+		(default: file://{pwd}/resources_config)
+	`))
+	c.Flags().StringVarP(&rulesURL, "rule", "u", "", heredoc.Doc(`
+		URL path of rules. Full path prefixed with scheme where ruleset yaml files are kept
+		e.g.:
+		local storage file "file:///tmp/rules"
+		GCS Bucket "gs://shield-bucket-example"
+		(default: file://{pwd}/rules)
+	`))
+
+	return c
+}
+
+func serverStartCommand() *cobra.Command {
 	var configFile string
 
 	c := &cli.Command{
@@ -55,7 +117,7 @@ func startCommand() *cobra.Command {
 	return c
 }
 
-func migrateCommand() *cobra.Command {
+func serverMigrateCommand() *cobra.Command {
 	var configFile string
 
 	c := &cli.Command{
@@ -79,7 +141,7 @@ func migrateCommand() *cobra.Command {
 	return c
 }
 
-func migrateRollbackCommand() *cobra.Command {
+func serverMigrateRollbackCommand() *cobra.Command {
 	var configFile string
 
 	c := &cli.Command{

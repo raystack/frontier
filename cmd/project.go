@@ -7,6 +7,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/salt/printer"
+	"github.com/odpf/shield/pkg/file"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
@@ -59,7 +60,7 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.ProjectRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -116,7 +117,7 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.ProjectRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 

@@ -2,6 +2,7 @@ build
 .env
 .DS_Store
 .idea/
+.vscode/
 proxies/*.yaml
 proxies/*.yml
 .temp
@@ -18,3 +19,5 @@ ignore/
 vendor/
 buf.lock
 buf.yaml
+resources_config
+rules
