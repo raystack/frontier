@@ -14,7 +14,7 @@ func New(cfg *Config) *cli.Command {
 		Use:   "shield <command> <subcommand> [flags]",
 		Short: "A cloud native role-based authorization aware reverse-proxy service",
 		Long: heredoc.Doc(`
-		A cloud native role-based authorization aware reverse-proxy service.`),
+			A cloud native role-based authorization aware reverse-proxy service.`),
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Example: heredoc.Doc(`

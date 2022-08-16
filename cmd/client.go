@@ -40,3 +40,23 @@ func createClient(cmd *cobra.Command) (shieldv1beta1.ShieldServiceClient, func()
 	client := shieldv1beta1.NewShieldServiceClient(conn)
 	return client, cancel, nil
 }
+
+func isClientCLI(cmd *cobra.Command) bool {
+	for c := cmd; c.Parent() != nil; c = c.Parent() {
+		if c.Annotations != nil && c.Annotations["client"] == "true" {
+			return true
+		}
+	}
+	return false
+}
+
+func clientConfigHostExist(cmd *cobra.Command) bool {
+	host, err := cmd.Flags().GetString("host")
+	if err != nil {
+		return false
+	}
+	if host != "" {
+		return true
+	}
+	return false
+}
