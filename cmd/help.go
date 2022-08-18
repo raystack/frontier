@@ -17,6 +17,6 @@ var authHelp = map[string]string{
 	"long": heredoc.Doc(`
 			Send an additional flag header with "key:value" format.
 			Example:
-				shield create user -f user.yaml -h X-Shield-Email:user@odpf.io
+				shield create user -f user.yaml -H X-Shield-Email:user@odpf.io
 		`),
 }

@@ -113,7 +113,7 @@ func serverStartCommand() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVarP(&configFile, "config", "c", "./config.yaml", "Config file path")
+	c.Flags().StringVarP(&configFile, "config", "c", "", "Config file path")
 	return c
 }
 
@@ -137,7 +137,7 @@ func serverMigrateCommand() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVarP(&configFile, "config", "c", "./config.yaml", "Config file path")
+	c.Flags().StringVarP(&configFile, "config", "c", "", "Config file path")
 	return c
 }
 
