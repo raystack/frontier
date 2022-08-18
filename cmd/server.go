@@ -71,7 +71,7 @@ func serverInitCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("config created: %v\n", configFile)
+			fmt.Printf("server config created: %v\n", configFile)
 			return nil
 		},
 	}

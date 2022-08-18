@@ -21,7 +21,7 @@ type Shield struct {
 	NewRelic NewRelic             `yaml:"new_relic"`
 	App      server.Config        `yaml:"app"`
 	DB       db.Config            `yaml:"db"`
-	SpiceDB  spicedb.Config       `yaml:"spice_db"`
+	SpiceDB  spicedb.Config       `yaml:"spicedb"`
 }
 
 type NewRelic struct {

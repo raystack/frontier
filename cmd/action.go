@@ -28,6 +28,7 @@ func ActionCommand(cliConfig *Config) *cli.Command {
 		`),
 		Annotations: map[string]string{
 			"group:core": "true",
+			"client":     "true",
 		},
 	}
 
