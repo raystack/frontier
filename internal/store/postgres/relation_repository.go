@@ -27,8 +27,8 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 	subjectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.ID, relationToCreate.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.ID, relationToCreate.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(relationToCreate.Role.ID, relationToCreate.RoleID)
-	var nsID string
 
+	var nsID string
 	if relationToCreate.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""
@@ -170,8 +170,8 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	subjectNamespaceID := str.DefaultStringIfEmpty(rel.SubjectNamespace.ID, rel.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
-	var nsID string
 
+	var nsID string
 	if rel.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""
@@ -220,8 +220,8 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 	subjectNamespaceID := str.DefaultStringIfEmpty(rel.SubjectNamespace.ID, rel.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
-	var nsID string
 
+	var nsID string
 	if rel.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""

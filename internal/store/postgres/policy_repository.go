@@ -120,16 +120,16 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 	return transformedPolicies, nil
 }
 
-//TODO this is actually upsert
+// TODO this is actually upsert
 func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
-	if str.IsStringEmpty(pol.ActionID) {
-		return "", policy.ErrInvalidDetail
-	}
-
 	//TODO need to find a way to deprecate this
 	roleID := str.DefaultStringIfEmpty(pol.Role.ID, pol.RoleID)
 	actionID := str.DefaultStringIfEmpty(pol.Action.ID, pol.ActionID)
 	nsID := str.DefaultStringIfEmpty(pol.Namespace.ID, pol.NamespaceID)
+
+	if str.IsStringEmpty(actionID) {
+		return "", policy.ErrInvalidDetail
+	}
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
 		goqu.Record{

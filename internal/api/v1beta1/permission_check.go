@@ -2,10 +2,12 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/user"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -26,9 +28,14 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 		NamespaceID: req.GetNamespaceId(),
 	}, action.Action{ID: req.GetActionId()})
 	if err != nil {
-		formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-		logger.Error(formattedErr.Error())
-		return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		default:
+			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
+			logger.Error(formattedErr.Error())
+			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
+		}
 	}
 
 	if !result {
