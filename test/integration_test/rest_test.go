@@ -301,7 +301,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Serv
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, "", &resource.Service{}, &project.Service{})
+	return authz_hook.New(log, rootHook, rootHook, &resource.Service{}, &project.Service{})
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {
