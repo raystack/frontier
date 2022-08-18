@@ -193,6 +193,45 @@ func TestCreateUser(t *testing.T) {
 			err:  grpcConflictError,
 		},
 		{
+			title: "should return success if user email contain whitespace but still valid service return nil error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Name:     "some user",
+					Email:    "abc@test.com",
+					Metadata: metadata.Metadata{"foo": "bar"},
+				}).Return(
+					user.User{
+						ID:       "new-abc",
+						Name:     "some user",
+						Email:    "abc@test.com",
+						Metadata: metadata.Metadata{"foo": "bar"},
+					}, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:  "some user",
+				Email: "  abc@test.com  ",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			}},
+			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
+				Id:    "new-abc",
+				Name:  "some user",
+				Email: "abc@test.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}},
+			err: nil,
+		},
+		{
 			title: "should return success if user service return nil error",
 			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{

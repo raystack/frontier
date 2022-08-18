@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"strings"
 )
 
 type Service struct {
@@ -62,6 +63,11 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 	email, ok := GetEmailFromContext(ctx)
 	if !ok {
+		return User{}, ErrMissingEmail
+	}
+
+	email = strings.TrimSpace(email)
+	if email == "" {
 		return User{}, ErrMissingEmail
 	}
 

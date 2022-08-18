@@ -68,12 +68,18 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcPermissionDenied
 	}
 
-	if len(currentUserEmail) == 0 {
+	currentUserEmail = strings.TrimSpace(currentUserEmail)
+	if currentUserEmail == "" {
 		logger.Error(ErrEmptyEmailID.Error())
 		return nil, grpcPermissionDenied
 	}
 
-	if request.GetBody() == nil || strings.TrimSpace(request.GetBody().GetEmail()) == "" {
+	if request.GetBody() == nil {
+		return nil, grpcBadBodyError
+	}
+
+	email := strings.TrimSpace(request.GetBody().GetEmail())
+	if email == "" {
 		return nil, grpcBadBodyError
 	}
 
@@ -86,7 +92,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	// TODO might need to check the valid email form
 	newUser, err := h.userService.Create(ctx, user.User{
 		Name:     request.GetBody().GetName(),
-		Email:    request.GetBody().GetEmail(),
+		Email:    email,
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -148,7 +154,8 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		return nil, grpcPermissionDenied
 	}
 
-	if strings.TrimSpace(email) == "" {
+	email = strings.TrimSpace(email)
+	if email == "" {
 		logger.Error(ErrEmptyEmailID.Error())
 		return nil, grpcPermissionDenied
 	}
@@ -186,6 +193,11 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
+	email := strings.TrimSpace(request.GetBody().GetEmail())
+	if email == "" {
+		return nil, grpcBadBodyError
+	}
+
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
@@ -194,7 +206,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	updatedUser, err := h.userService.UpdateByID(ctx, user.User{
 		ID:       request.GetId(),
 		Name:     request.GetBody().GetName(),
-		Email:    request.GetBody().GetEmail(),
+		Email:    email,
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -228,7 +240,8 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		return nil, grpcPermissionDenied
 	}
 
-	if len(email) == 0 {
+	email = strings.TrimSpace(email)
+	if email == "" {
 		logger.Error(ErrEmptyEmailID.Error())
 		return nil, grpcPermissionDenied
 	}
