@@ -17,6 +17,7 @@ import (
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/proxy/hook"
 	authz_hook "github.com/odpf/shield/internal/proxy/hook/authz"
+	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 	basic_auth "github.com/odpf/shield/internal/proxy/middleware/basic_auth"
 	"github.com/odpf/shield/internal/proxy/middleware/prefix"
 	"github.com/odpf/shield/internal/proxy/middleware/rulematch"
@@ -295,7 +296,8 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Serv
 	prefixWare := prefix.New(logger, proxy)
 	//casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleService))
+	attributeExtractor := attributes.New(logger, basicAuthn, "")
+	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
 	return matchWare
 }
 
