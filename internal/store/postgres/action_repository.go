@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/pkg/db"
@@ -25,7 +26,7 @@ func NewActionRepository(dbc *db.Client) *ActionRepository {
 }
 
 func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return action.Action{}, action.ErrInvalidID
 	}
 
@@ -53,7 +54,7 @@ func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, er
 
 // TODO this is actually an upsert
 func (r ActionRepository) Create(ctx context.Context, act action.Action) (action.Action, error) {
-	if str.IsStringEmpty(act.ID) {
+	if strings.TrimSpace(act.ID) == "" {
 		return action.Action{}, action.ErrInvalidID
 	}
 
@@ -112,11 +113,11 @@ func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
 }
 
 func (r ActionRepository) Update(ctx context.Context, act action.Action) (action.Action, error) {
-	if str.IsStringEmpty(act.ID) {
+	if strings.TrimSpace(act.ID) == "" {
 		return action.Action{}, action.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(act.Name) {
+	if strings.TrimSpace(act.Name) == "" {
 		return action.Action{}, action.ErrInvalidDetail
 	}
 

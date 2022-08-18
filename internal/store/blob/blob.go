@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/odpf/shield/pkg/str"
 	"github.com/pkg/errors"
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/fileblob"
@@ -64,7 +63,7 @@ func NewStore(ctx context.Context, storagePath, storageSecret string) (Bucket, e
 	}
 	switch parsedStorageURL.Scheme {
 	case "gs":
-		if str.IsStringEmpty(storageSecret) {
+		if strings.TrimSpace(storageSecret) == "" {
 			return nil, errors.Errorf("%s secret not configured for fs", storagePath)
 		}
 		creds, err := google.CredentialsFromJSON(ctx, storageSecretValue, "https://www.googleapis.com/auth/cloud-platform")
@@ -84,7 +83,7 @@ func NewStore(ctx context.Context, storagePath, storageSecret string) (Bucket, e
 		}
 		// create a *blob.Bucket
 		prefix := fmt.Sprintf("%s/", strings.Trim(parsedStorageURL.Path, "/\\"))
-		if str.IsStringEmpty(prefix) {
+		if strings.TrimSpace(prefix) == "" {
 			return gcsBucket, nil
 		}
 		return blob.PrefixedBucket(gcsBucket, prefix), nil

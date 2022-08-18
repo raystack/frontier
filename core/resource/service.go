@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"strings"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/group"
@@ -54,7 +55,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	userId := res.UserID
-	if str.IsStringEmpty(userId) {
+	if strings.TrimSpace(userId) == "" {
 		userId = currentUser.ID
 	}
 

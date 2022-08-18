@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -12,7 +13,6 @@ import (
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/str"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
@@ -73,7 +73,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcPermissionDenied
 	}
 
-	if request.GetBody() == nil || str.IsStringEmpty(request.GetBody().GetEmail()) {
+	if request.GetBody() == nil || strings.TrimSpace(request.GetBody().GetEmail()) == "" {
 		return nil, grpcBadBodyError
 	}
 
@@ -148,7 +148,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		return nil, grpcPermissionDenied
 	}
 
-	if str.IsStringEmpty(email) {
+	if strings.TrimSpace(email) == "" {
 		logger.Error(ErrEmptyEmailID.Error())
 		return nil, grpcPermissionDenied
 	}
@@ -178,7 +178,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRequest) (*shieldv1beta1.UpdateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if str.IsStringEmpty(request.GetId()) {
+	if strings.TrimSpace(request.GetId()) == "" {
 		return nil, grpcUserNotFoundError
 	}
 

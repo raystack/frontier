@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type UserRepository struct {
@@ -25,7 +25,7 @@ func NewUserRepository(dbc *db.Client) *UserRepository {
 }
 
 func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return user.User{}, user.ErrInvalidID
 	}
 
@@ -63,7 +63,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 }
 
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
-	if str.IsStringEmpty(usr.Email) {
+	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
 
@@ -186,7 +186,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 }
 
 func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.User, error) {
-	if str.IsStringEmpty(usr.Email) {
+	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
 
@@ -228,11 +228,11 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 }
 
 func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.User, error) {
-	if str.IsStringEmpty(usr.ID) {
+	if strings.TrimSpace(usr.ID) == "" {
 		return user.User{}, user.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(usr.Email) {
+	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
 
@@ -282,7 +282,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 }
 
 func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User, error) {
-	if str.IsStringEmpty(email) {
+	if strings.TrimSpace(email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
 

@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"strings"
 
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
@@ -87,7 +88,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		Metadata:       metaDataMap,
 	}
 
-	if str.IsStringEmpty(grp.Slug) {
+	if strings.TrimSpace(grp.Slug) == "" {
 		grp.Slug = str.GenerateSlug(grp.Name)
 	}
 

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/group"
@@ -14,7 +15,6 @@ import (
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type GroupRepository struct {
@@ -28,7 +28,7 @@ func NewGroupRepository(dbc *db.Client) *GroupRepository {
 }
 
 func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return group.Group{}, group.ErrInvalidID
 	}
 
@@ -64,7 +64,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 }
 
 func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Group, error) {
-	if str.IsStringEmpty(slug) {
+	if strings.TrimSpace(slug) == "" {
 		return group.Group{}, group.ErrInvalidID
 	}
 
@@ -98,7 +98,7 @@ func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Grou
 }
 
 func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Group, error) {
-	if str.IsStringEmpty(grp.Name) || str.IsStringEmpty(grp.Slug) {
+	if strings.TrimSpace(grp.Name) == "" || strings.TrimSpace(grp.Slug) == "" {
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
@@ -181,11 +181,11 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 }
 
 func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group.Group, error) {
-	if str.IsStringEmpty(grp.ID) {
+	if strings.TrimSpace(grp.ID) == "" {
 		return group.Group{}, group.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(grp.Name) || str.IsStringEmpty(grp.Slug) {
+	if strings.TrimSpace(grp.Name) == "" || strings.TrimSpace(grp.Slug) == "" {
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
@@ -236,11 +236,11 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 }
 
 func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (group.Group, error) {
-	if str.IsStringEmpty(grp.Slug) {
+	if strings.TrimSpace(grp.Slug) == "" {
 		return group.Group{}, group.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(grp.Name) {
+	if strings.TrimSpace(grp.Name) == "" {
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
@@ -309,7 +309,7 @@ func (r GroupRepository) buildListUsersByGroupIDQuery(groupID, roleID string) (s
 			"r.object_namespace_id":  namespace.DefinitionTeam.ID,
 		})
 
-	if !str.IsStringEmpty(roleID) {
+	if strings.TrimSpace(roleID) != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{
 			"r.role_id": roleID,
 		})
@@ -319,7 +319,7 @@ func (r GroupRepository) buildListUsersByGroupIDQuery(groupID, roleID string) (s
 }
 
 func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
-	if str.IsStringEmpty(groupID) {
+	if strings.TrimSpace(groupID) == "" {
 		return nil, group.ErrInvalidID
 	}
 
@@ -354,7 +354,7 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 }
 
 func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug string, roleID string) ([]user.User, error) {
-	if str.IsStringEmpty(groupSlug) {
+	if strings.TrimSpace(groupSlug) == "" {
 		return nil, group.ErrInvalidID
 	}
 
@@ -394,7 +394,7 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 }
 
 func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID string, groupID string) ([]relation.Relation, error) {
-	if str.IsStringEmpty(groupID) || str.IsStringEmpty(userID) {
+	if strings.TrimSpace(groupID) == "" || strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID
 	}
 
@@ -430,7 +430,7 @@ func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID st
 }
 
 func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID string, groupSlug string) ([]relation.Relation, error) {
-	if str.IsStringEmpty(groupSlug) || str.IsStringEmpty(userID) {
+	if strings.TrimSpace(groupSlug) == "" || strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID
 	}
 	var fetchedRelations []Relation
@@ -473,7 +473,7 @@ func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID 
 }
 
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
-	if str.IsStringEmpty(userID) {
+	if strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID
 	}
 
@@ -497,7 +497,7 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 			"subject_id":            userID,
 		})
 
-	if !str.IsStringEmpty(roleID) {
+	if strings.TrimSpace(roleID) != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{
 			"role_id": roleID,
 		})

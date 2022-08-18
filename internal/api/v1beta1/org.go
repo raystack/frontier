@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"strings"
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
@@ -78,7 +79,7 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		Metadata: metaDataMap,
 	}
 
-	if str.IsStringEmpty(org.Slug) {
+	if strings.TrimSpace(org.Slug) == "" {
 		org.Slug = str.GenerateSlug(org.Name)
 	}
 

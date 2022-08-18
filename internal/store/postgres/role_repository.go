@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -39,7 +40,7 @@ func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.Select
 }
 
 func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return role.Role{}, role.ErrInvalidID
 	}
 
@@ -69,13 +70,13 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 	return transformedRole, nil
 }
 
-//TODO this is actually an upsert
+// TODO this is actually an upsert
 func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error) {
-	if str.IsStringEmpty(rl.ID) {
+	if strings.TrimSpace(rl.ID) == "" {
 		return "", role.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(rl.Name) {
+	if strings.TrimSpace(rl.Name) == "" {
 		return "", role.ErrInvalidDetail
 	}
 
@@ -146,11 +147,11 @@ func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
 }
 
 func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error) {
-	if str.IsStringEmpty(rl.ID) {
+	if strings.TrimSpace(rl.ID) == "" {
 		return "", role.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(rl.Name) {
+	if strings.TrimSpace(rl.Name) == "" {
 		return "", role.ErrInvalidDetail
 	}
 

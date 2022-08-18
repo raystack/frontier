@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"strings"
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
@@ -79,7 +80,7 @@ func (h Handler) CreateProject(
 		Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
 	}
 
-	if str.IsStringEmpty(prj.Slug) {
+	if strings.TrimSpace(prj.Slug) == "" {
 		prj.Slug = str.GenerateSlug(prj.Name)
 	}
 

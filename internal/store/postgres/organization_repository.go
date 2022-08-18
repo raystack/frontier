@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type OrganizationRepository struct {
@@ -28,7 +28,7 @@ func NewOrganizationRepository(dbc *db.Client) *OrganizationRepository {
 }
 
 func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organization.Organization, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
@@ -63,7 +63,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 }
 
 func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (organization.Organization, error) {
-	if str.IsStringEmpty(slug) {
+	if strings.TrimSpace(slug) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
@@ -98,7 +98,7 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 }
 
 func (r OrganizationRepository) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if str.IsStringEmpty(org.Name) || str.IsStringEmpty(org.Slug) {
+	if strings.TrimSpace(org.Name) == "" || strings.TrimSpace(org.Slug) == "" {
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
@@ -167,11 +167,11 @@ func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organi
 }
 
 func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if str.IsStringEmpty(org.ID) {
+	if strings.TrimSpace(org.ID) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(org.Name) || str.IsStringEmpty(org.Slug) {
+	if strings.TrimSpace(org.Name) == "" || strings.TrimSpace(org.Slug) == "" {
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
@@ -219,11 +219,11 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 }
 
 func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if str.IsStringEmpty(org.Slug) {
+	if strings.TrimSpace(org.Slug) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(org.Name) {
+	if strings.TrimSpace(org.Name) == "" {
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
@@ -270,7 +270,7 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 }
 
 func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID string) ([]user.User, error) {
-	if str.IsStringEmpty(orgID) {
+	if strings.TrimSpace(orgID) == "" {
 		return []user.User{}, organization.ErrInvalidID
 	}
 

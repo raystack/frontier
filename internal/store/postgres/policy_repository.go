@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -52,7 +53,7 @@ func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
 }
 
 func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return policy.Policy{}, policy.ErrInvalidID
 	}
 
@@ -127,7 +128,7 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 	actionID := str.DefaultStringIfEmpty(pol.Action.ID, pol.ActionID)
 	nsID := str.DefaultStringIfEmpty(pol.Namespace.ID, pol.NamespaceID)
 
-	if str.IsStringEmpty(actionID) {
+	if strings.TrimSpace(actionID) == "" {
 		return "", policy.ErrInvalidDetail
 	}
 
@@ -160,11 +161,11 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 }
 
 func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (string, error) {
-	if str.IsStringEmpty(toUpdate.ID) {
+	if strings.TrimSpace(toUpdate.ID) == "" {
 		return "", policy.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(toUpdate.ActionID) {
+	if strings.TrimSpace(toUpdate.ActionID) == "" {
 		return "", policy.ErrInvalidDetail
 	}
 

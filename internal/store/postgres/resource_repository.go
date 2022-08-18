@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
 )
 
@@ -25,7 +25,7 @@ func NewResourceRepository(dbc *db.Client) *ResourceRepository {
 }
 
 func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (resource.Resource, error) {
-	if str.IsStringEmpty(res.URN) {
+	if strings.TrimSpace(res.URN) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 
@@ -115,7 +115,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 }
 
 func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Resource, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
@@ -145,7 +145,7 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 }
 
 func (r ResourceRepository) Update(ctx context.Context, id string, res resource.Resource) (resource.Resource, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
@@ -153,7 +153,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		return resource.Resource{}, resource.ErrInvalidUUID
 	}
 
-	if str.IsStringEmpty(res.URN) {
+	if strings.TrimSpace(res.URN) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 
@@ -200,7 +200,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 }
 
 func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.Resource, error) {
-	if str.IsStringEmpty(urn) {
+	if strings.TrimSpace(urn) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 

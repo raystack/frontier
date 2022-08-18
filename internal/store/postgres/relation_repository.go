@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -34,8 +35,8 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		roleID = ""
 	}
 
-	if str.IsStringEmpty(subjectNamespaceID) || str.IsStringEmpty(relationToCreate.SubjectID) ||
-		str.IsStringEmpty(objectNamespaceID) || str.IsStringEmpty(relationToCreate.ObjectID) {
+	if strings.TrimSpace(subjectNamespaceID) == "" || strings.TrimSpace(relationToCreate.SubjectID) == "" ||
+		strings.TrimSpace(objectNamespaceID) == "" || strings.TrimSpace(relationToCreate.ObjectID) == "" {
 		return relation.Relation{}, relation.ErrInvalidDetail
 	}
 
@@ -97,7 +98,7 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, erro
 }
 
 func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relation, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return relation.Relation{}, relation.ErrInvalidID
 	}
 
@@ -128,7 +129,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 }
 
 func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return relation.ErrInvalidID
 	}
 	query, params, err := dialect.Delete(TABLE_RELATIONS).Where(goqu.Ex{
@@ -213,7 +214,7 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 }
 
 func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
-	if str.IsStringEmpty(rel.ID) {
+	if strings.TrimSpace(rel.ID) == "" {
 		return relation.Relation{}, relation.ErrInvalidID
 	}
 

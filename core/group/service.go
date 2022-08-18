@@ -3,6 +3,7 @@ package group
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
@@ -79,7 +80,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 }
 
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
-	if !str.IsStringEmpty(grp.ID) {
+	if strings.TrimSpace(grp.ID) != "" {
 		return s.repository.UpdateByID(ctx, grp)
 	}
 	return s.repository.UpdateBySlug(ctx, grp)

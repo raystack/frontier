@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type NamespaceRepository struct {
@@ -24,7 +24,7 @@ func NewNamespaceRepository(dbc *db.Client) *NamespaceRepository {
 }
 
 func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Namespace, error) {
-	if str.IsStringEmpty(id) {
+	if strings.TrimSpace(id) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 
@@ -50,11 +50,11 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 
 // TODO this is actually an upsert
 func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-	if str.IsStringEmpty(ns.ID) {
+	if strings.TrimSpace(ns.ID) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(ns.Name) {
+	if strings.TrimSpace(ns.Name) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidDetail
 	}
 
@@ -113,11 +113,11 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 }
 
 func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-	if str.IsStringEmpty(ns.ID) {
+	if strings.TrimSpace(ns.ID) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 
-	if str.IsStringEmpty(ns.Name) {
+	if strings.TrimSpace(ns.Name) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidDetail
 	}
 
