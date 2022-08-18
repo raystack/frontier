@@ -89,9 +89,7 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
-	}
-
-	if len(userIds) < 1 {
+	} else if len(userIds) < 1 {
 		return nil, user.ErrInvalidID
 	}
 
@@ -108,9 +106,7 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
-	}
-
-	if !isAllowed {
+	} else if !isAllowed {
 		return []user.User{}, errors.ErrForbidden
 	}
 
@@ -150,9 +146,7 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionProject, prj.ID, action.DefinitionManageProject)
 	if err != nil {
 		return []user.User{}, err
-	}
-
-	if !isAllowed {
+	} else if !isAllowed {
 		return []user.User{}, errors.ErrForbidden
 	}
 

@@ -90,9 +90,7 @@ func (s Service) AddUsers(ctx context.Context, groupIdOrSlug string, userIds []s
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
-	}
-
-	if len(userIds) < 1 {
+	} else if len(userIds) < 1 {
 		return nil, user.ErrInvalidID
 	}
 
@@ -108,9 +106,7 @@ func (s Service) AddUsers(ctx context.Context, groupIdOrSlug string, userIds []s
 	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
-	}
-
-	if !isAllowed {
+	} else if !isAllowed {
 		return []user.User{}, errors.ErrForbidden
 	}
 
@@ -147,9 +143,7 @@ func (s Service) RemoveUser(ctx context.Context, groupIdOrSlug string, userId st
 	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
-	}
-
-	if !isAllowed {
+	} else if !isAllowed {
 		return []user.User{}, errors.ErrForbidden
 	}
 
@@ -194,9 +188,7 @@ func (s Service) AddAdmins(ctx context.Context, groupIdOrSlug string, userIds []
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
-	}
-
-	if len(userIds) < 1 {
+	} else if len(userIds) < 1 {
 		return nil, user.ErrInvalidID
 	}
 
@@ -212,9 +204,7 @@ func (s Service) AddAdmins(ctx context.Context, groupIdOrSlug string, userIds []
 	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
-	}
-
-	if !isAllowed {
+	} else if !isAllowed {
 		return []user.User{}, errors.ErrForbidden
 	}
 
@@ -255,9 +245,7 @@ func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId s
 	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionTeam, groupID, action.DefinitionManageTeam)
 	if err != nil {
 		return []user.User{}, err
-	}
-
-	if !isAllowed {
+	} else if !isAllowed {
 		return []user.User{}, errors.ErrForbidden
 	}
 
