@@ -4,17 +4,15 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
+	"github.com/mitchellh/mapstructure"
+
+	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/middleware"
-	"github.com/odpf/shield/pkg/body_extractor"
-
-	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
 )
 
 type ResourceService interface {
@@ -26,12 +24,11 @@ type UserService interface {
 }
 
 type Authz struct {
-	log                    log.Logger
-	identityProxyHeaderKey string
-	userIDHeaderKey        string
-	next                   http.Handler
-	resourceService        ResourceService
-	userService            UserService
+	log             log.Logger
+	userIDHeaderKey string
+	next            http.Handler
+	resourceService ResourceService
+	userService     UserService
 }
 
 type Config struct {
@@ -42,16 +39,15 @@ type Config struct {
 func New(
 	log log.Logger,
 	next http.Handler,
-	identityProxyHeaderKey, userIDHeaderKey string,
+	userIDHeaderKey string,
 	resourceService ResourceService,
 	userService UserService) *Authz {
 	return &Authz{
-		log:                    log,
-		identityProxyHeaderKey: identityProxyHeaderKey,
-		userIDHeaderKey:        userIDHeaderKey,
-		next:                   next,
-		resourceService:        resourceService,
-		userService:            userService,
+		log:             log,
+		userIDHeaderKey: userIDHeaderKey,
+		next:            next,
+		resourceService: resourceService,
+		userService:     userService,
 	}
 }
 
@@ -63,8 +59,6 @@ func (c Authz) Info() *middleware.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	req = req.WithContext(user.SetContextWithEmail(req.Context(), req.Header.Get(c.identityProxyHeaderKey)))
-
 	usr, err := c.userService.FetchCurrentUser(req.Context())
 	if err != nil {
 		c.log.Error("middleware: failed to get user details", "err", err.Error())
@@ -74,8 +68,10 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	req.Header.Set(c.userIDHeaderKey, usr.ID)
 
-	rule, ok := middleware.ExtractRule(req)
-	if !ok {
+	permissionAttributes := req.Context().Value("requestAttributes").(map[string]any)
+	ns := permissionAttributes["namespace"]
+
+	if ns == nil {
 		c.next.ServeHTTP(rw, req)
 		return
 	}
@@ -94,114 +90,10 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if rule.Backend.Namespace == "" {
+	if ns == "" {
 		c.log.Error("namespace is not defined for this rule")
 		c.notAllowed(rw)
 		return
-	}
-
-	permissionAttributes := map[string]interface{}{}
-
-	permissionAttributes["namespace"] = rule.Backend.Namespace
-
-	permissionAttributes["user"] = req.Header.Get(c.identityProxyHeaderKey)
-
-	for res, attr := range config.Attributes {
-		_ = res
-
-		switch attr.Type {
-		case middleware.AttributeTypeGRPCPayload:
-			// check if grpc request
-			if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
-				c.log.Error("middleware: not a grpc request", "attr", attr)
-				c.notAllowed(rw)
-				return
-			}
-
-			// TODO: we can optimise this by parsing all field at once
-			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&req.Body, attr.Index)
-			if err != nil {
-				c.log.Error("middleware: failed to parse grpc payload", "err", err)
-				return
-			}
-
-			permissionAttributes[res] = payloadField
-			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
-
-		case middleware.AttributeTypeJSONPayload:
-			if attr.Key == "" {
-				c.log.Error("middleware: payload key field empty")
-				c.notAllowed(rw)
-				return
-			}
-			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&req.Body, attr.Key)
-			if err != nil {
-				c.log.Error("middleware: failed to parse grpc payload", "err", err)
-				c.notAllowed(rw)
-				return
-			}
-
-			permissionAttributes[res] = payloadField
-			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
-
-		case middleware.AttributeTypeHeader:
-			if attr.Key == "" {
-				c.log.Error("middleware: header key field empty")
-				c.notAllowed(rw)
-				return
-			}
-			headerAttr := req.Header.Get(attr.Key)
-			if headerAttr == "" {
-				c.log.Error(fmt.Sprintf("middleware: header %s is empty", attr.Key))
-				c.notAllowed(rw)
-				return
-			}
-
-			permissionAttributes[res] = headerAttr
-			c.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
-
-		case middleware.AttributeTypeQuery:
-			if attr.Key == "" {
-				c.log.Error("middleware: query key field empty")
-				c.notAllowed(rw)
-				return
-			}
-			queryAttr := req.URL.Query().Get(attr.Key)
-			if queryAttr == "" {
-				c.log.Error(fmt.Sprintf("middleware: query %s is empty", attr.Key))
-				c.notAllowed(rw)
-				return
-			}
-
-			permissionAttributes[res] = queryAttr
-			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
-
-		case middleware.AttributeTypeConstant:
-			if attr.Value == "" {
-				c.log.Error("middleware: constant value empty")
-				c.notAllowed(rw)
-				return
-			}
-
-			permissionAttributes[res] = attr.Value
-			c.log.Info("middleware: extracted", "constant_key", res, "attr", permissionAttributes[res])
-
-		default:
-			c.log.Error("middleware: unknown attribute type", "attr", attr)
-			c.notAllowed(rw)
-			return
-		}
-	}
-
-	paramMap, mapExists := middleware.ExtractPathParams(req)
-	if !mapExists {
-		c.log.Error("middleware: path param map doesn't exist")
-		c.notAllowed(rw)
-		return
-	}
-
-	for key, value := range paramMap {
-		permissionAttributes[key] = value
 	}
 
 	resources, err := createResources(permissionAttributes)

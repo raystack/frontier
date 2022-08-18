@@ -14,6 +14,7 @@ import (
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/proxy/hook"
 	authz_hook "github.com/odpf/shield/internal/proxy/hook/authz"
+	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 	"github.com/odpf/shield/internal/proxy/middleware/authz"
 	"github.com/odpf/shield/internal/proxy/middleware/basic_auth"
 	"github.com/odpf/shield/internal/proxy/middleware/prefix"
@@ -35,7 +36,7 @@ func serveProxies(
 	var cleanUpProxies []func(ctx context.Context) error
 
 	for _, svcConfig := range cfg.Services {
-		hookPipeline := buildHookPipeline(logger, identityProxyHeaderKey, resourceService, projectService)
+		hookPipeline := buildHookPipeline(logger, resourceService, projectService)
 
 		h2cProxy := proxy.NewH2c(
 			proxy.NewH2cRoundTripper(logger, hookPipeline),
@@ -70,9 +71,9 @@ func serveProxies(
 	return cleanUpBlobs, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger, identityProxyHeaderKey string, resourceService v1beta1.ResourceService, projectService v1beta1.ProjectService) hook.Service {
+func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService, projectService v1beta1.ProjectService) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, identityProxyHeaderKey, resourceService, projectService)
+	return authz_hook.New(log, rootHook, rootHook, resourceService, projectService)
 }
 
 // buildPipeline builds middleware sequence
@@ -86,8 +87,9 @@ func buildMiddlewarePipeline(
 ) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, prefixWare, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService)
+	casbinAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleService))
+	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey)
+	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
 	return matchWare
 }
