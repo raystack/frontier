@@ -3,6 +3,7 @@ package authz
 import (
 	"context"
 	"fmt"
+	attributes2 "github.com/odpf/shield/internal/proxy/middleware/attributes"
 	"net/http"
 
 	"github.com/mitchellh/mapstructure"
@@ -63,7 +64,10 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, err)
 	}
 
-	attributes := res.Request.Context().Value("requestAttributes").(map[string]any)
+	attributes, ok := attributes2.GetAttributesFromContext(res.Request.Context())
+	if !ok {
+		return a.escape.ServeHook(res, fmt.Errorf("unable to fetch permission attributes from context"))
+	}
 	ns := attributes["namespace"]
 
 	if ns == nil {

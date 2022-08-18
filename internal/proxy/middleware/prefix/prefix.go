@@ -1,6 +1,7 @@
 package prefix
 
 import (
+	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 	"net/http"
 	"strings"
 
@@ -20,7 +21,8 @@ func New(log log.Logger, next http.Handler) *Ware {
 }
 
 func (w *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	prefixInterface := req.Context().Value("prefix")
+	permissionAttributes, _ := attributes.GetAttributesFromContext(req.Context())
+	prefixInterface := permissionAttributes["prefix"]
 	if prefixInterface == nil {
 		w.next.ServeHTTP(rw, req)
 		return

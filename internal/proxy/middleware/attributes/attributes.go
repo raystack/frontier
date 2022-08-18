@@ -1,7 +1,6 @@
 package attributes
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -167,8 +166,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		requestAttributes[key] = value
 	}
 
-	attributesContext := context.WithValue(req.Context(), "requestAttributes", requestAttributes)
-	req = req.WithContext(attributesContext)
+	req = req.WithContext(SetContextWithAttributes(req.Context(), requestAttributes))
 
 	a.next.ServeHTTP(rw, req)
 }
