@@ -40,8 +40,8 @@ func New(cfg *Config) *cli.Command {
 
 	cmd.PersistentPreRunE = func(subCmd *cobra.Command, args []string) error {
 		if isClientCLI(subCmd) {
-			if !clientConfigHostExist(subCmd) {
-				return ErrClientConfigHostNotFound
+			if err := overrideClientConfigHost(subCmd, cliConfig); err != nil {
+				return err
 			}
 		}
 		return nil

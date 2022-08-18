@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -69,15 +68,13 @@ func createActionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
-
+			ctx := setCtxHeader(cmd.Context(), header)
 			res, err := client.CreateAction(ctx, &shieldv1beta1.CreateActionRequest{
 				Body: &reqBody,
 			})
@@ -126,15 +123,14 @@ func editActionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			actionID := args[0]
-			_, err = client.UpdateAction(ctx, &shieldv1beta1.UpdateActionRequest{
+			_, err = client.UpdateAction(cmd.Context(), &shieldv1beta1.UpdateActionRequest{
 				Id:   actionID,
 				Body: &reqBody,
 			})
@@ -169,15 +165,14 @@ func viewActionCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			actionID := args[0]
-			res, err := client.GetAction(ctx, &shieldv1beta1.GetActionRequest{
+			res, err := client.GetAction(cmd.Context(), &shieldv1beta1.GetActionRequest{
 				Id: actionID,
 			})
 			if err != nil {
@@ -220,14 +215,13 @@ func listActionCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListActions(ctx, &shieldv1beta1.ListActionsRequest{})
+			res, err := client.ListActions(cmd.Context(), &shieldv1beta1.ListActionsRequest{})
 			if err != nil {
 				return err
 			}

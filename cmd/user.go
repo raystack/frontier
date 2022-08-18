@@ -70,7 +70,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 			}
 
 			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
@@ -125,7 +125,7 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 			}
 
 			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
@@ -170,7 +170,7 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 			defer spinner.Stop()
 
 			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
@@ -235,7 +235,7 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 			defer spinner.Stop()
 
 			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}

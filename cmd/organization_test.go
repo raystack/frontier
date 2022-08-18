@@ -104,6 +104,7 @@ func TestClientOrganization(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
+				tt.cliConfig = &cmd.Config{}
 				cli := cmd.New(tt.cliConfig)
 
 				buf := new(bytes.Buffer)

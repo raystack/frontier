@@ -19,19 +19,13 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 	return grpc.DialContext(ctx, host, opts...)
 }
 
-func createClient(cmd *cobra.Command) (shieldv1beta1.ShieldServiceClient, func(), error) {
-	dialTimeoutCtx, dialCancel := context.WithTimeout(cmd.Context(), time.Second*2)
-	host, err := cmd.Flags().GetString("host")
-	if err != nil {
-		dialCancel()
-		return nil, nil, err
-	}
+func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
+	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
 	conn, err := createConnection(dialTimeoutCtx, host)
 	if err != nil {
 		dialCancel()
 		return nil, nil, err
 	}
-
 	cancel := func() {
 		dialCancel()
 		conn.Close()
@@ -50,13 +44,24 @@ func isClientCLI(cmd *cobra.Command) bool {
 	return false
 }
 
-func clientConfigHostExist(cmd *cobra.Command) bool {
+func overrideClientConfigHost(cmd *cobra.Command, cliConfig *Config) error {
+	if cliConfig == nil {
+		return ErrClientConfigNotFound
+	}
+
 	host, err := cmd.Flags().GetString("host")
-	if err != nil {
-		return false
+	if err == nil && host != "" {
+		cliConfig.Host = host
+		return nil
 	}
-	if host != "" {
-		return true
+
+	if cliConfig.Host == "" {
+		return ErrClientConfigHostNotFound
 	}
-	return false
+
+	return nil
+}
+
+func bindFlagsFromClientConfig(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringP("host", "h", "", "Shield API service to connect to")
 }

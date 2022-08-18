@@ -85,13 +85,3 @@ func configListCommand() *cobra.Command {
 	}
 	return cmd
 }
-
-func bindFlagsFromClientConfig(cmd *cobra.Command) {
-	cmd.PersistentFlags().StringP("host", "h", "", "Shield API service to connect to")
-
-	if cliConfig != nil {
-		if cliConfig.Host != "" {
-			cmd.PersistentFlags().Set("host", cliConfig.Host)
-		}
-	}
-}

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -69,14 +68,13 @@ func createNamespaceCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.CreateNamespace(ctx, &shieldv1beta1.CreateNamespaceRequest{
+			res, err := client.CreateNamespace(cmd.Context(), &shieldv1beta1.CreateNamespaceRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -122,15 +120,14 @@ func editNamespaceCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			namespaceID := args[0]
-			res, err := client.UpdateNamespace(ctx, &shieldv1beta1.UpdateNamespaceRequest{
+			res, err := client.UpdateNamespace(cmd.Context(), &shieldv1beta1.UpdateNamespaceRequest{
 				Id:   namespaceID,
 				Body: &reqBody,
 			})
@@ -165,15 +162,14 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			namespaceID := args[0]
-			res, err := client.GetNamespace(ctx, &shieldv1beta1.GetNamespaceRequest{
+			res, err := client.GetNamespace(cmd.Context(), &shieldv1beta1.GetNamespaceRequest{
 				Id: namespaceID,
 			})
 			if err != nil {
@@ -219,14 +215,13 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListNamespaces(ctx, &shieldv1beta1.ListNamespacesRequest{})
+			res, err := client.ListNamespaces(cmd.Context(), &shieldv1beta1.ListNamespacesRequest{})
 			if err != nil {
 				return err
 			}

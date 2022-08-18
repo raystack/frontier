@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -70,14 +69,13 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
+			ctx := setCtxHeader(cmd.Context(), header)
 
 			res, err := client.CreateRole(ctx, &shieldv1beta1.CreateRoleRequest{
 				Body: &reqBody,
@@ -127,15 +125,14 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			roleID := args[0]
-			_, err = client.UpdateRole(ctx, &shieldv1beta1.UpdateRoleRequest{
+			_, err = client.UpdateRole(cmd.Context(), &shieldv1beta1.UpdateRoleRequest{
 				Id:   roleID,
 				Body: &reqBody,
 			})
@@ -172,15 +169,14 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			roleID := args[0]
-			res, err := client.GetRole(ctx, &shieldv1beta1.GetRoleRequest{
+			res, err := client.GetRole(cmd.Context(), &shieldv1beta1.GetRoleRequest{
 				Id: roleID,
 			})
 			if err != nil {
@@ -243,14 +239,13 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListRoles(ctx, &shieldv1beta1.ListRolesRequest{})
+			res, err := client.ListRoles(cmd.Context(), &shieldv1beta1.ListRolesRequest{})
 			if err != nil {
 				return err
 			}

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -72,15 +71,13 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
-
+			ctx := setCtxHeader(cmd.Context(), header)
 			res, err := client.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
 				Body: &reqBody,
 			})
@@ -129,15 +126,14 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.UpdateOrganization(ctx, &shieldv1beta1.UpdateOrganizationRequest{
+			_, err = client.UpdateOrganization(cmd.Context(), &shieldv1beta1.UpdateOrganizationRequest{
 				Id:   organizationID,
 				Body: &reqBody,
 			})
@@ -174,15 +170,14 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.GetOrganization(ctx, &shieldv1beta1.GetOrganizationRequest{
+			res, err := client.GetOrganization(cmd.Context(), &shieldv1beta1.GetOrganizationRequest{
 				Id: organizationID,
 			})
 			if err != nil {
@@ -244,14 +239,13 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
+			res, err := client.ListOrganizations(cmd.Context(), &shieldv1beta1.ListOrganizationsRequest{})
 			if err != nil {
 				return err
 			}
@@ -312,15 +306,14 @@ func admaddOrganizationCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.AddOrganizationAdmin(ctx, &shieldv1beta1.AddOrganizationAdminRequest{
+			_, err = client.AddOrganizationAdmin(cmd.Context(), &shieldv1beta1.AddOrganizationAdminRequest{
 				Id:   organizationID,
 				Body: &reqBody,
 			})
@@ -357,15 +350,14 @@ func admremoveOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.RemoveOrganizationAdmin(ctx, &shieldv1beta1.RemoveOrganizationAdminRequest{
+			_, err = client.RemoveOrganizationAdmin(cmd.Context(), &shieldv1beta1.RemoveOrganizationAdminRequest{
 				Id:     organizationID,
 				UserId: userID,
 			})
@@ -400,15 +392,14 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.ListOrganizationAdmins(ctx, &shieldv1beta1.ListOrganizationAdminsRequest{
+			res, err := client.ListOrganizationAdmins(cmd.Context(), &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: organizationID,
 			})
 			if err != nil {

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -69,15 +68,13 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
-
+			ctx := setCtxHeader(cmd.Context(), header)
 			_, err = client.CreatePolicy(ctx, &shieldv1beta1.CreatePolicyRequest{
 				Body: &reqBody,
 			})
@@ -126,15 +123,14 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			policyID := args[0]
-			_, err = client.UpdatePolicy(ctx, &shieldv1beta1.UpdatePolicyRequest{
+			_, err = client.UpdatePolicy(cmd.Context(), &shieldv1beta1.UpdatePolicyRequest{
 				Id:   policyID,
 				Body: &reqBody,
 			})
@@ -169,15 +165,14 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			policyID := args[0]
-			res, err := client.GetPolicy(ctx, &shieldv1beta1.GetPolicyRequest{
+			res, err := client.GetPolicy(cmd.Context(), &shieldv1beta1.GetPolicyRequest{
 				Id: policyID,
 			})
 			if err != nil {
@@ -220,14 +215,13 @@ func listPolicyCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListPolicies(ctx, &shieldv1beta1.ListPoliciesRequest{})
+			res, err := client.ListPolicies(cmd.Context(), &shieldv1beta1.ListPoliciesRequest{})
 			if err != nil {
 				return err
 			}

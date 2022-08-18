@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -69,15 +68,13 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
-
+			ctx := setCtxHeader(cmd.Context(), header)
 			res, err := client.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
 				Body: &reqBody,
 			})
@@ -126,15 +123,14 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			projectID := args[0]
-			_, err = client.UpdateProject(ctx, &shieldv1beta1.UpdateProjectRequest{
+			_, err = client.UpdateProject(cmd.Context(), &shieldv1beta1.UpdateProjectRequest{
 				Id:   projectID,
 				Body: &reqBody,
 			})
@@ -171,15 +167,14 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			projectID := args[0]
-			res, err := client.GetProject(ctx, &shieldv1beta1.GetProjectRequest{
+			res, err := client.GetProject(cmd.Context(), &shieldv1beta1.GetProjectRequest{
 				Id: projectID,
 			})
 			if err != nil {
@@ -242,14 +237,13 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
+			res, err := client.ListProjects(cmd.Context(), &shieldv1beta1.ListProjectsRequest{})
 			if err != nil {
 				return err
 			}

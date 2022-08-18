@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -69,14 +68,13 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.CreateGroup(setCtxHeader(ctx, header), &shieldv1beta1.CreateGroupRequest{
+			res, err := client.CreateGroup(setCtxHeader(cmd.Context(), header), &shieldv1beta1.CreateGroupRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -124,15 +122,14 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			groupID := args[0]
-			_, err = client.UpdateGroup(ctx, &shieldv1beta1.UpdateGroupRequest{
+			_, err = client.UpdateGroup(cmd.Context(), &shieldv1beta1.UpdateGroupRequest{
 				Id:   groupID,
 				Body: &reqBody,
 			})
@@ -169,15 +166,14 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			groupID := args[0]
-			res, err := client.GetGroup(ctx, &shieldv1beta1.GetGroupRequest{
+			res, err := client.GetGroup(cmd.Context(), &shieldv1beta1.GetGroupRequest{
 				Id: groupID,
 			})
 			if err != nil {
@@ -240,14 +236,13 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			ctx := context.Background()
-			client, cancel, err := createClient(cmd)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
+			res, err := client.ListGroups(cmd.Context(), &shieldv1beta1.ListGroupsRequest{})
 			if err != nil {
 				return err
 			}
