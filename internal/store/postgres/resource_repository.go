@@ -256,14 +256,12 @@ func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns 
 		return r.dbc.GetContext(ctx, &fetchedResource, query, params)
 	})
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return resource.Resource{}, resource.ErrNotExist
-	} else if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
 	if err != nil {
-		return resource.Resource{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return resource.Resource{}, resource.ErrNotExist
+		}
+
+		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return fetchedResource.transformToResource(), nil
