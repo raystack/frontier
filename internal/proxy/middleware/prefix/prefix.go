@@ -1,11 +1,11 @@
 package prefix
 
 import (
-	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 	"net/http"
 	"strings"
 
 	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 )
 
 type Ware struct {

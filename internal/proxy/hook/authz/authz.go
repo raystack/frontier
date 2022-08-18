@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 	"fmt"
-	attributes2 "github.com/odpf/shield/internal/proxy/middleware/attributes"
 	"net/http"
 
 	"github.com/mitchellh/mapstructure"
@@ -13,6 +12,7 @@ import (
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/internal/proxy/hook"
+	attributes2 "github.com/odpf/shield/internal/proxy/middleware/attributes"
 )
 
 type ResourceService interface {
