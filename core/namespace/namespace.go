@@ -17,7 +17,7 @@ type Namespace struct {
 	ID           string
 	Name         string
 	Backend      string
-	ResourceType string `json:"resource_type"`
+	ResourceType string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
