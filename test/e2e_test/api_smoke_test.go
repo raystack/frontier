@@ -75,7 +75,7 @@ func (s *EndToEndAPITestSuite) SetupTest() {
 	s.Require().Nil(bootstrapProject(ctx, s.client, orgAdminEmail))
 	s.Require().Nil(bootstrapGroup(ctx, s.client, orgAdminEmail))
 
-	//validate
+	// validate
 	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
 	s.Require().Nil(err)
 	s.Require().Equal(9, len(uRes.GetUsers()))
@@ -136,7 +136,7 @@ func (s *EndToEndAPITestSuite) TestSmokeTestAdmin() {
 	loRes, err := s.client.ListOrganizations(context.Background(), &shieldv1beta1.ListOrganizationsRequest{})
 	s.Require().NoError(err)
 	s.Require().Greater(len(loRes.GetOrganizations()), 0)
-	var myOrg = loRes.GetOrganizations()[0]
+	myOrg := loRes.GetOrganizations()[0]
 
 	// Verify org admin
 	loaRes, err := s.client.ListOrganizationAdmins(context.Background(), &shieldv1beta1.ListOrganizationAdminsRequest{
@@ -309,7 +309,7 @@ func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
 	listOfGroups = lgRes.GetGroups()
 
 	// Remove admin user from list
-	var adminIdx = 0
+	adminIdx := 0
 	for _, u := range members {
 		adminIdx = 0
 		if u.GetEmail() == orgAdminEmail {
@@ -359,11 +359,16 @@ func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
 		})
 		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
 	})
-
-	// TODO
-	// - without team cannot access resources
-	// - could not access resource in different org
 }
+
+// TODO proxy test
+// - member who does not belong to any team cannot access resources
+// - could not access resource in different org
+// - Calling create upstream resource should create a resource in shield DB
+// - Team member can access the created resource created by the same team
+// - Team admin can access the created resource created by the same team
+// - Org admin who is not team member or admin or creator can access the created resource in the same org
+// - Project admin who is not team member or admin or creator can access the created resource in the same project
 
 func TestEndToEndAPITestSuite(t *testing.T) {
 	suite.Run(t, new(EndToEndAPITestSuite))

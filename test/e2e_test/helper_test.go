@@ -63,7 +63,7 @@ func bootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, cr
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": creatorEmail,
+			identityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: d,
@@ -88,7 +88,7 @@ func bootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": creatorEmail,
+			identityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
 			Body: d,
@@ -124,7 +124,7 @@ func bootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": creatorEmail,
+			identityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
 			Body: d,
@@ -162,7 +162,7 @@ func bootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": creatorEmail,
+			identityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
 			Body: d,
