@@ -9,7 +9,7 @@ proxies/*.yml
 temp
 shield
 !proto/*
-.shield.yaml
+config.yaml
 dist
 coverage.txt
 coverage.out

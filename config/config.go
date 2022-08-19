@@ -34,7 +34,7 @@ func Load(serverConfigfileFromFlag string) (*Shield, error) {
 	conf := &Shield{}
 
 	var options []config.LoaderOption
-	options = append(options, config.WithName(".shield.yaml"))
+	options = append(options, config.WithName("config.yaml"))
 	options = append(options, config.WithEnvKeyReplacer(".", "_"))
 	options = append(options, config.WithEnvPrefix("SHIELD"))
 	if p, err := os.Getwd(); err == nil {

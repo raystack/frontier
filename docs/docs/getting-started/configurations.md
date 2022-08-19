@@ -1,6 +1,6 @@
 ## Configurations
 
-Shield can be configured with .shield.yaml file. An example of such is:
+Shield can be configured with config.yaml file. An example of such is:
 
 ```yaml
 version: 1

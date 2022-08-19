@@ -49,7 +49,7 @@ func serverInitCommand() *cobra.Command {
 		Short: "Initialize server",
 		Long: heredoc.Doc(`
 			Initializing server. Creating a sample of shield server config.
-			Default: ./.shield.yaml
+			Default: ./config.yaml
 		`),
 		Example: "shield server init",
 		RunE: func(cmd *cli.Command, args []string) error {
@@ -76,7 +76,7 @@ func serverInitCommand() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVarP(&configFile, "output", "o", "./.shield.yaml", "Output config file path")
+	c.Flags().StringVarP(&configFile, "output", "o", "./config.yaml", "Output config file path")
 	c.Flags().StringVarP(&resourcesURL, "resources", "r", "", heredoc.Doc(`
 		URL path of resources. Full path prefixed with scheme where resources config yaml files are kept
 		e.g.:
@@ -161,6 +161,6 @@ func serverMigrateRollbackCommand() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVarP(&configFile, "config", "c", "./config.yaml", "Config file path")
+	c.Flags().StringVarP(&configFile, "config", "c", "", "Config file path")
 	return c
 }
