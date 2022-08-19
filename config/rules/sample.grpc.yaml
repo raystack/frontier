@@ -1,6 +1,5 @@
 rules:
-  -
-    frontend:
+  - frontend:
       url: "proto.v1.RuntimeService/"
       methods: ["POST"]
     backend:

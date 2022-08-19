@@ -1,20 +1,17 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/pkg/file"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func PolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func PolicyCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "policy",
 		Aliases: []string{"policies"},
@@ -29,19 +26,22 @@ func PolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
 			$ shield policy list
 		`),
 		Annotations: map[string]string{
-			"policy:core": "true",
+			"group:core": "true",
+			"client":     "true",
 		},
 	}
 
-	cmd.AddCommand(createPolicyCommand(logger, appConfig))
-	cmd.AddCommand(editPolicyCommand(logger, appConfig))
-	cmd.AddCommand(viewPolicyCommand(logger, appConfig))
-	cmd.AddCommand(listPolicyCommand(logger, appConfig))
+	cmd.AddCommand(createPolicyCommand(cliConfig))
+	cmd.AddCommand(editPolicyCommand(cliConfig))
+	cmd.AddCommand(viewPolicyCommand(cliConfig))
+	cmd.AddCommand(listPolicyCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createPolicyCommand(cliConfig *Config) *cli.Command {
 	var filePath, header string
 
 	cmd := &cli.Command{
@@ -59,7 +59,7 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.PolicyRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -68,16 +68,13 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
-
+			ctx := setCtxHeader(cmd.Context(), header)
 			_, err = client.CreatePolicy(ctx, &shieldv1beta1.CreatePolicyRequest{
 				Body: &reqBody,
 			})
@@ -86,7 +83,7 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			}
 
 			spinner.Stop()
-			logger.Info("successfully created policy")
+			fmt.Println("successfully created policy")
 			return nil
 		},
 	}
@@ -99,7 +96,7 @@ func createPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	return cmd
 }
 
-func editPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editPolicyCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -117,7 +114,7 @@ func editPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.PolicyRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -126,16 +123,14 @@ func editPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			policyID := args[0]
-			_, err = client.UpdatePolicy(ctx, &shieldv1beta1.UpdatePolicyRequest{
+			_, err = client.UpdatePolicy(cmd.Context(), &shieldv1beta1.UpdatePolicyRequest{
 				Id:   policyID,
 				Body: &reqBody,
 			})
@@ -144,7 +139,7 @@ func editPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			}
 
 			spinner.Stop()
-			logger.Info("successfully edited policy")
+			fmt.Println("successfully edited policy")
 			return nil
 		},
 	}
@@ -155,7 +150,7 @@ func editPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func viewPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewPolicyCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View a policy",
@@ -170,16 +165,14 @@ func viewPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			policyID := args[0]
-			res, err := client.GetPolicy(ctx, &shieldv1beta1.GetPolicyRequest{
+			res, err := client.GetPolicy(cmd.Context(), &shieldv1beta1.GetPolicyRequest{
 				Id: policyID,
 			})
 			if err != nil {
@@ -207,7 +200,7 @@ func viewPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 	return cmd
 }
 
-func listPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listPolicyCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all policies",
@@ -222,15 +215,13 @@ func listPolicyCommand(logger log.Logger, appConfig *config.Shield) *cli.Command
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListPolicies(ctx, &shieldv1beta1.ListPoliciesRequest{})
+			res, err := client.ListPolicies(cmd.Context(), &shieldv1beta1.ListPoliciesRequest{})
 			if err != nil {
 				return err
 			}

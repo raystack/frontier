@@ -1,8 +1,3 @@
-## Configurations
-
-Shield can be configured with config.yaml file. An example of such is:
-
-```yaml
 version: 1
 
 # logging configuration
@@ -55,4 +50,3 @@ proxy:
       # secret string "val://user:password"
       # optional
       ruleset_secret: env://TEST_RULESET_SECRET
-```

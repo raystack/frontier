@@ -119,7 +119,7 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 	return transformedPolicies, nil
 }
 
-//TODO this is actually upsert
+// TODO this is actually upsert
 func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
 	// TODO need to check actionID != ""
 
