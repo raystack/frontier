@@ -109,7 +109,7 @@ func serverStartCommand() *cobra.Command {
 			}
 			logger := shieldlogger.InitLogger(appConfig.Log)
 
-			return serve(logger, appConfig)
+			return StartServer(logger, appConfig)
 		},
 	}
 

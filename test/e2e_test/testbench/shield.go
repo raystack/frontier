@@ -1,39 +1,26 @@
 package testbench
 
 import (
-	"bytes"
 	"log"
 
 	"github.com/odpf/shield/cmd"
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/internal/store/postgres/migrations"
+	"github.com/odpf/shield/pkg/db"
 	shieldlogger "github.com/odpf/shield/pkg/logger"
 )
 
 func migrateShield(appConfig *config.Shield) error {
-	logger := shieldlogger.InitLogger(appConfig.Log)
-	cli := cmd.New(logger, appConfig)
-
-	buf := new(bytes.Buffer)
-	cli.SetOutput(buf)
-	cli.SetArgs([]string{"migrate"})
-
-	if err := cli.Execute(); err != nil {
-		return err
-	}
-
-	return nil
+	return db.RunMigrations(db.Config{
+		Driver: appConfig.DB.Driver,
+		URL:    appConfig.DB.URL,
+	}, migrations.MigrationFs, migrations.ResourcePath)
 }
 
 func startShield(appConfig *config.Shield) {
-	logger := shieldlogger.InitLogger(appConfig.Log)
-	cli := cmd.New(logger, appConfig)
-
-	buf := new(bytes.Buffer)
-	cli.SetOutput(buf)
-	cli.SetArgs([]string{"serve"})
-
 	go func() {
-		if err := cli.Execute(); err != nil {
+		logger := shieldlogger.InitLogger(appConfig.Log)
+		if err := cmd.StartServer(logger, appConfig); err != nil {
 			log.Fatal(err)
 		}
 	}()
