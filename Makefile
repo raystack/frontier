@@ -7,9 +7,13 @@ PROTON_COMMIT := "1497165f2f48facb3ec6f5c5556ccd44f0a7119f"
 install:
 	@echo "Clean up imports..."
 	@go mod download
+	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
 build: ## build all
 	CGO_ENABLED=0 go build -o shield .
+
+generate: ## run all go generate in the code base (including generating mock files)
+	go generate ./...
 
 lint: ## Run linters
 	golangci-lint run

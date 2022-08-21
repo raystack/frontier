@@ -15,7 +15,7 @@ type Repository interface {
 	List(ctx context.Context) ([]Organization, error)
 	UpdateByID(ctx context.Context, org Organization) (Organization, error)
 	UpdateBySlug(ctx context.Context, org Organization) (Organization, error)
-	ListAdmins(ctx context.Context, id string) ([]user.User, error)
+	ListAdminsByOrgID(ctx context.Context, id string) ([]user.User, error)
 }
 
 type Organization struct {

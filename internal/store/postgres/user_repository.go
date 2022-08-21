@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -24,11 +25,11 @@ func NewUserRepository(dbc *db.Client) *UserRepository {
 }
 
 func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return user.User{}, user.ErrInvalidID
 	}
-	var fetchedUser User
 
+	var fetchedUser User
 	query, params, err := dialect.From(TABLE_USERS).Select(&User{}).
 		Where(goqu.Ex{
 			"id": id,
@@ -47,7 +48,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 		case errors.Is(err, sql.ErrNoRows):
 			return user.User{}, user.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return user.User{}, user.ErrNotUUID
+			return user.User{}, user.ErrInvalidUUID
 		default:
 			return user.User{}, err
 		}
@@ -62,6 +63,10 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 }
 
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
+	if strings.TrimSpace(usr.Email) == "" {
+		return user.User{}, user.ErrInvalidEmail
+	}
+
 	marshaledMetadata, err := json.Marshal(usr.Metadata)
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -161,7 +166,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 		case errors.Is(err, sql.ErrNoRows):
 			return []user.User{}, user.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return []user.User{}, user.ErrNotUUID
+			return []user.User{}, user.ErrInvalidUUID
 		default:
 			return []user.User{}, err
 		}
@@ -181,7 +186,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 }
 
 func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.User, error) {
-	if usr.Email == "" {
+	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
 
@@ -223,8 +228,12 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 }
 
 func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.User, error) {
-	if usr.ID == "" {
+	if strings.TrimSpace(usr.ID) == "" {
 		return user.User{}, user.ErrInvalidID
+	}
+
+	if strings.TrimSpace(usr.Email) == "" {
+		return user.User{}, user.ErrInvalidEmail
 	}
 
 	marshaledMetadata, err := json.Marshal(usr.Metadata)
@@ -257,6 +266,8 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			return user.User{}, user.ErrConflict
 		case errors.Is(err, sql.ErrNoRows):
 			return user.User{}, user.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return user.User{}, user.ErrInvalidUUID
 		default:
 			return user.User{}, err
 		}
@@ -271,7 +282,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 }
 
 func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User, error) {
-	if email == "" {
+	if strings.TrimSpace(email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
 

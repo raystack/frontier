@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -27,7 +28,7 @@ func NewOrganizationRepository(dbc *db.Client) *OrganizationRepository {
 }
 
 func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organization.Organization, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
@@ -62,7 +63,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 }
 
 func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (organization.Organization, error) {
-	if slug == "" {
+	if strings.TrimSpace(slug) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
@@ -97,6 +98,10 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 }
 
 func (r OrganizationRepository) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
+	if strings.TrimSpace(org.Name) == "" || strings.TrimSpace(org.Slug) == "" {
+		return organization.Organization{}, organization.ErrInvalidDetail
+	}
+
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -162,8 +167,12 @@ func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organi
 }
 
 func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if org.ID == "" {
+	if strings.TrimSpace(org.ID) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
+	}
+
+	if strings.TrimSpace(org.Name) == "" || strings.TrimSpace(org.Slug) == "" {
+		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
@@ -210,8 +219,12 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 }
 
 func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if org.Slug == "" {
+	if strings.TrimSpace(org.Slug) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
+	}
+
+	if strings.TrimSpace(org.Name) == "" {
+		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
@@ -256,8 +269,8 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 	return org, nil
 }
 
-func (r OrganizationRepository) ListAdmins(ctx context.Context, orgID string) ([]user.User, error) {
-	if orgID == "" {
+func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID string) ([]user.User, error) {
+	if strings.TrimSpace(orgID) == "" {
 		return []user.User{}, organization.ErrInvalidID
 	}
 

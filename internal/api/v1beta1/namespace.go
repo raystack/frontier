@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+//go:generate mockery --name=NamespaceService -r --case underscore --with-expecter --structname NamespaceService --filename namespace_service.go --output=./mocks
 type NamespaceService interface {
 	Get(ctx context.Context, id string) (namespace.Namespace, error)
 	List(ctx context.Context) ([]namespace.Namespace, error)
@@ -51,10 +52,11 @@ func (h Handler) CreateNamespace(ctx context.Context, request *shieldv1beta1.Cre
 		ID:   request.GetBody().GetId(),
 		Name: request.GetBody().GetName(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, namespace.ErrInvalidID), errors.Is(err, namespace.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		case errors.Is(err, namespace.ErrConflict):
 			return nil, grpcConflictError
 		default:
@@ -78,10 +80,9 @@ func (h Handler) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNam
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, namespace.ErrNotExist):
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, namespace.ErrInvalidID):
 			return nil, grpcNamespaceNotFoundErr
-		case errors.Is(err, namespace.ErrInvalidID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -101,13 +102,15 @@ func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.Upd
 
 	updatedNS, err := h.namespaceService.Update(ctx, namespace.Namespace{
 		ID:   request.GetId(),
-		Name: request.GetBody().Name,
+		Name: request.GetBody().GetName(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, namespace.ErrNotExist):
 			return nil, grpcNamespaceNotFoundErr
+		case errors.Is(err, namespace.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		case errors.Is(err, namespace.ErrConflict):
 			return nil, grpcConflictError
 		default:

@@ -6,12 +6,14 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+//go:generate mockery --name=ActionService -r --case underscore --with-expecter --structname ActionService --filename action_service.go --output=./mocks
 type ActionService interface {
 	Get(ctx context.Context, id string) (action.Action, error)
 	List(ctx context.Context) ([]action.Action, error)
@@ -54,8 +56,10 @@ func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.Create
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, action.ErrNotExist):
-			return nil, grpcActionNotFoundErr
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, action.ErrInvalidDetail),
+			errors.Is(err, action.ErrInvalidID):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -78,10 +82,8 @@ func (h Handler) GetAction(ctx context.Context, request *shieldv1beta1.GetAction
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, action.ErrNotExist):
+		case errors.Is(err, action.ErrNotExist), errors.Is(err, action.ErrInvalidID):
 			return nil, grpcActionNotFoundErr
-		case errors.Is(err, action.ErrInvalidID):
-			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -104,12 +106,15 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 		Name:        request.GetBody().GetName(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, action.ErrNotExist):
+		case errors.Is(err, action.ErrNotExist),
+			errors.Is(err, action.ErrInvalidID):
 			return nil, grpcActionNotFoundErr
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, action.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}

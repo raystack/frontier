@@ -13,6 +13,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
+//go:generate mockery --name=RelationService -r --case underscore --with-expecter --structname RelationService --filename relation_service.go --output=./mocks
 type RelationService interface {
 	Get(ctx context.Context, id string) (relation.Relation, error)
 	List(ctx context.Context) ([]relation.Relation, error)
@@ -64,8 +65,8 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.ErrNotExist):
-			return nil, grpcPolicyNotFoundErr
+		case errors.Is(err, relation.ErrInvalidDetail):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -89,17 +90,16 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.ErrNotExist):
-			return nil, status.Errorf(codes.NotFound, "relation not found")
-		case errors.Is(err, relation.ErrInvalidUUID), errors.Is(err, relation.ErrInvalidID):
-			return nil, grpcBadBodyError
+		case errors.Is(err, relation.ErrNotExist),
+			errors.Is(err, relation.ErrInvalidUUID),
+			errors.Is(err, relation.ErrInvalidID):
+			return nil, grpcRelationNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
 	}
 
 	relationPB, err := transformRelationToPB(fetchedRelation)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -125,13 +125,14 @@ func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.Upda
 		ObjectID:           request.GetBody().GetObjectId(),
 		RoleID:             request.GetBody().GetRoleId(),
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.ErrNotExist):
+		case errors.Is(err, relation.ErrNotExist),
+			errors.Is(err, relation.ErrInvalidUUID),
+			errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcRelationNotFoundErr
-		case errors.Is(err, relation.ErrInvalidUUID), errors.Is(err, relation.ErrInvalidID):
+		case errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		case errors.Is(err, relation.ErrConflict):
 			return nil, grpcConflictError
@@ -159,13 +160,11 @@ func transformRelationToPB(relation relation.Relation) (shieldv1beta1.Relation, 
 	}
 
 	objectType, err := transformNamespaceToPB(relation.ObjectNamespace)
-
 	if err != nil {
 		return shieldv1beta1.Relation{}, err
 	}
 
 	role, err := transformRoleToPB(relation.Role)
-
 	if err != nil {
 		return shieldv1beta1.Relation{}, err
 	}

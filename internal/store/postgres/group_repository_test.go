@@ -402,6 +402,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 			GroupToUpdate: group.Group{
 				ID:             uuid.NewString(),
 				Name:           "not-exist",
+				Slug:           "some-slug",
 				OrganizationID: s.orgs[0].ID,
 			},
 			ErrString: group.ErrNotExist.Error(),
@@ -411,6 +412,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 			GroupToUpdate: group.Group{
 				ID:             "12345",
 				Name:           "not-exist",
+				Slug:           "some-slug",
 				OrganizationID: s.orgs[0].ID,
 			},
 			ErrString: group.ErrInvalidUUID.Error(),
@@ -562,9 +564,14 @@ func (s *GroupRepositoryTestSuite) TestListUsersByGroupID() {
 			GroupID:     s.groups[1].ID,
 		},
 		{
-			Description: "should get error if role id is empty",
+			Description: "should not return error if role id is empty",
 			GroupID:     s.groups[0].ID,
-			ErrString:   group.ErrInvalidID.Error(),
+			ExpectedUsers: []user.User{
+				{
+					Name:  "John Doe",
+					Email: "john.doe@odpf.io",
+				},
+			},
 		},
 		{
 			Description: "should get error if group id is empty",
@@ -613,10 +620,16 @@ func (s *GroupRepositoryTestSuite) TestListUsersByGroupSlug() {
 			Description: "should get empty users if group does not have users",
 			RoleID:      role.DefinitionTeamMember.ID,
 			GroupSlug:   s.groups[1].Slug,
-		}, {
-			Description: "should get error if role id is empty",
+		},
+		{
+			Description: "should not return error if role id is empty",
 			GroupSlug:   s.groups[0].Slug,
-			ErrString:   group.ErrInvalidID.Error(),
+			ExpectedUsers: []user.User{
+				{
+					Name:  "John Doe",
+					Email: "john.doe@odpf.io",
+				},
+			},
 		},
 		{
 			Description: "should get error if group id is empty",
@@ -803,6 +816,17 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 			Description: "should get empty groups if there is none",
 			UserID:      s.users[1].ID,
 			RoleID:      role.DefinitionTeamMember.ID,
+		},
+		{
+			Description: "should not return error if role id is empty",
+			UserID:      s.users[0].ID,
+			ExpectedGroups: []group.Group{
+				{
+					Name:           "group1",
+					Slug:           "group-1",
+					OrganizationID: s.orgs[0].ID,
+				},
+			},
 		},
 		{
 			Description: "should get error if user id is empty",
