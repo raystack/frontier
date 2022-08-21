@@ -6,35 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
-
-var expectedRoleUsageHelp = heredoc.Doc(`
-
-\x1b[1mUsage\x1b[0m
-  shield role [flags]
-
-\x1b[1mCore commands\x1b[0m
-  create      Create a role
-  edit        Edit a role
-  list        List all roles
-  view        View a role
-
-\x1b[1mFlags\x1b[0m
-  -h, --host string   Shield API service to connect to
-
-\x1b[1mInherited flags\x1b[0m
-  --help   Show help for command
-
-\x1b[1mExamples\x1b[0m
-  $ shield role create
-  $ shield role edit
-  $ shield role view
-  $ shield role list
-
-`)
 
 func TestClientRole(t *testing.T) {
 	t.Run("without config file", func(t *testing.T) {
@@ -45,11 +19,6 @@ func TestClientRole(t *testing.T) {
 			want        string
 			err         error
 		}{
-			{
-				name: "`role` only should show usage help",
-				want: expectedRoleUsageHelp,
-				err:  nil,
-			},
 			{
 				name:        "`role` list only should throw error host not found",
 				want:        "",

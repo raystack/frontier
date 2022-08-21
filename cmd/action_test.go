@@ -6,35 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
-
-var expectedActionUsageHelp = heredoc.Doc(`
-
-\x1b[1mUsage\x1b[0m
-  shield action [flags]
-
-\x1b[1mCore commands\x1b[0m
-  create      Create an action
-  edit        Edit an action
-  list        List all actions
-  view        View an action
-
-\x1b[1mFlags\x1b[0m
-  -h, --host string   Shield API service to connect to
-
-\x1b[1mInherited flags\x1b[0m
-  --help   Show help for command
-
-\x1b[1mExamples\x1b[0m
-  $ shield action create
-  $ shield action edit
-  $ shield action view
-  $ shield action list
-
-`)
 
 func TestClientAction(t *testing.T) {
 	t.Run("without config file", func(t *testing.T) {
@@ -45,11 +19,6 @@ func TestClientAction(t *testing.T) {
 			want        string
 			err         error
 		}{
-			{
-				name: "`action` only should show usage help",
-				want: expectedActionUsageHelp,
-				err:  nil,
-			},
 			{
 				name:        "`action` list only should throw error host not found",
 				want:        "",

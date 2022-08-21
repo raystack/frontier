@@ -6,35 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
-
-var expectedProjectUsageHelp = heredoc.Doc(`
-
-\x1b[1mUsage\x1b[0m
-  shield project [flags]
-
-\x1b[1mCore commands\x1b[0m
-  create      Create a project
-  edit        Edit a project
-  list        List all projects
-  view        View a project
-
-\x1b[1mFlags\x1b[0m
-  -h, --host string   Shield API service to connect to
-
-\x1b[1mInherited flags\x1b[0m
-  --help   Show help for command
-
-\x1b[1mExamples\x1b[0m
-  $ shield project create
-  $ shield project edit
-  $ shield project view
-  $ shield project list
-
-`)
 
 func TestClientProject(t *testing.T) {
 	t.Run("without config file", func(t *testing.T) {
@@ -45,11 +19,6 @@ func TestClientProject(t *testing.T) {
 			want        string
 			err         error
 		}{
-			{
-				name: "`project` only should show usage help",
-				want: expectedProjectUsageHelp,
-				err:  nil,
-			},
 			{
 				name:        "`project` list only should throw error host not found",
 				want:        "",

@@ -6,38 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
-
-var expectedOrganizationUsageHelp = heredoc.Doc(`
-
-\x1b[1mUsage\x1b[0m
-  shield organization [flags]
-
-\x1b[1mCore commands\x1b[0m
-  admadd      add admins to an organization
-  admlist     list admins of an organization
-  admremove   remove admins from an organization
-  create      Create an organization
-  edit        Edit an organization
-  list        List all organizations
-  view        View an organization
-
-\x1b[1mFlags\x1b[0m
-  -h, --host string   Shield API service to connect to
-
-\x1b[1mInherited flags\x1b[0m
-  --help   Show help for command
-
-\x1b[1mExamples\x1b[0m
-  $ shield organization create
-  $ shield organization edit
-  $ shield organization view
-  $ shield organization list
-
-`)
 
 func TestClientOrganization(t *testing.T) {
 	t.Run("without config file", func(t *testing.T) {
@@ -48,11 +19,6 @@ func TestClientOrganization(t *testing.T) {
 			want        string
 			err         error
 		}{
-			{
-				name: "`organization` only should show usage help",
-				want: expectedOrganizationUsageHelp,
-				err:  nil,
-			},
 			{
 				name:        "`organization` list only should throw error host not found",
 				want:        "",
