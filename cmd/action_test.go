@@ -13,7 +13,7 @@ import (
 
 var expectedActionUsageHelp = heredoc.Doc(`
 
-x1b[1mUsage\x1b[0m
+\x1b[1mUsage\x1b[0m
   shield action [flags]
 
 \x1b[1mCore commands\x1b[0m

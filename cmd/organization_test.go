@@ -13,7 +13,7 @@ import (
 
 var expectedOrganizationUsageHelp = heredoc.Doc(`
 
-\n\x1b[1mUsage\x1b[0m
+\x1b[1mUsage\x1b[0m
   shield organization [flags]
 
 \x1b[1mCore commands\x1b[0m
