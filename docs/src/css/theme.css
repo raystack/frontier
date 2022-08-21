@@ -1,0 +1,171 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #4d4dcb;
+  --ifm-color-primary-dark: #3939c3;
+  --ifm-color-primary-darker: #3636b8;
+  --ifm-color-primary-darkest: #2c2c98;
+  --ifm-color-primary-light: #6363d1;
+  --ifm-color-primary-lighter: #6e6ed4;
+  --ifm-color-primary-lightest: #8e8ede;
+  --ifm-code-font-size: 80%;
+  --ifm-font-family-base: "Inter", sans-serif;
+  --ifm-table-cell-padding: 0.5rem;
+  --ifm-table-stripe-background:none;
+  --ifm-table-border-color: var(--ifm-color-emphasis-200);
+  --ifm-toc-border-color: var(--ifm-color-emphasis-200);
+  --ifm-breadcrumb-item-background-active: none;
+  --ifm-breadcrumb-spacing:0;
+}
+
+.docusaurus-highlight-code-line {
+  background-color: rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+}
+
+html[data-theme="dark"] .docusaurus-highlight-code-line {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme='dark'] {
+  --ifm-table-stripe-background:none;
+}
+
+html[data-theme="light"] {
+  --main-bg-color: var(--ifm-color-primary);
+  --light-bg-color: transparent;
+  --dark-bg-color: #f8f6f0;
+}
+
+html[data-theme="dark"] {
+  --main-bg-color: var(--ifm-color-primary);
+  --light-bg-color: transparent;
+  --dark-bg-color: #131313;
+}
+
+.container{
+  margin-top: 1rem;
+}
+
+.menu {
+  font-size: 90%;
+  margin-top: 1rem;
+}
+
+.menu__link{
+  font-weight: 400;
+}
+
+.menu__link--sublist-caret:after {
+  background: var(--ifm-menu-link-sublist-icon) 50% / 1rem 1rem;
+}
+
+.menu__list .menu__list {
+  padding-left: 0;
+}
+
+.menu__link--sublist-caret{
+  font-weight: 600;
+  color: var(--ifm-color-grey-darkest) !important;
+}
+
+.theme-doc-sidebar-item-category{
+  padding-top: .0rem;
+}
+
+.markdown h1 {
+  font-size: 2.5rem;
+}
+.markdown h2 {
+  font-size: 1.7rem;
+}
+
+.markdown h3 {
+  font-size: 1.4rem;
+}
+
+.theme-code-block{
+  box-shadow: none !important;
+}
+
+.pagination-nav__link{
+  border: 1px solid var(--ifm-color-emphasis-200)
+}
+
+.pagination-nav__sublabel{
+  font-size: 60%;
+}
+
+.pagination-nav__label{
+  font-size: 80%;
+  font-weight: normal;
+}
+
+table{
+  font-size: 85%;
+  width: 100%;
+  display: table;
+}
+
+table code {
+  font-size: 95%;
+}
+
+table thead{
+  text-align: left;
+}
+table th, table td{
+  border: 0;
+  padding: .8rem 0.3rem;
+}
+
+table thead tr {
+  border-bottom: 1px solid var(--ifm-table-border-color);
+  border-top: none;
+}
+tbody{
+  border-bottom: solid 1px var(--ifm-table-border-color);
+}
+
+table th{
+  font-weight: 400;
+  font-size: 80%;
+  color: var(--ifm-color-gray-700);
+}
+
+pre{
+  font-size: 80%;
+}
+
+code {
+  border-radius: 0;
+  border: none;
+}
+
+.col{
+  padding: 0 3em
+}
+
+.table-of-contents__left-border {
+  border-left: 0;
+}
+.navbar{
+  box-shadow:0 1px 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.tabs{
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+}
+
+.tabs__item {
+  border-bottom-width: 1px;
+  padding:0.7rem 1rem;
+  font-size: 80%;
+}
+
+.theme-doc-footer .col {
+  padding: 1rem;
+}
