@@ -13,10 +13,10 @@ import (
 
 var expectedOrganizationUsageHelp = heredoc.Doc(`
 
-USAGE
+Usage
   shield organization [flags]
 
-CORE COMMANDS
+Core commands
   admadd      add admins to an organization
   admlist     list admins of an organization
   admremove   remove admins from an organization
@@ -25,13 +25,13 @@ CORE COMMANDS
   list        List all organizations
   view        View an organization
 
-FLAGS
+Flags
   -h, --host string   Shield API service to connect to
 
-INHERITED FLAGS
+Inherited flags
   --help   Show help for command
 
-EXAMPLES
+Examples
   $ shield organization create
   $ shield organization edit
   $ shield organization view

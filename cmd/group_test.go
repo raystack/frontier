@@ -13,22 +13,22 @@ import (
 
 var expectedGroupUsageHelp = heredoc.Doc(`
 
-USAGE
+Usage
   shield group [flags]
 
-CORE COMMANDS
+Core commands
   create      Create a group
   edit        Edit a group
   list        List all groups
   view        View a group
 
-FLAGS
+Flags
   -h, --host string   Shield API service to connect to
 
-INHERITED FLAGS
+Inherited flags
   --help   Show help for command
 
-EXAMPLES
+Examples
   $ shield group create
   $ shield group edit
   $ shield group view

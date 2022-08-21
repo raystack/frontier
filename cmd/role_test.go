@@ -13,22 +13,22 @@ import (
 
 var expectedRoleUsageHelp = heredoc.Doc(`
 
-USAGE
+Usage
   shield role [flags]
 
-CORE COMMANDS
+Core commands
   create      Create a role
   edit        Edit a role
   list        List all roles
   view        View a role
 
-FLAGS
+Flags
   -h, --host string   Shield API service to connect to
 
-INHERITED FLAGS
+Inherited flags
   --help   Show help for command
 
-EXAMPLES
+Examples
   $ shield role create
   $ shield role edit
   $ shield role view

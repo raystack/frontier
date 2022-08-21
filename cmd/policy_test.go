@@ -13,22 +13,22 @@ import (
 
 var expectedPolicyUsageHelp = heredoc.Doc(`
 
-USAGE
+Usage
   shield policy [flags]
 
-CORE COMMANDS
+Core commands
   create      Create a policy
   edit        Edit a policy
   list        List all policies
   view        View a policy
 
-FLAGS
+Flags
   -h, --host string   Shield API service to connect to
 
-INHERITED FLAGS
+Inherited flags
   --help   Show help for command
 
-EXAMPLES
+Examples
   $ shield policy create
   $ shield policy edit
   $ shield policy view

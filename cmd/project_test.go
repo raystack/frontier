@@ -13,22 +13,22 @@ import (
 
 var expectedProjectUsageHelp = heredoc.Doc(`
 
-USAGE
+Usage
   shield project [flags]
 
-CORE COMMANDS
+Core commands
   create      Create a project
   edit        Edit a project
   list        List all projects
   view        View a project
 
-FLAGS
+Flags
   -h, --host string   Shield API service to connect to
 
-INHERITED FLAGS
+Inherited flags
   --help   Show help for command
 
-EXAMPLES
+Examples
   $ shield project create
   $ shield project edit
   $ shield project view

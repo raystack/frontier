@@ -13,22 +13,22 @@ import (
 
 var expectedActionUsageHelp = heredoc.Doc(`
 
-USAGE
+Usage
   shield action [flags]
 
-CORE COMMANDS
+Core commands
   create      Create an action
   edit        Edit an action
   list        List all actions
   view        View an action
 
-FLAGS
+Flags
   -h, --host string   Shield API service to connect to
 
-INHERITED FLAGS
+Inherited flags
   --help   Show help for command
 
-EXAMPLES
+Examples
   $ shield action create
   $ shield action edit
   $ shield action view
