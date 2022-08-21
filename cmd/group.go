@@ -26,8 +26,8 @@ func GroupCommand(cliConfig *Config) *cli.Command {
 			$ shield group list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
-			"client":     "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 
@@ -52,7 +52,7 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 			$ shield group create --file=<group-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -106,7 +106,7 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 			$ shield group edit <group-id> --file=<group-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -160,7 +160,7 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 			$ shield group view <group-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -230,7 +230,7 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 			$ shield group list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")

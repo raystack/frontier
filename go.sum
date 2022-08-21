@@ -1053,6 +1053,8 @@ github.com/nishanths/predeclared v0.0.0-20200524104333-86fad755b4d3/go.mod h1:nt
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/odpf/salt v0.0.0-20220614042821-c5613a78b4d6 h1:ZPATgfcee1Vn2h9Ea6A0MsqgoUCKvN3AwYOaudi6X/s=
 github.com/odpf/salt v0.0.0-20220614042821-c5613a78b4d6/go.mod h1:ZY9yXIHZYlYbQGKV5WSGmyYnw+NtQEzl6z0Tj0dto8M=
+github.com/odpf/salt v0.1.1-0.20220821030850-77ce10e39145 h1:MML18OvRZhDDdh/m9u3LGutieRnPZPuGOJMtKkbSl+I=
+github.com/odpf/salt v0.1.1-0.20220821030850-77ce10e39145/go.mod h1:iH1ZB+lBmI5E5DgSCu9HjMmNcSvUe0zCusZJzOF2Yfk=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=

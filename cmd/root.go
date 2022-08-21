@@ -17,16 +17,10 @@ func New(cfg *Config) *cli.Command {
 			A cloud native role-based authorization aware reverse-proxy service.`),
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		Example: heredoc.Doc(`
-			$ shield group list
-			$ shield organization list
-			$ shield project list
-			$ shield user create --file user.yaml
-		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 			"help:learn": heredoc.Doc(`
-				Use 'shield <command> <subcommand> --help' for more information about a command.
+				Use 'shield <command> <subcommand> --help' for info about a command.
 				Read the manual at https://odpf.github.io/shield/
 			`),
 			"help:feedback": heredoc.Doc(`
@@ -61,8 +55,8 @@ func New(cfg *Config) *cli.Command {
 	// Help topics
 	cmdx.SetHelp(cmd)
 	cmd.AddCommand(cmdx.SetCompletionCmd("shield"))
-	cmd.AddCommand(cmdx.SetHelpTopic("environment", envHelp))
-	cmd.AddCommand(cmdx.SetHelpTopic("auth", authHelp))
+	cmd.AddCommand(cmdx.SetHelpTopicCmd("environment", envHelp))
+	cmd.AddCommand(cmdx.SetHelpTopicCmd("auth", authHelp))
 	cmd.AddCommand(cmdx.SetRefCmd(cmd))
 	return cmd
 }

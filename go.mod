@@ -26,7 +26,7 @@ require (
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/newrelic/go-agent v3.15.0+incompatible
-	github.com/odpf/salt v0.0.0-20220614042821-c5613a78b4d6
+	github.com/odpf/salt v0.1.1-0.20220821030850-77ce10e39145
 	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.6.0
