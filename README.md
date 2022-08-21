@@ -6,11 +6,12 @@
 [![Version](https://img.shields.io/github/v/release/odpf/shield?logo=semantic-release)](Version)
 [![Coverage Status](https://coveralls.io/repos/github/odpf/shield/badge.svg?branch=main)](https://coveralls.io/github/odpf/shield?branch=main)
 
-Shield is a cloud native role-based authorization aware reverse-proxy service. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
+Shield is a cloud native role-based authorization aware server and reverse-proxy system. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
 
 <p align="center"><img src="./docs/assets/overview.svg" /></p>
 
 ## Key Features
+
 Discover why users choose Shield as their authorization proxy
 
 - **Policy Management**: Policies help you assign various roles to users/groups that determine their access to various resources
@@ -27,10 +28,9 @@ Discover why users choose Shield as their authorization proxy
 - [Reference](reference/api.md) contains the list of all the APIs that Shield exposes
 - [Contributing](contribute/contribution.md) contains resources for anyone who wants to contribute to Shield
 
-
 ## Installation
 
-Install Shield on macOS, Windows, Linux, OpenBSD, FreeBSD, and on any machine.
+Install Shield on macOS, Windows, Linux, OpenBSD, FreeBSD, and on any machine. Refer this for [installations](https://odpf.github.io/shield/docs/installation).
 
 #### Binary (Cross-platform)
 
@@ -38,53 +38,88 @@ Download the appropriate version for your platform from [releases](https://githu
 You don’t need to install it into a global location. This works well for shared hosts and other systems where you don’t have a privileged account.
 Ideally, you should install it somewhere in your PATH for easy use. `/usr/local/bin` is the most probable location.
 
-#### Homebrew
+#### macOS
+
+`shield` is available via a Homebrew Tap, and as downloadable binary from the [releases](https://github.com/odpf/shield/releases/latest) page:
 
 ```sh
-# Install shield (requires homebrew installed)
-$ brew install odpf/taps/shield
+brew install odpf/tap/shield
+```
 
-# Upgrade shield (requires homebrew installed)
-$ brew upgrade shield
+To upgrade to the latest version:
 
-# Check for installed shield version
-$ shield version
+```
+brew upgrade shield
+```
+
+Check for installed shield version
+
+```sh
+shield version
+```
+
+#### Linux
+
+`shield` is available as downloadable binaries from the [releases](https://github.com/odpf/shield/releases/latest) page. Download the `.deb` or `.rpm` from the releases page and install with `sudo dpkg -i` and `sudo rpm -i` respectively.
+
+#### Windows
+
+`shield` is available via [scoop](https://scoop.sh/), and as a downloadable binary from the [releases](https://github.com/odpf/shield/releases/latest) page:
+
+```
+scoop bucket add shield https://github.com/odpf/scoop-bucket.git
+```
+
+To upgrade to the latest version:
+
+```
+scoop update shield
+```
+
+#### Docker
+
+We provide ready to use Docker container images. To pull the latest image:
+
+```
+docker pull odpf/shield:latest
+```
+
+To pull a specific version:
+
+```
+docker pull odpf/shield:v0.3.2
+```
+
+If you like to have a shell alias that runs the latest version of shield from docker whenever you type `shield`:
+
+```
+mkdir -p $HOME/.config/odpf
+alias shield="docker run -e HOME=/tmp -v $HOME/.config/odpf:/tmp/.config/odpf --user $(id -u):$(id -g) --rm -it -p 3306:3306/tcp odpf/shield:latest"
 ```
 
 ## Usage
 
-Shield CLI is fully featured but simple to use, even for those who have very limited experience working from the command line. Run `shield --help` to see list of all available commands and instructions to use.
+Shield is purely API-driven. It is very easy to get started with Shield. It provides CLI, HTTP and GRPC APIs for simpler developer experience.
+
+#### CLI
+
+Shield CLI is fully featured and simple to use, even for those who have very limited experience working from the command line. Run `shield --help` to see list of all available commands and instructions to use.
+
+List of commands
 
 ```
-$ shield --help
-Identiy made simple.
-
-USAGE
-  shield <command> <subcommand> [flags]
-
-CORE COMMANDS
-  migrate     Run database migrations
-  serve       Run shield server
-
-ADDITIONAL COMMANDS
-  completion  generate the autocompletion script for the specified shell
-  config      Manage client configuration settings
-  help        Help about any command
-  version     Print version information
-
-FLAGS
-  --help   Show help for command
-
-ENVIRONMENT VARIABLES
-  See 'shield help environment' for the list of supported environment variables.
-
-LEARN MORE
-  Use 'shield <command> <subcommand> --help' for more information about a command.
-  Read the manual at https://odpf.github.io/shield/
-
-FEEDBACK
-  Open an issue here https://github.com/odpf/shield/issues
+shield --help
 ```
+
+Print command reference
+
+```sh
+shield reference
+```
+
+#### API
+
+Shield provides a fully-featured GRPC and HTTP API to interact with Shield server. Both APIs adheres to a set of standards that are rigidly followed. Please refer to [proton](https://github.com/odpf/proton/tree/main/odpf/shield/v1beta1) for GRPC API definitions.
 
 ## Running locally
 
@@ -97,28 +132,41 @@ FEEDBACK
 
 </details>
 
-```sh
-# Clone the repo
-$ git clone git@github.com:odpf/shield.git
+Clone the repo
 
-# Install all the golang dependencies
-$ make install
+```
+git clone git@github.com:odpf/shield.git
+```
 
-# Check all build comamnds available
-$ make help
+Install all the golang dependencies
 
-# Build meteor binary file
-$ make build
+```
+make install
+```
 
-# Init config
-$ cp app/config.yaml config.yaml
-$ ./shield config init
+Build shield binary file
 
-# Run database migrations
-$ ./shield migrate
+```
+make build
+```
 
-# Start shield server
-$ ./shield serve
+Init config
+
+```
+cp internal/server/config.yaml config.yaml
+./shield config init
+```
+
+Run database migrations
+
+```
+./shield server migrate -c config.yaml
+```
+
+Start shield server
+
+```
+./shield server start -c config.yaml
 ```
 
 ## Running tests
