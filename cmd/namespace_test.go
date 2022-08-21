@@ -13,22 +13,22 @@ import (
 
 var expectedNamespaceUsageHelp = heredoc.Doc(`
 
-Usage
+\x1b[1mUsage\x1b[0m
   shield namespace [flags]
 
-Core commands
+\x1b[1mCore commands\x1b[0m
   create      Create a namespace
   edit        Edit a namespace
   list        List all namespaces
   view        View a namespace
 
-Flags
+\x1b[1mFlags\x1b[0m
   -h, --host string   Shield API service to connect to
 
-Inherited flags
+\x1b[1mInherited flags\x1b[0m
   --help   Show help for command
 
-Examples
+\x1b[1mExamples\x1b[0m
   $ shield namespace create
   $ shield namespace edit
   $ shield namespace view
