@@ -32,7 +32,9 @@ type EndToEndAPISmokeTestSuite struct {
 func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	wd, err := os.Getwd()
 	s.Require().Nil(err)
+
 	parent := filepath.Dir(wd)
+	testDataPath := parent + "/testbench/testdata"
 
 	proxyPort, err := testbench.GetFreePort()
 	s.Require().Nil(err)
@@ -47,47 +49,47 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 		App: server.Config{
 			Port:                apiPort,
 			IdentityProxyHeader: testbench.IdentityHeader,
-			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", parent, "testdata/configs/resources"),
-			RulesPath:           fmt.Sprintf("file://%s/%s", parent, "testdata/configs/rules"),
+			ResourcesConfigPath: fmt.Sprintf("file://%s%s", testDataPath, "/configs/resources"),
+			RulesPath:           fmt.Sprintf("file://%s%s", testDataPath, "/configs/rules"),
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{
 				{
 					Name:      "base",
 					Port:      proxyPort,
-					RulesPath: fmt.Sprintf("file://%s/%s", parent, "testdata/configs/rules"),
+					RulesPath: fmt.Sprintf("file://%s%s", testDataPath, "/configs/rules"),
 				},
 			},
 		},
 	}
 
 	s.testBench, err = testbench.Init(appConfig)
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 
 	ctx := context.Background()
 	s.client, s.cancelClient, err = testbench.CreateClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 
-	s.Require().Nil(testbench.BootstrapUser(ctx, s.client, testbench.OrgAdminEmail))
-	s.Require().Nil(testbench.BootstrapOrganization(ctx, s.client, testbench.OrgAdminEmail))
-	s.Require().Nil(testbench.BootstrapProject(ctx, s.client, testbench.OrgAdminEmail))
-	s.Require().Nil(testbench.BootstrapGroup(ctx, s.client, testbench.OrgAdminEmail))
+	s.Require().NoError(testbench.BootstrapUser(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
+	s.Require().NoError(testbench.BootstrapOrganization(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
+	s.Require().NoError(testbench.BootstrapProject(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
+	s.Require().NoError(testbench.BootstrapGroup(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
 
 	// validate
 	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 	s.Require().Equal(9, len(uRes.GetUsers()))
 
 	oRes, err := s.client.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 	s.Require().Equal(1, len(oRes.GetOrganizations()))
 
 	pRes, err := s.client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 	s.Require().Equal(1, len(pRes.GetProjects()))
 
 	gRes, err := s.client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
-	s.Require().Nil(err)
+	s.Require().NoError(err)
 	s.Require().Equal(3, len(gRes.GetGroups()))
 }
 

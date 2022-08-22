@@ -55,8 +55,8 @@ func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 	return client, cancel, nil
 }
 
-func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-user.json")
+func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-user.json")
 	if err != nil {
 		return err
 	}
@@ -80,8 +80,8 @@ func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, cr
 	return nil
 }
 
-func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-organization.json")
+func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-organization.json")
 	if err != nil {
 		return err
 	}
@@ -105,8 +105,8 @@ func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 	return nil
 }
 
-func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-project.json")
+func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-project.json")
 	if err != nil {
 		return err
 	}
@@ -141,8 +141,8 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	return nil
 }
 
-func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-group.json")
+func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-group.json")
 	if err != nil {
 		return err
 	}
