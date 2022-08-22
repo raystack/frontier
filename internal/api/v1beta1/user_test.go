@@ -127,14 +127,14 @@ func TestCreateUser(t *testing.T) {
 		err   error
 	}{
 		{
-			title: "should return forbidden error if no auth email header in context",
+			title: "should return unauthenticated error if no auth email header in context",
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:     "some user",
 				Email:    "abc@test.com",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
-			err:  grpcPermissionDenied,
+			err:  grpcUnauthenticated,
 		},
 		{
 			title: "should return bad request error if metadata is not parsable",
@@ -388,9 +388,9 @@ func TestGetCurrentUser(t *testing.T) {
 		err    error
 	}{
 		{
-			title: "should return forbidden error if no auth email header in context",
+			title: "should return unauthenticated error if no auth email header in context",
 			want:  nil,
-			err:   grpcPermissionDenied,
+			err:   grpcUnauthenticated,
 		},
 		{
 			title: "should return not found error if user does not exist",
@@ -744,7 +744,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 		err    error
 	}{
 		{
-			title: "should return forbidden error if auth email header not exist",
+			title: "should return unauthenticated error if auth email header not exist",
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "abc user",
 				Email: "abcuser123@test.com",
@@ -755,7 +755,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				},
 			}},
 			want: nil,
-			err:  grpcPermissionDenied,
+			err:  grpcUnauthenticated,
 		},
 		{
 			title: "should return internal error if user service return some error",

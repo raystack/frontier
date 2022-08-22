@@ -65,13 +65,13 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 
 	currentUserEmail, ok := user.GetEmailFromContext(ctx)
 	if !ok {
-		return nil, grpcPermissionDenied
+		return nil, grpcUnauthenticated
 	}
 
 	currentUserEmail = strings.TrimSpace(currentUserEmail)
 	if currentUserEmail == "" {
 		logger.Error(ErrEmptyEmailID.Error())
-		return nil, grpcPermissionDenied
+		return nil, grpcUnauthenticated
 	}
 
 	if request.GetBody() == nil {
@@ -151,13 +151,13 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 
 	email, ok := user.GetEmailFromContext(ctx)
 	if !ok {
-		return nil, grpcPermissionDenied
+		return nil, grpcUnauthenticated
 	}
 
 	email = strings.TrimSpace(email)
 	if email == "" {
 		logger.Error(ErrEmptyEmailID.Error())
-		return nil, grpcPermissionDenied
+		return nil, grpcUnauthenticated
 	}
 
 	fetchedUser, err := h.userService.GetByEmail(ctx, email)
@@ -237,13 +237,13 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 
 	email, ok := user.GetEmailFromContext(ctx)
 	if !ok {
-		return nil, grpcPermissionDenied
+		return nil, grpcUnauthenticated
 	}
 
 	email = strings.TrimSpace(email)
 	if email == "" {
 		logger.Error(ErrEmptyEmailID.Error())
-		return nil, grpcPermissionDenied
+		return nil, grpcUnauthenticated
 	}
 
 	if request.GetBody() == nil {
