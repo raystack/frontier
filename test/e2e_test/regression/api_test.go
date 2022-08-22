@@ -1,13 +1,10 @@
-//go:build regression
-// +build regression
-
 package e2e_test
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/odpf/shield/config"
@@ -33,11 +30,12 @@ type EndToEndAPIRegressionTestSuite struct {
 func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	wd, err := os.Getwd()
 	s.Require().Nil(err)
+	parent := filepath.Dir(wd)
 
-	proxyPort, err := GetFreePort()
+	proxyPort, err := testbench.GetFreePort()
 	s.Require().Nil(err)
 
-	apiPort, err := GetFreePort()
+	apiPort, err := testbench.GetFreePort()
 	s.Require().Nil(err)
 
 	appConfig := &config.Shield{
@@ -46,16 +44,16 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 		},
 		App: server.Config{
 			Port:                apiPort,
-			IdentityProxyHeader: identityHeader,
-			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", wd, "testdata/configs/resources"),
-			RulesPath:           fmt.Sprintf("file://%s/%s", wd, "testdata/configs/rules"),
+			IdentityProxyHeader: testbench.IdentityHeader,
+			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", parent, "testdata/configs/resources"),
+			RulesPath:           fmt.Sprintf("file://%s/%s", parent, "testdata/configs/rules"),
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{
 				{
 					Name:      "base",
 					Port:      proxyPort,
-					RulesPath: fmt.Sprintf("file://%s/%s", wd, "testdata/configs/rules"),
+					RulesPath: fmt.Sprintf("file://%s/%s", parent, "testdata/configs/rules"),
 				},
 			},
 		},
@@ -65,13 +63,13 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	s.Require().Nil(err)
 
 	ctx := context.Background()
-	s.client, s.cancelClient, err = createClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
+	s.client, s.cancelClient, err = testbench.CreateClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
 	s.Require().Nil(err)
 
-	s.Require().Nil(bootstrapUser(ctx, s.client, orgAdminEmail))
-	s.Require().Nil(bootstrapOrganization(ctx, s.client, orgAdminEmail))
-	s.Require().Nil(bootstrapProject(ctx, s.client, orgAdminEmail))
-	s.Require().Nil(bootstrapGroup(ctx, s.client, orgAdminEmail))
+	s.Require().Nil(testbench.BootstrapUser(ctx, s.client, testbench.OrgAdminEmail))
+	s.Require().Nil(testbench.BootstrapOrganization(ctx, s.client, testbench.OrgAdminEmail))
+	s.Require().Nil(testbench.BootstrapProject(ctx, s.client, testbench.OrgAdminEmail))
+	s.Require().Nil(testbench.BootstrapGroup(ctx, s.client, testbench.OrgAdminEmail))
 
 	// validate
 	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
@@ -94,16 +92,15 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 func (s *EndToEndAPIRegressionTestSuite) TearDownTest() {
 	s.cancelClient()
 	// Clean tests
-	if err := s.testBench.CleanUp(); err != nil {
-		log.Fatal(err)
-	}
+	err := s.testBench.CleanUp()
+	s.Require().NoError(err)
 }
 
 func (s *EndToEndAPIRegressionTestSuite) TestProjectAPI() {
 	var newProject *shieldv1beta1.Project
 
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		identityHeader: orgAdminEmail,
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
 
 	// get my org
@@ -220,7 +217,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestGroupAPI() {
 	var newGroup *shieldv1beta1.Group
 
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		identityHeader: orgAdminEmail,
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
 
 	// get my org
@@ -331,7 +328,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 	var newUser *shieldv1beta1.User
 
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		identityHeader: orgAdminEmail,
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
 
 	s.Run("1. org admin create a new user with empty auth email should return unauthenticated error", func() {
@@ -441,7 +438,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 	})
 
 	ctxCurrentUser := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		identityHeader: newUser.GetEmail(),
+		testbench.IdentityHeader: newUser.GetEmail(),
 	}))
 
 	s.Run("7. update current user with empty email should return invalid argument error", func() {

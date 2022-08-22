@@ -23,13 +23,13 @@ test: ## Run tests
 	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
 	
 e2e-test: ## Run all e2e tests
-	go test -v -race ./test/e2e_test -coverprofile=coverage.out
+	go test -v -race ./test/e2e_test/... -coverprofile=coverage.out
 
 e2e-smoke-test: ## Run smoke tests
-	go test -v -race ./test/e2e_test --tags=smoke -coverprofile=coverage.out
+	go test -v -race ./test/e2e_test/smoke -coverprofile=coverage.out
 
 e2e-regression-test: ## Run regression tests
-	go test -v -race ./test/e2e_test --tags=regression -coverprofile=coverage.out
+	go test -v -race ./test/e2e_test/regression  -coverprofile=coverage.out
 
 benchmark: ## Run benchmarks
 	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/integration

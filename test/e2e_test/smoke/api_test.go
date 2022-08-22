@@ -1,13 +1,10 @@
-//go:build smoke
-// +build smoke
-
 package e2e_test
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -35,11 +32,12 @@ type EndToEndAPISmokeTestSuite struct {
 func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	wd, err := os.Getwd()
 	s.Require().Nil(err)
+	parent := filepath.Dir(wd)
 
-	proxyPort, err := GetFreePort()
+	proxyPort, err := testbench.GetFreePort()
 	s.Require().Nil(err)
 
-	apiPort, err := GetFreePort()
+	apiPort, err := testbench.GetFreePort()
 	s.Require().Nil(err)
 
 	appConfig := &config.Shield{
@@ -48,16 +46,16 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 		},
 		App: server.Config{
 			Port:                apiPort,
-			IdentityProxyHeader: identityHeader,
-			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", wd, "testdata/configs/resources"),
-			RulesPath:           fmt.Sprintf("file://%s/%s", wd, "testdata/configs/rules"),
+			IdentityProxyHeader: testbench.IdentityHeader,
+			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", parent, "testdata/configs/resources"),
+			RulesPath:           fmt.Sprintf("file://%s/%s", parent, "testdata/configs/rules"),
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{
 				{
 					Name:      "base",
 					Port:      proxyPort,
-					RulesPath: fmt.Sprintf("file://%s/%s", wd, "testdata/configs/rules"),
+					RulesPath: fmt.Sprintf("file://%s/%s", parent, "testdata/configs/rules"),
 				},
 			},
 		},
@@ -67,13 +65,13 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	s.Require().Nil(err)
 
 	ctx := context.Background()
-	s.client, s.cancelClient, err = createClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
+	s.client, s.cancelClient, err = testbench.CreateClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
 	s.Require().Nil(err)
 
-	s.Require().Nil(bootstrapUser(ctx, s.client, orgAdminEmail))
-	s.Require().Nil(bootstrapOrganization(ctx, s.client, orgAdminEmail))
-	s.Require().Nil(bootstrapProject(ctx, s.client, orgAdminEmail))
-	s.Require().Nil(bootstrapGroup(ctx, s.client, orgAdminEmail))
+	s.Require().Nil(testbench.BootstrapUser(ctx, s.client, testbench.OrgAdminEmail))
+	s.Require().Nil(testbench.BootstrapOrganization(ctx, s.client, testbench.OrgAdminEmail))
+	s.Require().Nil(testbench.BootstrapProject(ctx, s.client, testbench.OrgAdminEmail))
+	s.Require().Nil(testbench.BootstrapGroup(ctx, s.client, testbench.OrgAdminEmail))
 
 	// validate
 	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
@@ -96,9 +94,8 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 func (s *EndToEndAPISmokeTestSuite) TearDownTest() {
 	s.cancelClient()
 	// Clean tests
-	if err := s.testBench.CleanUp(); err != nil {
-		log.Fatal(err)
-	}
+	err := s.testBench.CleanUp()
+	s.Require().NoError(err)
 }
 
 func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
@@ -126,7 +123,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 
 	// get my self
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		identityHeader: orgAdminEmail,
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
 	gcuRes, err := s.client.GetCurrentUser(ctxOrgAdminAuth, &shieldv1beta1.GetCurrentUserRequest{})
 	s.Require().NoError(err)
@@ -318,7 +315,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 
 	// get list of groups
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		identityHeader: orgAdminEmail,
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
 	lgRes, err := s.client.ListGroups(ctxOrgAdminAuth, &shieldv1beta1.ListGroupsRequest{})
 	s.Require().NoError(err)
@@ -328,7 +325,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 	adminIdx := 0
 	for _, u := range members {
 		adminIdx = 0
-		if u.GetEmail() == orgAdminEmail {
+		if u.GetEmail() == testbench.OrgAdminEmail {
 			break
 		}
 		adminIdx = adminIdx + 1
@@ -337,7 +334,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 	s.Require().Greater(len(members), 0)
 
 	ctxMemberAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		identityHeader: members[0].GetEmail(),
+		testbench.IdentityHeader: members[0].GetEmail(),
 	}))
 
 	s.Run("1. member unable to add member to team", func() {
