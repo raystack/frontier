@@ -215,17 +215,11 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		identityHeader: orgAdminEmail,
 	}))
 
-	// get my org
-	loRes, err := s.client.ListOrganizations(context.Background(), &shieldv1beta1.ListOrganizationsRequest{})
-	s.Require().NoError(err)
-	s.Require().Greater(len(loRes.GetOrganizations()), 0)
-	myOrg := loRes.GetOrganizations()[0]
-
 	s.Run("1. org admin create a new user with empty auth email should return unauthenticated error", func() {
 		_, err := s.client.CreateUser(context.Background(), &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "new-user-a@odpf.ipo",
+				Email: "new-user-a@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -236,89 +230,126 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		s.Assert().Equal(codes.Unauthenticated, status.Convert(err).Code())
 	})
 
-	// org admin is currently the group admin
-	s.Run("2. group admin create a new team with empty name should return invalid argument", func() {
-		_, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
-			Body: &shieldv1beta1.GroupRequestBody{
-				Slug:  "new-group",
-				OrgId: myOrg.GetId(),
+	s.Run("2. org admin create a new user with unparsable metadata should return invalid argument error", func() {
+		_, err := s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "new-user-a@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewNullValue(),
+					},
+				},
 			},
 		})
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("3. group admin create a new team with wrong org id should return invalid argument", func() {
-		_, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
-			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
-				Slug:  "new-group",
-				OrgId: "not-uuid",
+	s.Run("3. org admin create a new user with empty email should return invalid argument error", func() {
+		_, err := s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
 			},
 		})
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("4. group admin create a new team with same name and org-id should conflict", func() {
-		cgRes, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
-			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
-				Slug:  "new-group",
-				OrgId: myOrg.GetId(),
+	s.Run("4. org admin create a new user with same email should return conflict error", func() {
+		res, err := s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "new-user-a@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
 			},
 		})
 		s.Assert().NoError(err)
-		newGroup = cgRes.GetGroup()
-		s.Assert().NotNil(newGroup)
+		newUser = res.GetUser()
 
-		_, err = s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
-			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
-				Slug:  "new-group",
-				OrgId: myOrg.GetId(),
+		_, err = s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "new-user-a@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
 			},
 		})
 		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
 	})
 
-	s.Run("5. group admin update a new team with empty body should return invalid argument", func() {
-		_, err := s.client.UpdateGroup(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupRequest{
-			Id:   newGroup.GetId(),
-			Body: nil,
+	s.Run("5. org admin update non-existent user should return not found error", func() {
+		_, err := s.client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
+			Id: "random",
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "new-user-a@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
+			},
+		})
+		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
+	})
+
+	s.Run("6. org admin update user with conflicted detail should return conflict error", func() {
+		_, err := s.client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
+			Id: newUser.GetId(),
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "admin1-group1-org1@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
+			},
+		})
+		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+	})
+
+	ctxCurrentUser := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		identityHeader: newUser.GetEmail(),
+	}))
+
+	s.Run("7. update current user with empty email should return invalid argument error", func() {
+		_, err := s.client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
+			},
 		})
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("6. group admin update a new team with empty group id should return not found", func() {
-		_, err := s.client.UpdateGroup(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupRequest{
-			Id: "",
-			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
-				Slug:  "new-group",
-				OrgId: myOrg.GetId(),
-			},
-		})
-		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
-	})
-
-	s.Run("7. group admin update a new team with unknown group id and not uuid should return not found", func() {
-		_, err := s.client.UpdateGroup(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupRequest{
-			Id: "random",
-			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
-				Slug:  "new-group",
-				OrgId: myOrg.GetId(),
-			},
-		})
-		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
-	})
-
-	s.Run("8. group admin update a new team with same name and org-id but different id should return conflict", func() {
-		_, err := s.client.UpdateGroup(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupRequest{
-			Id: newGroup.GetId(),
-			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "org1 group1",
-				Slug:  "org1-group1",
-				OrgId: myOrg.GetId(),
+	s.Run("8. update current user with conflicted detail should return conflict error", func() {
+		_, err := s.client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user a",
+				Email: "admin1-group1-org1@odpf.io",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
 			},
 		})
 		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
