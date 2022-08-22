@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/pkg/logger"
@@ -25,14 +27,14 @@ const (
 	identityHeader = "X-Shield-Email"
 )
 
-type EndToEndAPITestSuite struct {
+type EndToEndAPISmokeTestSuite struct {
 	suite.Suite
 	client       shieldv1beta1.ShieldServiceClient
 	cancelClient func()
 	testBench    *testbench.TestBench
 }
 
-func (s *EndToEndAPITestSuite) SetupTest() {
+func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	wd, err := os.Getwd()
 	s.Require().Nil(err)
 
@@ -93,7 +95,7 @@ func (s *EndToEndAPITestSuite) SetupTest() {
 	s.Require().Equal(3, len(gRes.GetGroups()))
 }
 
-func (s *EndToEndAPITestSuite) TearDownTest() {
+func (s *EndToEndAPISmokeTestSuite) TearDownTest() {
 	s.cancelClient()
 	// Clean tests
 	if err := s.testBench.CleanUp(); err != nil {
@@ -101,7 +103,7 @@ func (s *EndToEndAPITestSuite) TearDownTest() {
 	}
 }
 
-func (s *EndToEndAPITestSuite) TestSmokeTestAdmin() {
+func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 	var (
 		listOfUsers  []*shieldv1beta1.User
 		listOfGroups []*shieldv1beta1.Group
@@ -146,6 +148,14 @@ func (s *EndToEndAPITestSuite) TestSmokeTestAdmin() {
 	s.Require().Contains(loaRes.GetUsers(), mySelf)
 
 	s.Run("1. org admin could create a new team", func() {
+		// check permission
+		_, err := s.client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+			ResourceId:  myOrg.GetId(),
+			ActionId:    action.DefinitionCreateTeam.ID,
+			NamespaceId: namespace.DefinitionOrg.ID,
+		})
+		s.Assert().NoError(err)
+
 		cgRes, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
 				Name:  "new group",
@@ -167,6 +177,14 @@ func (s *EndToEndAPITestSuite) TestSmokeTestAdmin() {
 				break
 			}
 		}
+
+		// check permission
+		_, err := s.client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+			ResourceId:  group1.GetId(),
+			ActionId:    action.DefinitionManageTeam.ID,
+			NamespaceId: namespace.DefinitionTeam.ID,
+		})
+		s.Assert().NoError(err)
 
 		// verify number of users
 		lguRes, err := s.client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
@@ -286,7 +304,7 @@ func (s *EndToEndAPITestSuite) TestSmokeTestAdmin() {
 	})
 }
 
-func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
+func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 	var (
 		members      []*shieldv1beta1.User
 		listOfGroups []*shieldv1beta1.Group
@@ -325,6 +343,14 @@ func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
 	}))
 
 	s.Run("1. member unable to add member to team", func() {
+		// check permission
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+			ResourceId:  listOfGroups[0].GetId(),
+			ActionId:    action.DefinitionManageTeam.ID,
+			NamespaceId: namespace.DefinitionTeam.ID,
+		})
+		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
+
 		_, err = s.client.AddGroupUser(ctxMemberAuth, &shieldv1beta1.AddGroupUserRequest{
 			Id: listOfGroups[0].GetId(),
 			Body: &shieldv1beta1.AddGroupUserRequestBody{
@@ -335,6 +361,14 @@ func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
 	})
 
 	s.Run("2. member unable to add admin to team", func() {
+		// check permission
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+			ResourceId:  listOfGroups[0].GetId(),
+			ActionId:    action.DefinitionManageTeam.ID,
+			NamespaceId: namespace.DefinitionTeam.ID,
+		})
+		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
+
 		_, err = s.client.AddGroupAdmin(ctxMemberAuth, &shieldv1beta1.AddGroupAdminRequest{
 			Id: listOfGroups[0].GetId(),
 			Body: &shieldv1beta1.AddGroupAdminRequestBody{
@@ -344,7 +378,16 @@ func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
 		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
 	})
 
-	s.Run("3. member unable to remove admin to team", func() {
+	s.Run("3. member unable to remove admin from team", func() {
+		// check permission
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+			ResourceId:  listOfGroups[0].GetId(),
+			ActionId:    action.DefinitionManageTeam.ID,
+			NamespaceId: namespace.DefinitionTeam.ID,
+		})
+
+		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
+
 		_, err = s.client.RemoveGroupAdmin(ctxMemberAuth, &shieldv1beta1.RemoveGroupAdminRequest{
 			Id:     listOfGroups[0].GetId(),
 			UserId: members[0].GetId(),
@@ -353,6 +396,14 @@ func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
 	})
 
 	s.Run("4. member unable to remove member from team", func() {
+		// check permission
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+			ResourceId:  listOfGroups[0].GetId(),
+			ActionId:    action.DefinitionManageTeam.ID,
+			NamespaceId: namespace.DefinitionTeam.ID,
+		})
+		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
+
 		_, err = s.client.RemoveGroupUser(ctxMemberAuth, &shieldv1beta1.RemoveGroupUserRequest{
 			Id:     listOfGroups[0].GetId(),
 			UserId: members[0].GetId(),
@@ -370,6 +421,6 @@ func (s *EndToEndAPITestSuite) TestSmokeTestMember() {
 // - Org admin who is not team member or admin or creator can access the created resource in the same org
 // - Project admin who is not team member or admin or creator can access the created resource in the same project
 
-func TestEndToEndAPITestSuite(t *testing.T) {
-	suite.Run(t, new(EndToEndAPITestSuite))
+func TestEndToEndAPISmokeTestSuite(t *testing.T) {
+	suite.Run(t, new(EndToEndAPISmokeTestSuite))
 }
