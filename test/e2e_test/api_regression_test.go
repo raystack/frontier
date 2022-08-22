@@ -456,7 +456,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("8. update current user with conflicted detail should return conflict error", func() {
+	s.Run("8. update current user with different email in header and body should return invalid argument error", func() {
 		_, err := s.client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
@@ -468,7 +468,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				},
 			},
 		})
-		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 }
 
