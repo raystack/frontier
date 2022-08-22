@@ -12,7 +12,7 @@ import (
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/internal/proxy/hook"
-	attributes2 "github.com/odpf/shield/internal/proxy/middleware/attributes"
+	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 )
 
 type ResourceService interface {
@@ -64,11 +64,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, err)
 	}
 
-	attributes, ok := attributes2.GetAttributesFromContext(res.Request.Context())
+	attrs, ok := attributes.GetAttributesFromContext(res.Request.Context())
 	if !ok {
 		return a.escape.ServeHook(res, fmt.Errorf("unable to fetch permission attributes from context"))
 	}
-	ns := attributes["namespace"]
+	ns := attrs["namespace"]
 
 	if ns == nil {
 		return a.next.ServeHook(res, nil)
@@ -88,7 +88,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.next.ServeHook(res, fmt.Errorf("namespace variable not defined in rules"))
 	}
 
-	resources, err := a.createResources(res.Request.Context(), attributes)
+	resources, err := a.createResources(res.Request.Context(), attrs)
 	if err != nil {
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))

@@ -50,7 +50,11 @@ func (a Attributes) notAllowed(rw http.ResponseWriter) {
 func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	requestAttributes := map[string]any{}
 
-	wareSpec, _ := middleware.ExtractMiddleware(req, a.Info().Name)
+	wareSpec, ok := middleware.ExtractMiddleware(req, a.Info().Name)
+	if !ok {
+		a.next.ServeHTTP(rw, req)
+		return
+	}
 
 	req = req.WithContext(user.SetContextWithEmail(req.Context(), req.Header.Get(a.identityProxyHeaderKey)))
 	requestAttributes["user"] = req.Header.Get(a.identityProxyHeaderKey)
@@ -84,6 +88,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&req.Body, attr.Index)
 			if err != nil {
 				a.log.Error("middleware: failed to parse grpc payload", "err", err)
+				a.notAllowed(rw)
 				return
 			}
 
