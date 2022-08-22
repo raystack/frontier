@@ -6,35 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
-
-var expectedNamespaceUsageHelp = heredoc.Doc(`
-
-USAGE
-  shield namespace [flags]
-
-CORE COMMANDS
-  create      Create a namespace
-  edit        Edit a namespace
-  list        List all namespaces
-  view        View a namespace
-
-FLAGS
-  -h, --host string   Shield API service to connect to
-
-INHERITED FLAGS
-  --help   Show help for command
-
-EXAMPLES
-  $ shield namespace create
-  $ shield namespace edit
-  $ shield namespace view
-  $ shield namespace list
-
-`)
 
 func TestClientNamespace(t *testing.T) {
 	t.Run("without config file", func(t *testing.T) {
@@ -45,11 +19,6 @@ func TestClientNamespace(t *testing.T) {
 			want        string
 			err         error
 		}{
-			{
-				name: "`namespace` only should show usage help",
-				want: expectedNamespaceUsageHelp,
-				err:  nil,
-			},
 			{
 				name:        "`namespace` list only should throw error host not found",
 				want:        "",

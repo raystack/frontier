@@ -6,35 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
-
-var expectedPolicyUsageHelp = heredoc.Doc(`
-
-USAGE
-  shield policy [flags]
-
-CORE COMMANDS
-  create      Create a policy
-  edit        Edit a policy
-  list        List all policies
-  view        View a policy
-
-FLAGS
-  -h, --host string   Shield API service to connect to
-
-INHERITED FLAGS
-  --help   Show help for command
-
-EXAMPLES
-  $ shield policy create
-  $ shield policy edit
-  $ shield policy view
-  $ shield policy list
-
-`)
 
 func TestClientPolicy(t *testing.T) {
 	t.Run("without config file", func(t *testing.T) {
@@ -45,11 +19,6 @@ func TestClientPolicy(t *testing.T) {
 			want        string
 			err         error
 		}{
-			{
-				name: "`policy` only should show usage help",
-				want: expectedPolicyUsageHelp,
-				err:  nil,
-			},
 			{
 				name:        "`policy` list only should throw error host not found",
 				want:        "",

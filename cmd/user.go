@@ -27,8 +27,8 @@ func UserCommand(cliConfig *Config) *cli.Command {
 			$ shield user list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
-			"client":     "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 
@@ -53,7 +53,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 			$ shield user create --file=<user-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -108,7 +108,7 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 			$ shield user edit <user-id> --file=<user-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -163,7 +163,7 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 			$ shield user view <user-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -228,7 +228,7 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 			$ shield user list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")

@@ -26,8 +26,8 @@ func OrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
-			"client":     "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 
@@ -55,7 +55,7 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization create --file=<organization-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -110,7 +110,7 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization edit <organization-id> --file=<organization-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -164,7 +164,7 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization view <organization-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -233,7 +233,7 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -290,7 +290,7 @@ func admaddOrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization admadd <organization-id> -file=<add-organization-admin-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -344,7 +344,7 @@ func admremoveOrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization admremove <organization-id> --user=<user-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -386,7 +386,7 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 			$ shield organization admlist <organization-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")

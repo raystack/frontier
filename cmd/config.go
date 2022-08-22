@@ -46,7 +46,7 @@ func configInitCommand() *cobra.Command {
 			$ shield config init
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := cmdx.SetConfig("shield")
@@ -69,7 +69,7 @@ func configListCommand() *cobra.Command {
 			$ shield config list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := cmdx.SetConfig("shield")

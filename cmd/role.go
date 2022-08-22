@@ -27,8 +27,8 @@ func RoleCommand(cliConfig *Config) *cli.Command {
 			$ shield role list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
-			"client":     "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 

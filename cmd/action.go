@@ -26,8 +26,8 @@ func ActionCommand(cliConfig *Config) *cli.Command {
 			$ shield action list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
-			"client":     "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 

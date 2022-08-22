@@ -26,8 +26,8 @@ func NamespaceCommand(cliConfig *Config) *cli.Command {
 			$ shield namespace list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
-			"client":     "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 
@@ -52,7 +52,7 @@ func createNamespaceCommand(cliConfig *Config) *cli.Command {
 			$ shield namespace create --file=<namespace-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -104,7 +104,7 @@ func editNamespaceCommand(cliConfig *Config) *cli.Command {
 			$ shield namespace edit <namespace-id> --file=<namespace-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -156,7 +156,7 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 			$ shield namespace view <namespace-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
@@ -209,7 +209,7 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 			$ shield namespace list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")

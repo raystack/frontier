@@ -6,35 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
-
-var expectedGroupUsageHelp = heredoc.Doc(`
-
-USAGE
-  shield group [flags]
-
-CORE COMMANDS
-  create      Create a group
-  edit        Edit a group
-  list        List all groups
-  view        View a group
-
-FLAGS
-  -h, --host string   Shield API service to connect to
-
-INHERITED FLAGS
-  --help   Show help for command
-
-EXAMPLES
-  $ shield group create
-  $ shield group edit
-  $ shield group view
-  $ shield group list
-
-`)
 
 func TestClientGroup(t *testing.T) {
 	t.Run("without config file", func(t *testing.T) {
@@ -45,11 +19,6 @@ func TestClientGroup(t *testing.T) {
 			want        string
 			err         error
 		}{
-			{
-				name: "`group` only should show usage help",
-				want: expectedGroupUsageHelp,
-				err:  nil,
-			},
 			{
 				name:        "`group` list only should throw error host not found",
 				want:        "",
