@@ -30,6 +30,7 @@ const (
 	TABLE_RESOURCES     = "resources"
 	TABLE_ROLES         = "roles"
 	TABLE_USERS         = "users"
+	TABLE_METADATA      = "metadata"
 )
 
 func checkPostgresError(err error) error {

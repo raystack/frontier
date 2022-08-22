@@ -21,8 +21,10 @@ type User struct {
 
 func (from User) transformToUser() (user.User, error) {
 	var unmarshalledMetadata map[string]any
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return user.User{}, err
+	if from.Metadata != nil {
+		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+			return user.User{}, err
+		}
 	}
 
 	return user.User{
