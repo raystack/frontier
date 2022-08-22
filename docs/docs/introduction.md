@@ -1,4 +1,9 @@
-# Shield
+---
+id: introduction
+slug: /
+---
+
+# Introduction
 
 Shield is a cloud-native role-based authorization-aware reverse-proxy service that helps you manage the authorization of given resources.
 With Shield, you can create groups and manage members, manage policies of the resources.

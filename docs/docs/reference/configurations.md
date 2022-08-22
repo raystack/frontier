@@ -1,4 +1,4 @@
-## Configurations
+# Configurations
 
 Shield can be configured with config.yaml file. An example of such is:
 
