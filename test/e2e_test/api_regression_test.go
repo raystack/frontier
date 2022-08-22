@@ -1,3 +1,6 @@
+//go:build regression
+// +build regression
+
 package e2e_test
 
 import (

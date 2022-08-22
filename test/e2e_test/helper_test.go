@@ -13,6 +13,11 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+const (
+	orgAdminEmail  = "admin1-group1-org1@odpf.io"
+	identityHeader = "X-Shield-Email"
+)
+
 func GetFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {

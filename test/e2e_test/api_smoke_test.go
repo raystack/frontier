@@ -1,3 +1,6 @@
+//go:build smoke
+// +build smoke
+
 package e2e_test
 
 import (
@@ -20,11 +23,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-)
-
-const (
-	orgAdminEmail  = "admin1-group1-org1@odpf.io"
-	identityHeader = "X-Shield-Email"
 )
 
 type EndToEndAPISmokeTestSuite struct {
