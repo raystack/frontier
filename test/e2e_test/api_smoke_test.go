@@ -46,7 +46,7 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 
 	appConfig := &config.Shield{
 		Log: logger.Config{
-			Level: "error",
+			Level: "fatal",
 		},
 		App: server.Config{
 			Port:                apiPort,
