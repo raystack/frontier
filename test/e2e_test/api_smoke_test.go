@@ -156,7 +156,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 		})
 		s.Assert().NoError(err)
 
-		cgRes, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
+		res, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
 				Name:  "new group",
 				Slug:  "new-group",
@@ -164,7 +164,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 			},
 		})
 		s.Assert().NoError(err)
-		newGroup = cgRes.GetGroup()
+		newGroup = res.GetGroup()
 		s.Assert().NotNil(newGroup)
 	})
 
@@ -239,12 +239,12 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 
 	s.Run("4. group admin could remove admin role of a member", func() {
 		// verify number of admins
-		lgaRes, err := s.client.ListGroupAdmins(ctxOrgAdminAuth, &shieldv1beta1.ListGroupAdminsRequest{
+		res, err := s.client.ListGroupAdmins(ctxOrgAdminAuth, &shieldv1beta1.ListGroupAdminsRequest{
 			Id: group1.GetId(),
 		})
 		s.Require().NoError(err)
-		s.Require().Greater(len(lgaRes.GetUsers()), 0)
-		numAdmin := len(lgaRes.GetUsers())
+		s.Require().Greater(len(res.GetUsers()), 0)
+		numAdmin := len(res.GetUsers())
 
 		_, err = s.client.RemoveGroupAdmin(ctxOrgAdminAuth, &shieldv1beta1.RemoveGroupAdminRequest{
 			Id:     group1.GetId(),
@@ -253,21 +253,21 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 		s.Require().NoError(err)
 
 		// verify number of admins
-		lgaRes, err = s.client.ListGroupAdmins(ctxOrgAdminAuth, &shieldv1beta1.ListGroupAdminsRequest{
+		res, err = s.client.ListGroupAdmins(ctxOrgAdminAuth, &shieldv1beta1.ListGroupAdminsRequest{
 			Id: group1.GetId(),
 		})
 		s.Assert().NoError(err)
-		s.Assert().Len(lgaRes.GetUsers(), numAdmin-1)
+		s.Assert().Len(res.GetUsers(), numAdmin-1)
 	})
 
 	s.Run("5. group admin could remove member from a team", func() {
 		// verify number of users
-		lguRes, err := s.client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
+		res, err := s.client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
 			Id: group1.GetId(),
 		})
 		s.Require().NoError(err)
-		s.Require().Greater(len(lguRes.GetUsers()), 0)
-		numMembers := len(lguRes.GetUsers())
+		s.Require().Greater(len(res.GetUsers()), 0)
+		numMembers := len(res.GetUsers())
 
 		_, err = s.client.RemoveGroupUser(ctxOrgAdminAuth, &shieldv1beta1.RemoveGroupUserRequest{
 			Id:     group1.GetId(),
@@ -276,20 +276,20 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 		s.Assert().NoError(err)
 
 		// verify number of users
-		lguRes, err = s.client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
+		res, err = s.client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
 			Id: group1.GetId(),
 		})
 		s.Require().NoError(err)
-		s.Require().Len(lguRes.GetUsers(), numMembers-1)
+		s.Require().Len(res.GetUsers(), numMembers-1)
 	})
 
 	s.Run("6. group admin could add same user in multiple teams", func() {
 		// verify number of users
-		lguRes, err := s.client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
+		res, err := s.client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
 			Id: group1.GetId(),
 		})
 		s.Require().NoError(err)
-		s.Require().Greater(len(lguRes.GetUsers()), 0)
+		s.Require().Greater(len(res.GetUsers()), 0)
 
 		// Get a random user that is not me
 		for _, g := range listOfGroups {

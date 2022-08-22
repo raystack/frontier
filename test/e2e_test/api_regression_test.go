@@ -96,6 +96,123 @@ func (s *EndToEndAPIRegressionTestSuite) TearDownTest() {
 	}
 }
 
+func (s *EndToEndAPIRegressionTestSuite) TestProjectAPI() {
+	var newProject *shieldv1beta1.Project
+
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		identityHeader: orgAdminEmail,
+	}))
+
+	// get my org
+	res, err := s.client.ListOrganizations(context.Background(), &shieldv1beta1.ListOrganizationsRequest{})
+	s.Require().NoError(err)
+	s.Require().Greater(len(res.GetOrganizations()), 0)
+	myOrg := res.GetOrganizations()[0]
+
+	s.Run("1. org admin create a new project with empty auth email should return unauthenticated error", func() {
+		_, err := s.client.CreateProject(context.Background(), &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "new-project",
+				OrgId: myOrg.GetId(),
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewBoolValue(true),
+					},
+				},
+			},
+		})
+		s.Assert().Equal(codes.Unauthenticated, status.Convert(err).Code())
+	})
+
+	s.Run("2. org admin create a new project with empty name should return invalid argument", func() {
+		_, err := s.client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Slug:  "new-project",
+				OrgId: myOrg.GetId(),
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("3. org admin create a new project with wrong org id should return invalid argument", func() {
+		_, err := s.client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "new-project",
+				OrgId: "not-uuid",
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("4. org admin create a new project with same name and org-id should conflict", func() {
+		res, err := s.client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "new-project",
+				OrgId: myOrg.GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+		newProject = res.GetProject()
+		s.Assert().NotNil(newProject)
+
+		_, err = s.client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "new-project",
+				OrgId: myOrg.GetId(),
+			},
+		})
+		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+	})
+
+	s.Run("5. org admin update a new project with empty body should return invalid argument", func() {
+		_, err := s.client.UpdateProject(ctxOrgAdminAuth, &shieldv1beta1.UpdateProjectRequest{
+			Id:   newProject.GetId(),
+			Body: nil,
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("6. org admin update a new project with empty group id should return not found", func() {
+		_, err := s.client.UpdateProject(ctxOrgAdminAuth, &shieldv1beta1.UpdateProjectRequest{
+			Id: "",
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "new-project",
+				OrgId: myOrg.GetId(),
+			},
+		})
+		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
+	})
+
+	s.Run("7. org admin update a new project with unknown project id and not uuid should return not found", func() {
+		_, err := s.client.UpdateProject(ctxOrgAdminAuth, &shieldv1beta1.UpdateProjectRequest{
+			Id: "random",
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "new-project",
+				OrgId: myOrg.GetId(),
+			},
+		})
+		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
+	})
+
+	s.Run("8. org admin update a new project with same name and org-id but different id should return conflict", func() {
+		_, err := s.client.UpdateProject(ctxOrgAdminAuth, &shieldv1beta1.UpdateProjectRequest{
+			Id: newProject.GetId(),
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "project 1",
+				Slug:  "project-1",
+				OrgId: myOrg.GetId(),
+			},
+		})
+		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+	})
+}
+
 func (s *EndToEndAPIRegressionTestSuite) TestGroupAPI() {
 	var newGroup *shieldv1beta1.Group
 
@@ -104,10 +221,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestGroupAPI() {
 	}))
 
 	// get my org
-	loRes, err := s.client.ListOrganizations(context.Background(), &shieldv1beta1.ListOrganizationsRequest{})
+	res, err := s.client.ListOrganizations(context.Background(), &shieldv1beta1.ListOrganizationsRequest{})
 	s.Require().NoError(err)
-	s.Require().Greater(len(loRes.GetOrganizations()), 0)
-	myOrg := loRes.GetOrganizations()[0]
+	s.Require().Greater(len(res.GetOrganizations()), 0)
+	myOrg := res.GetOrganizations()[0]
 
 	s.Run("1. org admin create a new team with empty auth email should return unauthenticated error", func() {
 		_, err := s.client.CreateGroup(context.Background(), &shieldv1beta1.CreateGroupRequest{
@@ -119,8 +236,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().Equal(codes.Unauthenticated, status.Convert(err).Code())
 	})
 
-	// org admin is currently the group admin
-	s.Run("2. group admin create a new team with empty name should return invalid argument", func() {
+	s.Run("2. org admin create a new team with empty name should return invalid argument", func() {
 		_, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
 				Slug:  "new-group",
@@ -130,7 +246,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("3. group admin create a new team with wrong org id should return invalid argument", func() {
+	s.Run("3. org admin create a new team with wrong org id should return invalid argument", func() {
 		_, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
 				Name:  "new group",
@@ -141,8 +257,8 @@ func (s *EndToEndAPIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("4. group admin create a new team with same name and org-id should conflict", func() {
-		cgRes, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
+	s.Run("4. org admin create a new team with same name and org-id should conflict", func() {
+		res, err := s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
 				Name:  "new group",
 				Slug:  "new-group",
@@ -150,7 +266,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestGroupAPI() {
 			},
 		})
 		s.Assert().NoError(err)
-		newGroup = cgRes.GetGroup()
+		newGroup = res.GetGroup()
 		s.Assert().NotNil(newGroup)
 
 		_, err = s.client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
