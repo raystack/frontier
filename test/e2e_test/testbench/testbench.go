@@ -25,7 +25,6 @@ type TestBench struct {
 	pool              *dockertest.Pool
 	network           *docker.Network
 	resources         []*dockertest.Resource
-	testDataPath      string
 }
 
 func Init(appConfig *config.Shield) (*TestBench, error) {
