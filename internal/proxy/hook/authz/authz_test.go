@@ -98,56 +98,33 @@ func TestCreateResources(t *testing.T) {
 		{
 			title:                "success/should return multiple resources",
 			permissionAttributes: testPermissionAttributesMap,
-			a: Authz{
-				projectService: mockProject{
-					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-						return testProjectMap[id], nil
-					}},
-			},
-			want: expectedResources,
-			err:  nil,
+			a:                    Authz{},
+			want:                 expectedResources,
+			err:                  nil,
 		}, {
 			title: "should should throw error if project is missing",
-			a: Authz{
-				projectService: mockProject{
-					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-						return project.Project{}, fmt.Errorf("Project ID not found")
-					},
-				},
-			},
 			permissionAttributes: map[string]any{
 				"team":          "team1",
 				"resource":      []string{"resc1", "resc2"},
 				"namespace":     "ns1",
 				"resource_type": "kind",
 			},
+			a:    Authz{},
 			want: nil,
 			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
 		}, {
 			title: "should should throw error if team is missing",
-			a: Authz{
-				projectService: mockProject{
-					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-						return testProjectMap[id], nil
-					},
-				},
-			},
 			permissionAttributes: map[string]any{
 				"project":       "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 				"resource":      []string{"resc1", "resc2"},
 				"namespace":     "ns1",
 				"resource_type": "kind",
 			},
+			a:    Authz{},
 			want: nil,
 			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
 		}, {
 			title: "success/should return resource",
-			a: Authz{
-				projectService: mockProject{
-					GetProjectFunc: func(ctx context.Context, id string) (project.Project, error) {
-						return testProjectMap[id], nil
-					}},
-			},
 			permissionAttributes: map[string]any{
 				"project":       "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
 				"team":          "team1",
@@ -155,6 +132,7 @@ func TestCreateResources(t *testing.T) {
 				"namespace":     "ns1",
 				"resource_type": "type",
 			},
+			a: Authz{},
 			want: []resource.Resource{
 				{
 					ProjectID:      "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
@@ -172,7 +150,7 @@ func TestCreateResources(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
-			resp, err := tt.a.createResources(context.Background(), tt.permissionAttributes)
+			resp, err := tt.a.createResources(tt.permissionAttributes)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
