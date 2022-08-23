@@ -1,7 +1,9 @@
 package attributes
 
 import (
+	"context"
 	"fmt"
+	"github.com/odpf/shield/core/project"
 	"net/http"
 	"strings"
 
@@ -17,21 +19,28 @@ type Attributes struct {
 	log                    log.Logger
 	next                   http.Handler
 	identityProxyHeaderKey string
+	projectService         ProjectService
 }
 
 type Config struct {
 	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"`
 }
 
+type ProjectService interface {
+	Get(ctx context.Context, id string) (project.Project, error)
+}
+
 func New(
 	log log.Logger,
 	next http.Handler,
 	identityProxyHeaderKey string,
+	projectService ProjectService,
 ) *Attributes {
 	return &Attributes{
 		log:                    log,
 		next:                   next,
 		identityProxyHeaderKey: identityProxyHeaderKey,
+		projectService:         projectService,
 	}
 }
 
@@ -159,6 +168,17 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+
+	// Extract Organization ID from Project ID
+	project, err := a.projectService.Get(context.Background(), requestAttributes["project"].(string))
+	if err != nil {
+		a.log.Error("middleware: error in getting project", err)
+		a.notAllowed(rw)
+		return
+	}
+
+	organizationId := project.Organization.ID
+	requestAttributes["organization"] = organizationId
 
 	paramMap, mapExists := middleware.ExtractPathParams(req)
 	if !mapExists {

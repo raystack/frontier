@@ -36,7 +36,7 @@ func serveProxies(
 	var cleanUpProxies []func(ctx context.Context) error
 
 	for _, svcConfig := range cfg.Services {
-		hookPipeline := buildHookPipeline(logger, resourceService, projectService)
+		hookPipeline := buildHookPipeline(logger, resourceService)
 
 		h2cProxy := proxy.NewH2c(
 			proxy.NewH2cRoundTripper(logger, hookPipeline),
@@ -61,7 +61,7 @@ func serveProxies(
 
 		ruleService := rule.NewService(ruleBlobRepository)
 
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, ruleService)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, ruleService, projectService)
 
 		cps := proxy.Serve(ctx, logger, svcConfig, middlewarePipeline)
 		cleanUpProxies = append(cleanUpProxies, cps)
@@ -71,9 +71,9 @@ func serveProxies(
 	return cleanUpBlobs, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService, projectService v1beta1.ProjectService) hook.Service {
+func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, resourceService, projectService)
+	return authz_hook.New(log, rootHook, rootHook, resourceService)
 }
 
 // buildPipeline builds middleware sequence
@@ -84,12 +84,13 @@ func buildMiddlewarePipeline(
 	resourceService *resource.Service,
 	userService *user.Service,
 	ruleService *rule.Service,
+	projectService *project.Service,
 ) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
 	casbinAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
-	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey)
+	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey, projectService)
 	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
 	return matchWare
 }

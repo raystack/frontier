@@ -28,8 +28,6 @@ type Authz struct {
 	// To skip all the next hooks and just respond back
 	escape hook.Service
 
-	projectService ProjectService
-
 	resourceService ResourceService
 }
 
@@ -37,13 +35,12 @@ type ProjectService interface {
 	Get(ctx context.Context, id string) (project.Project, error)
 }
 
-func New(log log.Logger, next, escape hook.Service, resourceService ResourceService, projectService ProjectService) Authz {
+func New(log log.Logger, next, escape hook.Service, resourceService ResourceService) Authz {
 	return Authz{
 		log:             log,
 		next:            next,
 		escape:          escape,
 		resourceService: resourceService,
-		projectService:  projectService,
 	}
 }
 
@@ -88,7 +85,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.next.ServeHook(res, fmt.Errorf("namespace variable not defined in rules"))
 	}
 
-	resources, err := a.createResources(res.Request.Context(), attrs)
+	resources, err := a.createResources(attrs)
 	if err != nil {
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
@@ -105,25 +102,16 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	return a.next.ServeHook(res, nil)
 }
 
-func (a Authz) createResources(ctx context.Context, permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
+func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
 	var resources []resource.Resource
 	projects, err := getAttributesValues(permissionAttributes["project"])
 	if err != nil {
 		return nil, err
 	}
-	var organizationIds []string
-	var projectIds []string
-	for _, proj := range projects {
-		project, err := a.projectService.Get(ctx, proj)
-		if err != nil {
-			return nil, err
-		}
 
-		organizationId := project.Organization.ID
-		organizationIds = append(organizationIds, organizationId)
-
-		projectId := project.ID
-		projectIds = append(projectIds, projectId)
+	orgs, err := getAttributesValues(permissionAttributes["organization"])
+	if err != nil {
+		return nil, err
 	}
 
 	teams, err := getAttributesValues(permissionAttributes["team"])
@@ -146,12 +134,12 @@ func (a Authz) createResources(ctx context.Context, permissionAttributes map[str
 		return nil, err
 	}
 
-	if len(projects) < 1 || len(organizationIds) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
+	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
 		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
 
-	for _, org := range organizationIds {
-		for _, project := range projectIds {
+	for _, org := range orgs {
+		for _, project := range projects {
 			for _, res := range resourceList {
 				if len(teams) > 0 {
 					for _, team := range teams {
