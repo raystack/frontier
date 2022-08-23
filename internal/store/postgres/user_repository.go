@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -223,7 +222,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
 	var fetchedUsers []User
 
-	query, params, err := dialect.From(TABLE_USERS).Select(&User{}).Where(
+	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
 		}).ToSQL()
@@ -259,32 +258,40 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 }
 
 func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.User, error) {
+	userMetadata := make(map[string]any)
+
 	if usr.Email == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
 
-	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	tx, err := r.dbc.BeginTx(ctx, nil)
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		return user.User{}, err
 	}
 
-	query, params, err := dialect.Update(TABLE_USERS).Set(
+	updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
 		goqu.Record{
 			"name":       usr.Name,
-			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(
 		goqu.Ex{
 			"email": usr.Email,
 		},
-	).Returning(&User{}).ToSQL()
+	).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var userModel User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+		return tx.QueryRowContext(ctx, updateQuery, params...).
+			Scan(&userModel.CreatedAt,
+				&userModel.DeletedAt,
+				&userModel.Email,
+				&userModel.ID,
+				&userModel.Name,
+				&userModel.UpdatedAt,
+			)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, user.ErrNotExist
@@ -297,6 +304,103 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
+	existingMetadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
+		Where(goqu.Ex{
+			"user_id": transformedUser.ID,
+		}).ToSQL()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		metadata, err := r.dbc.QueryContext(ctx, existingMetadataQuery)
+		if err != nil {
+			return err
+		}
+
+		for {
+			var key string
+			var value any
+			if !metadata.Next() {
+				break
+			}
+			metadata.Scan(&key, &value)
+			userMetadata[key] = value
+		}
+
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			return user.User{}, err
+		}
+	}
+
+	metadataDeleteQuery, params, err := dialect.Delete(TABLE_METADATA).
+		Where(
+			goqu.Ex{
+				"user_id": transformedUser.ID,
+			},
+		).ToSQL()
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		_, err := tx.ExecContext(ctx, metadataDeleteQuery, params...)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			tx.Rollback()
+			return user.User{}, err
+		}
+	}
+
+	for key, value := range usr.Metadata {
+		userMetadata[key] = value
+	}
+
+	var rows []interface{}
+	for key, value := range userMetadata {
+		rows = append(rows, goqu.Record{
+			"user_id": transformedUser.ID,
+			"key":     key,
+			"value":   value,
+		})
+	}
+	metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		_, err := tx.ExecContext(ctx, metadataQuery, params...)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			tx.Rollback()
+			return user.User{}, err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return user.User{}, err
+	}
+
+	transformedUser.Metadata = usr.Metadata
+
 	return transformedUser, nil
 }
 
@@ -305,29 +409,35 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return user.User{}, user.ErrInvalidID
 	}
 
-	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	tx, err := r.dbc.BeginTx(ctx, nil)
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		return user.User{}, err
 	}
 
 	query, params, err := dialect.Update(TABLE_USERS).Set(
 		goqu.Record{
 			"name":       usr.Name,
 			"email":      usr.Email,
-			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(
 		goqu.Ex{
 			"id": usr.ID,
 		},
-	).Returning(&User{}).ToSQL()
+	).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var userModel User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+		return tx.QueryRowContext(ctx, query, params...).
+			Scan(&userModel.CreatedAt,
+				&userModel.DeletedAt,
+				&userModel.Email,
+				&userModel.ID,
+				&userModel.Name,
+				&userModel.UpdatedAt,
+			)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -345,6 +455,63 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
+	metadataDeleteQuery, params, err := dialect.Delete(TABLE_METADATA).
+		Where(
+			goqu.Ex{
+				"user_id": transformedUser.ID,
+			},
+		).ToSQL()
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		_, err := tx.ExecContext(ctx, metadataDeleteQuery, params...)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			tx.Rollback()
+			return user.User{}, err
+		}
+	}
+
+	var rows []interface{}
+	for key, value := range usr.Metadata {
+		rows = append(rows, goqu.Record{
+			"user_id": transformedUser.ID,
+			"key":     key,
+			"value":   value,
+		})
+	}
+	metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		_, err := tx.ExecContext(ctx, metadataQuery, params...)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			tx.Rollback()
+			return user.User{}, err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return user.User{}, err
+	}
+
+	transformedUser.Metadata = usr.Metadata
 	return transformedUser, nil
 }
 
@@ -352,6 +519,9 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	if email == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
+
+	var fetchedUser User
+	data := make(map[string]any)
 
 	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
@@ -362,9 +532,8 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var userModel User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &userModel, query, params...)
+		return r.dbc.GetContext(ctx, &fetchedUser, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, user.ErrNotExist
@@ -372,10 +541,47 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedUser, err := userModel.transformToUser()
+	metadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
+		Where(goqu.Ex{
+			"user_id": fetchedUser.ID,
+		}).ToSQL()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		metadata, err := r.dbc.QueryContext(ctx, metadataQuery)
+		if err != nil {
+			return err
+		}
+
+		for {
+			var key string
+			var value any
+			if !metadata.Next() {
+				break
+			}
+			metadata.Scan(&key, &value)
+			data[key] = value
+		}
+
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			return user.User{}, err
+		}
+	}
+
+	transformedUser, err := fetchedUser.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
+	transformedUser.Metadata = data
 
 	return transformedUser, nil
 }
