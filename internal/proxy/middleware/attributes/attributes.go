@@ -3,13 +3,13 @@ package attributes
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/core/project"
 	"net/http"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
@@ -169,17 +169,6 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// Extract Organization ID from Project ID
-	project, err := a.projectService.Get(context.Background(), requestAttributes["project"].(string))
-	if err != nil {
-		a.log.Error("middleware: error in getting project", err)
-		a.notAllowed(rw)
-		return
-	}
-
-	organizationId := project.Organization.ID
-	requestAttributes["organization"] = organizationId
-
 	paramMap, mapExists := middleware.ExtractPathParams(req)
 	if !mapExists {
 		a.log.Error("middleware: path param map doesn't exist")
@@ -190,6 +179,17 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	for key, value := range paramMap {
 		requestAttributes[key] = value
 	}
+
+	// Extract Organization ID from Project ID
+	projectId := requestAttributes["project"].(string)
+	projectEx, err := a.projectService.Get(req.Context(), projectId)
+	if err != nil {
+		a.log.Error("middleware: error in getting project", err)
+		a.notAllowed(rw)
+	}
+
+	organizationId := projectEx.Organization.ID
+	requestAttributes["organization"] = organizationId
 
 	req = req.WithContext(SetContextWithAttributes(req.Context(), requestAttributes))
 
