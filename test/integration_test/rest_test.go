@@ -296,14 +296,14 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Serv
 	prefixWare := prefix.New(logger, proxy)
 	//casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
-	attributeExtractor := attributes.New(logger, basicAuthn, "")
+	attributeExtractor := attributes.New(logger, basicAuthn, "X-Auth-Email", &project.Service{})
 	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
 	return matchWare
 }
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, &resource.Service{}, &project.Service{})
+	return authz_hook.New(log, rootHook, rootHook, &resource.Service{})
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {

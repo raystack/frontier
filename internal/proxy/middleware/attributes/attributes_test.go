@@ -5,9 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/internal/proxy/middleware"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -16,8 +13,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/core/rule"
+	"github.com/odpf/shield/internal/proxy/middleware"
 )
 
 var testPermissionAttributesMap = map[string]any{
@@ -125,7 +125,6 @@ func TestExtractMiddleware(t *testing.T) {
 	postBody, _ := json.Marshal(map[string]string{
 		"name": "p-gojek-test-firehose-nb-test-11",
 	})
-	responseBody := bytes.NewBuffer(postBody)
 
 	table := []struct {
 		title                string
@@ -148,7 +147,7 @@ func TestExtractMiddleware(t *testing.T) {
 					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
 					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
 				},
-				Body: ioutil.NopCloser(responseBody),
+				Body: ioutil.NopCloser(bytes.NewBuffer(postBody)),
 			},
 			a: Attributes{
 				log:                    log.NewNoop(),
@@ -161,6 +160,7 @@ func TestExtractMiddleware(t *testing.T) {
 				},
 			},
 			want: testPermissionAttributesMap,
+			ok:   true,
 		},
 		{
 			title:                "error in getting organization",
@@ -173,7 +173,7 @@ func TestExtractMiddleware(t *testing.T) {
 					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
 					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
 				},
-				Body: ioutil.NopCloser(responseBody),
+				Body: ioutil.NopCloser(bytes.NewBuffer(postBody)),
 			},
 			a: Attributes{
 				log:                    log.NewNoop(),
@@ -201,11 +201,10 @@ func TestExtractMiddleware(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
 			middleware.EnrichRule(tt.req, &odinRule)
 			middleware.EnrichPathParams(tt.req, map[string]string{})
 			w := httptest.NewRecorder()
+
 			tt.a.ServeHTTP(w, tt.req)
 			ctx := tt.a.next.(*mockNextHandler).getContext()
 			attrMap, ok := GetAttributesFromContext(ctx)
