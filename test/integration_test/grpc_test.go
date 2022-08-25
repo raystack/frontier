@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/proxy/hook"
@@ -50,7 +51,8 @@ func TestGRPCProxyHelloWorld(t *testing.T) {
 	}
 	defer ruleRepo.Close()
 	ruleService := rule.NewService(ruleRepo)
-	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService)
+	projectService := project.Service{}
+	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService, &projectService)
 
 	proxyURL := fmt.Sprintf(":%d", grpcProxyPort)
 	mux := http.NewServeMux()
@@ -149,7 +151,8 @@ func BenchmarkGRPCProxyHelloWorld(b *testing.B) {
 	}
 	defer ruleRepo.Close()
 	ruleService := rule.NewService(ruleRepo)
-	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService)
+	projectService := project.Service{}
+	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService, &projectService)
 
 	proxyURL := fmt.Sprintf(":%d", grpcProxyPort)
 	mux := http.NewServeMux()

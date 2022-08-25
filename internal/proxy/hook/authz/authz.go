@@ -61,6 +61,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, err)
 	}
 
+	hookSpec, ok := hook.ExtractHook(res.Request, a.Info().Name)
+	if !ok {
+		return a.next.ServeHook(res, nil)
+	}
+
 	attrs, ok := attributes.GetAttributesFromContext(res.Request.Context())
 	if !ok {
 		return a.escape.ServeHook(res, fmt.Errorf("unable to fetch permission attributes from context"))
@@ -68,11 +73,6 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	ns := attrs["namespace"]
 
 	if ns == nil {
-		return a.next.ServeHook(res, nil)
-	}
-
-	hookSpec, ok := hook.ExtractHook(res.Request, a.Info().Name)
-	if !ok {
 		return a.next.ServeHook(res, nil)
 	}
 
