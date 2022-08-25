@@ -214,7 +214,7 @@ func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
 	return s.configRepository.GetAll(ctx)
 }
 
-// TODO(krtkvrm): Separate Authz for Resources & System Namespaces
+// TODO(krkvrm): Separate Authz for Resources & System Namespaces
 func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action) (bool, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
