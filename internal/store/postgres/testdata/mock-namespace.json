@@ -11,18 +11,18 @@
         "id": "back1_r1",
         "name": "Back1 R1",
         "backend": "back1",
-        "resource_type": "r1"
+        "resourceType": "r1"
     },
     {
         "id": "back1_r2",
         "name": "Back1 R2",
         "backend": "back1",
-        "resource_type": "r2"
+        "resourceType": "r2"
     },
     {
         "id": "back2_r1",
         "name": "Back2 R1",
         "backend": "back2",
-        "resource_type": "r1"
+        "resourceType": "r1"
     }
 ]
