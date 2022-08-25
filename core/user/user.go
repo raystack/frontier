@@ -26,6 +26,14 @@ type User struct {
 	UpdatedAt time.Time
 }
 
+type UserMetadataKey struct {
+	ID          string
+	Key         string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
 type PagedUsers struct {
 	Count int32
 	Users []User

@@ -250,14 +250,10 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	return transformedUsers, nil
 }
 
-type UserID struct {
-	ID string `db:"id"`
-}
-
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
-	var fetchedUsers []UserID
+	var fetchedUsers []User
 
-	query, params, err := dialect.From(TABLE_USERS).Select("id").Where(
+	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
 		}).ToSQL()
@@ -283,6 +279,8 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 	for _, u := range fetchedUsers {
 		var transformedUser user.User
 		transformedUser.ID = u.ID
+		transformedUser.Email = u.Email
+		transformedUser.Name = u.Name
 
 		transformedUsers = append(transformedUsers, transformedUser)
 	}
@@ -337,93 +335,95 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		return user.User{}, fmt.Errorf("%s: %w", parseErr, err)
 	}
 
-	existingMetadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
-		Where(goqu.Ex{
-			"user_id": transformedUser.ID,
-		}).ToSQL()
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		metadata, err := r.dbc.QueryContext(ctx, existingMetadataQuery)
+	if usr.Metadata != nil {
+		existingMetadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
+			Where(goqu.Ex{
+				"user_id": transformedUser.ID,
+			}).ToSQL()
 		if err != nil {
-			return err
+			return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 		}
 
-		for {
-			var key string
-			var value any
-			if !metadata.Next() {
-				break
+		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+			metadata, err := r.dbc.QueryContext(ctx, existingMetadataQuery)
+			if err != nil {
+				return err
 			}
-			metadata.Scan(&key, &value)
+
+			for {
+				var key string
+				var value any
+				if !metadata.Next() {
+					break
+				}
+				metadata.Scan(&key, &value)
+				userMetadata[key] = value
+			}
+
+			return nil
+		}); err != nil {
+			err = checkPostgresError(err)
+			switch {
+			case errors.Is(err, errDuplicateKey):
+				return user.User{}, user.ErrConflict
+			default:
+				return user.User{}, err
+			}
+		}
+
+		metadataDeleteQuery, params, err := dialect.Delete(TABLE_METADATA).
+			Where(
+				goqu.Ex{
+					"user_id": transformedUser.ID,
+				},
+			).ToSQL()
+
+		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+			_, err := tx.ExecContext(ctx, metadataDeleteQuery, params...)
+			if err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			err = checkPostgresError(err)
+			switch {
+			case errors.Is(err, errDuplicateKey):
+				return user.User{}, user.ErrConflict
+			default:
+				tx.Rollback()
+				return user.User{}, err
+			}
+		}
+
+		for key, value := range usr.Metadata {
 			userMetadata[key] = value
 		}
 
-		return nil
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errDuplicateKey):
-			return user.User{}, user.ErrConflict
-		default:
-			return user.User{}, err
-		}
-	}
-
-	metadataDeleteQuery, params, err := dialect.Delete(TABLE_METADATA).
-		Where(
-			goqu.Ex{
+		var rows []interface{}
+		for key, value := range userMetadata {
+			rows = append(rows, goqu.Record{
 				"user_id": transformedUser.ID,
-			},
-		).ToSQL()
-
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		_, err := tx.ExecContext(ctx, metadataDeleteQuery, params...)
-		if err != nil {
-			return err
+				"key":     key,
+				"value":   value,
+			})
 		}
-		return nil
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errDuplicateKey):
-			return user.User{}, user.ErrConflict
-		default:
-			tx.Rollback()
-			return user.User{}, err
-		}
-	}
+		metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
 
-	for key, value := range usr.Metadata {
-		userMetadata[key] = value
-	}
-
-	var rows []interface{}
-	for key, value := range userMetadata {
-		rows = append(rows, goqu.Record{
-			"user_id": transformedUser.ID,
-			"key":     key,
-			"value":   value,
-		})
-	}
-	metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
-
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		_, err := tx.ExecContext(ctx, metadataQuery, params...)
-		if err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errDuplicateKey):
-			return user.User{}, user.ErrConflict
-		default:
-			tx.Rollback()
-			return user.User{}, err
+		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+			_, err := tx.ExecContext(ctx, metadataQuery, params...)
+			if err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			err = checkPostgresError(err)
+			switch {
+			case errors.Is(err, errDuplicateKey):
+				return user.User{}, user.ErrConflict
+			default:
+				tx.Rollback()
+				return user.User{}, err
+			}
 		}
 	}
 

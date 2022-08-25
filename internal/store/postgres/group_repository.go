@@ -280,7 +280,6 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
 		goqu.I("u.email").As("email"),
-		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
 	).From(goqu.T(TABLE_RELATIONS).As("r")).
@@ -336,7 +335,6 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
 		goqu.I("u.email").As("email"),
-		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
 	).From(goqu.T(TABLE_RELATIONS).As("r")).

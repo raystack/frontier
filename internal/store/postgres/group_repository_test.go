@@ -48,6 +48,10 @@ func (s *GroupRepositoryTestSuite) SetupSuite() {
 	s.ctx = context.TODO()
 	s.repository = postgres.NewGroupRepository(s.client)
 
+	_, err = bootstrapMetadataKeys(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)
@@ -551,8 +555,8 @@ func (s *GroupRepositoryTestSuite) TestListUsersByGroupID() {
 			GroupID:     s.groups[0].ID,
 			ExpectedUsers: []user.User{
 				{
-					Name:  "John Doe",
-					Email: "john.doe@odpf.io",
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
 				},
 			},
 		},
@@ -604,8 +608,8 @@ func (s *GroupRepositoryTestSuite) TestListUsersByGroupSlug() {
 			GroupSlug:   s.groups[0].Slug,
 			ExpectedUsers: []user.User{
 				{
-					Name:  "John Doe",
-					Email: "john.doe@odpf.io",
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
 				},
 			},
 		},
