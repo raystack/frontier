@@ -250,10 +250,14 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	return transformedUsers, nil
 }
 
-func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
-	var fetchedUsers []User
+type UserID struct {
+	ID string `db:"id"`
+}
 
-	query, params, err := dialect.From(TABLE_USERS).Where(
+func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
+	var fetchedUsers []UserID
+
+	query, params, err := dialect.From(TABLE_USERS).Select("id").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
 		}).ToSQL()
@@ -277,10 +281,8 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 
 	var transformedUsers []user.User
 	for _, u := range fetchedUsers {
-		transformedUser, err := u.transformToUser()
-		if err != nil {
-			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
+		var transformedUser user.User
+		transformedUser.ID = u.ID
 
 		transformedUsers = append(transformedUsers, transformedUser)
 	}
@@ -617,4 +619,35 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	transformedUser.Metadata = data
 
 	return transformedUser, nil
+}
+
+func (r UserRepository) CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error) {
+	if key.Key == "" {
+		return user.UserMetadataKey{}, user.ErrEmptyKey
+	}
+
+	createQuery, params, err := dialect.Insert(TABLE_METADATA_KEYS).Rows(
+		goqu.Record{
+			"key":         key.Key,
+			"description": key.Description,
+		}).Returning("id", "key", "description", "created_at", "updated_at").ToSQL()
+	if err != nil {
+		return user.UserMetadataKey{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var metadataKey UserMetadataKey
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, createQuery, params...).
+			StructScan(&metadataKey)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.UserMetadataKey{}, user.ErrKeyAlreadyExists
+		default:
+			return user.UserMetadataKey{}, err
+		}
+	}
+
+	return metadataKey.tranformuserMetadataKey(), nil
 }
