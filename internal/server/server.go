@@ -81,10 +81,15 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 		grpc_recovery.WithRecoveryHandler(recoveryFunc),
 	}
 
+	grpcZapLogger := zap.NewExample().Sugar()
+	loggerZap, ok := logger.(*log.Zap)
+	if ok {
+		grpcZapLogger = loggerZap.GetInternalZapLogger()
+	}
 	return grpc.UnaryInterceptor(
 		grpc_middleware.ChainUnaryServer(
 			grpc_interceptors.EnrichCtxWithIdentity(cfg.IdentityProxyHeader),
-			grpc_zap.UnaryServerInterceptor(zap.NewExample()),
+			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),

@@ -151,7 +151,7 @@ func TestHandler_CreateResource(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return forbidden error if auth email in context is empty and org service return invalid user email",
+			name: "should return unauthenticated error if auth email in context is empty and org service return invalid user email",
 			setup: func(ctx context.Context, rs *mocks.ResourceService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:           testResource.Name,
@@ -173,7 +173,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					UserId:         testResource.UserID,
 				}},
 			want:    nil,
-			wantErr: grpcPermissionDenied,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return internal error if resource service return some error",

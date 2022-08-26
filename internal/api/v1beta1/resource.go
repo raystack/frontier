@@ -74,7 +74,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcPermissionDenied
+			return nil, grpcUnauthenticated
 		case errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidDetail):
 			return nil, grpcBadBodyError

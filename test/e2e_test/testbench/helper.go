@@ -1,4 +1,4 @@
-package e2e_test
+package testbench
 
 import (
 	"context"
@@ -11,6 +11,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+)
+
+const (
+	OrgAdminEmail  = "admin1-group1-org1@odpf.io"
+	IdentityHeader = "X-Shield-Email"
 )
 
 func GetFreePort() (int, error) {
@@ -36,7 +41,7 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 	return grpc.DialContext(ctx, host, opts...)
 }
 
-func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
+func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
 	conn, err := createConnection(context.Background(), host)
 	if err != nil {
 		return nil, nil, err
@@ -50,8 +55,8 @@ func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 	return client, cancel, nil
 }
 
-func bootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-user.json")
+func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-user.json")
 	if err != nil {
 		return err
 	}
@@ -63,7 +68,7 @@ func bootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) er
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": "admin1-group1@odpf.io",
+			IdentityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: d,
@@ -75,8 +80,8 @@ func bootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) er
 	return nil
 }
 
-func bootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-organization.json")
+func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-organization.json")
 	if err != nil {
 		return err
 	}
@@ -88,7 +93,7 @@ func bootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": "admin1-group1@odpf.io",
+			IdentityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
 			Body: d,
@@ -100,8 +105,8 @@ func bootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 	return nil
 }
 
-func bootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-project.json")
+func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-project.json")
 	if err != nil {
 		return err
 	}
@@ -124,7 +129,7 @@ func bootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient)
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": "admin1-group1@odpf.io",
+			IdentityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
 			Body: d,
@@ -136,8 +141,8 @@ func bootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient)
 	return nil
 }
 
-func bootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) error {
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mocks/mock-group.json")
+func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-group.json")
 	if err != nil {
 		return err
 	}
@@ -162,7 +167,7 @@ func bootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient) e
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			"X-Shield-Email": "admin1-group1@odpf.io",
+			IdentityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
 			Body: d,
