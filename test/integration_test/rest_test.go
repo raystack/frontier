@@ -17,6 +17,7 @@ import (
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/proxy/hook"
 	authz_hook "github.com/odpf/shield/internal/proxy/hook/authz"
+	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 	basic_auth "github.com/odpf/shield/internal/proxy/middleware/basic_auth"
 	"github.com/odpf/shield/internal/proxy/middleware/prefix"
 	"github.com/odpf/shield/internal/proxy/middleware/rulematch"
@@ -58,7 +59,8 @@ func TestREST(t *testing.T) {
 	}
 	defer ruleRepo.Close()
 	ruleService := rule.NewService(ruleRepo)
-	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService)
+	projectService := project.Service{}
+	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService, &projectService)
 
 	proxyURL := fmt.Sprintf(":%d", restProxyPort)
 	mux := http.NewServeMux()
@@ -188,7 +190,8 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 	}
 	defer ruleRepo.Close()
 	ruleService := rule.NewService(ruleRepo)
-	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService)
+	projectService := project.Service{}
+	pipeline := buildPipeline(log.NewNoop(), h2cProxy, ruleService, &projectService)
 
 	proxyURL := fmt.Sprintf(":%d", restProxyPort)
 	mux := http.NewServeMux()
@@ -290,18 +293,19 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 }
 
 // buildPipeline builds middleware sequence
-func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Service) http.Handler {
+func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Service, projectService *project.Service) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
 	//casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
-	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleService))
+	attributeExtractor := attributes.New(logger, basicAuthn, "X-Auth-Email", projectService)
+	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
 	return matchWare
 }
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, "", &resource.Service{}, &project.Service{})
+	return authz_hook.New(log, rootHook, rootHook, &resource.Service{})
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {
