@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -24,16 +25,19 @@ func NewRelationRepository(dbc *db.Client) *RelationRepository {
 }
 
 func (r RelationRepository) Create(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
-	// TODO check role and ns cannot be empty
-
 	subjectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.ID, relationToCreate.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.ID, relationToCreate.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(relationToCreate.Role.ID, relationToCreate.RoleID)
-	var nsID string
 
+	var nsID string
 	if relationToCreate.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""
+	}
+
+	if strings.TrimSpace(subjectNamespaceID) == "" || strings.TrimSpace(relationToCreate.SubjectID) == "" ||
+		strings.TrimSpace(objectNamespaceID) == "" || strings.TrimSpace(relationToCreate.ObjectID) == "" {
+		return relation.Relation{}, relation.ErrInvalidDetail
 	}
 
 	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(
@@ -59,7 +63,7 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return relation.Relation{}, relation.ErrNotExist
+			return relation.Relation{}, relation.ErrInvalidDetail
 		default:
 			return relation.Relation{}, err
 		}
@@ -94,7 +98,7 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, erro
 }
 
 func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relation, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return relation.Relation{}, relation.ErrInvalidID
 	}
 
@@ -125,7 +129,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 }
 
 func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return relation.ErrInvalidID
 	}
 	query, params, err := dialect.Delete(TABLE_RELATIONS).Where(goqu.Ex{
@@ -167,8 +171,8 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	subjectNamespaceID := str.DefaultStringIfEmpty(rel.SubjectNamespace.ID, rel.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
-	var nsID string
 
+	var nsID string
 	if rel.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""
@@ -210,15 +214,15 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 }
 
 func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
-	if rel.ID == "" {
+	if strings.TrimSpace(rel.ID) == "" {
 		return relation.Relation{}, relation.ErrInvalidID
 	}
 
 	subjectNamespaceID := str.DefaultStringIfEmpty(rel.SubjectNamespace.ID, rel.SubjectNamespaceID)
 	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
-	var nsID string
 
+	var nsID string
 	if rel.RelationType == relation.RelationTypes.Namespace {
 		nsID = roleID
 		roleID = ""
@@ -251,7 +255,7 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 		case errors.Is(err, errDuplicateKey):
 			return relation.Relation{}, relation.ErrConflict
 		case errors.Is(err, errForeignKeyViolation):
-			return relation.Relation{}, relation.ErrNotExist
+			return relation.Relation{}, relation.ErrInvalidDetail
 		case errors.Is(err, errInvalidTexRepresentation):
 			return relation.Relation{}, relation.ErrInvalidUUID
 		default:

@@ -1,20 +1,17 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/pkg/file"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func OrganizationCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "organization",
 		Aliases: []string{"organizations"},
@@ -29,22 +26,25 @@ func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 			$ shield organization list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 
-	cmd.AddCommand(createOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(editOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(viewOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(listOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(admaddOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(admremoveOrganizationCommand(logger, appConfig))
-	cmd.AddCommand(admlistOrganizationCommand(logger, appConfig))
+	cmd.AddCommand(createOrganizationCommand(cliConfig))
+	cmd.AddCommand(editOrganizationCommand(cliConfig))
+	cmd.AddCommand(viewOrganizationCommand(cliConfig))
+	cmd.AddCommand(listOrganizationCommand(cliConfig))
+	cmd.AddCommand(admaddOrganizationCommand(cliConfig))
+	cmd.AddCommand(admremoveOrganizationCommand(cliConfig))
+	cmd.AddCommand(admlistOrganizationCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createOrganizationCommand(cliConfig *Config) *cli.Command {
 	var filePath, header string
 
 	cmd := &cli.Command{
@@ -55,14 +55,14 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 			$ shield organization create --file=<organization-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.OrganizationRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -71,16 +71,13 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			ctx = setCtxHeader(ctx, header)
-
+			ctx := setCtxHeader(cmd.Context(), header)
 			res, err := client.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
 				Body: &reqBody,
 			})
@@ -89,7 +86,7 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created organization %s with id %s", res.GetOrganization().GetName(), res.GetOrganization().GetId()))
+			fmt.Printf("successfully created organization %s with id %s\n", res.GetOrganization().GetName(), res.GetOrganization().GetId())
 			return nil
 		},
 	}
@@ -102,7 +99,7 @@ func createOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 	return cmd
 }
 
-func editOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editOrganizationCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -113,14 +110,14 @@ func editOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 			$ shield organization edit <organization-id> --file=<organization-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.OrganizationRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -129,16 +126,14 @@ func editOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.UpdateOrganization(ctx, &shieldv1beta1.UpdateOrganizationRequest{
+			_, err = client.UpdateOrganization(cmd.Context(), &shieldv1beta1.UpdateOrganizationRequest{
 				Id:   organizationID,
 				Body: &reqBody,
 			})
@@ -147,7 +142,7 @@ func editOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited organization with id %s", organizationID))
+			fmt.Printf("successfully edited organization with id %s\n", organizationID)
 			return nil
 		},
 	}
@@ -158,7 +153,7 @@ func editOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 	return cmd
 }
 
-func viewOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 	var metadata bool
 
 	cmd := &cli.Command{
@@ -169,22 +164,20 @@ func viewOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 			$ shield organization view <organization-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.GetOrganization(ctx, &shieldv1beta1.GetOrganizationRequest{
+			res, err := client.GetOrganization(cmd.Context(), &shieldv1beta1.GetOrganizationRequest{
 				Id: organizationID,
 			})
 			if err != nil {
@@ -231,7 +224,7 @@ func viewOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 	return cmd
 }
 
-func listOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listOrganizationCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all organizations",
@@ -240,21 +233,19 @@ func listOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 			$ shield organization list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
+			res, err := client.ListOrganizations(cmd.Context(), &shieldv1beta1.ListOrganizationsRequest{})
 			if err != nil {
 				return err
 			}
@@ -288,7 +279,7 @@ func listOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.C
 	return cmd
 }
 
-func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func admaddOrganizationCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -299,14 +290,14 @@ func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 			$ shield organization admadd <organization-id> -file=<add-organization-admin-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.AddOrganizationAdminRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -315,16 +306,14 @@ func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.AddOrganizationAdmin(ctx, &shieldv1beta1.AddOrganizationAdminRequest{
+			_, err = client.AddOrganizationAdmin(cmd.Context(), &shieldv1beta1.AddOrganizationAdminRequest{
 				Id:   organizationID,
 				Body: &reqBody,
 			})
@@ -333,7 +322,7 @@ func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 			}
 
 			spinner.Stop()
-			logger.Info("successfully added admin(s) to organization")
+			fmt.Println("successfully added admin(s) to organization")
 			return nil
 		},
 	}
@@ -344,7 +333,7 @@ func admaddOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli
 	return cmd
 }
 
-func admremoveOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func admremoveOrganizationCommand(cliConfig *Config) *cli.Command {
 	var userID string
 
 	cmd := &cli.Command{
@@ -355,22 +344,20 @@ func admremoveOrganizationCommand(logger log.Logger, appConfig *config.Shield) *
 			$ shield organization admremove <organization-id> --user=<user-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.RemoveOrganizationAdmin(ctx, &shieldv1beta1.RemoveOrganizationAdminRequest{
+			_, err = client.RemoveOrganizationAdmin(cmd.Context(), &shieldv1beta1.RemoveOrganizationAdminRequest{
 				Id:     organizationID,
 				UserId: userID,
 			})
@@ -379,7 +366,7 @@ func admremoveOrganizationCommand(logger log.Logger, appConfig *config.Shield) *
 			}
 
 			spinner.Stop()
-			logger.Info("successfully removed admin from organization")
+			fmt.Println("successfully removed admin from organization")
 			return nil
 		},
 	}
@@ -390,7 +377,7 @@ func admremoveOrganizationCommand(logger log.Logger, appConfig *config.Shield) *
 	return cmd
 }
 
-func admlistOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "admlist",
 		Short: "list admins of an organization",
@@ -399,22 +386,20 @@ func admlistOrganizationCommand(logger log.Logger, appConfig *config.Shield) *cl
 			$ shield organization admlist <organization-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.ListOrganizationAdmins(ctx, &shieldv1beta1.ListOrganizationAdminsRequest{
+			res, err := client.ListOrganizationAdmins(cmd.Context(), &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: organizationID,
 			})
 			if err != nil {

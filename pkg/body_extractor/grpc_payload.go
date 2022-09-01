@@ -134,10 +134,11 @@ type grpcRequestParser struct {
 // format. The caller owns the returned msg memory.
 //
 // If there is an error, possible values are:
-//   * io.EOF, when no messages remain
-//   * io.ErrUnexpectedEOF
-//   * of type transport.ConnectionError
-//   * an error from the status package
+//   - io.EOF, when no messages remain
+//   - io.ErrUnexpectedEOF
+//   - of type transport.ConnectionError
+//   - an error from the status package
+//
 // No other error values or types must be returned, which also means
 // that the underlying io.Reader must not return an incompatible
 // error.

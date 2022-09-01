@@ -169,7 +169,7 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 				},
 				NamespaceID: "random-ns",
 			},
-			ErrString: role.ErrNotExist.Error(),
+			ErrString: role.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if role id is empty",
@@ -306,7 +306,7 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 				},
 				NamespaceID: "random-ns",
 			},
-			ErrString: role.ErrNotExist.Error(),
+			ErrString: role.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if role not found",

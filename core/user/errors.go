@@ -10,4 +10,6 @@ var (
 	ErrConflict         = errors.New("user already exist")
 	ErrEmptyKey         = errors.New("empty key")
 	ErrKeyAlreadyExists = errors.New("key already exist")
+	ErrMissingEmail     = errors.New("user email is missing")
+	ErrInvalidUUID      = errors.New("invalid syntax of uuid")
 )

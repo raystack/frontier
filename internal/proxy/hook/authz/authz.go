@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -12,10 +11,8 @@ import (
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/hook"
-	"github.com/odpf/shield/internal/proxy/middleware"
-	"github.com/odpf/shield/pkg/body_extractor"
+	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 )
 
 type ResourceService interface {
@@ -31,11 +28,6 @@ type Authz struct {
 	// To skip all the next hooks and just respond back
 	escape hook.Service
 
-	projectService ProjectService
-
-	// TODO need to figure out what best to pass this
-	identityProxyHeaderKey string
-
 	resourceService ResourceService
 }
 
@@ -43,14 +35,12 @@ type ProjectService interface {
 	Get(ctx context.Context, id string) (project.Project, error)
 }
 
-func New(log log.Logger, next, escape hook.Service, identityProxyHeaderKey string, resourceService ResourceService, projectService ProjectService) Authz {
+func New(log log.Logger, next, escape hook.Service, resourceService ResourceService) Authz {
 	return Authz{
-		log:                    log,
-		next:                   next,
-		escape:                 escape,
-		identityProxyHeaderKey: identityProxyHeaderKey,
-		resourceService:        resourceService,
-		projectService:         projectService,
+		log:             log,
+		next:            next,
+		escape:          escape,
+		resourceService: resourceService,
 	}
 }
 
@@ -71,13 +61,18 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, err)
 	}
 
-	ruleFromRequest, ok := hook.ExtractRule(res.Request)
+	hookSpec, ok := hook.ExtractHook(res.Request, a.Info().Name)
 	if !ok {
 		return a.next.ServeHook(res, nil)
 	}
 
-	hookSpec, ok := hook.ExtractHook(res.Request, a.Info().Name)
+	attrs, ok := attributes.GetAttributesFromContext(res.Request.Context())
 	if !ok {
+		return a.escape.ServeHook(res, fmt.Errorf("unable to fetch permission attributes from context"))
+	}
+	ns := attrs["namespace"]
+
+	if ns == nil {
 		return a.next.ServeHook(res, nil)
 	}
 
@@ -86,107 +81,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.next.ServeHook(res, nil)
 	}
 
-	if ruleFromRequest.Backend.Namespace == "" {
+	if ns == "" {
 		return a.next.ServeHook(res, fmt.Errorf("namespace variable not defined in rules"))
 	}
 
-	attributes := map[string]interface{}{}
-	attributes["namespace"] = ruleFromRequest.Backend.Namespace
-
-	identityProxyHeaderValue := res.Request.Header.Get(a.identityProxyHeaderKey)
-	attributes["user"] = identityProxyHeaderValue
-	res.Request = res.Request.WithContext(user.SetContextWithEmail(res.Request.Context(), identityProxyHeaderValue))
-
-	for id, attr := range config.Attributes {
-		bdy, _ := middleware.ExtractRequestBody(res.Request)
-		bodySource := &res.Body
-		if attr.Source == string(hook.SourceRequest) {
-			bodySource = &bdy
-		}
-
-		headerSource := &res.Header
-		if attr.Source == string(hook.SourceRequest) {
-			headerSource = &res.Request.Header
-		}
-
-		switch attr.Type {
-		case hook.AttributeTypeGRPCPayload:
-			if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/grpc") {
-				a.log.Error("middleware: not a grpc request", "attr", attr)
-				return a.escape.ServeHook(res, fmt.Errorf("invalid header for http request: %s", res.Header.Get("Content-Type")))
-			}
-
-			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(bodySource, attr.Index)
-			if err != nil {
-				a.log.Error("middleware: failed to parse grpc payload", "err", err)
-				return a.escape.ServeHook(res, fmt.Errorf("unable to parse grpc payload"))
-			}
-			attributes[id] = payloadField
-
-			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
-		case hook.AttributeTypeJSONPayload:
-			if attr.Key == "" {
-				a.log.Error("middleware: payload key field empty")
-				return a.escape.ServeHook(res, fmt.Errorf("payload key field empty"))
-			}
-
-			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(bodySource, attr.Key)
-			if err != nil {
-				a.log.Error("middleware: failed to parse json payload", "err", err)
-				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
-			}
-			attributes[id] = payloadField
-
-			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
-		case hook.AttributeTypeHeader:
-			if attr.Key == "" {
-				a.log.Error("middleware: header key field empty", "err", err)
-				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
-			}
-			headerAttr := headerSource.Get(attr.Key)
-			if headerAttr == "" {
-				a.log.Error(fmt.Sprintf("middleware: header %s is empty", attr.Key))
-				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
-			}
-
-			attributes[id] = headerAttr
-			a.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
-
-		case hook.AttributeTypeQuery:
-			if attr.Key == "" {
-				a.log.Error("middleware: query key field empty")
-				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
-			}
-			queryAttr := res.Request.URL.Query().Get(attr.Key)
-			if queryAttr == "" {
-				a.log.Error(fmt.Sprintf("middleware: query %s is empty", attr.Key))
-				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
-			}
-
-			attributes[id] = queryAttr
-			a.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
-
-		case hook.AttributeTypeConstant:
-			if attr.Value == "" {
-				a.log.Error("middleware: constant value empty")
-				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
-			}
-
-			attributes[id] = attr.Value
-			a.log.Info("middleware: extracted", "constant_key", res, "attr", attributes[id])
-
-		default:
-			a.log.Error("middleware: unknown attribute type", "attr", attr)
-			return a.escape.ServeHook(res, fmt.Errorf("unknown attribute type: %v", attr))
-		}
-	}
-
-	paramMap, _ := middleware.ExtractPathParams(res.Request)
-	for key, value := range paramMap {
-		attributes[key] = value
-	}
-
-	resources, err := a.createResources(res.Request.Context(), attributes)
+	resources, err := a.createResources(attrs)
 	if err != nil {
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
@@ -203,25 +102,16 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	return a.next.ServeHook(res, nil)
 }
 
-func (a Authz) createResources(ctx context.Context, permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
+func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
 	var resources []resource.Resource
 	projects, err := getAttributesValues(permissionAttributes["project"])
 	if err != nil {
 		return nil, err
 	}
-	var organizationIds []string
-	var projectIds []string
-	for _, proj := range projects {
-		project, err := a.projectService.Get(ctx, proj)
-		if err != nil {
-			return nil, err
-		}
 
-		organizationId := project.Organization.ID
-		organizationIds = append(organizationIds, organizationId)
-
-		projectId := project.ID
-		projectIds = append(projectIds, projectId)
+	orgs, err := getAttributesValues(permissionAttributes["organization"])
+	if err != nil {
+		return nil, err
 	}
 
 	teams, err := getAttributesValues(permissionAttributes["team"])
@@ -244,12 +134,12 @@ func (a Authz) createResources(ctx context.Context, permissionAttributes map[str
 		return nil, err
 	}
 
-	if len(projects) < 1 || len(organizationIds) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
+	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
 		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
 
-	for _, org := range organizationIds {
-		for _, project := range projectIds {
+	for _, org := range orgs {
+		for _, project := range projects {
 			for _, res := range resourceList {
 				if len(teams) > 0 {
 					for _, team := range teams {

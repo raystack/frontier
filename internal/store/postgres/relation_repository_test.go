@@ -220,7 +220,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				RoleID:             "role1",
 				RelationType:       relation.RelationTypes.Role,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if object namespace id does not exist",
@@ -232,7 +232,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				RoleID:             "role1",
 				RelationType:       relation.RelationTypes.Role,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 
 		{
@@ -245,7 +245,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				RoleID:             "role1-random",
 				RelationType:       relation.RelationTypes.Role,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if namespace id does not exist",
@@ -257,7 +257,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				RoleID:             "role1",
 				RelationType:       relation.RelationTypes.Namespace,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 	}
 
@@ -352,7 +352,7 @@ func (s *RelationRepositoryTestSuite) TestUpdate() {
 
 	var testCases = []testCase{
 		{
-			Description: "should create a relation with type role",
+			Description: "should update a relation with type role",
 			RelationToUpdate: relation.Relation{
 				ID:                 s.relations[0].ID,
 				SubjectNamespaceID: "ns1",
@@ -372,7 +372,7 @@ func (s *RelationRepositoryTestSuite) TestUpdate() {
 			},
 		},
 		{
-			Description: "should create a relation with type namespace",
+			Description: "should update a relation with type namespace",
 			RelationToUpdate: relation.Relation{
 				ID:                 s.relations[0].ID,
 				SubjectNamespaceID: "ns1",
@@ -402,7 +402,7 @@ func (s *RelationRepositoryTestSuite) TestUpdate() {
 				RoleID:             "role1",
 				RelationType:       relation.RelationTypes.Role,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if object namespace id does not exist",
@@ -415,7 +415,7 @@ func (s *RelationRepositoryTestSuite) TestUpdate() {
 				RoleID:             "role1",
 				RelationType:       relation.RelationTypes.Role,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 
 		{
@@ -429,7 +429,7 @@ func (s *RelationRepositoryTestSuite) TestUpdate() {
 				RoleID:             "role1-random",
 				RelationType:       relation.RelationTypes.Role,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if namespace id does not exist",
@@ -442,7 +442,7 @@ func (s *RelationRepositoryTestSuite) TestUpdate() {
 				RoleID:             "role1",
 				RelationType:       relation.RelationTypes.Namespace,
 			},
-			ErrString: relation.ErrNotExist.Error(),
+			ErrString: relation.ErrInvalidDetail.Error(),
 		},
 		{
 			Description: "should return error if id is not uuid",

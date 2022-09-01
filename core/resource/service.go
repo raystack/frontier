@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"strings"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/group"
@@ -48,14 +49,14 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	urn := res.CreateURN()
 
-	usr, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Resource{}, err
 	}
 
 	userId := res.UserID
-	if userId == "" {
-		userId = usr.ID
+	if strings.TrimSpace(userId) == "" {
+		userId = currentUser.ID
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{
@@ -103,6 +104,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
+	// TODO there should be an update logic like create here
 	return s.repository.Update(ctx, id, resource)
 }
 

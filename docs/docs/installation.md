@@ -70,7 +70,7 @@ Use the following command to test
 ./shield version
 ```
 
-Shield service can be started with the following command although there are few required [configurations](configurations.md) for it to start.
+Shield service can be started with the following command although there are few required [configurations](./reference/configurations.md) for it to start.
 
 ```sh
 ./shield serve

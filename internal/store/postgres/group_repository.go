@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/group"
@@ -27,7 +28,7 @@ func NewGroupRepository(dbc *db.Client) *GroupRepository {
 }
 
 func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return group.Group{}, group.ErrInvalidID
 	}
 
@@ -63,7 +64,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 }
 
 func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Group, error) {
-	if slug == "" {
+	if strings.TrimSpace(slug) == "" {
 		return group.Group{}, group.ErrInvalidID
 	}
 
@@ -97,6 +98,10 @@ func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Grou
 }
 
 func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Group, error) {
+	if strings.TrimSpace(grp.Name) == "" || strings.TrimSpace(grp.Slug) == "" {
+		return group.Group{}, group.ErrInvalidDetail
+	}
+
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -122,7 +127,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 		case errors.Is(err, errForeignKeyViolation):
 			return group.Group{}, organization.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return group.Group{}, group.ErrInvalidUUID
+			return group.Group{}, organization.ErrInvalidUUID
 		case errors.Is(err, errDuplicateKey):
 			return group.Group{}, group.ErrConflict
 		default:
@@ -152,10 +157,15 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params...)
 	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return []group.Group{}, group.ErrNotExist
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return []group.Group{}, nil
+		case errors.Is(err, errInvalidTexRepresentation):
+			return []group.Group{}, nil
+		default:
+			return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
-		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedGroups []group.Group
@@ -171,8 +181,12 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 }
 
 func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group.Group, error) {
-	if grp.ID == "" {
+	if strings.TrimSpace(grp.ID) == "" {
 		return group.Group{}, group.ErrInvalidID
+	}
+
+	if strings.TrimSpace(grp.Name) == "" || strings.TrimSpace(grp.Slug) == "" {
+		return group.Group{}, group.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
@@ -222,8 +236,12 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 }
 
 func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (group.Group, error) {
-	if grp.Slug == "" {
+	if strings.TrimSpace(grp.Slug) == "" {
 		return group.Group{}, group.ErrInvalidID
+	}
+
+	if strings.TrimSpace(grp.Name) == "" {
+		return group.Group{}, group.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
@@ -253,7 +271,7 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return group.Group{}, group.ErrInvalidUUID
+			return group.Group{}, organization.ErrInvalidUUID
 		case errors.Is(err, errDuplicateKey):
 			return group.Group{}, group.ErrConflict
 		case errors.Is(err, errForeignKeyViolation):
@@ -271,27 +289,40 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 	return updated, nil
 }
 
-func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
-	if groupID == "" || roleID == "" {
-		return nil, group.ErrInvalidID
-	}
-
-	query, params, err := dialect.Select(
+func (r GroupRepository) buildListUsersByGroupIDQuery(groupID, roleID string) (string, []interface{}, error) {
+	sqlStatement := dialect.Select(
 		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
 		goqu.I("u.email").As("email"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T(TABLE_RELATIONS).As("r")).
+	).
+		From(goqu.T(TABLE_RELATIONS).As("r")).
 		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
 			goqu.I("u.id").Cast("VARCHAR").
 				Eq(goqu.I("r.subject_id")),
-		)).Where(goqu.Ex{
-		"r.object_id":            groupID,
-		"r.role_id":              roleID,
-		"r.subject_namespace_id": namespace.DefinitionUser.ID,
-		"r.object_namespace_id":  namespace.DefinitionTeam.ID,
-	}).ToSQL()
+		)).
+		Where(goqu.Ex{
+			"r.object_id":            groupID,
+			"r.subject_namespace_id": namespace.DefinitionUser.ID,
+			"r.object_namespace_id":  namespace.DefinitionTeam.ID,
+		})
+
+	if strings.TrimSpace(roleID) != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{
+			"r.role_id": roleID,
+		})
+	}
+
+	return sqlStatement.ToSQL()
+}
+
+func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
+	if strings.TrimSpace(groupID) == "" {
+		return nil, group.ErrInvalidID
+	}
+
+	query, params, err := r.buildListUsersByGroupIDQuery(groupID, roleID)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -322,7 +353,7 @@ func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string,
 }
 
 func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug string, roleID string) ([]user.User, error) {
-	if groupSlug == "" || roleID == "" {
+	if strings.TrimSpace(groupSlug) == "" {
 		return nil, group.ErrInvalidID
 	}
 
@@ -331,22 +362,7 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 		return []user.User{}, err
 	}
 
-	query, params, err := dialect.Select(
-		goqu.I("u.id").As("id"),
-		goqu.I("u.name").As("name"),
-		goqu.I("u.email").As("email"),
-		goqu.I("u.created_at").As("created_at"),
-		goqu.I("u.updated_at").As("updated_at"),
-	).From(goqu.T(TABLE_RELATIONS).As("r")).
-		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
-			goqu.I("u.id").Cast("VARCHAR").
-				Eq(goqu.I("r.subject_id")),
-		)).Where(goqu.Ex{
-		"r.object_id":            fetchedGroup.ID,
-		"r.role_id":              roleID,
-		"r.subject_namespace_id": namespace.DefinitionUser.ID,
-		"r.object_namespace_id":  namespace.DefinitionTeam.ID,
-	}).ToSQL()
+	query, params, err := r.buildListUsersByGroupIDQuery(fetchedGroup.ID, roleID)
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -377,7 +393,7 @@ func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug str
 }
 
 func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID string, groupID string) ([]relation.Relation, error) {
-	if groupID == "" || userID == "" {
+	if strings.TrimSpace(groupID) == "" || strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID
 	}
 
@@ -413,7 +429,7 @@ func (r GroupRepository) ListUserGroupIDRelations(ctx context.Context, userID st
 }
 
 func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID string, groupSlug string) ([]relation.Relation, error) {
-	if groupSlug == "" || userID == "" {
+	if strings.TrimSpace(groupSlug) == "" || strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID
 	}
 	var fetchedRelations []Relation
@@ -456,7 +472,7 @@ func (r GroupRepository) ListUserGroupSlugRelations(ctx context.Context, userID 
 }
 
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
-	if userID == "" {
+	if strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID
 	}
 
@@ -480,7 +496,7 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 			"subject_id":            userID,
 		})
 
-	if roleID != "" {
+	if strings.TrimSpace(roleID) != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{
 			"role_id": roleID,
 		})

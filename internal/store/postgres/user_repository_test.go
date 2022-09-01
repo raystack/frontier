@@ -107,7 +107,7 @@ func (s *UserRepositoryTestSuite) TestGetByID() {
 		{
 			Description: "should return error if id is not uuid",
 			SelectedID:  "not-uuid",
-			ErrString:   user.ErrNotUUID.Error(),
+			ErrString:   user.ErrInvalidUUID.Error(),
 		},
 	}
 
@@ -285,7 +285,7 @@ func (s *UserRepositoryTestSuite) TestGetByIDs() {
 			Description:   "should return error if ids not uuid",
 			IDs:           []string{"a", "b"},
 			ExpectedUsers: []user.User{},
-			ErrString:     user.ErrNotUUID.Error(),
+			ErrString:     user.ErrInvalidUUID.Error(),
 		},
 	}
 
@@ -373,7 +373,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		{
 			Description: "should return error if user not found",
 			UserToUpdate: user.User{
-				ID: uuid.NewString(),
+				ID:    uuid.NewString(),
+				Name:  "Doe John",
+				Email: "john.doe@odpf.io",
 			},
 			Err: user.ErrNotExist,
 		},

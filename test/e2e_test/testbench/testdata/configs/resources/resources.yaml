@@ -1,0 +1,15 @@
+backends:
+  - name: odin
+    resource_types:
+      - name: "firehose"
+        actions:
+          read:
+            - owner
+          update:
+            - team.team_member
+      - name: "dagger"
+        actions:
+          read:
+            - owner
+          update:
+            - team.team_member

@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/uuid"
 )
 
 type ResourceRepository struct {
@@ -23,7 +25,7 @@ func NewResourceRepository(dbc *db.Client) *ResourceRepository {
 }
 
 func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (resource.Resource, error) {
-	if res.URN == "" {
+	if strings.TrimSpace(res.URN) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 
@@ -59,7 +61,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return resource.Resource{}, resource.ErrNotExist
+			return resource.Resource{}, resource.ErrInvalidDetail
 		case errors.Is(err, errInvalidTexRepresentation):
 			return resource.Resource{}, resource.ErrInvalidUUID
 		default:
@@ -94,7 +96,11 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedResources, query, params...)
 	}); err != nil {
+		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
+			return []resource.Resource{}, nil
+		}
+		if errors.Is(err, errInvalidTexRepresentation) {
 			return []resource.Resource{}, nil
 		}
 		return []resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -109,7 +115,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 }
 
 func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Resource, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
@@ -139,10 +145,15 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 }
 
 func (r ResourceRepository) Update(ctx context.Context, id string, res resource.Resource) (resource.Resource, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return resource.Resource{}, resource.ErrInvalidID
 	}
-	if res.URN == "" {
+
+	if !uuid.IsValid(id) {
+		return resource.Resource{}, resource.ErrInvalidUUID
+	}
+
+	if strings.TrimSpace(res.URN) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 
@@ -179,7 +190,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		case errors.Is(err, errForeignKeyViolation):
 			return resource.Resource{}, resource.ErrNotExist
 		case errors.Is(err, errInvalidTexRepresentation):
-			return resource.Resource{}, resource.ErrInvalidUUID
+			return resource.Resource{}, resource.ErrInvalidDetail
 		default:
 			return resource.Resource{}, err
 		}
@@ -189,7 +200,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 }
 
 func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.Resource, error) {
-	if urn == "" {
+	if strings.TrimSpace(urn) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 

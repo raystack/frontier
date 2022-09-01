@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/str"
@@ -51,7 +53,7 @@ func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
 }
 
 func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return policy.Policy{}, policy.ErrInvalidID
 	}
 
@@ -119,14 +121,16 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 	return transformedPolicies, nil
 }
 
-//TODO this is actually upsert
+// TODO this is actually upsert
 func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
-	// TODO need to check actionID != ""
-
 	//TODO need to find a way to deprecate this
 	roleID := str.DefaultStringIfEmpty(pol.Role.ID, pol.RoleID)
 	actionID := str.DefaultStringIfEmpty(pol.Action.ID, pol.ActionID)
 	nsID := str.DefaultStringIfEmpty(pol.Namespace.ID, pol.NamespaceID)
+
+	if strings.TrimSpace(actionID) == "" {
+		return "", policy.ErrInvalidDetail
+	}
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
 		goqu.Record{
@@ -147,7 +151,7 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return "", policy.ErrNotExist
+			return "", policy.ErrInvalidDetail
 		default:
 			return "", fmt.Errorf("%w: %s", dbErr, err)
 		}
@@ -157,7 +161,13 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 }
 
 func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (string, error) {
-	// TODO need to check actionID != ""
+	if strings.TrimSpace(toUpdate.ID) == "" {
+		return "", policy.ErrInvalidID
+	}
+
+	if strings.TrimSpace(toUpdate.ActionID) == "" {
+		return "", policy.ErrInvalidDetail
+	}
 
 	query, params, err := dialect.Update(TABLE_POLICIES).Set(
 		goqu.Record{
@@ -182,8 +192,10 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 			return "", policy.ErrNotExist
 		case errors.Is(err, errDuplicateKey):
 			return "", policy.ErrConflict
+		case errors.Is(err, errInvalidTexRepresentation):
+			return "", policy.ErrInvalidUUID
 		case errors.Is(err, errForeignKeyViolation):
-			return "", policy.ErrNotExist
+			return "", namespace.ErrNotExist
 		default:
 			return "", err
 		}

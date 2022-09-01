@@ -47,6 +47,6 @@ func New(config Config, logger log.Logger) (*SpiceDB, error) {
 		return nil, err
 	}
 
-	logger.Info(fmt.Sprintf("Connected to spicDB: %s", endpoint))
+	logger.Info(fmt.Sprintf("Connected to spiceDB: %s", endpoint))
 	return spiceDBClient, nil
 }

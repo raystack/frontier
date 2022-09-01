@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -39,7 +40,7 @@ func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.Select
 }
 
 func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return role.Role{}, role.ErrInvalidID
 	}
 
@@ -69,10 +70,14 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 	return transformedRole, nil
 }
 
-//TODO this is actually an upsert
+// TODO this is actually an upsert
 func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error) {
-	if rl.ID == "" {
+	if strings.TrimSpace(rl.ID) == "" {
 		return "", role.ErrInvalidID
+	}
+
+	if strings.TrimSpace(rl.Name) == "" {
+		return "", role.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
@@ -107,7 +112,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
 		case errors.Is(err, errForeignKeyViolation):
-			return "", role.ErrNotExist
+			return "", role.ErrInvalidDetail
 		default:
 			return "", err
 		}
@@ -142,8 +147,12 @@ func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
 }
 
 func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error) {
-	if rl.ID == "" {
+	if strings.TrimSpace(rl.ID) == "" {
 		return "", role.ErrInvalidID
+	}
+
+	if strings.TrimSpace(rl.Name) == "" {
+		return "", role.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
@@ -175,7 +184,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 		case errors.Is(err, sql.ErrNoRows):
 			return "", role.ErrNotExist
 		case errors.Is(err, errForeignKeyViolation):
-			return "", role.ErrNotExist
+			return "", role.ErrInvalidDetail
 		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
 		default:

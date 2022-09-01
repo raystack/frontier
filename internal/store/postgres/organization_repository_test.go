@@ -345,6 +345,7 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 			OrganizationToUpdate: organization.Organization{
 				ID:   uuid.NewString(),
 				Name: "not-exist",
+				Slug: "some-slug",
 			},
 			ErrString: organization.ErrNotExist.Error(),
 		},
@@ -353,6 +354,7 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 			OrganizationToUpdate: organization.Organization{
 				ID:   "12345",
 				Name: "not-exist",
+				Slug: "some-slug",
 			},
 			ErrString: organization.ErrInvalidUUID.Error(),
 		},
@@ -461,7 +463,7 @@ func (s *OrganizationRepositoryTestSuite) TestListAdmins() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.ListAdmins(s.ctx, tc.OrgID)
+			got, err := s.repository.ListAdminsByOrgID(s.ctx, tc.OrgID)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)

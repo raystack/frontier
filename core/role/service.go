@@ -1,6 +1,8 @@
 package role
 
-import "context"
+import (
+	"context"
+)
 
 type Service struct {
 	repository Repository

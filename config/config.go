@@ -21,7 +21,7 @@ type Shield struct {
 	NewRelic NewRelic             `yaml:"new_relic"`
 	App      server.Config        `yaml:"app"`
 	DB       db.Config            `yaml:"db"`
-	SpiceDB  spicedb.Config       `yaml:"spice_db"`
+	SpiceDB  spicedb.Config       `yaml:"spicedb"`
 }
 
 type NewRelic struct {
@@ -30,11 +30,11 @@ type NewRelic struct {
 	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
 }
 
-func Load() (*Shield, error) {
+func Load(serverConfigfileFromFlag string) (*Shield, error) {
 	conf := &Shield{}
 
 	var options []config.LoaderOption
-	options = append(options, config.WithName(".shield.yaml"))
+	options = append(options, config.WithName("config.yaml"))
 	options = append(options, config.WithEnvKeyReplacer(".", "_"))
 	options = append(options, config.WithEnvPrefix("SHIELD"))
 	if p, err := os.Getwd(); err == nil {
@@ -46,6 +46,11 @@ func Load() (*Shield, error) {
 	if currentHomeDir, err := os.UserHomeDir(); err == nil {
 		options = append(options, config.WithPath(currentHomeDir))
 		options = append(options, config.WithPath(filepath.Join(currentHomeDir, ".config")))
+	}
+
+	// override all config sources and prioritize one from file
+	if serverConfigfileFromFlag != "" {
+		options = []config.LoaderOption{config.WithFile(serverConfigfileFromFlag)}
 	}
 
 	l := config.NewLoader(options...)

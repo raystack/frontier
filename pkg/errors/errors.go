@@ -11,6 +11,7 @@ var (
 )
 
 var (
-	Unauthorized   = errors.New("you are not authorized")
-	ErrInvalidUUID = errors.New("invalid syntax of uuid")
+	ErrUnauthenticated = errors.New("you are not authenticated")
+	ErrForbidden       = errors.New("you are not allowed to make the request")
+	ErrInvalidUUID     = errors.New("invalid syntax of uuid")
 )

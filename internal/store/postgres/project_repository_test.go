@@ -404,6 +404,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			ProjectToUpdate: project.Project{
 				ID:   uuid.NewString(),
 				Name: "not-exist",
+				Slug: "some-slug",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
@@ -415,6 +416,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			ProjectToUpdate: project.Project{
 				ID:   "12345",
 				Name: "not-exist",
+				Slug: "some-slug",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},

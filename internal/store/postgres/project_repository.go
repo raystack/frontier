@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"database/sql"
 
@@ -28,7 +29,7 @@ func NewProjectRepository(dbc *db.Client) *ProjectRepository {
 }
 
 func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Project, error) {
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return project.Project{}, project.ErrInvalidID
 	}
 
@@ -63,7 +64,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 }
 
 func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.Project, error) {
-	if slug == "" {
+	if strings.TrimSpace(slug) == "" {
 		return project.Project{}, project.ErrInvalidID
 	}
 
@@ -98,6 +99,10 @@ func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.
 }
 
 func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (project.Project, error) {
+	if strings.TrimSpace(prj.Name) == "" || strings.TrimSpace(prj.Slug) == "" {
+		return project.Project{}, project.ErrInvalidDetail
+	}
+
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -170,8 +175,12 @@ func (r ProjectRepository) List(ctx context.Context) ([]project.Project, error) 
 }
 
 func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) (project.Project, error) {
-	if prj.ID == "" {
+	if strings.TrimSpace(prj.ID) == "" {
 		return project.Project{}, project.ErrInvalidID
+	}
+
+	if strings.TrimSpace(prj.Name) == "" || strings.TrimSpace(prj.Slug) == "" {
+		return project.Project{}, project.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
@@ -221,8 +230,12 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 }
 
 func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project) (project.Project, error) {
-	if prj.Slug == "" {
+	if strings.TrimSpace(prj.Slug) == "" {
 		return project.Project{}, project.ErrInvalidID
+	}
+
+	if strings.TrimSpace(prj.Name) == "" {
+		return project.Project{}, project.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)

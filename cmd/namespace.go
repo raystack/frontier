@@ -1,20 +1,17 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
+	"github.com/odpf/shield/pkg/file"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
-func NamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func NamespaceCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:     "namespace",
 		Aliases: []string{"namespaces"},
@@ -29,19 +26,22 @@ func NamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command 
 			$ shield namespace list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group":  "core",
+			"client": "true",
 		},
 	}
 
-	cmd.AddCommand(createNamespaceCommand(logger, appConfig))
-	cmd.AddCommand(editNamespaceCommand(logger, appConfig))
-	cmd.AddCommand(viewNamespaceCommand(logger, appConfig))
-	cmd.AddCommand(listNamespaceCommand(logger, appConfig))
+	cmd.AddCommand(createNamespaceCommand(cliConfig))
+	cmd.AddCommand(editNamespaceCommand(cliConfig))
+	cmd.AddCommand(viewNamespaceCommand(cliConfig))
+	cmd.AddCommand(listNamespaceCommand(cliConfig))
+
+	bindFlagsFromClientConfig(cmd)
 
 	return cmd
 }
 
-func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func createNamespaceCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -52,14 +52,14 @@ func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 			$ shield namespace create --file=<namespace-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.NamespaceRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -68,15 +68,13 @@ func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.CreateNamespace(ctx, &shieldv1beta1.CreateNamespaceRequest{
+			res, err := client.CreateNamespace(cmd.Context(), &shieldv1beta1.CreateNamespaceRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -84,7 +82,7 @@ func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully created namespace %s with id %s", res.GetNamespace().GetName(), res.GetNamespace().GetId()))
+			fmt.Printf("successfully created namespace %s with id %s\n", res.GetNamespace().GetName(), res.GetNamespace().GetId())
 			return nil
 		},
 	}
@@ -95,7 +93,7 @@ func createNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Co
 	return cmd
 }
 
-func editNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func editNamespaceCommand(cliConfig *Config) *cli.Command {
 	var filePath string
 
 	cmd := &cli.Command{
@@ -106,14 +104,14 @@ func editNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 			$ shield namespace edit <namespace-id> --file=<namespace-body>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
 			var reqBody shieldv1beta1.NamespaceRequestBody
-			if err := parseFile(filePath, &reqBody); err != nil {
+			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
 
@@ -122,16 +120,14 @@ func editNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 				return err
 			}
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			namespaceID := args[0]
-			res, err := client.UpdateNamespace(ctx, &shieldv1beta1.UpdateNamespaceRequest{
+			res, err := client.UpdateNamespace(cmd.Context(), &shieldv1beta1.UpdateNamespaceRequest{
 				Id:   namespaceID,
 				Body: &reqBody,
 			})
@@ -140,7 +136,7 @@ func editNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 			}
 
 			spinner.Stop()
-			logger.Info(fmt.Sprintf("successfully edited namespace with id %s to id %s and name %s", namespaceID, res.GetNamespace().GetId(), res.GetNamespace().GetName()))
+			fmt.Printf("successfully edited namespace with id %s to id %s and name %s\n", namespaceID, res.GetNamespace().GetId(), res.GetNamespace().GetName())
 			return nil
 		},
 	}
@@ -151,7 +147,7 @@ func editNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 	return cmd
 }
 
-func viewNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View a namespace",
@@ -160,22 +156,20 @@ func viewNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 			$ shield namespace view <namespace-id>
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
 			namespaceID := args[0]
-			res, err := client.GetNamespace(ctx, &shieldv1beta1.GetNamespaceRequest{
+			res, err := client.GetNamespace(cmd.Context(), &shieldv1beta1.GetNamespaceRequest{
 				Id: namespaceID,
 			})
 			if err != nil {
@@ -206,7 +200,7 @@ func viewNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 	return cmd
 }
 
-func listNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Command {
+func listNamespaceCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all namespaces",
@@ -215,21 +209,19 @@ func listNamespaceCommand(logger log.Logger, appConfig *config.Shield) *cli.Comm
 			$ shield namespace list
 		`),
 		Annotations: map[string]string{
-			"group:core": "true",
+			"group": "core",
 		},
 		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			host := appConfig.App.Host + ":" + strconv.Itoa(appConfig.App.Port)
-			ctx := context.Background()
-			client, cancel, err := createClient(ctx, host)
+			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
 			defer cancel()
 
-			res, err := client.ListNamespaces(ctx, &shieldv1beta1.ListNamespacesRequest{})
+			res, err := client.ListNamespaces(cmd.Context(), &shieldv1beta1.ListNamespacesRequest{})
 			if err != nil {
 				return err
 			}
