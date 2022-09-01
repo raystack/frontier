@@ -202,8 +202,8 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Create(s.ctx, tc.UserToCreate)
-			if tc.ErrString != "" {
-				if errors.Unwrap(errors.Unwrap(err)).Error() != tc.ErrString {
+			if err != nil && tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
