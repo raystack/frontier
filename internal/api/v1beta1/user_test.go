@@ -494,32 +494,6 @@ func TestUpdateUser(t *testing.T) {
 			err:  grpcInternalServerError,
 		},
 		{
-			title: "should return not found error if id is not uuid",
-			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
-					ID:    "some-id",
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
-				}).Return(user.User{}, user.ErrInvalidUUID)
-			},
-			req: &shieldv1beta1.UpdateUserRequest{
-				Id: "some-id",
-				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"foo": structpb.NewStringValue("bar"),
-						},
-					},
-				}},
-			want: nil,
-			err:  grpcUserNotFoundError,
-		},
-		{
 			title: "should return not found error if id is invalid",
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
@@ -531,32 +505,6 @@ func TestUpdateUser(t *testing.T) {
 				}).Return(user.User{}, user.ErrInvalidID)
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
-				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"foo": structpb.NewStringValue("bar"),
-						},
-					},
-				}},
-			want: nil,
-			err:  grpcUserNotFoundError,
-		},
-		{
-			title: "should return not found error if user not exist",
-			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
-					ID:    "some-id",
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
-				}).Return(user.User{}, user.ErrNotExist)
-			},
-			req: &shieldv1beta1.UpdateUserRequest{
-				Id: "some-id",
 				Body: &shieldv1beta1.UserRequestBody{
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -728,7 +676,7 @@ func TestUpdateUser(t *testing.T) {
 			mockDep := Handler{userService: mockUserSrv}
 			resp, err := mockDep.UpdateUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)
-			assert.EqualValues(t, err, tt.err)
+			assert.EqualValues(t, tt.err, err)
 		})
 	}
 }
