@@ -203,7 +203,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Create(s.ctx, tc.UserToCreate)
 			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
+				if errors.Unwrap(errors.Unwrap(err)).Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}

@@ -20,5 +20,6 @@ var (
 	grpcPermissionDenied    = status.Error(codes.PermissionDenied, errors.ErrForbidden.Error())
 	grpcUnauthenticated     = status.Error(codes.Unauthenticated, errors.ErrUnauthenticated.Error())
 
-	ErrEmptyEmailID = errors.New("email id is empty")
+	ErrEmptyEmailID    = errors.New("email id is empty")
+	ErrInvalideEmailID = errors.New("user email is invalid")
 )
