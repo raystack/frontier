@@ -176,6 +176,24 @@ func (s *NamespaceRepositoryTestSuite) TestList() {
 					ID:   "ns2",
 					Name: "ns2",
 				},
+				{
+					ID:           "back1_r1",
+					Name:         "Back1 R1",
+					Backend:      "back1",
+					ResourceType: "r1",
+				},
+				{
+					ID:           "back1_r2",
+					Name:         "Back1 R2",
+					Backend:      "back1",
+					ResourceType: "r2",
+				},
+				{
+					ID:           "back2_r1",
+					Name:         "Back2 R1",
+					Backend:      "back2",
+					ResourceType: "r1",
+				},
 			},
 		},
 	}

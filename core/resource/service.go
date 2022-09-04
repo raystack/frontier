@@ -214,21 +214,20 @@ func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
 	return s.configRepository.GetAll(ctx)
 }
 
+// TODO(krkvrm): Separate Authz for Resources & System Namespaces
 func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action) (bool, error) {
-	user, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return false, err
 	}
-
-	res.URN = res.CreateURN()
 
 	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	fetchedResource := res
 
 	if isSystemNS {
-		fetchedResource.Idxa = res.URN
+		fetchedResource.Idxa = res.Name
 	} else {
-		fetchedResource, err = s.repository.GetByURN(ctx, res.URN)
+		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.Namespace)
 		if err != nil {
 			return false, err
 		}
@@ -237,5 +236,5 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	fetchedResourceNS := namespace.Namespace{
 		ID: str.DefaultStringIfEmpty(fetchedResource.NamespaceID, fetchedResource.Namespace.ID),
 	}
-	return s.relationService.CheckPermission(ctx, user, fetchedResourceNS, fetchedResource.Idxa, act)
+	return s.relationService.CheckPermission(ctx, currentUser, fetchedResourceNS, fetchedResource.Idxa, act)
 }

@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/mitchellh/mapstructure"
-
 	"github.com/odpf/salt/log"
+
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/resource"
@@ -165,10 +165,16 @@ func createResources(permissionAttributes map[string]interface{}) ([]resource.Re
 	}
 
 	for _, res := range resourceList {
+		nsID := namespace.CreateID(backendNamespace[0], resourceType[0])
 		resources = append(resources, resource.Resource{
 			Name:        res,
-			NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
+			NamespaceID: nsID,
 			ProjectID:   project[0],
+			Namespace: namespace.Namespace{
+				ID:           nsID,
+				Backend:      backendNamespace[0],
+				ResourceType: resourceType[0],
+			},
 		})
 	}
 	return resources, nil

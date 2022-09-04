@@ -6,5 +6,23 @@
     {
         "id": "ns2",
         "name": "ns2"
+    },
+    {
+        "id": "back1_r1",
+        "name": "Back1 R1",
+        "backend": "back1",
+        "resourceType": "r1"
+    },
+    {
+        "id": "back1_r2",
+        "name": "Back1 R2",
+        "backend": "back1",
+        "resourceType": "r2"
+    },
+    {
+        "id": "back2_r1",
+        "name": "Back2 R1",
+        "backend": "back2",
+        "resourceType": "r1"
     }
 ]

@@ -20,6 +20,7 @@ type Repository interface {
 	Create(ctx context.Context, resource Resource) (Resource, error)
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, id string, resource Resource) (Resource, error)
+	GetByNamespace(ctx context.Context, name string, ns namespace.Namespace) (Resource, error)
 }
 
 type ConfigRepository interface {
@@ -64,6 +65,8 @@ type Filter struct {
 }
 
 type YAML struct {
-	Name    string              `json:"name" yaml:"name"`
-	Actions map[string][]string `json:"actions" yaml:"actions"`
+	Name         string              `json:"name" yaml:"name"`
+	Backend      string              `json:"backend" yaml:"backend"`
+	ResourceType string              `json:"resource_type" yaml:"resource_type"`
+	Actions      map[string][]string `json:"actions" yaml:"actions"`
 }
