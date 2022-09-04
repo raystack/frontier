@@ -225,7 +225,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	fetchedResource := res
 
 	if isSystemNS {
-		fetchedResource.Idxa = res.URN
+		fetchedResource.Idxa = res.Name
 	} else {
 		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.Namespace)
 		if err != nil {
