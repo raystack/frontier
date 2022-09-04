@@ -45,7 +45,7 @@ func (from User) transformToUser() (user.User, error) {
 	}, nil
 }
 
-func (from UserMetadataKey) tranformuserMetadataKey() user.UserMetadataKey {
+func (from UserMetadataKey) tranformUserMetadataKey() user.UserMetadataKey {
 	return user.UserMetadataKey{
 		ID:          from.ID,
 		Key:         from.Key,

@@ -481,6 +481,8 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
 				return user.ErrNotExist
+			case errors.Is(err, errDuplicateKey):
+				return user.ErrConflict
 			default:
 				return err
 			}
@@ -651,5 +653,5 @@ func (r UserRepository) CreateMetadataKey(ctx context.Context, key user.UserMeta
 		}
 	}
 
-	return metadataKey.tranformuserMetadataKey(), nil
+	return metadataKey.tranformUserMetadataKey(), nil
 }

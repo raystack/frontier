@@ -70,6 +70,7 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	s.client, s.cancelClient, err = testbench.CreateClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
 	s.Require().NoError(err)
 
+	s.Require().NoError(testbench.BootstrapMetadataKey(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
 	s.Require().NoError(testbench.BootstrapUser(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
 	s.Require().NoError(testbench.BootstrapOrganization(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.client, testbench.OrgAdminEmail, testDataPath))

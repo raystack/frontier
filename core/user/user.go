@@ -15,6 +15,7 @@ type Repository interface {
 	List(ctx context.Context, flt Filter) ([]User, error)
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
+	CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error)
 }
 
 type User struct {

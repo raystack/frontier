@@ -28,6 +28,7 @@ type UserService interface {
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
+	CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error)
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
@@ -119,6 +120,33 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(newUser.CreatedAt),
 		UpdatedAt: timestamppb.New(newUser.UpdatedAt),
+	}}, nil
+}
+
+func (h Handler) CreateMetadataKey(ctx context.Context, request *shieldv1beta1.CreateMetadataKeyRequest) (*shieldv1beta1.CreateMetadataKeyResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetBody() == nil {
+		return nil, grpcBadBodyError
+	}
+
+	newKey, err := h.userService.CreateMetadataKey(ctx, user.UserMetadataKey{
+		Key:         request.GetBody().GetKey(),
+		Description: request.GetBody().GetDescription(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.CreateMetadataKeyResponse{Metadatakey: &shieldv1beta1.MetadataKey{
+		Key:         newKey.Key,
+		Description: newKey.Description,
 	}}, nil
 }
 
