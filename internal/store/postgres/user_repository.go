@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -159,10 +160,15 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 
 	var rows []interface{}
 	for key, value := range usr.Metadata {
+		valuejson, err := json.Marshal(value)
+		if err != nil {
+			valuejson = []byte{}
+		}
+
 		rows = append(rows, goqu.Record{
 			"user_id": transformedUser.ID,
 			"key":     key,
-			"value":   value,
+			"value":   string(valuejson),
 		})
 	}
 	metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
@@ -405,13 +411,18 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 
 			var rows []interface{}
 			for key, value := range userMetadata {
+				valuejson, err := json.Marshal(value)
+				if err != nil {
+					valuejson = []byte{}
+				}
+
 				rows = append(rows, goqu.Record{
 					"user_id": transformedUser.ID,
 					"key":     key,
-					"value":   value,
+					"value":   string(valuejson),
 				})
 			}
-			metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
+			metadataQuery, params, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
 
 			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 				_, err := tx.ExecContext(ctx, metadataQuery, params...)
@@ -519,10 +530,15 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		if len(usr.Metadata) > 0 {
 			var rows []interface{}
 			for key, value := range usr.Metadata {
+				valuejson, err := json.Marshal(value)
+				if err != nil {
+					valuejson = []byte{}
+				}
+
 				rows = append(rows, goqu.Record{
 					"user_id": transformedUser.ID,
 					"key":     key,
-					"value":   value,
+					"value":   string(valuejson),
 				})
 			}
 			metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
