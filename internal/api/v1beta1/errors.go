@@ -13,13 +13,11 @@ var (
 	ErrBadRequest            = errors.New("invalid syntax in body")
 	ErrConflictRequest       = errors.New("already exist")
 	ErrRequestBodyValidation = errors.New("invalid format for field(s)")
+	ErrEmptyEmailID          = errors.New("email id is empty")
 
 	grpcInternalServerError = status.Errorf(codes.Internal, ErrInternalServer.Error())
 	grpcConflictError       = status.Errorf(codes.AlreadyExists, ErrConflictRequest.Error())
 	grpcBadBodyError        = status.Error(codes.InvalidArgument, ErrBadRequest.Error())
 	grpcPermissionDenied    = status.Error(codes.PermissionDenied, errors.ErrForbidden.Error())
 	grpcUnauthenticated     = status.Error(codes.Unauthenticated, errors.ErrUnauthenticated.Error())
-
-	ErrEmptyEmailID    = errors.New("email id is empty")
-	ErrInvalideEmailID = errors.New("user email is invalid")
 )
