@@ -28,7 +28,6 @@ type User struct {
 }
 
 type UserMetadataKey struct {
-	ID          string
 	Key         string
 	Description string
 	CreatedAt   time.Time

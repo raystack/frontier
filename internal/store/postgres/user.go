@@ -20,7 +20,6 @@ type User struct {
 }
 
 type UserMetadataKey struct {
-	ID          string    `db:"id"`
 	Key         string    `db:"key"`
 	Description string    `db:"description"`
 	CreatedAt   time.Time `db:"created_at"`
@@ -47,7 +46,6 @@ func (from User) transformToUser() (user.User, error) {
 
 func (from UserMetadataKey) tranformUserMetadataKey() user.UserMetadataKey {
 	return user.UserMetadataKey{
-		ID:          from.ID,
 		Key:         from.Key,
 		Description: from.Description,
 		CreatedAt:   from.CreatedAt,

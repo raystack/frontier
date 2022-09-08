@@ -650,7 +650,7 @@ func (r UserRepository) CreateMetadataKey(ctx context.Context, key user.UserMeta
 		goqu.Record{
 			"key":         key.Key,
 			"description": key.Description,
-		}).Returning("id", "key", "description", "created_at", "updated_at").ToSQL()
+		}).Returning("key", "description", "created_at", "updated_at").ToSQL()
 	if err != nil {
 		return user.UserMetadataKey{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
