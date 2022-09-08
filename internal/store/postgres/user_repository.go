@@ -21,7 +21,7 @@ type UserRepository struct {
 	dbc *db.Client
 }
 
-type userXMetadata struct {
+type joinUserMetadata struct {
 	ID        string    `db:"id"`
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
@@ -200,7 +200,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 }
 
 func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User, error) {
-	var fetchedUserXMetadata []userXMetadata
+	var fetchedJoinUserMetadata []joinUserMetadata
 
 	var defaultLimit int32 = 50
 	var defaultPage int32 = 1
@@ -224,7 +224,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedUserXMetadata, query, params...)
+		return r.dbc.SelectContext(ctx, &fetchedJoinUserMetadata, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []user.User{}, nil
@@ -233,7 +233,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	}
 
 	groupedMetadataByUser := make(map[string]user.User)
-	for _, u := range fetchedUserXMetadata {
+	for _, u := range fetchedJoinUserMetadata {
 		if _, ok := groupedMetadataByUser[u.ID]; !ok {
 			groupedMetadataByUser[u.ID] = user.User{}
 		}
