@@ -494,32 +494,6 @@ func TestUpdateUser(t *testing.T) {
 			err:  grpcInternalServerError,
 		},
 		{
-			title: "should return not found error if id is not uuid",
-			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
-					ID:    "some-id",
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
-				}).Return(user.User{}, user.ErrInvalidUUID)
-			},
-			req: &shieldv1beta1.UpdateUserRequest{
-				Id: "some-id",
-				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"foo": structpb.NewStringValue("bar"),
-						},
-					},
-				}},
-			want: nil,
-			err:  grpcUserNotFoundError,
-		},
-		{
 			title: "should return not found error if id is invalid",
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
@@ -531,32 +505,6 @@ func TestUpdateUser(t *testing.T) {
 				}).Return(user.User{}, user.ErrInvalidID)
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
-				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"foo": structpb.NewStringValue("bar"),
-						},
-					},
-				}},
-			want: nil,
-			err:  grpcUserNotFoundError,
-		},
-		{
-			title: "should return not found error if user not exist",
-			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
-					ID:    "some-id",
-					Name:  "abc user",
-					Email: "user@odpf.io",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
-				}).Return(user.User{}, user.ErrNotExist)
-			},
-			req: &shieldv1beta1.UpdateUserRequest{
-				Id: "some-id",
 				Body: &shieldv1beta1.UserRequestBody{
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -728,7 +676,7 @@ func TestUpdateUser(t *testing.T) {
 			mockDep := Handler{userService: mockUserSrv}
 			resp, err := mockDep.UpdateUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)
-			assert.EqualValues(t, err, tt.err)
+			assert.EqualValues(t, tt.err, err)
 		})
 	}
 }
@@ -968,6 +916,61 @@ func TestHandler_ListUserGroups(t *testing.T) {
 			got, err := h.ListUserGroups(context.Background(), tt.request)
 			assert.EqualValues(t, got, tt.want)
 			assert.EqualValues(t, err, tt.wantErr)
+		})
+	}
+}
+
+func TestCreateMetadataKey(t *testing.T) {
+	email := "user@odpf.io"
+	table := []struct {
+		title string
+		setup func(ctx context.Context, us *mocks.UserService) context.Context
+		req   *shieldv1beta1.CreateMetadataKeyRequest
+		want  *shieldv1beta1.CreateMetadataKeyResponse
+		err   error
+	}{
+		{
+			title: "should return error if body is empty",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().CreateMetadataKey(mock.AnythingOfType("*context.valueCtx"), shieldv1beta1.CreateMetadataKeyRequest{Body: nil}).Return(user.UserMetadataKey{}, grpcBadBodyError)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req:  &shieldv1beta1.CreateMetadataKeyRequest{Body: nil},
+			want: nil,
+			err:  grpcBadBodyError,
+		},
+		{
+			title: "should return error conflict if key already exists",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().CreateMetadataKey(mock.AnythingOfType("*context.valueCtx"), user.UserMetadataKey{
+					Key:         "k1",
+					Description: "key one",
+				}).Return(user.UserMetadataKey{}, user.ErrConflict)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.CreateMetadataKeyRequest{Body: &shieldv1beta1.MetadataKeyRequestBody{
+				Key:         "k1",
+				Description: "key one",
+			}},
+			want: nil,
+			err:  grpcConflictError,
+		},
+	}
+
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			var resp *shieldv1beta1.CreateMetadataKeyResponse
+			var err error
+
+			ctx := context.Background()
+			mockUserSrv := new(mocks.UserService)
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
+			resp, err = mockDep.CreateMetadataKey(ctx, tt.req)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.err, err)
 		})
 	}
 }

@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -41,6 +42,11 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 
 func (s *UserRepositoryTestSuite) SetupTest() {
 	var err error
+
+	_, err = bootstrapMetadataKeys(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)
@@ -62,7 +68,9 @@ func (s *UserRepositoryTestSuite) TearDownTest() {
 
 func (s *UserRepositoryTestSuite) cleanup() error {
 	queries := []string{
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA_KEYS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }
@@ -111,7 +119,7 @@ func (s *UserRepositoryTestSuite) TestGetByID() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{}, "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
 			}
 		})
@@ -129,18 +137,12 @@ func (s *UserRepositoryTestSuite) TestGetByEmail() {
 	var testCases = []testCase{
 		{
 			Description:   "should get a user",
-			SelectedEmail: "jane.dee@odpf.io",
+			SelectedEmail: s.users[0].Email,
 			ExpectedUser: user.User{
-				Name:  "Jane Dee",
-				Email: "jane.dee@odpf.io",
-				Metadata: map[string]any{
-					"key-string":  "value-string",
-					"key-integer": 123,
-					"key-json": map[string]any{
-						"k1": "v1",
-						"k2": "v2",
-					},
-				},
+				ID:       s.users[0].ID,
+				Name:     s.users[0].Name,
+				Email:    s.users[0].Email,
+				Metadata: s.users[0].Metadata,
 			},
 		},
 		{
@@ -200,7 +202,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Create(s.ctx, tc.UserToCreate)
-			if tc.ErrString != "" {
+			if err != nil && tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
@@ -239,8 +241,8 @@ func (s *UserRepositoryTestSuite) TestList() {
 			},
 			ExpectedUsers: []user.User{
 				{
-					Name:  "John Doe",
-					Email: "john.doe@odpf.io",
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
 				},
 			},
 		},
@@ -254,7 +256,7 @@ func (s *UserRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedUsers, cmpopts.IgnoreFields(user.User{}, "ID", "CreatedAt", "UpdatedAt")) {
+			if !(len(got) == len(tc.ExpectedUsers)) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUsers)
 			}
 		})
@@ -272,8 +274,8 @@ func (s *UserRepositoryTestSuite) TestGetByIDs() {
 	var testCases = []testCase{
 		{
 			Description:   "should get all users with ids",
-			IDs:           []string{s.users[0].ID, s.users[1].ID},
-			ExpectedUsers: s.users,
+			IDs:           []string{s.users[0].ID, s.users[0].ID},
+			ExpectedUsers: []user.User{s.users[0]},
 		},
 		{
 			Description: "should return empty users if ids not exist",
@@ -295,7 +297,7 @@ func (s *UserRepositoryTestSuite) TestGetByIDs() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedUsers, cmpopts.IgnoreFields(user.User{}, "ID", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedUsers, cmpopts.IgnoreFields(user.User{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUsers)
 			}
 		})
@@ -307,7 +309,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 		Description  string
 		UserToUpdate user.User
 		ExpectedName string
-		ErrString    string
+		Err          error
 	}
 
 	var testCases = []testCase{
@@ -315,7 +317,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			Description: "should update a user",
 			UserToUpdate: user.User{
 				Name:  "Doe John",
-				Email: "john.doe@odpf.io",
+				Email: s.users[0].Email,
 			},
 			ExpectedName: "Doe John",
 		},
@@ -324,20 +326,23 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			UserToUpdate: user.User{
 				Email: "random@email.com",
 			},
-			ErrString: user.ErrNotExist.Error(),
+			Err: user.ErrNotExist,
 		},
 		{
 			Description: "should return error if user email is empty",
-			ErrString:   user.ErrInvalidEmail.Error(),
+			UserToUpdate: user.User{
+				Email: "",
+			},
+			Err: user.ErrInvalidEmail,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.UpdateByEmail(s.ctx, tc.UserToUpdate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if errors.Unwrap(err) == tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
 				}
 			}
 			if tc.ExpectedName != "" && (got.Name != tc.ExpectedName) {
@@ -352,7 +357,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		Description  string
 		UserToUpdate user.User
 		ExpectedName string
-		ErrString    string
+		Err          error
 	}
 
 	var testCases = []testCase{
@@ -361,7 +366,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			UserToUpdate: user.User{
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
-				Email: "john.doe@odpf.io",
+				Email: s.users[0].Email,
 			},
 			ExpectedName: "Doe John",
 		},
@@ -372,29 +377,29 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				Name:  "Doe John",
 				Email: "john.doe@odpf.io",
 			},
-			ErrString: user.ErrNotExist.Error(),
+			Err: user.ErrNotExist,
 		},
 		{
-			Description: "should return error if user already exist",
+			Description: "should return error if user email already exist",
 			UserToUpdate: user.User{
-				ID:    s.users[1].ID,
+				ID:    s.users[0].ID,
 				Name:  "Doe John",
-				Email: "john.doe@odpf.io",
+				Email: s.users[1].Email,
 			},
-			ErrString: user.ErrConflict.Error(),
+			Err: user.ErrConflict,
 		},
 		{
 			Description: "should return error if user id is empty",
-			ErrString:   user.ErrInvalidID.Error(),
+			Err:         user.ErrInvalidID,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.UpdateByID(s.ctx, tc.UserToUpdate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if errors.Unwrap(err) == tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
 				}
 			}
 			if tc.ExpectedName != "" && (got.Name != tc.ExpectedName) {

@@ -294,7 +294,6 @@ func (r GroupRepository) buildListUsersByGroupIDQuery(groupID, roleID string) (s
 		goqu.I("u.id").As("id"),
 		goqu.I("u.name").As("name"),
 		goqu.I("u.email").As("email"),
-		goqu.I("u.metadata").As("metadata"),
 		goqu.I("u.created_at").As("created_at"),
 		goqu.I("u.updated_at").As("updated_at"),
 	).

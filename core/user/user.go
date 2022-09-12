@@ -15,6 +15,7 @@ type Repository interface {
 	List(ctx context.Context, flt Filter) ([]User, error)
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
+	CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error)
 }
 
 type User struct {
@@ -24,6 +25,13 @@ type User struct {
 	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type UserMetadataKey struct {
+	Key         string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type PagedUsers struct {

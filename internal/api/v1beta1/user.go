@@ -13,6 +13,7 @@ import (
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
+	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
@@ -27,6 +28,7 @@ type UserService interface {
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
+	CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error)
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
@@ -121,6 +123,33 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	}}, nil
 }
 
+func (h Handler) CreateMetadataKey(ctx context.Context, request *shieldv1beta1.CreateMetadataKeyRequest) (*shieldv1beta1.CreateMetadataKeyResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetBody() == nil {
+		return nil, grpcBadBodyError
+	}
+
+	newKey, err := h.userService.CreateMetadataKey(ctx, user.UserMetadataKey{
+		Key:         request.GetBody().GetKey(),
+		Description: request.GetBody().GetDescription(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.CreateMetadataKeyResponse{Metadatakey: &shieldv1beta1.MetadataKey{
+		Key:         newKey.Key,
+		Description: newKey.Description,
+	}}, nil
+}
+
 func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest) (*shieldv1beta1.GetUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
@@ -184,6 +213,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 
 func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRequest) (*shieldv1beta1.UpdateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
+	var updatedUser user.User
 
 	if strings.TrimSpace(request.GetId()) == "" {
 		return nil, grpcUserNotFoundError
@@ -203,22 +233,52 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
-	updatedUser, err := h.userService.UpdateByID(ctx, user.User{
-		ID:       request.GetId(),
-		Name:     request.GetBody().GetName(),
-		Email:    email,
-		Metadata: metaDataMap,
-	})
-	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
-			return nil, grpcUserNotFoundError
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcBadBodyError
-		case errors.Is(err, user.ErrConflict):
-			return nil, grpcConflictError
-		default:
+	id := request.GetId()
+	if uuid.IsValid(id) {
+		updatedUser, err = h.userService.UpdateByID(ctx, user.User{
+			ID:       request.GetId(),
+			Name:     request.GetBody().GetName(),
+			Email:    request.GetBody().GetEmail(),
+			Metadata: metaDataMap,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+			switch {
+			case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
+				return nil, grpcUserNotFoundError
+			case errors.Is(err, user.ErrInvalidEmail):
+				return nil, grpcBadBodyError
+			case errors.Is(err, user.ErrConflict):
+				return nil, grpcConflictError
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+	} else {
+		fetchedUser, err := h.userService.GetByEmail(ctx, id)
+		if err != nil {
+			if err == user.ErrNotExist {
+				createUserResponse, err := h.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{Body: request.GetBody()})
+				if err != nil {
+					return nil, grpcInternalServerError
+				}
+				return &shieldv1beta1.UpdateUserResponse{User: createUserResponse.User}, nil
+			} else {
+				return nil, grpcInternalServerError
+			}
+		}
+
+		for key, value := range metaDataMap {
+			fetchedUser.Metadata[key] = value
+		}
+
+		updatedUser, err = h.userService.UpdateByEmail(ctx, user.User{
+			Name:     request.GetBody().GetName(),
+			Email:    request.GetBody().GetEmail(),
+			Metadata: fetchedUser.Metadata,
+		})
+		if err != nil {
+			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
 	}

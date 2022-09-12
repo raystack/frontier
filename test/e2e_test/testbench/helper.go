@@ -80,6 +80,31 @@ func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, cr
 	return nil
 }
 
+func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-metadata-key.json")
+	if err != nil {
+		return err
+	}
+
+	var data []*shieldv1beta1.MetadataKeyRequestBody
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return err
+	}
+
+	for _, d := range data {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			IdentityHeader: creatorEmail,
+		}))
+		if _, err := cl.CreateMetadataKey(ctx, &shieldv1beta1.CreateMetadataKeyRequest{
+			Body: d,
+		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-organization.json")
 	if err != nil {

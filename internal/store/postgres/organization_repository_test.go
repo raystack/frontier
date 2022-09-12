@@ -46,6 +46,10 @@ func (s *OrganizationRepositoryTestSuite) SetupSuite() {
 	s.ctx = context.TODO()
 	s.repository = postgres.NewOrganizationRepository(s.client)
 
+	_, err = bootstrapMetadataKeys(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)
@@ -446,8 +450,8 @@ func (s *OrganizationRepositoryTestSuite) TestListAdmins() {
 			OrgID:       s.orgs[0].ID,
 			ExpectedAdmins: []user.User{
 				{
-					Name:  "John Doe",
-					Email: "john.doe@odpf.io",
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
 				},
 			},
 		},

@@ -68,6 +68,7 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	s.client, s.cancelClient, err = testbench.CreateClient(ctx, fmt.Sprintf("localhost:%d", apiPort))
 	s.Require().NoError(err)
 
+	s.Require().NoError(testbench.BootstrapMetadataKey(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
 	s.Require().NoError(testbench.BootstrapUser(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
 	s.Require().NoError(testbench.BootstrapOrganization(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.client, testbench.OrgAdminEmail, testDataPath))
@@ -407,23 +408,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
 	})
 
-	s.Run("5. org admin update non-existent user should return not found error", func() {
-		_, err := s.client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
-			Id: "random",
-			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user a",
-				Email: "new-user-a@odpf.io",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
-					},
-				},
-			},
-		})
-		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
-	})
-
-	s.Run("6. org admin update user with conflicted detail should return conflict error", func() {
+	s.Run("5. org admin update user with conflicted detail should return conflict error", func() {
 		_, err := s.client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
 			Id: newUser.GetId(),
 			Body: &shieldv1beta1.UserRequestBody{
@@ -443,7 +428,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		testbench.IdentityHeader: newUser.GetEmail(),
 	}))
 
-	s.Run("7. update current user with empty email should return invalid argument error", func() {
+	s.Run("6. update current user with empty email should return invalid argument error", func() {
 		_, err := s.client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
@@ -458,7 +443,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("8. update current user with different email in header and body should return invalid argument error", func() {
+	s.Run("7. update current user with different email in header and body should return invalid argument error", func() {
 		_, err := s.client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
