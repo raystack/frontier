@@ -411,8 +411,8 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 
 			var rows []interface{}
 			var valuejson []byte
-			for k, v := range userMetadata {
 
+			for k, v := range userMetadata {
 				vstring, ok := v.(string)
 				if !ok {
 					valuejson, err = json.Marshal(v)
@@ -536,8 +536,8 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		if len(usr.Metadata) > 0 {
 			var rows []interface{}
 			var valuejson []byte
-			for k, v := range usr.Metadata {
 
+			for k, v := range usr.Metadata {
 				vstring, ok := v.(string)
 				if !ok {
 					valuejson, err = json.Marshal(v)
