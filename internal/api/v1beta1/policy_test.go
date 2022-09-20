@@ -46,15 +46,10 @@ var (
 				UpdatedAt: time.Time{},
 			},
 			Role: role.Role{
-				ID:       "reader",
-				Name:     "Reader",
-				Metadata: metadata.Metadata{},
-				Namespace: namespace.Namespace{
-					ID:        "policy-1",
-					Name:      "Policy 1",
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-				},
+				ID:          "reader",
+				Name:        "Reader",
+				Metadata:    metadata.Metadata{},
+				NamespaceID: "policy-1",
 			},
 		},
 	}
@@ -212,15 +207,10 @@ func TestCreatePolicy(t *testing.T) {
 							UpdatedAt: time.Time{},
 						},
 						Role: role.Role{
-							ID:       "reader",
-							Name:     "Reader",
-							Metadata: metadata.Metadata{},
-							Namespace: namespace.Namespace{
-								ID:        "policy-1",
-								Name:      "Policy 1",
-								CreatedAt: time.Time{},
-								UpdatedAt: time.Time{},
-							},
+							ID:          "reader",
+							Name:        "Reader",
+							Metadata:    metadata.Metadata{},
+							NamespaceID: "policy-1",
 						},
 					},
 				}, nil)

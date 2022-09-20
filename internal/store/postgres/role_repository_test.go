@@ -8,7 +8,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
@@ -91,10 +90,6 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 					"user",
 				},
 				NamespaceID: "ns1",
-				Namespace: namespace.Namespace{
-					ID:   "ns1",
-					Name: "ns1",
-				},
 			},
 		},
 		{
@@ -211,10 +206,6 @@ func (s *RoleRepositoryTestSuite) TestList() {
 						"user",
 					},
 					NamespaceID: "ns1",
-					Namespace: namespace.Namespace{
-						ID:   "ns1",
-						Name: "ns1",
-					},
 				},
 				{
 					ID:   "role2",
@@ -224,10 +215,6 @@ func (s *RoleRepositoryTestSuite) TestList() {
 						"user",
 					},
 					NamespaceID: "ns2",
-					Namespace: namespace.Namespace{
-						ID:   "ns2",
-						Name: "ns2",
-					},
 					Metadata: map[string]any{
 						"key-string":  "value-string",
 						"key-integer": 123,

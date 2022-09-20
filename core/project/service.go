@@ -169,8 +169,8 @@ func (s Service) addAdminToProject(ctx context.Context, usr user.User, prj Proje
 		SubjectID:        usr.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			ID:        role.DefinitionProjectAdmin.ID,
-			Namespace: namespace.DefinitionProject,
+			ID:          role.DefinitionProjectAdmin.ID,
+			NamespaceID: namespace.DefinitionProject.ID,
 		},
 	}
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
@@ -187,8 +187,8 @@ func (s Service) removeAdminFromProject(ctx context.Context, usr user.User, prj 
 		SubjectID:        usr.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			ID:        role.DefinitionProjectAdmin.ID,
-			Namespace: namespace.DefinitionProject,
+			ID:          role.DefinitionProjectAdmin.ID,
+			NamespaceID: namespace.DefinitionProject.ID,
 		},
 	}
 	return s.relationService.Delete(ctx, rel)
@@ -201,8 +201,8 @@ func (s Service) addProjectToOrg(ctx context.Context, prj Project, org organizat
 		SubjectID:        org.ID,
 		SubjectNamespace: namespace.DefinitionOrg,
 		Role: role.Role{
-			ID:        namespace.DefinitionOrg.ID,
-			Namespace: namespace.DefinitionProject,
+			ID:          namespace.DefinitionOrg.ID,
+			NamespaceID: namespace.DefinitionProject.ID,
 		},
 		RelationType: relation.RelationTypes.Namespace,
 	}

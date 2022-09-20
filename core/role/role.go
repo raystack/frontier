@@ -21,7 +21,6 @@ type Role struct {
 	ID          string
 	Name        string
 	Types       []string
-	Namespace   namespace.Namespace
 	NamespaceID string
 	Metadata    metadata.Metadata
 	CreatedAt   time.Time
@@ -35,7 +34,6 @@ func GetOwnerRole(ns namespace.Namespace) Role {
 		ID:          id,
 		Name:        name,
 		Types:       []string{UserType},
-		Namespace:   ns,
 		NamespaceID: ns.ID,
 	}
 }

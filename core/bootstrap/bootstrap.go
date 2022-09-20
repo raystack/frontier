@@ -154,17 +154,16 @@ func getResourceRole(r string, ns namespace.Namespace) role.Role {
 
 	if roleNs.ID == namespace.DefinitionTeam.ID {
 		return role.Role{
-			ID:        roleId,
-			Name:      roleId,
-			Namespace: namespace.DefinitionTeam,
-			Types:     []string{role.UserType},
+			ID:          roleId,
+			Name:        roleId,
+			NamespaceID: namespace.DefinitionTeam.ID,
+			Types:       []string{role.UserType},
 		}
 	}
 
 	role := role.Role{
 		ID:          roleId,
 		Name:        roleId,
-		Namespace:   roleNs,
 		NamespaceID: roleNs.ID,
 		Types:       []string{role.UserType, role.TeamMemberType},
 	}

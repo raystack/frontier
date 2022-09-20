@@ -17,7 +17,7 @@ func TransformRelation(relation relation.Relation) (*pb.Relationship, error) {
 	}
 
 	roleID := strings.ReplaceAll(str.DefaultStringIfEmpty(relation.Role.ID, relation.RoleID), "-", "_")
-	roleNSID := str.DefaultStringIfEmpty(relation.Role.Namespace.ID, relation.Role.NamespaceID)
+	roleNSID := relation.Role.NamespaceID
 	if roleNSID != "" && roleNSID != transformedRelation.Resource.ObjectType {
 		return &pb.Relationship{}, errors.New(fmt.Sprintf("Role %s doesnt exist in %s", roleID, transformedRelation.Resource.ObjectType))
 	}

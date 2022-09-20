@@ -27,9 +27,6 @@ var (
 				"member",
 				"user",
 			},
-			Namespace: namespace.Namespace{
-				ID: "ns-1",
-			},
 			NamespaceID: "ns-1",
 			Metadata: metadata.Metadata{
 				"foo": "bar",
@@ -113,12 +110,9 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, errors.New("some error"))
@@ -143,12 +137,9 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, namespace.ErrNotExist)
@@ -173,11 +164,8 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return bad request error if name empty",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
@@ -201,11 +189,8 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return bad request error if id empty",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidID)
@@ -228,12 +213,9 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return success if role service return nil error",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(testRoleMap[testRoleID], nil)
@@ -382,12 +364,9 @@ func TestHandler_UpdateRole(t *testing.T) {
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, errors.New("some error"))
@@ -412,12 +391,9 @@ func TestHandler_UpdateRole(t *testing.T) {
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrNotExist)
@@ -442,12 +418,9 @@ func TestHandler_UpdateRole(t *testing.T) {
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidID)
@@ -472,11 +445,8 @@ func TestHandler_UpdateRole(t *testing.T) {
 			name: "should return bad request error if name is empty",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
@@ -500,12 +470,9 @@ func TestHandler_UpdateRole(t *testing.T) {
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
@@ -530,12 +497,9 @@ func TestHandler_UpdateRole(t *testing.T) {
 			name: "should return already exist error if role service return err conflict",
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
-					Namespace: namespace.Namespace{
-						ID: testRoleMap[testRoleID].NamespaceID,
-					},
+					ID:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrConflict)
