@@ -55,10 +55,6 @@ var (
 		UpdatedAt: timestamppb.New(time.Time{}),
 		Role: &shieldv1beta1.Role{
 			Id: "role1",
-			Namespace: &shieldv1beta1.Namespace{
-				CreatedAt: timestamppb.New(time.Time{}),
-				UpdatedAt: timestamppb.New(time.Time{}),
-			},
 			Metadata: &structpb.Struct{
 				Fields: make(map[string]*structpb.Value),
 			},

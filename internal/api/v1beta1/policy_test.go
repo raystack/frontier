@@ -105,12 +105,13 @@ func TestListPolicies(t *testing.T) {
 						Id:       "reader",
 						Name:     "Reader",
 						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
+						// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+						//Namespace: &shieldv1beta1.Namespace{
+						//	Id:        "policy-1",
+						//	Name:      "Policy 1",
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
@@ -245,12 +246,13 @@ func TestCreatePolicy(t *testing.T) {
 						Id:       "reader",
 						Name:     "Reader",
 						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
+						// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+						//Namespace: &shieldv1beta1.Namespace{
+						//	Id:        "policy-1",
+						//	Name:      "Policy 1",
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
@@ -343,12 +345,13 @@ func TestHandler_GetPolicy(t *testing.T) {
 						Metadata: &structpb.Struct{
 							Fields: make(map[string]*structpb.Value),
 						},
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        testPolicyMap[testPolicyID].Namespace.ID,
-							Name:      testPolicyMap[testPolicyID].Namespace.Name,
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
+						// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+						//Namespace: &shieldv1beta1.Namespace{
+						//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+						//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
@@ -555,12 +558,13 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 							Metadata: &structpb.Struct{
 								Fields: make(map[string]*structpb.Value),
 							},
-							Namespace: &shieldv1beta1.Namespace{
-								Id:        testPolicyMap[testPolicyID].Namespace.ID,
-								Name:      testPolicyMap[testPolicyID].Namespace.Name,
-								CreatedAt: timestamppb.New(time.Time{}),
-								UpdatedAt: timestamppb.New(time.Time{}),
-							},
+							// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+							//Namespace: &shieldv1beta1.Namespace{
+							//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+							//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+							//	CreatedAt: timestamppb.New(time.Time{}),
+							//	UpdatedAt: timestamppb.New(time.Time{}),
+							//},
 							CreatedAt: timestamppb.New(time.Time{}),
 							UpdatedAt: timestamppb.New(time.Time{}),
 						},

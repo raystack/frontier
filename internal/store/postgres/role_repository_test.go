@@ -111,7 +111,7 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedRole, cmpopts.IgnoreFields(role.Role{}, "Metadata", "Namespace.CreatedAt", "Namespace.UpdatedAt", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedRole, cmpopts.IgnoreFields(role.Role{}, "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRole)
 			}
 		})
@@ -237,7 +237,7 @@ func (s *RoleRepositoryTestSuite) TestList() {
 				}
 			}
 			//TODO figure out how to compare metadata map[string]any
-			if !cmp.Equal(got, tc.ExpectedRoles, cmpopts.IgnoreFields(role.Role{}, "Metadata", "Namespace.CreatedAt", "Namespace.UpdatedAt", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedRoles, cmpopts.IgnoreFields(role.Role{}, "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoles)
 			}
 		})

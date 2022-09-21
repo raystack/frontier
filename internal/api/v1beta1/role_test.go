@@ -66,11 +66,6 @@ func TestHandler_ListRoles(t *testing.T) {
 						Id:    testRoleMap[testRoleID].ID,
 						Name:  testRoleMap[testRoleID].Name,
 						Types: testRoleMap[testRoleID].Types,
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        testRoleMap[testRoleID].NamespaceID,
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{
 								"foo": structpb.NewStringValue("bar"),
@@ -238,11 +233,6 @@ func TestHandler_CreateRole(t *testing.T) {
 					Id:    testRoleMap[testRoleID].ID,
 					Name:  testRoleMap[testRoleID].Name,
 					Types: testRoleMap[testRoleID].Types,
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        testRoleMap[testRoleID].NamespaceID,
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -321,11 +311,6 @@ func TestHandler_GetRole(t *testing.T) {
 					Id:    testRoleMap[testRoleID].ID,
 					Name:  testRoleMap[testRoleID].Name,
 					Types: testRoleMap[testRoleID].Types,
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        testRoleMap[testRoleID].NamespaceID,
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
