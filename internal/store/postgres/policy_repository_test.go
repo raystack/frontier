@@ -9,12 +9,15 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/internal/store/postgres"
+	"github.com/odpf/shield/pkg/db"
 )
 
 type PolicyRepositoryTestSuite struct {
@@ -99,6 +102,15 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 				RoleID:      "role1",
 				NamespaceID: "ns1",
 				ActionID:    "action1",
+				DepreciatedRole: role.Role{
+					ID: "role1",
+				},
+				DepreciatedNamespace: namespace.Namespace{
+					ID: "ns1",
+				},
+				DepreciatedAction: action.Action{
+					ID: "action1",
+				},
 			},
 		},
 		{
@@ -126,7 +138,10 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedPolicy, cmpopts.IgnoreFields(policy.Policy{},
-				"ID", "CreatedAt", "UpdatedAt")) {
+				"ID", "CreatedAt", "UpdatedAt",
+				"DepreciatedRole.Name", "DepreciatedRole.Types", "DepreciatedRole.NamespaceID", "DepreciatedRole.Metadata",
+				"DepreciatedNamespace.Name", "DepreciatedNamespace.Backend", "DepreciatedNamespace.ResourceType",
+				"DepreciatedAction.Name", "DepreciatedAction.NamespaceID")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicy)
 			}
 		})
@@ -209,16 +224,43 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 					RoleID:      "role1",
 					NamespaceID: "ns1",
 					ActionID:    "action1",
+					DepreciatedRole: role.Role{
+						ID: "role1",
+					},
+					DepreciatedNamespace: namespace.Namespace{
+						ID: "ns1",
+					},
+					DepreciatedAction: action.Action{
+						ID: "action1",
+					},
 				},
 				{
 					RoleID:      "role2",
 					NamespaceID: "ns2",
 					ActionID:    "action2",
+					DepreciatedRole: role.Role{
+						ID: "role2",
+					},
+					DepreciatedNamespace: namespace.Namespace{
+						ID: "ns2",
+					},
+					DepreciatedAction: action.Action{
+						ID: "action2",
+					},
 				},
 				{
 					RoleID:      "role2",
 					NamespaceID: "ns1",
 					ActionID:    "action3",
+					DepreciatedRole: role.Role{
+						ID: "role2",
+					},
+					DepreciatedNamespace: namespace.Namespace{
+						ID: "ns1",
+					},
+					DepreciatedAction: action.Action{
+						ID: "action3",
+					},
 				},
 			},
 		},
@@ -234,7 +276,10 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			}
 			//TODO figure out how to compare metadata map[string]any
 			if !cmp.Equal(got, tc.ExpectedPolicys, cmpopts.IgnoreFields(policy.Policy{},
-				"ID", "CreatedAt", "UpdatedAt")) {
+				"ID", "CreatedAt", "UpdatedAt",
+				"DepreciatedRole.Name", "DepreciatedRole.Types", "DepreciatedRole.NamespaceID", "DepreciatedRole.Metadata",
+				"DepreciatedNamespace.Name", "DepreciatedNamespace.Backend", "DepreciatedNamespace.ResourceType",
+				"DepreciatedAction.Name", "DepreciatedAction.NamespaceID")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicys)
 			}
 		})
