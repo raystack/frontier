@@ -21,15 +21,15 @@ type AuthzRepository interface {
 }
 
 type Policy struct {
-	ID          string
-	Role        role.Role
-	RoleID      string `json:"role_id"`
-	Namespace   namespace.Namespace
-	NamespaceID string `json:"namespace_id"`
-	Action      action.Action
-	ActionID    string `json:"action_id"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID                   string
+	DepreciatedRole      role.Role
+	RoleID               string
+	DepreciatedNamespace namespace.Namespace
+	NamespaceID          string
+	DepreciatedAction    action.Action
+	ActionID             string
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 }
 
 type Filters struct {

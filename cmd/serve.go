@@ -12,6 +12,7 @@ import (
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
+
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/bootstrap"
 	"github.com/odpf/shield/core/group"

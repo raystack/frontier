@@ -128,14 +128,14 @@ func BuildPolicyDefinitions(policies []policy.Policy) ([]definition, error) {
 	defMap := make(map[string]map[string][]role)
 
 	for _, p := range policies {
-		namespaceID := p.Namespace.ID
+		namespaceID := str.DefaultStringIfEmpty(p.DepreciatedNamespace.ID, p.NamespaceID)
 		def, ok := defMap[namespaceID]
 		if !ok {
 			def = make(map[string][]role)
 			defMap[namespaceID] = def
 		}
 
-		keyName := fmt.Sprintf("%s_%s_%s", p.Role.ID, p.Role.NamespaceID, namespaceID)
+		keyName := fmt.Sprintf("%s_%s_%s", p.DepreciatedRole.ID, p.DepreciatedRole.NamespaceID, namespaceID)
 
 		r, ok := def[keyName]
 		if !ok {
@@ -143,16 +143,16 @@ func BuildPolicyDefinitions(policies []policy.Policy) ([]definition, error) {
 			def[keyName] = r
 		}
 
-		actionNs := p.Action.NamespaceID
-		actionID := str.DefaultStringIfEmpty(p.Action.ID, p.ActionID)
+		actionNs := p.DepreciatedAction.NamespaceID
+		actionID := str.DefaultStringIfEmpty(p.DepreciatedAction.ID, p.ActionID)
 		if actionNs != "" && actionNs != namespaceID {
 			return []definition{}, errors.New(fmt.Sprintf("actions (%s) namespace `%s` doesnt match with `%s`", actionID, actionNs, namespaceID))
 		}
 
 		def[keyName] = append(r, role{
-			name:        p.Role.ID,
-			types:       p.Role.Types,
-			namespace:   p.Role.NamespaceID,
+			name:        p.DepreciatedRole.ID,
+			types:       p.DepreciatedRole.Types,
+			namespace:   p.DepreciatedRole.NamespaceID,
 			permissions: []string{actionID},
 		})
 	}

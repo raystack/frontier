@@ -110,9 +110,9 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("return policy definitions", func(t *testing.T) {
 		policies := []policy.Policy{
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 		}
 		def, _ := BuildPolicyDefinitions(policies)
@@ -136,19 +136,19 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("merge roles in policy definitions", func(t *testing.T) {
 		policies := []policy.Policy{
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Write", ID: "write"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Write", ID: "write"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Delete", ID: "delete"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Delete", ID: "delete"},
 			},
 		}
 		def, _ := BuildPolicyDefinitions(policies)
@@ -172,24 +172,24 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("create multiple roles in policy definitions", func(t *testing.T) {
 		policies := []policy.Policy{
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Write", ID: "write"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Write", ID: "write"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Delete", ID: "delete"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Delete", ID: "delete"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Reader", ID: "reader", Types: []string{"User"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Reader", ID: "reader", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 		}
 		def, _ := BuildPolicyDefinitions(policies)
@@ -219,24 +219,24 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("should add roles namespace", func(t *testing.T) {
 		policies := []policy.Policy{
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", NamespaceID: "Org", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", NamespaceID: "Org", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Write", ID: "write"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Write", ID: "write"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
-				Action:    action.Action{Name: "Delete", ID: "delete"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Delete", ID: "delete"},
 			},
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Reader", ID: "reader", Types: []string{"User"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Reader", ID: "reader", Types: []string{"User"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 		}
 		def, _ := BuildPolicyDefinitions(policies)
@@ -272,9 +272,9 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("should support multiple role types", func(t *testing.T) {
 		policies := []policy.Policy{
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User", "Team#members"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User", "Team#members"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 		}
 		def, _ := BuildPolicyDefinitions(policies)
@@ -298,9 +298,9 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("should throw error if action namespace is different", func(t *testing.T) {
 		policies := []policy.Policy{
 			{
-				Namespace: namespace.Namespace{Name: "Project", ID: "project"},
-				Role:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User", "Team#members"}},
-				Action:    action.Action{Name: "Read", ID: "read", NamespaceID: "org"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project", ID: "project"},
+				DepreciatedRole:      shieldRole.Role{Name: "Admin", ID: "admin", Types: []string{"User", "Team#members"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read", NamespaceID: "org"},
 			},
 		}
 		def, err := BuildPolicyDefinitions(policies)
@@ -313,9 +313,9 @@ func TestBuildPolicyDefinitions(t *testing.T) {
 	t.Run("should replace role and namespace `-` with `_`", func(t *testing.T) {
 		policies := []policy.Policy{
 			{
-				Namespace: namespace.Namespace{Name: "Project-1-1", ID: "project-1-1"},
-				Role:      shieldRole.Role{Name: "Project Admin", ID: "project-admin", Types: []string{"User", "Team#members"}},
-				Action:    action.Action{Name: "Read", ID: "read"},
+				DepreciatedNamespace: namespace.Namespace{Name: "Project-1-1", ID: "project-1-1"},
+				DepreciatedRole:      shieldRole.Role{Name: "Project Admin", ID: "project-admin", Types: []string{"User", "Team#members"}},
+				DepreciatedAction:    action.Action{Name: "Read", ID: "read"},
 			},
 		}
 		def, _ := BuildPolicyDefinitions(policies)

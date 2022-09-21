@@ -91,10 +91,10 @@ func (s Service) onboardResource(ctx context.Context, resYAML resource.YAML) err
 		for _, r := range rolesList {
 			role := getResourceRole(r, ns)
 			policy := policy.Policy{
-				Action:      act,
-				Namespace:   ns,
-				NamespaceID: ns.ID,
-				Role:        role,
+				DepreciatedAction:    act,
+				DepreciatedNamespace: ns,
+				NamespaceID:          ns.ID,
+				DepreciatedRole:      role,
 			}
 			resourceRoles = append(resourceRoles, role)
 			policies = append(policies, policy)
@@ -119,19 +119,19 @@ func (s Service) onboardResource(ctx context.Context, resYAML resource.YAML) err
 func getResourceDefaultPolicies(ns namespace.Namespace, action action.Action, owner role.Role) []policy.Policy {
 	return []policy.Policy{
 		{
-			Action:    action,
-			Namespace: ns,
-			Role:      role.DefinitionTeamAdmin,
+			DepreciatedAction:    action,
+			DepreciatedNamespace: ns,
+			DepreciatedRole:      role.DefinitionTeamAdmin,
 		},
 		{
-			Action:    action,
-			Namespace: ns,
-			Role:      role.DefinitionProjectAdmin,
+			DepreciatedAction:    action,
+			DepreciatedNamespace: ns,
+			DepreciatedRole:      role.DefinitionProjectAdmin,
 		},
 		{
-			Action:    action,
-			Namespace: ns,
-			Role:      role.DefinitionOrganizationAdmin,
+			DepreciatedAction:    action,
+			DepreciatedNamespace: ns,
+			DepreciatedRole:      role.DefinitionOrganizationAdmin,
 		},
 		//{
 		//	Action:    action,
