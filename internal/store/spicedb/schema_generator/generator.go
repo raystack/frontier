@@ -143,7 +143,7 @@ func BuildPolicyDefinitions(policies []policy.Policy) ([]definition, error) {
 			def[keyName] = r
 		}
 
-		actionNs := str.DefaultStringIfEmpty(p.Action.Namespace.ID, p.Action.NamespaceID)
+		actionNs := p.Action.NamespaceID
 		actionID := str.DefaultStringIfEmpty(p.Action.ID, p.ActionID)
 		if actionNs != "" && actionNs != namespaceID {
 			return []definition{}, errors.New(fmt.Sprintf("actions (%s) namespace `%s` doesnt match with `%s`", actionID, actionNs, namespaceID))

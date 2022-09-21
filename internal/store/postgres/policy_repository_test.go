@@ -146,8 +146,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedPolicy, cmpopts.IgnoreFields(policy.Policy{},
-				"ID", "Role.Metadata", "Role.CreatedAt", "Role.UpdatedAt",
-				"Action.Namespace", "Action.CreatedAt", "Action.UpdatedAt",
+				"ID", "Role.Metadata", "Role.CreatedAt", "Role.UpdatedAt", "Action.CreatedAt", "Action.UpdatedAt",
 				"Namespace.CreatedAt", "Namespace.UpdatedAt",
 				"CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicy)
@@ -311,8 +310,7 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			}
 			//TODO figure out how to compare metadata map[string]any
 			if !cmp.Equal(got, tc.ExpectedPolicys, cmpopts.IgnoreFields(policy.Policy{},
-				"ID", "Role.Metadata", "Role.CreatedAt", "Role.UpdatedAt",
-				"Action.Namespace", "Action.CreatedAt", "Action.UpdatedAt",
+				"ID", "Role.Metadata", "Role.CreatedAt", "Role.UpdatedAt", "Action.CreatedAt", "Action.UpdatedAt",
 				"Namespace.CreatedAt", "Namespace.UpdatedAt",
 				"CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicys)

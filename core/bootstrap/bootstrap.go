@@ -176,7 +176,6 @@ func getResourceAction(actionStr string, ns namespace.Namespace) action.Action {
 	act := action.Action{
 		ID:          actId,
 		Name:        actionName,
-		Namespace:   ns,
 		NamespaceID: ns.ID,
 	}
 	return act

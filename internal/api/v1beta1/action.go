@@ -130,14 +130,9 @@ func (h Handler) UpdateAction(ctx context.Context, request *shieldv1beta1.Update
 }
 
 func transformActionToPB(act action.Action) (shieldv1beta1.Action, error) {
-	namespace, err := transformNamespaceToPB(act.Namespace)
-	if err != nil {
-		return shieldv1beta1.Action{}, err
-	}
 	return shieldv1beta1.Action{
 		Id:        act.ID,
 		Name:      act.Name,
-		Namespace: &namespace,
 		CreatedAt: timestamppb.New(act.CreatedAt),
 		UpdatedAt: timestamppb.New(act.UpdatedAt),
 	}, nil

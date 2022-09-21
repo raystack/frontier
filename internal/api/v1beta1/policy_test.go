@@ -28,16 +28,11 @@ var (
 		testPolicyID: {
 			ID: testPolicyID,
 			Action: action.Action{
-				ID:   "read",
-				Name: "Read",
-				Namespace: namespace.Namespace{
-					ID:        "policy-1",
-					Name:      "Policy 1",
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-				},
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
+				ID:          "read",
+				Name:        "Read",
+				NamespaceID: "policy-1",
+				CreatedAt:   time.Time{},
+				UpdatedAt:   time.Time{},
 			},
 			Namespace: namespace.Namespace{
 				ID:        "policy-1",
@@ -86,12 +81,13 @@ func TestListPolicies(t *testing.T) {
 					Action: &shieldv1beta1.Action{
 						Id:   "read",
 						Name: "Read",
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
+						// @TODO(krtkvrm): issues/171
+						//Namespace: &shieldv1beta1.Namespace{
+						//	Id:        "policy-1",
+						//	Name:      "Policy 1",
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
@@ -190,16 +186,11 @@ func TestCreatePolicy(t *testing.T) {
 					{
 						ID: "test",
 						Action: action.Action{
-							ID:   "read",
-							Name: "Read",
-							Namespace: namespace.Namespace{
-								ID:        "policy-1",
-								Name:      "Policy 1",
-								CreatedAt: time.Time{},
-								UpdatedAt: time.Time{},
-							},
-							CreatedAt: time.Time{},
-							UpdatedAt: time.Time{},
+							ID:          "read",
+							Name:        "Read",
+							NamespaceID: "policy-1",
+							CreatedAt:   time.Time{},
+							UpdatedAt:   time.Time{},
 						},
 						Namespace: namespace.Namespace{
 							ID:        "policy-1",
@@ -227,12 +218,13 @@ func TestCreatePolicy(t *testing.T) {
 					Action: &shieldv1beta1.Action{
 						Id:   "read",
 						Name: "Read",
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
+						// @TODO(krtkvrm): issues/171
+						//Namespace: &shieldv1beta1.Namespace{
+						//	Id:        "policy-1",
+						//	Name:      "Policy 1",
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
@@ -358,12 +350,13 @@ func TestHandler_GetPolicy(t *testing.T) {
 					Action: &shieldv1beta1.Action{
 						Id:   testPolicyMap[testPolicyID].Action.ID,
 						Name: testPolicyMap[testPolicyID].Action.Name,
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        testPolicyMap[testPolicyID].Namespace.ID,
-							Name:      testPolicyMap[testPolicyID].Namespace.Name,
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
+						// @TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+						//Namespace: &shieldv1beta1.Namespace{
+						//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+						//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
@@ -558,7 +551,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 							Metadata: &structpb.Struct{
 								Fields: make(map[string]*structpb.Value),
 							},
-							// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+							// @TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
 							//Namespace: &shieldv1beta1.Namespace{
 							//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
 							//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
@@ -571,12 +564,13 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 						Action: &shieldv1beta1.Action{
 							Id:   testPolicyMap[testPolicyID].Action.ID,
 							Name: testPolicyMap[testPolicyID].Action.Name,
-							Namespace: &shieldv1beta1.Namespace{
-								Id:        testPolicyMap[testPolicyID].Namespace.ID,
-								Name:      testPolicyMap[testPolicyID].Namespace.Name,
-								CreatedAt: timestamppb.New(time.Time{}),
-								UpdatedAt: timestamppb.New(time.Time{}),
-							},
+							// @TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+							//Namespace: &shieldv1beta1.Namespace{
+							//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+							//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+							//	CreatedAt: timestamppb.New(time.Time{}),
+							//	UpdatedAt: timestamppb.New(time.Time{}),
+							//},
 							CreatedAt: timestamppb.New(time.Time{}),
 							UpdatedAt: timestamppb.New(time.Time{}),
 						},
