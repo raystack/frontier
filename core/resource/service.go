@@ -184,16 +184,16 @@ func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Res
 		ID: nsId,
 	}
 
-	relationSet, err := s.configRepository.GetRelationsForNamespace(ctx, nsId)
-	if err != nil {
-		return err
-	}
+	//relationSet, err := s.configRepository.GetRelationsForNamespace(ctx, nsId)
+	//if err != nil {
+	//	return err
+	//}
 
 	rl := role.GetOwnerRole(resourceNS)
 
-	if !relationSet[rl.ID] {
-		return nil
-	}
+	//if !relationSet[rl.ID] {
+	//	return nil
+	//}
 
 	rel := relation.Relation{
 		ObjectNamespace:  resourceNS,
@@ -203,7 +203,7 @@ func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Res
 		Role:             rl,
 	}
 
-	if _, err = s.relationService.Create(ctx, rel); err != nil {
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}
 

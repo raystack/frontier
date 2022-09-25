@@ -1,0 +1,29 @@
+definition user {}
+--
+definition organization {
+	relation owner: user | team
+	relation editor: user | team
+	relation viewer: user | team
+	permission edit = owner + editor
+	permission view = owner + editor + viewer
+}
+--
+definition project {
+	relation owner: user | team
+	relation editor: user | team
+	relation viewer: user | team
+	permission edit = owner + editor + organization->owner + organization->editor
+	permission view = owner + editor + viewer + organization->owner + organization->editor + organization->viewer
+	permission delete = owner + organization->owner
+	relation organization: organization
+}
+--
+definition team {
+	relation member: user
+	relation manager: user
+	permission membership = member + manager
+	permission edit = manager + organization->owner + organization->editor
+	permission view = manager + member + organization->owner + organization->editor + organization->viewer
+	permission delete = manager + organization->owner
+	relation organization: organization
+}

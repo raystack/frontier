@@ -1,0 +1,5 @@
+compute:
+  type: resource_group
+  resource_types:
+    - name: engine
+    - name: network

@@ -1,0 +1,60 @@
+entropy:
+  type: resource_group
+  resource_types:
+    - name: firehose
+      roles:
+        - name: viewer
+          principals:
+            - user
+            - team
+        - name: sink/editor
+          principals:
+            - user
+            - team
+      permissions:
+        - name: view
+          roles:
+            - owner
+            - organization/owner
+            - viewer
+        - name: sink_edit
+          roles:
+            - owner
+            - sink_editor
+            - organization/sink_editor
+    - name: dagger
+      roles:
+        - name: viewer
+          principals:
+            - user
+        - name: database_editor
+          principals:
+            - team
+      permissions:
+        - name: database_edit
+          roles:
+            - owner
+            - organization/sink_editor
+            - database_editor
+
+organization:
+  type: system
+  roles:
+    - name: sink_editor
+      principals:
+        - user
+        - team
+    - name: database_editor
+      principals:
+        - team
+
+project:
+  type: system
+  roles:
+    - name: viewer
+      principals:
+        - user
+        - team
+    - name: owner
+      principals:
+        - group

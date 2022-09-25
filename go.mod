@@ -38,7 +38,7 @@ require (
 	github.com/tidwall/gjson v1.9.1
 	go.uber.org/zap v1.21.0
 	gocloud.dev v0.24.0
-	golang.org/x/exp v0.0.0-20220916125017-b168a2c6b86b
+	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	golang.org/x/net v0.0.0-20220412020605-290c469a71a5
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
 	google.golang.org/genproto v0.0.0-20220414192740-2d67ff6cf2b4
