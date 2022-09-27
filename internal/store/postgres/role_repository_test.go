@@ -141,19 +141,6 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 			ExpectedID: "role3",
 		},
 		{
-			Description: "should return error if role name conflicted",
-			RoleToCreate: role.Role{
-				ID:   "role-conflict",
-				Name: "role other",
-				Types: []string{
-					"some-type1",
-					"some-type2",
-				},
-				NamespaceID: "ns1",
-			},
-			ErrString: role.ErrConflict.Error(),
-		},
-		{
 			Description: "should return error if namespace id does not exist",
 			RoleToCreate: role.Role{
 				ID:   "role-new",
@@ -266,20 +253,6 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 				NamespaceID: "ns1",
 			},
 			ExpectedID: "role1",
-		},
-		{
-			Description: "should return error if role name conflicted",
-			RoleToUpdate: role.Role{
-				ID:   "role2",
-				Name: "role member new updated",
-				Types: []string{
-					"member",
-					"user",
-					"role-member",
-				},
-				NamespaceID: "ns1",
-			},
-			ErrString: role.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if namespace id not exist",

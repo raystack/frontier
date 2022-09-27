@@ -7,7 +7,7 @@ entropy:
           principals:
             - user
             - team
-        - name: sink/editor
+        - name: sink_editor
           principals:
             - user
             - team

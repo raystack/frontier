@@ -27,7 +27,7 @@ func GenerateSchema(namespaceConfig NamespaceConfigMapType) []string {
 		for permissioName, permissionRoles := range config.Permissions {
 			rolesList := make([]*sdbcore.SetOperation_Child, 0)
 			for _, role := range permissionRoles {
-				rolesList = append(rolesList, sdbnamespace.ComputedUserset(role))
+				rolesList = append(rolesList, sdbnamespace.ComputedUserset(SpiceDBPermissionInheritanceFormatter(role)))
 			}
 
 			permissions = append(permissions, sdbnamespace.Relation(permissioName, sdbnamespace.Union(rolesList[0], rolesList[1:]...)))

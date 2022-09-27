@@ -53,18 +53,18 @@ var ProjectNamespaceConfig = NamespaceConfig{
 	Permissions: map[string][]string{
 		EditPermission: {
 			OwnerRole, EditorRole,
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
 		},
 		ViewPermission: {
 			OwnerRole, EditorRole, ViewerRole,
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
 		},
 		DeletePermission: {
 			OwnerRole,
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
 		},
 	},
 }
@@ -78,18 +78,18 @@ var TeamNamespaceConfig = NamespaceConfig{
 	Permissions: map[string][]string{
 		EditPermission: {
 			ManagerRole,
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
 		},
 		ViewPermission: {
 			ManagerRole, MemberRole,
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
 		},
 		DeletePermission: {
 			ManagerRole,
-			SpiceDBPermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
 		},
 		MembershipPermission: {
 			MemberRole, ManagerRole,
@@ -97,9 +97,42 @@ var TeamNamespaceConfig = NamespaceConfig{
 	},
 }
 
-var PreDefinedNamespaceConfig = NamespaceConfigMapType{
+var PreDefinedSystemNamespaceConfig = NamespaceConfigMapType{
 	UserPrincipal:         NamespaceConfig{},
 	OrganizationNamespace: OrganizationNamespaceConfig,
 	ProjectNamespace:      ProjectNamespaceConfig,
 	TeamNamespace:         TeamNamespaceConfig,
+}
+
+var PreDefinedResourceGroupNamespaceConfig = NamespaceConfig{
+	Type:                ResourceGroupNamespace,
+	InheritedNamespaces: []string{OrganizationNamespace, ProjectNamespace},
+	Roles: map[string][]string{
+		OwnerRole:  {UserPrincipal, TeamPrincipal},
+		EditorRole: {UserPrincipal, TeamPrincipal},
+		ViewerRole: {UserPrincipal, TeamPrincipal},
+	},
+	Permissions: map[string][]string{
+		EditPermission: {
+			OwnerRole, EditorRole,
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(ProjectNamespace, OwnerRole),
+			PermissionInheritanceFormatter(ProjectNamespace, EditorRole),
+		},
+		ViewPermission: {
+			OwnerRole, EditorRole, ViewerRole,
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
+			PermissionInheritanceFormatter(ProjectNamespace, OwnerRole),
+			PermissionInheritanceFormatter(ProjectNamespace, EditorRole),
+			PermissionInheritanceFormatter(ProjectNamespace, ViewerRole),
+		},
+		DeletePermission: {
+			OwnerRole,
+			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(ProjectNamespace, OwnerRole),
+		},
+	},
 }

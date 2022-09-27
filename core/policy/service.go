@@ -32,9 +32,9 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 	if err != nil {
 		return []Policy{}, err
 	}
-	if err = s.authzRepository.Add(ctx, policies); err != nil {
-		return []Policy{}, err //TODO might need to handle specific error from authzrepo
-	}
+	//if err = s.authzRepository.Add(ctx, policies); err != nil {
+	//	return []Policy{}, err //TODO might need to handle specific error from authzrepo
+	//}
 	return policies, err
 }
 

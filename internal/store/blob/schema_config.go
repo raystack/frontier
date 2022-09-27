@@ -44,8 +44,8 @@ type SchemaConfig struct {
 	config schema.NamespaceConfigMapType
 }
 
-func NewSchemaConfigRepository() {
-
+func NewSchemaConfigRepository(b Bucket) *SchemaConfig {
+	return &SchemaConfig{bucket: b}
 }
 
 func (s *SchemaConfig) GetSchema(ctx context.Context) (schema.NamespaceConfigMapType, error) {
@@ -62,9 +62,9 @@ func (s *SchemaConfig) GetSchema(ctx context.Context) (schema.NamespaceConfigMap
 	for _, c := range configFromFiles {
 		for k, v := range c {
 			if v.Type == "resource_group" {
-				configMap = mergeNamespaceConfigMap(configMap, getNamespacesForResourceGroup(k, v))
+				configMap = schema.MergeNamespaceConfigMap(configMap, getNamespacesForResourceGroup(k, v))
 			} else {
-				configMap = mergeNamespaceConfigMap(getNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
+				configMap = schema.MergeNamespaceConfigMap(getNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
 			}
 		}
 	}
@@ -72,33 +72,6 @@ func (s *SchemaConfig) GetSchema(ctx context.Context) (schema.NamespaceConfigMap
 	s.config = configMap
 
 	return configMap, nil
-}
-
-func mergeNamespaceConfigMap(smallMap, largeMap schema.NamespaceConfigMapType) schema.NamespaceConfigMapType {
-	combinedMap := make(schema.NamespaceConfigMapType)
-	maps.Copy(combinedMap, smallMap)
-	for namespaceName, namespaceConfig := range largeMap {
-		if _, ok := combinedMap[namespaceName]; !ok {
-			combinedMap[namespaceName] = schema.NamespaceConfig{
-				Roles:       make(map[string][]string),
-				Permissions: make(map[string][]string),
-			}
-		}
-
-		for roleName := range namespaceConfig.Roles {
-			if _, ok := combinedMap[namespaceName].Roles[roleName]; !ok {
-				combinedMap[namespaceName].Roles[roleName] = namespaceConfig.Roles[roleName]
-			} else {
-				combinedMap[namespaceName].Roles[roleName] = append(namespaceConfig.Roles[roleName], combinedMap[namespaceName].Roles[roleName]...)
-			}
-		}
-
-		for permissionName := range namespaceConfig.Permissions {
-			combinedMap[namespaceName].Permissions[permissionName] = append(namespaceConfig.Permissions[permissionName], combinedMap[namespaceName].Permissions[permissionName]...)
-		}
-	}
-
-	return combinedMap
 }
 
 func (s *SchemaConfig) readYAMLFiles(ctx context.Context) ([]map[string]Config, error) {
@@ -144,13 +117,13 @@ func getNamespacesForResourceGroup(name string, c Config) schema.NamespaceConfig
 	namespaceConfig := schema.NamespaceConfigMapType{}
 
 	for _, v := range c.ResourceTypes {
-		maps.Copy(namespaceConfig, getNamespaceFromConfig(fmt.Sprintf("%s/%s", name, v.Name), v.Roles, v.Permissions))
+		maps.Copy(namespaceConfig, getNamespaceFromConfig(name, v.Roles, v.Permissions, v.Name))
 	}
 
 	return namespaceConfig
 }
 
-func getNamespaceFromConfig(name string, rolesConfigs []RoleConfig, permissionConfigs []PermissionsConfig) schema.NamespaceConfigMapType {
+func getNamespaceFromConfig(name string, rolesConfigs []RoleConfig, permissionConfigs []PermissionsConfig, resourceType ...string) schema.NamespaceConfigMapType {
 	tnc := schema.NamespaceConfig{
 		Roles:       make(map[string][]string),
 		Permissions: make(map[string][]string),
@@ -162,6 +135,13 @@ func getNamespaceFromConfig(name string, rolesConfigs []RoleConfig, permissionCo
 
 	for _, v2 := range permissionConfigs {
 		tnc.Permissions[v2.Name] = v2.Roles
+	}
+
+	if len(resourceType) == 0 {
+		tnc.Type = schema.SystemNamespace
+	} else {
+		tnc.Type = schema.ResourceGroupNamespace
+		name = fmt.Sprintf("%s/%s", name, resourceType[0])
 	}
 
 	return schema.NamespaceConfigMapType{name: tnc}

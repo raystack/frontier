@@ -25,11 +25,13 @@ func TestA(t *testing.T) {
 			InheritedNamespaces: nil,
 			Roles:               map[string][]string{},
 			Permissions:         map[string][]string{},
+			Type:                schema.ResourceGroupNamespace,
 		},
 		"compute/network": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
 			Roles:               map[string][]string{},
 			Permissions:         map[string][]string{},
+			Type:                schema.ResourceGroupNamespace,
 		},
 		"entropy/dagger": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
@@ -44,11 +46,12 @@ func TestA(t *testing.T) {
 					"database_editor",
 				},
 			},
+			Type: schema.ResourceGroupNamespace,
 		},
 		"entropy/firehose": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
 			Roles: map[string][]string{
-				"sink/editor": {
+				"sink_editor": {
 					"user",
 					"team",
 				},
@@ -69,6 +72,7 @@ func TestA(t *testing.T) {
 					"viewer",
 				},
 			},
+			Type: schema.ResourceGroupNamespace,
 		},
 		"guardian/appeal": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
@@ -92,6 +96,7 @@ func TestA(t *testing.T) {
 					"viewer",
 				},
 			},
+			Type: schema.ResourceGroupNamespace,
 		},
 		"organization": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
@@ -109,6 +114,7 @@ func TestA(t *testing.T) {
 				},
 			},
 			Permissions: map[string][]string{},
+			Type:        schema.SystemNamespace,
 		},
 		"project": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
@@ -122,6 +128,7 @@ func TestA(t *testing.T) {
 				},
 			},
 			Permissions: map[string][]string{},
+			Type:        schema.SystemNamespace,
 		},
 	}
 
