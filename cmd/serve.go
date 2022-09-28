@@ -78,10 +78,10 @@ func StartServer(logger log.Logger, cfg *config.Shield) error {
 		defer resourceBlobRepository.Close()
 	}()
 
-	//spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
-	//if err != nil {
-	//	return err
-	//}
+	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
+	if err != nil {
+		return err
+	}
 
 	nrApp, err := setupNewRelic(cfg.NewRelic, logger)
 	if err != nil {
@@ -96,8 +96,8 @@ func StartServer(logger log.Logger, cfg *config.Shield) error {
 	roleService := role.NewService(roleRepository)
 
 	policyPGRepository := postgres.NewPolicyRepository(dbClient)
-	policySpiceRepository := spicedb.NewPolicyRepository(nil)
-	policyService := policy.NewService(policyPGRepository, policySpiceRepository)
+	policySpiceRepository := spicedb.NewPolicyRepository(spiceDBClient)
+	policyService := policy.NewService(policyPGRepository)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbClient)
 	namespaceService := namespace.NewService(namespaceRepository)
@@ -108,16 +108,13 @@ func StartServer(logger log.Logger, cfg *config.Shield) error {
 		roleService,
 		actionService,
 		policyService,
+		policySpiceRepository,
 	)
 
 	err = s.RunMigrations(ctx)
-	fmt.Println(err)
-
-	fmt.Println("DONE-------------")
-
-	time.Sleep(10 * time.Minute)
-
-	//
+	if err != nil {
+		return err
+	}
 
 	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, nil)
 	if err != nil {
@@ -207,8 +204,7 @@ func buildAPIDependencies(
 	projectService := project.NewService(projectRepository, relationService, userService)
 
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
-	policySpiceRepository := spicedb.NewPolicyRepository(sdb)
-	policyService := policy.NewService(policyPGRepository, policySpiceRepository)
+	policyService := policy.NewService(policyPGRepository)
 
 	roleRepository := postgres.NewRoleRepository(dbc)
 	roleService := role.NewService(roleRepository)

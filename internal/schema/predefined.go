@@ -5,7 +5,7 @@ const (
 	// namespace
 	OrganizationNamespace = "organization"
 	ProjectNamespace      = "project"
-	TeamNamespace         = "team"
+	GroupNamespace        = "group"
 
 	// roles
 	OwnerRole   = "owner"
@@ -23,15 +23,15 @@ const (
 	MembershipPermission = "membership"
 
 	// principals
-	UserPrincipal = "user"
-	TeamPrincipal = "team"
+	UserPrincipal  = "user"
+	GroupPrincipal = "group"
 )
 
 var OrganizationNamespaceConfig = NamespaceConfig{
 	Roles: map[string][]string{
-		OwnerRole:  {UserPrincipal, TeamPrincipal},
-		EditorRole: {UserPrincipal, TeamPrincipal},
-		ViewerRole: {UserPrincipal, TeamPrincipal},
+		OwnerRole:  {UserPrincipal, GroupPrincipal},
+		EditorRole: {UserPrincipal, GroupPrincipal},
+		ViewerRole: {UserPrincipal, GroupPrincipal},
 	},
 	Permissions: map[string][]string{
 		EditPermission: {
@@ -46,9 +46,9 @@ var OrganizationNamespaceConfig = NamespaceConfig{
 var ProjectNamespaceConfig = NamespaceConfig{
 	InheritedNamespaces: []string{OrganizationNamespace},
 	Roles: map[string][]string{
-		OwnerRole:  {UserPrincipal, TeamPrincipal},
-		EditorRole: {UserPrincipal, TeamPrincipal},
-		ViewerRole: {UserPrincipal, TeamPrincipal},
+		OwnerRole:  {UserPrincipal, GroupPrincipal},
+		EditorRole: {UserPrincipal, GroupPrincipal},
+		ViewerRole: {UserPrincipal, GroupPrincipal},
 	},
 	Permissions: map[string][]string{
 		EditPermission: {
@@ -69,7 +69,7 @@ var ProjectNamespaceConfig = NamespaceConfig{
 	},
 }
 
-var TeamNamespaceConfig = NamespaceConfig{
+var GroupNamespaceConfig = NamespaceConfig{
 	InheritedNamespaces: []string{OrganizationNamespace},
 	Roles: map[string][]string{
 		MemberRole:  {UserPrincipal},
@@ -101,16 +101,16 @@ var PreDefinedSystemNamespaceConfig = NamespaceConfigMapType{
 	UserPrincipal:         NamespaceConfig{},
 	OrganizationNamespace: OrganizationNamespaceConfig,
 	ProjectNamespace:      ProjectNamespaceConfig,
-	TeamNamespace:         TeamNamespaceConfig,
+	GroupNamespace:        GroupNamespaceConfig,
 }
 
 var PreDefinedResourceGroupNamespaceConfig = NamespaceConfig{
 	Type:                ResourceGroupNamespace,
 	InheritedNamespaces: []string{OrganizationNamespace, ProjectNamespace},
 	Roles: map[string][]string{
-		OwnerRole:  {UserPrincipal, TeamPrincipal},
-		EditorRole: {UserPrincipal, TeamPrincipal},
-		ViewerRole: {UserPrincipal, TeamPrincipal},
+		OwnerRole:  {UserPrincipal, GroupPrincipal},
+		EditorRole: {UserPrincipal, GroupPrincipal},
+		ViewerRole: {UserPrincipal, GroupPrincipal},
 	},
 	Permissions: map[string][]string{
 		EditPermission: {

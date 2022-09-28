@@ -36,7 +36,7 @@ func TestA(t *testing.T) {
 		"entropy/dagger": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
 			Roles: map[string][]string{
-				"database_editor": {"team"},
+				"database_editor": {"group"},
 				"viewer":          {"user"},
 			},
 			Permissions: map[string][]string{
@@ -53,11 +53,11 @@ func TestA(t *testing.T) {
 			Roles: map[string][]string{
 				"sink_editor": {
 					"user",
-					"team",
+					"group",
 				},
 				"viewer": {
 					"user",
-					"team",
+					"group",
 				},
 			},
 			Permissions: map[string][]string{
@@ -82,7 +82,7 @@ func TestA(t *testing.T) {
 				},
 				"viewer": {
 					"user",
-					"team",
+					"group",
 				},
 			},
 			Permissions: map[string][]string{
@@ -103,14 +103,14 @@ func TestA(t *testing.T) {
 			Roles: map[string][]string{
 				"appleal_owner": {
 					"user",
-					"team",
+					"group",
 				},
 				"database_editor": {
-					"team",
+					"group",
 				},
 				"sink_editor": {
 					"user",
-					"team",
+					"group",
 				},
 			},
 			Permissions: map[string][]string{},
@@ -124,7 +124,7 @@ func TestA(t *testing.T) {
 				},
 				"viewer": {
 					"user",
-					"team",
+					"group",
 				},
 			},
 			Permissions: map[string][]string{},

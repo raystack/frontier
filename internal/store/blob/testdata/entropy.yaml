@@ -6,11 +6,11 @@ entropy:
         - name: viewer
           principals:
             - user
-            - team
+            - group
         - name: sink_editor
           principals:
             - user
-            - team
+            - group
       permissions:
         - name: view
           roles:
@@ -29,7 +29,7 @@ entropy:
             - user
         - name: database_editor
           principals:
-            - team
+            - group
       permissions:
         - name: database_edit
           roles:
@@ -43,10 +43,10 @@ organization:
     - name: sink_editor
       principals:
         - user
-        - team
+        - group
     - name: database_editor
       principals:
-        - team
+        - group
 
 project:
   type: system
@@ -54,7 +54,7 @@ project:
     - name: viewer
       principals:
         - user
-        - team
+        - group
     - name: owner
       principals:
         - group

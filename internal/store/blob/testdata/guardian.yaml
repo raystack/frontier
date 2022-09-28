@@ -6,7 +6,7 @@ guardian:
         - name: viewer
           principals:
             - user
-            - team
+            - group
         - name: remover
           principals:
             - user
@@ -27,5 +27,5 @@ organization:
     - name: appleal_owner
       principals:
         - user
-        - team
+        - group
 

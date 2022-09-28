@@ -2,6 +2,7 @@ package schema
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -18,6 +19,8 @@ type NamespaceType string
 var (
 	SystemNamespace        NamespaceType = "system_namespace"
 	ResourceGroupNamespace NamespaceType = "resource_group_namespace"
+
+	ErrMigration = errors.New("error in migrating authz schema")
 )
 
 type NamespaceConfig struct {
@@ -49,12 +52,17 @@ type FileService interface {
 	GetSchema(ctx context.Context) (NamespaceConfigMapType, error)
 }
 
+type AuthzEngine interface {
+	WriteSchema(ctx context.Context, schema NamespaceConfigMapType) error
+}
+
 type SchemaService struct {
 	schemaConfig     FileService
 	namespaceService NamespaceService
 	roleService      RoleService
 	actionService    ActionService
 	policyService    PolicyService
+	authzEngine      AuthzEngine
 }
 
 func NewSchemaMigrationService(
@@ -62,13 +70,15 @@ func NewSchemaMigrationService(
 	namespaceService NamespaceService,
 	roleService RoleService,
 	actionService ActionService,
-	policyService PolicyService) *SchemaService {
+	policyService PolicyService,
+	authzEngine AuthzEngine) *SchemaService {
 	return &SchemaService{
 		schemaConfig:     schemaConfig,
 		namespaceService: namespaceService,
 		roleService:      roleService,
 		actionService:    actionService,
 		policyService:    policyService,
+		authzEngine:      authzEngine,
 	}
 }
 
@@ -112,7 +122,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			ResourceType: resourceType,
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 		}
 
 		// create roles
@@ -124,7 +134,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				NamespaceID: namespaceId,
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 			}
 		}
 
@@ -137,7 +147,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				NamespaceID: namespaceId,
 			})
 			if err != nil {
-				return err
+				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 			}
 		}
 	}
@@ -148,7 +158,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			for _, r := range roles {
 				transformedRole, err := getRoleAndPrincipal(r, namespaceId)
 				if err != nil {
-					return err
+					return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 				}
 
 				if _, ok := namespaceConfigMap[transformedRole.NamespaceID].Roles[transformedRole.ID]; !ok {
@@ -161,14 +171,15 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 					ActionID:    fmt.Sprintf("%s.%s", actionId, namespaceId),
 				})
 				if err != nil {
-					return err
+					return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 				}
 			}
 		}
 	}
 
-	spiceDBSchema := GenerateSchema(namespaceConfigMap)
-	fmt.Println(strings.Join(spiceDBSchema, "\n"))
+	if err = s.authzEngine.WriteSchema(ctx, namespaceConfigMap); err != nil {
+		return fmt.Errorf("%w: %s", ErrMigration, err.Error())
+	}
 
 	return nil
 }
@@ -198,6 +209,7 @@ func MergeNamespaceConfigMap(smallMap, largeMap NamespaceConfigMapType) Namespac
 
 		if value, ok := combinedMap[namespaceName]; ok {
 			value.Type = namespaceConfig.Type
+			value.InheritedNamespaces = AppendIfUnique(value.InheritedNamespaces, namespaceConfig.InheritedNamespaces)
 			combinedMap[namespaceName] = value
 		}
 	}
