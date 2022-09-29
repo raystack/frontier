@@ -1,17 +1,17 @@
 [
     {
-        "role_id": "role1",
-        "action_id": "action1",
-        "namespace_id": "ns1"
+        "roleId": "role1",
+        "actionId": "action1",
+        "namespaceId": "ns1"
     },
     {
-        "role_id": "role2",
-        "action_id": "action2",
-        "namespace_id": "ns2"
+        "roleId": "role2",
+        "actionId": "action2",
+        "namespaceId": "ns2"
     },
     {
-        "role_id": "role2",
-        "action_id": "action3",
-        "namespace_id": "ns1"
+        "roleId": "role2",
+        "actionId": "action3",
+        "namespaceId": "ns1"
     }
 ]

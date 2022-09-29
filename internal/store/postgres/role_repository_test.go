@@ -8,7 +8,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
@@ -91,10 +90,6 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 					"user",
 				},
 				NamespaceID: "ns1",
-				Namespace: namespace.Namespace{
-					ID:   "ns1",
-					Name: "ns1",
-				},
 			},
 		},
 		{
@@ -116,7 +111,7 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedRole, cmpopts.IgnoreFields(role.Role{}, "Metadata", "Namespace.CreatedAt", "Namespace.UpdatedAt", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedRole, cmpopts.IgnoreFields(role.Role{}, "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRole)
 			}
 		})
@@ -144,19 +139,6 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 				NamespaceID: "ns1",
 			},
 			ExpectedID: "role3",
-		},
-		{
-			Description: "should return error if role name conflicted",
-			RoleToCreate: role.Role{
-				ID:   "role-conflict",
-				Name: "role other",
-				Types: []string{
-					"some-type1",
-					"some-type2",
-				},
-				NamespaceID: "ns1",
-			},
-			ErrString: role.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if namespace id does not exist",
@@ -211,10 +193,6 @@ func (s *RoleRepositoryTestSuite) TestList() {
 						"user",
 					},
 					NamespaceID: "ns1",
-					Namespace: namespace.Namespace{
-						ID:   "ns1",
-						Name: "ns1",
-					},
 				},
 				{
 					ID:   "role2",
@@ -224,10 +202,6 @@ func (s *RoleRepositoryTestSuite) TestList() {
 						"user",
 					},
 					NamespaceID: "ns2",
-					Namespace: namespace.Namespace{
-						ID:   "ns2",
-						Name: "ns2",
-					},
 					Metadata: map[string]any{
 						"key-string":  "value-string",
 						"key-integer": 123,
@@ -250,7 +224,7 @@ func (s *RoleRepositoryTestSuite) TestList() {
 				}
 			}
 			//TODO figure out how to compare metadata map[string]any
-			if !cmp.Equal(got, tc.ExpectedRoles, cmpopts.IgnoreFields(role.Role{}, "Metadata", "Namespace.CreatedAt", "Namespace.UpdatedAt", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedRoles, cmpopts.IgnoreFields(role.Role{}, "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoles)
 			}
 		})
@@ -279,20 +253,6 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 				NamespaceID: "ns1",
 			},
 			ExpectedID: "role1",
-		},
-		{
-			Description: "should return error if role name conflicted",
-			RoleToUpdate: role.Role{
-				ID:   "role2",
-				Name: "role member new updated",
-				Types: []string{
-					"member",
-					"user",
-					"role-member",
-				},
-				NamespaceID: "ns1",
-			},
-			ErrString: role.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if namespace id not exist",

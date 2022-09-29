@@ -60,14 +60,19 @@ func (c Authz) Info() *middleware.MiddlewareInfo {
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	usr, err := c.userService.FetchCurrentUser(req.Context())
-	if err != nil {
-		c.log.Error("middleware: failed to get user details", "err", err.Error())
-		c.notAllowed(rw)
+	//usr, err := c.userService.FetchCurrentUser(req.Context())
+	//if err != nil {
+	//	c.log.Error("middleware: failed to get user details", "err", err.Error())
+	//	c.notAllowed(rw)
+	//	return
+	//}
+
+	//req.Header.Set(c.userIDHeaderKey, usr.ID)
+	wareSpec, ok := middleware.ExtractMiddleware(req, c.Info().Name)
+	if !ok {
+		c.next.ServeHTTP(rw, req)
 		return
 	}
-
-	req.Header.Set(c.userIDHeaderKey, usr.ID)
 
 	permissionAttributes, ok := attributes.GetAttributesFromContext(req.Context())
 	if !ok {
@@ -78,12 +83,6 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	ns := permissionAttributes["namespace"]
 
 	if ns == nil {
-		c.next.ServeHTTP(rw, req)
-		return
-	}
-
-	wareSpec, ok := middleware.ExtractMiddleware(req, c.Info().Name)
-	if !ok {
 		c.next.ServeHTTP(rw, req)
 		return
 	}

@@ -174,8 +174,8 @@ func (s Service) removeAdminFromOrg(ctx context.Context, user user.User, org Org
 		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			ID:        role.DefinitionOrganizationAdmin.ID,
-			Namespace: namespace.DefinitionOrg,
+			ID:          role.DefinitionOrganizationAdmin.ID,
+			NamespaceID: namespace.DefinitionOrg.ID,
 		},
 	}
 	return s.relationService.Delete(ctx, rel)
@@ -188,8 +188,8 @@ func (s Service) addAdminToOrg(ctx context.Context, user user.User, org Organiza
 		SubjectID:        user.ID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			ID:        role.DefinitionOrganizationAdmin.ID,
-			Namespace: namespace.DefinitionOrg,
+			ID:          role.DefinitionOrganizationAdmin.ID,
+			NamespaceID: namespace.DefinitionOrg.ID,
 		},
 	}
 	if _, err := s.relationService.Create(ctx, rel); err != nil {

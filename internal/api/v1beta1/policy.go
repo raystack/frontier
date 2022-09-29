@@ -153,28 +153,8 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 }
 
 func transformPolicyToPB(policy policy.Policy) (shieldv1beta1.Policy, error) {
-	role, err := transformRoleToPB(policy.Role)
-	if err != nil {
-		return shieldv1beta1.Policy{}, err
-	}
-
-	action, err := transformActionToPB(policy.Action)
-
-	if err != nil {
-		return shieldv1beta1.Policy{}, err
-	}
-
-	namespace, err := transformNamespaceToPB(policy.Namespace)
-
-	if err != nil {
-		return shieldv1beta1.Policy{}, err
-	}
-
 	return shieldv1beta1.Policy{
 		Id:        policy.ID,
-		Role:      &role,
-		Action:    &action,
-		Namespace: &namespace,
 		CreatedAt: timestamppb.New(policy.CreatedAt),
 		UpdatedAt: timestamppb.New(policy.UpdatedAt),
 	}, nil

@@ -45,13 +45,15 @@ func (from Policy) transformToPolicy() (policy.Policy, error) {
 
 	return policy.Policy{
 		ID:          from.ID,
-		Role:        rl,
 		RoleID:      rl.ID,
-		Action:      from.Action.transformToAction(),
 		ActionID:    act.ID,
-		Namespace:   from.Namespace.transformToNamespace(),
 		NamespaceID: ns.ID,
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,
+
+		// @TODO(krtkvrm): issues/171
+		DepreciatedAction:    from.Action.transformToAction(),
+		DepreciatedRole:      rl,
+		DepreciatedNamespace: from.Namespace.transformToNamespace(),
 	}, nil
 }

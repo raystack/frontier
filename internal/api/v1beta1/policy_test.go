@@ -6,19 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -26,36 +21,10 @@ var (
 	testPolicyID  = uuid.NewString()
 	testPolicyMap = map[string]policy.Policy{
 		testPolicyID: {
-			ID: testPolicyID,
-			Action: action.Action{
-				ID:   "read",
-				Name: "Read",
-				Namespace: namespace.Namespace{
-					ID:        "policy-1",
-					Name:      "Policy 1",
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-				},
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-			},
-			Namespace: namespace.Namespace{
-				ID:        "policy-1",
-				Name:      "Policy 1",
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-			},
-			Role: role.Role{
-				ID:       "reader",
-				Name:     "Reader",
-				Metadata: metadata.Metadata{},
-				Namespace: namespace.Namespace{
-					ID:        "policy-1",
-					Name:      "Policy 1",
-					CreatedAt: time.Time{},
-					UpdatedAt: time.Time{},
-				},
-			},
+			ID:          testPolicyID,
+			ActionID:    "read",
+			NamespaceID: "policy-1",
+			RoleID:      "reader",
 		},
 	}
 )
@@ -88,37 +57,40 @@ func TestListPolicies(t *testing.T) {
 			want: &shieldv1beta1.ListPoliciesResponse{Policies: []*shieldv1beta1.Policy{
 				{
 					Id: testPolicyID,
-					Action: &shieldv1beta1.Action{
-						Id:   "read",
-						Name: "Read",
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        "policy-1",
-						Name:      "Policy 1",
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-					Role: &shieldv1beta1.Role{
-						Id:       "reader",
-						Name:     "Reader",
-						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					// @TODO(krtkvrm): issues/171
+					//Action: &shieldv1beta1.Action{
+					//	Id:   "read",
+					//	Name: "Read",
+					//	// @TODO(krtkvrm): issues/171
+					//	//Namespace: &shieldv1beta1.Namespace{
+					//	//	Id:        "policy-1",
+					//	//	Name:      "Policy 1",
+					//	//	CreatedAt: timestamppb.New(time.Time{}),
+					//	//	UpdatedAt: timestamppb.New(time.Time{}),
+					//	//},
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
+					//Namespace: &shieldv1beta1.Namespace{
+					//	Id:        "policy-1",
+					//	Name:      "Policy 1",
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
+					//Role: &shieldv1beta1.Role{
+					//	Id:       "reader",
+					//	Name:     "Reader",
+					//	Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+					//	// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+					//	//Namespace: &shieldv1beta1.Namespace{
+					//	//	Id:        "policy-1",
+					//	//	Name:      "Policy 1",
+					//	//	CreatedAt: timestamppb.New(time.Time{}),
+					//	//	UpdatedAt: timestamppb.New(time.Time{}),
+					//	//},
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -192,36 +164,10 @@ func TestCreatePolicy(t *testing.T) {
 					ActionID:    "read",
 				}).Return([]policy.Policy{
 					{
-						ID: "test",
-						Action: action.Action{
-							ID:   "read",
-							Name: "Read",
-							Namespace: namespace.Namespace{
-								ID:        "policy-1",
-								Name:      "Policy 1",
-								CreatedAt: time.Time{},
-								UpdatedAt: time.Time{},
-							},
-							CreatedAt: time.Time{},
-							UpdatedAt: time.Time{},
-						},
-						Namespace: namespace.Namespace{
-							ID:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: time.Time{},
-							UpdatedAt: time.Time{},
-						},
-						Role: role.Role{
-							ID:       "reader",
-							Name:     "Reader",
-							Metadata: metadata.Metadata{},
-							Namespace: namespace.Namespace{
-								ID:        "policy-1",
-								Name:      "Policy 1",
-								CreatedAt: time.Time{},
-								UpdatedAt: time.Time{},
-							},
-						},
+						ID:          "test",
+						ActionID:    "read",
+						NamespaceID: "policy-1",
+						RoleID:      "reader",
 					},
 				}, nil)
 			},
@@ -233,37 +179,40 @@ func TestCreatePolicy(t *testing.T) {
 			want: &shieldv1beta1.CreatePolicyResponse{Policies: []*shieldv1beta1.Policy{
 				{
 					Id: "test",
-					Action: &shieldv1beta1.Action{
-						Id:   "read",
-						Name: "Read",
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        "policy-1",
-						Name:      "Policy 1",
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-					Role: &shieldv1beta1.Role{
-						Id:       "reader",
-						Name:     "Reader",
-						Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        "policy-1",
-							Name:      "Policy 1",
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					// @TODO(krtkvrm): issues/171
+					//Action: &shieldv1beta1.Action{
+					//	Id:   "read",
+					//	Name: "Read",
+					//	// @TODO(krtkvrm): issues/171
+					//	//Namespace: &shieldv1beta1.Namespace{
+					//	//	Id:        "policy-1",
+					//	//	Name:      "Policy 1",
+					//	//	CreatedAt: timestamppb.New(time.Time{}),
+					//	//	UpdatedAt: timestamppb.New(time.Time{}),
+					//	//},
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
+					//Namespace: &shieldv1beta1.Namespace{
+					//	Id:        "policy-1",
+					//	Name:      "Policy 1",
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
+					//Role: &shieldv1beta1.Role{
+					//	Id:       "reader",
+					//	Name:     "Reader",
+					//	Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{}},
+					//	// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+					//	//Namespace: &shieldv1beta1.Namespace{
+					//	//	Id:        "policy-1",
+					//	//	Name:      "Policy 1",
+					//	//	CreatedAt: timestamppb.New(time.Time{}),
+					//	//	UpdatedAt: timestamppb.New(time.Time{}),
+					//	//},
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -347,39 +296,42 @@ func TestHandler_GetPolicy(t *testing.T) {
 			want: &shieldv1beta1.GetPolicyResponse{
 				Policy: &shieldv1beta1.Policy{
 					Id: testPolicyID,
-					Role: &shieldv1beta1.Role{
-						Id:   testPolicyMap[testPolicyID].Role.ID,
-						Name: testPolicyMap[testPolicyID].Role.Name,
-						Metadata: &structpb.Struct{
-							Fields: make(map[string]*structpb.Value),
-						},
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        testPolicyMap[testPolicyID].Namespace.ID,
-							Name:      testPolicyMap[testPolicyID].Namespace.Name,
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-					Action: &shieldv1beta1.Action{
-						Id:   testPolicyMap[testPolicyID].Action.ID,
-						Name: testPolicyMap[testPolicyID].Action.Name,
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        testPolicyMap[testPolicyID].Namespace.ID,
-							Name:      testPolicyMap[testPolicyID].Namespace.Name,
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        testPolicyMap[testPolicyID].Namespace.ID,
-						Name:      testPolicyMap[testPolicyID].Namespace.Name,
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					// // @TODO(krtkvrm): issues/171
+					//Role: &shieldv1beta1.Role{
+					//	Id:   testPolicyMap[testPolicyID].Role.ID,
+					//	Name: testPolicyMap[testPolicyID].Role.Name,
+					//	Metadata: &structpb.Struct{
+					//		Fields: make(map[string]*structpb.Value),
+					//	},
+					//	// TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+					//	//Namespace: &shieldv1beta1.Namespace{
+					//	//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+					//	//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+					//	//	CreatedAt: timestamppb.New(time.Time{}),
+					//	//	UpdatedAt: timestamppb.New(time.Time{}),
+					//	//},
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
+					//Action: &shieldv1beta1.Action{
+					//	Id:   testPolicyMap[testPolicyID].ActionID,
+					//	Name: testPolicyMap[testPolicyID].Action.Name,
+					//	// @TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+					//	//Namespace: &shieldv1beta1.Namespace{
+					//	//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+					//	//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+					//	//	CreatedAt: timestamppb.New(time.Time{}),
+					//	//	UpdatedAt: timestamppb.New(time.Time{}),
+					//	//},
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
+					//Namespace: &shieldv1beta1.Namespace{
+					//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+					//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -414,17 +366,17 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 			setup: func(rs *mocks.PolicyService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
-					RoleID:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceID: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionID:    testPolicyMap[testPolicyID].Action.ID,
+					RoleID:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
+					ActionID:    testPolicyMap[testPolicyID].ActionID,
 				}).Return([]policy.Policy{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdatePolicyRequest{
 				Id: testPolicyID,
 				Body: &shieldv1beta1.PolicyRequestBody{
-					RoleId:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceId: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionId:    testPolicyMap[testPolicyID].Action.ID,
+					RoleId:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
+					ActionId:    testPolicyMap[testPolicyID].ActionID,
 				},
 			},
 			want:    nil,
@@ -434,16 +386,16 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.PolicyService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
-					RoleID:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceID: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionID:    testPolicyMap[testPolicyID].Action.ID,
+					RoleID:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
+					ActionID:    testPolicyMap[testPolicyID].ActionID,
 				}).Return([]policy.Policy{}, policy.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdatePolicyRequest{
 				Body: &shieldv1beta1.PolicyRequestBody{
-					RoleId:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceId: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionId:    testPolicyMap[testPolicyID].Action.ID,
+					RoleId:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
+					ActionId:    testPolicyMap[testPolicyID].ActionID,
 				},
 			},
 			want:    nil,
@@ -454,17 +406,17 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 			setup: func(rs *mocks.PolicyService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
-					RoleID:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceID: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionID:    testPolicyMap[testPolicyID].Action.ID,
+					RoleID:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
+					ActionID:    testPolicyMap[testPolicyID].ActionID,
 				}).Return([]policy.Policy{}, policy.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdatePolicyRequest{
 				Id: testPolicyID,
 				Body: &shieldv1beta1.PolicyRequestBody{
-					RoleId:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceId: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionId:    testPolicyMap[testPolicyID].Action.ID,
+					RoleId:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
+					ActionId:    testPolicyMap[testPolicyID].ActionID,
 				},
 			},
 			want:    nil,
@@ -475,17 +427,17 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 			setup: func(rs *mocks.PolicyService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
 					ID:          "some-id",
-					RoleID:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceID: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionID:    testPolicyMap[testPolicyID].Action.ID,
+					RoleID:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
+					ActionID:    testPolicyMap[testPolicyID].ActionID,
 				}).Return([]policy.Policy{}, policy.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.UpdatePolicyRequest{
 				Id: "some-id",
 				Body: &shieldv1beta1.PolicyRequestBody{
-					RoleId:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceId: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionId:    testPolicyMap[testPolicyID].Action.ID,
+					RoleId:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
+					ActionId:    testPolicyMap[testPolicyID].ActionID,
 				},
 			},
 			want:    nil,
@@ -496,17 +448,17 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 			setup: func(rs *mocks.PolicyService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
-					RoleID:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceID: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionID:    testPolicyMap[testPolicyID].Action.ID,
+					RoleID:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
+					ActionID:    testPolicyMap[testPolicyID].ActionID,
 				}).Return([]policy.Policy{}, policy.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdatePolicyRequest{
 				Id: testPolicyID,
 				Body: &shieldv1beta1.PolicyRequestBody{
-					RoleId:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceId: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionId:    testPolicyMap[testPolicyID].Action.ID,
+					RoleId:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
+					ActionId:    testPolicyMap[testPolicyID].ActionID,
 				},
 			},
 			want:    nil,
@@ -517,17 +469,17 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 			setup: func(rs *mocks.PolicyService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
-					RoleID:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceID: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionID:    testPolicyMap[testPolicyID].Action.ID,
+					RoleID:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
+					ActionID:    testPolicyMap[testPolicyID].ActionID,
 				}).Return([]policy.Policy{}, policy.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdatePolicyRequest{
 				Id: testPolicyID,
 				Body: &shieldv1beta1.PolicyRequestBody{
-					RoleId:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceId: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionId:    testPolicyMap[testPolicyID].Action.ID,
+					RoleId:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
+					ActionId:    testPolicyMap[testPolicyID].ActionID,
 				},
 			},
 			want:    nil,
@@ -542,56 +494,59 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 				}
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
-					RoleID:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceID: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionID:    testPolicyMap[testPolicyID].Action.ID,
+					RoleID:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
+					ActionID:    testPolicyMap[testPolicyID].ActionID,
 				}).Return(testPoliciesList, nil)
 			},
 			request: &shieldv1beta1.UpdatePolicyRequest{
 				Id: testPolicyID,
 				Body: &shieldv1beta1.PolicyRequestBody{
-					RoleId:      testPolicyMap[testPolicyID].Role.ID,
-					NamespaceId: testPolicyMap[testPolicyID].Namespace.ID,
-					ActionId:    testPolicyMap[testPolicyID].Action.ID,
+					RoleId:      testPolicyMap[testPolicyID].RoleID,
+					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
+					ActionId:    testPolicyMap[testPolicyID].ActionID,
 				},
 			},
 			want: &shieldv1beta1.UpdatePolicyResponse{
 				Policies: []*shieldv1beta1.Policy{
 					{
 						Id: testPolicyID,
-						Role: &shieldv1beta1.Role{
-							Id:   testPolicyMap[testPolicyID].Role.ID,
-							Name: testPolicyMap[testPolicyID].Role.Name,
-							Metadata: &structpb.Struct{
-								Fields: make(map[string]*structpb.Value),
-							},
-							Namespace: &shieldv1beta1.Namespace{
-								Id:        testPolicyMap[testPolicyID].Namespace.ID,
-								Name:      testPolicyMap[testPolicyID].Namespace.Name,
-								CreatedAt: timestamppb.New(time.Time{}),
-								UpdatedAt: timestamppb.New(time.Time{}),
-							},
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						Action: &shieldv1beta1.Action{
-							Id:   testPolicyMap[testPolicyID].Action.ID,
-							Name: testPolicyMap[testPolicyID].Action.Name,
-							Namespace: &shieldv1beta1.Namespace{
-								Id:        testPolicyMap[testPolicyID].Namespace.ID,
-								Name:      testPolicyMap[testPolicyID].Namespace.Name,
-								CreatedAt: timestamppb.New(time.Time{}),
-								UpdatedAt: timestamppb.New(time.Time{}),
-							},
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
-						Namespace: &shieldv1beta1.Namespace{
-							Id:        testPolicyMap[testPolicyID].Namespace.ID,
-							Name:      testPolicyMap[testPolicyID].Namespace.Name,
-							CreatedAt: timestamppb.New(time.Time{}),
-							UpdatedAt: timestamppb.New(time.Time{}),
-						},
+						// @TODO(krtkvrm): issues/171
+						//Role: &shieldv1beta1.Role{
+						//	Id:   testPolicyMap[testPolicyID].Role.ID,
+						//	Name: testPolicyMap[testPolicyID].Role.Name,
+						//	Metadata: &structpb.Struct{
+						//		Fields: make(map[string]*structpb.Value),
+						//	},
+						//	// @TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+						//	//Namespace: &shieldv1beta1.Namespace{
+						//	//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+						//	//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+						//	//	CreatedAt: timestamppb.New(time.Time{}),
+						//	//	UpdatedAt: timestamppb.New(time.Time{}),
+						//	//},
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
+						//Action: &shieldv1beta1.Action{
+						//	Id:   testPolicyMap[testPolicyID].Action.ID,
+						//	Name: testPolicyMap[testPolicyID].Action.Name,
+						//	// @TODO(krtkvrm): remove namespace from role proto and replace it with namespaceid
+						//	//Namespace: &shieldv1beta1.Namespace{
+						//	//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+						//	//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+						//	//	CreatedAt: timestamppb.New(time.Time{}),
+						//	//	UpdatedAt: timestamppb.New(time.Time{}),
+						//	//},
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
+						//Namespace: &shieldv1beta1.Namespace{
+						//	Id:        testPolicyMap[testPolicyID].Namespace.ID,
+						//	Name:      testPolicyMap[testPolicyID].Namespace.Name,
+						//	CreatedAt: timestamppb.New(time.Time{}),
+						//	UpdatedAt: timestamppb.New(time.Time{}),
+						//},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
