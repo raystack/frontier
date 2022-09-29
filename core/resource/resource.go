@@ -25,7 +25,6 @@ type Repository interface {
 
 type ConfigRepository interface {
 	GetAll(ctx context.Context) ([]YAML, error)
-	GetRelationsForNamespace(ctx context.Context, namespaceID string) (map[string]bool, error)
 }
 
 type Resource struct {

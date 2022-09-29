@@ -5,14 +5,12 @@ import (
 )
 
 type Service struct {
-	repository      Repository
-	authzRepository AuthzRepository
+	repository Repository
 }
 
-func NewService(repository Repository, authzRepository AuthzRepository) *Service {
+func NewService(repository Repository) *Service {
 	return &Service{
-		repository:      repository,
-		authzRepository: authzRepository,
+		repository: repository,
 	}
 }
 
@@ -32,9 +30,7 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 	if err != nil {
 		return []Policy{}, err
 	}
-	if err = s.authzRepository.Add(ctx, policies); err != nil {
-		return []Policy{}, err //TODO might need to handle specific error from authzrepo
-	}
+
 	return policies, err
 }
 
@@ -48,8 +44,5 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 		return []Policy{}, err
 	}
 
-	if err = s.authzRepository.Add(ctx, policies); err != nil {
-		return []Policy{}, err
-	}
 	return policies, err
 }

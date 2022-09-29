@@ -23,40 +23,25 @@ var (
 	testActionID  = "read"
 	testActionMap = map[string]action.Action{
 		"read": {
-			ID:   "read",
-			Name: "Read",
-			Namespace: namespace.Namespace{
-				ID:        "resource-1",
-				Name:      "Resource 1",
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-			},
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
+			ID:          "read",
+			Name:        "Read",
+			NamespaceID: "resource-1",
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		},
 		"write": {
-			ID:   "write",
-			Name: "Write",
-			Namespace: namespace.Namespace{
-				ID:        "resource-1",
-				Name:      "Resource 1",
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-			},
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
+			ID:          "write",
+			Name:        "Write",
+			NamespaceID: "resource-1",
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		},
 		"manage": {
-			ID:   "manage",
-			Name: "Manage",
-			Namespace: namespace.Namespace{
-				ID:        "resource-1",
-				Name:      "Resource 1",
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-			},
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
+			ID:          "manage",
+			Name:        "Manage",
+			NamespaceID: "resource-1",
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		},
 	}
 )
@@ -94,36 +79,39 @@ func TestListActions(t *testing.T) {
 				{
 					Id:   "manage",
 					Name: "Manage",
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        "resource-1",
-						Name:      "Resource 1",
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					// @TODO(krtkvrm): issues/171
+					//Namespace: &shieldv1beta1.Namespace{
+					//	Id:        "resource-1",
+					//	Name:      "Resource 1",
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
 				{
 					Id:   "read",
 					Name: "Read",
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        "resource-1",
-						Name:      "Resource 1",
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					// @TODO(krtkvrm): issues/171
+					//Namespace: &shieldv1beta1.Namespace{
+					//	Id:        "resource-1",
+					//	Name:      "Resource 1",
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
 				{
 					Id:   "write",
 					Name: "Write",
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        "resource-1",
-						Name:      "Resource 1",
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					// @TODO(krtkvrm): issues/171
+					//Namespace: &shieldv1beta1.Namespace{
+					//	Id:        "resource-1",
+					//	Name:      "Resource 1",
+					//	CreatedAt: timestamppb.New(time.Time{}),
+					//	UpdatedAt: timestamppb.New(time.Time{}),
+					//},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -234,7 +222,6 @@ func TestCreateAction(t *testing.T) {
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
-					Namespace:   testActionMap[testActionID].Namespace,
 				}, nil)
 			},
 			req: &shieldv1beta1.CreateActionRequest{Body: &shieldv1beta1.ActionRequestBody{
@@ -243,14 +230,8 @@ func TestCreateAction(t *testing.T) {
 				NamespaceId: testActionMap[testActionID].NamespaceID,
 			}},
 			want: &shieldv1beta1.CreateActionResponse{Action: &shieldv1beta1.Action{
-				Id:   testActionMap[testActionID].ID,
-				Name: testActionMap[testActionID].Name,
-				Namespace: &shieldv1beta1.Namespace{
-					Id:        testActionMap[testActionID].Namespace.ID,
-					Name:      testActionMap[testActionID].Namespace.Name,
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
-				},
+				Id:        testActionMap[testActionID].ID,
+				Name:      testActionMap[testActionID].Name,
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),
 			}},
@@ -321,14 +302,8 @@ func TestHandler_GetAction(t *testing.T) {
 			},
 			want: &shieldv1beta1.GetActionResponse{
 				Action: &shieldv1beta1.Action{
-					Id:   testActionMap[testActionID].ID,
-					Name: testActionMap[testActionID].Name,
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        testActionMap[testActionID].Namespace.ID,
-						Name:      testActionMap[testActionID].Namespace.Name,
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					Id:        testActionMap[testActionID].ID,
+					Name:      testActionMap[testActionID].Name,
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -468,14 +443,8 @@ func TestHandler_UpdateAction(t *testing.T) {
 			},
 			want: &shieldv1beta1.UpdateActionResponse{
 				Action: &shieldv1beta1.Action{
-					Id:   testActionMap[testActionID].ID,
-					Name: testActionMap[testActionID].Name,
-					Namespace: &shieldv1beta1.Namespace{
-						Id:        testActionMap[testActionID].Namespace.ID,
-						Name:      testActionMap[testActionID].Namespace.Name,
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
-					},
+					Id:        testActionMap[testActionID].ID,
+					Name:      testActionMap[testActionID].Name,
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},

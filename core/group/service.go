@@ -270,8 +270,8 @@ func (s Service) addTeamToOrg(ctx context.Context, team Group, org organization.
 		SubjectID:        orgId,
 		SubjectNamespace: namespace.DefinitionOrg,
 		Role: role.Role{
-			ID:        namespace.DefinitionOrg.ID,
-			Namespace: namespace.DefinitionTeam,
+			ID:          namespace.DefinitionOrg.ID,
+			NamespaceID: namespace.DefinitionTeam.ID,
 		},
 		RelationType: relation.RelationTypes.Namespace,
 	}
@@ -301,8 +301,8 @@ func (s Service) addMemberToTeam(ctx context.Context, userID, groupID string) er
 		SubjectID:        userID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			ID:        role.DefinitionTeamMember.ID,
-			Namespace: namespace.DefinitionTeam,
+			ID:          role.DefinitionTeamMember.ID,
+			NamespaceID: namespace.DefinitionTeam.ID,
 		},
 	}
 	_, err := s.relationService.Create(ctx, rel)
@@ -321,8 +321,8 @@ func (s Service) removeMemberFromTeam(ctx context.Context, userID, groupID strin
 		SubjectID:        userID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			ID:        role.DefinitionTeamMember.ID,
-			Namespace: namespace.DefinitionTeam,
+			ID:          role.DefinitionTeamMember.ID,
+			NamespaceID: namespace.DefinitionTeam.ID,
 		},
 	}
 	return s.relationService.Delete(ctx, rel)
@@ -335,8 +335,8 @@ func (s Service) getTeamAdminRelation(userID, groupID string) relation.Relation 
 		SubjectID:        userID,
 		SubjectNamespace: namespace.DefinitionUser,
 		Role: role.Role{
-			ID:        role.DefinitionTeamAdmin.ID,
-			Namespace: namespace.DefinitionTeam,
+			ID:          role.DefinitionTeamAdmin.ID,
+			NamespaceID: namespace.DefinitionTeam.ID,
 		},
 	}
 	return rel

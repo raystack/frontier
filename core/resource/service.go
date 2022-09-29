@@ -119,8 +119,8 @@ func (s Service) AddProjectToResource(ctx context.Context, project project.Proje
 		SubjectID:        project.ID,
 		SubjectNamespace: namespace.DefinitionProject,
 		Role: role.Role{
-			ID:        namespace.DefinitionProject.ID,
-			Namespace: resourceNS,
+			ID:          namespace.DefinitionProject.ID,
+			NamespaceID: resourceNS.ID,
 		},
 		RelationType: relation.RelationTypes.Namespace,
 	}
@@ -142,8 +142,8 @@ func (s Service) AddOrgToResource(ctx context.Context, org organization.Organiza
 		SubjectID:        org.ID,
 		SubjectNamespace: namespace.DefinitionOrg,
 		Role: role.Role{
-			ID:        namespace.DefinitionOrg.ID,
-			Namespace: resourceNS,
+			ID:          namespace.DefinitionOrg.ID,
+			NamespaceID: resourceNS.ID,
 		},
 		RelationType: relation.RelationTypes.Namespace,
 	}
@@ -165,8 +165,8 @@ func (s Service) AddTeamToResource(ctx context.Context, team group.Group, res Re
 		SubjectID:        team.ID,
 		SubjectNamespace: namespace.DefinitionTeam,
 		Role: role.Role{
-			ID:        namespace.DefinitionTeam.ID,
-			Namespace: resourceNS,
+			ID:          namespace.DefinitionTeam.ID,
+			NamespaceID: resourceNS.ID,
 		},
 		RelationType: relation.RelationTypes.Namespace,
 	}
@@ -184,16 +184,16 @@ func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Res
 		ID: nsId,
 	}
 
-	relationSet, err := s.configRepository.GetRelationsForNamespace(ctx, nsId)
-	if err != nil {
-		return err
-	}
+	//relationSet, err := s.configRepository.GetRelationsForNamespace(ctx, nsId)
+	//if err != nil {
+	//	return err
+	//}
 
 	rl := role.GetOwnerRole(resourceNS)
 
-	if !relationSet[rl.ID] {
-		return nil
-	}
+	//if !relationSet[rl.ID] {
+	//	return nil
+	//}
 
 	rel := relation.Relation{
 		ObjectNamespace:  resourceNS,
@@ -203,7 +203,7 @@ func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Res
 		Role:             rl,
 	}
 
-	if _, err = s.relationService.Create(ctx, rel); err != nil {
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}
 

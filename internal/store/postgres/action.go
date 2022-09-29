@@ -30,7 +30,6 @@ func (from Action) transformToAction() action.Action {
 		ID:          from.ID,
 		Name:        from.Name,
 		NamespaceID: from.NamespaceID,
-		Namespace:   from.Namespace.transformToNamespace(),
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,
 	}

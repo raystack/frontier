@@ -12,8 +12,8 @@ import (
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
+
 	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/bootstrap"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
@@ -24,6 +24,7 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/blob"
 
@@ -87,7 +88,35 @@ func StartServer(logger log.Logger, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
+	//
+	actionRepository := postgres.NewActionRepository(dbClient)
+	actionService := action.NewService(actionRepository)
+
+	roleRepository := postgres.NewRoleRepository(dbClient)
+	roleService := role.NewService(roleRepository)
+
+	policyPGRepository := postgres.NewPolicyRepository(dbClient)
+	policySpiceRepository := spicedb.NewPolicyRepository(spiceDBClient)
+	policyService := policy.NewService(policyPGRepository)
+
+	namespaceRepository := postgres.NewNamespaceRepository(dbClient)
+	namespaceService := namespace.NewService(namespaceRepository)
+
+	s := schema.NewSchemaMigrationService(
+		blob.NewSchemaConfigRepository(resourceBlobFS),
+		namespaceService,
+		roleService,
+		actionService,
+		policyService,
+		policySpiceRepository,
+	)
+
+	err = s.RunMigrations(ctx)
+	if err != nil {
+		return err
+	}
+
+	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, nil)
 	if err != nil {
 		return err
 	}
@@ -175,8 +204,7 @@ func buildAPIDependencies(
 	projectService := project.NewService(projectRepository, relationService, userService)
 
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
-	policySpiceRepository := spicedb.NewPolicyRepository(sdb)
-	policyService := policy.NewService(policyPGRepository, policySpiceRepository)
+	policyService := policy.NewService(policyPGRepository)
 
 	roleRepository := postgres.NewRoleRepository(dbc)
 	roleService := role.NewService(roleRepository)
@@ -187,20 +215,6 @@ func buildAPIDependencies(
 		resourceBlobRepository,
 		relationService,
 		userService)
-
-	bootstrapService := bootstrap.NewService(
-		logger,
-		policyService,
-		actionService,
-		namespaceService,
-		roleService,
-		resourceService,
-	)
-	bootstrapService.BootstrapDefaultDefinitions(ctx)
-	err := bootstrapService.BootstrapResources(ctx)
-	if err != nil {
-		return api.Deps{}, err
-	}
 
 	dependencies := api.Deps{
 		OrgService:       organizationService,

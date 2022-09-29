@@ -2,16 +2,23 @@ package spicedb
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strings"
 
-	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
+
+	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )
 
 type PolicyRepository struct {
 	spiceDB *SpiceDB
 }
+
+var (
+	ErrWritingSchema = errors.New("error in writing schema to spicedb")
+)
 
 func NewPolicyRepository(spiceDB *SpiceDB) *PolicyRepository {
 	return &PolicyRepository{
@@ -19,25 +26,13 @@ func NewPolicyRepository(spiceDB *SpiceDB) *PolicyRepository {
 	}
 }
 
-func (r PolicyRepository) Add(ctx context.Context, policies []policy.Policy) error {
-	schemas, err := generateSchema(policies)
-	if err != nil {
-		return err
+func (r PolicyRepository) WriteSchema(ctx context.Context, schema schema.NamespaceConfigMapType) error {
+	generatedSchema := schema_generator.GenerateSchema(schema)
+	request := &authzedpb.WriteSchemaRequest{Schema: strings.Join(generatedSchema, "\n")}
+	fmt.Println(strings.Join(generatedSchema, "\n"))
+	if _, err := r.spiceDB.client.WriteSchema(ctx, request); err != nil {
+		return fmt.Errorf("%w: %s", ErrWritingSchema, err.Error())
 	}
-	schema := strings.Join(schemas, "\n")
-	request := &authzedpb.WriteSchemaRequest{Schema: schema}
-	if _, err = r.spiceDB.client.WriteSchema(ctx, request); err != nil {
-		return err
-	}
-	return nil
-}
 
-func generateSchema(policies []policy.Policy) ([]string, error) {
-	definitions, err := schema_generator.BuildPolicyDefinitions(policies)
-	if err != nil {
-		return []string{}, err
-	}
-	schemas := schema_generator.BuildSchema(definitions)
-	schemas = append(schemas, schema_generator.GetDefaultSchema()...)
-	return schemas, nil
+	return nil
 }
