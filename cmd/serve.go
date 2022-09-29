@@ -216,22 +216,6 @@ func buildAPIDependencies(
 		relationService,
 		userService)
 
-	//bootstrapService := bootstrap.NewService(
-	//	logger,
-	//	policyService,
-	//	actionService,
-	//	namespaceService,
-	//	roleService,
-	//	resourceService,
-	//)
-	//bootstrapService.BootstrapDefaultDefinitions(ctx)
-	//err := bootstrapService.BootstrapResources(ctx)
-	//if err != nil {
-	//	return api.Deps{}, err
-	//}
-
-	//schema.NewSchemaMigrationService(blob.NewSchemaConfigRepository(resourceBlobRepositor))
-
 	dependencies := api.Deps{
 		OrgService:       organizationService,
 		UserService:      userService,

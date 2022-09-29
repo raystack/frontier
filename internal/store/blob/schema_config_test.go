@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestA(t *testing.T) {
+func TestGetSchema(t *testing.T) {
 	testBucket, err := NewStore(context.Background(), "file://testdata", "")
 	assert.NoError(t, err)
 
