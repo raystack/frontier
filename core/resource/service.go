@@ -12,7 +12,6 @@ import (
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type RelationService interface {
@@ -64,7 +63,6 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		Name:           res.Name,
 		OrganizationID: res.OrganizationID,
 		ProjectID:      res.ProjectID,
-		GroupID:        res.GroupID,
 		NamespaceID:    res.NamespaceID,
 		UserID:         userId,
 	})
@@ -74,12 +72,6 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 
 	if err = s.relationService.DeleteSubjectRelations(ctx, newResource.NamespaceID, newResource.Idxa); err != nil {
 		return Resource{}, err
-	}
-
-	if newResource.GroupID != "" {
-		if err = s.AddTeamToResource(ctx, group.Group{ID: res.GroupID}, newResource); err != nil {
-			return Resource{}, err
-		}
 	}
 
 	if userId != "" {
@@ -178,7 +170,7 @@ func (s Service) AddTeamToResource(ctx context.Context, team group.Group, res Re
 }
 
 func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Resource) error {
-	nsId := str.DefaultStringIfEmpty(res.NamespaceID, res.Namespace.ID)
+	nsId := res.NamespaceID
 
 	resourceNS := namespace.Namespace{
 		ID: nsId,
@@ -227,14 +219,12 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	if isSystemNS {
 		fetchedResource.Idxa = res.Name
 	} else {
-		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.Namespace)
+		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, namespace.Namespace{})
 		if err != nil {
 			return false, err
 		}
 	}
 
-	fetchedResourceNS := namespace.Namespace{
-		ID: str.DefaultStringIfEmpty(fetchedResource.NamespaceID, fetchedResource.Namespace.ID),
-	}
+	fetchedResourceNS := namespace.Namespace{ID: fetchedResource.NamespaceID}
 	return s.relationService.CheckPermission(ctx, currentUser, fetchedResourceNS, fetchedResource.Idxa, act)
 }

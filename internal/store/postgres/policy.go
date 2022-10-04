@@ -50,10 +50,5 @@ func (from Policy) transformToPolicy() (policy.Policy, error) {
 		NamespaceID: ns.ID,
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,
-
-		// @TODO(krtkvrm): issues/171
-		DepreciatedAction:    from.Action.transformToAction(),
-		DepreciatedRole:      rl,
-		DepreciatedNamespace: from.Namespace.transformToNamespace(),
 	}, nil
 }

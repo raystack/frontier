@@ -65,7 +65,6 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
 		OrganizationID: request.GetBody().GetOrganizationId(),
 		ProjectID:      request.GetBody().GetProjectId(),
-		GroupID:        request.GetBody().GetGroupId(),
 		NamespaceID:    request.GetBody().GetNamespaceId(),
 		Name:           request.GetBody().GetName(),
 		UserID:         request.GetBody().GetUserId(),
@@ -131,7 +130,6 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	updatedResource, err := h.resourceService.Update(ctx, request.GetId(), resource.Resource{
 		OrganizationID: request.GetBody().GetOrganizationId(),
 		ProjectID:      request.GetBody().GetProjectId(),
-		GroupID:        request.GetBody().GetGroupId(),
 		NamespaceID:    request.GetBody().GetNamespaceId(),
 		Name:           request.GetBody().GetName(),
 		UserID:         request.GetBody().GetUserId(),
@@ -165,41 +163,37 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 }
 
 func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
-	namespace, err := transformNamespaceToPB(from.Namespace)
-	if err != nil {
-		return shieldv1beta1.Resource{}, err
-	}
-
-	org, err := transformOrgToPB(from.Organization)
-	if err != nil {
-		return shieldv1beta1.Resource{}, err
-	}
-
-	project, err := transformProjectToPB(from.Project)
-	if err != nil {
-		return shieldv1beta1.Resource{}, err
-	}
-
-	group, err := transformGroupToPB(from.Group)
-	if err != nil {
-		return shieldv1beta1.Resource{}, err
-	}
-
-	user, err := transformUserToPB(from.User)
-	if err != nil {
-		return shieldv1beta1.Resource{}, err
-	}
+	// TODO(krtkvrm): will be replaced with IDs
+	//namespace, err := transformNamespaceToPB(from.Namespace)
+	//if err != nil {
+	//	return shieldv1beta1.Resource{}, err
+	//}
+	//
+	//org, err := transformOrgToPB(from.Organization)
+	//if err != nil {
+	//	return shieldv1beta1.Resource{}, err
+	//}
+	//
+	//project, err := transformProjectToPB(from.Project)
+	//if err != nil {
+	//	return shieldv1beta1.Resource{}, err
+	//}
+	//
+	//group, err := transformGroupToPB(from.Group)
+	//if err != nil {
+	//	return shieldv1beta1.Resource{}, err
+	//}
+	//
+	//user, err := transformUserToPB(from.User)
+	//if err != nil {
+	//	return shieldv1beta1.Resource{}, err
+	//}
 
 	return shieldv1beta1.Resource{
-		Id:           from.Idxa,
-		Urn:          from.URN,
-		Name:         from.Name,
-		Namespace:    &namespace,
-		Organization: &org,
-		Project:      &project,
-		Group:        &group,
-		User:         &user,
-		CreatedAt:    timestamppb.New(from.CreatedAt),
-		UpdatedAt:    timestamppb.New(from.UpdatedAt),
+		Id:        from.Idxa,
+		Urn:       from.URN,
+		Name:      from.Name,
+		CreatedAt: timestamppb.New(from.CreatedAt),
+		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}, nil
 }

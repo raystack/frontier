@@ -169,11 +169,6 @@ func createResources(permissionAttributes map[string]interface{}) ([]resource.Re
 			Name:        res,
 			NamespaceID: nsID,
 			ProjectID:   project[0],
-			Namespace: namespace.Namespace{
-				ID:           nsID,
-				Backend:      backendNamespace[0],
-				ResourceType: resourceType[0],
-			},
 		})
 	}
 	return resources, nil

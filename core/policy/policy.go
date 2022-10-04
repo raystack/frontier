@@ -3,10 +3,6 @@ package policy
 import (
 	"context"
 	"time"
-
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/role"
 )
 
 type Repository interface {
@@ -21,15 +17,12 @@ type AuthzRepository interface {
 }
 
 type Policy struct {
-	ID                   string
-	DepreciatedRole      role.Role
-	RoleID               string
-	DepreciatedNamespace namespace.Namespace
-	NamespaceID          string
-	DepreciatedAction    action.Action
-	ActionID             string
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
+	ID          string
+	RoleID      string
+	NamespaceID string
+	ActionID    string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Filters struct {
