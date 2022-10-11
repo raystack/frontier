@@ -123,7 +123,6 @@ func (s *ResourceRepositoryTestSuite) TestGetByID() {
 				URN:            s.resources[0].URN,
 				Name:           s.resources[0].Name,
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -154,11 +153,6 @@ func (s *ResourceRepositoryTestSuite) TestGetByID() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedResource, cmpopts.IgnoreFields(resource.Resource{},
-				"Project",
-				"Group",
-				"Organization",
-				"Namespace",
-				"User",
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedResource)
@@ -184,7 +178,6 @@ func (s *ResourceRepositoryTestSuite) TestGetByURN() {
 				URN:            s.resources[0].URN,
 				Name:           s.resources[0].Name,
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -210,11 +203,6 @@ func (s *ResourceRepositoryTestSuite) TestGetByURN() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedResource, cmpopts.IgnoreFields(resource.Resource{},
-				"Project",
-				"Group",
-				"Organization",
-				"Namespace",
-				"User",
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedResource)
@@ -238,7 +226,6 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				URN:            "new-urn-4",
 				Name:           "resource4",
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -247,7 +234,6 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				URN:            "new-urn-4",
 				Name:           "resource4",
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -259,7 +245,6 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				URN:            "new-urn-notexist",
 				Name:           "resource4",
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    "some-ns",
 				UserID:         s.resources[0].UserID,
@@ -272,7 +257,6 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				URN:            "new-urn-notexist",
 				Name:           "resource4",
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: uuid.NewString(),
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -285,46 +269,42 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				URN:            "new-urn-notexist",
 				Name:           "resource4",
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: "some-str",
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
 			},
 			ErrString: resource.ErrInvalidUUID.Error(),
 		},
-		{
-			Description: "should return error if group id does not exist",
-			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-notexist",
-				Name:           "resource4",
-				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        uuid.NewString(),
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
-			},
-			ErrString: resource.ErrInvalidDetail.Error(),
-		},
-		{
-			Description: "should return error if group id is not uuid",
-			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-notexist",
-				Name:           "resource4",
-				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        "some-group",
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
-			},
-			ErrString: resource.ErrInvalidUUID.Error(),
-		},
+		//{
+		//	Description: "should return error if group id does not exist",
+		//	ResourceToCreate: resource.Resource{
+		//		URN:            "new-urn-notexist",
+		//		Name:           "resource4",
+		//		ProjectID:      s.resources[0].ProjectID,
+		//		OrganizationID: s.resources[0].OrganizationID,
+		//		NamespaceID:    s.resources[0].NamespaceID,
+		//		UserID:         s.resources[0].UserID,
+		//	},
+		//	ErrString: resource.ErrInvalidDetail.Error(),
+		//},
+		//{
+		//	Description: "should return error if group id is not uuid",
+		//	ResourceToCreate: resource.Resource{
+		//		URN:            "new-urn-notexist",
+		//		Name:           "resource4",
+		//		ProjectID:      s.resources[0].ProjectID,
+		//		OrganizationID: s.resources[0].OrganizationID,
+		//		NamespaceID:    s.resources[0].NamespaceID,
+		//		UserID:         s.resources[0].UserID,
+		//	},
+		//	ErrString: resource.ErrInvalidUUID.Error(),
+		//},
 		{
 			Description: "should return error if project id does not exist",
 			ResourceToCreate: resource.Resource{
 				URN:            "new-urn-notexist",
 				Name:           "resource4",
 				ProjectID:      uuid.NewString(),
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -337,7 +317,6 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				URN:            "new-urn-notexist",
 				Name:           "resource4",
 				ProjectID:      "some-id",
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -360,11 +339,6 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 			}
 			if !cmp.Equal(got, tc.ExpectedResource, cmpopts.IgnoreFields(resource.Resource{},
 				"Idxa",
-				"Project",
-				"Group",
-				"Organization",
-				"Namespace",
-				"User",
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedResource)
@@ -390,7 +364,6 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 			Description: "should get filtered resources",
 			Filter: resource.Filter{
 				ProjectID:      s.projects[1].ID,
-				GroupID:        s.groups[1].ID,
 				OrganizationID: s.orgs[1].ID,
 				NamespaceID:    s.namespaces[1].ID,
 			},
@@ -400,7 +373,6 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 					URN:            s.resources[1].URN,
 					Name:           s.resources[1].Name,
 					ProjectID:      s.resources[1].ProjectID,
-					GroupID:        s.resources[1].GroupID,
 					OrganizationID: s.resources[1].OrganizationID,
 					NamespaceID:    s.resources[1].NamespaceID,
 					UserID:         s.resources[1].UserID,
@@ -418,11 +390,6 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedResources, cmpopts.IgnoreFields(resource.Resource{},
-				"Project",
-				"Group",
-				"Organization",
-				"Namespace",
-				"User",
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedResources)
@@ -448,7 +415,6 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 				URN:            "new-urn-4",
 				Name:           "resource4",
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -458,7 +424,6 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 				URN:            "new-urn-4",
 				Name:           "resource4",
 				ProjectID:      s.resources[0].ProjectID,
-				GroupID:        s.resources[0].GroupID,
 				OrganizationID: s.resources[0].OrganizationID,
 				NamespaceID:    s.resources[0].NamespaceID,
 				UserID:         s.resources[0].UserID,
@@ -597,11 +562,6 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedResource, cmpopts.IgnoreFields(resource.Resource{},
-				"Project",
-				"Group",
-				"Organization",
-				"Namespace",
-				"User",
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedResource)

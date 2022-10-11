@@ -437,19 +437,16 @@ func bootstrapResource(
 		return nil, err
 	}
 
-	data[0].GroupID = groups[0].ID
 	data[0].ProjectID = projects[0].ID
 	data[0].OrganizationID = orgs[0].ID
 	data[0].NamespaceID = namespaces[0].ID
 	data[0].UserID = users[0].ID
 
-	data[1].GroupID = groups[1].ID
 	data[1].ProjectID = projects[1].ID
 	data[1].OrganizationID = orgs[1].ID
 	data[1].NamespaceID = namespaces[1].ID
 	data[1].UserID = users[1].ID
 
-	data[2].GroupID = groups[2].ID
 	data[2].ProjectID = projects[2].ID
 	data[2].OrganizationID = orgs[1].ID
 	data[2].NamespaceID = namespaces[1].ID

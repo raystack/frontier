@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/pkg/str"
-
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
@@ -125,9 +123,9 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
 	// TODO(krtkvrm) | IMP: need to find a way to deprecate this
 	// This is required by bootstrap, which will be changed in this PR
-	roleID := str.DefaultStringIfEmpty(pol.DepreciatedRole.ID, pol.RoleID)
-	actionID := str.DefaultStringIfEmpty(pol.DepreciatedAction.ID, pol.ActionID)
-	nsID := str.DefaultStringIfEmpty(pol.DepreciatedNamespace.ID, pol.NamespaceID)
+	roleID := pol.RoleID
+	actionID := pol.ActionID
+	nsID := pol.NamespaceID
 
 	if strings.TrimSpace(actionID) == "" {
 		return "", policy.ErrInvalidDetail
