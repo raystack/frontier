@@ -164,31 +164,6 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 
 func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
 	// TODO(krtkvrm): will be replaced with IDs
-	//namespace, err := transformNamespaceToPB(from.Namespace)
-	//if err != nil {
-	//	return shieldv1beta1.Resource{}, err
-	//}
-	//
-	//org, err := transformOrgToPB(from.Organization)
-	//if err != nil {
-	//	return shieldv1beta1.Resource{}, err
-	//}
-	//
-	//project, err := transformProjectToPB(from.Project)
-	//if err != nil {
-	//	return shieldv1beta1.Resource{}, err
-	//}
-	//
-	//group, err := transformGroupToPB(from.Group)
-	//if err != nil {
-	//	return shieldv1beta1.Resource{}, err
-	//}
-	//
-	//user, err := transformUserToPB(from.User)
-	//if err != nil {
-	//	return shieldv1beta1.Resource{}, err
-	//}
-
 	return shieldv1beta1.Resource{
 		Id:        from.Idxa,
 		Urn:       from.URN,
