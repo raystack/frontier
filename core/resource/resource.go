@@ -5,11 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/user"
 )
 
 const NON_RESOURCE_ID = "*"
@@ -31,16 +27,10 @@ type Resource struct {
 	Idxa           string
 	URN            string
 	Name           string
-	ProjectID      string `json:"project_id"`
-	Project        project.Project
-	GroupID        string `json:"group_id"`
-	Group          group.Group
-	OrganizationID string `json:"organization_id"`
-	Organization   organization.Organization
-	NamespaceID    string `json:"namespace_id"`
-	Namespace      namespace.Namespace
-	User           user.User
-	UserID         string `json:"user_id"`
+	ProjectID      string
+	OrganizationID string
+	NamespaceID    string
+	UserID         string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

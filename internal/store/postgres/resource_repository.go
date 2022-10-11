@@ -31,14 +31,12 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
-	groupID := sql.NullString{String: res.GroupID, Valid: res.GroupID != ""}
 
 	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
 		goqu.Record{
 			"urn":          res.URN,
 			"name":         res.Name,
 			"project_id":   res.ProjectID,
-			"group_id":     groupID,
 			"org_id":       res.OrganizationID,
 			"namespace_id": res.NamespaceID,
 			"user_id":      userID,
@@ -46,7 +44,6 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		goqu.DoUpdate("ON CONSTRAINT resources_urn_unique", goqu.Record{
 			"name":         res.Name,
 			"project_id":   res.ProjectID,
-			"group_id":     groupID,
 			"org_id":       res.OrganizationID,
 			"namespace_id": res.NamespaceID,
 			"user_id":      userID,
@@ -159,13 +156,11 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
-	groupID := sql.NullString{String: res.GroupID, Valid: res.GroupID != ""}
 
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
 			"name":         res.Name,
 			"project_id":   res.ProjectID,
-			"group_id":     groupID,
 			"org_id":       res.OrganizationID,
 			"namespace_id": res.NamespaceID,
 			"user_id":      userID,

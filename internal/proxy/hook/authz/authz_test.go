@@ -11,7 +11,6 @@ import (
 
 var testPermissionAttributesMap = map[string]any{
 	"project":       "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-	"team":          "team1",
 	"resource":      []string{"resc1", "resc2"},
 	"organization":  "org1",
 	"namespace":     "ns1",
@@ -22,13 +21,11 @@ var expectedResources = []resource.Resource{
 	{
 		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		OrganizationID: "org1",
-		GroupID:        "team1",
 		Name:           "resc1",
 		NamespaceID:    "ns1_kind",
 	}, {
 		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		OrganizationID: "org1",
-		GroupID:        "team1",
 		Name:           "resc2",
 		NamespaceID:    "ns1_kind",
 	},
@@ -53,7 +50,6 @@ func TestCreateResources(t *testing.T) {
 		}, {
 			title: "should should throw error if project is missing",
 			permissionAttributes: map[string]any{
-				"team":          "team1",
 				"resource":      []string{"resc1", "resc2"},
 				"organization":  "org1",
 				"namespace":     "ns1",
@@ -78,7 +74,6 @@ func TestCreateResources(t *testing.T) {
 			title: "success/should return resource",
 			permissionAttributes: map[string]any{
 				"project":       "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-				"team":          "team1",
 				"organization":  "org2",
 				"resource":      "res1",
 				"namespace":     "ns1",
@@ -89,7 +84,6 @@ func TestCreateResources(t *testing.T) {
 				{
 					ProjectID:      "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
 					OrganizationID: "org2",
-					GroupID:        "team1",
 					Name:           "res1",
 					NamespaceID:    "ns1_type",
 				},

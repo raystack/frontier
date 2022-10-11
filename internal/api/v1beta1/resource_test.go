@@ -6,10 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
@@ -17,77 +13,23 @@ import (
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
 	testResourceID = uuid.NewString()
 	testResource   = resource.Resource{
-		Idxa:      testResourceID,
-		URN:       "res-urn",
-		Name:      "a resource name",
-		ProjectID: testProjectID,
-		Project: project.Project{
-			ID: testProjectID,
-		},
-		GroupID: testGroupID,
-		Group: group.Group{
-			ID: testGroupID,
-		},
+		Idxa:           testResourceID,
+		URN:            "res-urn",
+		Name:           "a resource name",
+		ProjectID:      testProjectID,
 		OrganizationID: testOrgID,
-		Organization: organization.Organization{
-			ID: testOrgID,
-		},
-		NamespaceID: testNSID,
-		Namespace: namespace.Namespace{
-			ID: testNSID,
-		},
-		User: user.User{
-			ID: testUserID,
-		},
-		UserID: testUserID,
+		NamespaceID:    testNSID,
+		UserID:         testUserID,
 	}
 	testResourcePB = &shieldv1beta1.Resource{
-		Id:   testResource.Idxa,
-		Name: testResource.Name,
-		Group: &shieldv1beta1.Group{
-			Id: testGroupID,
-			Metadata: &structpb.Struct{
-				Fields: make(map[string]*structpb.Value),
-			},
-			CreatedAt: timestamppb.New(time.Time{}),
-			UpdatedAt: timestamppb.New(time.Time{}),
-		},
-		Project: &shieldv1beta1.Project{
-			Id: testProjectID,
-			Metadata: &structpb.Struct{
-				Fields: make(map[string]*structpb.Value),
-			},
-			CreatedAt: timestamppb.New(time.Time{}),
-			UpdatedAt: timestamppb.New(time.Time{}),
-		},
-		Organization: &shieldv1beta1.Organization{
-			Id: testOrgID,
-			Metadata: &structpb.Struct{
-				Fields: make(map[string]*structpb.Value),
-			},
-			CreatedAt: timestamppb.New(time.Time{}),
-			UpdatedAt: timestamppb.New(time.Time{}),
-		},
-		Namespace: &shieldv1beta1.Namespace{
-			Id:        testNSID,
-			CreatedAt: timestamppb.New(time.Time{}),
-			UpdatedAt: timestamppb.New(time.Time{}),
-		},
-		User: &shieldv1beta1.User{
-			Id: testUserID,
-			Metadata: &structpb.Struct{
-				Fields: make(map[string]*structpb.Value),
-			},
-			CreatedAt: timestamppb.New(time.Time{}),
-			UpdatedAt: timestamppb.New(time.Time{}),
-		},
+		Id:        testResource.Idxa,
+		Name:      testResource.Name,
 		Urn:       testResource.URN,
 		CreatedAt: timestamppb.New(time.Time{}),
 		UpdatedAt: timestamppb.New(time.Time{}),
@@ -155,7 +97,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			setup: func(ctx context.Context, rs *mocks.ResourceService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -166,7 +107,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			request: &shieldv1beta1.CreateResourceRequest{
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -180,7 +120,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			setup: func(ctx context.Context, rs *mocks.ResourceService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -191,7 +130,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			request: &shieldv1beta1.CreateResourceRequest{
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -205,7 +143,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			setup: func(ctx context.Context, rs *mocks.ResourceService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -216,7 +153,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			request: &shieldv1beta1.CreateResourceRequest{
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -231,7 +167,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			setup: func(ctx context.Context, rs *mocks.ResourceService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -242,7 +177,6 @@ func TestHandler_CreateResource(t *testing.T) {
 			request: &shieldv1beta1.CreateResourceRequest{
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -361,7 +295,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -372,7 +305,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 				Id: testResourceID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -387,7 +319,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "", resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -397,7 +328,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			request: &shieldv1beta1.UpdateResourceRequest{
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -412,7 +342,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -423,7 +352,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 				Id: testResourceID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -438,7 +366,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some-id", resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -449,7 +376,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 				Id: "some-id",
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -464,7 +390,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -475,7 +400,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 				Id: testResourceID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -490,7 +414,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -501,7 +424,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 				Id: testResourceID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
@@ -516,7 +438,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
-					GroupID:        testResource.GroupID,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
 					NamespaceID:    testResource.NamespaceID,
@@ -527,7 +448,6 @@ func TestHandler_UpdateResource(t *testing.T) {
 				Id: testResourceID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:           testResource.Name,
-					GroupId:        testResource.GroupID,
 					ProjectId:      testResource.ProjectID,
 					OrganizationId: testResource.OrganizationID,
 					NamespaceId:    testResource.NamespaceID,
