@@ -11,6 +11,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/str"
 )
 
 type RelationRepository struct {
@@ -31,7 +32,10 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 			"object_namespace_id":  relationToCreate.Object.NamespaceID,
 			"object_id":            relationToCreate.Object.ID,
 			"role_id":              relationToCreate.Subject.RoleID,
-		}).OnConflict(goqu.DoNothing()).Returning(&relationCols{}).ToSQL()
+		}).OnConflict(
+		goqu.DoUpdate("subject_namespace_id, subject_id, object_namespace_id,  object_id, role_id", goqu.Record{
+			"subject_namespace_id": relationToCreate.Subject.Namespace,
+		})).Returning(&relationCols{}).ToSQL()
 	if err != nil {
 		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -145,11 +149,11 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 	})
 }
 
-<<<<<<< HEAD
 // Update TO_DEPRECIATE
 func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
 	return relation.Relation{}, nil
-=======
+}
+
 func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
 	var fetchedRelation Relation
 
@@ -189,55 +193,4 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	}
 
 	return fetchedRelation.transformToRelation(), nil
-}
-
-func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
-	if strings.TrimSpace(rel.ID) == "" {
-		return relation.Relation{}, relation.ErrInvalidID
-	}
-
-	subjectNamespaceID := str.DefaultStringIfEmpty(rel.SubjectNamespace.ID, rel.SubjectNamespaceID)
-	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
-	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
-
-	if rel.RelationType == relation.RelationTypes.Namespace {
-		roleID = ""
-	}
-
-	query, params, err := goqu.Update(TABLE_RELATIONS).Set(
-		goqu.Record{
-			"subject_namespace_id": subjectNamespaceID,
-			"subject_id":           rel.SubjectID,
-			"object_namespace_id":  objectNamespaceID,
-			"object_id":            rel.ObjectID,
-			"role_id":              sql.NullString{String: roleID, Valid: roleID != ""},
-		}).Where(goqu.Ex{
-		"id": rel.ID,
-	}).Returning(&relationCols{}).ToSQL()
-
-	if err != nil {
-		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var relationModel Relation
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &relationModel, query, params...)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return relation.Relation{}, relation.ErrNotExist
-		case errors.Is(err, errDuplicateKey):
-			return relation.Relation{}, relation.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
-			return relation.Relation{}, relation.ErrInvalidDetail
-		case errors.Is(err, errInvalidTexRepresentation):
-			return relation.Relation{}, relation.ErrInvalidUUID
-		default:
-			return relation.Relation{}, err
-		}
-	}
-
-	return relationModel.transformToRelation(), nil
->>>>>>> 8a825ab (feat: use relationv2 for relation creation)
 }
