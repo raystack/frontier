@@ -90,13 +90,16 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Create(context.Background(), relation.Relation{
-		SubjectNamespaceID: namespace.DefinitionUser.ID,
-		SubjectID:          s.users[0].ID,
-		ObjectNamespaceID:  namespace.DefinitionTeam.ID,
-		ObjectID:           s.groups[0].ID,
-		RoleID:             role.DefinitionTeamMember.ID,
-		RelationType:       relation.RelationTypes.Role,
+	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        s.users[0].ID,
+			Namespace: namespace.DefinitionUser.ID,
+			RoleID:    role.DefinitionTeamMember.ID,
+		},
+		Object: relation.Object{
+			ID:          s.groups[0].ID,
+			NamespaceID: namespace.DefinitionTeam.ID,
+		},
 	})
 	if err != nil {
 		s.T().Fatal(err)

@@ -83,13 +83,16 @@ func (s *OrganizationRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Create(context.Background(), relation.Relation{
-		SubjectNamespaceID: namespace.DefinitionUser.ID,
-		SubjectID:          s.users[0].ID,
-		ObjectNamespaceID:  namespace.DefinitionOrg.ID,
-		ObjectID:           s.orgs[0].ID,
-		RoleID:             role.DefinitionOrganizationAdmin.ID,
-		RelationType:       relation.RelationTypes.Role,
+	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        s.users[0].ID,
+			Namespace: namespace.DefinitionUser.ID,
+			RoleID:    role.DefinitionOrganizationAdmin.ID,
+		},
+		Object: relation.Object{
+			ID:          s.orgs[0].ID,
+			NamespaceID: namespace.DefinitionOrg.ID,
+		},
 	})
 	if err != nil {
 		s.T().Fatal(err)

@@ -308,19 +308,19 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 	return insertedData, nil
 }
 
-func bootstrapRelation(client *db.Client) ([]relation.Relation, error) {
+func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
 	relationRepository := postgres.NewRelationRepository(client)
 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-relation.json")
 	if err != nil {
 		return nil, err
 	}
 
-	var data []relation.Relation
+	var data []relation.RelationV2
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return nil, err
 	}
 
-	var insertedData []relation.Relation
+	var insertedData []relation.RelationV2
 	for _, d := range data {
 		domain, err := relationRepository.Create(context.Background(), d)
 		if err != nil {

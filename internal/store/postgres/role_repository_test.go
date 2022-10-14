@@ -211,6 +211,22 @@ func (s *RoleRepositoryTestSuite) TestList() {
 						},
 					},
 				},
+				{
+					ID:   "ns2",
+					Name: "namespace",
+					Types: []string{
+						"InhertiedNamespace",
+					},
+					NamespaceID: "ns1",
+					Metadata: map[string]any{
+						"key-string":  "value-string",
+						"key-integer": 123,
+						"key-json": map[string]any{
+							"k1": "v1",
+							"k2": "v2",
+						},
+					},
+				},
 			},
 		},
 	}

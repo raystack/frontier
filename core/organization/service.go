@@ -14,7 +14,7 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 }
@@ -182,16 +182,18 @@ func (s Service) removeAdminFromOrg(ctx context.Context, user user.User, org Org
 }
 
 func (s Service) addAdminToOrg(ctx context.Context, user user.User, org Organization) error {
-	rel := relation.Relation{
-		ObjectNamespace:  namespace.DefinitionOrg,
-		ObjectID:         org.ID,
-		SubjectID:        user.ID,
-		SubjectNamespace: namespace.DefinitionUser,
-		Role: role.Role{
-			ID:          role.DefinitionOrganizationAdmin.ID,
+	rel := relation.RelationV2{
+		Object: relation.Object{
+			ID:          org.ID,
 			NamespaceID: namespace.DefinitionOrg.ID,
 		},
+		Subject: relation.Subject{
+			ID:        user.ID,
+			Namespace: namespace.DefinitionUser.ID,
+			RoleID:    role.DefinitionOrganizationAdmin.ID,
+		},
 	}
+
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}

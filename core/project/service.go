@@ -15,7 +15,7 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 }
@@ -163,13 +163,14 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 }
 
 func (s Service) addAdminToProject(ctx context.Context, usr user.User, prj Project) error {
-	rel := relation.Relation{
-		ObjectNamespace:  namespace.DefinitionProject,
-		ObjectID:         prj.ID,
-		SubjectID:        usr.ID,
-		SubjectNamespace: namespace.DefinitionUser,
-		Role: role.Role{
-			ID:          role.DefinitionProjectAdmin.ID,
+	rel := relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        usr.ID,
+			Namespace: namespace.DefinitionUser.ID,
+			RoleID:    role.DefinitionProjectAdmin.ID,
+		},
+		Object: relation.Object{
+			ID:          prj.ID,
 			NamespaceID: namespace.DefinitionProject.ID,
 		},
 	}
@@ -195,16 +196,16 @@ func (s Service) removeAdminFromProject(ctx context.Context, usr user.User, prj 
 }
 
 func (s Service) addProjectToOrg(ctx context.Context, prj Project, org organization.Organization) error {
-	rel := relation.Relation{
-		ObjectNamespace:  namespace.DefinitionProject,
-		ObjectID:         prj.ID,
-		SubjectID:        org.ID,
-		SubjectNamespace: namespace.DefinitionOrg,
-		Role: role.Role{
-			ID:          namespace.DefinitionOrg.ID,
+	rel := relation.RelationV2{
+		Object: relation.Object{
+			ID:          prj.ID,
 			NamespaceID: namespace.DefinitionProject.ID,
 		},
-		RelationType: relation.RelationTypes.Namespace,
+		Subject: relation.Subject{
+			ID:        org.ID,
+			Namespace: namespace.DefinitionOrg.ID,
+			RoleID:    namespace.DefinitionOrg.ID,
+		},
 	}
 
 	if _, err := s.relationService.Create(ctx, rel); err != nil {

@@ -17,7 +17,7 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 }
@@ -264,16 +264,16 @@ func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId s
 
 func (s Service) addTeamToOrg(ctx context.Context, team Group, org organization.Organization) error {
 	orgId := str.DefaultStringIfEmpty(org.ID, team.OrganizationID)
-	rel := relation.Relation{
-		ObjectNamespace:  namespace.DefinitionTeam,
-		ObjectID:         team.ID,
-		SubjectID:        orgId,
-		SubjectNamespace: namespace.DefinitionOrg,
-		Role: role.Role{
-			ID:          namespace.DefinitionOrg.ID,
+	rel := relation.RelationV2{
+		Object: relation.Object{
+			ID:          team.ID,
 			NamespaceID: namespace.DefinitionTeam.ID,
 		},
-		RelationType: relation.RelationTypes.Namespace,
+		Subject: relation.Subject{
+			ID:        orgId,
+			Namespace: namespace.DefinitionOrg.ID,
+			RoleID:    namespace.DefinitionOrg.ID,
+		},
 	}
 
 	_, err := s.relationService.Create(ctx, rel)
@@ -285,8 +285,8 @@ func (s Service) addTeamToOrg(ctx context.Context, team Group, org organization.
 }
 
 func (s Service) addAdminToTeam(ctx context.Context, userID, groupID string) error {
-	rel := s.getTeamAdminRelation(userID, groupID)
-	_, err := s.relationService.Create(ctx, rel)
+	//rel := s.getTeamAdminRelation(userID, groupID)
+	_, err := s.relationService.Create(ctx, relation.RelationV2{})
 	if err != nil {
 		return err
 	}
@@ -295,13 +295,14 @@ func (s Service) addAdminToTeam(ctx context.Context, userID, groupID string) err
 }
 
 func (s Service) addMemberToTeam(ctx context.Context, userID, groupID string) error {
-	rel := relation.Relation{
-		ObjectNamespace:  namespace.DefinitionTeam,
-		ObjectID:         groupID,
-		SubjectID:        userID,
-		SubjectNamespace: namespace.DefinitionUser,
-		Role: role.Role{
-			ID:          role.DefinitionTeamMember.ID,
+	rel := relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        userID,
+			Namespace: namespace.DefinitionUser.ID,
+			RoleID:    role.DefinitionTeamMember.ID,
+		},
+		Object: relation.Object{
+			ID:          groupID,
 			NamespaceID: namespace.DefinitionTeam.ID,
 		},
 	}

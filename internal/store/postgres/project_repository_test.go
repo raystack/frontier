@@ -90,13 +90,16 @@ func (s *ProjectRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Create(context.Background(), relation.Relation{
-		SubjectNamespaceID: namespace.DefinitionUser.ID,
-		SubjectID:          s.users[0].ID,
-		ObjectNamespaceID:  namespace.DefinitionProject.ID,
-		ObjectID:           s.projects[0].ID,
-		RoleID:             role.DefinitionProjectAdmin.ID,
-		RelationType:       relation.RelationTypes.Role,
+	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        s.users[0].ID,
+			Namespace: namespace.DefinitionUser.ID,
+			RoleID:    role.DefinitionProjectAdmin.ID,
+		},
+		Object: relation.Object{
+			ID:          s.projects[0].ID,
+			NamespaceID: namespace.DefinitionProject.ID,
+		},
 	})
 	if err != nil {
 		s.T().Fatal(err)

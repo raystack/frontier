@@ -1,29 +1,38 @@
 [
-    {
-        "id": "role1",
-        "name": "role member",
-        "types": [
-          "member",
-          "user"
-        ],
-        "namespaceId": "ns1",
-        "metadata": {}
-    },
-    {
-        "id": "role2",
-        "name": "role admin",
-        "types": [
-          "admin",
-          "user"
-        ],
-        "namespaceId": "ns2",
-        "metadata": {
-            "key-string": "value-string",
-            "key-integer": 123,
-            "key-json": {
-                "k1": "v1",
-                "k2": "v2"
-            }
-        }
+  {
+    "id": "role1",
+    "name": "role member",
+    "types": [
+      "member",
+      "user"
+    ],
+    "namespaceId": "ns1",
+    "metadata": {}
+  },
+  {
+    "id": "role2",
+    "name": "role admin",
+    "types": [
+      "admin",
+      "user"
+    ],
+    "namespaceId": "ns2",
+    "metadata": {
+      "key-string": "value-string",
+      "key-integer": 123,
+      "key-json": {
+        "k1": "v1",
+        "k2": "v2"
+      }
     }
+  },
+  {
+    "id": "ns2",
+    "name": "namespace",
+    "types": [
+      "InhertiedNamespace"
+    ],
+    "namespaceId": "ns1",
+    "metadata": {}
+  }
 ]

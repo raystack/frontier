@@ -138,6 +138,19 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			}
 		}
 
+		// create role for inherited namespaces
+		for _, ins := range v.InheritedNamespaces {
+			_, err := s.roleService.Create(ctx, role.Role{
+				ID:          fmt.Sprintf("%s:%s", namespaceId, ins),
+				Name:        ins,
+				Types:       []string{"InheritedNamespace"},
+				NamespaceID: namespaceId,
+			})
+			if err != nil {
+				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
+			}
+		}
+
 		// create actions
 		// IMP: we should depreciate actions with principals
 		for actionId := range v.Permissions {
