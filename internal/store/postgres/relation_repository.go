@@ -24,36 +24,17 @@ func NewRelationRepository(dbc *db.Client) *RelationRepository {
 	}
 }
 
-func (r RelationRepository) Create(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
-	subjectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.SubjectNamespace.ID, relationToCreate.SubjectNamespaceID)
-	objectNamespaceID := str.DefaultStringIfEmpty(relationToCreate.ObjectNamespace.ID, relationToCreate.ObjectNamespaceID)
-	roleID := str.DefaultStringIfEmpty(relationToCreate.Role.ID, relationToCreate.RoleID)
-
-	var nsID string
-	if relationToCreate.RelationType == relation.RelationTypes.Namespace {
-		nsID = roleID
-		roleID = ""
-	}
-
-	if strings.TrimSpace(subjectNamespaceID) == "" || strings.TrimSpace(relationToCreate.SubjectID) == "" ||
-		strings.TrimSpace(objectNamespaceID) == "" || strings.TrimSpace(relationToCreate.ObjectID) == "" {
-		return relation.Relation{}, relation.ErrInvalidDetail
-	}
-
+func (r RelationRepository) Create(ctx context.Context, relationToCreate relation.RelationV2) (relation.RelationV2, error) {
 	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(
 		goqu.Record{
-			"subject_namespace_id": subjectNamespaceID,
-			"subject_id":           relationToCreate.SubjectID,
-			"object_namespace_id":  objectNamespaceID,
-			"object_id":            relationToCreate.ObjectID,
-			"role_id":              sql.NullString{String: roleID, Valid: roleID != ""},
-			"namespace_id":         sql.NullString{String: nsID, Valid: nsID != ""},
-		}).OnConflict(
-		goqu.DoUpdate("subject_namespace_id, subject_id, object_namespace_id,  object_id, COALESCE(role_id, ''), COALESCE(namespace_id, '')", goqu.Record{
-			"subject_namespace_id": subjectNamespaceID,
-		})).Returning(&relationCols{}).ToSQL()
+			"subject_namespace_id": relationToCreate.Subject.Namespace,
+			"subject_id":           relationToCreate.Subject.ID,
+			"object_namespace_id":  relationToCreate.Object.NamespaceID,
+			"object_id":            relationToCreate.Object.ID,
+			"role_id":              relationToCreate.Subject.RoleID,
+		}).OnConflict(goqu.DoNothing()).Returning(&relationCols{}).ToSQL()
 	if err != nil {
-		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var relationModel Relation
@@ -63,13 +44,13 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return relation.Relation{}, relation.ErrInvalidDetail
+			return relation.RelationV2{}, relation.ErrInvalidDetail
 		default:
-			return relation.Relation{}, err
+			return relation.RelationV2{}, err
 		}
 	}
 
-	return relationModel.transformToRelation(), nil
+	return relationModel.transformToRelationV2(), nil
 }
 
 func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, error) {
@@ -172,9 +153,7 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
 
-	var nsID string
 	if rel.RelationType == relation.RelationTypes.Namespace {
-		nsID = roleID
 		roleID = ""
 	}
 
@@ -188,12 +167,7 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 			goqu.C("role_id").IsNull(),
 			goqu.C("role_id").Eq(sql.NullString{String: roleID, Valid: roleID != ""}),
 		)),
-		goqu.And(
-			goqu.Or(
-				goqu.C("namespace_id").IsNull(),
-				goqu.C("namespace_id").Eq(sql.NullString{String: nsID, Valid: nsID != ""}),
-			),
-		)).ToSQL()
+	).ToSQL()
 	if err != nil {
 		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -222,9 +196,7 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 	objectNamespaceID := str.DefaultStringIfEmpty(rel.ObjectNamespace.ID, rel.ObjectNamespaceID)
 	roleID := str.DefaultStringIfEmpty(rel.Role.ID, rel.RoleID)
 
-	var nsID string
 	if rel.RelationType == relation.RelationTypes.Namespace {
-		nsID = roleID
 		roleID = ""
 	}
 
@@ -235,7 +207,6 @@ func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (
 			"object_namespace_id":  objectNamespaceID,
 			"object_id":            rel.ObjectID,
 			"role_id":              sql.NullString{String: roleID, Valid: roleID != ""},
-			"namespace_id":         sql.NullString{String: nsID, Valid: nsID != ""},
 		}).Where(goqu.Ex{
 		"id": rel.ID,
 	}).Returning(&relationCols{}).ToSQL()
