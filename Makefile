@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "449cade0b780e5c33ba9abcd269b1393ad33b193"
+PROTON_COMMIT := "068629a2dfc7937ad8cc212b0e5d37157728e79f"
 
 install:
 	@echo "Clean up imports..."

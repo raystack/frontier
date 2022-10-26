@@ -3,9 +3,12 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -62,12 +65,24 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
+	projId := request.GetBody().GetProjectId()
+	project, err := h.projectService.Get(ctx, projId)
+	if err != nil {
+		logger.Error(err.Error())
+
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
-		OrganizationID: request.GetBody().GetOrganizationId(),
+		OrganizationID: project.Organization.ID,
 		ProjectID:      request.GetBody().GetProjectId(),
 		NamespaceID:    request.GetBody().GetNamespaceId(),
 		Name:           request.GetBody().GetName(),
-		UserID:         request.GetBody().GetUserId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -79,6 +94,32 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
+		}
+	}
+
+	relations := request.GetBody().GetRelations()
+	for _, r := range relations {
+		subject := strings.Split(r.Subject, ":")
+		if len(subject) != 2 {
+			logger.Error(fmt.Sprintf("inadequate subject format: %s", r.Subject))
+			continue
+		}
+
+		_, err := h.relationService.Create(ctx, relation.RelationV2{
+			Object: relation.Object{
+				ID:          newResource.Idxa,
+				NamespaceID: newResource.NamespaceID,
+			},
+			Subject: relation.Subject{
+				RoleID:    r.RoleName,
+				ID:        subject[1],
+				Namespace: subject[0],
+			},
+		})
+		if err != nil {
+			logger.Error(fmt.Sprintf("error creating relation: %s for %s %s", r.RoleName, subject[1], subject[0]))
+		} else {
+			logger.Info(fmt.Sprintf("created relation: %s for %s %s", r.RoleName, subject[1], subject[0]))
 		}
 	}
 
@@ -127,12 +168,24 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 		return nil, grpcBadBodyError
 	}
 
+	projId := request.GetBody().GetProjectId()
+	project, err := h.projectService.Get(ctx, projId)
+	if err != nil {
+		logger.Error(err.Error())
+
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
 	updatedResource, err := h.resourceService.Update(ctx, request.GetId(), resource.Resource{
-		OrganizationID: request.GetBody().GetOrganizationId(),
+		OrganizationID: project.Organization.ID,
 		ProjectID:      request.GetBody().GetProjectId(),
 		NamespaceID:    request.GetBody().GetNamespaceId(),
 		Name:           request.GetBody().GetName(),
-		UserID:         request.GetBody().GetUserId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -165,9 +218,21 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
 	// TODO(krtkvrm): will be replaced with IDs
 	return shieldv1beta1.Resource{
-		Id:        from.Idxa,
-		Urn:       from.URN,
-		Name:      from.Name,
+		Id:   from.Idxa,
+		Urn:  from.URN,
+		Name: from.Name,
+		Project: &shieldv1beta1.Project{
+			Id: from.ProjectID,
+		},
+		Organization: &shieldv1beta1.Organization{
+			Id: from.OrganizationID,
+		},
+		Namespace: &shieldv1beta1.Namespace{
+			Id: from.NamespaceID,
+		},
+		User: &shieldv1beta1.User{
+			Id: from.UserID,
+		},
 		CreatedAt: timestamppb.New(from.CreatedAt),
 		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}, nil
