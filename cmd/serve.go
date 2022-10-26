@@ -116,7 +116,7 @@ func StartServer(logger log.Logger, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, nil)
+	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
