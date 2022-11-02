@@ -78,6 +78,7 @@ func Cleanup(ctx context.Context, s *server.MuxServer) {
 // REVISIT: passing config.Shield as reference
 func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application) grpc.ServerOption {
 	recoveryFunc := func(p interface{}) (err error) {
+		fmt.Println("-----------------------------")
 		return status.Errorf(codes.Internal, "internal server error")
 	}
 

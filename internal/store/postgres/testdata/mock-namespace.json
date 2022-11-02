@@ -24,5 +24,21 @@
         "name": "Back2 R1",
         "backend": "back2",
         "resourceType": "r1"
+    },
+    {
+        "id": "group",
+        "name": "group"
+    },
+    {
+        "id": "project",
+        "name": "project"
+    },
+    {
+        "id": "organization",
+        "name": "organization"
+    },
+    {
+        "id": "user",
+        "name": "user"
     }
 ]

@@ -7,9 +7,8 @@ import (
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/errors"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/uuid"
 )
 
@@ -80,43 +79,8 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 }
 
 func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
-	} else if len(userIds) < 1 {
-		return nil, user.ErrInvalidID
-	}
-
-	var org Organization
-	if uuid.IsValid(idOrSlug) {
-		org, err = s.repository.GetByID(ctx, idOrSlug)
-	} else {
-		org, err = s.repository.GetBySlug(ctx, idOrSlug)
-	}
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
-	if err != nil {
-		return []user.User{}, err
-	} else if !isAllowed {
-		return []user.User{}, errors.ErrForbidden
-	}
-
-	users, err := s.userService.GetByIDs(ctx, userIds)
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	//TODO might need to check len users < 1
-
-	for _, usr := range users {
-		if err = s.addAdminToOrg(ctx, usr, org); err != nil {
-			return []user.User{}, err
-		}
-	}
-	return s.ListAdmins(ctx, org.ID)
+	// TODO(discussion): can be done with create relation
+	return []user.User{}, nil
 }
 
 func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, error) {
@@ -133,64 +97,20 @@ func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, 
 }
 
 func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
-	}
-
-	var org Organization
-	if uuid.IsValid(idOrSlug) {
-		org, err = s.repository.GetByID(ctx, idOrSlug)
-	} else {
-		org, err = s.repository.GetBySlug(ctx, idOrSlug)
-	}
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	isAllowed, err := s.relationService.CheckPermission(ctx, currentUser, namespace.DefinitionOrg, org.ID, action.DefinitionManageOrganization)
-	if err != nil {
-		return []user.User{}, err
-	} else if !isAllowed {
-		return []user.User{}, errors.ErrForbidden
-	}
-
-	removedUser, err := s.userService.GetByID(ctx, userId)
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	if err = s.removeAdminFromOrg(ctx, removedUser, org); err != nil {
-		return []user.User{}, err
-	}
-
-	return s.ListAdmins(ctx, org.ID)
-}
-
-func (s Service) removeAdminFromOrg(ctx context.Context, user user.User, org Organization) error {
-	rel := relation.Relation{
-		ObjectNamespace:  namespace.DefinitionOrg,
-		ObjectID:         org.ID,
-		SubjectID:        user.ID,
-		SubjectNamespace: namespace.DefinitionUser,
-		Role: role.Role{
-			ID:          role.DefinitionOrganizationAdmin.ID,
-			NamespaceID: namespace.DefinitionOrg.ID,
-		},
-	}
-	return s.relationService.Delete(ctx, rel)
+	// TO IMPLEMENT
+	return []user.User{}, nil
 }
 
 func (s Service) addAdminToOrg(ctx context.Context, user user.User, org Organization) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
 			ID:          org.ID,
-			NamespaceID: namespace.DefinitionOrg.ID,
+			NamespaceID: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        user.ID,
-			Namespace: namespace.DefinitionUser.ID,
-			RoleID:    role.DefinitionOrganizationAdmin.ID,
+			ID:        user.Email,
+			Namespace: schema.UserPrincipal,
+			RoleID:    schema.OwnerRole,
 		},
 	}
 

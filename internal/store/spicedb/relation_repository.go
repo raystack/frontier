@@ -5,6 +5,7 @@ import (
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
@@ -56,7 +57,7 @@ func (r RelationRepository) AddV2(ctx context.Context, rel relation.RelationV2) 
 			ObjectType: rel.Object.NamespaceID,
 			ObjectId:   rel.Object.ID,
 		},
-		Relation: rel.Subject.RoleID,
+		Relation: schema.GetRoleName(rel.Subject.RoleID),
 		Subject: &pb.SubjectReference{
 			Object: &pb.ObjectReference{
 				ObjectType: rel.Subject.Namespace,

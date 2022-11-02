@@ -10,6 +10,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/db"
 )
 
@@ -30,7 +31,7 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 			"subject_id":           relationToCreate.Subject.ID,
 			"object_namespace_id":  relationToCreate.Object.NamespaceID,
 			"object_id":            relationToCreate.Object.ID,
-			"role_id":              relationToCreate.Subject.RoleID,
+			"role_id":              schema.GetRoleID(relationToCreate.Object.NamespaceID, relationToCreate.Subject.RoleID),
 		}).OnConflict(
 		goqu.DoUpdate("subject_namespace_id, subject_id, object_namespace_id,  object_id, role_id", goqu.Record{
 			"subject_namespace_id": relationToCreate.Subject.Namespace,
@@ -46,7 +47,7 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return relation.RelationV2{}, relation.ErrInvalidDetail
+			return relation.RelationV2{}, fmt.Errorf("%w: %s", relation.ErrInvalidDetail, err)
 		default:
 			return relation.RelationV2{}, err
 		}

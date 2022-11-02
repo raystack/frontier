@@ -150,7 +150,7 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return "", policy.ErrInvalidDetail
+			return "", fmt.Errorf("%w: %s", policy.ErrInvalidDetail, err)
 		default:
 			return "", fmt.Errorf("%w: %s", dbErr, err)
 		}
