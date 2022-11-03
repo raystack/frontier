@@ -82,9 +82,6 @@ func NewSchemaMigrationService(
 	}
 }
 
-//RunMigrations will read NamespaceConfigMap from SchemaConfig blob store and:
-//- Create Role, Action, Policy & Namespace in Postgres store
-//- Push schema to SpiceDB
 func (s SchemaService) RunMigrations(ctx context.Context) error {
 	namespaceConfigMap, err := s.schemaConfig.GetSchema(ctx)
 	if err != nil {
@@ -138,6 +135,19 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			}
 		}
 
+		// create role for inherited namespaces
+		for _, ins := range v.InheritedNamespaces {
+			_, err := s.roleService.Create(ctx, role.Role{
+				ID:          fmt.Sprintf("%s:%s", namespaceId, ins),
+				Name:        ins,
+				Types:       []string{"InheritedNamespace"},
+				NamespaceID: namespaceId,
+			})
+			if err != nil {
+				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
+			}
+		}
+
 		// create actions
 		// IMP: we should depreciate actions with principals
 		for actionId := range v.Permissions {
@@ -166,7 +176,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				}
 
 				_, err = s.policyService.Create(ctx, policy.Policy{
-					RoleID:      fmt.Sprintf("%s:%s", transformedRole.NamespaceID, transformedRole.ID),
+					RoleID:      GetRoleID(transformedRole.NamespaceID, transformedRole.ID),
 					NamespaceID: namespaceId,
 					ActionID:    fmt.Sprintf("%s.%s", actionId, namespaceId),
 				})

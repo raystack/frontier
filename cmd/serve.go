@@ -116,7 +116,7 @@ func StartServer(logger log.Logger, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, nil)
+	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -190,9 +190,12 @@ func buildAPIDependencies(
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository)
 
+	roleRepository := postgres.NewRoleRepository(dbc)
+	roleService := role.NewService(roleRepository)
+
 	relationPGRepository := postgres.NewRelationRepository(dbc)
 	relationSpiceRepository := spicedb.NewRelationRepository(sdb)
-	relationService := relation.NewService(relationPGRepository, relationSpiceRepository)
+	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, roleService, userService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, userService)
@@ -205,9 +208,6 @@ func buildAPIDependencies(
 
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
 	policyService := policy.NewService(policyPGRepository)
-
-	roleRepository := postgres.NewRoleRepository(dbc)
-	roleService := role.NewService(roleRepository)
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(

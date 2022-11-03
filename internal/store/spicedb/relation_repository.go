@@ -5,9 +5,11 @@ import (
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
+	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )
 
 type RelationRepository struct {
@@ -35,6 +37,45 @@ func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) erro
 	}
 
 	if _, err = r.spiceDB.client.WriteRelationships(ctx, request); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getRelation(a string) string {
+	if a == "group" {
+		return "membership"
+	}
+
+	return ""
+}
+
+func (r RelationRepository) AddV2(ctx context.Context, rel relation.RelationV2) error {
+	relationship := &pb.Relationship{
+		Resource: &pb.ObjectReference{
+			ObjectType: rel.Object.NamespaceID,
+			ObjectId:   rel.Object.ID,
+		},
+		Relation: schema.GetRoleName(rel.Subject.RoleID),
+		Subject: &pb.SubjectReference{
+			Object: &pb.ObjectReference{
+				ObjectType: rel.Subject.Namespace,
+				ObjectId:   rel.Subject.ID,
+			},
+			OptionalRelation: getRelation(rel.Subject.Namespace),
+		},
+	}
+	request := &authzedpb.WriteRelationshipsRequest{
+		Updates: []*authzedpb.RelationshipUpdate{
+			{
+				Operation:    authzedpb.RelationshipUpdate_OPERATION_TOUCH,
+				Relationship: relationship,
+			},
+		},
+	}
+
+	if _, err := r.spiceDB.client.WriteRelationships(ctx, request); err != nil {
 		return err
 	}
 

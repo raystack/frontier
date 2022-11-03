@@ -3,22 +3,21 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/relation"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
-
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
 //go:generate mockery --name=RelationService -r --case underscore --with-expecter --structname RelationService --filename relation_service.go --output=./mocks
 type RelationService interface {
-	Get(ctx context.Context, id string) (relation.Relation, error)
-	List(ctx context.Context) ([]relation.Relation, error)
-	Create(ctx context.Context, relation relation.Relation) (relation.Relation, error)
-	Update(ctx context.Context, relation relation.Relation) (relation.Relation, error)
+	Get(ctx context.Context, id string) (relation.RelationV2, error)
+	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
+	List(ctx context.Context) ([]relation.RelationV2, error)
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
@@ -34,7 +33,7 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 	}
 
 	for _, r := range relationsList {
-		relationPB, err := transformRelationToPB(r)
+		relationPB, err := transformRelationV2ToPB(r)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
@@ -54,12 +53,17 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	newRelation, err := h.relationService.Create(ctx, relation.Relation{
-		SubjectNamespaceID: request.GetBody().GetSubjectType(),
-		SubjectID:          request.GetBody().GetSubjectId(),
-		ObjectNamespaceID:  request.GetBody().GetObjectType(),
-		ObjectID:           request.GetBody().GetObjectId(),
-		RoleID:             request.GetBody().GetRoleId(),
+	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
+	newRelation, err := h.relationService.Create(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:          request.GetBody().GetObjectId(),
+			NamespaceID: request.GetBody().GetObjectNamespace(),
+		},
+		Subject: relation.Subject{
+			ID:        subjectID,
+			Namespace: principal,
+			RoleID:    request.GetBody().GetRoleName(),
+		},
 	})
 
 	if err != nil {
@@ -72,7 +76,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		}
 	}
 
-	relationPB, err := transformRelationToPB(newRelation)
+	relationPB, err := transformRelationV2ToPB(newRelation)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -99,7 +103,7 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 		}
 	}
 
-	relationPB, err := transformRelationToPB(fetchedRelation)
+	relationPB, err := transformRelationV2ToPB(fetchedRelation)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -110,73 +114,23 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 	}, nil
 }
 
-func (h Handler) UpdateRelation(ctx context.Context, request *shieldv1beta1.UpdateRelationRequest) (*shieldv1beta1.UpdateRelationResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	if request.GetBody() == nil {
-		return nil, grpcBadBodyError
-	}
-
-	updatedRelation, err := h.relationService.Update(ctx, relation.Relation{
-		ID:                 request.GetId(),
-		SubjectNamespaceID: request.GetBody().GetSubjectType(),
-		SubjectID:          request.GetBody().GetSubjectId(),
-		ObjectNamespaceID:  request.GetBody().GetObjectType(),
-		ObjectID:           request.GetBody().GetObjectId(),
-		RoleID:             request.GetBody().GetRoleId(),
-	})
-	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, relation.ErrNotExist),
-			errors.Is(err, relation.ErrInvalidUUID),
-			errors.Is(err, relation.ErrInvalidID):
-			return nil, grpcRelationNotFoundErr
-		case errors.Is(err, relation.ErrInvalidDetail):
-			return nil, grpcBadBodyError
-		case errors.Is(err, relation.ErrConflict):
-			return nil, grpcConflictError
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
-	relationPB, err := transformRelationToPB(updatedRelation)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-
-	return &shieldv1beta1.UpdateRelationResponse{
-		Relation: &relationPB,
+func transformRelationV2ToPB(relation relation.RelationV2) (shieldv1beta1.Relation, error) {
+	return shieldv1beta1.Relation{
+		Id:              relation.ID,
+		ObjectId:        relation.Object.ID,
+		ObjectNamespace: relation.Object.NamespaceID,
+		Subject:         generateSubject(relation.Subject.ID, relation.Subject.Namespace),
+		RoleName:        relation.Subject.RoleID,
+		CreatedAt:       nil,
+		UpdatedAt:       nil,
 	}, nil
 }
 
-func transformRelationToPB(relation relation.Relation) (shieldv1beta1.Relation, error) {
-	subjectType, err := transformNamespaceToPB(relation.SubjectNamespace)
+func extractSubjectFromPrincipal(principal string) (string, string) {
+	splits := strings.Split(principal, ":")
+	return splits[0], splits[1]
+}
 
-	if err != nil {
-		return shieldv1beta1.Relation{}, err
-	}
-
-	objectType, err := transformNamespaceToPB(relation.ObjectNamespace)
-	if err != nil {
-		return shieldv1beta1.Relation{}, err
-	}
-
-	role, err := transformRoleToPB(relation.Role)
-	if err != nil {
-		return shieldv1beta1.Relation{}, err
-	}
-
-	return shieldv1beta1.Relation{
-		Id:          relation.ID,
-		SubjectType: &subjectType,
-		SubjectId:   relation.SubjectID,
-		ObjectType:  &objectType,
-		ObjectId:    relation.ObjectID,
-		Role:        &role,
-		CreatedAt:   timestamppb.New(relation.CreatedAt),
-		UpdatedAt:   timestamppb.New(relation.UpdatedAt),
-	}, nil
+func generateSubject(subjectId, principal string) string {
+	return fmt.Sprintf("%s:%s", principal, subjectId)
 }
