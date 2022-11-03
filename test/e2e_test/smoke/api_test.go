@@ -147,7 +147,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 
 	s.Run("1. org admin could create a new team", func() {
 		// check permission
-		_, err := s.client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+		_, err := s.client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.CheckResourcePermissionRequest{
 			ResourceId:  myOrg.GetId(),
 			ActionId:    action.DefinitionCreateTeam.ID,
 			NamespaceId: namespace.DefinitionOrg.ID,
@@ -177,7 +177,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestAdmin() {
 		}
 
 		// check permission
-		_, err := s.client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+		_, err := s.client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.CheckResourcePermissionRequest{
 			ResourceId:  group1.GetId(),
 			ActionId:    action.DefinitionManageTeam.ID,
 			NamespaceId: namespace.DefinitionTeam.ID,
@@ -342,7 +342,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 
 	s.Run("1. member unable to add member to team", func() {
 		// check permission
-		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.CheckResourcePermissionRequest{
 			ResourceId:  listOfGroups[0].GetId(),
 			ActionId:    action.DefinitionManageTeam.ID,
 			NamespaceId: namespace.DefinitionTeam.ID,
@@ -360,7 +360,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 
 	s.Run("2. member unable to add admin to team", func() {
 		// check permission
-		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.CheckResourcePermissionRequest{
 			ResourceId:  listOfGroups[0].GetId(),
 			ActionId:    action.DefinitionManageTeam.ID,
 			NamespaceId: namespace.DefinitionTeam.ID,
@@ -378,7 +378,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 
 	s.Run("3. member unable to remove admin from team", func() {
 		// check permission
-		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.CheckResourcePermissionRequest{
 			ResourceId:  listOfGroups[0].GetId(),
 			ActionId:    action.DefinitionManageTeam.ID,
 			NamespaceId: namespace.DefinitionTeam.ID,
@@ -395,7 +395,7 @@ func (s *EndToEndAPISmokeTestSuite) TestSmokeTestMember() {
 
 	s.Run("4. member unable to remove member from team", func() {
 		// check permission
-		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.ResourceActionAuthzRequest{
+		_, err := s.client.CheckResourcePermission(ctxMemberAuth, &shieldv1beta1.CheckResourcePermissionRequest{
 			ResourceId:  listOfGroups[0].GetId(),
 			ActionId:    action.DefinitionManageTeam.ID,
 			NamespaceId: namespace.DefinitionTeam.ID,

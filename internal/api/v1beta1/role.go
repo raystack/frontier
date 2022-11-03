@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/metadata"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 

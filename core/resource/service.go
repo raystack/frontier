@@ -10,12 +10,11 @@ import (
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
@@ -101,103 +100,103 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 }
 
 func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {
-	resourceNS := namespace.Namespace{
-		ID: res.NamespaceID,
-	}
-
-	rel := relation.Relation{
-		ObjectNamespace:  resourceNS,
-		ObjectID:         res.Idxa,
-		SubjectID:        project.ID,
-		SubjectNamespace: namespace.DefinitionProject,
-		Role: role.Role{
-			ID:          namespace.DefinitionProject.ID,
-			NamespaceID: resourceNS.ID,
-		},
-		RelationType: relation.RelationTypes.Namespace,
-	}
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
+	//resourceNS := namespace.Namespace{
+	//	ID: res.NamespaceID,
+	//}
+	//
+	//rel := relation.Relation{
+	//	ObjectNamespace:  resourceNS,
+	//	ObjectID:         res.Idxa,
+	//	SubjectID:        project.ID,
+	//	SubjectNamespace: namespace.DefinitionProject,
+	//	Role: role.Role{
+	//		ID:          namespace.DefinitionProject.ID,
+	//		NamespaceID: resourceNS.ID,
+	//	},
+	//	RelationType: relation.RelationTypes.Namespace,
+	//}
+	//if _, err := s.relationService.Create(ctx, rel); err != nil {
+	//	return err
+	//}
 
 	return nil
 }
 
 func (s Service) AddOrgToResource(ctx context.Context, org organization.Organization, res Resource) error {
-	resourceNS := namespace.Namespace{
-		ID: res.NamespaceID,
-	}
-
-	rel := relation.Relation{
-		ObjectNamespace:  resourceNS,
-		ObjectID:         res.Idxa,
-		SubjectID:        org.ID,
-		SubjectNamespace: namespace.DefinitionOrg,
-		Role: role.Role{
-			ID:          namespace.DefinitionOrg.ID,
-			NamespaceID: resourceNS.ID,
-		},
-		RelationType: relation.RelationTypes.Namespace,
-	}
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
+	//resourceNS := namespace.Namespace{
+	//	ID: res.NamespaceID,
+	//}
+	//
+	//rel := relation.Relation{
+	//	ObjectNamespace:  resourceNS,
+	//	ObjectID:         res.Idxa,
+	//	SubjectID:        org.ID,
+	//	SubjectNamespace: namespace.DefinitionOrg,
+	//	Role: role.Role{
+	//		ID:          namespace.DefinitionOrg.ID,
+	//		NamespaceID: resourceNS.ID,
+	//	},
+	//	RelationType: relation.RelationTypes.Namespace,
+	//}
+	//if _, err := s.relationService.Create(ctx, rel); err != nil {
+	//	return err
+	//}
 
 	return nil
 }
 
 func (s Service) AddTeamToResource(ctx context.Context, team group.Group, res Resource) error {
-	resourceNS := namespace.Namespace{
-		ID: res.NamespaceID,
-	}
-
-	rel := relation.Relation{
-		ObjectNamespace:  resourceNS,
-		ObjectID:         res.Idxa,
-		SubjectID:        team.ID,
-		SubjectNamespace: namespace.DefinitionTeam,
-		Role: role.Role{
-			ID:          namespace.DefinitionTeam.ID,
-			NamespaceID: resourceNS.ID,
-		},
-		RelationType: relation.RelationTypes.Namespace,
-	}
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
+	//resourceNS := namespace.Namespace{
+	//	ID: res.NamespaceID,
+	//}
+	//
+	//rel := relation.Relation{
+	//	ObjectNamespace:  resourceNS,
+	//	ObjectID:         res.Idxa,
+	//	SubjectID:        team.ID,
+	//	SubjectNamespace: namespace.DefinitionTeam,
+	//	Role: role.Role{
+	//		ID:          namespace.DefinitionTeam.ID,
+	//		NamespaceID: resourceNS.ID,
+	//	},
+	//	RelationType: relation.RelationTypes.Namespace,
+	//}
+	//if _, err := s.relationService.Create(ctx, rel); err != nil {
+	//	return err
+	//}
 
 	return nil
 }
 
 func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Resource) error {
-	nsId := res.NamespaceID
-
-	resourceNS := namespace.Namespace{
-		ID: nsId,
-	}
-
+	//nsId := str.DefaultStringIfEmpty(res.NamespaceID, res.Namespace.ID)
+	//
+	//resourceNS := namespace.Namespace{
+	//	ID: nsId,
+	//}
+	//
 	//relationSet, err := s.configRepository.GetRelationsForNamespace(ctx, nsId)
 	//if err != nil {
 	//	return err
 	//}
-
-	rl := role.GetOwnerRole(resourceNS)
-
+	//
+	//rl := role.GetOwnerRole(resourceNS)
+	//
 	//if !relationSet[rl.ID] {
 	//	return nil
 	//}
-
-	rel := relation.Relation{
-		ObjectNamespace:  resourceNS,
-		ObjectID:         res.Idxa,
-		SubjectID:        user.ID,
-		SubjectNamespace: namespace.DefinitionUser,
-		Role:             rl,
-	}
-
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
+	//
+	//rel := relation.Relation{
+	//	ObjectNamespace:  resourceNS,
+	//	ObjectID:         res.Idxa,
+	//	SubjectID:        user.ID,
+	//	SubjectNamespace: namespace.DefinitionUser,
+	//	Role:             rl,
+	//}
+	//
+	//if _, err := s.relationService.Create(ctx, rel); err != nil {
+	//	return err
+	//}
 
 	return nil
 }

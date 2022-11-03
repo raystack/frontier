@@ -27,6 +27,14 @@ func getRoleAndPrincipal(roleName, namespaceId string) (role.Role, error) {
 	return role.Role{ID: splittedString[1], NamespaceID: splittedString[0]}, nil
 }
 
+func GetRoleID(n, r string) string {
+	return fmt.Sprintf("%s:%s", n, r)
+}
+
+func GetRoleName(r string) string {
+	return strings.Split(r, ":")[1]
+}
+
 func AppendIfUnique[T comparable](slice1 []T, slice2 []T) []T {
 	for _, i := range slice2 {
 		if !Contains(slice1, i) {

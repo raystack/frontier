@@ -149,7 +149,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1beta1ResourceActionAuthzResponse"
+              "$ref": "#/definitions/v1beta1CheckResourcePermissionResponse"
             }
           },
           "default": {
@@ -531,6 +531,39 @@
         ],
         "tags": [
           "Group"
+        ]
+      }
+    },
+    "/v1beta1/metadatakey": {
+      "post": {
+        "summary": "Create Metadata Key",
+        "operationId": "ShieldService_CreateMetadataKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateMetadataKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1MetadataKeyRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Metadata Key"
         ]
       }
     },
@@ -1315,43 +1348,6 @@
         "tags": [
           "Relation"
         ]
-      },
-      "put": {
-        "summary": "Update Relation by ID",
-        "operationId": "ShieldService_UpdateRelation",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateRelationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1RelationRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Relation"
-        ]
       }
     },
     "/v1beta1/resources": {
@@ -1915,6 +1911,9 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "namespaceId": {
+          "type": "string"
         }
       }
     },
@@ -2020,6 +2019,14 @@
         }
       }
     },
+    "v1beta1CheckResourcePermissionResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "v1beta1CreateActionResponse": {
       "type": "object",
       "properties": {
@@ -2033,6 +2040,14 @@
       "properties": {
         "group": {
           "$ref": "#/definitions/v1beta1Group"
+        }
+      }
+    },
+    "v1beta1CreateMetadataKeyResponse": {
+      "type": "object",
+      "properties": {
+        "metadatakey": {
+          "$ref": "#/definitions/v1beta1MetadataKey"
         }
       }
     },
@@ -2405,6 +2420,28 @@
         }
       }
     },
+    "v1beta1MetadataKey": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v1beta1MetadataKeyRequestBody": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
     "v1beta1Namespace": {
       "type": "object",
       "properties": {
@@ -2496,6 +2533,15 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "namespaceId": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string"
+        },
+        "actionId": {
+          "type": "string"
         }
       }
     },
@@ -2564,20 +2610,17 @@
         "id": {
           "type": "string"
         },
-        "subjectType": {
-          "$ref": "#/definitions/v1beta1Namespace"
-        },
-        "subjectId": {
-          "type": "string"
-        },
-        "objectType": {
-          "$ref": "#/definitions/v1beta1Namespace"
-        },
         "objectId": {
           "type": "string"
         },
-        "role": {
-          "$ref": "#/definitions/v1beta1Role"
+        "objectNamespace": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
         },
         "createdAt": {
           "type": "string",
@@ -2592,19 +2635,16 @@
     "v1beta1RelationRequestBody": {
       "type": "object",
       "properties": {
-        "subjectType": {
-          "type": "string"
-        },
-        "subjectId": {
-          "type": "string"
-        },
-        "objectType": {
-          "type": "string"
-        },
         "objectId": {
           "type": "string"
         },
-        "roleId": {
+        "objectNamespace": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "roleName": {
           "type": "string"
         }
       }
@@ -2678,14 +2718,6 @@
         }
       }
     },
-    "v1beta1ResourceActionAuthzResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "string"
-        }
-      }
-    },
     "v1beta1ResourceRequestBody": {
       "type": "object",
       "properties": {
@@ -2737,6 +2769,9 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "namespaceId": {
+          "type": "string"
         }
       }
     },
@@ -2819,14 +2854,6 @@
       "properties": {
         "project": {
           "$ref": "#/definitions/v1beta1Project"
-        }
-      }
-    },
-    "v1beta1UpdateRelationResponse": {
-      "type": "object",
-      "properties": {
-        "relation": {
-          "$ref": "#/definitions/v1beta1Relation"
         }
       }
     },

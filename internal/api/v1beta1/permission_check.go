@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.ResourceActionAuthzRequest) (*shieldv1beta1.ResourceActionAuthzResponse, error) {
+func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := req.ValidateAll(); err != nil {
 		formattedErr := getValidationErrorMessage(err)
@@ -42,13 +42,13 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 		return nil, status.Errorf(codes.PermissionDenied, "user not allowed to make request")
 	}
 
-	return &shieldv1beta1.ResourceActionAuthzResponse{Status: "OK"}, nil
+	return &shieldv1beta1.CheckResourcePermissionResponse{Status: "OK"}, nil
 }
 
 func getValidationErrorMessage(err error) error {
 	consolidateInvalidFields := ""
-	for _, validationErr := range err.(shieldv1beta1.ResourceActionAuthzRequestMultiError) {
-		consolidateInvalidFields += validationErr.(shieldv1beta1.ResourceActionAuthzRequestValidationError).Field()
+	for _, validationErr := range err.(shieldv1beta1.CheckResourcePermissionRequestMultiError) {
+		consolidateInvalidFields += validationErr.(shieldv1beta1.CheckResourcePermissionRequestValidationError).Field()
 	}
 
 	formattedErr := fmt.Errorf("%w: %s", ErrRequestBodyValidation, consolidateInvalidFields)

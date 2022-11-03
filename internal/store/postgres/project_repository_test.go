@@ -9,12 +9,11 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
@@ -74,29 +73,31 @@ func (s *ProjectRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	// Add admin relation
-	_, err = s.namespaceRepository.Create(context.Background(), namespace.DefinitionUser)
+	_, err = bootstrapNamespace(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.namespaceRepository.Create(context.Background(), namespace.DefinitionProject)
+	_, err = bootstrapAction(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.roleRepository.Create(context.Background(), role.DefinitionProjectAdmin)
+	_, err = bootstrapRole(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Create(context.Background(), relation.Relation{
-		SubjectNamespaceID: namespace.DefinitionUser.ID,
-		SubjectID:          s.users[0].ID,
-		ObjectNamespaceID:  namespace.DefinitionProject.ID,
-		ObjectID:           s.projects[0].ID,
-		RoleID:             role.DefinitionProjectAdmin.ID,
-		RelationType:       relation.RelationTypes.Role,
+	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        s.users[0].ID,
+			Namespace: schema.UserPrincipal,
+			RoleID:    schema.OwnerRole,
+		},
+		Object: relation.Object{
+			ID:          s.projects[0].ID,
+			NamespaceID: schema.ProjectNamespace,
+		},
 	})
 	if err != nil {
 		s.T().Fatal(err)
@@ -551,46 +552,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 			}
 			if !cmp.Equal(got, tc.ExpectedProject, cmpopts.IgnoreFields(project.Project{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedProject)
-			}
-		})
-	}
-}
-
-func (s *ProjectRepositoryTestSuite) TestListAdmins() {
-	type testCase struct {
-		Description    string
-		ProjectID      string
-		ExpectedAdmins []user.User
-		ErrString      string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should return list of admins if project does have admins",
-			ProjectID:   s.projects[0].ID,
-			ExpectedAdmins: []user.User{
-				{
-					Name:  s.users[0].Name,
-					Email: s.users[0].Email,
-				},
-			},
-		},
-		{
-			Description: "should get empty admins if project does not have admin",
-			ProjectID:   s.projects[1].ID,
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListAdmins(s.ctx, tc.ProjectID)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedAdmins, cmpopts.IgnoreFields(user.User{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedAdmins)
 			}
 		})
 	}

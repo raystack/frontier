@@ -1,0 +1,2 @@
+ALTER TABLE relations
+DROP CONSTRAINT relations_unique_columns;
