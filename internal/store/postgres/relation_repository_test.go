@@ -12,6 +12,7 @@ import (
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/errors"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -122,54 +123,12 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 	}
 }
 
-// TODO: Relook at this
-//func (s *RelationRepositoryTestSuite) TestGetByFields() {
-//	type testCase struct {
-//		Description      string
-//		SelectedRelation relation.RelationV2
-//		ExpectedRelation relation.RelationV2
-//		ErrString        string
-//	}
-//
-//	var testCases = []testCase{
-//		{
-//			Description:      "should get a relation",
-//			SelectedRelation: s.relations[0],
-//			ExpectedRelation: s.relations[0],
-//		},
-//		{
-//			Description: "should return error no exist if can't found relation",
-//			SelectedRelation: relation.RelationV2{
-//				SubjectID:          uuid.NewString(),
-//				SubjectNamespaceID: uuid.NewString(),
-//				ObjectID:           uuid.NewString(),
-//				ObjectNamespaceID:  uuid.NewString(),
-//			},
-//			ErrString: relation.ErrNotExist.Error(),
-//		},
-//	}
-//
-//	for _, tc := range testCases {
-//		s.Run(tc.Description, func() {
-//			got, err := s.repository.GetByFields(s.ctx, tc.SelectedRelation)
-//			if tc.ErrString != "" {
-//				if err.Error() != tc.ErrString {
-//					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-//				}
-//			}
-//			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.Relation{}, "CreatedAt", "UpdatedAt")) {
-//				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelation)
-//			}
-//		})
-//	}
-//}
-
 func (s *RelationRepositoryTestSuite) TestCreate() {
 	type testCase struct {
 		Description      string
 		RelationToCreate relation.RelationV2
 		ExpectedRelation relation.RelationV2
-		ErrString        string
+		Err              error
 	}
 
 	var testCases = []testCase{
@@ -190,7 +149,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1",
-					RoleID:    "role1",
+					RoleID:    "ns1:role1",
 				},
 				Object: relation.Object{
 					ID:          "uuid2",
@@ -211,7 +170,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					NamespaceID: "ns1",
 				},
 			},
-			ErrString: relation.ErrInvalidDetail.Error(),
+			Err: relation.ErrInvalidDetail,
 		},
 		{
 			Description: "should return error if role id does not exist",
@@ -226,7 +185,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					NamespaceID: "ns1",
 				},
 			},
-			ErrString: relation.ErrInvalidDetail.Error(),
+			Err: relation.ErrInvalidDetail,
 		},
 		{
 			Description: "should return error if object namespace id does not exist",
@@ -241,16 +200,16 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					NamespaceID: "ns10",
 				},
 			},
-			ErrString: relation.ErrInvalidDetail.Error(),
+			Err: relation.ErrInvalidDetail,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Create(s.ctx, tc.RelationToCreate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+			if tc.Err != nil {
+				if errors.Is(tc.Err, err) {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err.Error())
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.RelationV2{},
@@ -278,7 +237,7 @@ func (s *RelationRepositoryTestSuite) TestList() {
 					Subject: relation.Subject{
 						ID:        "uuid1",
 						Namespace: "ns1",
-						RoleID:    "role1",
+						RoleID:    "ns1:role1",
 					},
 					Object: relation.Object{
 						ID:          "uuid2",
@@ -289,18 +248,7 @@ func (s *RelationRepositoryTestSuite) TestList() {
 					Subject: relation.Subject{
 						ID:        "uuid3",
 						Namespace: "ns2",
-						RoleID:    "role2",
-					},
-					Object: relation.Object{
-						ID:          "uuid4",
-						NamespaceID: "ns2",
-					},
-				},
-				{
-					Subject: relation.Subject{
-						ID:        "uuid1",
-						Namespace: "ns1",
-						RoleID:    "ns2",
+						RoleID:    "ns2:role2",
 					},
 					Object: relation.Object{
 						ID:          "uuid4",

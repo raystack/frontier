@@ -20,16 +20,5 @@
             "id": "uuid4",
             "namespaceId": "ns2"
         }
-    },
-    {
-        "subject": {
-            "id": "uuid1",
-            "namespace": "ns1",
-            "roleId": "ns2"
-        },
-        "object": {
-            "id": "uuid4",
-            "namespaceId": "ns2"
-        }
     }
 ]
