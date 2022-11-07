@@ -12,6 +12,7 @@ import (
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/internal/proxy"
@@ -305,7 +306,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Serv
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, &resource.Service{})
+	return authz_hook.New(log, rootHook, rootHook, &resource.Service{}, &relation.Service{}, "X-Auth-Email")
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {
