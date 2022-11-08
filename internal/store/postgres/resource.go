@@ -14,8 +14,6 @@ type Resource struct {
 	Name           string         `db:"name"`
 	ProjectID      string         `db:"project_id"`
 	Project        Project        `db:"project"`
-	GroupID        sql.NullString `db:"group_id"`
-	Group          Group          `db:"group"`
 	OrganizationID string         `db:"org_id"`
 	Organization   Organization   `db:"organization"`
 	NamespaceID    string         `db:"namespace_id"`
@@ -47,7 +45,6 @@ type ResourceCols struct {
 	URN            string         `db:"urn"`
 	Name           string         `db:"name"`
 	ProjectID      string         `db:"project_id"`
-	GroupID        sql.NullString `db:"group_id"`
 	OrganizationID string         `db:"org_id"`
 	NamespaceID    string         `db:"namespace_id"`
 	UserID         sql.NullString `db:"user_id"`
