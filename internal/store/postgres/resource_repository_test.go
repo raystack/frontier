@@ -8,7 +8,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
@@ -29,7 +28,6 @@ type ResourceRepositoryTestSuite struct {
 	resource   *dockertest.Resource
 	repository *postgres.ResourceRepository
 	resources  []resource.Resource
-	groups     []group.Group
 	projects   []project.Project
 	orgs       []organization.Organization
 	namespaces []namespace.Namespace
@@ -67,11 +65,6 @@ func (s *ResourceRepositoryTestSuite) SetupSuite() {
 		s.T().Fatal(err)
 	}
 
-	s.groups, err = bootstrapGroup(s.client, s.orgs)
-	if err != nil {
-		s.T().Fatal(err)
-	}
-
 	s.projects, err = bootstrapProject(s.client, s.orgs)
 	if err != nil {
 		s.T().Fatal(err)
@@ -80,7 +73,7 @@ func (s *ResourceRepositoryTestSuite) SetupSuite() {
 
 func (s *ResourceRepositoryTestSuite) SetupTest() {
 	var err error
-	s.resources, err = bootstrapResource(s.client, s.groups, s.projects, s.orgs, s.namespaces, s.users)
+	s.resources, err = bootstrapResource(s.client, s.projects, s.orgs, s.namespaces, s.users)
 	if err != nil {
 		s.T().Fatal(err)
 	}

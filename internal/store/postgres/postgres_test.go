@@ -421,7 +421,6 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 
 func bootstrapResource(
 	client *db.Client,
-	groups []group.Group,
 	projects []project.Project,
 	orgs []organization.Organization,
 	namespaces []namespace.Namespace,
