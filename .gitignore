@@ -8,7 +8,6 @@ proxies/*.yml
 .temp
 temp
 shield
-!proto/*
 /config.yaml
 dist
 coverage.txt
