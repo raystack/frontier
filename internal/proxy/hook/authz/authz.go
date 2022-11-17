@@ -211,15 +211,21 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idxa))
 
 		for _, rel := range config.Relations {
+			subjectId, err := getAttributesValues(attributes[rel.SubjectID])
+			if err != nil {
+				a.log.Error(fmt.Sprintf("cannot create relation: %s not found in attributes", rel.SubjectID))
+				continue
+			}
+
 			newRelation, err := a.relationService.Create(res.Request.Context(), relation.RelationV2{
 				Object: relation.Object{
-					ID:          resource.Name,
-					NamespaceID: resource.NamespaceID,
+					ID:          newResource.Idxa,
+					NamespaceID: newResource.NamespaceID,
 				},
 				Subject: relation.Subject{
 					RoleID:    rel.Role,
 					Namespace: rel.SubjectPrincipal,
-					ID:        rel.SubjectID,
+					ID:        subjectId[0],
 				},
 			})
 			if err != nil {

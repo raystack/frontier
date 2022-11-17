@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/internal/proxy/middleware/attributes"
+	"github.com/odpf/shield/internal/proxy/middleware"
 )
 
 type Ware struct {
@@ -21,14 +21,12 @@ func New(log log.Logger, next http.Handler) *Ware {
 }
 
 func (w *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	permissionAttributes, _ := attributes.GetAttributesFromContext(req.Context())
-	prefixInterface := permissionAttributes["prefix"]
-	if prefixInterface == nil {
+	rules, ok := middleware.ExtractRule(req)
+	if !ok {
 		w.next.ServeHTTP(rw, req)
 		return
 	}
-
-	prefixStr := prefixInterface.(string)
+	prefixStr := rules.Backend.Prefix
 	req.URL.Path = w.getPrefixStripped(req.URL.Path, prefixStr)
 	if req.URL.RawPath != "" {
 		req.URL.RawPath = w.getPrefixStripped(req.URL.RawPath, prefixStr)
