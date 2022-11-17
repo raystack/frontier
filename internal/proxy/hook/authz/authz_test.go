@@ -96,7 +96,7 @@ func TestCreateResources(t *testing.T) {
 					ProjectID:      "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
 					OrganizationID: "org2",
 					Name:           "res1",
-					NamespaceID:    "ns1_type",
+					NamespaceID:    "ns1/type",
 				},
 			},
 			err: nil,
