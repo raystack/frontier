@@ -4,6 +4,14 @@ module.exports = {
     'installation',
     {
       type: "category",
+      label: "Tour",
+      collapsed: false,
+      items: [
+        "tour/setup-server",
+      ],
+    },
+    {
+      type: "category",
       label: "Guides",
       collapsed: false,
       items: [
