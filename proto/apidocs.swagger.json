@@ -2690,9 +2690,6 @@
         "name": {
           "type": "string"
         },
-        "group": {
-          "$ref": "#/definitions/v1beta1Group"
-        },
         "project": {
           "$ref": "#/definitions/v1beta1Project"
         },
@@ -2724,20 +2721,17 @@
         "name": {
           "type": "string"
         },
-        "groupId": {
-          "type": "string"
-        },
         "projectId": {
-          "type": "string"
-        },
-        "organizationId": {
           "type": "string"
         },
         "namespaceId": {
           "type": "string"
         },
-        "userId": {
-          "type": "string"
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1Relation"
+          }
         }
       }
     },

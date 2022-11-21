@@ -222,8 +222,8 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 
 func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, namespace string) (string, interface{}, error) {
 	getResourcesByURNQuery, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
-		"name":         goqu.L(name),
-		"namespace_id": goqu.L(namespace),
+		"name":         name,
+		"namespace_id": namespace,
 	}).ToSQL()
 
 	return getResourcesByURNQuery, params, err
@@ -232,13 +232,13 @@ func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string,
 func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns string) (resource.Resource, error) {
 	var fetchedResource Resource
 
-	query, params, err := buildGetResourcesByNamespaceQuery(dialect, name, ns)
+	query, _, err := buildGetResourcesByNamespaceQuery(dialect, name, ns)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &fetchedResource, query, params)
+		return r.dbc.GetContext(ctx, &fetchedResource, query)
 	})
 
 	if err != nil {

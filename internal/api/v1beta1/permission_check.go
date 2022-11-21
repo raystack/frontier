@@ -17,11 +17,11 @@ import (
 
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if err := req.ValidateAll(); err != nil {
-		formattedErr := getValidationErrorMessage(err)
-		logger.Error(formattedErr.Error())
-		return nil, status.Errorf(codes.NotFound, formattedErr.Error())
-	}
+	//if err := req.ValidateAll(); err != nil {
+	//	formattedErr := getValidationErrorMessage(err)
+	//	logger.Error(formattedErr.Error())
+	//	return nil, status.Errorf(codes.NotFound, formattedErr.Error())
+	//}
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 		Name:        req.GetObjectId(),
