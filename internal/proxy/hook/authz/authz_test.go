@@ -26,6 +26,8 @@ var testPermissionAttributesMap = map[string]any{
 	"organization":  "org1",
 	"namespace":     "ns1",
 	"resource_type": "kind",
+	"group":         "group@odpf.com",
+	"user":          "user1@odpf.com",
 }
 
 var expectedResources = []resource.Resource{
@@ -382,17 +384,25 @@ func TestServeHook(t *testing.T) {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["resource_type"].(string),
 							},
+							"group": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["group"].(string),
+							},
+							"user": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["user"].(string),
+							},
 						},
 						"relations": []Relation{
 							{
 								Role:             "owner",
-								SubjectPrincipal: "user",
-								SubjectID:        "owner1@odpf.io",
+								SubjectPrincipal: "group",
+								SubjectID:        "group",
 							},
 							{
 								Role:             "owner",
 								SubjectPrincipal: "user",
-								SubjectID:        "owner2@odpf.io",
+								SubjectID:        "user",
 							},
 						},
 					},
