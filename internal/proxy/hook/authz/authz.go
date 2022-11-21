@@ -59,9 +59,9 @@ func New(log log.Logger, next, escape hook.Service, resourceService ResourceServ
 }
 
 type Relation struct {
-	Role             string `yaml:"role" mapstructure:"role"`
-	SubjectPrincipal string `yaml:"subject_principal" mapstructure:"subject_principal"`
-	SubjectID        string `yaml:"subject_id" mapstructure:"subject_id"`
+	Role               string `yaml:"role" mapstructure:"role"`
+	SubjectPrincipal   string `yaml:"subject_principal" mapstructure:"subject_principal"`
+	SubjectIDAttribute string `yaml:"subject_id" mapstructure:"subject_id_attribute"`
 }
 
 type Config struct {
@@ -211,9 +211,9 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idxa))
 
 		for _, rel := range config.Relations {
-			subjectId, err := getAttributesValues(attributes[rel.SubjectID])
+			subjectId, err := getAttributesValues(attributes[rel.SubjectIDAttribute])
 			if err != nil {
-				a.log.Error(fmt.Sprintf("cannot create relation: %s not found in attributes", rel.SubjectID))
+				a.log.Error(fmt.Sprintf("cannot create relation: %s not found in attributes", rel.SubjectIDAttribute))
 				continue
 			}
 

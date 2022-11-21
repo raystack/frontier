@@ -395,14 +395,14 @@ func TestServeHook(t *testing.T) {
 						},
 						"relations": []Relation{
 							{
-								Role:             "owner",
-								SubjectPrincipal: "group",
-								SubjectID:        "group",
+								Role:               "owner",
+								SubjectPrincipal:   "group",
+								SubjectIDAttribute: "group",
 							},
 							{
-								Role:             "owner",
-								SubjectPrincipal: "user",
-								SubjectID:        "user",
+								Role:               "owner",
+								SubjectPrincipal:   "user",
+								SubjectIDAttribute: "user",
 							},
 						},
 					},
