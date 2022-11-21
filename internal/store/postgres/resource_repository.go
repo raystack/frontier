@@ -9,7 +9,6 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/uuid"
@@ -221,25 +220,16 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 	return resourceModel.transformToResource(), nil
 }
 
-func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, ns namespace.Namespace) (string, interface{}, error) {
-	namespaceQueryExpression := goqu.Ex{
-		"backend": goqu.L(ns.Backend),
-	}
-
-	if ns.ResourceType != "" {
-		namespaceQueryExpression["resource_type"] = goqu.L(ns.ResourceType)
-	}
-
-	getNamespaceQuery := dialect.Select("id").From(TABLE_NAMESPACES).Where(namespaceQueryExpression)
+func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, namespace string) (string, interface{}, error) {
 	getResourcesByURNQuery, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
 		"name":         goqu.L(name),
-		"namespace_id": goqu.Op{"in": getNamespaceQuery},
+		"namespace_id": goqu.L(namespace),
 	}).ToSQL()
 
 	return getResourcesByURNQuery, params, err
 }
 
-func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns namespace.Namespace) (resource.Resource, error) {
+func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns string) (resource.Resource, error) {
 	var fetchedResource Resource
 
 	query, params, err := buildGetResourcesByNamespaceQuery(dialect, name, ns)

@@ -24,9 +24,9 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	}
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		Name:        req.GetResourceId(),
-		NamespaceID: req.GetNamespaceId(),
-	}, action.Action{ID: req.GetActionId()})
+		Name:        req.GetObjectId(),
+		NamespaceID: req.GetObjectNamespace(),
+	}, action.Action{ID: req.GetPermission()})
 	if err != nil {
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
