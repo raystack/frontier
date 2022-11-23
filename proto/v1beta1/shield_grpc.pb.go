@@ -82,6 +82,7 @@ type ShieldServiceClient interface {
 	ListRelations(ctx context.Context, in *ListRelationsRequest, opts ...grpc.CallOption) (*ListRelationsResponse, error)
 	CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error)
 	GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error)
+	ListObjectRelations(ctx context.Context, in *ListObjectRelationsRequest, opts ...grpc.CallOption) (*ListObjectRelationsResponse, error)
 	// Resources
 	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
@@ -558,6 +559,15 @@ func (c *shieldServiceClient) GetRelation(ctx context.Context, in *GetRelationRe
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListObjectRelations(ctx context.Context, in *ListObjectRelationsRequest, opts ...grpc.CallOption) (*ListObjectRelationsResponse, error) {
+	out := new(ListObjectRelationsResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListObjectRelations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error) {
 	out := new(ListResourcesResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListResources", in, out, opts...)
@@ -667,6 +677,7 @@ type ShieldServiceServer interface {
 	ListRelations(context.Context, *ListRelationsRequest) (*ListRelationsResponse, error)
 	CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error)
 	GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error)
+	ListObjectRelations(context.Context, *ListObjectRelationsRequest) (*ListObjectRelationsResponse, error)
 	// Resources
 	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
 	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
@@ -833,6 +844,9 @@ func (UnimplementedShieldServiceServer) CreateRelation(context.Context, *CreateR
 }
 func (UnimplementedShieldServiceServer) GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRelation not implemented")
+}
+func (UnimplementedShieldServiceServer) ListObjectRelations(context.Context, *ListObjectRelationsRequest) (*ListObjectRelationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListObjectRelations not implemented")
 }
 func (UnimplementedShieldServiceServer) ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListResources not implemented")
@@ -1780,6 +1794,24 @@ func _ShieldService_GetRelation_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListObjectRelations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListObjectRelationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListObjectRelations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListObjectRelations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListObjectRelations(ctx, req.(*ListObjectRelationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_ListResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListResourcesRequest)
 	if err := dec(in); err != nil {
@@ -2080,6 +2112,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRelation",
 			Handler:    _ShieldService_GetRelation_Handler,
+		},
+		{
+			MethodName: "ListObjectRelations",
+			Handler:    _ShieldService_ListObjectRelations_Handler,
 		},
 		{
 			MethodName: "ListResources",

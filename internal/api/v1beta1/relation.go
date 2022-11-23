@@ -8,6 +8,7 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/internal/schema"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,6 +19,7 @@ type RelationService interface {
 	Get(ctx context.Context, id string) (relation.RelationV2, error)
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	List(ctx context.Context) ([]relation.RelationV2, error)
+	ListObjectRelations(ctx context.Context, objectId, subjectType, role string) ([]relation.RelationV2, error)
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
@@ -111,6 +113,73 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 
 	return &shieldv1beta1.GetRelationResponse{
 		Relation: &relationPB,
+	}, nil
+}
+
+func (h Handler) ListObjectRelations(ctx context.Context, request *shieldv1beta1.ListObjectRelationsRequest) (*shieldv1beta1.ListObjectRelationsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	var objectRelations []*shieldv1beta1.ObjectRelation
+
+	relationsList, err := h.relationService.ListObjectRelations(ctx, request.Id, request.SubjectType, request.Role)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, r := range relationsList {
+		objrel := shieldv1beta1.ObjectRelation{}
+
+		if r.Subject.Namespace == schema.UserPrincipal {
+			user, err := h.userService.GetByID(ctx, r.Subject.ID)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			userPb, err := transformUserToPB(user)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			role := strings.Split(r.Subject.RoleID, ":")
+
+			objrel = shieldv1beta1.ObjectRelation{
+				SubjectType: r.Subject.Namespace,
+				Role:        role[1],
+				Subject: &shieldv1beta1.ObjectRelation_User{
+					User: &userPb,
+				},
+			}
+			objectRelations = append(objectRelations, &objrel)
+		} else if r.Subject.Namespace == schema.GroupPrincipal {
+			group, err := h.groupService.Get(ctx, r.Subject.ID)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			groupPb, err := transformGroupToPB(group)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			role := strings.Split(r.Subject.RoleID, ":")
+
+			objrel = shieldv1beta1.ObjectRelation{
+				SubjectType: r.Subject.Namespace,
+				Role:        role[1],
+				Subject: &shieldv1beta1.ObjectRelation_Group{
+					Group: &groupPb,
+				},
+			}
+			objectRelations = append(objectRelations, &objrel)
+		}
+	}
+
+	return &shieldv1beta1.ListObjectRelationsResponse{
+		Relations: objectRelations,
 	}, nil
 }
 
