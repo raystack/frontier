@@ -39,10 +39,10 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	}
 
 	if !result {
-		return nil, status.Errorf(codes.PermissionDenied, "user not allowed to make request")
+		return &shieldv1beta1.CheckResourcePermissionResponse{Status: false}, nil
 	}
 
-	return &shieldv1beta1.CheckResourcePermissionResponse{Status: "OK"}, nil
+	return &shieldv1beta1.CheckResourcePermissionResponse{Status: true}, nil
 }
 
 func getValidationErrorMessage(err error) error {

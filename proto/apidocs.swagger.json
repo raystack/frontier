@@ -2023,7 +2023,7 @@
       "type": "object",
       "properties": {
         "status": {
-          "type": "string"
+          "type": "boolean"
         }
       }
     },
