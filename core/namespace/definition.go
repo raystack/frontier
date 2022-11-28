@@ -13,8 +13,8 @@ var DefinitionProject = Namespace{
 }
 
 var DefinitionTeam = Namespace{
-	ID:   "team",
-	Name: "Team",
+	ID:   "group",
+	Name: "Group",
 }
 
 var DefinitionUser = Namespace{

@@ -17120,15 +17120,43 @@ func (m *ResourceRequestBody) validate(all bool) error {
 
 	// no validation rules for Name
 
-	// no validation rules for GroupId
-
 	// no validation rules for ProjectId
-
-	// no validation rules for OrganizationId
 
 	// no validation rules for NamespaceId
 
-	// no validation rules for UserId
+	for idx, item := range m.GetRelations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ResourceRequestBodyValidationError{
+						field:  fmt.Sprintf("Relations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ResourceRequestBodyValidationError{
+						field:  fmt.Sprintf("Relations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ResourceRequestBodyValidationError{
+					field:  fmt.Sprintf("Relations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return ResourceRequestBodyMultiError(errors)
@@ -17986,9 +18014,9 @@ func (m *CheckResourcePermissionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if !_CheckResourcePermissionRequest_ResourceId_Pattern.MatchString(m.GetResourceId()) {
+	if !_CheckResourcePermissionRequest_ObjectId_Pattern.MatchString(m.GetObjectId()) {
 		err := CheckResourcePermissionRequestValidationError{
-			field:  "ResourceId",
+			field:  "ObjectId",
 			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
 		}
 		if !all {
@@ -17997,9 +18025,9 @@ func (m *CheckResourcePermissionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_CheckResourcePermissionRequest_ActionId_Pattern.MatchString(m.GetActionId()) {
+	if !_CheckResourcePermissionRequest_ObjectNamespace_Pattern.MatchString(m.GetObjectNamespace()) {
 		err := CheckResourcePermissionRequestValidationError{
-			field:  "ActionId",
+			field:  "ObjectNamespace",
 			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
 		}
 		if !all {
@@ -18008,9 +18036,9 @@ func (m *CheckResourcePermissionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_CheckResourcePermissionRequest_NamespaceId_Pattern.MatchString(m.GetNamespaceId()) {
+	if !_CheckResourcePermissionRequest_Permission_Pattern.MatchString(m.GetPermission()) {
 		err := CheckResourcePermissionRequestValidationError{
-			field:  "NamespaceId",
+			field:  "Permission",
 			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
 		}
 		if !all {
@@ -18099,11 +18127,11 @@ var _ interface {
 	ErrorName() string
 } = CheckResourcePermissionRequestValidationError{}
 
-var _CheckResourcePermissionRequest_ResourceId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _CheckResourcePermissionRequest_ObjectId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
-var _CheckResourcePermissionRequest_ActionId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _CheckResourcePermissionRequest_ObjectNamespace_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
-var _CheckResourcePermissionRequest_NamespaceId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _CheckResourcePermissionRequest_Permission_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
 // Validate checks the field values on CheckResourcePermissionResponse with the
 // rules defined in the proto definition for this message. If any rules are

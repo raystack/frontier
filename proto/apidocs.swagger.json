@@ -141,7 +141,7 @@
         ]
       }
     },
-    "/v1beta1/check/{resourceId}": {
+    "/v1beta1/check": {
       "post": {
         "summary": "check permission for action on a resource by an user",
         "operationId": "ShieldService_CheckResourcePermission",
@@ -161,25 +161,11 @@
         },
         "parameters": [
           {
-            "name": "resourceId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "actionId": {
-                  "type": "string"
-                },
-                "namespaceId": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/v1beta1CheckResourcePermissionRequest"
             }
           }
         ],
@@ -2019,11 +2005,25 @@
         }
       }
     },
+    "v1beta1CheckResourcePermissionRequest": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string"
+        },
+        "objectNamespace": {
+          "type": "string"
+        },
+        "permission": {
+          "type": "string"
+        }
+      }
+    },
     "v1beta1CheckResourcePermissionResponse": {
       "type": "object",
       "properties": {
         "status": {
-          "type": "string"
+          "type": "boolean"
         }
       }
     },
@@ -2690,9 +2690,6 @@
         "name": {
           "type": "string"
         },
-        "group": {
-          "$ref": "#/definitions/v1beta1Group"
-        },
         "project": {
           "$ref": "#/definitions/v1beta1Project"
         },
@@ -2724,20 +2721,17 @@
         "name": {
           "type": "string"
         },
-        "groupId": {
-          "type": "string"
-        },
         "projectId": {
-          "type": "string"
-        },
-        "organizationId": {
           "type": "string"
         },
         "namespaceId": {
           "type": "string"
         },
-        "userId": {
-          "type": "string"
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1Relation"
+          }
         }
       }
     },

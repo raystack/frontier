@@ -17,16 +17,16 @@ import (
 
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if err := req.ValidateAll(); err != nil {
-		formattedErr := getValidationErrorMessage(err)
-		logger.Error(formattedErr.Error())
-		return nil, status.Errorf(codes.NotFound, formattedErr.Error())
-	}
+	//if err := req.ValidateAll(); err != nil {
+	//	formattedErr := getValidationErrorMessage(err)
+	//	logger.Error(formattedErr.Error())
+	//	return nil, status.Errorf(codes.NotFound, formattedErr.Error())
+	//}
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		Name:        req.GetResourceId(),
-		NamespaceID: req.GetNamespaceId(),
-	}, action.Action{ID: req.GetActionId()})
+		Name:        req.GetObjectId(),
+		NamespaceID: req.GetObjectNamespace(),
+	}, action.Action{ID: req.GetPermission()})
 	if err != nil {
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
@@ -39,18 +39,8 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	}
 
 	if !result {
-		return nil, status.Errorf(codes.PermissionDenied, "user not allowed to make request")
+		return &shieldv1beta1.CheckResourcePermissionResponse{Status: false}, nil
 	}
 
-	return &shieldv1beta1.CheckResourcePermissionResponse{Status: "OK"}, nil
-}
-
-func getValidationErrorMessage(err error) error {
-	consolidateInvalidFields := ""
-	for _, validationErr := range err.(shieldv1beta1.CheckResourcePermissionRequestMultiError) {
-		consolidateInvalidFields += validationErr.(shieldv1beta1.CheckResourcePermissionRequestValidationError).Field()
-	}
-
-	formattedErr := fmt.Errorf("%w: %s", ErrRequestBodyValidation, consolidateInvalidFields)
-	return formattedErr
+	return &shieldv1beta1.CheckResourcePermissionResponse{Status: true}, nil
 }
