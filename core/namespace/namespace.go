@@ -40,5 +40,5 @@ func CreateID(backend, resourceType string) string {
 		return backend
 	}
 
-	return fmt.Sprintf("%s_%s", backend, resourceType)
+	return fmt.Sprintf("%s/%s", backend, resourceType)
 }
