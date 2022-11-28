@@ -4177,13 +4177,9 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-<<<<<<< HEAD
 		var err error
 		var annotatedContext context.Context
 		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check"))
-=======
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check"))
->>>>>>> rc/0.5.0
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5477,13 +5473,9 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-<<<<<<< HEAD
 		var err error
 		var annotatedContext context.Context
 		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check"))
-=======
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check"))
->>>>>>> rc/0.5.0
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
