@@ -2673,23 +2673,6 @@ func request_ShieldService_CheckResourcePermission_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["resource_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "resource_id")
-	}
-
-	protoReq.ResourceId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "resource_id", err)
-	}
-
 	msg, err := client.CheckResourcePermission(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -2705,23 +2688,6 @@ func local_request_ShieldService_CheckResourcePermission_0(ctx context.Context, 
 	}
 	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["resource_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "resource_id")
-	}
-
-	protoReq.ResourceId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "resource_id", err)
 	}
 
 	msg, err := server.CheckResourcePermission(ctx, &protoReq)
@@ -4006,7 +3972,7 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check/{resource_id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5168,7 +5134,7 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check/{resource_id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", runtime.WithHTTPPathPattern("/v1beta1/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5298,7 +5264,7 @@ var (
 
 	pattern_ShieldService_UpdateResource_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "resources", "id"}, ""))
 
-	pattern_ShieldService_CheckResourcePermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "check", "resource_id"}, ""))
+	pattern_ShieldService_CheckResourcePermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "check"}, ""))
 )
 
 var (

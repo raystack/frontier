@@ -16,7 +16,7 @@ type Repository interface {
 	Create(ctx context.Context, resource Resource) (Resource, error)
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, id string, resource Resource) (Resource, error)
-	GetByNamespace(ctx context.Context, name string, ns namespace.Namespace) (Resource, error)
+	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
 }
 
 type ConfigRepository interface {
