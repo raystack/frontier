@@ -3,17 +3,17 @@ package authz
 import (
 	"context"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/pkg/body_extractor"
 	"net/http"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
+	"github.com/odpf/salt/log"
+
 	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/middleware"
+	"github.com/odpf/shield/pkg/body_extractor"
 )
 
 type ResourceService interface {
@@ -236,63 +236,4 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 func (w Authz) notAllowed(rw http.ResponseWriter) {
 	rw.WriteHeader(http.StatusUnauthorized)
-}
-
-func createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
-	var resources []resource.Resource
-	resourceList, err := getAttributesValues(permissionAttributes["resource"])
-	if err != nil {
-		return nil, err
-	}
-
-	project, err := getAttributesValues(permissionAttributes["project"])
-	if err != nil {
-		return nil, err
-	}
-
-	backendNamespace, err := getAttributesValues(permissionAttributes["namespace"])
-	if err != nil {
-		return nil, err
-	}
-
-	resourceType, err := getAttributesValues(permissionAttributes["resource_type"])
-	if err != nil {
-		return nil, err
-	}
-
-	if len(resourceList) < 1 {
-		return nil, fmt.Errorf("resources are required")
-	}
-
-	for _, res := range resourceList {
-		nsID := namespace.CreateID(backendNamespace[0], resourceType[0])
-		resources = append(resources, resource.Resource{
-			Name:        res,
-			NamespaceID: nsID,
-			ProjectID:   project[0],
-		})
-	}
-	return resources, nil
-}
-
-func getAttributesValues(attributes interface{}) ([]string, error) {
-	var values []string
-
-	switch attributes := attributes.(type) {
-	case []string:
-		values = append(values, attributes...)
-	case string:
-		values = append(values, attributes)
-	case []interface{}:
-		for _, i := range attributes {
-			values = append(values, i.(string))
-		}
-	case interface{}:
-		values = append(values, attributes.(string))
-	case nil:
-		return values, nil
-	default:
-		return values, fmt.Errorf("unsuported attribute type %v", attributes)
-	}
-	return values, nil
 }

@@ -44,13 +44,3 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 
 	return &shieldv1beta1.CheckResourcePermissionResponse{Status: true}, nil
 }
-
-func getValidationErrorMessage(err error) error {
-	consolidateInvalidFields := ""
-	for _, validationErr := range err.(shieldv1beta1.CheckResourcePermissionRequestMultiError) {
-		consolidateInvalidFields += validationErr.(shieldv1beta1.CheckResourcePermissionRequestValidationError).Field()
-	}
-
-	formattedErr := fmt.Errorf("%w: %s", ErrRequestBodyValidation, consolidateInvalidFields)
-	return formattedErr
-}
