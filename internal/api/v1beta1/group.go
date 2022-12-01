@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
@@ -35,6 +36,7 @@ type GroupService interface {
 	RemoveUser(ctx context.Context, groupId string, userId string) ([]user.User, error)
 	AddAdmins(ctx context.Context, groupId string, userIds []string) ([]user.User, error)
 	RemoveAdmin(ctx context.Context, groupId string, userId string) ([]user.User, error)
+	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []group.Group, map[string][]string, map[string][]string, error)
 }
 
 var (
@@ -83,7 +85,6 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	grp := group.Group{
 		Name:           request.GetBody().GetName(),
 		Slug:           request.GetBody().GetSlug(),
-		Organization:   organization.Organization{ID: request.GetBody().GetOrgId()},
 		OrganizationID: request.GetBody().GetOrgId(),
 		Metadata:       metaDataMap,
 	}
@@ -117,7 +118,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		Id:        newGroup.ID,
 		Name:      newGroup.Name,
 		Slug:      newGroup.Slug,
-		OrgId:     newGroup.Organization.ID,
+		OrgId:     newGroup.OrganizationID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(newGroup.CreatedAt),
 		UpdatedAt: timestamppb.New(newGroup.UpdatedAt),
@@ -230,7 +231,6 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 			ID:             request.GetId(),
 			Name:           request.GetBody().GetName(),
 			Slug:           request.GetBody().GetSlug(),
-			Organization:   organization.Organization{ID: request.GetBody().GetOrgId()},
 			OrganizationID: request.GetBody().GetOrgId(),
 			Metadata:       metaDataMap,
 		})
@@ -238,7 +238,6 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		updatedGroup, err = h.groupService.Update(ctx, group.Group{
 			Name:           request.GetBody().GetName(),
 			Slug:           request.GetId(),
-			Organization:   organization.Organization{ID: request.GetBody().GetOrgId()},
 			OrganizationID: request.GetBody().GetOrgId(),
 			Metadata:       metaDataMap,
 		})
@@ -401,9 +400,66 @@ func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
 		Id:        grp.ID,
 		Name:      grp.Name,
 		Slug:      grp.Slug,
-		OrgId:     grp.Organization.ID,
+		OrgId:     grp.OrganizationID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(grp.CreatedAt),
 		UpdatedAt: timestamppb.New(grp.UpdatedAt),
+	}, nil
+}
+
+func (h Handler) ListGroupRelations(ctx context.Context, request *shieldv1beta1.ListGroupRelationsRequest) (*shieldv1beta1.ListGroupRelationsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	groupRelations := []*shieldv1beta1.GroupRelation{}
+
+	users, groups, userIDRoleMap, groupIDRoleMap, err := h.groupService.ListGroupRelations(ctx, request.Id, request.SubjectType, request.Role)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, user := range users {
+		userPb, err := transformUserToPB(user)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+
+		for _, r := range userIDRoleMap[userPb.Id] {
+			role := strings.Split(r, ":")
+
+			grprel := &shieldv1beta1.GroupRelation{
+				SubjectType: schema.UserPrincipal,
+				Role:        role[1],
+				Subject: &shieldv1beta1.GroupRelation_User{
+					User: &userPb,
+				},
+			}
+			groupRelations = append(groupRelations, grprel)
+		}
+	}
+
+	for _, group := range groups {
+		groupPb, err := transformGroupToPB(group)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+
+		for _, r := range groupIDRoleMap[groupPb.Id] {
+			role := strings.Split(r, ":")
+
+			grprel := &shieldv1beta1.GroupRelation{
+				SubjectType: schema.GroupPrincipal,
+				Role:        role[1],
+				Subject: &shieldv1beta1.GroupRelation_Group{
+					Group: &groupPb,
+				},
+			}
+			groupRelations = append(groupRelations, grprel)
+		}
+	}
+
+	return &shieldv1beta1.ListGroupRelationsResponse{
+		Relations: groupRelations,
 	}, nil
 }

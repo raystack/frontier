@@ -15872,22 +15872,22 @@ var _ interface {
 	ErrorName() string
 } = ResourceValidationError{}
 
-// Validate checks the field values on ObjectRelation with the rules defined in
+// Validate checks the field values on GroupRelation with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *ObjectRelation) Validate() error {
+func (m *GroupRelation) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ObjectRelation with the rules defined
+// ValidateAll checks the field values on GroupRelation with the rules defined
 // in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in ObjectRelationMultiError,
-// or nil if none found.
-func (m *ObjectRelation) ValidateAll() error {
+// result is a list of violation errors wrapped in GroupRelationMultiError, or
+// nil if none found.
+func (m *GroupRelation) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ObjectRelation) validate(all bool) error {
+func (m *GroupRelation) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -15900,13 +15900,13 @@ func (m *ObjectRelation) validate(all bool) error {
 
 	switch m.Subject.(type) {
 
-	case *ObjectRelation_User:
+	case *GroupRelation_User:
 
 		if all {
 			switch v := interface{}(m.GetUser()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ObjectRelationValidationError{
+					errors = append(errors, GroupRelationValidationError{
 						field:  "User",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -15914,7 +15914,7 @@ func (m *ObjectRelation) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, ObjectRelationValidationError{
+					errors = append(errors, GroupRelationValidationError{
 						field:  "User",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -15923,7 +15923,7 @@ func (m *ObjectRelation) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(m.GetUser()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return ObjectRelationValidationError{
+				return GroupRelationValidationError{
 					field:  "User",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -15931,13 +15931,13 @@ func (m *ObjectRelation) validate(all bool) error {
 			}
 		}
 
-	case *ObjectRelation_Group:
+	case *GroupRelation_Group:
 
 		if all {
 			switch v := interface{}(m.GetGroup()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ObjectRelationValidationError{
+					errors = append(errors, GroupRelationValidationError{
 						field:  "Group",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -15945,7 +15945,7 @@ func (m *ObjectRelation) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, ObjectRelationValidationError{
+					errors = append(errors, GroupRelationValidationError{
 						field:  "Group",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -15954,7 +15954,7 @@ func (m *ObjectRelation) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(m.GetGroup()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return ObjectRelationValidationError{
+				return GroupRelationValidationError{
 					field:  "Group",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -15965,19 +15965,19 @@ func (m *ObjectRelation) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ObjectRelationMultiError(errors)
+		return GroupRelationMultiError(errors)
 	}
 
 	return nil
 }
 
-// ObjectRelationMultiError is an error wrapping multiple validation errors
-// returned by ObjectRelation.ValidateAll() if the designated constraints
+// GroupRelationMultiError is an error wrapping multiple validation errors
+// returned by GroupRelation.ValidateAll() if the designated constraints
 // aren't met.
-type ObjectRelationMultiError []error
+type GroupRelationMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ObjectRelationMultiError) Error() string {
+func (m GroupRelationMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -15986,11 +15986,11 @@ func (m ObjectRelationMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ObjectRelationMultiError) AllErrors() []error { return m }
+func (m GroupRelationMultiError) AllErrors() []error { return m }
 
-// ObjectRelationValidationError is the validation error returned by
-// ObjectRelation.Validate if the designated constraints aren't met.
-type ObjectRelationValidationError struct {
+// GroupRelationValidationError is the validation error returned by
+// GroupRelation.Validate if the designated constraints aren't met.
+type GroupRelationValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -15998,22 +15998,22 @@ type ObjectRelationValidationError struct {
 }
 
 // Field function returns field value.
-func (e ObjectRelationValidationError) Field() string { return e.field }
+func (e GroupRelationValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ObjectRelationValidationError) Reason() string { return e.reason }
+func (e GroupRelationValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ObjectRelationValidationError) Cause() error { return e.cause }
+func (e GroupRelationValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ObjectRelationValidationError) Key() bool { return e.key }
+func (e GroupRelationValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ObjectRelationValidationError) ErrorName() string { return "ObjectRelationValidationError" }
+func (e GroupRelationValidationError) ErrorName() string { return "GroupRelationValidationError" }
 
 // Error satisfies the builtin error interface
-func (e ObjectRelationValidationError) Error() string {
+func (e GroupRelationValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -16025,14 +16025,14 @@ func (e ObjectRelationValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sObjectRelation.%s: %s%s",
+		"invalid %sGroupRelation.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ObjectRelationValidationError{}
+var _ error = GroupRelationValidationError{}
 
 var _ interface {
 	Field() string
@@ -16040,7 +16040,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ObjectRelationValidationError{}
+} = GroupRelationValidationError{}
 
 // Validate checks the field values on ListRelationsRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -17151,22 +17151,22 @@ var _ interface {
 	ErrorName() string
 } = UpdateRelationResponseValidationError{}
 
-// Validate checks the field values on ListObjectRelationsRequest with the
-// rules defined in the proto definition for this message. If any rules are
+// Validate checks the field values on ListGroupRelationsRequest with the rules
+// defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ListObjectRelationsRequest) Validate() error {
+func (m *ListGroupRelationsRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ListObjectRelationsRequest with the
+// ValidateAll checks the field values on ListGroupRelationsRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ListObjectRelationsRequestMultiError, or nil if none found.
-func (m *ListObjectRelationsRequest) ValidateAll() error {
+// ListGroupRelationsRequestMultiError, or nil if none found.
+func (m *ListGroupRelationsRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ListObjectRelationsRequest) validate(all bool) error {
+func (m *ListGroupRelationsRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -17180,19 +17180,19 @@ func (m *ListObjectRelationsRequest) validate(all bool) error {
 	// no validation rules for Role
 
 	if len(errors) > 0 {
-		return ListObjectRelationsRequestMultiError(errors)
+		return ListGroupRelationsRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// ListObjectRelationsRequestMultiError is an error wrapping multiple
-// validation errors returned by ListObjectRelationsRequest.ValidateAll() if
-// the designated constraints aren't met.
-type ListObjectRelationsRequestMultiError []error
+// ListGroupRelationsRequestMultiError is an error wrapping multiple validation
+// errors returned by ListGroupRelationsRequest.ValidateAll() if the
+// designated constraints aren't met.
+type ListGroupRelationsRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ListObjectRelationsRequestMultiError) Error() string {
+func (m ListGroupRelationsRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -17201,11 +17201,11 @@ func (m ListObjectRelationsRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ListObjectRelationsRequestMultiError) AllErrors() []error { return m }
+func (m ListGroupRelationsRequestMultiError) AllErrors() []error { return m }
 
-// ListObjectRelationsRequestValidationError is the validation error returned
-// by ListObjectRelationsRequest.Validate if the designated constraints aren't met.
-type ListObjectRelationsRequestValidationError struct {
+// ListGroupRelationsRequestValidationError is the validation error returned by
+// ListGroupRelationsRequest.Validate if the designated constraints aren't met.
+type ListGroupRelationsRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -17213,24 +17213,24 @@ type ListObjectRelationsRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ListObjectRelationsRequestValidationError) Field() string { return e.field }
+func (e ListGroupRelationsRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ListObjectRelationsRequestValidationError) Reason() string { return e.reason }
+func (e ListGroupRelationsRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ListObjectRelationsRequestValidationError) Cause() error { return e.cause }
+func (e ListGroupRelationsRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ListObjectRelationsRequestValidationError) Key() bool { return e.key }
+func (e ListGroupRelationsRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ListObjectRelationsRequestValidationError) ErrorName() string {
-	return "ListObjectRelationsRequestValidationError"
+func (e ListGroupRelationsRequestValidationError) ErrorName() string {
+	return "ListGroupRelationsRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ListObjectRelationsRequestValidationError) Error() string {
+func (e ListGroupRelationsRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -17242,14 +17242,14 @@ func (e ListObjectRelationsRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sListObjectRelationsRequest.%s: %s%s",
+		"invalid %sListGroupRelationsRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ListObjectRelationsRequestValidationError{}
+var _ error = ListGroupRelationsRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -17257,24 +17257,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ListObjectRelationsRequestValidationError{}
+} = ListGroupRelationsRequestValidationError{}
 
-// Validate checks the field values on ListObjectRelationsResponse with the
+// Validate checks the field values on ListGroupRelationsResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ListObjectRelationsResponse) Validate() error {
+func (m *ListGroupRelationsResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ListObjectRelationsResponse with the
+// ValidateAll checks the field values on ListGroupRelationsResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ListObjectRelationsResponseMultiError, or nil if none found.
-func (m *ListObjectRelationsResponse) ValidateAll() error {
+// ListGroupRelationsResponseMultiError, or nil if none found.
+func (m *ListGroupRelationsResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ListObjectRelationsResponse) validate(all bool) error {
+func (m *ListGroupRelationsResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -17288,7 +17288,7 @@ func (m *ListObjectRelationsResponse) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ListObjectRelationsResponseValidationError{
+					errors = append(errors, ListGroupRelationsResponseValidationError{
 						field:  fmt.Sprintf("Relations[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -17296,7 +17296,7 @@ func (m *ListObjectRelationsResponse) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, ListObjectRelationsResponseValidationError{
+					errors = append(errors, ListGroupRelationsResponseValidationError{
 						field:  fmt.Sprintf("Relations[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -17305,7 +17305,7 @@ func (m *ListObjectRelationsResponse) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return ListObjectRelationsResponseValidationError{
+				return ListGroupRelationsResponseValidationError{
 					field:  fmt.Sprintf("Relations[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -17316,19 +17316,19 @@ func (m *ListObjectRelationsResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ListObjectRelationsResponseMultiError(errors)
+		return ListGroupRelationsResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// ListObjectRelationsResponseMultiError is an error wrapping multiple
-// validation errors returned by ListObjectRelationsResponse.ValidateAll() if
+// ListGroupRelationsResponseMultiError is an error wrapping multiple
+// validation errors returned by ListGroupRelationsResponse.ValidateAll() if
 // the designated constraints aren't met.
-type ListObjectRelationsResponseMultiError []error
+type ListGroupRelationsResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ListObjectRelationsResponseMultiError) Error() string {
+func (m ListGroupRelationsResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -17337,12 +17337,11 @@ func (m ListObjectRelationsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ListObjectRelationsResponseMultiError) AllErrors() []error { return m }
+func (m ListGroupRelationsResponseMultiError) AllErrors() []error { return m }
 
-// ListObjectRelationsResponseValidationError is the validation error returned
-// by ListObjectRelationsResponse.Validate if the designated constraints
-// aren't met.
-type ListObjectRelationsResponseValidationError struct {
+// ListGroupRelationsResponseValidationError is the validation error returned
+// by ListGroupRelationsResponse.Validate if the designated constraints aren't met.
+type ListGroupRelationsResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -17350,24 +17349,24 @@ type ListObjectRelationsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e ListObjectRelationsResponseValidationError) Field() string { return e.field }
+func (e ListGroupRelationsResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ListObjectRelationsResponseValidationError) Reason() string { return e.reason }
+func (e ListGroupRelationsResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ListObjectRelationsResponseValidationError) Cause() error { return e.cause }
+func (e ListGroupRelationsResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ListObjectRelationsResponseValidationError) Key() bool { return e.key }
+func (e ListGroupRelationsResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ListObjectRelationsResponseValidationError) ErrorName() string {
-	return "ListObjectRelationsResponseValidationError"
+func (e ListGroupRelationsResponseValidationError) ErrorName() string {
+	return "ListGroupRelationsResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ListObjectRelationsResponseValidationError) Error() string {
+func (e ListGroupRelationsResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -17379,14 +17378,14 @@ func (e ListObjectRelationsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sListObjectRelationsResponse.%s: %s%s",
+		"invalid %sListGroupRelationsResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ListObjectRelationsResponseValidationError{}
+var _ error = ListGroupRelationsResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -17394,7 +17393,219 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ListObjectRelationsResponseValidationError{}
+} = ListGroupRelationsResponseValidationError{}
+
+// Validate checks the field values on DeleteRelationRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteRelationRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteRelationRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteRelationRequestMultiError, or nil if none found.
+func (m *DeleteRelationRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteRelationRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ObjectId
+
+	// no validation rules for SubjectId
+
+	// no validation rules for Role
+
+	if len(errors) > 0 {
+		return DeleteRelationRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteRelationRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteRelationRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteRelationRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteRelationRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteRelationRequestMultiError) AllErrors() []error { return m }
+
+// DeleteRelationRequestValidationError is the validation error returned by
+// DeleteRelationRequest.Validate if the designated constraints aren't met.
+type DeleteRelationRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteRelationRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteRelationRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteRelationRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteRelationRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteRelationRequestValidationError) ErrorName() string {
+	return "DeleteRelationRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteRelationRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteRelationRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteRelationRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteRelationRequestValidationError{}
+
+// Validate checks the field values on DeleteRelationResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteRelationResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteRelationResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteRelationResponseMultiError, or nil if none found.
+func (m *DeleteRelationResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteRelationResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Message
+
+	if len(errors) > 0 {
+		return DeleteRelationResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteRelationResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteRelationResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteRelationResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteRelationResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteRelationResponseMultiError) AllErrors() []error { return m }
+
+// DeleteRelationResponseValidationError is the validation error returned by
+// DeleteRelationResponse.Validate if the designated constraints aren't met.
+type DeleteRelationResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteRelationResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteRelationResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteRelationResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteRelationResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteRelationResponseValidationError) ErrorName() string {
+	return "DeleteRelationResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteRelationResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteRelationResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteRelationResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteRelationResponseValidationError{}
 
 // Validate checks the field values on ListResourcesRequest with the rules
 // defined in the proto definition for this message. If any rules are

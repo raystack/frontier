@@ -246,6 +246,53 @@ func (_c *UserService_GetByID_Call) Return(_a0 user.User, _a1 error) *UserServic
 	return _c
 }
 
+// GetByIDs provides a mock function with given fields: ctx, userIDs
+func (_m *UserService) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
+	ret := _m.Called(ctx, userIDs)
+
+	var r0 []user.User
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []user.User); ok {
+		r0 = rf(ctx, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]user.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, userIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_GetByIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByIDs'
+type UserService_GetByIDs_Call struct {
+	*mock.Call
+}
+
+// GetByIDs is a helper method to define mock.On call
+//  - ctx context.Context
+//  - userIDs []string
+func (_e *UserService_Expecter) GetByIDs(ctx interface{}, userIDs interface{}) *UserService_GetByIDs_Call {
+	return &UserService_GetByIDs_Call{Call: _e.mock.On("GetByIDs", ctx, userIDs)}
+}
+
+func (_c *UserService_GetByIDs_Call) Run(run func(ctx context.Context, userIDs []string)) *UserService_GetByIDs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *UserService_GetByIDs_Call) Return(_a0 []user.User, _a1 error) *UserService_GetByIDs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, flt
 func (_m *UserService) List(ctx context.Context, flt user.Filter) (user.PagedUsers, error) {
 	ret := _m.Called(ctx, flt)

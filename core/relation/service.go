@@ -58,10 +58,6 @@ func (s Service) List(ctx context.Context) ([]RelationV2, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) ListObjectRelations(ctx context.Context, objectId, subjectType, role string) ([]RelationV2, error) {
-	return s.repository.ListObjectRelations(ctx, objectId, subjectType, role)
-}
-
 // TODO: Update & Delete planned for v0.6
 func (s Service) Update(ctx context.Context, toUpdate Relation) (Relation, error) {
 	//oldRelation, err := s.repository.Get(ctx, toUpdate.ID)

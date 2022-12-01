@@ -16,7 +16,6 @@ type Repository interface {
 	List(ctx context.Context) ([]RelationV2, error)
 	Update(ctx context.Context, toUpdate Relation) (Relation, error)
 	DeleteByID(ctx context.Context, id string) error
-	ListObjectRelations(ctx context.Context, objectId, subjectType, role string) ([]RelationV2, error)
 }
 
 type AuthzRepository interface {

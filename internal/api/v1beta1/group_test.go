@@ -26,11 +26,6 @@ var (
 			ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 			Name: "Group 1",
 			Slug: "group-1",
-			Organization: organization.Organization{
-				ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-				Name: "organization 1",
-				Slug: "org-1",
-			},
 			Metadata: metadata.Metadata{
 				"foo": "bar",
 			},
@@ -38,6 +33,68 @@ var (
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},
 		},
+	}
+
+	testUsersRole1 = []user.User{
+		{
+			ID: "user-id-1",
+		},
+		{
+			ID: "user-id-2",
+		},
+	}
+
+	testUserIDRoleMapRole1 = map[string][]string{
+		"user-id-1": {"group:role-1"},
+		"user-id-2": {"group:role-1"},
+	}
+
+	testUsersRole2 = []user.User{
+		{
+			ID: "user-id-3",
+		},
+	}
+
+	testUserIDRoleMapRole2 = map[string][]string{
+		"user-id-3": {"group:role-2"},
+	}
+
+	testGroupsRole2 = []group.Group{
+		{
+			ID: "group-id-1",
+		},
+	}
+
+	testGroupIDRoleMapRole2 = map[string][]string{
+		"group-id-1": {"group:role-2"},
+	}
+
+	testUsersAnyRole = []user.User{
+		{
+			ID: "user-id-1",
+		},
+		{
+			ID: "user-id-2",
+		},
+		{
+			ID: "user-id-3",
+		},
+	}
+
+	testUserIDRoleMapAnyRole = map[string][]string{
+		"user-id-1": {"group:role-1"},
+		"user-id-2": {"group:role-1"},
+		"user-id-3": {"group:role-2"},
+	}
+
+	testGroupsAnyRole = []group.Group{
+		{
+			ID: "group-id-1",
+		},
+	}
+
+	testGroupIDRoleMapAnyRole = map[string][]string{
+		"group-id-1": {"group:role-2"},
 	}
 )
 
@@ -176,9 +233,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, user.ErrInvalidEmail)
@@ -198,9 +253,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, errors.New("some error"))
@@ -220,9 +273,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrConflict)
@@ -242,9 +293,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
@@ -262,11 +311,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 			name: "should return bad request error if org id is not uuid",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
-					Name: "some group",
-					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: "some-org-id",
-					},
+					Name:           "some group",
+					Slug:           "some-group",
 					OrganizationID: "some-org-id",
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
@@ -287,9 +333,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrNotExist)
@@ -316,18 +360,14 @@ func TestHandler_CreateGroup(t *testing.T) {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{
 					ID:   someGroupID,
 					Name: "some group",
 					Slug: "some-group",
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}, nil)
@@ -779,9 +819,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, errors.New("some error"))
 			},
@@ -812,9 +850,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "some-id",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
@@ -837,9 +873,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
@@ -861,9 +895,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "", // consider it by slug and make the slug empty
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidID)
 			},
@@ -885,9 +917,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrConflict)
 			},
@@ -910,9 +940,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrNotExist)
 			},
@@ -935,9 +963,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
 			},
@@ -959,9 +985,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					ID:             someGroupID,
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 			},
@@ -982,9 +1006,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					ID:             someGroupID,
 					Name:           "new group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 			},
@@ -1006,18 +1028,14 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}, nil)
 			},
@@ -1051,18 +1069,14 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:           "new group",
 					Slug:           "some-slug",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "some-slug",
 					OrganizationID: someOrgID,
-					Organization: organization.Organization{
-						ID: someOrgID,
-					},
+
 					Metadata: metadata.Metadata{},
 				}, nil)
 			},
@@ -1604,6 +1618,209 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 			got, err := h.ListGroupUsers(context.Background(), tt.request)
 			assert.EqualValues(t, got, tt.want)
 			assert.EqualValues(t, err, tt.wantErr)
+		})
+	}
+}
+
+func TestHandler_ListGroupRelations(t *testing.T) {
+	transformedUser1, _ := transformUserToPB(user.User{
+		ID: testUsersRole1[0].ID,
+	})
+
+	transformedUser2, _ := transformUserToPB(user.User{
+		ID: testUsersRole1[1].ID,
+	})
+
+	transformedUser3, _ := transformUserToPB(user.User{
+		ID: testUsersRole2[0].ID,
+	})
+
+	transformedGroup1, _ := transformGroupToPB(group.Group{
+		ID: testGroupsRole2[0].ID,
+	})
+
+	tests := []struct {
+		name    string
+		setup   func(gs *mocks.GroupService)
+		request *shieldv1beta1.ListGroupRelationsRequest
+		want    *shieldv1beta1.ListGroupRelationsResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if relation service return some error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "", "").Return([]user.User{}, []group.Group{}, map[string][]string{}, map[string][]string{}, errors.New("some error"))
+			},
+			request: &shieldv1beta1.ListGroupRelationsRequest{
+				Id:          "group-id",
+				SubjectType: "",
+				Role:        "",
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return relations of subject_type-user and role-role1 if relation service return nil error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "user", "role-1").Return(testUsersRole1, []group.Group{}, testUserIDRoleMapRole1, map[string][]string{}, nil)
+			},
+			request: &shieldv1beta1.ListGroupRelationsRequest{
+				Id:          "group-id",
+				SubjectType: "user",
+				Role:        "role-1",
+			},
+			want: &shieldv1beta1.ListGroupRelationsResponse{
+				Relations: []*shieldv1beta1.GroupRelation{
+					{
+						SubjectType: "user",
+						Role:        "role-1",
+						Subject: &shieldv1beta1.GroupRelation_User{
+							User: &transformedUser1,
+						},
+					},
+					{
+						SubjectType: "user",
+						Role:        "role-1",
+						Subject: &shieldv1beta1.GroupRelation_User{
+							User: &transformedUser2,
+						},
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return relations of subject_type-user and role-role2 if relation service return nil error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "user", "role-2").Return(testUsersRole2, []group.Group{}, testUserIDRoleMapRole2, map[string][]string{}, nil)
+			},
+			request: &shieldv1beta1.ListGroupRelationsRequest{
+				Id:          "group-id",
+				SubjectType: "user",
+				Role:        "role-2",
+			},
+			want: &shieldv1beta1.ListGroupRelationsResponse{
+				Relations: []*shieldv1beta1.GroupRelation{
+					{
+						SubjectType: "user",
+						Role:        "role-2",
+						Subject: &shieldv1beta1.GroupRelation_User{
+							User: &transformedUser3,
+						},
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return relations of subject_type-group and role-role2 if relation service return nil error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "group", "role-2").Return([]user.User{}, testGroupsRole2, map[string][]string{}, testGroupIDRoleMapRole2, nil)
+			},
+			request: &shieldv1beta1.ListGroupRelationsRequest{
+				Id:          "group-id",
+				SubjectType: "group",
+				Role:        "role-2",
+			},
+			want: &shieldv1beta1.ListGroupRelationsResponse{
+				Relations: []*shieldv1beta1.GroupRelation{
+					{
+						SubjectType: "group",
+						Role:        "role-2",
+						Subject: &shieldv1beta1.GroupRelation_Group{
+							Group: &transformedGroup1,
+						},
+					},
+				},
+			},
+			wantErr: nil,
+		},
+
+		{
+			name: "should return relations both group and users for role-role2 if relation service return nil error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "", "role-2").Return(testUsersRole2, testGroupsRole2, testUserIDRoleMapRole2, testGroupIDRoleMapRole2, nil)
+			},
+			request: &shieldv1beta1.ListGroupRelationsRequest{
+				Id:          "group-id",
+				SubjectType: "",
+				Role:        "role-2",
+			},
+			want: &shieldv1beta1.ListGroupRelationsResponse{
+				Relations: []*shieldv1beta1.GroupRelation{
+					{
+						SubjectType: "user",
+						Role:        "role-2",
+						Subject: &shieldv1beta1.GroupRelation_User{
+							User: &transformedUser3,
+						},
+					},
+					{
+						SubjectType: "group",
+						Role:        "role-2",
+						Subject: &shieldv1beta1.GroupRelation_Group{
+							Group: &transformedGroup1,
+						},
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return relations both group and users with all roles if relation service return nil error",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "", "").Return(testUsersAnyRole, testGroupsAnyRole, testUserIDRoleMapAnyRole, testGroupIDRoleMapAnyRole, nil)
+			},
+			request: &shieldv1beta1.ListGroupRelationsRequest{
+				Id:          "group-id",
+				SubjectType: "",
+				Role:        "",
+			},
+			want: &shieldv1beta1.ListGroupRelationsResponse{
+				Relations: []*shieldv1beta1.GroupRelation{
+					{
+						SubjectType: "user",
+						Role:        "role-1",
+						Subject: &shieldv1beta1.GroupRelation_User{
+							User: &transformedUser1,
+						},
+					},
+					{
+						SubjectType: "user",
+						Role:        "role-1",
+						Subject: &shieldv1beta1.GroupRelation_User{
+							User: &transformedUser2,
+						},
+					},
+					{
+						SubjectType: "user",
+						Role:        "role-2",
+						Subject: &shieldv1beta1.GroupRelation_User{
+							User: &transformedUser3,
+						},
+					},
+					{
+						SubjectType: "group",
+						Role:        "role-2",
+						Subject: &shieldv1beta1.GroupRelation_Group{
+							Group: &transformedGroup1,
+						},
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGroupSrv := new(mocks.GroupService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSrv)
+			}
+			mockDep := Handler{groupService: mockGroupSrv}
+			resp, err := mockDep.ListGroupRelations(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }

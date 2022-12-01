@@ -81,43 +81,6 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.RelationV2, er
 	return transformedRelations, nil
 }
 
-func (r RelationRepository) ListObjectRelations(ctx context.Context, objectId string, subject_type string, role string) ([]relation.RelationV2, error) {
-	whereClauseExp := goqu.Ex{}
-	whereClauseExp["object_id"] = objectId
-
-	if subject_type != "" {
-		whereClauseExp["subject_namespace_id"] = subject_type
-	}
-
-	if role != "" {
-		like := "%:" + role
-		whereClauseExp["role_id"] = goqu.Op{"like": like}
-	}
-
-	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(whereClauseExp).ToSQL()
-	if err != nil {
-		return []relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var fetchedRelations []Relation
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
-	}); err != nil {
-		// List should return empty list and no error instead
-		if errors.Is(err, sql.ErrNoRows) {
-			return []relation.RelationV2{}, nil
-		}
-		return []relation.RelationV2{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedRelations []relation.RelationV2
-	for _, r := range fetchedRelations {
-		transformedRelations = append(transformedRelations, r.transformToRelationV2())
-	}
-
-	return transformedRelations, nil
-}
-
 func (r RelationRepository) Get(ctx context.Context, id string) (relation.RelationV2, error) {
 	if strings.TrimSpace(id) == "" {
 		return relation.RelationV2{}, relation.ErrInvalidID

@@ -171,7 +171,6 @@ func (s *GroupRepositoryTestSuite) TestGetByID() {
 			}
 			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{},
 				"ID",
-				"Organization", // TODO need to do deeper comparison
 				"Metadata",
 				"CreatedAt",
 				"UpdatedAt")) {
@@ -218,7 +217,7 @@ func (s *GroupRepositoryTestSuite) TestGetBySlug() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
 		})
@@ -293,7 +292,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
 		})
@@ -352,7 +351,7 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroups, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroups, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroups)
 			}
 		})
@@ -456,7 +455,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
 		})
@@ -535,7 +534,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
 		})
