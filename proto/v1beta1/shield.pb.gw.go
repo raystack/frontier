@@ -3321,7 +3321,7 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", runtime.WithHTTPPathPattern("/v1beta1/group/{id}/relations"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", runtime.WithHTTPPathPattern("/v1beta1/groups/{id}/relations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -4756,7 +4756,7 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", runtime.WithHTTPPathPattern("/v1beta1/group/{id}/relations"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", runtime.WithHTTPPathPattern("/v1beta1/groups/{id}/relations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5670,7 +5670,7 @@ var (
 
 	pattern_ShieldService_RemoveGroupAdmin_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "groups", "id", "admins", "user_id"}, ""))
 
-	pattern_ShieldService_ListGroupRelations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "group", "id", "relations"}, ""))
+	pattern_ShieldService_ListGroupRelations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "groups", "id", "relations"}, ""))
 
 	pattern_ShieldService_ListRoles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "roles"}, ""))
 
