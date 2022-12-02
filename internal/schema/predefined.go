@@ -23,8 +23,8 @@ const (
 	MembershipPermission = "membership"
 
 	// principals
-	UserPrincipal  = "user"
-	GroupPrincipal = "group"
+	UserPrincipal  = "shield/user"
+	GroupPrincipal = "shield/group"
 )
 
 var OrganizationNamespaceConfig = NamespaceConfig{

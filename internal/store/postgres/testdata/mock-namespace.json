@@ -26,19 +26,19 @@
         "resourceType": "r1"
     },
     {
-        "id": "group",
-        "name": "group"
+        "id": "shield/group",
+        "name": "shield/group"
     },
     {
-        "id": "project",
-        "name": "project"
+        "id": "shield/project",
+        "name": "shield/project"
     },
     {
-        "id": "organization",
-        "name": "organization"
+        "id": "shield/organization",
+        "name": "shield/organization"
     },
     {
-        "id": "user",
-        "name": "user"
+        "id": "shield/user",
+        "name": "shield/user"
     }
 ]
