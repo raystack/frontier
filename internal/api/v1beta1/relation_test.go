@@ -7,11 +7,10 @@ import (
 
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 var (

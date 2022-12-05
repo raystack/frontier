@@ -34,23 +34,6 @@ type relationCols struct {
 	UpdatedAt          time.Time      `db:"updated_at"`
 }
 
-func (from Relation) transformToRelation() relation.Relation {
-	relationType := relation.RelationTypes.Role
-	roleID := from.RoleID
-
-	return relation.Relation{
-		ID:                 from.ID,
-		SubjectNamespaceID: from.SubjectNamespaceID,
-		SubjectID:          from.SubjectID,
-		ObjectNamespaceID:  from.ObjectNamespaceID,
-		ObjectID:           from.ObjectID,
-		RoleID:             roleID,
-		RelationType:       relationType,
-		CreatedAt:          from.CreatedAt,
-		UpdatedAt:          from.UpdatedAt,
-	}
-}
-
 func (from Relation) transformToRelationV2() relation.RelationV2 {
 	return relation.RelationV2{
 		ID: from.ID,

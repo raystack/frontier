@@ -304,6 +304,82 @@ func (_c *GroupService_ListAdmins_Call) Return(_a0 []user.User, _a1 error) *Grou
 	return _c
 }
 
+// ListGroupRelations provides a mock function with given fields: ctx, objectId, subjectType, role
+func (_m *GroupService) ListGroupRelations(ctx context.Context, objectId string, subjectType string, role string) ([]user.User, []group.Group, map[string][]string, map[string][]string, error) {
+	ret := _m.Called(ctx, objectId, subjectType, role)
+
+	var r0 []user.User
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []user.User); ok {
+		r0 = rf(ctx, objectId, subjectType, role)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]user.User)
+		}
+	}
+
+	var r1 []group.Group
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) []group.Group); ok {
+		r1 = rf(ctx, objectId, subjectType, role)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]group.Group)
+		}
+	}
+
+	var r2 map[string][]string
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, string) map[string][]string); ok {
+		r2 = rf(ctx, objectId, subjectType, role)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(map[string][]string)
+		}
+	}
+
+	var r3 map[string][]string
+	if rf, ok := ret.Get(3).(func(context.Context, string, string, string) map[string][]string); ok {
+		r3 = rf(ctx, objectId, subjectType, role)
+	} else {
+		if ret.Get(3) != nil {
+			r3 = ret.Get(3).(map[string][]string)
+		}
+	}
+
+	var r4 error
+	if rf, ok := ret.Get(4).(func(context.Context, string, string, string) error); ok {
+		r4 = rf(ctx, objectId, subjectType, role)
+	} else {
+		r4 = ret.Error(4)
+	}
+
+	return r0, r1, r2, r3, r4
+}
+
+// GroupService_ListGroupRelations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroupRelations'
+type GroupService_ListGroupRelations_Call struct {
+	*mock.Call
+}
+
+// ListGroupRelations is a helper method to define mock.On call
+//  - ctx context.Context
+//  - objectId string
+//  - subjectType string
+//  - role string
+func (_e *GroupService_Expecter) ListGroupRelations(ctx interface{}, objectId interface{}, subjectType interface{}, role interface{}) *GroupService_ListGroupRelations_Call {
+	return &GroupService_ListGroupRelations_Call{Call: _e.mock.On("ListGroupRelations", ctx, objectId, subjectType, role)}
+}
+
+func (_c *GroupService_ListGroupRelations_Call) Run(run func(ctx context.Context, objectId string, subjectType string, role string)) *GroupService_ListGroupRelations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *GroupService_ListGroupRelations_Call) Return(_a0 []user.User, _a1 []group.Group, _a2 map[string][]string, _a3 map[string][]string, _a4 error) *GroupService_ListGroupRelations_Call {
+	_c.Call.Return(_a0, _a1, _a2, _a3, _a4)
+	return _c
+}
+
 // ListUserGroups provides a mock function with given fields: ctx, userId, roleId
 func (_m *GroupService) ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error) {
 	ret := _m.Called(ctx, userId, roleId)
