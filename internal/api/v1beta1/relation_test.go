@@ -2,8 +2,6 @@ package v1beta1
 
 import (
 	"github.com/odpf/shield/core/relation"
-
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
 var (
@@ -18,14 +16,6 @@ var (
 			ID:          "object-id",
 			NamespaceID: "ns2",
 		},
-	}
-
-	testRelationPB = &shieldv1beta1.Relation{
-		Id:              "relation-id-1",
-		ObjectId:        "object-id",
-		ObjectNamespace: "ns2",
-		Subject:         "ns1:subject-id",
-		RoleName:        "role1",
 	}
 )
 
