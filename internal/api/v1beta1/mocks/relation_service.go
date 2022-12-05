@@ -158,6 +158,55 @@ func (_c *RelationService_List_Call) Return(_a0 []relation.RelationV2, _a1 error
 	return _c
 }
 
+// ListObjectRelations provides a mock function with given fields: ctx, objectId, subjectType, role
+func (_m *RelationService) ListObjectRelations(ctx context.Context, objectId string, subjectType string, role string) ([]relation.RelationV2, error) {
+	ret := _m.Called(ctx, objectId, subjectType, role)
+
+	var r0 []relation.RelationV2
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []relation.RelationV2); ok {
+		r0 = rf(ctx, objectId, subjectType, role)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]relation.RelationV2)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, objectId, subjectType, role)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RelationService_ListObjectRelations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListObjectRelations'
+type RelationService_ListObjectRelations_Call struct {
+	*mock.Call
+}
+
+// ListObjectRelations is a helper method to define mock.On call
+//  - ctx context.Context
+//  - objectId string
+//  - subjectType string
+//  - role string
+func (_e *RelationService_Expecter) ListObjectRelations(ctx interface{}, objectId interface{}, subjectType interface{}, role interface{}) *RelationService_ListObjectRelations_Call {
+	return &RelationService_ListObjectRelations_Call{Call: _e.mock.On("ListObjectRelations", ctx, objectId, subjectType, role)}
+}
+
+func (_c *RelationService_ListObjectRelations_Call) Run(run func(ctx context.Context, objectId string, subjectType string, role string)) *RelationService_ListObjectRelations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *RelationService_ListObjectRelations_Call) Return(_a0 []relation.RelationV2, _a1 error) *RelationService_ListObjectRelations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
 type mockConstructorTestingTNewRelationService interface {
 	mock.TestingT
 	Cleanup(func())

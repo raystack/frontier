@@ -399,11 +399,8 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 		return nil, err
 	}
 
-	data[0].Organization = organization.Organization{ID: orgs[0].ID}
 	data[0].OrganizationID = orgs[0].ID
-	data[1].Organization = organization.Organization{ID: orgs[0].ID}
 	data[1].OrganizationID = orgs[0].ID
-	data[2].Organization = organization.Organization{ID: orgs[1].ID}
 	data[2].OrganizationID = orgs[1].ID
 
 	var insertedData []group.Group

@@ -2,11 +2,11 @@ package group
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
@@ -47,7 +47,7 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	if err = s.addTeamToOrg(ctx, newGroup, organization.Organization{ID: grp.OrganizationID}); err != nil {
+	if err = s.addTeamToOrg(ctx, newGroup); err != nil {
 		return Group{}, err
 	}
 
@@ -59,6 +59,10 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Group, error) {
 		return s.repository.GetByID(ctx, idOrSlug)
 	}
 	return s.repository.GetBySlug(ctx, idOrSlug)
+}
+
+func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, error) {
+	return s.repository.GetByIDs(ctx, groupIDs)
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
@@ -110,8 +114,52 @@ func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId s
 	return []user.User{}, nil
 }
 
-func (s Service) addTeamToOrg(ctx context.Context, team Group, org organization.Organization) error {
-	orgId := str.DefaultStringIfEmpty(org.ID, team.OrganizationID)
+func (s Service) ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []Group, map[string][]string, map[string][]string, error) {
+	relationList, err := s.repository.ListGroupRelations(ctx, objectId, subjectType, role)
+	if err != nil {
+		return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrListingGroupRelations, err.Error())
+	}
+
+	userIDs := []string{}
+	groupIDs := []string{}
+	userIDRoleMap := map[string][]string{}
+	groupIDRoleMap := map[string][]string{}
+	users := []user.User{}
+	groups := []Group{}
+
+	for _, relation := range relationList {
+		if relation.Subject.Namespace == schema.UserPrincipal {
+			userIDs = append(userIDs, relation.Subject.ID)
+			userIDRoleMap[relation.Subject.ID] = append(userIDRoleMap[relation.Subject.ID], relation.Subject.RoleID)
+		} else if relation.Subject.Namespace == schema.GroupPrincipal {
+			groupIDs = append(groupIDs, relation.Subject.ID)
+			groupIDRoleMap[relation.Subject.ID] = append(groupIDRoleMap[relation.Subject.ID], relation.Subject.RoleID)
+		}
+	}
+
+	if len(userIDs) > 0 {
+		userList, err := s.userService.GetByIDs(ctx, userIDs)
+		if err != nil {
+			return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrFetchingUsers, err.Error())
+		}
+
+		users = append(users, userList...)
+	}
+
+	if len(groupIDs) > 0 {
+		groupList, err := s.repository.GetByIDs(ctx, groupIDs)
+		if err != nil {
+			return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrFetchingGroups, err.Error())
+		}
+
+		groups = append(groups, groupList...)
+	}
+
+	return users, groups, userIDRoleMap, groupIDRoleMap, nil
+}
+
+func (s Service) addTeamToOrg(ctx context.Context, team Group) error {
+	orgId := str.DefaultStringIfEmpty(team.OrganizationID, team.OrganizationID)
 	rel := relation.RelationV2{
 		Object: relation.Object{
 			ID:          team.ID,
