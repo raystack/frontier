@@ -1,14 +1,7 @@
 package v1beta1
 
 import (
-	"context"
-	"errors"
-	"testing"
-
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
@@ -36,6 +29,7 @@ var (
 	}
 )
 
+/*
 func TestHandler_ListRelations(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -79,7 +73,8 @@ func TestHandler_ListRelations(t *testing.T) {
 		})
 	}
 }
-
+*/
+/*
 func TestHandler_CreateRelation(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -182,7 +177,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 		})
 	}
 }
-
+*/
+/*
 func TestHandler_GetRelation(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -260,3 +256,4 @@ func TestHandler_GetRelation(t *testing.T) {
 		})
 	}
 }
+*/

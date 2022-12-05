@@ -2,6 +2,7 @@ package spicedb
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/relation"
@@ -121,6 +122,39 @@ func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) e
 	if _, err = r.spiceDB.client.DeleteRelationships(ctx, request); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (r RelationRepository) DeleteV2(ctx context.Context, rel relation.RelationV2) error {
+	fmt.Printf("rel dv2: %v\n", rel)
+	relationship, err := schema_generator.TransformRelationV2(rel)
+	if err != nil {
+		fmt.Printf("err 2: %v\n", err)
+		return err
+	}
+	fmt.Printf("relationship: %v\n", relationship)
+	request := &authzedpb.DeleteRelationshipsRequest{
+		RelationshipFilter: &authzedpb.RelationshipFilter{
+			ResourceType:       relationship.Resource.ObjectType,
+			OptionalResourceId: relationship.Resource.ObjectId,
+			OptionalRelation:   relationship.Relation,
+			OptionalSubjectFilter: &authzedpb.SubjectFilter{
+				SubjectType:       relationship.Subject.Object.ObjectType,
+				OptionalSubjectId: relationship.Subject.Object.ObjectId,
+			},
+		},
+	}
+
+	fmt.Printf("request: %v\n", request)
+
+	resp, err := r.spiceDB.client.DeleteRelationships(ctx, request)
+	if err != nil {
+		fmt.Printf("err 3: %v\n", err)
+		return err
+	}
+
+	fmt.Printf("response: %v\n", resp)
 
 	return nil
 }
