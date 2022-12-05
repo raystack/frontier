@@ -97,14 +97,11 @@ func (s Service) Delete(ctx context.Context, rel Relation) error {
 }
 
 func (s Service) DeleteV2(ctx context.Context, rel RelationV2) error {
-	fmt.Printf("rel: %v\n", rel)
 	fetchedRel, err := s.repository.GetByFields(ctx, rel)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("fetchedRel: %v\n", fetchedRel)
 	if err := s.authzRepository.DeleteV2(ctx, fetchedRel); err != nil {
-		fmt.Printf("err authzrepo delete: %v\n", err)
 		return err
 	}
 

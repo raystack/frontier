@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"fmt"
 	"time"
 
 	"database/sql"
@@ -36,7 +35,6 @@ type relationCols struct {
 }
 
 func (from Relation) transformToRelationV2() relation.RelationV2 {
-	fmt.Printf("from: %v\n", from)
 	return relation.RelationV2{
 		ID: from.ID,
 		Subject: relation.Subject{

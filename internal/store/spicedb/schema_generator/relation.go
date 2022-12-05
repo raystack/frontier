@@ -50,7 +50,6 @@ func TransformRelationV2(relation relation.RelationV2) (*pb.Relationship, error)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("transformedRelation: %v\n", transformedRelation)
 	role := strings.Split(relation.Subject.RoleID, ":")
 	roleID := strings.ReplaceAll(role[1], "-", "_")
 	roleNSID := role[0]
@@ -59,17 +58,12 @@ func TransformRelationV2(relation relation.RelationV2) (*pb.Relationship, error)
 	}
 
 	transformedRelation.Relation = roleID
-	fmt.Printf("transformedRelation 2: %v\n", transformedRelation)
 	return transformedRelation, nil
 }
 
 func transformObjectAndSubjectV2(relation relation.RelationV2) (*pb.Relationship, error) {
-	fmt.Printf("relation.Object.NamespaceID: %v\n", relation.Object.NamespaceID)
 	objectNSID := strings.ReplaceAll(relation.Object.NamespaceID, "-", "_")
-	fmt.Printf("objectNSID: %v\n", objectNSID)
-	fmt.Printf("relation.Subject.Namespace: %v\n", relation.Subject.Namespace)
 	subjectNSID := strings.ReplaceAll(relation.Subject.Namespace, "-", "_")
-	fmt.Printf("subjectNSID: %v\n", subjectNSID)
 
 	return &pb.Relationship{
 		Resource: &pb.ObjectReference{

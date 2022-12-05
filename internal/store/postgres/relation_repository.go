@@ -166,11 +166,9 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	if err != nil {
 		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
-	fmt.Printf("query: %v\n", query)
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedRelation, query)
 	}); err != nil {
-		fmt.Printf("err: %v\n", err)
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -179,7 +177,6 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 			return relation.RelationV2{}, err
 		}
 	}
-	fmt.Printf("fetchedRelation: %v\n", fetchedRelation)
 
 	return fetchedRelation.transformToRelationV2(), nil
 }
