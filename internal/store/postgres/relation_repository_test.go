@@ -12,6 +12,7 @@ import (
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/errors"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -23,7 +24,7 @@ type RelationRepositoryTestSuite struct {
 	pool       *dockertest.Pool
 	resource   *dockertest.Resource
 	repository *postgres.RelationRepository
-	relations  []relation.Relation
+	relations  []relation.RelationV2
 }
 
 func (s *RelationRepositoryTestSuite) SetupSuite() {
@@ -81,7 +82,7 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 	type testCase struct {
 		Description      string
 		SelectedID       string
-		ExpectedRelation relation.Relation
+		ExpectedRelation relation.RelationV2
 		ErrString        string
 	}
 
@@ -122,161 +123,100 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 	}
 }
 
-func (s *RelationRepositoryTestSuite) TestGetByFields() {
-	type testCase struct {
-		Description      string
-		SelectedRelation relation.Relation
-		ExpectedRelation relation.Relation
-		ErrString        string
-	}
-
-	var testCases = []testCase{
-		{
-			Description:      "should get a relation",
-			SelectedRelation: s.relations[0],
-			ExpectedRelation: s.relations[0],
-		},
-		{
-			Description: "should return error no exist if can't found relation",
-			SelectedRelation: relation.Relation{
-				SubjectID:          uuid.NewString(),
-				SubjectNamespaceID: uuid.NewString(),
-				ObjectID:           uuid.NewString(),
-				ObjectNamespaceID:  uuid.NewString(),
-			},
-			ErrString: relation.ErrNotExist.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.GetByFields(s.ctx, tc.SelectedRelation)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.Relation{}, "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelation)
-			}
-		})
-	}
-}
-
 func (s *RelationRepositoryTestSuite) TestCreate() {
 	type testCase struct {
 		Description      string
-		RelationToCreate relation.Relation
-		ExpectedRelation relation.Relation
-		ErrString        string
+		RelationToCreate relation.RelationV2
+		ExpectedRelation relation.RelationV2
+		Err              error
 	}
 
 	var testCases = []testCase{
 		{
 			Description: "should create a relation with type role",
-			RelationToCreate: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
+			RelationToCreate: relation.RelationV2{
+				Subject: relation.Subject{
+					ID:        "uuid1",
+					Namespace: "ns1",
+					RoleID:    "role1",
+				},
+				Object: relation.Object{
+					ID:          "uuid2",
+					NamespaceID: "ns1",
+				},
 			},
-			ExpectedRelation: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
-			},
-		},
-		{
-			Description: "should create a relation with type namespace",
-			RelationToCreate: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid5",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid6",
-				RoleID:             "ns2",
-				RelationType:       relation.RelationTypes.Namespace,
-			},
-			ExpectedRelation: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid5",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid6",
-				RoleID:             "ns2",
-				RelationType:       relation.RelationTypes.Namespace,
+			ExpectedRelation: relation.RelationV2{
+				Subject: relation.Subject{
+					ID:        "uuid1",
+					Namespace: "ns1",
+					RoleID:    "ns1:role1",
+				},
+				Object: relation.Object{
+					ID:          "uuid2",
+					NamespaceID: "ns1",
+				},
 			},
 		},
 		{
 			Description: "should return error if subject namespace id does not exist",
-			RelationToCreate: relation.Relation{
-				SubjectNamespaceID: "ns1-random",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
+			RelationToCreate: relation.RelationV2{
+				Subject: relation.Subject{
+					ID:        "uuid1",
+					Namespace: "ns1-random",
+					RoleID:    "role1",
+				},
+				Object: relation.Object{
+					ID:          "uuid2",
+					NamespaceID: "ns1",
+				},
 			},
-			ErrString: relation.ErrInvalidDetail.Error(),
+			Err: relation.ErrInvalidDetail,
+		},
+		{
+			Description: "should return error if role id does not exist",
+			RelationToCreate: relation.RelationV2{
+				Subject: relation.Subject{
+					ID:        "uuid1",
+					Namespace: "ns1",
+					RoleID:    "role1-random",
+				},
+				Object: relation.Object{
+					ID:          "uuid2",
+					NamespaceID: "ns1",
+				},
+			},
+			Err: relation.ErrInvalidDetail,
 		},
 		{
 			Description: "should return error if object namespace id does not exist",
-			RelationToCreate: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1-random",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
+			RelationToCreate: relation.RelationV2{
+				Subject: relation.Subject{
+					ID:        "uuid1",
+					Namespace: "ns1",
+					RoleID:    "role1",
+				},
+				Object: relation.Object{
+					ID:          "uuid2",
+					NamespaceID: "ns10",
+				},
 			},
-			ErrString: relation.ErrInvalidDetail.Error(),
-		},
-
-		{
-			Description: "should return error if role id does not exist",
-			RelationToCreate: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1-random",
-				RelationType:       relation.RelationTypes.Role,
-			},
-			ErrString: relation.ErrInvalidDetail.Error(),
-		},
-		{
-			Description: "should return error if namespace id does not exist",
-			RelationToCreate: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Namespace,
-			},
-			ErrString: relation.ErrInvalidDetail.Error(),
+			Err: relation.ErrInvalidDetail,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Create(s.ctx, tc.RelationToCreate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+			if tc.Err != nil {
+				if errors.Is(tc.Err, err) {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err.Error())
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.Relation{},
+			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.RelationV2{},
 				"ID",
-				"SubjectNamespace",
-				"ObjectNamespace",
-				"Role",
 				"CreatedAt",
 				"UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelation)
+				s.T().Fatalf(cmp.Diff(got, tc.ExpectedRelation))
 			}
 		})
 	}
@@ -285,37 +225,35 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 func (s *RelationRepositoryTestSuite) TestList() {
 	type testCase struct {
 		Description       string
-		ExpectedRelations []relation.Relation
+		ExpectedRelations []relation.RelationV2
 		ErrString         string
 	}
 
 	var testCases = []testCase{
 		{
 			Description: "should get all relations",
-			ExpectedRelations: []relation.Relation{
+			ExpectedRelations: []relation.RelationV2{
 				{
-					SubjectNamespaceID: "ns1",
-					SubjectID:          "uuid1",
-					ObjectNamespaceID:  "ns1",
-					ObjectID:           "uuid2",
-					RoleID:             "role1",
-					RelationType:       relation.RelationTypes.Role,
+					Subject: relation.Subject{
+						ID:        "uuid1",
+						Namespace: "ns1",
+						RoleID:    "ns1:role1",
+					},
+					Object: relation.Object{
+						ID:          "uuid2",
+						NamespaceID: "ns1",
+					},
 				},
 				{
-					SubjectNamespaceID: "ns2",
-					SubjectID:          "uuid3",
-					ObjectNamespaceID:  "ns2",
-					ObjectID:           "uuid4",
-					RoleID:             "role2",
-					RelationType:       relation.RelationTypes.Role,
-				},
-				{
-					SubjectNamespaceID: "ns1",
-					SubjectID:          "uuid1",
-					ObjectNamespaceID:  "ns2",
-					ObjectID:           "uuid4",
-					RoleID:             "ns2",
-					RelationType:       relation.RelationTypes.Namespace,
+					Subject: relation.Subject{
+						ID:        "uuid3",
+						Namespace: "ns2",
+						RoleID:    "ns2:role2",
+					},
+					Object: relation.Object{
+						ID:          "uuid4",
+						NamespaceID: "ns2",
+					},
 				},
 			},
 		},
@@ -329,182 +267,11 @@ func (s *RelationRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedRelations, cmpopts.IgnoreFields(relation.Relation{},
+			if !cmp.Equal(got, tc.ExpectedRelations, cmpopts.IgnoreFields(relation.RelationV2{},
 				"ID",
-				"SubjectNamespace",
-				"ObjectNamespace",
-				"Role",
 				"CreatedAt",
 				"UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelations)
-			}
-		})
-	}
-}
-
-func (s *RelationRepositoryTestSuite) TestUpdate() {
-	type testCase struct {
-		Description      string
-		RelationToUpdate relation.Relation
-		ExpectedRelation relation.Relation
-		ErrString        string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should update a relation with type role",
-			RelationToUpdate: relation.Relation{
-				ID:                 s.relations[0].ID,
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
-			},
-			ExpectedRelation: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
-			},
-		},
-		{
-			Description: "should update a relation with type namespace",
-			RelationToUpdate: relation.Relation{
-				ID:                 s.relations[0].ID,
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid5",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid6",
-				RoleID:             "ns2",
-				RelationType:       relation.RelationTypes.Namespace,
-			},
-			ExpectedRelation: relation.Relation{
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid5",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid6",
-				RoleID:             "ns2",
-				RelationType:       relation.RelationTypes.Namespace,
-			},
-		},
-		{
-			Description: "should return error if subject namespace id does not exist",
-			RelationToUpdate: relation.Relation{
-				ID:                 s.relations[0].ID,
-				SubjectNamespaceID: "ns1-random",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
-			},
-			ErrString: relation.ErrInvalidDetail.Error(),
-		},
-		{
-			Description: "should return error if object namespace id does not exist",
-			RelationToUpdate: relation.Relation{
-				ID:                 s.relations[0].ID,
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1-random",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Role,
-			},
-			ErrString: relation.ErrInvalidDetail.Error(),
-		},
-
-		{
-			Description: "should return error if role id does not exist",
-			RelationToUpdate: relation.Relation{
-				ID:                 s.relations[0].ID,
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1-random",
-				RelationType:       relation.RelationTypes.Role,
-			},
-			ErrString: relation.ErrInvalidDetail.Error(),
-		},
-		{
-			Description: "should return error if namespace id does not exist",
-			RelationToUpdate: relation.Relation{
-				ID:                 s.relations[0].ID,
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Namespace,
-			},
-			ErrString: relation.ErrInvalidDetail.Error(),
-		},
-		{
-			Description: "should return error if id is not uuid",
-			RelationToUpdate: relation.Relation{
-				ID:                 "some-id",
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Namespace,
-			},
-			ErrString: relation.ErrInvalidUUID.Error(),
-		},
-		{
-			Description: "should return error if id not found",
-			RelationToUpdate: relation.Relation{
-				ID:                 uuid.NewString(),
-				SubjectNamespaceID: "ns1",
-				SubjectID:          "uuid1",
-				ObjectNamespaceID:  "ns1",
-				ObjectID:           "uuid2",
-				RoleID:             "role1",
-				RelationType:       relation.RelationTypes.Namespace,
-			},
-			ErrString: relation.ErrNotExist.Error(),
-		},
-		{
-			Description: "should return error if subject_namespace_id, subject_id, object_namespace_id, object_id already exist",
-			RelationToUpdate: relation.Relation{
-				ID:                 s.relations[0].ID,
-				SubjectNamespaceID: "ns2",
-				SubjectID:          "uuid3",
-				ObjectNamespaceID:  "ns2",
-				ObjectID:           "uuid4",
-				RoleID:             "role2",
-				RelationType:       relation.RelationTypes.Role,
-			},
-			ErrString: relation.ErrConflict.Error(),
-		},
-		{
-			Description: "should return error if id is empty",
-			ErrString:   relation.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.Update(s.ctx, tc.RelationToUpdate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.Relation{},
-				"ID",
-				"SubjectNamespace",
-				"ObjectNamespace",
-				"Role",
-				"CreatedAt",
-				"UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelation)
+				s.T().Fatalf(cmp.Diff(got, tc.ExpectedRelations))
 			}
 		})
 	}

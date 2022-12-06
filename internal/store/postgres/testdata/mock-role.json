@@ -1,29 +1,144 @@
 [
-    {
-        "id": "role1",
-        "name": "role member",
-        "types": [
-          "member",
-          "user"
-        ],
-        "namespaceId": "ns1",
-        "metadata": {}
-    },
-    {
-        "id": "role2",
-        "name": "role admin",
-        "types": [
-          "admin",
-          "user"
-        ],
-        "namespaceId": "ns2",
-        "metadata": {
-            "key-string": "value-string",
-            "key-integer": 123,
-            "key-json": {
-                "k1": "v1",
-                "k2": "v2"
-            }
-        }
+  {
+    "id": "ns1:role1",
+    "name": "role member",
+    "types": [
+      "member",
+      "user"
+    ],
+    "namespaceId": "ns1",
+    "metadata": {}
+  },
+  {
+    "id": "ns1:role2",
+    "name": "role member",
+    "types": [
+      "member",
+      "user"
+    ],
+    "namespaceId": "ns1",
+    "metadata": {}
+  },
+  {
+    "id": "ns2:role2",
+    "name": "role admin",
+    "types": [
+      "admin",
+      "user"
+    ],
+    "namespaceId": "ns2",
+    "metadata": {
+      "key-string": "value-string",
+      "key-integer": 123,
+      "key-json": {
+        "k1": "v1",
+        "k2": "v2"
+      }
     }
+  },
+  {
+    "id": "ns1:ns2",
+    "name": "namespace",
+    "types": [
+      "InhertiedNamespace"
+    ],
+    "namespaceId": "ns1",
+    "metadata": {}
+  },
+  {
+    "id": "organization:owner",
+    "name": "owner",
+    "types": [
+      "user",
+      "group"
+    ],
+    "metadata": null,
+    "namespaceId": "organization"
+  },
+  {
+    "id": "organization:editor",
+    "name": "editor",
+    "types": [
+      "user",
+      "group"
+    ],
+    "metadata": null,
+    "namespaceId": "organization"
+  },
+  {
+    "id": "organization:viewer",
+    "name": "viewer",
+    "types": [
+      "user",
+      "group"
+    ],
+    "metadata": null,
+    "namespaceId": "organization"
+  },
+  {
+    "id": "project:owner",
+    "name": "owner",
+    "types": [
+      "user",
+      "group"
+    ],
+    "metadata": null,
+    "namespaceId": "project"
+  },
+  {
+    "id": "project:editor",
+    "name": "editor",
+    "types": [
+      "user",
+      "group"
+    ],
+    "metadata": null,
+    "namespaceId": "project"
+  },
+  {
+    "id": "project:viewer",
+    "name": "viewer",
+    "types": [
+      "user",
+      "group"
+    ],
+    "metadata": null,
+    "namespaceId": "project"
+  },
+  {
+    "id": "project:organization",
+    "name": "organization",
+    "types": [
+      "InheritedNamespace"
+    ],
+    "metadata": null,
+    "namespaceId": "project"
+  },
+  {
+    "id": "group:member",
+    "name": "member",
+    "types": [
+      "user"
+    ],
+    "metadata": null,
+    "namespaceId": "group"
+  },
+  {
+    "id": "group:manager",
+    "name": "manager",
+    "types": [
+      "user"
+    ],
+    "metadata": null,
+    "namespaceId": "group"
+  },
+  {
+    "id": "group:organization",
+    "name": "organization",
+    "types": [
+      "InheritedNamespace"
+    ],
+    "metadata": null,
+    "namespaceId": "group"
+  }
 ]

@@ -2,17 +2,15 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
-
-	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/str"
 )
 
 type PolicyRepository struct {
@@ -123,10 +121,11 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 
 // TODO this is actually upsert
 func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
-	//TODO need to find a way to deprecate this
-	roleID := str.DefaultStringIfEmpty(pol.Role.ID, pol.RoleID)
-	actionID := str.DefaultStringIfEmpty(pol.Action.ID, pol.ActionID)
-	nsID := str.DefaultStringIfEmpty(pol.Namespace.ID, pol.NamespaceID)
+	// TODO(krtkvrm) | IMP: need to find a way to deprecate this
+	// This is required by bootstrap, which will be changed in this PR
+	roleID := pol.RoleID
+	actionID := pol.ActionID
+	nsID := pol.NamespaceID
 
 	if strings.TrimSpace(actionID) == "" {
 		return "", policy.ErrInvalidDetail
@@ -151,7 +150,7 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errForeignKeyViolation):
-			return "", policy.ErrInvalidDetail
+			return "", fmt.Errorf("%w: %s", policy.ErrInvalidDetail, err)
 		default:
 			return "", fmt.Errorf("%w: %s", dbErr, err)
 		}

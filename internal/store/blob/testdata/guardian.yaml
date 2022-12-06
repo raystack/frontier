@@ -1,0 +1,31 @@
+guardian:
+  type: resource_group
+  resource_types:
+    - name: appeal
+      roles:
+        - name: viewer
+          principals:
+            - user
+            - group
+        - name: remover
+          principals:
+            - user
+      permissions:
+        - name: view
+          roles:
+            - owner
+            - organization/owner
+            - viewer
+        - name: delete
+          roles:
+            - remover
+            - organization/appleal_owner
+
+organization:
+  type: system
+  roles:
+    - name: appleal_owner
+      principals:
+        - user
+        - group
+

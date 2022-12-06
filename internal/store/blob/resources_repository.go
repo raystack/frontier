@@ -47,7 +47,7 @@ type ResourcesRepository struct {
 	mu  *sync.Mutex
 
 	cron   *cron.Cron
-	bucket Bucket
+	Bucket Bucket
 	cached []resource.YAML
 }
 
@@ -97,7 +97,7 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 	var resources []resource.YAML
 
 	// get all items
-	it := repo.bucket.List(&blob.ListOptions{})
+	it := repo.Bucket.List(&blob.ListOptions{})
 	for {
 		obj, err := it.Next(ctx)
 		if err != nil {
@@ -113,7 +113,7 @@ func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 		if !(strings.HasSuffix(obj.Key, ".yaml") || strings.HasSuffix(obj.Key, ".yml")) {
 			continue
 		}
-		fileBytes, err := repo.bucket.ReadAll(ctx, obj.Key)
+		fileBytes, err := repo.Bucket.ReadAll(ctx, obj.Key)
 		if err != nil {
 			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
 		}
@@ -164,13 +164,13 @@ func (repo *ResourcesRepository) InitCache(ctx context.Context, refreshDelay tim
 
 func (repo *ResourcesRepository) Close() error {
 	<-repo.cron.Stop().Done()
-	return repo.bucket.Close()
+	return repo.Bucket.Close()
 }
 
 func NewResourcesRepository(logger log.Logger, b Bucket) *ResourcesRepository {
 	return &ResourcesRepository{
 		log:    logger,
-		bucket: b,
+		Bucket: b,
 		mu:     new(sync.Mutex),
 	}
 }

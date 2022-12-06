@@ -5,11 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/user"
 )
 
 const NON_RESOURCE_ID = "*"
@@ -20,28 +16,21 @@ type Repository interface {
 	Create(ctx context.Context, resource Resource) (Resource, error)
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, id string, resource Resource) (Resource, error)
-	GetByNamespace(ctx context.Context, name string, ns namespace.Namespace) (Resource, error)
+	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
 }
 
 type ConfigRepository interface {
 	GetAll(ctx context.Context) ([]YAML, error)
-	GetRelationsForNamespace(ctx context.Context, namespaceID string) (map[string]bool, error)
 }
 
 type Resource struct {
 	Idxa           string
 	URN            string
 	Name           string
-	ProjectID      string `json:"project_id"`
-	Project        project.Project
-	GroupID        string `json:"group_id"`
-	Group          group.Group
-	OrganizationID string `json:"organization_id"`
-	Organization   organization.Organization
-	NamespaceID    string `json:"namespace_id"`
-	Namespace      namespace.Namespace
-	User           user.User
-	UserID         string `json:"user_id"`
+	ProjectID      string
+	OrganizationID string
+	NamespaceID    string
+	UserID         string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

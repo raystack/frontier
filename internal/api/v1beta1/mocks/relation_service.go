@@ -22,20 +22,20 @@ func (_m *RelationService) EXPECT() *RelationService_Expecter {
 	return &RelationService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *RelationService) Create(ctx context.Context, _a1 relation.Relation) (relation.Relation, error) {
-	ret := _m.Called(ctx, _a1)
+// Create provides a mock function with given fields: ctx, rel
+func (_m *RelationService) Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error) {
+	ret := _m.Called(ctx, rel)
 
-	var r0 relation.Relation
-	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) relation.Relation); ok {
-		r0 = rf(ctx, _a1)
+	var r0 relation.RelationV2
+	if rf, ok := ret.Get(0).(func(context.Context, relation.RelationV2) relation.RelationV2); ok {
+		r0 = rf(ctx, rel)
 	} else {
-		r0 = ret.Get(0).(relation.Relation)
+		r0 = ret.Get(0).(relation.RelationV2)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, relation.Relation) error); ok {
-		r1 = rf(ctx, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, relation.RelationV2) error); ok {
+		r1 = rf(ctx, rel)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -50,32 +50,32 @@ type RelationService_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //  - ctx context.Context
-//  - _a1 relation.Relation
-func (_e *RelationService_Expecter) Create(ctx interface{}, _a1 interface{}) *RelationService_Create_Call {
-	return &RelationService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
+//  - rel relation.RelationV2
+func (_e *RelationService_Expecter) Create(ctx interface{}, rel interface{}) *RelationService_Create_Call {
+	return &RelationService_Create_Call{Call: _e.mock.On("Create", ctx, rel)}
 }
 
-func (_c *RelationService_Create_Call) Run(run func(ctx context.Context, _a1 relation.Relation)) *RelationService_Create_Call {
+func (_c *RelationService_Create_Call) Run(run func(ctx context.Context, rel relation.RelationV2)) *RelationService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(relation.Relation))
+		run(args[0].(context.Context), args[1].(relation.RelationV2))
 	})
 	return _c
 }
 
-func (_c *RelationService_Create_Call) Return(_a0 relation.Relation, _a1 error) *RelationService_Create_Call {
+func (_c *RelationService_Create_Call) Return(_a0 relation.RelationV2, _a1 error) *RelationService_Create_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
 // Get provides a mock function with given fields: ctx, id
-func (_m *RelationService) Get(ctx context.Context, id string) (relation.Relation, error) {
+func (_m *RelationService) Get(ctx context.Context, id string) (relation.RelationV2, error) {
 	ret := _m.Called(ctx, id)
 
-	var r0 relation.Relation
-	if rf, ok := ret.Get(0).(func(context.Context, string) relation.Relation); ok {
+	var r0 relation.RelationV2
+	if rf, ok := ret.Get(0).(func(context.Context, string) relation.RelationV2); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(relation.Relation)
+		r0 = ret.Get(0).(relation.RelationV2)
 	}
 
 	var r1 error
@@ -107,21 +107,21 @@ func (_c *RelationService_Get_Call) Run(run func(ctx context.Context, id string)
 	return _c
 }
 
-func (_c *RelationService_Get_Call) Return(_a0 relation.Relation, _a1 error) *RelationService_Get_Call {
+func (_c *RelationService_Get_Call) Return(_a0 relation.RelationV2, _a1 error) *RelationService_Get_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
 // List provides a mock function with given fields: ctx
-func (_m *RelationService) List(ctx context.Context) ([]relation.Relation, error) {
+func (_m *RelationService) List(ctx context.Context) ([]relation.RelationV2, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []relation.Relation
-	if rf, ok := ret.Get(0).(func(context.Context) []relation.Relation); ok {
+	var r0 []relation.RelationV2
+	if rf, ok := ret.Get(0).(func(context.Context) []relation.RelationV2); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]relation.Relation)
+			r0 = ret.Get(0).([]relation.RelationV2)
 		}
 	}
 
@@ -153,25 +153,27 @@ func (_c *RelationService_List_Call) Run(run func(ctx context.Context)) *Relatio
 	return _c
 }
 
-func (_c *RelationService_List_Call) Return(_a0 []relation.Relation, _a1 error) *RelationService_List_Call {
+func (_c *RelationService_List_Call) Return(_a0 []relation.RelationV2, _a1 error) *RelationService_List_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-// Update provides a mock function with given fields: ctx, _a1
-func (_m *RelationService) Update(ctx context.Context, _a1 relation.Relation) (relation.Relation, error) {
-	ret := _m.Called(ctx, _a1)
+// ListObjectRelations provides a mock function with given fields: ctx, objectId, subjectType, role
+func (_m *RelationService) ListObjectRelations(ctx context.Context, objectId string, subjectType string, role string) ([]relation.RelationV2, error) {
+	ret := _m.Called(ctx, objectId, subjectType, role)
 
-	var r0 relation.Relation
-	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) relation.Relation); ok {
-		r0 = rf(ctx, _a1)
+	var r0 []relation.RelationV2
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []relation.RelationV2); ok {
+		r0 = rf(ctx, objectId, subjectType, role)
 	} else {
-		r0 = ret.Get(0).(relation.Relation)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]relation.RelationV2)
+		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, relation.Relation) error); ok {
-		r1 = rf(ctx, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, objectId, subjectType, role)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -179,26 +181,28 @@ func (_m *RelationService) Update(ctx context.Context, _a1 relation.Relation) (r
 	return r0, r1
 }
 
-// RelationService_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type RelationService_Update_Call struct {
+// RelationService_ListObjectRelations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListObjectRelations'
+type RelationService_ListObjectRelations_Call struct {
 	*mock.Call
 }
 
-// Update is a helper method to define mock.On call
+// ListObjectRelations is a helper method to define mock.On call
 //  - ctx context.Context
-//  - _a1 relation.Relation
-func (_e *RelationService_Expecter) Update(ctx interface{}, _a1 interface{}) *RelationService_Update_Call {
-	return &RelationService_Update_Call{Call: _e.mock.On("Update", ctx, _a1)}
+//  - objectId string
+//  - subjectType string
+//  - role string
+func (_e *RelationService_Expecter) ListObjectRelations(ctx interface{}, objectId interface{}, subjectType interface{}, role interface{}) *RelationService_ListObjectRelations_Call {
+	return &RelationService_ListObjectRelations_Call{Call: _e.mock.On("ListObjectRelations", ctx, objectId, subjectType, role)}
 }
 
-func (_c *RelationService_Update_Call) Run(run func(ctx context.Context, _a1 relation.Relation)) *RelationService_Update_Call {
+func (_c *RelationService_ListObjectRelations_Call) Run(run func(ctx context.Context, objectId string, subjectType string, role string)) *RelationService_ListObjectRelations_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(relation.Relation))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
 	})
 	return _c
 }
 
-func (_c *RelationService_Update_Call) Return(_a0 relation.Relation, _a1 error) *RelationService_Update_Call {
+func (_c *RelationService_ListObjectRelations_Call) Return(_a0 []relation.RelationV2, _a1 error) *RelationService_ListObjectRelations_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }

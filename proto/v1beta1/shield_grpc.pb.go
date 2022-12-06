@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.5
-// source: shield/shield.proto
+// source: odpf/shield/v1beta1/shield.proto
 
 package shieldv1beta1
 
@@ -42,6 +42,7 @@ type ShieldServiceClient interface {
 	ListGroupAdmins(ctx context.Context, in *ListGroupAdminsRequest, opts ...grpc.CallOption) (*ListGroupAdminsResponse, error)
 	AddGroupAdmin(ctx context.Context, in *AddGroupAdminRequest, opts ...grpc.CallOption) (*AddGroupAdminResponse, error)
 	RemoveGroupAdmin(ctx context.Context, in *RemoveGroupAdminRequest, opts ...grpc.CallOption) (*RemoveGroupAdminResponse, error)
+	ListGroupRelations(ctx context.Context, in *ListGroupRelationsRequest, opts ...grpc.CallOption) (*ListGroupRelationsResponse, error)
 	// Roles
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
@@ -78,18 +79,18 @@ type ShieldServiceClient interface {
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
 	UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error)
-	// Relations
+	// Relations--------------------------------------------------------------------
 	ListRelations(ctx context.Context, in *ListRelationsRequest, opts ...grpc.CallOption) (*ListRelationsResponse, error)
 	CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error)
 	GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error)
-	UpdateRelation(ctx context.Context, in *UpdateRelationRequest, opts ...grpc.CallOption) (*UpdateRelationResponse, error)
+	DeleteRelation(ctx context.Context, in *DeleteRelationRequest, opts ...grpc.CallOption) (*DeleteRelationResponse, error)
 	// Resources
 	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*GetResourceResponse, error)
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error)
 	// Authz
-	CheckResourcePermission(ctx context.Context, in *ResourceActionAuthzRequest, opts ...grpc.CallOption) (*ResourceActionAuthzResponse, error)
+	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
 }
 
 type shieldServiceClient struct {
@@ -256,6 +257,15 @@ func (c *shieldServiceClient) AddGroupAdmin(ctx context.Context, in *AddGroupAdm
 func (c *shieldServiceClient) RemoveGroupAdmin(ctx context.Context, in *RemoveGroupAdminRequest, opts ...grpc.CallOption) (*RemoveGroupAdminResponse, error) {
 	out := new(RemoveGroupAdminResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/RemoveGroupAdmin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListGroupRelations(ctx context.Context, in *ListGroupRelationsRequest, opts ...grpc.CallOption) (*ListGroupRelationsResponse, error) {
+	out := new(ListGroupRelationsResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -559,9 +569,9 @@ func (c *shieldServiceClient) GetRelation(ctx context.Context, in *GetRelationRe
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateRelation(ctx context.Context, in *UpdateRelationRequest, opts ...grpc.CallOption) (*UpdateRelationResponse, error) {
-	out := new(UpdateRelationResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateRelation", in, out, opts...)
+func (c *shieldServiceClient) DeleteRelation(ctx context.Context, in *DeleteRelationRequest, opts ...grpc.CallOption) (*DeleteRelationResponse, error) {
+	out := new(DeleteRelationResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DeleteRelation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -604,8 +614,8 @@ func (c *shieldServiceClient) UpdateResource(ctx context.Context, in *UpdateReso
 	return out, nil
 }
 
-func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *ResourceActionAuthzRequest, opts ...grpc.CallOption) (*ResourceActionAuthzResponse, error) {
-	out := new(ResourceActionAuthzResponse)
+func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error) {
+	out := new(CheckResourcePermissionResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -637,6 +647,7 @@ type ShieldServiceServer interface {
 	ListGroupAdmins(context.Context, *ListGroupAdminsRequest) (*ListGroupAdminsResponse, error)
 	AddGroupAdmin(context.Context, *AddGroupAdminRequest) (*AddGroupAdminResponse, error)
 	RemoveGroupAdmin(context.Context, *RemoveGroupAdminRequest) (*RemoveGroupAdminResponse, error)
+	ListGroupRelations(context.Context, *ListGroupRelationsRequest) (*ListGroupRelationsResponse, error)
 	// Roles
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
@@ -673,18 +684,18 @@ type ShieldServiceServer interface {
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
 	UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error)
-	// Relations
+	// Relations--------------------------------------------------------------------
 	ListRelations(context.Context, *ListRelationsRequest) (*ListRelationsResponse, error)
 	CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error)
 	GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error)
-	UpdateRelation(context.Context, *UpdateRelationRequest) (*UpdateRelationResponse, error)
+	DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error)
 	// Resources
 	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
 	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	GetResource(context.Context, *GetResourceRequest) (*GetResourceResponse, error)
 	UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error)
 	// Authz
-	CheckResourcePermission(context.Context, *ResourceActionAuthzRequest) (*ResourceActionAuthzResponse, error)
+	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
 	mustEmbedUnimplementedShieldServiceServer()
 }
 
@@ -745,6 +756,9 @@ func (UnimplementedShieldServiceServer) AddGroupAdmin(context.Context, *AddGroup
 }
 func (UnimplementedShieldServiceServer) RemoveGroupAdmin(context.Context, *RemoveGroupAdminRequest) (*RemoveGroupAdminResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveGroupAdmin not implemented")
+}
+func (UnimplementedShieldServiceServer) ListGroupRelations(context.Context, *ListGroupRelationsRequest) (*ListGroupRelationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGroupRelations not implemented")
 }
 func (UnimplementedShieldServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRoles not implemented")
@@ -845,8 +859,8 @@ func (UnimplementedShieldServiceServer) CreateRelation(context.Context, *CreateR
 func (UnimplementedShieldServiceServer) GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRelation not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateRelation(context.Context, *UpdateRelationRequest) (*UpdateRelationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateRelation not implemented")
+func (UnimplementedShieldServiceServer) DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRelation not implemented")
 }
 func (UnimplementedShieldServiceServer) ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListResources not implemented")
@@ -860,7 +874,7 @@ func (UnimplementedShieldServiceServer) GetResource(context.Context, *GetResourc
 func (UnimplementedShieldServiceServer) UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateResource not implemented")
 }
-func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *ResourceActionAuthzRequest) (*ResourceActionAuthzResponse, error) {
+func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
 }
 func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
@@ -1196,6 +1210,24 @@ func _ShieldService_RemoveGroupAdmin_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).RemoveGroupAdmin(ctx, req.(*RemoveGroupAdminRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListGroupRelations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGroupRelationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListGroupRelations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListGroupRelations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListGroupRelations(ctx, req.(*ListGroupRelationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1794,20 +1826,20 @@ func _ShieldService_GetRelation_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateRelationRequest)
+func _ShieldService_DeleteRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRelationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateRelation(ctx, in)
+		return srv.(ShieldServiceServer).DeleteRelation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateRelation",
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DeleteRelation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateRelation(ctx, req.(*UpdateRelationRequest))
+		return srv.(ShieldServiceServer).DeleteRelation(ctx, req.(*DeleteRelationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1885,7 +1917,7 @@ func _ShieldService_UpdateResource_Handler(srv interface{}, ctx context.Context,
 }
 
 func _ShieldService_CheckResourcePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceActionAuthzRequest)
+	in := new(CheckResourcePermissionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1897,7 +1929,7 @@ func _ShieldService_CheckResourcePermission_Handler(srv interface{}, ctx context
 		FullMethod: "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CheckResourcePermission(ctx, req.(*ResourceActionAuthzRequest))
+		return srv.(ShieldServiceServer).CheckResourcePermission(ctx, req.(*CheckResourcePermissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1980,6 +2012,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveGroupAdmin",
 			Handler:    _ShieldService_RemoveGroupAdmin_Handler,
+		},
+		{
+			MethodName: "ListGroupRelations",
+			Handler:    _ShieldService_ListGroupRelations_Handler,
 		},
 		{
 			MethodName: "ListRoles",
@@ -2114,8 +2150,8 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_GetRelation_Handler,
 		},
 		{
-			MethodName: "UpdateRelation",
-			Handler:    _ShieldService_UpdateRelation_Handler,
+			MethodName: "DeleteRelation",
+			Handler:    _ShieldService_DeleteRelation_Handler,
 		},
 		{
 			MethodName: "ListResources",
@@ -2139,5 +2175,5 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "shield/shield.proto",
+	Metadata: "odpf/shield/v1beta1/shield.proto",
 }

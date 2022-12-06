@@ -9,11 +9,10 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
@@ -67,29 +66,31 @@ func (s *OrganizationRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	// Add admin relation
-	_, err = s.namespaceRepository.Create(context.Background(), namespace.DefinitionUser)
+	_, err = bootstrapNamespace(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.namespaceRepository.Create(context.Background(), namespace.DefinitionOrg)
+	_, err = bootstrapAction(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.roleRepository.Create(context.Background(), role.DefinitionOrganizationAdmin)
+	_, err = bootstrapRole(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Create(context.Background(), relation.Relation{
-		SubjectNamespaceID: namespace.DefinitionUser.ID,
-		SubjectID:          s.users[0].ID,
-		ObjectNamespaceID:  namespace.DefinitionOrg.ID,
-		ObjectID:           s.orgs[0].ID,
-		RoleID:             role.DefinitionOrganizationAdmin.ID,
-		RelationType:       relation.RelationTypes.Role,
+	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        s.users[0].ID,
+			Namespace: schema.UserPrincipal,
+			RoleID:    schema.OwnerRole,
+		},
+		Object: relation.Object{
+			ID:          s.orgs[0].ID,
+			NamespaceID: schema.OrganizationNamespace,
+		},
 	})
 	if err != nil {
 		s.T().Fatal(err)

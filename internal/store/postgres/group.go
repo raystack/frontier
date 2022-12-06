@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/organization"
 )
 
 type Group struct {
@@ -30,7 +29,6 @@ func (from Group) transformToGroup() (group.Group, error) {
 		ID:             from.ID,
 		Name:           from.Name,
 		Slug:           from.Slug,
-		Organization:   organization.Organization{ID: from.OrgID},
 		OrganizationID: from.OrgID,
 		Metadata:       unmarshalledMetadata,
 		CreatedAt:      from.CreatedAt,

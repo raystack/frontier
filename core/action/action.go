@@ -3,8 +3,6 @@ package action
 import (
 	"context"
 	"time"
-
-	"github.com/odpf/shield/core/namespace"
 )
 
 type Repository interface {
@@ -18,7 +16,6 @@ type Action struct {
 	ID          string
 	Name        string
 	NamespaceID string
-	Namespace   namespace.Namespace
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

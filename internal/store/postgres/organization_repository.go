@@ -2,18 +2,16 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
-	"database/sql"
-
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/db"
 )
 
@@ -286,9 +284,9 @@ func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID str
 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
 		"r.object_id":            orgID,
-		"r.role_id":              role.DefinitionOrganizationAdmin.ID,
-		"r.subject_namespace_id": namespace.DefinitionUser.ID,
-		"r.object_namespace_id":  namespace.DefinitionOrg.ID,
+		"r.role_id":              schema.GetRoleID(schema.OrganizationNamespace, schema.OwnerRole),
+		"r.subject_namespace_id": schema.UserPrincipal,
+		"r.object_namespace_id":  schema.OrganizationNamespace,
 	}).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)

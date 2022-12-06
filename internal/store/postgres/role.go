@@ -31,7 +31,6 @@ func (from Role) transformToRole() (role.Role, error) {
 		ID:          from.ID,
 		Name:        from.Name,
 		Types:       from.Types,
-		Namespace:   from.Namespace.transformToNamespace(),
 		NamespaceID: from.NamespaceID,
 		Metadata:    unmarshalledMetadata,
 		CreatedAt:   from.CreatedAt,

@@ -10,11 +10,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
@@ -74,29 +73,31 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	// Add admin relation
-	_, err = s.namespaceRepository.Create(context.Background(), namespace.DefinitionUser)
+	_, err = bootstrapNamespace(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.namespaceRepository.Create(context.Background(), namespace.DefinitionTeam)
+	_, err = bootstrapAction(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.roleRepository.Create(context.Background(), role.DefinitionTeamMember)
+	_, err = bootstrapRole(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Create(context.Background(), relation.Relation{
-		SubjectNamespaceID: namespace.DefinitionUser.ID,
-		SubjectID:          s.users[0].ID,
-		ObjectNamespaceID:  namespace.DefinitionTeam.ID,
-		ObjectID:           s.groups[0].ID,
-		RoleID:             role.DefinitionTeamMember.ID,
-		RelationType:       relation.RelationTypes.Role,
+	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		Subject: relation.Subject{
+			ID:        s.users[0].ID,
+			Namespace: schema.UserPrincipal,
+			RoleID:    schema.MemberRole,
+		},
+		Object: relation.Object{
+			ID:          s.groups[0].ID,
+			NamespaceID: schema.GroupNamespace,
+		},
 	})
 	if err != nil {
 		s.T().Fatal(err)
@@ -170,7 +171,6 @@ func (s *GroupRepositoryTestSuite) TestGetByID() {
 			}
 			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{},
 				"ID",
-				"Organization", // TODO need to do deeper comparison
 				"Metadata",
 				"CreatedAt",
 				"UpdatedAt")) {
@@ -217,7 +217,7 @@ func (s *GroupRepositoryTestSuite) TestGetBySlug() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
 		})
@@ -292,7 +292,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
 		})
@@ -351,7 +351,7 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroups, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroups, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroups)
 			}
 		})
@@ -455,7 +455,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
 		})
@@ -534,326 +534,8 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
-			}
-		})
-	}
-}
-
-func (s *GroupRepositoryTestSuite) TestListUsersByGroupID() {
-	type testCase struct {
-		Description   string
-		RoleID        string
-		GroupID       string
-		ExpectedUsers []user.User
-		ErrString     string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should return list of users",
-			RoleID:      role.DefinitionTeamMember.ID,
-			GroupID:     s.groups[0].ID,
-			ExpectedUsers: []user.User{
-				{
-					Name:  s.users[0].Name,
-					Email: s.users[0].Email,
-				},
-			},
-		},
-		{
-			Description: "should get empty users if group does not have users",
-			RoleID:      role.DefinitionTeamMember.ID,
-			GroupID:     s.groups[1].ID,
-		},
-		{
-			Description: "should not return error if role id is empty",
-			GroupID:     s.groups[0].ID,
-			ExpectedUsers: []user.User{
-				{
-					Name:  "John Doe",
-					Email: "john.doe@odpf.io",
-				},
-			},
-		},
-		{
-			Description: "should get error if group id is empty",
-			RoleID:      role.DefinitionTeamMember.ID,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListUsersByGroupID(s.ctx, tc.GroupID, tc.RoleID)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedUsers, cmpopts.IgnoreFields(user.User{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUsers)
-			}
-		})
-	}
-}
-
-func (s *GroupRepositoryTestSuite) TestListUsersByGroupSlug() {
-	type testCase struct {
-		Description   string
-		RoleID        string
-		GroupSlug     string
-		ExpectedUsers []user.User
-		ErrString     string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should return list of users",
-			RoleID:      role.DefinitionTeamMember.ID,
-			GroupSlug:   s.groups[0].Slug,
-			ExpectedUsers: []user.User{
-				{
-					Name:  s.users[0].Name,
-					Email: s.users[0].Email,
-				},
-			},
-		},
-		{
-			Description: "should get empty users if group does not have users",
-			RoleID:      role.DefinitionTeamMember.ID,
-			GroupSlug:   s.groups[1].Slug,
-		},
-		{
-			Description: "should not return error if role id is empty",
-			GroupSlug:   s.groups[0].Slug,
-			ExpectedUsers: []user.User{
-				{
-					Name:  "John Doe",
-					Email: "john.doe@odpf.io",
-				},
-			},
-		},
-		{
-			Description: "should get error if group id is empty",
-			RoleID:      role.DefinitionTeamMember.ID,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListUsersByGroupSlug(s.ctx, tc.GroupSlug, tc.RoleID)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedUsers, cmpopts.IgnoreFields(user.User{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUsers)
-			}
-		})
-	}
-}
-
-func (s *GroupRepositoryTestSuite) TestListUserGroupIDRelations() {
-	type testCase struct {
-		Description       string
-		UserID            string
-		GroupID           string
-		ExpectedRelations []relation.Relation
-		ErrString         string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should return list of relations if any",
-			UserID:      s.users[0].ID,
-			GroupID:     s.groups[0].ID,
-			ExpectedRelations: []relation.Relation{
-				{
-					SubjectNamespaceID: namespace.DefinitionUser.ID,
-					ObjectNamespaceID:  namespace.DefinitionTeam.ID,
-					SubjectID:          s.users[0].ID,
-					ObjectID:           s.groups[0].ID,
-					RoleID:             role.DefinitionTeamMember.ID,
-				},
-			},
-		},
-		{
-			Description: "should get empty relations if there is none",
-			UserID:      s.users[0].ID,
-			GroupID:     s.groups[1].ID,
-		},
-		{
-			Description: "should get error if user id is empty",
-			GroupID:     s.groups[0].ID,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-		{
-			Description: "should get error if group id is empty",
-			UserID:      s.users[0].ID,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListUserGroupIDRelations(s.ctx, tc.UserID, tc.GroupID)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedRelations, cmpopts.IgnoreFields(relation.Relation{},
-				"ID",
-				"Role",
-				"RelationType",
-				"SubjectNamespace",
-				"ObjectNamespace",
-				"CreatedAt",
-				"UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelations)
-			}
-		})
-	}
-}
-
-func (s *GroupRepositoryTestSuite) TestListUserGroupSlugRelations() {
-	type testCase struct {
-		Description       string
-		UserID            string
-		GroupSlug         string
-		ExpectedRelations []relation.Relation
-		ErrString         string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should return list of relations if any",
-			UserID:      s.users[0].ID,
-			GroupSlug:   s.groups[0].Slug,
-			ExpectedRelations: []relation.Relation{
-				{
-					SubjectNamespaceID: namespace.DefinitionUser.ID,
-					ObjectNamespaceID:  namespace.DefinitionTeam.ID,
-					SubjectID:          s.users[0].ID,
-					ObjectID:           s.groups[0].ID,
-					RoleID:             role.DefinitionTeamMember.ID,
-				},
-			},
-		},
-		{
-			Description: "should get empty relations if there is none",
-			UserID:      s.users[0].ID,
-			GroupSlug:   s.groups[1].Slug,
-		},
-		{
-			Description: "should get error if user id is empty",
-			GroupSlug:   s.groups[1].Slug,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-		{
-			Description: "should get error if group id is empty",
-			UserID:      s.users[0].ID,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListUserGroupSlugRelations(s.ctx, tc.UserID, tc.GroupSlug)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedRelations, cmpopts.IgnoreFields(relation.Relation{},
-				"ID",
-				"Role",
-				"RelationType",
-				"SubjectNamespace",
-				"ObjectNamespace",
-				"CreatedAt",
-				"UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelations)
-			}
-		})
-	}
-}
-
-func (s *GroupRepositoryTestSuite) TestListUserGroups() {
-	type testCase struct {
-		Description    string
-		UserID         string
-		RoleID         string
-		ExpectedGroups []group.Group
-		ErrString      string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should return list of groups if any",
-			UserID:      s.users[0].ID,
-			RoleID:      role.DefinitionTeamMember.ID,
-			ExpectedGroups: []group.Group{
-				{
-					Name:           "group1",
-					Slug:           "group-1",
-					OrganizationID: s.orgs[0].ID,
-				},
-			},
-		},
-		{
-			Description: "should not return error if role id is empty",
-			UserID:      s.users[0].ID,
-			ExpectedGroups: []group.Group{
-				{
-					Name:           "group1",
-					Slug:           "group-1",
-					OrganizationID: s.orgs[0].ID,
-				},
-			},
-		},
-		{
-			Description: "should get empty groups if there is none",
-			UserID:      s.users[1].ID,
-			RoleID:      role.DefinitionTeamMember.ID,
-		},
-		{
-			Description: "should not return error if role id is empty",
-			UserID:      s.users[0].ID,
-			ExpectedGroups: []group.Group{
-				{
-					Name:           "group1",
-					Slug:           "group-1",
-					OrganizationID: s.orgs[0].ID,
-				},
-			},
-		},
-		{
-			Description: "should get error if user id is empty",
-			RoleID:      role.DefinitionTeamMember.ID,
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListUserGroups(s.ctx, tc.UserID, tc.RoleID)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedGroups, cmpopts.IgnoreFields(group.Group{},
-				"ID",
-				"Organization",
-				"Metadata",
-				"CreatedAt",
-				"UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroups)
 			}
 		})
 	}

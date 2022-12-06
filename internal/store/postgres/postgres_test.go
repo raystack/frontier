@@ -308,19 +308,19 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 	return insertedData, nil
 }
 
-func bootstrapRelation(client *db.Client) ([]relation.Relation, error) {
+func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
 	relationRepository := postgres.NewRelationRepository(client)
 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-relation.json")
 	if err != nil {
 		return nil, err
 	}
 
-	var data []relation.Relation
+	var data []relation.RelationV2
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return nil, err
 	}
 
-	var insertedData []relation.Relation
+	var insertedData []relation.RelationV2
 	for _, d := range data {
 		domain, err := relationRepository.Create(context.Background(), d)
 		if err != nil {
@@ -399,11 +399,8 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 		return nil, err
 	}
 
-	data[0].Organization = organization.Organization{ID: orgs[0].ID}
 	data[0].OrganizationID = orgs[0].ID
-	data[1].Organization = organization.Organization{ID: orgs[0].ID}
 	data[1].OrganizationID = orgs[0].ID
-	data[2].Organization = organization.Organization{ID: orgs[1].ID}
 	data[2].OrganizationID = orgs[1].ID
 
 	var insertedData []group.Group
@@ -421,7 +418,6 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 
 func bootstrapResource(
 	client *db.Client,
-	groups []group.Group,
 	projects []project.Project,
 	orgs []organization.Organization,
 	namespaces []namespace.Namespace,
@@ -437,19 +433,16 @@ func bootstrapResource(
 		return nil, err
 	}
 
-	data[0].GroupID = groups[0].ID
 	data[0].ProjectID = projects[0].ID
 	data[0].OrganizationID = orgs[0].ID
 	data[0].NamespaceID = namespaces[0].ID
 	data[0].UserID = users[0].ID
 
-	data[1].GroupID = groups[1].ID
 	data[1].ProjectID = projects[1].ID
 	data[1].OrganizationID = orgs[1].ID
 	data[1].NamespaceID = namespaces[1].ID
 	data[1].UserID = users[1].ID
 
-	data[2].GroupID = groups[2].ID
 	data[2].ProjectID = projects[2].ID
 	data[2].OrganizationID = orgs[1].ID
 	data[2].NamespaceID = namespaces[1].ID

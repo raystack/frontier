@@ -3,10 +3,6 @@ package policy
 import (
 	"context"
 	"time"
-
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/role"
 )
 
 type Repository interface {
@@ -22,12 +18,9 @@ type AuthzRepository interface {
 
 type Policy struct {
 	ID          string
-	Role        role.Role
-	RoleID      string `json:"role_id"`
-	Namespace   namespace.Namespace
-	NamespaceID string `json:"namespace_id"`
-	Action      action.Action
-	ActionID    string `json:"action_id"`
+	RoleID      string
+	NamespaceID string
+	ActionID    string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

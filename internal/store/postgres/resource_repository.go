@@ -9,7 +9,6 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/uuid"
@@ -31,14 +30,12 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
-	groupID := sql.NullString{String: res.GroupID, Valid: res.GroupID != ""}
 
 	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
 		goqu.Record{
 			"urn":          res.URN,
 			"name":         res.Name,
 			"project_id":   res.ProjectID,
-			"group_id":     groupID,
 			"org_id":       res.OrganizationID,
 			"namespace_id": res.NamespaceID,
 			"user_id":      userID,
@@ -46,7 +43,6 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		goqu.DoUpdate("ON CONSTRAINT resources_urn_unique", goqu.Record{
 			"name":         res.Name,
 			"project_id":   res.ProjectID,
-			"group_id":     groupID,
 			"org_id":       res.OrganizationID,
 			"namespace_id": res.NamespaceID,
 			"user_id":      userID,
@@ -159,13 +155,11 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
-	groupID := sql.NullString{String: res.GroupID, Valid: res.GroupID != ""}
 
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
 			"name":         res.Name,
 			"project_id":   res.ProjectID,
-			"group_id":     groupID,
 			"org_id":       res.OrganizationID,
 			"namespace_id": res.NamespaceID,
 			"user_id":      userID,
@@ -226,34 +220,25 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 	return resourceModel.transformToResource(), nil
 }
 
-func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, ns namespace.Namespace) (string, interface{}, error) {
-	namespaceQueryExpression := goqu.Ex{
-		"backend": goqu.L(ns.Backend),
-	}
-
-	if ns.ResourceType != "" {
-		namespaceQueryExpression["resource_type"] = goqu.L(ns.ResourceType)
-	}
-
-	getNamespaceQuery := dialect.Select("id").From(TABLE_NAMESPACES).Where(namespaceQueryExpression)
+func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, namespace string) (string, interface{}, error) {
 	getResourcesByURNQuery, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
-		"name":         goqu.L(name),
-		"namespace_id": goqu.Op{"in": getNamespaceQuery},
+		"name":         name,
+		"namespace_id": namespace,
 	}).ToSQL()
 
 	return getResourcesByURNQuery, params, err
 }
 
-func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns namespace.Namespace) (resource.Resource, error) {
+func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns string) (resource.Resource, error) {
 	var fetchedResource Resource
 
-	query, params, err := buildGetResourcesByNamespaceQuery(dialect, name, ns)
+	query, _, err := buildGetResourcesByNamespaceQuery(dialect, name, ns)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &fetchedResource, query, params)
+		return r.dbc.GetContext(ctx, &fetchedResource, query)
 	})
 
 	if err != nil {

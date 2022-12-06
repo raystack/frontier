@@ -108,7 +108,7 @@ func (s *ActionRepositoryTestSuite) TestGet() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedAction, cmpopts.IgnoreFields(action.Action{}, "Namespace", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedAction, cmpopts.IgnoreFields(action.Action{}, "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedAction)
 			}
 		})
@@ -135,9 +135,6 @@ func (s *ActionRepositoryTestSuite) TestCreate() {
 				ID:          "123",
 				Name:        "action-123",
 				NamespaceID: "ns2",
-				Namespace: namespace.Namespace{
-					ID: "ns2",
-				},
 			},
 		},
 		{
@@ -213,7 +210,7 @@ func (s *ActionRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedActions, cmpopts.IgnoreFields(action.Action{}, "Namespace", "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedActions, cmpopts.IgnoreFields(action.Action{}, "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedActions)
 			}
 		})
@@ -240,9 +237,6 @@ func (s *ActionRepositoryTestSuite) TestUpdate() {
 				ID:          "action2",
 				Name:        "action-get-updated",
 				NamespaceID: "ns2",
-				Namespace: namespace.Namespace{
-					ID: "ns2",
-				},
 			},
 		},
 		{

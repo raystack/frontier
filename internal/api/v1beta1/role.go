@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/metadata"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
@@ -57,12 +58,9 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 	}
 
 	newRole, err := h.roleService.Create(ctx, role.Role{
-		ID:    request.GetBody().GetId(),
-		Name:  request.GetBody().GetName(),
-		Types: request.GetBody().GetTypes(),
-		Namespace: namespace.Namespace{
-			ID: request.GetBody().GetNamespaceId(),
-		},
+		ID:          request.GetBody().GetId(),
+		Name:        request.GetBody().GetName(),
+		Types:       request.GetBody().GetTypes(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		Metadata:    metaDataMap,
 	})
@@ -121,12 +119,9 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 	}
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
-		ID:    request.GetId(),
-		Name:  request.GetBody().GetName(),
-		Types: request.GetBody().GetTypes(),
-		Namespace: namespace.Namespace{
-			ID: request.GetBody().GetNamespaceId(),
-		},
+		ID:          request.GetId(),
+		Name:        request.GetBody().GetName(),
+		Types:       request.GetBody().GetTypes(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		Metadata:    metaDataMap,
 	})
@@ -160,16 +155,16 @@ func transformRoleToPB(from role.Role) (shieldv1beta1.Role, error) {
 		return shieldv1beta1.Role{}, err
 	}
 
-	namespace, err := transformNamespaceToPB(from.Namespace)
 	if err != nil {
 		return shieldv1beta1.Role{}, err
 	}
 
 	return shieldv1beta1.Role{
-		Id:        from.ID,
-		Name:      from.Name,
-		Types:     from.Types,
-		Namespace: &namespace,
+		Id:    from.ID,
+		Name:  from.Name,
+		Types: from.Types,
+		// TODO(krtkvrm): use namespace id here instead of namespace as object
+		//Namespace: &namespace,
 		//Tags:      nil,
 		//Actions:   nil,
 		Metadata:  metaData,
