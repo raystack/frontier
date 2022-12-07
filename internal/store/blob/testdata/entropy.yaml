@@ -5,56 +5,56 @@ entropy:
       roles:
         - name: viewer
           principals:
-            - user
-            - group
+            - shield/user
+            - shield/group
         - name: sink_editor
           principals:
-            - user
-            - group
+            - shield/user
+            - shield/group
       permissions:
         - name: view
           roles:
             - owner
-            - organization/owner
+            - organization:owner
             - viewer
         - name: sink_edit
           roles:
             - owner
             - sink_editor
-            - organization/sink_editor
+            - organization:sink_editor
     - name: dagger
       roles:
         - name: viewer
           principals:
-            - user
+            - shield/user
         - name: database_editor
           principals:
-            - group
+            - shield/group
       permissions:
         - name: database_edit
           roles:
             - owner
-            - organization/sink_editor
+            - organization:sink_editor
             - database_editor
 
-organization:
+shield/organization:
   type: system
   roles:
     - name: sink_editor
       principals:
-        - user
-        - group
+        - shield/user
+        - shield/group
     - name: database_editor
       principals:
-        - group
+        - shield/group
 
-project:
+shield/project:
   type: system
   roles:
     - name: viewer
       principals:
-        - user
-        - group
+        - shield/user
+        - shield/group
     - name: owner
       principals:
-        - group
+        - shield/group

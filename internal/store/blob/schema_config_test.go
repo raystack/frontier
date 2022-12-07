@@ -36,13 +36,13 @@ func TestGetSchema(t *testing.T) {
 		"entropy/dagger": schema.NamespaceConfig{
 			InheritedNamespaces: nil,
 			Roles: map[string][]string{
-				"database_editor": {"group"},
-				"viewer":          {"user"},
+				"database_editor": {schema.GroupPrincipal},
+				"viewer":          {schema.UserPrincipal},
 			},
 			Permissions: map[string][]string{
 				"database_edit": {
 					"owner",
-					"organization/sink_editor",
+					"organization:sink_editor",
 					"database_editor",
 				},
 			},
@@ -52,23 +52,23 @@ func TestGetSchema(t *testing.T) {
 			InheritedNamespaces: nil,
 			Roles: map[string][]string{
 				"sink_editor": {
-					"user",
-					"group",
+					schema.UserPrincipal,
+					schema.GroupPrincipal,
 				},
 				"viewer": {
-					"user",
-					"group",
+					schema.UserPrincipal,
+					schema.GroupPrincipal,
 				},
 			},
 			Permissions: map[string][]string{
 				"sink_edit": {
 					"owner",
 					"sink_editor",
-					"organization/sink_editor",
+					"organization:sink_editor",
 				},
 				"view": {
 					"owner",
-					"organization/owner",
+					"organization:owner",
 					"viewer",
 				},
 			},
@@ -78,53 +78,53 @@ func TestGetSchema(t *testing.T) {
 			InheritedNamespaces: nil,
 			Roles: map[string][]string{
 				"remover": {
-					"user",
+					schema.UserPrincipal,
 				},
 				"viewer": {
-					"user",
-					"group",
+					schema.UserPrincipal,
+					schema.GroupPrincipal,
 				},
 			},
 			Permissions: map[string][]string{
 				"delete": {
 					"remover",
-					"organization/appleal_owner",
+					"organization:appleal_owner",
 				},
 				"view": {
 					"owner",
-					"organization/owner",
+					"organization:owner",
 					"viewer",
 				},
 			},
 			Type: schema.ResourceGroupNamespace,
 		},
-		"organization": schema.NamespaceConfig{
+		schema.OrganizationNamespace: schema.NamespaceConfig{
 			InheritedNamespaces: nil,
 			Roles: map[string][]string{
 				"appleal_owner": {
-					"user",
-					"group",
+					schema.UserPrincipal,
+					schema.GroupPrincipal,
 				},
 				"database_editor": {
-					"group",
+					schema.GroupPrincipal,
 				},
 				"sink_editor": {
-					"user",
-					"group",
+					schema.UserPrincipal,
+					schema.GroupPrincipal,
 				},
 			},
 			Permissions: map[string][]string{},
 			Type:        schema.SystemNamespace,
 		},
-		"project": schema.NamespaceConfig{
+		schema.ProjectNamespace: schema.NamespaceConfig{
 			InheritedNamespaces: nil,
 			Roles: map[string][]string{
 				"owner": {
-					"group",
+					schema.GroupPrincipal,
 				},
 				"viewer": {
-					"user",
-					"group",
+					schema.UserPrincipal,
+					schema.GroupPrincipal,
 				},
 			},
 			Permissions: map[string][]string{},

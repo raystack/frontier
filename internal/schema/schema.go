@@ -23,8 +23,13 @@ var (
 	ErrMigration = errors.New("error in migrating authz schema")
 )
 
+type InheritedNamespace struct {
+	Name        string
+	NamespaceId string
+}
+
 type NamespaceConfig struct {
-	InheritedNamespaces []string
+	InheritedNamespaces []InheritedNamespace
 	Type                NamespaceType
 	Roles               map[string][]string
 	Permissions         map[string][]string
@@ -138,9 +143,9 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 		// create role for inherited namespaces
 		for _, ins := range v.InheritedNamespaces {
 			_, err := s.roleService.Create(ctx, role.Role{
-				ID:          fmt.Sprintf("%s:%s", namespaceId, ins),
-				Name:        ins,
-				Types:       []string{"InheritedNamespace"},
+				ID:          fmt.Sprintf("%s:%s", namespaceId, ins.Name),
+				Name:        ins.Name,
+				Types:       []string{ins.NamespaceId},
 				NamespaceID: namespaceId,
 			})
 			if err != nil {
@@ -171,12 +176,12 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 					return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 				}
 
-				if _, ok := namespaceConfigMap[transformedRole.NamespaceID].Roles[transformedRole.ID]; !ok {
+				if _, ok := namespaceConfigMap[GetNamespace(transformedRole.NamespaceID)].Roles[transformedRole.ID]; !ok {
 					return fmt.Errorf("role %s not associated with namespace: %s", transformedRole.ID, transformedRole.NamespaceID)
 				}
 
 				_, err = s.policyService.Create(ctx, policy.Policy{
-					RoleID:      GetRoleID(transformedRole.NamespaceID, transformedRole.ID),
+					RoleID:      GetRoleID(GetNamespace(transformedRole.NamespaceID), transformedRole.ID),
 					NamespaceID: namespaceId,
 					ActionID:    fmt.Sprintf("%s.%s", actionId, namespaceId),
 				})
