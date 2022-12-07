@@ -18,6 +18,7 @@ type RelationService interface {
 	Get(ctx context.Context, id string) (relation.RelationV2, error)
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	List(ctx context.Context) ([]relation.RelationV2, error)
+	DeleteV2(ctx context.Context, rel relation.RelationV2) error
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
@@ -111,6 +112,35 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 
 	return &shieldv1beta1.GetRelationResponse{
 		Relation: &relationPB,
+	}, nil
+}
+
+func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.DeleteRelationRequest) (*shieldv1beta1.DeleteRelationResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	err := h.relationService.DeleteV2(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID: request.GetObjectId(),
+		},
+		Subject: relation.Subject{
+			ID:     request.GetSubjectId(),
+			RoleID: request.GetRole(),
+		},
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, relation.ErrNotExist),
+			errors.Is(err, relation.ErrInvalidUUID),
+			errors.Is(err, relation.ErrInvalidID):
+			return nil, grpcRelationNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.DeleteRelationResponse{
+		Message: "Relation deleted",
 	}, nil
 }
 

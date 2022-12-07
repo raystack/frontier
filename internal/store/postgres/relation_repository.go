@@ -153,3 +153,30 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
 	return relation.Relation{}, nil
 }
+
+func (r RelationRepository) GetByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error) {
+	var fetchedRelation Relation
+	like := "%:" + rel.Subject.RoleID
+
+	query, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(goqu.Ex{
+		"subject_id": rel.Subject.ID,
+		"object_id":  rel.Object.ID,
+		"role_id":    goqu.Op{"like": like},
+	}).ToSQL()
+	if err != nil {
+		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &fetchedRelation, query)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return relation.RelationV2{}, relation.ErrNotExist
+		default:
+			return relation.RelationV2{}, err
+		}
+	}
+
+	return fetchedRelation.transformToRelationV2(), nil
+}

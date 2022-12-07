@@ -96,6 +96,18 @@ func (s Service) Delete(ctx context.Context, rel Relation) error {
 	return nil
 }
 
+func (s Service) DeleteV2(ctx context.Context, rel RelationV2) error {
+	fetchedRel, err := s.repository.GetByFields(ctx, rel)
+	if err != nil {
+		return err
+	}
+	if err := s.authzRepository.DeleteV2(ctx, fetchedRel); err != nil {
+		return err
+	}
+
+	return s.repository.DeleteByID(ctx, fetchedRel.ID)
+}
+
 func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error) {
 	return s.authzRepository.Check(ctx, Relation{
 		ObjectNamespace:  resourceNS,
