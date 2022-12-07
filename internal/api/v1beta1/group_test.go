@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"github.com/odpf/shield/internal/schema"
 	"testing"
 	"time"
 
@@ -1662,24 +1663,24 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations of subject_type-user and role-role1 if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "user", "role-1").Return(testUsersRole1, []group.Group{}, testUserIDRoleMapRole1, map[string][]string{}, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", schema.UserPrincipal, "role-1").Return(testUsersRole1, []group.Group{}, testUserIDRoleMapRole1, map[string][]string{}, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
-				SubjectType: "user",
+				SubjectType: schema.UserPrincipal,
 				Role:        "role-1",
 			},
 			want: &shieldv1beta1.ListGroupRelationsResponse{
 				Relations: []*shieldv1beta1.GroupRelation{
 					{
-						SubjectType: "user",
+						SubjectType: schema.UserPrincipal,
 						Role:        "role-1",
 						Subject: &shieldv1beta1.GroupRelation_User{
 							User: &transformedUser1,
 						},
 					},
 					{
-						SubjectType: "user",
+						SubjectType: schema.UserPrincipal,
 						Role:        "role-1",
 						Subject: &shieldv1beta1.GroupRelation_User{
 							User: &transformedUser2,
@@ -1692,17 +1693,17 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations of subject_type-user and role-role2 if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "user", "role-2").Return(testUsersRole2, []group.Group{}, testUserIDRoleMapRole2, map[string][]string{}, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", schema.UserPrincipal, "role-2").Return(testUsersRole2, []group.Group{}, testUserIDRoleMapRole2, map[string][]string{}, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
-				SubjectType: "user",
+				SubjectType: schema.UserPrincipal,
 				Role:        "role-2",
 			},
 			want: &shieldv1beta1.ListGroupRelationsResponse{
 				Relations: []*shieldv1beta1.GroupRelation{
 					{
-						SubjectType: "user",
+						SubjectType: schema.UserPrincipal,
 						Role:        "role-2",
 						Subject: &shieldv1beta1.GroupRelation_User{
 							User: &transformedUser3,
@@ -1715,17 +1716,17 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations of subject_type-group and role-role2 if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "group", "role-2").Return([]user.User{}, testGroupsRole2, map[string][]string{}, testGroupIDRoleMapRole2, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", schema.GroupPrincipal, "role-2").Return([]user.User{}, testGroupsRole2, map[string][]string{}, testGroupIDRoleMapRole2, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
-				SubjectType: "group",
+				SubjectType: schema.GroupPrincipal,
 				Role:        "role-2",
 			},
 			want: &shieldv1beta1.ListGroupRelationsResponse{
 				Relations: []*shieldv1beta1.GroupRelation{
 					{
-						SubjectType: "group",
+						SubjectType: schema.GroupPrincipal,
 						Role:        "role-2",
 						Subject: &shieldv1beta1.GroupRelation_Group{
 							Group: &transformedGroup1,
@@ -1749,14 +1750,14 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 			want: &shieldv1beta1.ListGroupRelationsResponse{
 				Relations: []*shieldv1beta1.GroupRelation{
 					{
-						SubjectType: "user",
+						SubjectType: schema.UserPrincipal,
 						Role:        "role-2",
 						Subject: &shieldv1beta1.GroupRelation_User{
 							User: &transformedUser3,
 						},
 					},
 					{
-						SubjectType: "group",
+						SubjectType: schema.GroupPrincipal,
 						Role:        "role-2",
 						Subject: &shieldv1beta1.GroupRelation_Group{
 							Group: &transformedGroup1,
@@ -1779,28 +1780,28 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 			want: &shieldv1beta1.ListGroupRelationsResponse{
 				Relations: []*shieldv1beta1.GroupRelation{
 					{
-						SubjectType: "user",
+						SubjectType: schema.UserPrincipal,
 						Role:        "role-1",
 						Subject: &shieldv1beta1.GroupRelation_User{
 							User: &transformedUser1,
 						},
 					},
 					{
-						SubjectType: "user",
+						SubjectType: schema.UserPrincipal,
 						Role:        "role-1",
 						Subject: &shieldv1beta1.GroupRelation_User{
 							User: &transformedUser2,
 						},
 					},
 					{
-						SubjectType: "user",
+						SubjectType: schema.UserPrincipal,
 						Role:        "role-2",
 						Subject: &shieldv1beta1.GroupRelation_User{
 							User: &transformedUser3,
 						},
 					},
 					{
-						SubjectType: "group",
+						SubjectType: schema.GroupPrincipal,
 						Role:        "role-2",
 						Subject: &shieldv1beta1.GroupRelation_Group{
 							Group: &transformedGroup1,
