@@ -5,27 +5,27 @@ guardian:
       roles:
         - name: viewer
           principals:
-            - user
-            - group
+            - shield/user
+            - shield/group
         - name: remover
           principals:
-            - user
+            - shield/user
       permissions:
         - name: view
           roles:
             - owner
-            - organization/owner
+            - organization:owner
             - viewer
         - name: delete
           roles:
             - remover
-            - organization/appleal_owner
+            - organization:appleal_owner
 
-organization:
+shield/organization:
   type: system
   roles:
     - name: appleal_owner
       principals:
-        - user
-        - group
+        - shield/user
+        - shield/group
 

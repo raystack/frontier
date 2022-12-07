@@ -3,9 +3,14 @@ package schema
 // SpiceDB readable format is stored in predefined_schema.txt
 const (
 	// namespace
-	OrganizationNamespace = "organization"
-	ProjectNamespace      = "project"
-	GroupNamespace        = "group"
+	OrganizationNamespace = "shield/organization"
+	ProjectNamespace      = "shield/project"
+	GroupNamespace        = "shield/group"
+
+	// relation
+	OrganizationRelationName = "organization"
+	ProjectRelationName      = "project"
+	GroupRelationName        = "group"
 
 	// roles
 	OwnerRole   = "owner"
@@ -27,6 +32,11 @@ const (
 	GroupPrincipal = "shield/group"
 )
 
+var InheritedRelations = map[string]bool{
+	OrganizationRelationName: true,
+	ProjectRelationName:      true,
+}
+
 var OrganizationNamespaceConfig = NamespaceConfig{
 	Roles: map[string][]string{
 		OwnerRole:  {UserPrincipal, GroupPrincipal},
@@ -44,7 +54,12 @@ var OrganizationNamespaceConfig = NamespaceConfig{
 }
 
 var ProjectNamespaceConfig = NamespaceConfig{
-	InheritedNamespaces: []string{OrganizationNamespace},
+	InheritedNamespaces: []InheritedNamespace{
+		{
+			Name:        OrganizationRelationName,
+			NamespaceId: OrganizationNamespace,
+		},
+	},
 	Roles: map[string][]string{
 		OwnerRole:  {UserPrincipal, GroupPrincipal},
 		EditorRole: {UserPrincipal, GroupPrincipal},
@@ -53,24 +68,29 @@ var ProjectNamespaceConfig = NamespaceConfig{
 	Permissions: map[string][]string{
 		EditPermission: {
 			OwnerRole, EditorRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
 		},
 		ViewPermission: {
 			OwnerRole, EditorRole, ViewerRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, ViewerRole),
 		},
 		DeletePermission: {
 			OwnerRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
 		},
 	},
 }
 
 var GroupNamespaceConfig = NamespaceConfig{
-	InheritedNamespaces: []string{OrganizationNamespace},
+	InheritedNamespaces: []InheritedNamespace{
+		{
+			Name:        OrganizationRelationName,
+			NamespaceId: OrganizationNamespace,
+		},
+	},
 	Roles: map[string][]string{
 		MemberRole:  {UserPrincipal},
 		ManagerRole: {UserPrincipal},
@@ -78,18 +98,18 @@ var GroupNamespaceConfig = NamespaceConfig{
 	Permissions: map[string][]string{
 		EditPermission: {
 			ManagerRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
 		},
 		ViewPermission: {
 			ManagerRole, MemberRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, ViewerRole),
 		},
 		DeletePermission: {
 			ManagerRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
 		},
 		MembershipPermission: {
 			MemberRole, ManagerRole,
@@ -105,8 +125,17 @@ var PreDefinedSystemNamespaceConfig = NamespaceConfigMapType{
 }
 
 var PreDefinedResourceGroupNamespaceConfig = NamespaceConfig{
-	Type:                ResourceGroupNamespace,
-	InheritedNamespaces: []string{OrganizationNamespace, ProjectNamespace},
+	Type: ResourceGroupNamespace,
+	InheritedNamespaces: []InheritedNamespace{
+		{
+			Name:        OrganizationRelationName,
+			NamespaceId: OrganizationNamespace,
+		},
+		{
+			Name:        ProjectRelationName,
+			NamespaceId: ProjectNamespace,
+		},
+	},
 	Roles: map[string][]string{
 		OwnerRole:  {UserPrincipal, GroupPrincipal},
 		EditorRole: {UserPrincipal, GroupPrincipal},
@@ -115,24 +144,24 @@ var PreDefinedResourceGroupNamespaceConfig = NamespaceConfig{
 	Permissions: map[string][]string{
 		EditPermission: {
 			OwnerRole, EditorRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
-			PermissionInheritanceFormatter(ProjectNamespace, OwnerRole),
-			PermissionInheritanceFormatter(ProjectNamespace, EditorRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
+			PermissionInheritanceFormatter(ProjectRelationName, OwnerRole),
+			PermissionInheritanceFormatter(ProjectRelationName, EditorRole),
 		},
 		ViewPermission: {
 			OwnerRole, EditorRole, ViewerRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, EditorRole),
-			PermissionInheritanceFormatter(OrganizationNamespace, ViewerRole),
-			PermissionInheritanceFormatter(ProjectNamespace, OwnerRole),
-			PermissionInheritanceFormatter(ProjectNamespace, EditorRole),
-			PermissionInheritanceFormatter(ProjectNamespace, ViewerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, ViewerRole),
+			PermissionInheritanceFormatter(ProjectRelationName, OwnerRole),
+			PermissionInheritanceFormatter(ProjectRelationName, EditorRole),
+			PermissionInheritanceFormatter(ProjectRelationName, ViewerRole),
 		},
 		DeletePermission: {
 			OwnerRole,
-			PermissionInheritanceFormatter(OrganizationNamespace, OwnerRole),
-			PermissionInheritanceFormatter(ProjectNamespace, OwnerRole),
+			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
+			PermissionInheritanceFormatter(ProjectRelationName, OwnerRole),
 		},
 	},
 }
