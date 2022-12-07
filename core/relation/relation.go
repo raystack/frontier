@@ -16,12 +16,13 @@ type Repository interface {
 	List(ctx context.Context) ([]RelationV2, error)
 	Update(ctx context.Context, toUpdate Relation) (Relation, error)
 	DeleteByID(ctx context.Context, id string) error
+	GetByFields(ctx context.Context, rel RelationV2) (RelationV2, error)
 }
 
 type AuthzRepository interface {
 	Add(ctx context.Context, rel Relation) error
 	Check(ctx context.Context, rel Relation, act action.Action) (bool, error)
-	Delete(ctx context.Context, rel Relation) error
+	DeleteV2(ctx context.Context, rel RelationV2) error
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 	AddV2(ctx context.Context, rel RelationV2) error
 }

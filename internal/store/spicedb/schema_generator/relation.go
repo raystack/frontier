@@ -45,6 +45,41 @@ func transformObjectAndSubject(relation relation.Relation) (*pb.Relationship, er
 	}, nil
 }
 
+func TransformRelationV2(relation relation.RelationV2) (*pb.Relationship, error) {
+	transformedRelation, err := transformObjectAndSubjectV2(relation)
+	if err != nil {
+		return nil, err
+	}
+	role := strings.Split(relation.Subject.RoleID, ":")
+	roleID := strings.ReplaceAll(role[1], "-", "_")
+	roleNSID := role[0]
+	if roleNSID != "" && roleNSID != transformedRelation.Resource.ObjectType {
+		return &pb.Relationship{}, errors.New(fmt.Sprintf("Role %s doesnt exist in %s", roleID, transformedRelation.Resource.ObjectType))
+	}
+
+	transformedRelation.Relation = roleID
+	return transformedRelation, nil
+}
+
+func transformObjectAndSubjectV2(relation relation.RelationV2) (*pb.Relationship, error) {
+	objectNSID := strings.ReplaceAll(relation.Object.NamespaceID, "-", "_")
+	subjectNSID := strings.ReplaceAll(relation.Subject.Namespace, "-", "_")
+
+	return &pb.Relationship{
+		Resource: &pb.ObjectReference{
+			ObjectId:   relation.Object.ID,
+			ObjectType: objectNSID,
+		},
+		Subject: &pb.SubjectReference{
+			Object: &pb.ObjectReference{
+				ObjectId:   relation.Subject.ID,
+				ObjectType: subjectNSID,
+			},
+			OptionalRelation: relation.Subject.RoleID,
+		},
+	}, nil
+}
+
 func TransformCheckRelation(relation relation.Relation) (*pb.Relationship, error) {
 	return transformObjectAndSubject(relation)
 }
