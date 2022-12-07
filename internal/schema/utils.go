@@ -9,17 +9,19 @@ import (
 )
 
 func PermissionInheritanceFormatter(permissionName, namespaceName string) string {
-	return fmt.Sprintf("%s/%s", permissionName, namespaceName)
+	return fmt.Sprintf("%s:%s", permissionName, namespaceName)
 }
 
 func SpiceDBPermissionInheritanceFormatter(roleName string) string {
-	return strings.Replace(roleName, "/", "->", 1)
+	return strings.Replace(roleName, ":", "->", 1)
 }
 
 func getRoleAndPrincipal(roleName, namespaceId string) (role.Role, error) {
-	splittedString := strings.Split(roleName, "/")
+	splittedString := strings.Split(roleName, ":")
 	if len(splittedString) == 1 {
 		return role.Role{ID: roleName, NamespaceID: namespaceId}, nil
+	} else if len(splittedString) == 2 {
+		return role.Role{ID: splittedString[1], NamespaceID: splittedString[0]}, nil
 	} else if len(splittedString) >= 3 || len(splittedString) <= 0 {
 		return role.Role{}, errors.New("wrong role format")
 	}
@@ -52,4 +54,13 @@ func Contains[T comparable](s []T, e T) bool {
 		}
 	}
 	return false
+}
+
+func GetNamespace(namespaceID string) string {
+	splittedString := strings.Split(namespaceID, "/")
+	if len(splittedString) == 1 && InheritedRelations[namespaceID] {
+		return fmt.Sprintf("shield/%s", namespaceID)
+	}
+
+	return namespaceID
 }
