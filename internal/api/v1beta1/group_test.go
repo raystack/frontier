@@ -2,7 +2,6 @@ package v1beta1
 
 import (
 	"context"
-	"github.com/odpf/shield/internal/schema"
 	"testing"
 	"time"
 
@@ -10,10 +9,12 @@ import (
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
