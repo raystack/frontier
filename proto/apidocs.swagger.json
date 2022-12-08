@@ -415,6 +415,49 @@
         ]
       }
     },
+    "/v1beta1/groups/{id}/relations": {
+      "get": {
+        "summary": "Get all relations for a group",
+        "operationId": "ShieldService_ListGroupRelations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListGroupRelationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subjectType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
     "/v1beta1/groups/{id}/users": {
       "get": {
         "summary": "Get all Users in a Group",
@@ -672,6 +715,49 @@
         ],
         "tags": [
           "Namespace"
+        ]
+      }
+    },
+    "/v1beta1/object/{objectId}/subject/{subjectId}/role/{role}": {
+      "delete": {
+        "summary": "Remove a subject having a role from an object",
+        "operationId": "ShieldService_DeleteRelation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteRelationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "objectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subjectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Relation"
         ]
       }
     },
@@ -2118,6 +2204,14 @@
         }
       }
     },
+    "v1beta1DeleteRelationResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1beta1GetActionResponse": {
       "type": "object",
       "properties": {
@@ -2234,6 +2328,23 @@
         }
       }
     },
+    "v1beta1GroupRelation": {
+      "type": "object",
+      "properties": {
+        "subjectType": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/v1beta1User"
+        },
+        "group": {
+          "$ref": "#/definitions/v1beta1Group"
+        }
+      }
+    },
     "v1beta1GroupRequestBody": {
       "type": "object",
       "properties": {
@@ -2269,6 +2380,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
+    "v1beta1ListGroupRelationsResponse": {
+      "type": "object",
+      "properties": {
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1GroupRelation"
           }
         }
       }
