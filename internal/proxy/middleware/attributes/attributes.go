@@ -3,9 +3,10 @@ package attributes
 import (
 	"context"
 	"fmt"
-	"github.com/odpf/shield/core/user"
 	"net/http"
 	"strings"
+
+	"github.com/odpf/shield/core/user"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -59,14 +60,14 @@ func (a Attributes) notAllowed(rw http.ResponseWriter) {
 func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	requestAttributes := map[string]any{}
 
+	req = req.WithContext(user.SetContextWithEmail(req.Context(), req.Header.Get(a.identityProxyHeaderKey)))
+	requestAttributes["user"] = req.Header.Get(a.identityProxyHeaderKey)
+
 	wareSpec, ok := middleware.ExtractMiddleware(req, a.Info().Name)
 	if !ok {
 		a.next.ServeHTTP(rw, req)
 		return
 	}
-
-	req = req.WithContext(user.SetContextWithEmail(req.Context(), req.Header.Get(a.identityProxyHeaderKey)))
-	requestAttributes["user"] = req.Header.Get(a.identityProxyHeaderKey)
 
 	config := Config{}
 	if err := mapstructure.Decode(wareSpec.Config, &config); err != nil {
