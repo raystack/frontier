@@ -168,7 +168,7 @@ func (s Service) addTeamToOrg(ctx context.Context, team Group) error {
 		Subject: relation.Subject{
 			ID:        orgId,
 			Namespace: schema.OrganizationNamespace,
-			RoleID:    schema.OrganizationNamespace,
+			RoleID:    schema.OrganizationRelationName,
 		},
 	}
 

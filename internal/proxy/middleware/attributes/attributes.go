@@ -3,6 +3,7 @@ package attributes
 import (
 	"context"
 	"fmt"
+	"github.com/odpf/shield/core/user"
 	"net/http"
 	"strings"
 
@@ -10,7 +11,6 @@ import (
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
 )

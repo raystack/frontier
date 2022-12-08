@@ -97,7 +97,7 @@ func (s Service) addProjectToOrg(ctx context.Context, prj Project, org organizat
 		Subject: relation.Subject{
 			ID:        org.ID,
 			Namespace: schema.OrganizationNamespace,
-			RoleID:    schema.OrganizationNamespace,
+			RoleID:    schema.OrganizationRelationName,
 		},
 	}
 
