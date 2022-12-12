@@ -13,7 +13,7 @@ Shield is a cloud-native role-based authorization-aware reverse-proxy service th
 
 ![Shield flow diagram](./shield-flow-diagram.png)
 
-Shield being a proxy, intercepts the request between a client and the backend. It offers configurable authorization on each url path. This is handled by **authz middleware**. This is a non-mandatory step, and can be left unprotected as well.
+Shield being a reverse-proxy, intercepts the request between a client and the backend. It offers configurable authorization on each url path. This is handled by **authz middleware**. This is a non-mandatory step, and can be left unprotected as well.
 
 A Resource Creation Hook comes handy when a resource needs to be created or updated in the backed. Shield keeps a record or the resource within it's database in order to check authorization later. The resource creation/updation request goes to the backend and when a successful response is received, the hook creates an instance of it in the database.
 

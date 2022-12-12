@@ -17,9 +17,7 @@ You need to prepare and run above dependencies first before running Shield. Shie
 
 This steps assumes all dependencies already up and running. Create a server config `config.yaml` file (shield server init) in the root folder of shield project or use `--config` flag to customize to a certain config file location or you can also use environment variables to provide the server config.
 
-Setup up a database in postgres and provide the details in the DB field as given in the example below. For the purpose of this tutorial, we'll assume that the username is shield, password is 12345, database name is shield, host and port are localhost and 5432. Also, setup a SpiceDB database on localhost port 50051 and pre_shared_key value shield.
-
-Note, that you can also user the `docker-compose` file to avoid all the hassle.
+Setup a database in postgres and provide the details in the DB field as given in the example below. For the purpose of this tutorial, we'll assume that the username is shield, password is 12345, database name is shield, host and port are localhost and 5432. Also, setup a SpiceDB database on localhost port 50051 and pre_shared_key value shield.
 
 ```
 version: 1
@@ -37,7 +35,7 @@ new_relic:
   license: ""
   enabled: false
 app:
-  port: 8080
+  port: 8000
   host: 127.0.0.1
   identity_proxy_header: X-Shield-Email
   resources_config_path: file:///path/to/shield/resources_config
@@ -213,3 +211,83 @@ rules:
                       type: constant
 
 ```
+
+### Migrating the server
+Database migration is required during the first server initialization. In addition, re-running the migration command might be needed in a new release to apply the new schema changes (if any). It's safer to always re-run the migration script before deploying/starting a new release.
+
+To initialize the database schema, Run Migrations with the following command:
+
+```sh
+$ shield server migrate
+```
+
+Using `--config` flag
+
+```sh
+$ shield server migrate --config=<path-to-file>
+```
+
+If migration command throws the following error, you need to create the databases first.
+
+```sh
+pq: database "shield" does not exist
+```
+
+```sh
+pq: database "spicedb" does not exist
+```
+
+Let's verify the migration by looking at the tables created in both the databases.
+
+We will use `SQL Shell (psql)` to connect to each instance.
+
+![Shield connection config](./shield-connection-config.png)
+
+![SpiceDB connection config](./spicedb-connection-config.png)
+
+Let's display all the tables in both the postgres databases
+
+```sh
+$ \dt
+```
+
+![Shield tables](./shield-tables.png)
+
+![SpiceDB tables](./spicedb-tables.png)
+
+
+
+### Starting the server
+
+Now, it's time to start the server, but before that, let's open a browser tab and open `localhost:8080` to have a look at the permission schema on SpiceDB.
+
+![SpiceDB permission schema before](./permission-schema-before.png)
+
+To run the Shield server use command:
+
+```sh
+$ shield server start
+```
+
+```sh
+$ shield server start --config=<path-to-file>
+```
+
+You will see the similar logs as following, based on your configs
+
+![Server start cmd output](./server-start-cmd-output.png)
+
+You can ping the server to verify
+
+```sh
+curl --location --request GET 'http://localhost:8000/admin/ping'
+```
+
+```sh
+pong
+```
+
+Let's verify in the browser, if the SpiceDB permission schema is updated
+
+![SpiceDB permission schema after](./permission-schema-after.png)
+
