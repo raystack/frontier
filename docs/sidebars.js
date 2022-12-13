@@ -40,6 +40,8 @@ module.exports = {
       label: "Reference",
       items: [
         "reference/configurations",
+        "reference/api",
+        "reference/cli"
       ],
     },
   ],
