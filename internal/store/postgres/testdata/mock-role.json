@@ -46,99 +46,99 @@
     "metadata": {}
   },
   {
-    "id": "organization:owner",
+    "id": "shield/organization:owner",
     "name": "owner",
     "types": [
       "user",
       "group"
     ],
     "metadata": null,
-    "namespaceId": "organization"
+    "namespaceId": "shield/organization"
   },
   {
-    "id": "organization:editor",
+    "id": "shield/organization:editor",
     "name": "editor",
     "types": [
       "user",
       "group"
     ],
     "metadata": null,
-    "namespaceId": "organization"
+    "namespaceId": "shield/organization"
   },
   {
-    "id": "organization:viewer",
+    "id": "shield/organization:viewer",
     "name": "viewer",
     "types": [
       "user",
       "group"
     ],
     "metadata": null,
-    "namespaceId": "organization"
+    "namespaceId": "shield/organization"
   },
   {
-    "id": "project:owner",
+    "id": "shield/project:owner",
     "name": "owner",
     "types": [
       "user",
       "group"
     ],
     "metadata": null,
-    "namespaceId": "project"
+    "namespaceId": "shield/project"
   },
   {
-    "id": "project:editor",
+    "id": "shield/project:editor",
     "name": "editor",
     "types": [
       "user",
       "group"
     ],
     "metadata": null,
-    "namespaceId": "project"
+    "namespaceId": "shield/project"
   },
   {
-    "id": "project:viewer",
+    "id": "shield/project:viewer",
     "name": "viewer",
     "types": [
       "user",
       "group"
     ],
     "metadata": null,
-    "namespaceId": "project"
+    "namespaceId": "shield/project"
   },
   {
-    "id": "project:organization",
+    "id": "shield/project:organization",
     "name": "organization",
     "types": [
       "InheritedNamespace"
     ],
     "metadata": null,
-    "namespaceId": "project"
+    "namespaceId": "shield/project"
   },
   {
-    "id": "group:member",
+    "id": "shield/group:member",
     "name": "member",
     "types": [
       "user"
     ],
     "metadata": null,
-    "namespaceId": "group"
+    "namespaceId": "shield/group"
   },
   {
-    "id": "group:manager",
+    "id": "shield/group:manager",
     "name": "manager",
     "types": [
       "user"
     ],
     "metadata": null,
-    "namespaceId": "group"
+    "namespaceId": "shield/group"
   },
   {
-    "id": "group:organization",
+    "id": "shield/group:organization",
     "name": "organization",
     "types": [
       "InheritedNamespace"
     ],
     "metadata": null,
-    "namespaceId": "group"
+    "namespaceId": "shield/group"
   }
 ]

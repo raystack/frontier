@@ -37,7 +37,7 @@ func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
 
 		// generate inheritance
 		for _, namespace := range config.InheritedNamespaces {
-			inheritedNamespaces = append(inheritedNamespaces, sdbnamespace.Relation(namespace, nil, sdbnamespace.RelationReference(namespace, "...")))
+			inheritedNamespaces = append(inheritedNamespaces, sdbnamespace.Relation(namespace.Name, nil, sdbnamespace.RelationReference(namespace.NamespaceId, "...")))
 		}
 
 		source, _ := generator.GenerateSource(sdbnamespace.Namespace(name, append(roles, append(permissions, inheritedNamespaces...)...)...))
@@ -49,7 +49,7 @@ func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
 
 func processPrincipal(s string) string {
 	return map[string]string{
-		"group": "group#membership",
-		"user":  "user",
+		"shield/group": "shield/group#membership",
+		"shield/user":  "shield/user",
 	}[s]
 }

@@ -125,6 +125,31 @@ func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) e
 	return nil
 }
 
+func (r RelationRepository) DeleteV2(ctx context.Context, rel relation.RelationV2) error {
+	relationship, err := schema_generator.TransformRelationV2(rel)
+	if err != nil {
+		return err
+	}
+	request := &authzedpb.DeleteRelationshipsRequest{
+		RelationshipFilter: &authzedpb.RelationshipFilter{
+			ResourceType:       relationship.Resource.ObjectType,
+			OptionalResourceId: relationship.Resource.ObjectId,
+			OptionalRelation:   relationship.Relation,
+			OptionalSubjectFilter: &authzedpb.SubjectFilter{
+				SubjectType:       relationship.Subject.Object.ObjectType,
+				OptionalSubjectId: relationship.Subject.Object.ObjectId,
+			},
+		},
+	}
+
+	_, err = r.spiceDB.client.DeleteRelationships(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
 	request := &authzedpb.DeleteRelationshipsRequest{
 		RelationshipFilter: &authzedpb.RelationshipFilter{

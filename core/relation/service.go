@@ -32,12 +32,13 @@ func (s Service) Get(ctx context.Context, id string) (RelationV2, error) {
 
 func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error) {
 	// If Principal is a user, then we will get ID for that user as Subject.ID
-	if rel.Subject.Namespace == schema.UserPrincipal {
+	if rel.Subject.Namespace == schema.UserPrincipal || rel.Subject.Namespace == "user" {
 		fetchedUser, err := s.userService.GetByEmail(ctx, rel.Subject.ID)
 		if err != nil {
 			return RelationV2{}, fmt.Errorf("%w: %s", ErrFetchingUser, err.Error())
 		}
 
+		rel.Subject.Namespace = schema.UserPrincipal
 		rel.Subject.ID = fetchedUser.ID
 	}
 
@@ -94,6 +95,18 @@ func (s Service) Delete(ctx context.Context, rel Relation) error {
 	//
 	//return s.repository.DeleteByID(ctx, fetchedRel.ID)
 	return nil
+}
+
+func (s Service) DeleteV2(ctx context.Context, rel RelationV2) error {
+	fetchedRel, err := s.repository.GetByFields(ctx, rel)
+	if err != nil {
+		return err
+	}
+	if err := s.authzRepository.DeleteV2(ctx, fetchedRel); err != nil {
+		return err
+	}
+
+	return s.repository.DeleteByID(ctx, fetchedRel.ID)
 }
 
 func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error) {
