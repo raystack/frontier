@@ -53,12 +53,12 @@ rules:
 Let's make the following request.
 
 ```sh
-curl --location --request POST 'http://localhost:5556/api/firehoses' \
---header 'Content-Type: application/json' \
---header 'X-Shield-Email: admin@odpf.io' \
---header 'X-Shield-Org: 4eb3c3b4-962b-4b45-b55b-4c07d3810ca8' \
---header 'X-Shield-Project: 1b89026b-6713-4327-9d7e-ed03345da288' \
---header 'X-Shield-Group: 86e2f95d-92c7-4c59-8fed-b7686cccbf4f' \
+curl --location --request POST 'http://localhost:5556/api/firehoses'
+--header 'Content-Type: application/json'
+--header 'X-Shield-Email: admin@odpf.io'
+--header 'X-Shield-Org: 4eb3c3b4-962b-4b45-b55b-4c07d3810ca8'
+--header 'X-Shield-Project: 1b89026b-6713-4327-9d7e-ed03345da288'
+--header 'X-Shield-Group: 86e2f95d-92c7-4c59-8fed-b7686cccbf4f'
 --data-raw '{
     "created_by": "Shield Org Admin",
     "configuration": {

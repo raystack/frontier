@@ -3,8 +3,8 @@
 In this, we will be using the organization id of the organization we just created. Projects in shield belong to one organization.
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/projects' \
---header 'Content-Type: application/json' \
+curl --location --request POST 'http://localhost:8000/admin/v1beta1/projects'
+--header 'Content-Type: application/json'
 --data-raw '{
     "name": "Project Alpha",
     "slug": "project-alpha",

@@ -13,7 +13,7 @@ module.exports = {
     {
       type: "category",
       label: "Tour",
-      collapsed: false,
+      collapsed: true,
       items: [
         "tour/intro",
         "tour/setup-server",
@@ -29,10 +29,17 @@ module.exports = {
     {
       type: "category",
       label: "Guides",
-      collapsed: false,
+      collapsed: true,
       items: [
+        "guides/overview",
+        "guides/managing-organization",
+        "guides/managing-project",
+        "guides/managing-group",
         "guides/check-permission",
-        "guides/manage-resources",
+        "guides/managing-resource",
+        "guides/managing-relation",
+        "guides/managing-user",
+        "guides/adding-metadata-key",
       ],
     },
     {

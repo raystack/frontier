@@ -1,22 +1,27 @@
-# Check Permission
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
 
-There are two ways to check permission in the shield,
+# Checking Pemrissions
 
-1. REST/gRPC API
-2. Proxy Middleware
+There are two ways to check a user permission on a resource in shield,
+## API Interface
 
-## REST/gRPC API
-
-```sh
-POST v1beta1/check/{resourceId} HTTP/1.1
-Host: localhost:8000
-Content-Type: application/json
-
-{
-  "actionId": "read",
-  "namespaceId": "test-namespace"
-}
-```
+<Tabs groupId="api">
+  <TabItem value="HTTP" label="HTTP" default>
+        <CodeBlock className="language-bash">
+    {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/check'
+--header 'Content-Type: application/json'
+--header 'Accept: application/json'
+--header 'X-Shield-Email: doe.john@odpf.io'
+--data-raw '{
+  "objectId": "test-resource-beta1",
+  "objectNamespace": "entropy/firehose",
+  "permission": "owner"
+}'`}
+    </CodeBlock>
+  </TabItem>
+</Tabs>
 
 ## Proxy Middleware
 

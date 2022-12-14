@@ -5,9 +5,9 @@ Before creating a new organization, let's create an organization admin user.
 ## User creation in Shield
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/users' \
---header 'Content-Type: application/json' \
---header 'X-Shield-Email: admin@odpf.io' \
+curl --location --request POST 'http://localhost:8000/admin/v1beta1/users'
+--header 'Content-Type: application/json'
+--header 'X-Shield-Email: admin@odpf.io'
 --data-raw '{
     "name": "Shield Org Admin",
     "email": "admin@odpf.io",
@@ -31,8 +31,8 @@ Note that this will return an error response
 This is because metadata key `role` is not defined in `metadata_keys` table. So, let's first create it.
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/metadatakey' \
---header 'Content-Type: application/json' \
+curl --location --request POST 'http://localhost:8000/admin/v1beta1/metadatakey'
+--header 'Content-Type: application/json'
 --data-raw '{
     "key": "role",
     "description": "role of user in organization"
@@ -73,9 +73,9 @@ From now onwards, we can use the above user to perform all the admin operations.
 ## Organization creation in Shield
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/organizations' \
---header 'Content-Type: application/json' \
---header 'X-Shield-Email: admin@odpf.io' \
+curl --location --request POST 'http://localhost:8000/admin/v1beta1/organizations'
+--header 'Content-Type: application/json'
+--header 'X-Shield-Email: admin@odpf.io'
 --data-raw '{
     "name": "ODPF",
     "slug": "odpf",
