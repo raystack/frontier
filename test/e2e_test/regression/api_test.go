@@ -61,7 +61,7 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 		},
 	}
 
-	s.testBench, err = testbench.Init(appConfig)
+	s.testBench, appConfig, err = testbench.Init(appConfig)
 	s.Require().NoError(err)
 
 	ctx := context.Background()

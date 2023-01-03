@@ -52,6 +52,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	ctx, cancelFunc := context.WithCancel(salt_server.HandleSignals(context.Background()))
 	defer cancelFunc()
 
+	fmt.Printf("cfg.DB: %v\n", cfg.DB)
 	dbClient, err := setupDB(cfg.DB, logger)
 	if err != nil {
 		return err
@@ -79,7 +80,8 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		defer resourceBlobRepository.Close()
 	}()
 
-	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
+	fmt.Printf("cfg.SpiceDB: %v\n", cfg.SpiceDB)
+	spiceDBClient, err := spicedb.New(cfg.SpiceDB)
 	if err != nil {
 		return err
 	}

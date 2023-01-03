@@ -8,7 +8,6 @@ import (
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
 
-	"github.com/odpf/salt/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -28,7 +27,7 @@ func (s *SpiceDB) Check() error {
 	return nil
 }
 
-func New(config Config, logger log.Logger) (*SpiceDB, error) {
+func New(config Config) (*SpiceDB, error) {
 	endpoint := fmt.Sprintf("%s:%s", config.Host, config.Port)
 	client, err := authzed.NewClient(
 		endpoint,
@@ -36,6 +35,7 @@ func New(config Config, logger log.Logger) (*SpiceDB, error) {
 		grpcutil.WithInsecureBearerToken(config.PreSharedKey),
 	)
 	if err != nil {
+		fmt.Printf("\"New client creation failed\": %v\n", err)
 		return &SpiceDB{}, err
 	}
 
@@ -47,6 +47,6 @@ func New(config Config, logger log.Logger) (*SpiceDB, error) {
 		return nil, err
 	}
 
-	logger.Info(fmt.Sprintf("Connected to spiceDB: %s", endpoint))
+	fmt.Printf("Connected to SpiceDB: %s", endpoint)
 	return spiceDBClient, nil
 }

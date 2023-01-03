@@ -97,7 +97,7 @@ func startSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.P
 			spiceClient, err = spicedb.New(spicedb.Config{
 				Host: "localhost",
 				Port: extPort,
-			}, logger)
+			})
 			if err != nil {
 				return err
 			}

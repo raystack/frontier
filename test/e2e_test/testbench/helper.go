@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 
+	"github.com/odpf/shield/pkg/db"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -44,6 +46,7 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
 	conn, err := createConnection(context.Background(), host)
 	if err != nil {
+		fmt.Printf("err 1: %v\n", err)
 		return nil, nil, err
 	}
 
@@ -202,4 +205,20 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	return nil
+}
+
+func SetupDB(cfg db.Config) (dbc *db.Client, err error) {
+	// prefer use pgx instead of lib/pq for postgres to catch pg error
+	/*if cfg.Driver == "postgres" {
+		cfg.Driver = "pgx"
+	}*/
+
+	fmt.Printf("cfg: %v\n", cfg)
+	dbc, err = db.New(cfg)
+	if err != nil {
+		err = fmt.Errorf("failed to setup db: %w", err)
+		return
+	}
+
+	return
 }
