@@ -16,15 +16,12 @@ type Client struct {
 }
 
 func New(cfg Config) (*Client, error) {
-	fmt.Printf("cfg: %v\n", cfg)
 	d, err := sqlx.Open(cfg.Driver, cfg.URL)
 	if err != nil {
-		fmt.Printf("\"couldn't connect\": %v\n", "couldn't connect")
 		return nil, err
 	}
 
 	if err = d.Ping(); err != nil {
-		fmt.Printf("\"couldn't ping\": %v\n", err)
 		return nil, err
 	}
 

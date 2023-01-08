@@ -91,7 +91,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	ctx := context.Background()
 	logger := logger.InitLogger(appConfig.Log)
 
-	spiceDBClient, err := spicedb.New(appConfig.SpiceDB)
+	spiceDBClient, err := spicedb.New(appConfig.SpiceDB, logger)
 	if err != nil {
 		logger.Fatal("failed to create spiceDB client", err)
 		return

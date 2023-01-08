@@ -39,9 +39,7 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 
 	pgPort := res.GetPort("5432/tcp")
 	connStringInternal = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", pgUname, pgPasswd, name, "5432", dbName)
-	fmt.Printf("connStringInternal: %v\n", connStringInternal)
 	connStringExternal = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", pgUname, pgPasswd, "localhost", pgPort, dbName)
-	fmt.Printf("connStringExternal: %v\n", connStringExternal)
 
 	if err = res.Expire(120); err != nil {
 		return

@@ -17,7 +17,6 @@ func Serve(
 	handler http.Handler,
 ) func(ctx context.Context) error {
 	proxyURL := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
-	fmt.Printf("starting proxy @%s", proxyURL)
 	logger.Info("starting h2c proxy", "url", proxyURL)
 
 	mux := http.NewServeMux()
@@ -29,19 +28,14 @@ func Serve(
 		Handler: h2c.NewHandler(mux, &http2.Server{}),
 	}
 
-	fmt.Printf("\"attempt listen\": %v\n", "attempt listen")
-
 	go func(ctx context.Context, logger log.Logger, cfg Config) {
 		if err := proxySrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			fmt.Printf("failed to serve", "err", err)
 			logger.Fatal("failed to serve", "err", err)
 		}
 
-		fmt.Printf("[shield] proxy stopped", "service", cfg.Name)
 		logger.Info("[shield] proxy stopped", "service", cfg.Name)
 	}(ctx, logger, cfg)
 
-	fmt.Printf("[shield] proxy ready", "service", cfg.Name)
 	logger.Info("[shield] proxy ready", "service", cfg.Name)
 	return proxySrv.Shutdown
 }
