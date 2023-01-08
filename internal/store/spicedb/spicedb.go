@@ -7,8 +7,8 @@ import (
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
-	"github.com/odpf/salt/log"
 
+	"github.com/odpf/salt/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -46,6 +46,7 @@ func New(config Config, logger log.Logger) (*SpiceDB, error) {
 	if err := spiceDBClient.Check(); err != nil {
 		return nil, err
 	}
+
 	logger.Info(fmt.Sprintf("Connected to spiceDB: %s", endpoint))
 	return spiceDBClient, nil
 }

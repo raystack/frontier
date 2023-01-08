@@ -7,9 +7,6 @@ rules:
           - name: ping
             path: "/api/ping"
             method: "GET"
-          - name: list_resource
-            path: "/api/resource/{resource_id}"
-            method: "GET"
           - name: create_resource
             path: "/api/resource"
             method: "POST"

@@ -115,9 +115,6 @@ func Init(appConfig *config.Shield) (*TestBench, *config.Shield, error) {
 	te.resources = append(te.resources, res)
 	logger.Info("spicedb is up")
 
-	fmt.Printf("connMainPGExternal: %v\n", connMainPGExternal)
-	fmt.Printf("connSpicePGInternal: %v\n", connSpicePGInternal)
-
 	te.PGConfig = db.Config{
 		Driver:              "postgres",
 		URL:                 connMainPGExternal,
@@ -199,7 +196,6 @@ func ServeProxies(
 		cleanUpProxies = append(cleanUpProxies, cps)
 	}
 
-	fmt.Print("[shield] proxy is up")
 	logger.Info("[shield] proxy is up")
 	return cleanUpBlobs, cleanUpProxies, nil
 }

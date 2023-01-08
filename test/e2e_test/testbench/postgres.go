@@ -1,10 +1,12 @@
 package testbench
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/odpf/salt/log"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
@@ -48,7 +50,7 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 	// exponential backoff-retry, because the application in the container might not be ready to accept connections yet
 	pool.MaxWait = 60 * time.Second
 
-	/*if err = pool.Retry(func() error {
+	if err = pool.Retry(func() error {
 		_, err := pgx.Connect(context.Background(), connStringExternal)
 		if err != nil {
 			return err
@@ -57,7 +59,7 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 	}); err != nil {
 		err = fmt.Errorf("could not connect to docker: %w", err)
 		return
-	}*/
+	}
 
 	return
 }
