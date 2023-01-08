@@ -110,7 +110,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
 	}
 
-	orgCreationQuery := "INSERT INTO organizations (name, slug) VALUES ('ODPF3', 'odpf org') ON CONFLICT DO NOTHING"
+	orgCreationQuery := "INSERT INTO organizations (name, slug) VALUES ('ODPF', 'odpf org') ON CONFLICT DO NOTHING"
 	_, err = dbClient.DB.Query(orgCreationQuery)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
@@ -183,7 +183,6 @@ func (s *EndToEndProxySmokeTestSuite) TearDownTest() {
 
 func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 	s.Run("1. should be able to proxy to an echo server", func() {
-
 		url := fmt.Sprintf("http://localhost:%d/api/ping", s.proxyport)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
