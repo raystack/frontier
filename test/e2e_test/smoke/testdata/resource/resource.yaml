@@ -1,0 +1,12 @@
+entropy:
+  type: resource_group
+  resource_types:
+    - name: firehose
+      roles:
+        - name: viewer
+          principals:
+            - shield/user
+      permissions:
+        - name: view
+          roles:
+            - owner

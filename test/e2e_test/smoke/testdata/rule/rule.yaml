@@ -1,0 +1,36 @@
+rules:
+  - backends:
+      - name: entropy
+        target: "http://localhost:4000"
+        prefix: "/api"
+        frontends:
+          - name: ping
+            path: "/api/ping"
+            method: "GET"
+          - name: list_resource
+            path: "/api/resource/{resource_id}"
+            method: "GET"
+          - name: create_resource
+            path: "/api/resource"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: X-Shield-Name
+                      type: header
+                      source: request
+                    project:
+                      key: X-Shield-Project
+                      type: header
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      key: X-Shield-Resource-Type
+                      type: header
+                      source: request

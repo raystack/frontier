@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -25,25 +26,30 @@ type EndToEndProxySmokeTestSuite struct {
 	suite.Suite
 	testBench *testbench.TestBench
 	proxyport int
+	orgID     string
+	projID    string
+	dbClient  *db.Client
 }
 
 func (s *EndToEndProxySmokeTestSuite) SetupTest() {
+	var (
+		orgID  string
+		projID string
+	)
+
 	wd, err := os.Getwd()
 	s.Require().Nil(err)
 
 	parent := filepath.Dir(wd)
-	testDataPath := parent + "/../../"
-	fmt.Printf("file://%s%s", testDataPath, "resources_config")
+	testDataPath := parent + "/../../test/e2e_test/smoke/testdata/"
 
 	proxyPort, err := testbench.GetFreePort()
 	s.Require().Nil(err)
-	fmt.Printf("proxyPort: %v\n", proxyPort)
 
 	s.proxyport = proxyPort
 
 	apiPort, err := testbench.GetFreePort()
 	s.Require().Nil(err)
-	fmt.Printf("apiPort: %v\n", apiPort)
 
 	appConfig := &config.Shield{
 		Log: logger.Config{
@@ -52,9 +58,10 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		App: server.Config{
 			Port:                      apiPort,
 			IdentityProxyHeader:       testbench.IdentityHeader,
-			ResourcesConfigPath:       "file:///Users/ishanarya/Desktop/Work/shield/resources_config",
+			UserIDHeader:              "user-id-header-value",
+			ResourcesConfigPath:       fmt.Sprintf("file://%s%s", testDataPath, "resource"),
 			ResourcesConfigPathSecret: "",
-			RulesPath:                 "file:///Users/ishanarya/Desktop/Work/shield/rules",
+			RulesPath:                 fmt.Sprintf("file://%s%s", testDataPath, "rule"),
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{
@@ -62,13 +69,13 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 					Name:      "base",
 					Host:      "localhost",
 					Port:      proxyPort,
-					RulesPath: "file:///Users/ishanarya/Desktop/Work/shield/rules",
+					RulesPath: fmt.Sprintf("file://%s%s", testDataPath, "rule"),
 				},
 			},
 		},
 		DB: db.Config{
 			Driver:              "postgres",
-			URL:                 "postgres://shield:12345@localhost:5432/shield-docs?sslmode=disable",
+			URL:                 "postgres://shield:12345@localhost:5432/shield?sslmode=disable",
 			MaxIdleConns:        10,
 			MaxOpenConns:        10,
 			ConnMaxLifeTime:     time.Millisecond * 10,
@@ -82,11 +89,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	}
 
 	ctx := context.Background()
-
 	logger := logger.InitLogger(appConfig.Log)
-
-	fmt.Printf("appConfig.App.ResourcesConfigPath: %v\n", appConfig.App.ResourcesConfigPath)
-	fmt.Printf("appConfig.App.RulesPath: %v\n", appConfig.App.RulesPath)
 
 	spiceDBClient, err := spicedb.New(appConfig.SpiceDB)
 	if err != nil {
@@ -99,39 +102,68 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		logger.Fatal("failed to setup database")
 		return
 	}
-	/*defer func() {
-		logger.Info("cleaning up db")
-		dbClient.Close()
-	}()*/
+	s.dbClient = dbClient
 
-	query := "INSERT INTO users (name,email) VALUES ('Ishan', 'ishan.arya@gojek.com') ON CONFLICT DO NOTHING"
-
-	_, err = dbClient.DB.Query(query)
+	userCreationQuery := "INSERT INTO users (name,email) VALUES ('John', 'john.doe@odpf.com') ON CONFLICT DO NOTHING"
+	_, err = dbClient.DB.Query(userCreationQuery)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
 	}
+
+	orgCreationQuery := "INSERT INTO organizations (name, slug) VALUES ('ODPF3', 'odpf org') ON CONFLICT DO NOTHING"
+	_, err = dbClient.DB.Query(orgCreationQuery)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
+	}
+
+	orgSelectQuery := "SELECT id FROM organizations"
+	orgs, err := dbClient.DB.Query(orgSelectQuery)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
+	}
+	defer orgs.Close()
+
+	for orgs.Next() {
+		if err := orgs.Scan(&orgID); err != nil {
+			fmt.Println(err)
+		}
+	}
+	s.orgID = orgID
+
+	projCreationQuery := fmt.Sprintf("INSERT INTO projects (name, slug, org_id) VALUES ('Shield', 'shield proj', '%s') ON CONFLICT DO NOTHING", orgID)
+	_, err = dbClient.DB.Query(projCreationQuery)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
+	}
+
+	projSelectQuery := "SELECT id FROM projects"
+	projs, err := dbClient.DB.Query(projSelectQuery)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
+	}
+	defer projs.Close()
+
+	for projs.Next() {
+		if err := projs.Scan(&projID); err != nil {
+			fmt.Println(err)
+		}
+	}
+	s.projID = projID
 
 	resourceBlobFS, err := blob.NewStore(ctx, appConfig.App.ResourcesConfigPath, appConfig.App.ResourcesConfigPathSecret)
 	if err != nil {
-		fmt.Printf("f to create new blob store: %v\n", err)
 		logger.Fatal("failed to create new blob store", err)
 		return
 	}
 
 	resourceBlobRepository := blob.NewResourcesRepository(logger, resourceBlobFS)
 	if err := resourceBlobRepository.InitCache(ctx, testbench.RuleCacheRefreshDelay); err != nil {
-		fmt.Printf("failed to initialize cache: %v\n", err)
 		logger.Fatal("failed to Initialise cache", err)
 		return
 	}
-	/*defer func() {
-		logger.Info("cleaning up resource blob")
-		defer resourceBlobRepository.Close()
-	}()*/
 
 	deps, err := testbench.BuildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
-		fmt.Printf("f to build API dep: %v\n", err)
 		logger.Fatal("failed to build API dependencies", err)
 		return
 	}
@@ -139,31 +171,9 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	// serving proxies
 	_, _, err = testbench.ServeProxies(ctx, logger, appConfig.App.IdentityProxyHeader, appConfig.App.UserIDHeader, appConfig.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
 	if err != nil {
-		fmt.Printf("failed to serve proxies: %v\n", err)
 		logger.Fatal("failed to serve proxies", err)
 		return
 	}
-	fmt.Printf("\"proxy served\": %v\n", "proxy served")
-	/*defer func() {
-		// clean up stage
-		logger.Info("cleaning up rules proxy blob")
-		for _, f := range cbs {
-			if err := f(); err != nil {
-				logger.Warn("error occurred during shutdown rules proxy blob storages", "err", err)
-			}
-		}
-
-		logger.Info("cleaning up proxies")
-		for _, f := range cps {
-			shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*20)
-			if err := f(shutdownCtx); err != nil {
-				shutdownCancel()
-				logger.Warn("error occurred during shutdown proxies", "err", err)
-				continue
-			}
-			shutdownCancel()
-		}
-	}()*/
 }
 
 func (s *EndToEndProxySmokeTestSuite) TearDownTest() {
@@ -171,50 +181,55 @@ func (s *EndToEndProxySmokeTestSuite) TearDownTest() {
 	s.Require().NoError(err)
 }
 
-func (s *EndToEndProxySmokeTestSuite) TestSmokeTestAdmin() {
-	// sleep needed to compensate transaction done in spice db
-
-	s.Run("1. org admin could create a new team", func() {
-		// check permission
+func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
+	s.Run("1. should be able to proxy to an echo server", func() {
 
 		url := fmt.Sprintf("http://localhost:%d/api/ping", s.proxyport)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			return
-		}
-		req.Header.Set(testbench.IdentityHeader, "ishan.arya@gojek.com")
-		//req.Header.Set("Accept", "application/json")
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "john.doe@odpf.com")
 
 		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			return
-		}
+		s.Require().NoError(err)
 
 		defer res.Body.Close()
+		s.Assert().Equal(res.StatusCode, 200)
+	})
 
-		b, err := io.ReadAll(res.Body)
-		// b, err := ioutil.ReadAll(resp.Body)  Go.1.15 and earlier
-		if err != nil {
-			fmt.Print(err)
+	s.Run("2. resource created on echo server should persist in shieldDB", func() {
+		buff := bytes.NewReader([]byte(`{"name": "test-proxy-resource", "type": "firehose"}`))
+		url := fmt.Sprintf("http://localhost:%d/api/resource", s.proxyport)
+		req, err := http.NewRequest(http.MethodPost, url, nil)
+		s.Require().NoError(err)
+		req.Body = io.NopCloser(buff)
+
+		req.Header.Set(testbench.IdentityHeader, "john.doe@odpf.com")
+		req.Header.Set("X-Shield-Project", s.projID)
+		req.Header.Set("X-Shield-Org", s.orgID)
+		req.Header.Set("X-Shield-Name", "test-resource")
+		req.Header.Set("X-Shield-Resource-Type", "firehose")
+
+		resourceSelectQuery := "SELECT name FROM resources"
+		resources, err := s.dbClient.DB.Query(resourceSelectQuery)
+		s.Require().NoError(err)
+		defer resources.Close()
+
+		var resourceName = ""
+		for resources.Next() {
+			if err := resources.Scan(&resourceName); err != nil {
+				s.Require().NoError(err)
+			}
 		}
 
-		fmt.Printf("res.StatusCode: %v\n", res.StatusCode)
-		fmt.Println("body", string(b))
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
 
-		s.Assert().Equal("", "")
+		defer res.Body.Close()
+		s.Assert().Equal(200, res.StatusCode)
+		s.Assert().Equal("test-resource", resourceName)
 	})
 }
-
-// TODO proxy test
-// - member who does not belong to any team cannot access resources
-// - could not access resource in different org
-// - Calling create upstream resource should create a resource in shield DB
-// - Team member can access the created resource created by the same team
-// - Team admin can access the created resource created by the same team
-// - Org admin who is not team member or admin or creator can access the created resource in the same org
-// - Project admin who is not team member or admin or creator can access the created resource in the same project
 
 func TestEndToEndProxySmokeTestSuite(t *testing.T) {
 	suite.Run(t, new(EndToEndProxySmokeTestSuite))
