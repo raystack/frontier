@@ -45,7 +45,7 @@ jobs:
     services:
       pg1:
         image: postgres:12
-        environment:
+        env:
           - POSTGRES_DB=shield
           - POSTGRES_USER=shield
           - POSTGRES_HOST_AUTH_METHOD=trust
@@ -60,7 +60,7 @@ jobs:
           retries: 3
       pg2:
         image: "postgres:12"
-        environment:
+        env:
           POSTGRES_USER: "spicedb"
           POSTGRES_DB: "spicedb"
           POSTGRES_HOST_AUTH_METHOD: "trust"
