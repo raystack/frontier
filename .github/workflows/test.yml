@@ -46,9 +46,9 @@ jobs:
       pg1:
         image: postgres:12
         env:
-          - POSTGRES_DB=shield
-          - POSTGRES_USER=shield
-          - POSTGRES_HOST_AUTH_METHOD=trust
+          POSTGRES_DB: "shield"
+          POSTGRES_USER: "shield"
+          POSTGRES_HOST_AUTH_METHOD: "trust"
         volumes:
           - ./temp/pgdata:/var/lib/postgresql/data
         ports:
