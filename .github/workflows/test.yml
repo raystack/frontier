@@ -83,9 +83,5 @@ jobs:
       - name: test binaries
         env:
           POSTGRES_PASSWORD: postgres
-        run: e2e-smoke-test
-      - name: Send coverage to coveralls
-        uses: shogo82148/actions-goveralls@v1
-        with:
-          path-to-profile: coverage.out
+        run: make e2e-smoke-test
 
