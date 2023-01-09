@@ -42,50 +42,6 @@ jobs:
           path-to-profile: coverage.out
   e2e-smoke-test:
     runs-on: ubuntu-latest
-name: Test
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
-
-jobs:
-  unit:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:12
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.18'
-      - name: install dependencies
-        run: go mod tidy
-      - name: test binaries
-        env:
-          POSTGRES_PASSWORD: postgres
-        run: make test
-      - name: Send coverage to coveralls
-        uses: shogo82148/actions-goveralls@v1
-        with:
-          path-to-profile: coverage.out
-  e2e-smoke-test:
-    runs-on: ubuntu-latest
     services:
       pg1:
         image: postgres:12
