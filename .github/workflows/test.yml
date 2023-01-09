@@ -49,8 +49,6 @@ jobs:
           POSTGRES_DB: "shield"
           POSTGRES_USER: "shield"
           POSTGRES_HOST_AUTH_METHOD: "trust"
-        volumes:
-          - ./temp/pgdata:/var/lib/postgresql/data
         ports:
           - 5432:5432
         options: >-
@@ -64,8 +62,6 @@ jobs:
           POSTGRES_USER: "spicedb"
           POSTGRES_DB: "spicedb"
           POSTGRES_HOST_AUTH_METHOD: "trust"
-        volumes:
-          - ./temp/pgdata2:/var/lib/postgresql/data
         ports:
           - "5431:5432"
         options: >-
