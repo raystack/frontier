@@ -87,7 +87,7 @@ jobs:
       - name: install dependencies
         run: go mod tidy
       - name: install spicedb binary
-        uses: ghcr.io/authzed/spicedb:v1.15.0
+        uses: quay.io/authzed/spicedb:v1.0.0
       - name: migrate spicedb
         run: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb-one?sslmode=disable
       - name: start spicedb
