@@ -3,8 +3,8 @@ package schema_generator
 import (
 	"github.com/odpf/shield/internal/schema"
 
-	sdbcore "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	sdbnamespace "github.com/authzed/spicedb/pkg/namespace"
+	sdbcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
 )
 
@@ -17,9 +17,9 @@ func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
 
 		// generate spicedb relations
 		for roleName, principals := range config.Roles {
-			relationList := make([]*sdbcore.RelationReference, 0)
+			relationList := make([]*sdbcore.AllowedRelation, 0)
 			for _, p := range principals {
-				relationList = append(relationList, sdbnamespace.RelationReference(processPrincipal(p), "..."))
+				relationList = append(relationList, sdbnamespace.AllowedRelation(processPrincipal(p), "..."))
 			}
 
 			roles = append(roles, sdbnamespace.Relation(roleName, nil, relationList...))
@@ -37,7 +37,7 @@ func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
 
 		// generate inheritance
 		for _, namespace := range config.InheritedNamespaces {
-			inheritedNamespaces = append(inheritedNamespaces, sdbnamespace.Relation(namespace.Name, nil, sdbnamespace.RelationReference(namespace.NamespaceId, "...")))
+			inheritedNamespaces = append(inheritedNamespaces, sdbnamespace.Relation(namespace.Name, nil, sdbnamespace.AllowedRelation(namespace.NamespaceId, "...")))
 		}
 
 		source, _ := generator.GenerateSource(sdbnamespace.Namespace(name, append(roles, append(permissions, inheritedNamespaces...)...)...))

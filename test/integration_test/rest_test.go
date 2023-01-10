@@ -300,7 +300,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Serv
 	//casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
 	attributeExtractor := attributes.New(logger, basicAuthn, "X-Auth-Email", projectService)
-	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
+	matchWare := rulematch.New(logger.(*log.Zap), attributeExtractor, rulematch.NewRouteMatcher(ruleService))
 	return matchWare
 }
 

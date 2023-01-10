@@ -29,7 +29,7 @@ func TestTransformRelation(t *testing.T) {
 			Relation: "",
 		}
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := ":#@:"
 		assert.EqualValues(t, expected, output)
 		assert.Equal(t, expectedString, relString)
@@ -62,7 +62,7 @@ func TestTransformRelation(t *testing.T) {
 			Relation: "team_member",
 		}
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := "team:team_1#team_member@user:user_1"
 		assert.EqualValues(t, expected, output)
 		assert.Equal(t, expectedString, relString)
@@ -95,7 +95,7 @@ func TestTransformRelation(t *testing.T) {
 			Relation: "editor",
 		}
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := "project:project_1#editor@team:team_1"
 		assert.EqualValues(t, expected, output)
 		assert.Equal(t, expectedString, relString)
@@ -147,7 +147,7 @@ func TestTransformRelation(t *testing.T) {
 		assert.EqualValues(t, expected, output)
 		assert.NoError(t, err)
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := "team:team_1#organization@organization:org_1"
 		assert.Equal(t, expectedString, relString)
 	})
@@ -181,7 +181,7 @@ func TestTransformRelation(t *testing.T) {
 		assert.EqualValues(t, expected, output)
 		assert.NoError(t, err)
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := "resource/dagger:dagger_1#team@team:team_1"
 		assert.Equal(t, expectedString, relString)
 	})
@@ -215,7 +215,7 @@ func TestTransformRelation(t *testing.T) {
 		assert.EqualValues(t, expected, output)
 		assert.NoError(t, err)
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := "resource/dagger:dagger_1#project@project:project_1"
 		assert.Equal(t, expectedString, relString)
 	})
@@ -250,7 +250,7 @@ func TestTransformRelation(t *testing.T) {
 		assert.EqualValues(t, expected, output)
 		assert.NoError(t, err)
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := "resource/dagger:dagger_1#editor@team:team_1#team_member"
 		assert.Equal(t, expectedString, relString)
 	})
@@ -284,7 +284,7 @@ func TestTransformRelation(t *testing.T) {
 		assert.EqualValues(t, expected, output)
 		assert.NoError(t, err)
 
-		relString := tuple.RelString(output)
+		relString := tuple.StringRelationship(output)
 		expectedString := "team:team_1#team_admin@user:user_1"
 		assert.Equal(t, expectedString, relString)
 	})
