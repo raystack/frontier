@@ -176,7 +176,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		return
 	}
 
-	deps, err := testbench.BuildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := testbench.BuildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient, resourceBlobFS)
 	if err != nil {
 		logger.Fatal("failed to build API dependencies", err)
 		return
