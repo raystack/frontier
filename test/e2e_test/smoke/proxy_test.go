@@ -207,12 +207,12 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 
 		defer res.Body.Close()
-		s.Assert().Equal(res.StatusCode, 200)
+		s.Assert().Equal(200, res.StatusCode)
 	})
 
 	s.Run("2. resource created on echo server should persist in shieldDB", func() {
 		buff := bytes.NewReader([]byte(`{"name": "test-proxy-resource", "type": "firehose"}`))
-		url := fmt.Sprintf("http://localhost:%d/api/resourceeee", s.proxyport)
+		url := fmt.Sprintf("http://localhost:%d/api/resource", s.proxyport)
 		req, err := http.NewRequest(http.MethodPost, url, nil)
 		s.Require().NoError(err)
 		req.Body = io.NopCloser(buff)
