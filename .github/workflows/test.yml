@@ -86,11 +86,11 @@ jobs:
           go-version: '1.18'
       - name: install dependencies
         run: go mod tidy
-      - name: migrate spicedb
+      - name: install spicedb binary
         uses: authzed/spicedb
+      - name: migrate spicedb
         run: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb-one?sslmode=disable
       - name: start spicedb
-        uses: authzed/spicedb
         run: spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb-one?sslmode=disable
       - name: run proxy tests
         env:
