@@ -82,9 +82,7 @@ jobs:
           - "8080:8080"
           - "50051:50051"
           - "50053:50053"
-        run:
-          spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres
-          --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
+        run: spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
         restart: on-failure
         depends_on:
           pg2:
