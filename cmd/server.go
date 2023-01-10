@@ -130,6 +130,10 @@ func serverMigrateCommand() *cobra.Command {
 				panic(err)
 			}
 
+			fmt.Printf("migrations.ResourcePath: %v\n", migrations.ResourcePath)
+			fmt.Printf("appConfig.DB: %v\n", appConfig.DB)
+			fmt.Printf("migrations.MigrationFs: %v\n", migrations.MigrationFs)
+
 			return db.RunMigrations(db.Config{
 				Driver: appConfig.DB.Driver,
 				URL:    appConfig.DB.URL,

@@ -205,12 +205,15 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 	}
+	fmt.Printf("resource: %v\n", resources)
 	for _, resource := range resources {
 		newResource, err := a.resourceService.Create(res.Request.Context(), resource)
 		if err != nil {
+			fmt.Printf("err while creating resource:: %v\n", err)
 			a.log.Error(err.Error())
 			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 		}
+		fmt.Printf("\"respource created\": %s\n", newResource.Idxa)
 		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idxa))
 
 		for _, rel := range config.Relations {
