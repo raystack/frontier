@@ -69,11 +69,11 @@ jobs:
           --health-interval 30s
           --health-timeout 30s
           --health-retries 3
-      spicedb:
+      echo-server:
         image: ealen/echo-server
         ports:
           - "4000:80"
-      echo-server:
+      spicedb:
         image: quay.io/authzed/spicedb:v1.0.0
         ports:
           - "8080:8080"
@@ -92,7 +92,6 @@ jobs:
         run: go mod tidy
       - name: install spicedb binary
         uses: authzed/action-spicedb@v1
-      - name: run 
       - name: run proxy tests
         env:
           POSTGRES_PASSWORD: postgres
