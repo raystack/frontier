@@ -88,11 +88,6 @@ jobs:
         run: go mod tidy
       - name: install spicedb binary
         uses: authzed/action-spicedb@v1
-      - name: migrate spicedb
-        run: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb-one?sslmode=disable
-      - name: start spicedb
-        run: spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb-one?sslmode=disable
-      - name: run proxy tests
         env:
           POSTGRES_PASSWORD: postgres
         run: make e2e-smoke-test
