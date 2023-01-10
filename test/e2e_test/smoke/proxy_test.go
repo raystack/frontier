@@ -15,6 +15,7 @@ import (
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/blob"
+	"github.com/odpf/shield/internal/store/postgres/migrations"
 	"github.com/odpf/shield/internal/store/spicedb"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/logger"
@@ -103,6 +104,13 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		return
 	}
 	s.dbClient = dbClient
+
+	err = db.RunMigrations(db.Config{
+		Driver: appConfig.DB.Driver,
+		URL:    appConfig.DB.URL,
+	}, migrations.MigrationFs, fmt.Sprintf("file://%s%s", testDataPath, "resource"))
+	fmt.Printf("migrations.ResourcePath: %v\n", migrations.ResourcePath)
+	logger.Fatal(fmt.Sprintf("failed to run migration: %s", err))
 
 	userCreationQuery := "INSERT INTO users (name,email) VALUES ('John', 'john.doe@odpf.com') ON CONFLICT DO NOTHING"
 	_, err = dbClient.DB.Query(userCreationQuery)
