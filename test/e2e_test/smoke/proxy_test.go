@@ -110,7 +110,9 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		URL:    appConfig.DB.URL,
 	}, migrations.MigrationFs, migrations.ResourcePath)
 	fmt.Printf("migrations.ResourcePath: %v\n", migrations.ResourcePath)
-	logger.Fatal(fmt.Sprintf("failed to run migration: %s", err))
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("failed to run migration: %s", err))
+	}
 
 	userCreationQuery := "INSERT INTO users (name,email) VALUES ('John', 'john.doe@odpf.com') ON CONFLICT DO NOTHING"
 	_, err = dbClient.DB.Query(userCreationQuery)
