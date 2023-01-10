@@ -140,6 +140,8 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	}
 	s.orgID = orgID
 
+	fmt.Printf("orgID: %v\n", orgID)
+
 	projCreationQuery := fmt.Sprintf("INSERT INTO projects (name, slug, org_id) VALUES ('Shield', 'shield proj', '%s') ON CONFLICT DO NOTHING", orgID)
 	_, err = dbClient.DB.Query(projCreationQuery)
 	if err != nil {
@@ -155,10 +157,12 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 
 	for projs.Next() {
 		if err := projs.Scan(&projID); err != nil {
-			fmt.Println(err)
+			logger.Fatal(fmt.Sprintf("failed to scan project: %s", projID))
 		}
 	}
 	s.projID = projID
+
+	fmt.Printf("projID: %v\n", projID)
 
 	resourceBlobFS, err := blob.NewStore(ctx, appConfig.App.ResourcesConfigPath, appConfig.App.ResourcesConfigPathSecret)
 	if err != nil {
