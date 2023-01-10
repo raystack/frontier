@@ -197,8 +197,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
+	fmt.Printf("attributes: %v\n", attributes)
+
 	resources, err := a.createResources(attributes)
 	if err != nil {
+		fmt.Printf("err creating resource: %v\n", err)
 		a.log.Error(err.Error())
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 	}
