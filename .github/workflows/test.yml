@@ -88,8 +88,6 @@ jobs:
         run: go mod tidy
       - name: install spicedb binary
         uses: authzed/action-spicedb@v1
-      - name: migrate server
-        run: go run . server migrate
       - name: run proxy tests
         env:
           POSTGRES_PASSWORD: postgres
