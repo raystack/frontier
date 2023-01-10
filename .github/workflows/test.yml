@@ -69,6 +69,28 @@ jobs:
           --health-interval 30s
           --health-timeout 30s
           --health-retries 3
+      spicedb-migration:
+        image: quay.io/authzed/spicedb:v1.0.0
+        command: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
+        restart: on-failure
+        depends_on:
+          pg2:
+            condition: service_healthy        
+      spicedb:
+        image: quay.io/authzed/spicedb:v1.0.0
+        ports:
+          - "8080:8080"
+          - "50051:50051"
+          - "50053:50053"
+        command:
+          spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres
+          --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
+        restart: on-failure
+        depends_on:
+          pg2:
+            condition: service_healthy
+          spicedb-migration:
+            condition: service_completed_successfully
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -84,4 +106,3 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
         run: make e2e-smoke-test
-
