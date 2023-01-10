@@ -8,6 +8,7 @@ import (
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/api"
+	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/spicedb"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
@@ -230,6 +231,7 @@ func BuildAPIDependencies(
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
+	rbfs blob.Bucket,
 ) (api.Deps, error) {
 	actionRepository := postgres.NewActionRepository(dbc)
 	actionService := action.NewService(actionRepository)
@@ -259,6 +261,8 @@ func BuildAPIDependencies(
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
 	policyService := policy.NewService(policyPGRepository)
 
+	policySpiceRepository := spicedb.NewPolicyRepository(sdb)
+
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
 		resourcePGRepository,
@@ -278,5 +282,20 @@ func BuildAPIDependencies(
 		ActionService:    actionService,
 		NamespaceService: namespaceService,
 	}
+
+	s := schema.NewSchemaMigrationService(
+		blob.NewSchemaConfigRepository(rbfs),
+		namespaceService,
+		roleService,
+		actionService,
+		policyService,
+		policySpiceRepository,
+	)
+
+	err := s.RunMigrations(ctx)
+	if err != nil {
+		return api.Deps{}, err
+	}
+
 	return dependencies, nil
 }
