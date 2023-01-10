@@ -42,7 +42,6 @@ jobs:
           path-to-profile: coverage.out
   e2e-smoke-test:
     runs-on: ubuntu-latest
-    container: quay.io/authzed/spicedb:v1.0.0
     services:
       pg1:
         image: postgres:12
@@ -69,7 +68,12 @@ jobs:
           --health-cmd pg_isready
           --health-interval 30s
           --health-timeout 30s
-          --health-retries 3     
+          --health-retries 3
+      spicedb-migration:
+        image: quay.io/authzed/spicedb:v1.0.0     
+        steps:
+          - name: migrate spicedb
+            run: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable  
       spicedb:
         image: quay.io/authzed/spicedb:v1.0.0
         ports:
@@ -87,11 +91,6 @@ jobs:
           go-version: '1.18'
       - name: install dependencies
         run: go mod tidy
-      - name: migrate spicedb
-        run: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
-      - name: spicedb
-        run: spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
-      - name: test binaries
         env:
           POSTGRES_PASSWORD: postgres
         run: make e2e-smoke-test
