@@ -221,7 +221,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		req.Header.Set("X-Shield-Project", s.projID)
 		req.Header.Set("X-Shield-Org", s.orgID)
 		req.Header.Set("X-Shield-Name", "test-resource")
-		req.Header.Set("X-Shield-Resource-Type", "firehose")
+		req.Header.Set("X-Shield-Resource-Type", "project")
 
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)
