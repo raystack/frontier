@@ -88,6 +88,7 @@ jobs:
         run: go mod tidy
       - name: install spicedb binary
         uses: authzed/action-spicedb@v1
+      - name: run proxy tests
         env:
           POSTGRES_PASSWORD: postgres
         run: make e2e-smoke-test
