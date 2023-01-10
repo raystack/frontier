@@ -108,7 +108,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	err = db.RunMigrations(db.Config{
 		Driver: appConfig.DB.Driver,
 		URL:    appConfig.DB.URL,
-	}, migrations.MigrationFs, fmt.Sprintf("file://%s%s", testDataPath, "resource/resource.yaml"))
+	}, migrations.MigrationFs, migrations.ResourcePath)
 	fmt.Printf("migrations.ResourcePath: %v\n", migrations.ResourcePath)
 	logger.Fatal(fmt.Sprintf("failed to run migration: %s", err))
 
