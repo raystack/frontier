@@ -223,6 +223,11 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		req.Header.Set("X-Shield-Name", "test-resource")
 		req.Header.Set("X-Shield-Resource-Type", "firehose")
 
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+
 		resourceSelectQuery := "SELECT name FROM resources"
 		resources, err := s.dbClient.DB.Query(resourceSelectQuery)
 		s.Require().NoError(err)
@@ -234,11 +239,6 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 				s.Require().NoError(err)
 			}
 		}
-
-		res, err := http.DefaultClient.Do(req)
-		s.Require().NoError(err)
-
-		defer res.Body.Close()
 		s.Assert().Equal(200, res.StatusCode)
 		s.Assert().Equal("test-resource", resourceName)
 	})
