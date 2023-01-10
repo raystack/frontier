@@ -495,7 +495,11 @@ func (r GroupRepository) ListGroupRelations(ctx context.Context, objectId string
 	whereClauseExp["object_namespace_id"] = schema.GroupNamespace
 
 	if subject_type != "" {
-		whereClauseExp["subject_namespace_id"] = subject_type
+		if subject_type == "user" {
+			whereClauseExp["subject_namespace_id"] = schema.UserPrincipal
+		} else if subject_type == "group" {
+			whereClauseExp["subject_namespace_id"] = schema.GroupPrincipal
+		}
 	}
 
 	if role != "" {
