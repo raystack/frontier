@@ -42,6 +42,7 @@ jobs:
           path-to-profile: coverage.out
   e2e-smoke-test:
     runs-on: ubuntu-latest
+    container: quay.io/authzed/spicedb:v1.0.0
     services:
       pg1:
         image: postgres:12
@@ -68,9 +69,7 @@ jobs:
           --health-cmd pg_isready
           --health-interval 30s
           --health-timeout 30s
-          --health-retries 3
-      spicedb-migration:
-        image: quay.io/authzed/spicedb:v1.0.0       
+          --health-retries 3     
       spicedb:
         image: quay.io/authzed/spicedb:v1.0.0
         ports:
