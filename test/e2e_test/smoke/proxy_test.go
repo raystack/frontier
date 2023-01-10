@@ -226,6 +226,10 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)
 
+		if err != nil {
+			fmt.Printf("err response: %v\n", err)
+		}
+
 		defer res.Body.Close()
 
 		resourceSelectQuery := "SELECT name FROM resources"
