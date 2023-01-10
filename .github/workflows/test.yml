@@ -71,7 +71,6 @@ jobs:
           --health-retries 3
       spicedb-migration:
         image: quay.io/authzed/spicedb:v1.0.0
-        run: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
         restart: on-failure
         depends_on:
           pg2:
@@ -82,7 +81,6 @@ jobs:
           - "8080:8080"
           - "50051:50051"
           - "50053:50053"
-        run: spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
         restart: on-failure
         depends_on:
           pg2:
@@ -100,6 +98,10 @@ jobs:
           go-version: '1.18'
       - name: install dependencies
         run: go mod tidy
+      - name: migrate spicedb
+        run: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
+      - name: spicedb
+        run: spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
       - name: test binaries
         env:
           POSTGRES_PASSWORD: postgres
