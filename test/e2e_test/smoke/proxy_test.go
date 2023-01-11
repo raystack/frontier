@@ -1,10 +1,8 @@
 package e2e_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -171,9 +169,9 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		return
 	}
 
-	deps, err := testbench.BuildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient, resourceBlobFS)
+	deps, err := testbench.BuildAPIDependenciesAndMigrate(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient, resourceBlobFS)
 	if err != nil {
-		logger.Fatal("failed to build API dependencies", err)
+		logger.Fatal("failed to build API dependencies or migrate", err)
 		return
 	}
 
@@ -205,12 +203,9 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(200, res.StatusCode)
 	})
 	s.Run("2. resource created on echo server should persist in shieldDB", func() {
-		//this can be removed
-		buff := bytes.NewReader([]byte(`{"name": "test-proxy-resource", "type": "firehose"}`))
 		url := fmt.Sprintf("http://localhost:%d/api/resource", s.proxyport)
 		req, err := http.NewRequest(http.MethodPost, url, nil)
 		s.Require().NoError(err)
-		req.Body = io.NopCloser(buff)
 
 		req.Header.Set(testbench.IdentityHeader, "john.doe@odpf.com")
 		req.Header.Set("X-Shield-Project", s.projID)

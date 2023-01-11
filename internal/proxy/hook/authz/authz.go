@@ -197,8 +197,6 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
-	fmt.Printf("attributes: %v\n", attributes)
-
 	resources, err := a.createResources(attributes)
 	if err != nil {
 		a.log.Error(err.Error())

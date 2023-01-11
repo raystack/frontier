@@ -225,7 +225,7 @@ func buildMiddlewarePipeline(
 	return matchWare
 }
 
-func BuildAPIDependencies(
+func BuildAPIDependenciesAndMigrate(
 	ctx context.Context,
 	logger log.Logger,
 	resourceBlobRepository *blob.ResourcesRepository,
