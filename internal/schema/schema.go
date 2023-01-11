@@ -125,6 +125,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			ResourceType: resourceType,
 		})
 		if err != nil {
+			fmt.Printf("err ns create: %v\n", err)
 			return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 		}
 
@@ -137,6 +138,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				NamespaceID: namespaceId,
 			})
 			if err != nil {
+				fmt.Printf("err rs Roles create: %v\n", err)
 				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 			}
 		}
@@ -150,6 +152,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				NamespaceID: namespaceId,
 			})
 			if err != nil {
+				fmt.Printf("err rs INamespaces create: %v\n", err)
 				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 			}
 		}
@@ -163,6 +166,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				NamespaceID: namespaceId,
 			})
 			if err != nil {
+				fmt.Printf("err Permissions: %v\n", err)
 				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 			}
 		}
@@ -174,6 +178,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			for _, r := range roles {
 				transformedRole, err := getRoleAndPrincipal(r, namespaceId)
 				if err != nil {
+					fmt.Printf("err Permissions ->: %v\n", err)
 					return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 				}
 
@@ -187,6 +192,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 					ActionID:    fmt.Sprintf("%s.%s", actionId, namespaceId),
 				})
 				if err != nil {
+					fmt.Printf("err ps Create ->: %v\n", err)
 					return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 				}
 			}
