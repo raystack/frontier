@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"fmt"
 )
 
 type Service struct {
@@ -17,6 +18,7 @@ func NewService(repository Repository) *Service {
 func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 	roleID, err := s.repository.Create(ctx, toCreate)
 	if err != nil {
+		fmt.Printf("err creating role: %v\n", err)
 		return Role{}, err
 	}
 	return s.repository.Get(ctx, roleID)
