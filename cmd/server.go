@@ -129,6 +129,7 @@ func serverMigrateCommand() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
+
 			return db.RunMigrations(db.Config{
 				Driver: appConfig.DB.Driver,
 				URL:    appConfig.DB.URL,
