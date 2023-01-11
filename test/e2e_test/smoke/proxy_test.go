@@ -109,7 +109,6 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		Driver: appConfig.DB.Driver,
 		URL:    appConfig.DB.URL,
 	}, migrations.MigrationFs, migrations.ResourcePath)
-	fmt.Printf("migrations.ResourcePath: %v\n", migrations.ResourcePath)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("failed to run migration: %s", err))
 	}
@@ -135,12 +134,10 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 
 	for orgs.Next() {
 		if err := orgs.Scan(&orgID); err != nil {
-			fmt.Println(err)
+			logger.Fatal(err.Error())
 		}
 	}
 	s.orgID = orgID
-
-	fmt.Printf("orgID: %v\n", orgID)
 
 	projCreationQuery := fmt.Sprintf("INSERT INTO projects (name, slug, org_id) VALUES ('Shield', 'shield proj', '%s') ON CONFLICT DO NOTHING", orgID)
 	_, err = dbClient.DB.Query(projCreationQuery)
@@ -161,8 +158,6 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		}
 	}
 	s.projID = projID
-
-	fmt.Printf("projID: %v\n", projID)
 
 	resourceBlobFS, err := blob.NewStore(ctx, appConfig.App.ResourcesConfigPath, appConfig.App.ResourcesConfigPathSecret)
 	if err != nil {
@@ -196,7 +191,7 @@ func (s *EndToEndProxySmokeTestSuite) TearDownTest() {
 }
 
 func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
-	/*s.Run("1. should be able to proxy to an echo server", func() {
+	s.Run("1. should be able to proxy to an echo server", func() {
 		url := fmt.Sprintf("http://localhost:%d/api/ping", s.proxyport)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
@@ -208,7 +203,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 
 		defer res.Body.Close()
 		s.Assert().Equal(200, res.StatusCode)
-	})*/
+	})
 	s.Run("2. resource created on echo server should persist in shieldDB", func() {
 		//this can be removed
 		buff := bytes.NewReader([]byte(`{"name": "test-proxy-resource", "type": "firehose"}`))
@@ -225,8 +220,6 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)
-
-		fmt.Printf("res ->: %v\n", res)
 
 		defer res.Body.Close()
 
