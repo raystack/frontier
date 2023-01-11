@@ -90,6 +90,7 @@ func NewSchemaMigrationService(
 func (s SchemaService) RunMigrations(ctx context.Context) error {
 	namespaceConfigMap, err := s.schemaConfig.GetSchema(ctx)
 	if err != nil {
+		fmt.Printf("\"error getting schema\": %v\n", err)
 		return err
 	}
 
@@ -193,6 +194,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 	}
 
 	if err = s.authzEngine.WriteSchema(ctx, namespaceConfigMap); err != nil {
+		fmt.Printf("\"error writing schema\": %v\n", "error writing schema")
 		return fmt.Errorf("%w: %s", ErrMigration, err.Error())
 	}
 
