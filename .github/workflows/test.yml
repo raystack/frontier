@@ -56,19 +56,6 @@ jobs:
           --health-interval 30s
           --health-timeout 30s
           --health-retries 3
-      pg2:
-        image: "postgres:12"
-        env:
-          POSTGRES_USER: "spicedb"
-          POSTGRES_DB: "spicedb"
-          POSTGRES_HOST_AUTH_METHOD: "trust"
-        ports:
-          - "5431:5432"
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 30s
-          --health-timeout 30s
-          --health-retries 3
       echo-server:
         image: ealen/echo-server
         ports:
