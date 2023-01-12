@@ -43,7 +43,7 @@ func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) erro
 }
 
 func getRelation(a string) string {
-	if a == "group" {
+	if a == schema.GroupPrincipal {
 		return "membership"
 	}
 
