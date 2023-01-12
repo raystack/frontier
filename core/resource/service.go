@@ -101,7 +101,7 @@ func (s Service) AddProjectToResource(ctx context.Context, project project.Proje
 			NamespaceID: res.NamespaceID,
 		},
 		Subject: relation.Subject{
-			RoleID:    schema.OwnerRole,
+			RoleID:    schema.ProjectRelationName,
 			ID:        project.ID,
 			Namespace: schema.ProjectNamespace,
 		},
