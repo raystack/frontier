@@ -11,6 +11,7 @@ import (
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/schema"
 )
 
 type RelationService interface {
@@ -94,24 +95,21 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 }
 
 func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {
-	//resourceNS := namespace.Namespace{
-	//	ID: res.NamespaceID,
-	//}
-	//
-	//rel := relation.Relation{
-	//	ObjectNamespace:  resourceNS,
-	//	ObjectID:         res.Idxa,
-	//	SubjectID:        project.ID,
-	//	SubjectNamespace: namespace.DefinitionProject,
-	//	Role: role.Role{
-	//		ID:          namespace.DefinitionProject.ID,
-	//		NamespaceID: resourceNS.ID,
-	//	},
-	//	RelationType: relation.RelationTypes.Namespace,
-	//}
-	//if _, err := s.relationService.Create(ctx, rel); err != nil {
-	//	return err
-	//}
+	rel := relation.RelationV2{
+		Object: relation.Object{
+			ID:          res.Idxa,
+			NamespaceID: res.NamespaceID,
+		},
+		Subject: relation.Subject{
+			RoleID:    schema.OwnerRole,
+			ID:        project.ID,
+			Namespace: schema.ProjectNamespace,
+		},
+	}
+
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
+		return err
+	}
 
 	return nil
 }
