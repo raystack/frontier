@@ -13,6 +13,7 @@ func InitLogger(cfg Config) *log.Zap {
 	zapCfg.Level = zap.NewAtomicLevelAt(atomicLevel(cfg.Level))
 	zapCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	zapCfg.DisableCaller = true
+	zapCfg.DisableStacktrace = true
 	consoleEncoder := zapcore.NewConsoleEncoder(zapCfg.EncoderConfig)
 
 	opt := log.ZapWithConfig(zapCfg, zap.WrapCore(func(c zapcore.Core) zapcore.Core {
