@@ -115,25 +115,21 @@ func (s Service) AddProjectToResource(ctx context.Context, project project.Proje
 }
 
 func (s Service) AddOrgToResource(ctx context.Context, org organization.Organization, res Resource) error {
-	//resourceNS := namespace.Namespace{
-	//	ID: res.NamespaceID,
-	//}
-	//
-	//rel := relation.Relation{
-	//	ObjectNamespace:  resourceNS,
-	//	ObjectID:         res.Idxa,
-	//	SubjectID:        org.ID,
-	//	SubjectNamespace: namespace.DefinitionOrg,
-	//	Role: role.Role{
-	//		ID:          namespace.DefinitionOrg.ID,
-	//		NamespaceID: resourceNS.ID,
-	//	},
-	//	RelationType: relation.RelationTypes.Namespace,
-	//}
-	//if _, err := s.relationService.Create(ctx, rel); err != nil {
-	//	return err
-	//}
+	rel := relation.RelationV2{
+		Object: relation.Object{
+			ID:          res.Idxa,
+			NamespaceID: res.NamespaceID,
+		},
+		Subject: relation.Subject{
+			RoleID:    schema.OrganizationRelationName,
+			ID:        org.ID,
+			Namespace: schema.OrganizationNamespace,
+		},
+	}
 
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
+		return err
+	}
 	return nil
 }
 
