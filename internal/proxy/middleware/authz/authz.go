@@ -39,9 +39,9 @@ type Config struct {
 }
 
 type Permission struct {
-	Name      string
-	Namespace string
-	Attribute string
+	Name      string `yaml:"name" mapstructure:"name"`
+	Namespace string `yaml:"namespace" mapstructure:"namespace"`
+	Attribute string `yaml:"attribute" mapstructure:"attribute"`
 }
 
 func New(
