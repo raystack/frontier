@@ -150,20 +150,12 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		return resource.Resource{}, resource.ErrInvalidUUID
 	}
 
-	if strings.TrimSpace(res.URN) == "" {
-		return resource.Resource{}, resource.ErrInvalidURN
-	}
-
-	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
-
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
 			"name":         res.Name,
 			"project_id":   res.ProjectID,
 			"org_id":       res.OrganizationID,
 			"namespace_id": res.NamespaceID,
-			"user_id":      userID,
-			"urn":          res.URN,
 		},
 	).Where(goqu.Ex{
 		"id": id,
