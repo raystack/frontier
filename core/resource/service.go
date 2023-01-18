@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
@@ -130,62 +129,6 @@ func (s Service) AddOrgToResource(ctx context.Context, org organization.Organiza
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (s Service) AddTeamToResource(ctx context.Context, team group.Group, res Resource) error {
-	//resourceNS := namespace.Namespace{
-	//	ID: res.NamespaceID,
-	//}
-	//
-	//rel := relation.Relation{
-	//	ObjectNamespace:  resourceNS,
-	//	ObjectID:         res.Idxa,
-	//	SubjectID:        team.ID,
-	//	SubjectNamespace: namespace.DefinitionTeam,
-	//	Role: role.Role{
-	//		ID:          namespace.DefinitionTeam.ID,
-	//		NamespaceID: resourceNS.ID,
-	//	},
-	//	RelationType: relation.RelationTypes.Namespace,
-	//}
-	//if _, err := s.relationService.Create(ctx, rel); err != nil {
-	//	return err
-	//}
-
-	return nil
-}
-
-func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Resource) error {
-	//nsId := str.DefaultStringIfEmpty(res.NamespaceID, res.Namespace.ID)
-	//
-	//resourceNS := namespace.Namespace{
-	//	ID: nsId,
-	//}
-	//
-	//relationSet, err := s.configRepository.GetRelationsForNamespace(ctx, nsId)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//rl := role.GetOwnerRole(resourceNS)
-	//
-	//if !relationSet[rl.ID] {
-	//	return nil
-	//}
-	//
-	//rel := relation.Relation{
-	//	ObjectNamespace:  resourceNS,
-	//	ObjectID:         res.Idxa,
-	//	SubjectID:        user.ID,
-	//	SubjectNamespace: namespace.DefinitionUser,
-	//	Role:             rl,
-	//}
-	//
-	//if _, err := s.relationService.Create(ctx, rel); err != nil {
-	//	return err
-	//}
-
 	return nil
 }
 
