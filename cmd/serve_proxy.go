@@ -18,6 +18,7 @@ import (
 	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 	"github.com/odpf/shield/internal/proxy/middleware/authz"
 	"github.com/odpf/shield/internal/proxy/middleware/basic_auth"
+	"github.com/odpf/shield/internal/proxy/middleware/observability"
 	"github.com/odpf/shield/internal/proxy/middleware/prefix"
 	"github.com/odpf/shield/internal/proxy/middleware/rulematch"
 	"github.com/odpf/shield/internal/store/blob"
@@ -25,7 +26,7 @@ import (
 
 func serveProxies(
 	ctx context.Context,
-	logger log.Logger,
+	logger *log.Zap,
 	identityProxyHeaderKey,
 	userIDHeaderKey string,
 	cfg proxy.ServicesConfig,
@@ -80,7 +81,7 @@ func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService, 
 
 // buildPipeline builds middleware sequence
 func buildMiddlewarePipeline(
-	logger log.Logger,
+	logger *log.Zap,
 	proxy http.Handler,
 	identityProxyHeaderKey, userIDHeaderKey string,
 	resourceService *resource.Service,
@@ -94,5 +95,6 @@ func buildMiddlewarePipeline(
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey, projectService)
 	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
-	return matchWare
+	observability := observability.New(logger, matchWare)
+	return observability
 }

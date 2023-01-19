@@ -9,7 +9,7 @@ import (
 	"github.com/odpf/shield/internal/proxy/hook"
 
 	"github.com/odpf/salt/log"
-
+	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 )
 
@@ -29,15 +29,16 @@ type h2cTransportWrapper struct {
 }
 
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
+	logger := log.ZapFromContext(req.Context()).GetInternalZapLogger().Desugar().With(
+		zap.String("backend", req.URL.Host),
+	)
+
 	// we need to apply errors if it failed in Director
 	if err, ok := req.Context().Value(ctxRequestErrorKey).(error); ok {
 		return nil, err
 	} else if req.Context().Err() != nil {
 		return nil, req.Context().Err()
 	}
-
-	t.log.Debug("proxy request", "host", req.URL.Host, "path", req.URL.Path,
-		"scheme", req.URL.Scheme, "protocol", req.Proto)
 
 	req.Header.Del("Accept-Encoding")
 	var transport http.RoundTripper = t.httpTransport
@@ -47,10 +48,14 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 
 	req = req.WithContext(WithoutCancel(req.Context()))
 
+	logger.Info("request_forwarded")
+
 	res, err := transport.RoundTrip(req)
 	if err != nil {
 		return res, err
 	}
+
+	logger.Info("request_completed", zap.String("status", res.Status))
 
 	return t.hook.ServeHook(res, nil)
 }

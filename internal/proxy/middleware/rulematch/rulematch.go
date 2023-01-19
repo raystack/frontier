@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/internal/proxy/middleware"
+
+	"github.com/odpf/salt/log"
+	"go.uber.org/zap"
 )
 
 type RuleService interface {
@@ -18,12 +20,12 @@ type RuleMatcher interface {
 }
 
 type Ware struct {
-	log         log.Logger
+	log         *log.Zap
 	next        http.Handler
 	ruleMatcher RuleMatcher
 }
 
-func New(log log.Logger, next http.Handler, matcher RuleMatcher) *Ware {
+func New(log *log.Zap, next http.Handler, matcher RuleMatcher) *Ware {
 	return &Ware{
 		log:         log,
 		next:        next,
@@ -40,9 +42,11 @@ func (m Ware) Info() *middleware.MiddlewareInfo {
 
 func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// find matched rule
+	logger := log.ZapFromContext(req.Context()).GetInternalZapLogger().Desugar().With(zap.String("middleware", "rulematch"))
+
 	matchedRule, err := m.ruleMatcher.Match(req)
 	if err != nil {
-		m.log.Info("middleware: failed to match rule", "path", req.URL.String(), "err", err)
+		logger.Error("error_matching_rule", zap.Error(err))
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -50,7 +54,7 @@ func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// enriching context with request body to use it in hooks
 	if err := middleware.EnrichRequestBody(req); err != nil {
-		m.log.Info("middleware: failed to enrich ctx with request body", "err", err)
+		logger.Error("error_enriching_request_body", zap.Error(err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
