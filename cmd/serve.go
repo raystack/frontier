@@ -42,7 +42,7 @@ var (
 	ruleCacheRefreshDelay = time.Minute * 2
 )
 
-func StartServer(logger log.Logger, cfg *config.Shield) error {
+func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}
