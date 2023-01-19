@@ -1,7 +1,6 @@
-package obeservability
+package observability
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -13,8 +12,7 @@ import (
 )
 
 const (
-	headerRequestID     = "X-Request-Id"
-	requestIDContextKey = "requestIDContextKey"
+	headerRequestID = "X-Request-Id"
 )
 
 type Ware struct {
@@ -37,9 +35,8 @@ func (m Ware) Info() *middleware.MiddlewareInfo {
 }
 
 func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	reqID := GetIncomingRequestID(req)
-	ctx := SetRequestID(req.Context(), reqID)
-	ctx = m.log.NewContext(req.Context())
+	reqID := setRequestID(req)
+	ctx := m.log.NewContext(req.Context())
 	ctx = log.ZapContextWithFields(ctx,
 		zap.String("host", req.Host),
 		zap.String("path", req.URL.String()),
@@ -52,24 +49,12 @@ func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	m.next.ServeHTTP(rw, req)
 }
 
-func GetIncomingRequestID(req *http.Request) string {
+func setRequestID(req *http.Request) string {
 	reqID := strings.TrimSpace(req.Header.Get(headerRequestID))
 	if reqID == "" {
 		reqID = xid.New().String()
+		req.Header.Set(headerRequestID, reqID)
 	}
-	req.Header.Set(headerRequestID, reqID)
 
-	return reqID
-}
-
-func SetRequestID(ctx context.Context, reqID string) context.Context {
-	return context.WithValue(ctx, requestIDContextKey, reqID)
-}
-
-func GetRequestID(ctx context.Context) string {
-	reqID, ok := ctx.Value(requestIDContextKey).(string)
-	if !ok {
-		return ""
-	}
 	return reqID
 }

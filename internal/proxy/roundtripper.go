@@ -30,7 +30,6 @@ type h2cTransportWrapper struct {
 
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
 	logger := log.ZapFromContext(req.Context()).GetInternalZapLogger().Desugar().With(
-		zap.String("origin", "RoundTrip"),
 		zap.String("backend", req.URL.Host),
 	)
 
