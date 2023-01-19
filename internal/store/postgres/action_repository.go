@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/pkg/db"
@@ -39,6 +40,17 @@ func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, er
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ACTIONS,
+				Operation:  "Get",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.GetContext(ctx, &fetchedAction, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -72,6 +84,17 @@ func (r ActionRepository) Create(ctx context.Context, act action.Action) (action
 
 	var actionModel Action
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ACTIONS,
+				Operation:  "Create",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -94,6 +117,17 @@ func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ACTIONS,
+				Operation:  "List",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.SelectContext(ctx, &fetchedActions, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -133,6 +167,17 @@ func (r ActionRepository) Update(ctx context.Context, act action.Action) (action
 
 	var actionModel Action
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ACTIONS,
+				Operation:  "Update",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
 		err = checkPostgresError(err)

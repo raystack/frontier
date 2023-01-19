@@ -2,6 +2,7 @@ package spicedb
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/relation"
@@ -9,11 +10,14 @@ import (
 	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
+	newrelic "github.com/newrelic/go-agent"
 )
 
 type RelationRepository struct {
 	spiceDB *SpiceDB
 }
+
+const nrProductName = "spicedb"
 
 func NewRelationRepository(spiceDB *SpiceDB) *RelationRepository {
 	return &RelationRepository{
@@ -74,6 +78,17 @@ func (r RelationRepository) AddV2(ctx context.Context, rel relation.RelationV2) 
 		},
 	}
 
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:    nrProductName,
+			Collection: fmt.Sprintf("object:%s::subject:%s", rel.Object.NamespaceID, rel.Subject.Namespace),
+			Operation:  "Add",
+			StartTime:  nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
+	}
+
 	if _, err := r.spiceDB.client.WriteRelationships(ctx, request); err != nil {
 		return err
 	}
@@ -91,6 +106,17 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, ac
 		Resource:   relationship.Resource,
 		Subject:    relationship.Subject,
 		Permission: act.ID,
+	}
+
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:    nrProductName,
+			Collection: fmt.Sprintf("object:%s::subject:%s", request.Resource.ObjectType, request.Subject.Object.ObjectType),
+			Operation:  "Check",
+			StartTime:  nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
 	}
 
 	response, err := r.spiceDB.client.CheckPermission(ctx, request)
@@ -142,6 +168,16 @@ func (r RelationRepository) DeleteV2(ctx context.Context, rel relation.RelationV
 		},
 	}
 
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:    nrProductName,
+			Collection: fmt.Sprintf("object:%s::subject:%s", rel.Object.NamespaceID, rel.Subject.Namespace),
+			Operation:  "Delete",
+			StartTime:  nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
+	}
 	_, err = r.spiceDB.client.DeleteRelationships(ctx, request)
 	if err != nil {
 		return err
@@ -158,6 +194,16 @@ func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resource
 		},
 	}
 
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:    nrProductName,
+			Collection: fmt.Sprintf("object:%s", resourceType),
+			Operation:  "Delete_Subject_Relations",
+			StartTime:  nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
+	}
 	if _, err := r.spiceDB.client.DeleteRelationships(ctx, request); err != nil {
 		return err
 	}
