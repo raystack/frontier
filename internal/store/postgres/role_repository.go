@@ -10,6 +10,7 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
+	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -53,6 +54,17 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 
 	var roleModel Role
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ROLES,
+				Operation:  "Get",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.GetContext(ctx, &roleModel, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -103,6 +115,17 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ROLES,
+				Operation:  "Create",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -127,6 +150,17 @@ func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
 
 	var fetchedRoles []Role
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ROLES,
+				Operation:  "List",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.SelectContext(ctx, &fetchedRoles, query, params...)
 	}); err != nil {
 		return []role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -175,6 +209,17 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ROLES,
+				Operation:  "Update",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)

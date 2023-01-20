@@ -114,7 +114,7 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
+				Collection: TABLE_NAMESPACES,
 				Operation:  "List",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
@@ -168,7 +168,7 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
+				Collection: TABLE_NAMESPACES,
 				Operation:  "Update",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/pkg/db"
@@ -67,6 +68,17 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 
 	var policyModel Policy
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_POLICIES,
+				Operation:  "Get",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
 		return r.dbc.GetContext(ctx, &policyModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -96,6 +108,16 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_POLICIES,
+				Operation:  "List",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
 		return r.dbc.SelectContext(ctx, &fetchedPolicies, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -145,6 +167,16 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 
 	var policyID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_POLICIES,
+				Operation:  "Create",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
 		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&policyID)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -183,6 +215,16 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 
 	var policyID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_POLICIES,
+				Operation:  "Update",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
 		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&policyID)
 	}); err != nil {
 		err = checkPostgresError(err)

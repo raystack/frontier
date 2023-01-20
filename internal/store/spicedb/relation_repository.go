@@ -81,10 +81,14 @@ func (r RelationRepository) AddV2(ctx context.Context, rel relation.RelationV2) 
 	nrCtx := newrelic.FromContext(ctx)
 	if nrCtx != nil {
 		nr := newrelic.DatastoreSegment{
-			Product:    nrProductName,
-			Collection: fmt.Sprintf("object:%s::subject:%s", rel.Object.NamespaceID, rel.Subject.Namespace),
-			Operation:  "Add",
-			StartTime:  nrCtx.StartSegmentNow(),
+			Product: nrProductName,
+			QueryParameters: map[string]interface{}{
+				"relation":          rel.Subject.RoleID,
+				"subject_namespace": rel.Subject.Namespace,
+				"object_namespace":  rel.Object.NamespaceID,
+			},
+			Operation: "Upsert_Relation",
+			StartTime: nrCtx.StartSegmentNow(),
 		}
 		defer nr.End()
 	}
@@ -171,10 +175,14 @@ func (r RelationRepository) DeleteV2(ctx context.Context, rel relation.RelationV
 	nrCtx := newrelic.FromContext(ctx)
 	if nrCtx != nil {
 		nr := newrelic.DatastoreSegment{
-			Product:    nrProductName,
-			Collection: fmt.Sprintf("object:%s::subject:%s", rel.Object.NamespaceID, rel.Subject.Namespace),
-			Operation:  "Delete",
-			StartTime:  nrCtx.StartSegmentNow(),
+			Product: nrProductName,
+			QueryParameters: map[string]interface{}{
+				"relation":          rel.Subject.RoleID,
+				"subject_namespace": rel.Subject.Namespace,
+				"object_namespace":  rel.Object.NamespaceID,
+			},
+			Operation: "Delete_Relation",
+			StartTime: nrCtx.StartSegmentNow(),
 		}
 		defer nr.End()
 	}
@@ -197,13 +205,17 @@ func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resource
 	nrCtx := newrelic.FromContext(ctx)
 	if nrCtx != nil {
 		nr := newrelic.DatastoreSegment{
-			Product:    nrProductName,
-			Collection: fmt.Sprintf("object:%s", resourceType),
-			Operation:  "Delete_Subject_Relations",
-			StartTime:  nrCtx.StartSegmentNow(),
+			Product: nrProductName,
+			QueryParameters: map[string]interface{}{
+				"object_namespace": resourceType,
+				"object_id":        optionalResourceID,
+			},
+			Operation: "Delete_Subject_Relations",
+			StartTime: nrCtx.StartSegmentNow(),
 		}
 		defer nr.End()
 	}
+
 	if _, err := r.spiceDB.client.DeleteRelationships(ctx, request); err != nil {
 		return err
 	}
