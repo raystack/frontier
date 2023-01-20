@@ -1835,6 +1835,8 @@ github.com/newrelic/go-agent v3.15.0+incompatible h1:BQ5+6vIgNtnv8jFET8CMjY7u7o+
 github.com/newrelic/go-agent v3.15.0+incompatible/go.mod h1:a8Fv1b/fYhFSReoTU6HDkTYIMZeSVNffmoS726Y0LzQ=
 github.com/newrelic/go-agent v3.20.2+incompatible h1:kO1pT79OwgW3KqJzEDUWgg8eam41FKjewMs8mqSRLJk=
 github.com/newrelic/go-agent v3.20.2+incompatible/go.mod h1:a8Fv1b/fYhFSReoTU6HDkTYIMZeSVNffmoS726Y0LzQ=
+github.com/newrelic/go-agent v3.20.3+incompatible h1:fdN/68CpVwnwKJhQdJP2UccozGnxtyXAIvMLJOyPMWQ=
+github.com/newrelic/go-agent v3.20.3+incompatible/go.mod h1:a8Fv1b/fYhFSReoTU6HDkTYIMZeSVNffmoS726Y0LzQ=
 github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6/go.mod h1:E26fwEtRNigBfFfHDWsklmo0T7Ixbg0XXgck+Hq4O9k=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nishanths/predeclared v0.0.0-20200524104333-86fad755b4d3/go.mod h1:nt3d53pc1VYcphSCIaYAJtnPYnr3Zyn8fMq2wvPGPso=

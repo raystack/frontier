@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +14,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
 
+	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
@@ -27,8 +29,6 @@ import (
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/blob"
-
-	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/internal/store/spicedb"
 	"github.com/odpf/shield/pkg/db"
@@ -36,6 +36,7 @@ import (
 	"github.com/odpf/salt/log"
 	salt_server "github.com/odpf/salt/server"
 	"github.com/pkg/profile"
+	"google.golang.org/grpc/codes"
 )
 
 var (
@@ -234,6 +235,14 @@ func buildAPIDependencies(
 func setupNewRelic(cfg config.NewRelic, logger log.Logger) (newrelic.Application, error) {
 	nrCfg := newrelic.NewConfig(cfg.AppName, cfg.License)
 	nrCfg.Enabled = cfg.Enabled
+	nrCfg.ErrorCollector.IgnoreStatusCodes = []int{
+		http.StatusNotFound,
+		http.StatusUnauthorized,
+		int(codes.Unauthenticated),
+		int(codes.PermissionDenied),
+		int(codes.InvalidArgument),
+		int(codes.AlreadyExists),
+	}
 
 	if nrCfg.Enabled {
 		nrApp, err := newrelic.NewApplication(nrCfg)
