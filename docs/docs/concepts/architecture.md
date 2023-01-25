@@ -1,7 +1,7 @@
 # Architecture
 Shield exposes both HTTP and gRPC APIs to manage data. It also proxy APIs to other services. Shield talks to SpiceDB instance to check for authorization.
 
-## Technologies
+## Tools and Technologies
 
 Shield is developed with
 
