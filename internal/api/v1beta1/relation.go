@@ -6,6 +6,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/schema"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/relation"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -55,6 +60,26 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
+
+	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
+		Name:        request.GetBody().GetObjectId(),
+		NamespaceID: request.GetBody().ObjectNamespace,
+	}, action.Action{ID: schema.EditPermission})
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		default:
+			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
+			logger.Error(formattedErr.Error())
+			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
+		}
+	}
+
+	if !result {
+		return nil, status.Errorf(codes.PermissionDenied, "user does not have permission to perform this action")
+	}
+
 	newRelation, err := h.relationService.Create(ctx, relation.RelationV2{
 		Object: relation.Object{
 			ID:          request.GetBody().GetObjectId(),
