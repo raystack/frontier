@@ -26,9 +26,18 @@ Another DB instance is for SpiceDB to store all the data needed for authorizatio
 
 Shield push all the policies and relationships data to SpiceDB. All this data is needed to make the authorization decision. Shield connects to SpiceDB instance via gRPC.
 
-## Overall System Architecture
+## Overall System Architecture - Shield as an Authorization Service
 
-![Overall System Architecture](./overall-system-architecture.png)
+Shield can be used as an authorization service using the `check` API. Currently, we just have permission to check over an individual resource, i.e. 
+`can a USER do an ACTION on this RESOURCE`.
+
+![Overall System Architecture Authorization](./shield-authorization-architecture.png)
+
+The API gives a boolean response. You can refer this [guide](docs/guides/check-permission.md) for usage information.
+
+## Overall System Architecture - Shield as a Proxy
+
+![Overall System Architecture Proxy](./overall-proxy-architecture.png)
 
 The above diagram shows the system architecture which uses shield as a proxy. 
 
@@ -42,9 +51,9 @@ We'll discuss each one in details in the upcoming sections.
 
 Let's have a look at the Shield's Architecture where we will also be discussing about the different middlewares and hoooks.
 
-## Shield Architecture
+## Shield Proxy Architecture
 
-![Shield Architecture](./shield-architecture.png)
+![Shield Proxy Architecture](./shield-proxy-architecture.png)
 
 Sheild's proxy is build from two major components which are middlewares and hooks. Let's dive deeper into each of these components.
 
