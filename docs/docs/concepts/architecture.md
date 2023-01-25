@@ -28,7 +28,7 @@ Shield push all the policies and relationships data to SpiceDB. All this data is
 
 ## Overall System Architecture - Shield as an Authorization Service
 
-Shield can be used as an authorization service using the `check` API. Currently, we just have permission to check over an individual resource, i.e. 
+Shield can be used as an authorization service using the `check` API. Currently, we just allow to check permisison over a single resource, i.e. 
 `can a USER do an ACTION on this RESOURCE`.
 
 ![Overall System Architecture Authorization](./shield-authorization-architecture.png)
