@@ -150,6 +150,51 @@ func (_c *RelationService_Get_Call) Return(_a0 relation.RelationV2, _a1 error) *
 	return _c
 }
 
+// GetRelationByFields provides a mock function with given fields: ctx, rel
+func (_m *RelationService) GetRelationByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error) {
+	ret := _m.Called(ctx, rel)
+
+	var r0 relation.RelationV2
+	if rf, ok := ret.Get(0).(func(context.Context, relation.RelationV2) relation.RelationV2); ok {
+		r0 = rf(ctx, rel)
+	} else {
+		r0 = ret.Get(0).(relation.RelationV2)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, relation.RelationV2) error); ok {
+		r1 = rf(ctx, rel)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RelationService_GetRelationByFields_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRelationByFields'
+type RelationService_GetRelationByFields_Call struct {
+	*mock.Call
+}
+
+// GetRelationByFields is a helper method to define mock.On call
+//  - ctx context.Context
+//  - rel relation.RelationV2
+func (_e *RelationService_Expecter) GetRelationByFields(ctx interface{}, rel interface{}) *RelationService_GetRelationByFields_Call {
+	return &RelationService_GetRelationByFields_Call{Call: _e.mock.On("GetRelationByFields", ctx, rel)}
+}
+
+func (_c *RelationService_GetRelationByFields_Call) Run(run func(ctx context.Context, rel relation.RelationV2)) *RelationService_GetRelationByFields_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(relation.RelationV2))
+	})
+	return _c
+}
+
+func (_c *RelationService_GetRelationByFields_Call) Return(_a0 relation.RelationV2, _a1 error) *RelationService_GetRelationByFields_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx
 func (_m *RelationService) List(ctx context.Context) ([]relation.RelationV2, error) {
 	ret := _m.Called(ctx)

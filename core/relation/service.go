@@ -97,6 +97,15 @@ func (s Service) Delete(ctx context.Context, rel Relation) error {
 	return nil
 }
 
+func (s Service) GetRelationByFields(ctx context.Context, rel RelationV2) (RelationV2, error) {
+	fetchedRel, err := s.repository.GetByFields(ctx, rel)
+	if err != nil {
+		return RelationV2{}, err
+	}
+
+	return fetchedRel, nil
+}
+
 func (s Service) DeleteV2(ctx context.Context, rel RelationV2) error {
 	fetchedRel, err := s.repository.GetByFields(ctx, rel)
 	if err != nil {
