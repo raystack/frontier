@@ -65,12 +65,12 @@ entropy:
       roles:
         - name: viewer
           principals:
-            - user
-            - group
+            - shield/user
+            - shield/group
         - name: sink_editor
           principals:
-            - user
-            - group
+            - shield/user
+            - shield/group
       permissions:
         - name: view
           roles:
@@ -83,27 +83,27 @@ entropy:
             - sink_editor
             - organization/sink_editor
 
-organization:
+shield/organization:
   type: system
   roles:
     - name: sink_editor
       principals:
-        - user
-        - group
+        - shield/user
+        - shield/group
     - name: database_editor
       principals:
-        - group
+        - shield/group
 
-project:
+shield/project:
   type: system
   roles:
     - name: viewer
       principals:
-        - user
-        - group
+        - shield/user
+        - shield/group
     - name: owner
       principals:
-        - group
+        - shield/group
 
 ```
 
@@ -150,7 +150,7 @@ rules:
                       source: request
                   relations:
                     - role: owner
-                      subject_principal: group
+                      subject_principal: shield/group
                       subject_id_attribute: group_attribute
           - name: update_firehose_status
             path: "/firehoses/{resource}/{action}"
