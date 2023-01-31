@@ -9,7 +9,7 @@ Shield binary contains both the CLI client and the server itself. Each has it's 
 Dependencies:
 
 - PostgreSQL
-- [SpiceDB]((https://github.com/authzed/spicedb))
+- [SpiceDB]((https://github.com/authzed/spicedb)
 
 You need to prepare and run above dependencies first before running Shield. Shield also has a `docker-compose.yaml` file in its repo that has all required dependencies. If you are interested to use it, you just need to git clone the repo and run `docker-compose up` in the root project.
 
@@ -55,7 +55,7 @@ spicedb:
 
 You need to define the policies in a YAML file and pass it's directory path to `resources_config_path`. The rules for each path shall be defined in another YAML file and pass it's path to `ruleset`.
 
-Next, let's look at a example policy configuration for a backend `entropy` with `firehose` and `dagger` resource types. Also, we have defined roles for `organizations` and `project` to demonstrate shield's flexibility to define policy for different category of namespaces. 
+Next, let's look at a example policy configuration for a backend `entropy` with `firehose` and `dagger` resource types. Also, we have defined roles for `organizations` and `project` to demonstrate shield's flexibility to define policy for different category of namespaces.
 
 ```
 entropy:
@@ -213,6 +213,7 @@ rules:
 ```
 
 ### Migrating the server
+
 Database migration is required during the first server initialization. In addition, re-running the migration command might be needed in a new release to apply the new schema changes (if any). It's safer to always re-run the migration script before deploying/starting a new release.
 
 To initialize the database schema, Run Migrations with the following command:
@@ -255,8 +256,6 @@ $ \dt
 
 ![SpiceDB tables](./spicedb-tables.png)
 
-
-
 ### Starting the server
 
 Now, it's time to start the server, but before that, let's open a browser tab and open `localhost:8080` to have a look at the permission schema on SpiceDB.
@@ -290,4 +289,3 @@ pong
 Let's verify in the browser, if the SpiceDB permission schema is updated
 
 ![SpiceDB permission schema after](./permission-schema-after.png)
-
