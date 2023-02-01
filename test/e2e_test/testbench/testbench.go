@@ -153,7 +153,7 @@ func (te *TestBench) CleanUp() error {
 
 func ServeProxies(
 	ctx context.Context,
-	logger log.Logger,
+	logger *log.Zap,
 	identityProxyHeaderKey,
 	userIDHeaderKey string,
 	cfg proxy.ServicesConfig,

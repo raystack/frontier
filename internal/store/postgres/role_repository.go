@@ -129,7 +129,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 			defer nr.End()
 		}
 
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
