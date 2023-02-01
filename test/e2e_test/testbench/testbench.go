@@ -227,7 +227,7 @@ func buildMiddlewarePipeline(
 
 func BuildAPIDependenciesAndMigrate(
 	ctx context.Context,
-	logger log.Logger,
+	logger *log.Zap,
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,

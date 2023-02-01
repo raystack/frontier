@@ -184,8 +184,6 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 }
 
 func (s *EndToEndProxySmokeTestSuite) TearDownTest() {
-	err := s.testBench.CleanUp()
-	s.Require().NoError(err)
 }
 
 func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
