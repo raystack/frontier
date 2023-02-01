@@ -208,7 +208,7 @@ func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService, 
 
 // buildPipeline builds middleware sequence
 func buildMiddlewarePipeline(
-	logger log.Logger,
+	logger *log.Zap,
 	proxy http.Handler,
 	identityProxyHeaderKey, userIDHeaderKey string,
 	resourceService *resource.Service,

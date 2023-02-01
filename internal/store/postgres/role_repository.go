@@ -113,6 +113,9 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		return "", fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	types := strings.Join(rl.Types, ",")
+	types = fmt.Sprintf("{%s}", types)
+
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
