@@ -23,7 +23,6 @@ import (
 
 type EndToEndProxySmokeTestSuite struct {
 	suite.Suite
-	testBench *testbench.TestBench
 	proxyport int
 	orgID     string
 	projID    string
