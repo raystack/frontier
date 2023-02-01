@@ -36,6 +36,7 @@ import (
 	"github.com/odpf/shield/internal/proxy/middleware/attributes"
 	"github.com/odpf/shield/internal/proxy/middleware/authz"
 	"github.com/odpf/shield/internal/proxy/middleware/basic_auth"
+	"github.com/odpf/shield/internal/proxy/middleware/observability"
 	"github.com/odpf/shield/internal/proxy/middleware/prefix"
 	"github.com/odpf/shield/internal/proxy/middleware/rulematch"
 	"github.com/odpf/shield/internal/store/blob"
@@ -222,7 +223,8 @@ func buildMiddlewarePipeline(
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey, projectService)
 	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
-	return matchWare
+	observability := observability.New(logger, matchWare)
+	return observability
 }
 
 func BuildAPIDependenciesAndMigrate(
