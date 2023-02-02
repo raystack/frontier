@@ -186,7 +186,7 @@ func (s *EndToEndProxySmokeTestSuite) TearDownTest() {
 }
 
 func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
-	s.Run("1. should be able to proxy to an echo server", func() {
+	s.Run("should be able to proxy to an echo server", func() {
 		url := fmt.Sprintf("http://localhost:%d/api/ping", s.proxyport)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
@@ -199,7 +199,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		defer res.Body.Close()
 		s.Assert().Equal(200, res.StatusCode)
 	})
-	s.Run("2. resource created on echo server should persist in shieldDB", func() {
+	s.Run("resource created on echo server should persist in shieldDB", func() {
 		url := fmt.Sprintf("http://localhost:%d/api/resource", s.proxyport)
 		req, err := http.NewRequest(http.MethodPost, url, nil)
 		s.Require().NoError(err)
