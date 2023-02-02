@@ -29,8 +29,6 @@ type OrganizationService interface {
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
 	List(ctx context.Context) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
-	RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
@@ -188,40 +186,6 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	return &shieldv1beta1.UpdateOrganizationResponse{Organization: &orgPB}, nil
 }
 
-func (h Handler) AddOrganizationAdmin(ctx context.Context, request *shieldv1beta1.AddOrganizationAdminRequest) (*shieldv1beta1.AddOrganizationAdminResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	addedUsers, err := h.orgService.AddAdmins(ctx, request.GetId(), request.GetBody().GetUserIds())
-	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		case errors.Is(err, errors.ErrForbidden):
-			return nil, grpcPermissionDenied
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, grpcOrgNotFoundErr
-		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
-			return nil, grpcBadBodyError
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
-	var addedUsersPB []*shieldv1beta1.User
-	for _, u := range addedUsers {
-		userPB, err := transformUserToPB(u)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
-		}
-
-		addedUsersPB = append(addedUsersPB, &userPB)
-	}
-
-	return &shieldv1beta1.AddOrganizationAdminResponse{Users: addedUsersPB}, nil
-}
-
 func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1beta1.ListOrganizationAdminsRequest) (*shieldv1beta1.ListOrganizationAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
@@ -248,30 +212,6 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 	}
 
 	return &shieldv1beta1.ListOrganizationAdminsResponse{Users: adminsPB}, nil
-}
-
-func (h Handler) RemoveOrganizationAdmin(ctx context.Context, request *shieldv1beta1.RemoveOrganizationAdminRequest) (*shieldv1beta1.RemoveOrganizationAdminResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	if _, err := h.orgService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		case errors.Is(err, errors.ErrForbidden):
-			return nil, grpcPermissionDenied
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, grpcOrgNotFoundErr
-		case errors.Is(err, user.ErrInvalidUUID):
-			return nil, grpcUserNotFoundError
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
-	return &shieldv1beta1.RemoveOrganizationAdminResponse{
-		Message: "Removed Admin from org",
-	}, nil
 }
 
 func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization, error) {

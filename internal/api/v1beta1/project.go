@@ -30,8 +30,6 @@ type ProjectService interface {
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
 	List(ctx context.Context) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error)
-	RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 }
 
@@ -195,44 +193,6 @@ func (h Handler) UpdateProject(
 	return &shieldv1beta1.UpdateProjectResponse{Project: &projectPB}, nil
 }
 
-func (h Handler) AddProjectAdmin(
-	ctx context.Context,
-	request *shieldv1beta1.AddProjectAdminRequest,
-) (*shieldv1beta1.AddProjectAdminResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	var admins []user.User
-	admins, err := h.projectService.AddAdmins(ctx, request.GetId(), request.GetBody().GetUserIds())
-	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		case errors.Is(err, errors.ErrForbidden):
-			return nil, grpcPermissionDenied
-		case errors.Is(err, project.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
-		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
-			return nil, grpcBadBodyError
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
-	var transformedAdmins []*shieldv1beta1.User
-	for _, a := range admins {
-		userPB, err := transformUserToPB(a)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
-		}
-
-		transformedAdmins = append(transformedAdmins, &userPB)
-	}
-
-	return &shieldv1beta1.AddProjectAdminResponse{Users: transformedAdmins}, nil
-}
-
 func (h Handler) ListProjectAdmins(
 	ctx context.Context,
 	request *shieldv1beta1.ListProjectAdminsRequest,
@@ -262,34 +222,6 @@ func (h Handler) ListProjectAdmins(
 	}
 
 	return &shieldv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
-}
-
-func (h Handler) RemoveProjectAdmin(
-	ctx context.Context,
-	request *shieldv1beta1.RemoveProjectAdminRequest,
-) (*shieldv1beta1.RemoveProjectAdminResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	if _, err := h.projectService.RemoveAdmin(ctx, request.GetId(), request.GetUserId()); err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		case errors.Is(err, errors.ErrForbidden):
-			return nil, grpcPermissionDenied
-		case errors.Is(err, project.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
-		case errors.Is(err, user.ErrInvalidUUID),
-			errors.Is(err, user.ErrNotExist):
-			return nil, grpcUserNotFoundError
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
-	return &shieldv1beta1.RemoveProjectAdminResponse{
-		Message: "Removed Admin from project",
-	}, nil
 }
 
 func transformProjectToPB(prj project.Project) (shieldv1beta1.Project, error) {

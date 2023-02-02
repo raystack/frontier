@@ -8,7 +8,6 @@ import (
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/str"
@@ -78,40 +77,6 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 
 func (s Service) ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error) {
 	return s.repository.ListUserGroups(ctx, userId, roleId)
-}
-
-func (s Service) ListUsers(ctx context.Context, idOrSlug string) ([]user.User, error) {
-	if uuid.IsValid(idOrSlug) {
-		return s.repository.ListUsersByGroupID(ctx, idOrSlug, role.DefinitionTeamMember.ID)
-	}
-	return s.repository.ListUsersByGroupSlug(ctx, idOrSlug, role.DefinitionTeamMember.ID)
-}
-
-func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, error) {
-	if uuid.IsValid(idOrSlug) {
-		return s.repository.ListUsersByGroupID(ctx, idOrSlug, role.DefinitionTeamAdmin.ID)
-	}
-	return s.repository.ListUsersByGroupSlug(ctx, idOrSlug, role.DefinitionTeamAdmin.ID)
-}
-
-func (s Service) AddUsers(ctx context.Context, groupIdOrSlug string, userIds []string) ([]user.User, error) {
-	// TODO(discussion): To be replaced with create relation
-	return []user.User{}, nil
-}
-
-func (s Service) RemoveUser(ctx context.Context, groupIdOrSlug string, userId string) ([]user.User, error) {
-	// TODO(discussion): To be replaced with remove relation
-	return []user.User{}, nil
-}
-
-func (s Service) AddAdmins(ctx context.Context, groupIdOrSlug string, userIds []string) ([]user.User, error) {
-	// TODO(discussion): To be replaced with create relation
-	return []user.User{}, nil
-}
-
-func (s Service) RemoveAdmin(ctx context.Context, groupIdOrSlug string, userId string) ([]user.User, error) {
-	// TODO(discussion): Can be removed for remove relation
-	return []user.User{}, nil
 }
 
 func (s Service) ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []Group, map[string][]string, map[string][]string, error) {

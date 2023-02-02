@@ -78,11 +78,6 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 	return s.repository.UpdateBySlug(ctx, org)
 }
 
-func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	// TODO(discussion): can be done with create relation
-	return []user.User{}, nil
-}
-
 func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, error) {
 	var org Organization
 	var err error
@@ -94,11 +89,6 @@ func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, 
 		return []user.User{}, err
 	}
 	return s.repository.ListAdminsByOrgID(ctx, org.ID)
-}
-
-func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	// TO IMPLEMENT
-	return []user.User{}, nil
 }
 
 func (s Service) addAdminToOrg(ctx context.Context, user user.User, org Organization) error {
