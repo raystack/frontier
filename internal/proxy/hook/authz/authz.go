@@ -151,7 +151,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 		case hook.AttributeTypeHeader:
 			if attr.Key == "" {
-				a.log.Error("middleware: header key field empty", "err", err)
+				a.log.Error("middleware: header key field empty")
 				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
 			}
 			headerAttr := headerSource.Get(attr.Key)

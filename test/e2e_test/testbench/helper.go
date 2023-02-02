@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 
+	"github.com/odpf/shield/pkg/db"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -202,4 +204,14 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	return nil
+}
+
+func SetupDB(cfg db.Config) (dbc *db.Client, err error) {
+	dbc, err = db.New(cfg)
+	if err != nil {
+		err = fmt.Errorf("failed to setup db: %w", err)
+		return
+	}
+
+	return
 }
