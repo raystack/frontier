@@ -13,6 +13,7 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/relation"
+	errpkg "github.com/odpf/shield/pkg/errors"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -78,7 +79,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	if !result {
-		return nil, status.Errorf(codes.PermissionDenied, "user does not have permission to perform this action")
+		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
 	}
 
 	newRelation, err := h.relationService.Create(ctx, relation.RelationV2{
@@ -156,9 +157,7 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, relation.ErrNotExist),
-			errors.Is(err, relation.ErrInvalidUUID),
-			errors.Is(err, relation.ErrInvalidID):
+		case errors.Is(err, relation.ErrNotExist):
 			return nil, grpcRelationNotFoundErr
 		default:
 			return nil, grpcInternalServerError
@@ -181,7 +180,7 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 	}
 
 	if !result {
-		return nil, status.Errorf(codes.PermissionDenied, "user does not have permission to perform this action")
+		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
 	}
 
 	err = h.relationService.DeleteV2(ctx, relation.RelationV2{
