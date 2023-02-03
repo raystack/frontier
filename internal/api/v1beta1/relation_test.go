@@ -478,7 +478,6 @@ func TestHandler_DeleteRelation(t *testing.T) {
 						ID: testRelationV2.Object.ID,
 					},
 				}).Return(nil)
-
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
 				ObjectId:  testRelationV2.Object.ID,
@@ -527,7 +526,6 @@ func TestHandler_DeleteRelation(t *testing.T) {
 						ID: testRelationV2.Object.ID,
 					},
 				}).Return(nil)
-
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
 				ObjectId:  testRelationV2.Object.ID,
