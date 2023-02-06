@@ -83,7 +83,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 
 	email := strings.TrimSpace(request.GetBody().GetEmail())
 	if email == "" {
-		return nil, grpcBadBodyError
+		email = currentUserEmail
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
