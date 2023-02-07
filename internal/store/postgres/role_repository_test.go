@@ -174,6 +174,108 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 	}
 }
 
+func (s *RoleRepositoryTestSuite) TestList() {
+	type testCase struct {
+		Description   string
+		ExpectedRoles []role.Role
+		ErrString     string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should get all roles",
+			ExpectedRoles: []role.Role{
+				{
+					ID:          "ns1:role1",
+					NamespaceID: "ns1",
+					Name:        "role member",
+				},
+				{
+					ID:          "ns1:role2",
+					NamespaceID: "ns1",
+					Name:        "role member",
+				},
+				{
+					ID:          "ns2:role2",
+					NamespaceID: "ns2",
+					Name:        "role admin",
+				},
+				{
+					ID:          "ns1:ns2",
+					NamespaceID: "ns1",
+					Name:        "namespace",
+				},
+				{
+					ID:          "shield/organization:owner",
+					NamespaceID: "shield/organization",
+					Name:        "owner",
+				},
+				{
+					ID:          "shield/organization:editor",
+					NamespaceID: "shield/organization",
+					Name:        "editor",
+				},
+				{
+					ID:          "shield/organization:viewer",
+					NamespaceID: "shield/organization",
+					Name:        "viewer",
+				},
+				{
+					ID:          "shield/project:owner",
+					NamespaceID: "shield/project",
+					Name:        "owner",
+				},
+				{
+					ID:          "shield/project:editor",
+					NamespaceID: "shield/project",
+					Name:        "editor",
+				},
+				{
+					ID:          "shield/project:viewer",
+					NamespaceID: "shield/project",
+					Name:        "viewer",
+				},
+				{
+					ID:          "shield/project:organization",
+					NamespaceID: "shield/project",
+					Name:        "organization",
+				},
+				{
+					ID:          "shield/group:member",
+					NamespaceID: "shield/group",
+					Name:        "member",
+				},
+				{
+					ID:          "shield/group:manager",
+					NamespaceID: "shield/group",
+					Name:        "manager",
+				},
+				{
+					ID:          "shield/group:organization",
+					NamespaceID: "shield/group",
+					Name:        "organization",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.List(s.ctx)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			//TODO figure out how to compare metadata map[string]any
+			if !cmp.Equal(got, tc.ExpectedRoles, cmpopts.IgnoreFields(role.Role{},
+				"ID", "Types", "CreatedAt", "UpdatedAt", "Metadata")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoles)
+			}
+		})
+	}
+}
+
 func TestRoleRepository(t *testing.T) {
 	suite.Run(t, new(RoleRepositoryTestSuite))
 }
