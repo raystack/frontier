@@ -210,17 +210,17 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 				{
 					RoleID:      "ns1:role1",
 					NamespaceID: "ns1",
-					ActionID:    "policy1",
+					ActionID:    "action1",
 				},
 				{
 					RoleID:      "ns2:role2",
 					NamespaceID: "ns2",
-					ActionID:    "policy2",
+					ActionID:    "action2",
 				},
 				{
 					RoleID:      "ns1:role2",
 					NamespaceID: "ns1",
-					ActionID:    "policy3",
+					ActionID:    "action3",
 				},
 			},
 		},
