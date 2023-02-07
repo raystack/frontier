@@ -14,7 +14,6 @@ import (
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -404,131 +403,6 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 	}
 
 	return updated, nil
-}
-
-func (r GroupRepository) buildListUsersByGroupIDQuery(groupID, roleID string) (string, []interface{}, error) {
-	sqlStatement := dialect.Select(
-		goqu.I("u.id").As("id"),
-		goqu.I("u.name").As("name"),
-		goqu.I("u.email").As("email"),
-		goqu.I("u.created_at").As("created_at"),
-		goqu.I("u.updated_at").As("updated_at"),
-	).
-		From(goqu.T(TABLE_RELATIONS).As("r")).
-		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
-			goqu.I("u.id").Cast("VARCHAR").
-				Eq(goqu.I("r.subject_id")),
-		)).
-		Where(goqu.Ex{
-			"r.object_id":            groupID,
-			"r.subject_namespace_id": namespace.DefinitionUser.ID,
-			"r.object_namespace_id":  namespace.DefinitionTeam.ID,
-		})
-
-	if strings.TrimSpace(roleID) != "" {
-		sqlStatement = sqlStatement.Where(goqu.Ex{
-			"r.role_id": roleID,
-		})
-	}
-
-	return sqlStatement.ToSQL()
-}
-
-func (r GroupRepository) ListUsersByGroupID(ctx context.Context, groupID string, roleID string) ([]user.User, error) {
-	if strings.TrimSpace(groupID) == "" {
-		return nil, group.ErrInvalidID
-	}
-
-	query, params, err := r.buildListUsersByGroupIDQuery(groupID, roleID)
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var fetchedUsers []User
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_GROUPS,
-				Operation:  "ListUsersByGroupID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return []user.User{}, nil
-		default:
-			return []user.User{}, err
-		}
-	}
-
-	var transformedUsers []user.User
-	for _, u := range fetchedUsers {
-		transformedUser, err := u.transformToUser()
-		if err != nil {
-			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedUsers = append(transformedUsers, transformedUser)
-	}
-
-	return transformedUsers, nil
-}
-
-func (r GroupRepository) ListUsersByGroupSlug(ctx context.Context, groupSlug string, roleID string) ([]user.User, error) {
-	if strings.TrimSpace(groupSlug) == "" {
-		return nil, group.ErrInvalidID
-	}
-
-	fetchedGroup, err := r.GetBySlug(ctx, groupSlug)
-	if err != nil {
-		return []user.User{}, err
-	}
-
-	query, params, err := r.buildListUsersByGroupIDQuery(fetchedGroup.ID, roleID)
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var fetchedUsers []User
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_GROUPS,
-				Operation:  "ListUsersByGroupSlug",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return []user.User{}, nil
-		default:
-			return []user.User{}, err
-		}
-	}
-
-	var transformedUsers []user.User
-	for _, u := range fetchedUsers {
-		transformedUser, err := u.transformToUser()
-		if err != nil {
-			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedUsers = append(transformedUsers, transformedUser)
-	}
-
-	return transformedUsers, nil
 }
 
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
