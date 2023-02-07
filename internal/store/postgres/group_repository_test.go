@@ -88,19 +88,21 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
-		Subject: relation.Subject{
-			ID:        s.users[0].ID,
-			Namespace: schema.UserPrincipal,
-			RoleID:    schema.MemberRole,
-		},
-		Object: relation.Object{
-			ID:          s.groups[0].ID,
-			NamespaceID: schema.GroupNamespace,
-		},
-	})
-	if err != nil {
-		s.T().Fatal(err)
+	for _, user := range s.users {
+		_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+			Subject: relation.Subject{
+				ID:        user.ID,
+				Namespace: schema.UserPrincipal,
+				RoleID:    schema.MemberRole,
+			},
+			Object: relation.Object{
+				ID:          s.groups[0].ID,
+				NamespaceID: schema.GroupNamespace,
+			},
+		})
+		if err != nil {
+			s.T().Fatal(err)
+		}
 	}
 }
 
@@ -176,6 +178,64 @@ func (s *GroupRepositoryTestSuite) TestGetByID() {
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
 			}
+		})
+	}
+}
+
+func (s *GroupRepositoryTestSuite) TestGetByIDs() {
+	type testCase struct {
+		Description    string
+		SelectedIDs    []string
+		ExpectedGroups []group.Group
+		ErrString      string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should get a group",
+			SelectedIDs: []string{s.groups[0].ID, s.groups[1].ID},
+			ExpectedGroups: []group.Group{{
+				Name:           "group1",
+				Slug:           "group-1",
+				OrganizationID: s.groups[0].OrganizationID,
+			}, {
+				Name:           "group2",
+				Slug:           "group-2",
+				OrganizationID: s.groups[1].OrganizationID,
+			},
+			},
+		},
+		{
+			Description: "should return error if id empty",
+			SelectedIDs: []string{s.groups[0].ID, ""},
+			ErrString:   group.ErrInvalidID.Error(),
+		},
+		{
+			Description: "should return error if id is not uuid",
+			SelectedIDs: []string{s.groups[0].ID, "10000"},
+			ErrString:   group.ErrInvalidUUID.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetByIDs(s.ctx, tc.SelectedIDs)
+			if tc.ErrString != "" && err != nil {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+
+			for i, grp := range got {
+				if !cmp.Equal(grp, tc.ExpectedGroups[i], cmpopts.IgnoreFields(group.Group{},
+					"ID",
+					"Metadata",
+					"CreatedAt",
+					"UpdatedAt")) {
+					s.T().Fatalf("got result %+v, expected was %+v", grp, tc.ExpectedGroups[i])
+				}
+			}
+
 		})
 	}
 }

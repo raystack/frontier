@@ -123,6 +123,12 @@ func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Grou
 func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]group.Group, error) {
 	var fetchedGroups []Group
 
+	for _, id := range groupIDs {
+		if strings.TrimSpace(id) == "" {
+			return []group.Group{}, group.ErrInvalidID
+		}
+	}
+
 	query, params, err := dialect.From(TABLE_GROUPS).Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": groupIDs},
@@ -131,6 +137,8 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]gro
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	// this query will return empty array of groups if no UUID is not matched
+	// TODO: check and fox what to do in this scenerio
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
