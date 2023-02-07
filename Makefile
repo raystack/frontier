@@ -21,6 +21,10 @@ lint: ## Run linters
 # TODO: create seperate command for integration tests
 test: ## Run tests
 	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
+	go tool cover -html coverage.out -o coverage.html
+	open coverage.html
+
+
 	
 e2e-test: ## Run all e2e tests
 	go test -v -race ./test/e2e_test/... -coverprofile=coverage.out
