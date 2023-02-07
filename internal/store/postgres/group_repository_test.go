@@ -631,15 +631,17 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 			Description: "should get a list of group",
 			UserID:      s.users[0].ID,
 			RoleID:      "shield/group:member",
-			ExpectedGroups: []group.Group{{
-				Name:           "group1",
-				Slug:           "group-1",
-				OrganizationID: s.groups[0].OrganizationID,
-			}, {
-				Name:           "group2",
-				Slug:           "group-2",
-				OrganizationID: s.groups[1].OrganizationID,
-			},
+			ExpectedGroups: []group.Group{
+				{
+					Name:           "group1",
+					Slug:           "group-1",
+					OrganizationID: s.groups[0].OrganizationID,
+				},
+				{
+					Name:           "group2",
+					Slug:           "group-2",
+					OrganizationID: s.groups[1].OrganizationID,
+				},
 				{
 					Name:           "group3",
 					Slug:           "group-3",
@@ -647,17 +649,6 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 				},
 			},
 		},
-		/*{
-			Description: "should return error if id empty",
-			SelectedIDs: []string{s.groups[0].ID, ""},
-			ErrString:   group.ErrInvalidID.Error(),
-		},
-		{
-			Description: "should return error if id is not uuid",
-			SelectedIDs: []string{s.groups[0].ID, "10000"},
-			ErrString:   group.ErrInvalidUUID.Error(),
-		},
-		*/
 	}
 
 	for _, tc := range testCases {
