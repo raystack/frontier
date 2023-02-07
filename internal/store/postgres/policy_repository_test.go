@@ -100,7 +100,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 			ExpectedPolicy: policy.Policy{
 				RoleID:      "ns1:role1",
 				NamespaceID: "ns1",
-				ActionID:    "policy1",
+				ActionID:    "action1",
 			},
 		},
 		{
@@ -147,7 +147,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 			Description: "should create a policy",
 			PolicyToCreate: policy.Policy{
 				RoleID:      "ns1:role2",
-				ActionID:    "policy4",
+				ActionID:    "action4",
 				NamespaceID: "ns1",
 			},
 		},
@@ -155,7 +155,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 			Description: "should return error if role id does not exist",
 			PolicyToCreate: policy.Policy{
 				RoleID:      "role2-random",
-				ActionID:    "policy4",
+				ActionID:    "action4",
 				NamespaceID: "ns1",
 			},
 			Err: policy.ErrInvalidDetail,
@@ -164,7 +164,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 			Description: "should return error if policy id does not exist",
 			PolicyToCreate: policy.Policy{
 				RoleID:      "role2",
-				ActionID:    "policy4-random",
+				ActionID:    "action4-random",
 				NamespaceID: "ns1",
 			},
 			Err: policy.ErrInvalidDetail,
@@ -173,7 +173,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 			Description: "should return error if namespace id does not exist",
 			PolicyToCreate: policy.Policy{
 				RoleID:      "role2",
-				ActionID:    "policy4",
+				ActionID:    "action4",
 				NamespaceID: "ns1-random",
 			},
 			Err: policy.ErrInvalidDetail,
