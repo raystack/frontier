@@ -88,23 +88,6 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	for _, user := range s.users {
-		_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
-			Subject: relation.Subject{
-				ID:        user.ID,
-				Namespace: schema.UserPrincipal,
-				RoleID:    schema.MemberRole,
-			},
-			Object: relation.Object{
-				ID:          s.groups[0].ID,
-				NamespaceID: schema.GroupNamespace,
-			},
-		})
-		if err != nil {
-			s.T().Fatal(err)
-		}
-	}
-
 	for _, group := range s.groups {
 		_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
 			Subject: relation.Subject{
@@ -114,6 +97,23 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 			},
 			Object: relation.Object{
 				ID:          group.ID,
+				NamespaceID: schema.GroupNamespace,
+			},
+		})
+		if err != nil {
+			s.T().Fatal(err)
+		}
+	}
+
+	for _, user := range s.users {
+		_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+			Subject: relation.Subject{
+				ID:        user.ID,
+				Namespace: schema.UserPrincipal,
+				RoleID:    schema.MemberRole,
+			},
+			Object: relation.Object{
+				ID:          s.groups[0].ID,
 				NamespaceID: schema.GroupNamespace,
 			},
 		})
@@ -667,6 +667,77 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 					"CreatedAt",
 					"UpdatedAt")) {
 					s.T().Fatalf("got result %+v, expected was %+v", grp, tc.ExpectedGroups[i])
+				}
+			}
+		})
+	}
+}
+
+func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
+	type testCase struct {
+		Description       string
+		ObjectID          string
+		SubjectType       string
+		Role              string
+		ExpectedRelations []relation.RelationV2
+		ErrString         string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should get a list of relations",
+			ObjectID:    s.groups[0].ID,
+			SubjectType: "user",
+			Role:        "member",
+			ExpectedRelations: []relation.RelationV2{
+				{
+					Object: relation.Object{
+						ID:          s.groups[0].ID,
+						NamespaceID: schema.GroupNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        s.users[0].ID,
+						Namespace: schema.UserPrincipal,
+						RoleID:    "shield/group:member",
+					},
+				},
+				{
+					Object: relation.Object{
+						ID:          s.groups[0].ID,
+						NamespaceID: schema.GroupNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        s.users[1].ID,
+						Namespace: schema.UserPrincipal,
+						RoleID:    "shield/group:member",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.ListGroupRelations(s.ctx, tc.ObjectID, tc.SubjectType, tc.Role)
+			if tc.ErrString != "" && err != nil {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+
+			for _, rel := range got {
+				found := false
+				for _, expectedRel := range tc.ExpectedRelations {
+					if cmp.Equal(rel, expectedRel, cmpopts.IgnoreFields(relation.RelationV2{},
+						"ID",
+						"CreatedAt",
+						"UpdatedAt")) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					s.T().Fatalf("can't find relation %+v", rel)
 				}
 			}
 		})
