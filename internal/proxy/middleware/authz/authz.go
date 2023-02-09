@@ -216,7 +216,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			ID: permission.Name,
 		})
 		if err != nil {
-			c.log.Error("error while creating resource obj", "err", err)
+			c.log.Error("error while performing authz permission check", "err", err)
 			c.notAllowed(rw, err)
 			return
 		}
