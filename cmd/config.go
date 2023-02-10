@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cliConfig *Config
-
 type Config struct {
 	Host string `mapstructure:"host"`
 }

@@ -192,16 +192,21 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	}
 
 	var rows []interface{}
-	for key, value := range usr.Metadata {
-		valuejson, err := json.Marshal(value)
-		if err != nil {
-			valuejson = []byte{}
+	for k, v := range usr.Metadata {
+		var valuejson []byte
+		vstring, ok := v.(string)
+		if !ok {
+			valuejson, err = json.Marshal(v)
+			if err != nil {
+				valuejson = []byte{}
+			}
+			vstring = string(valuejson)
 		}
 
 		rows = append(rows, goqu.Record{
 			"user_id": transformedUser.ID,
-			"key":     key,
-			"value":   string(valuejson),
+			"key":     k,
+			"value":   vstring,
 		})
 	}
 	metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
@@ -509,9 +514,8 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 			}
 
 			var rows []interface{}
-			var valuejson []byte
-
 			for k, v := range userMetadata {
+				var valuejson []byte
 				vstring, ok := v.(string)
 				if !ok {
 					valuejson, err = json.Marshal(v)
