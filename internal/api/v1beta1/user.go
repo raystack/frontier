@@ -68,7 +68,7 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 
 func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRequest) (*shieldv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "CreateUser"), tag.Insert(telemetry.KeyStatus, "OK"))
+	ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "CreateUser"))
 
 	currentUserEmail, ok := user.GetEmailFromContext(ctx)
 	if !ok {
