@@ -88,7 +88,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.AddOrgToResource(ctx, organization.Organization{ID: res.OrganizationID}, newResource); err != nil {
+	if err = s.AddOrgToResource(ctx, organization.Organization{ID: newResource.OrganizationID}, newResource); err != nil {
 		return Resource{}, err
 	}
 
