@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
+	"github.com/odpf/shield/pkg/telemetry"
 	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
@@ -65,6 +68,7 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 
 func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRequest) (*shieldv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
+	ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "CreateUser"), tag.Insert(telemetry.KeyStatus, "OK"))
 
 	currentUserEmail, ok := user.GetEmailFromContext(ctx)
 	if !ok {
@@ -103,6 +107,14 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		switch {
 		case errors.Is(err, user.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(errors.Unwrap(err), user.ErrKeyDoesNotExists):
+			missingKey := strings.Split(err.Error(), ":")
+			if len(missingKey) == 2 {
+				ctx, _ = tag.New(ctx, tag.Upsert(telemetry.KeyMissingKey, missingKey[1]))
+			}
+			stats.Record(ctx, telemetry.MMissingMetadataKeys.M(1))
+
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}

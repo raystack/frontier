@@ -20,6 +20,7 @@ import (
 	"github.com/odpf/shield/internal/api/v1beta1"
 	"github.com/odpf/shield/internal/server/grpc_interceptors"
 	"github.com/odpf/shield/internal/server/health"
+	"github.com/odpf/shield/pkg/telemetry"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -60,6 +61,13 @@ func Serve(
 	)
 
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
+
+	pe, err := telemetry.SetupOpenCensus(ctx, cfg.TelemetryConfig)
+	if err != nil {
+		logger.Error("failed to setup OpenCensus", "err", err)
+	}
+
+	httpMux.Handle("/metrics", pe)
 
 	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
