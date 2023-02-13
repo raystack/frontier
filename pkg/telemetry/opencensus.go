@@ -13,12 +13,14 @@ var (
 	// The number of new metadata keys
 	MMissingMetadataKeys    = stats.Int64("metadata-keys/counter", "The number of missing metadata keys", "1")
 	MResourceFailedToCreate = stats.Int64("resource-failed-to-create/counter", "The number of resources failed to be created", "1")
+	MRelationFailedToCreate = stats.Int64("relation-failed-to-create/counter", "The number of relations failed to be created", "1")
 )
 
 var (
-	KeyMethod, _                   = tag.NewKey("method")
-	KeyMissingKey, _               = tag.NewKey("missing-key")
-	KeyResourceCreationResponse, _ = tag.NewKey("resource-creation-response")
+	KeyMethod, _          = tag.NewKey("method")
+	KeyMissingKey, _      = tag.NewKey("missing-key")
+	KeyRequestDetails, _  = tag.NewKey("request-details")
+	KeyRelationDetails, _ = tag.NewKey("relation-details")
 )
 
 var (
@@ -36,7 +38,15 @@ var (
 		Description: "The number of resources failed to be created",
 
 		Aggregation: view.Count(),
-		TagKeys:     []tag.Key{KeyMethod, KeyResourceCreationResponse}}
+		TagKeys:     []tag.Key{KeyMethod, KeyRequestDetails}}
+
+	RelationFailedToCreateView = &view.View{
+		Name:        "relation-failed-to-create/counter",
+		Measure:     MRelationFailedToCreate,
+		Description: "The number of relations failed to be created",
+
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{KeyMethod, KeyRelationDetails}}
 )
 
 func SetupOpenCensus(ctx context.Context, cfg Config) (*prometheus.Exporter, error) {
@@ -55,7 +65,7 @@ func SetupOpenCensus(ctx context.Context, cfg Config) (*prometheus.Exporter, err
 }
 
 func setupViews() error {
-	err := view.Register(MissingMetadataKeysView, ResourceFailedToCreateView)
+	err := view.Register(MissingMetadataKeysView, ResourceFailedToCreateView, RelationFailedToCreateView)
 	if err != nil {
 		return err
 	}

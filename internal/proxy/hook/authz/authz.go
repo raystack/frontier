@@ -89,10 +89,9 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	attributes := map[string]interface{}{}
 
 	defer func(isResourceCreated bool, ctx context.Context, attributes map[string]interface{}) {
-		fmt.Printf("attributes: %v\n", attributes)
 		if !isResourceCreated {
-			response := fmt.Sprintf("[status: %d, request: %s, attributes: %s ]", res.StatusCode, res.Request.Method+"@"+res.Request.URL.Host, attributes)
-			ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyResourceCreationResponse, response))
+			requestDetail := fmt.Sprintf("[status: %d, request: %s, attributes: %s ]", res.StatusCode, res.Request.Method+"@"+res.Request.URL.Host, attributes)
+			ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRequestDetails, requestDetail))
 			if err != nil {
 				a.log.Debug("failed to add metrics tags: ", err.Error())
 			}
@@ -233,6 +232,14 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			subjectId, err := getAttributesValues(attributes[rel.SubjectIDAttribute])
 			if err != nil {
 				a.log.Error(fmt.Sprintf("cannot create relation: %s not found in attributes", rel.SubjectIDAttribute))
+
+				relationDetail := fmt.Sprintf("%s to %s %s on %s", rel.Role, rel.SubjectPrincipal, rel.SubjectIDAttribute, newResource.Name)
+				ctx, err := tag.New(res.Request.Context(), tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRelationDetails, relationDetail))
+				if err != nil {
+					a.log.Debug("failed to add metrics tags: ", err.Error())
+				}
+				stats.Record(ctx, telemetry.MRelationFailedToCreate.M(1))
+
 				continue
 			}
 
@@ -249,6 +256,14 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			})
 			if err != nil {
 				a.log.Error(err.Error())
+
+				relationDetail := fmt.Sprintf("%s to %s %s on %s", rel.Role, rel.SubjectPrincipal, rel.SubjectIDAttribute, newResource.Name)
+				ctx, err := tag.New(res.Request.Context(), tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRelationDetails, relationDetail))
+				if err != nil {
+					a.log.Debug("failed to add metrics tags: ", err.Error())
+				}
+				stats.Record(ctx, telemetry.MRelationFailedToCreate.M(1))
+
 				return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 			}
 
