@@ -151,7 +151,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	} else {
 		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
 		if err != nil {
-			return false, err
+			return false, ErrNotExist
 		}
 	}
 

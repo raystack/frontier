@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -70,7 +71,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	usr, err := c.userService.FetchCurrentUser(req.Context())
 	if err != nil {
 		c.log.Error("middleware: failed to get user details", "err", err.Error())
-		c.notAllowed(rw)
+		c.notAllowed(rw, nil)
 		return
 	}
 
@@ -90,7 +91,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	if rule.Backend.Namespace == "" {
 		c.log.Error("namespace is not defined for this rule")
-		c.notAllowed(rw)
+		c.notAllowed(rw, nil)
 		return
 	}
 
@@ -98,7 +99,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	config := Config{}
 	if err := mapstructure.Decode(wareSpec.Config, &config); err != nil {
 		c.log.Error("middleware: failed to decode authz config", "config", wareSpec.Config)
-		c.notAllowed(rw)
+		c.notAllowed(rw, nil)
 		return
 	}
 
@@ -116,7 +117,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			// check if grpc request
 			if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
 				c.log.Error("middleware: not a grpc request", "attr", attr)
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 
@@ -133,13 +134,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		case middleware.AttributeTypeJSONPayload:
 			if attr.Key == "" {
 				c.log.Error("middleware: payload key field empty")
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&req.Body, attr.Key)
 			if err != nil {
 				c.log.Error("middleware: failed to parse grpc payload", "err", err)
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 
@@ -149,13 +150,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		case middleware.AttributeTypeHeader:
 			if attr.Key == "" {
 				c.log.Error("middleware: header key field empty")
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 			headerAttr := req.Header.Get(attr.Key)
 			if headerAttr == "" {
 				c.log.Error(fmt.Sprintf("middleware: header %s is empty", attr.Key))
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 
@@ -165,13 +166,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		case middleware.AttributeTypeQuery:
 			if attr.Key == "" {
 				c.log.Error("middleware: query key field empty")
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 			queryAttr := req.URL.Query().Get(attr.Key)
 			if queryAttr == "" {
 				c.log.Error(fmt.Sprintf("middleware: query %s is empty", attr.Key))
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 
@@ -181,7 +182,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		case middleware.AttributeTypeConstant:
 			if attr.Value == "" {
 				c.log.Error("middleware: constant value empty")
-				c.notAllowed(rw)
+				c.notAllowed(rw, nil)
 				return
 			}
 
@@ -190,7 +191,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		default:
 			c.log.Error("middleware: unknown attribute type", "attr", attr)
-			c.notAllowed(rw)
+			c.notAllowed(rw, nil)
 			return
 		}
 	}
@@ -198,7 +199,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	paramMap, mapExists := middleware.ExtractPathParams(req)
 	if !mapExists {
 		c.log.Error("middleware: path param map doesn't exist")
-		c.notAllowed(rw)
+		c.notAllowed(rw, nil)
 		return
 	}
 
@@ -215,8 +216,8 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			ID: permission.Name,
 		})
 		if err != nil {
-			c.log.Error("error while creating resource obj", "err", err)
-			c.notAllowed(rw)
+			c.log.Error("error while performing authz permission check", "err", err)
+			c.notAllowed(rw, err)
 			return
 		}
 		if isAuthorized {
@@ -227,13 +228,20 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	c.log.Info("authz check successful", "user", permissionAttributes["user"], "resource", permissionAttributes["resource"], "result", isAuthorized)
 	if !isAuthorized {
 		c.log.Info("user not allowed to make request", "user", permissionAttributes["user"], "resource", permissionAttributes["resource"], "result", isAuthorized)
-		c.notAllowed(rw)
+		c.notAllowed(rw, nil)
 		return
 	}
 
 	c.next.ServeHTTP(rw, req)
 }
 
-func (w Authz) notAllowed(rw http.ResponseWriter) {
+func (w Authz) notAllowed(rw http.ResponseWriter, err error) {
+	if err != nil {
+		switch {
+		case errors.Is(err, resource.ErrNotExist):
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+	}
 	rw.WriteHeader(http.StatusUnauthorized)
 }
