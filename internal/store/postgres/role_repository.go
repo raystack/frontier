@@ -11,6 +11,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -230,7 +231,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 		case errors.Is(err, sql.ErrNoRows):
 			return "", role.ErrNotExist
 		case errors.Is(err, errForeignKeyViolation):
-			return "", role.ErrInvalidDetail
+			return "", namespace.ErrNotExist
 		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
 		default:

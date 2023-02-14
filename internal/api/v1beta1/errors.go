@@ -19,4 +19,5 @@ var (
 	grpcConflictError       = status.Errorf(codes.AlreadyExists, ErrConflictRequest.Error())
 	grpcBadBodyError        = status.Error(codes.InvalidArgument, ErrBadRequest.Error())
 	grpcUnauthenticated     = status.Error(codes.Unauthenticated, errors.ErrUnauthenticated.Error())
+	grpcPermissionDenied    = status.Error(codes.PermissionDenied, errors.ErrForbidden.Error())
 )

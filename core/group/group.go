@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
 )
 
@@ -18,8 +17,6 @@ type Repository interface {
 	UpdateByID(ctx context.Context, toUpdate Group) (Group, error)
 	UpdateBySlug(ctx context.Context, toUpdate Group) (Group, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error)
-	ListUsersByGroupID(ctx context.Context, groupId string, roleId string) ([]user.User, error)
-	ListUsersByGroupSlug(ctx context.Context, groupSlug string, roleId string) ([]user.User, error)
 	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]relation.RelationV2, error)
 }
 
