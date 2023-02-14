@@ -351,11 +351,6 @@ func TestServeHook(t *testing.T) {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
 							},
-							"organization": {
-								Type:   "header",
-								Key:    "organization",
-								Source: "request",
-							},
 							"resource": {
 								Type: "json_payload",
 								Key:  "foo",
@@ -403,10 +398,9 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:           "bar",
-			OrganizationID: testPermissionAttributesMap["organization"].(string),
-			ProjectID:      testPermissionAttributesMap["project"].(string),
-			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			Name:        "bar",
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
