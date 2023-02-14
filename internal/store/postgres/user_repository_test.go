@@ -13,6 +13,7 @@ import (
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/metadata"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -308,7 +309,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 	type testCase struct {
 		Description  string
 		UserToUpdate user.User
-		ExpectedName string
+		ExpectedUser user.User
 		Err          error
 	}
 
@@ -318,8 +319,17 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			UserToUpdate: user.User{
 				Name:  "Doe John",
 				Email: s.users[0].Email,
+				Metadata: metadata.Metadata{
+					"k1": "v1",
+				},
 			},
-			ExpectedName: "Doe John",
+			ExpectedUser: user.User{
+				Name:  "Doe John",
+				Email: s.users[0].Email,
+				Metadata: metadata.Metadata{
+					"k1": "v1",
+				},
+			},
 		},
 		{
 			Description: "should return error if user not found",
@@ -345,8 +355,10 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
 				}
 			}
-			if tc.ExpectedName != "" && (got.Name != tc.ExpectedName) {
-				s.T().Fatalf("got result %+v, expected was %+v", got.ID, tc.ExpectedName)
+
+			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
+				"ID", "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
 			}
 		})
 	}
@@ -356,7 +368,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 	type testCase struct {
 		Description  string
 		UserToUpdate user.User
-		ExpectedName string
+		ExpectedUser user.User
 		Err          error
 	}
 
@@ -367,8 +379,18 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
+				Metadata: metadata.Metadata{
+					"k2": "v2",
+				},
 			},
-			ExpectedName: "Doe John",
+			ExpectedUser: user.User{
+				ID:    s.users[0].ID,
+				Name:  "Doe John",
+				Email: s.users[0].Email,
+				Metadata: metadata.Metadata{
+					"k2": "v2",
+				},
+			},
 		},
 		{
 			Description: "should return error if user not found",
@@ -402,8 +424,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
 				}
 			}
-			if tc.ExpectedName != "" && (got.Name != tc.ExpectedName) {
-				s.T().Fatalf("got result %+v, expected was %+v", got.ID, tc.ExpectedName)
+			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
+				"ID", "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
 			}
 		})
 	}

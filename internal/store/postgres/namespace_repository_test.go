@@ -157,61 +157,77 @@ func (s *NamespaceRepositoryTestSuite) TestCreate() {
 	}
 }
 
-//func (s *NamespaceRepositoryTestSuite) TestList() {
-//	type testCase struct {
-//		Description        string
-//		ExpectedNamespaces []namespace.Namespace
-//		ErrString          string
-//	}
-//
-//	var testCases = []testCase{
-//		{
-//			Description: "should get all namespaces",
-//			ExpectedNamespaces: []namespace.Namespace{
-//				{
-//					ID:   "ns1",
-//					Name: "ns1",
-//				},
-//				{
-//					ID:   "ns2",
-//					Name: "ns2",
-//				},
-//				{
-//					ID:           "back1_r1",
-//					Name:         "Back1 R1",
-//					Backend:      "back1",
-//					ResourceType: "r1",
-//				},
-//				{
-//					ID:           "back1_r2",
-//					Name:         "Back1 R2",
-//					Backend:      "back1",
-//					ResourceType: "r2",
-//				},
-//				{
-//					ID:           "back2_r1",
-//					Name:         "Back2 R1",
-//					Backend:      "back2",
-//					ResourceType: "r1",
-//				},
-//			},
-//		},
-//	}
-//
-//	for _, tc := range testCases {
-//		s.Run(tc.Description, func() {
-//			got, err := s.repository.List(s.ctx)
-//			if tc.ErrString != "" {
-//				if err.Error() != tc.ErrString {
-//					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-//				}
-//			}
-//			if !cmp.Equal(got, tc.ExpectedNamespaces, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
-//				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespaces)
-//			}
-//		})
-//	}
-//}
+func (s *NamespaceRepositoryTestSuite) TestList() {
+	type testCase struct {
+		Description        string
+		ExpectedNamespaces []namespace.Namespace
+		ErrString          string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should get all namespaces",
+			ExpectedNamespaces: []namespace.Namespace{
+				{
+					ID:   "ns1",
+					Name: "ns1",
+				},
+				{
+					ID:   "ns2",
+					Name: "ns2",
+				},
+				{
+					ID:           "back1_r1",
+					Name:         "Back1 R1",
+					Backend:      "back1",
+					ResourceType: "r1",
+				},
+				{
+					ID:           "back1_r2",
+					Name:         "Back1 R2",
+					Backend:      "back1",
+					ResourceType: "r2",
+				},
+				{
+					ID:           "back2_r1",
+					Name:         "Back2 R1",
+					Backend:      "back2",
+					ResourceType: "r1",
+				},
+				{
+					ID:   "shield/group",
+					Name: "shield/group",
+				},
+				{
+					ID:   "shield/project",
+					Name: "shield/project",
+				},
+				{
+					ID:   "shield/organization",
+					Name: "shield/organization",
+				},
+				{
+					ID:   "shield/user",
+					Name: "shield/user",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.List(s.ctx)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.ExpectedNamespaces, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespaces)
+			}
+		})
+	}
+}
 
 func (s *NamespaceRepositoryTestSuite) TestUpdate() {
 	type testCase struct {
