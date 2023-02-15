@@ -2,7 +2,6 @@ package policy
 
 import (
 	"context"
-	"time"
 )
 
 type Repository interface {
@@ -21,8 +20,6 @@ type Policy struct {
 	RoleID      string
 	NamespaceID string
 	ActionID    string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
 }
 
 type Filters struct {
