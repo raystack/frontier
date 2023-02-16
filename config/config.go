@@ -55,9 +55,7 @@ func Load(serverConfigfileFromFlag string) (*Shield, error) {
 
 	l := config.NewLoader(options...)
 	if err := l.Load(conf); err != nil {
-		if errors.As(err, &config.ConfigFileNotFoundError{}) {
-			return nil, errors.New("config file not found")
-		} else {
+		if !errors.As(err, &config.ConfigFileNotFoundError{}) {
 			return nil, err
 		}
 	}
