@@ -153,15 +153,10 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	signal.Notify(keystrokeTermChan, os.Interrupt, os.Kill, syscall.SIGTERM)
 
 	// serving server
-	muxServer, err := server.Serve(ctx, logger, cfg.App, nrApp, deps)
+	err = server.Serve(ctx, logger, cfg.App, nrApp, deps)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		logger.Info("cleaning up server")
-		server.Cleanup(ctx, muxServer)
-	}()
-
 	// wait for termination
 	select {
 	case <-ctx.Done():

@@ -3,9 +3,10 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/odpf/salt/server"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/odpf/shield/internal/api"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"google.golang.org/grpc"
 )
 
 type Handler struct {
@@ -23,8 +24,8 @@ type Handler struct {
 	ruleService      RuleService
 }
 
-func Register(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, deps api.Deps) {
-	gw.RegisterHandler(ctx, shieldv1beta1.RegisterShieldServiceHandlerFromEndpoint)
+func Register(ctx context.Context, address string, s *grpc.Server, gw *runtime.ServeMux, deps api.Deps) {
+	shieldv1beta1.RegisterShieldServiceHandlerFromEndpoint(ctx, gw, address, []grpc.DialOption{grpc.WithInsecure()})
 
 	s.RegisterService(
 		&shieldv1beta1.ShieldService_ServiceDesc,
