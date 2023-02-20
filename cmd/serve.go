@@ -48,7 +48,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	// @TODO: need to inject custom logger wrapper over zap into ctx to use it internally
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGINT)
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
 
 	dbClient, err := setupDB(cfg.DB, logger)
