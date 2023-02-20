@@ -24,8 +24,11 @@ type Handler struct {
 	ruleService      RuleService
 }
 
-func Register(ctx context.Context, address string, s *grpc.Server, gw *runtime.ServeMux, deps api.Deps) {
-	shieldv1beta1.RegisterShieldServiceHandlerFromEndpoint(ctx, gw, address, []grpc.DialOption{grpc.WithInsecure()})
+func Register(ctx context.Context, address string, s *grpc.Server, gw *runtime.ServeMux, deps api.Deps) error {
+	err := shieldv1beta1.RegisterShieldServiceHandlerFromEndpoint(ctx, gw, address, []grpc.DialOption{grpc.WithInsecure()})
+	if err != nil {
+		return err
+	}
 
 	s.RegisterService(
 		&shieldv1beta1.ShieldService_ServiceDesc,
@@ -43,4 +46,6 @@ func Register(ctx context.Context, address string, s *grpc.Server, gw *runtime.S
 			ruleService:      deps.RuleService,
 		},
 	)
+
+	return nil
 }

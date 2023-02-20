@@ -16,7 +16,6 @@ import (
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/mux"
-	"github.com/odpf/salt/server"
 	"github.com/odpf/shield/internal/api"
 	"github.com/odpf/shield/internal/api/v1beta1"
 	"github.com/odpf/shield/internal/server/grpc_interceptors"
@@ -27,21 +26,20 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-/*
-	func registerHandler(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, deps api.Deps) {
-		s.RegisterHandler("/admin*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintf(w, "pong")
-		}))
+func registerHandler(ctx context.Context, sh *http.ServeMux, gw *runtime.ServeMux, sg *grpc.Server, deps api.Deps, address string) error {
+	sh.Handle("/admin*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "pong")
+	}))
 
-		s.RegisterHandler("/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintf(w, "pong")
-		}))
+	sh.Handle("/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "pong")
+	}))
 
-		// grpc gateway api will have version endpoints
-		s.SetGateway("/admin", gw)
-		v1beta1.Register(ctx, s, gw, deps)
-	}
-*/
+	sh.Handle("/admin/", http.StripPrefix("/admin", gw))
+
+	return v1beta1.Register(ctx, address, sg, gw, deps)
+}
+
 func Serve(
 	ctx context.Context,
 	logger log.Logger,
@@ -50,21 +48,17 @@ func Serve(
 	deps api.Deps,
 ) error {
 	httpMux := http.NewServeMux()
-	httpMux.Handle("/admin*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "pong")
-	}))
-
-	httpMux.Handle("/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "pong")
-	}))
 
 	grpcGateway := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})))
-	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
+
 	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
 	reflection.Register(grpcServer)
 
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPCPort)
-	v1beta1.Register(ctx, address, grpcServer, grpcGateway, deps)
+	err := registerHandler(ctx, httpMux, grpcGateway, grpcServer, deps, address)
+	if err != nil {
+		return err
+	}
 
 	logger.Info("[shield] api server starting", "http-port", cfg.HTTPPort, "grpc-port", cfg.GRPCPort)
 
@@ -80,16 +74,12 @@ func Serve(
 		mux.WithGracePeriod(5*time.Second),
 	); !errors.Is(err, context.Canceled) {
 		logger.Error("mux serve error", "err", err)
+		return err
 	}
 
+	logger.Info("server stopped gracefully")
+
 	return nil
-}
-
-func Cleanup(ctx context.Context, s *server.MuxServer) {
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer shutdownCancel()
-
-	s.Shutdown(shutdownCtx)
 }
 
 // REVISIT: passing config.Shield as reference
