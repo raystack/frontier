@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
 
@@ -59,44 +61,26 @@ func Serve(
 	grpcGateway := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})))
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
 	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
-	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	reflection.Register(grpcServer)
 
+	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPCPort)
 	v1beta1.Register(ctx, address, grpcServer, grpcGateway, deps)
 
-	go mux.Serve(
+	logger.Info("[shield] api server starting", "http-port", cfg.HTTPPort, "grpc-port", cfg.GRPCPort)
+
+	if err := mux.Serve(
 		ctx,
-		mux.WithHTTPTarget(":8000", &http.Server{
+		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.HTTPPort), &http.Server{
 			Handler:        httpMux,
 			ReadTimeout:    120 * time.Second,
 			WriteTimeout:   120 * time.Second,
 			MaxHeaderBytes: 1 << 20,
 		}),
-		mux.WithGRPCTarget(":8001", grpcServer),
+		mux.WithGRPCTarget(fmt.Sprintf(":%d", cfg.GRPCPort), grpcServer),
 		mux.WithGracePeriod(5*time.Second),
-	)
-
-	/*v1beta1.Register(ctx, s, gw, deps)
-
-	s, err := server.NewMux(server.Config{
-		Port: cfg.Port,
-	}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(cfg, logger, nrApp)))
-	if err != nil {
-		return nil, err
+	); !errors.Is(err, context.Canceled) {
+		logger.Error("mux serve error", "err", err)
 	}
-
-	gw, err := server.NewGateway("", cfg.Port, server.WithGatewayMuxOptions(
-		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true}))),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	registerHandler(ctx, s, gw, deps)
-	*/
-
-	//go s.Serve()
-
-	logger.Info("[shield] api is up", "port", cfg.Port)
 
 	return nil
 }

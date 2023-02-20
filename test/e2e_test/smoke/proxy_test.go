@@ -54,7 +54,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 			Level: "fatal",
 		},
 		App: server.Config{
-			Port:                      apiPort,
+			HTTPPort:                  apiPort,
 			IdentityProxyHeader:       testbench.IdentityHeader,
 			UserIDHeader:              "user-id-header-value",
 			ResourcesConfigPath:       fmt.Sprintf("file://%s%s", testDataPath, "resource"),

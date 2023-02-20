@@ -1,8 +1,12 @@
 package server
 
 type Config struct {
-	// port to listen on
-	Port int `yaml:"port" mapstructure:"port" default:"8080"`
+	// port to listen HTTP requests on
+	HTTPPort int `yaml:"http_port" mapstructure:"http_port" default:"8080"`
+
+	// port to listen gRPC requests on
+	GRPCPort int `yaml:"grpc_port" mapstructure:"grpc_port" default:"8081"`
+
 	// the network interface to listen on
 	Host string `yaml:"host" mapstructure:"host" default:"127.0.0.1"`
 

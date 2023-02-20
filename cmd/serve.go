@@ -34,7 +34,6 @@ import (
 	"github.com/odpf/shield/pkg/db"
 
 	"github.com/odpf/salt/log"
-	salt_server "github.com/odpf/salt/server"
 	"github.com/pkg/profile"
 	"google.golang.org/grpc/codes"
 )
@@ -49,7 +48,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	// @TODO: need to inject custom logger wrapper over zap into ctx to use it internally
-	ctx, cancelFunc := context.WithCancel(salt_server.HandleSignals(context.Background()))
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
 
 	dbClient, err := setupDB(cfg.DB, logger)
@@ -148,23 +147,10 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		}
 	}()
 
-	keystrokeTermChan := make(chan os.Signal, 1)
-	// we'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-	signal.Notify(keystrokeTermChan, os.Interrupt, os.Kill, syscall.SIGTERM)
-
 	// serving server
 	err = server.Serve(ctx, logger, cfg.App, nrApp, deps)
 	if err != nil {
 		return err
-	}
-	// wait for termination
-	select {
-	case <-ctx.Done():
-		fmt.Printf("process: ctx done bye\n")
-		break
-	case <-keystrokeTermChan:
-		fmt.Printf("process: kill signal received. bye \n")
-		break
 	}
 
 	return nil
