@@ -148,12 +148,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}()
 
 	// serving server
-	err = server.Serve(ctx, logger, cfg.App, nrApp, deps)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return server.Serve(ctx, logger, cfg.App, nrApp, deps)
 }
 
 func buildAPIDependencies(

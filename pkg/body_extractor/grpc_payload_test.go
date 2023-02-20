@@ -1,3 +1,4 @@
+//nolint:govet
 package body_extractor
 
 import (

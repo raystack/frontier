@@ -74,7 +74,7 @@ func Serve(
 		mux.WithGracePeriod(5*time.Second),
 	); !errors.Is(err, context.Canceled) {
 		logger.Error("mux serve error", "err", err)
-		return err
+		return nil
 	}
 
 	logger.Info("server stopped gracefully")
