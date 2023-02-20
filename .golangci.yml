@@ -6,7 +6,6 @@ linters:
   enable-all: false
   disable-all: true
   enable:
-    - vet
     - goimports
     - thelper
     - unconvert
