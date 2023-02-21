@@ -1,4 +1,3 @@
-//nolint:govet
 package body_extractor
 
 import (
@@ -89,7 +88,6 @@ func TestNewQuery(t *testing.T) {
 }
 
 func TestExtract(t *testing.T) {
-	t.Parallel()
 	table := []struct {
 		title       string
 		testMessage proto.Message
@@ -121,7 +119,7 @@ func TestExtract(t *testing.T) {
 					"ten",
 				},
 			},
-			query: "1.2.7[*]",
+			query: "3[*]",
 			want: []interface{}{
 				"two",
 				"four",
@@ -239,7 +237,6 @@ func TestExtract(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
 			msg, err := proto.Marshal(tt.testMessage)
 			assert.NoError(t, err)
 

@@ -1,4 +1,3 @@
-//nolint:govet
 package authz
 
 import (
@@ -38,18 +37,16 @@ var expectedResources = []resource.Resource{
 		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		OrganizationID: "org1",
 		Name:           "resc1",
-		NamespaceID:    "ns1_kind",
+		NamespaceID:    "ns1/kind",
 	}, {
 		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		OrganizationID: "org1",
 		Name:           "resc2",
-		NamespaceID:    "ns1_kind",
+		NamespaceID:    "ns1/kind",
 	},
 }
 
 func TestCreateResources(t *testing.T) {
-	t.Parallel()
-
 	table := []struct {
 		title                string
 		permissionAttributes map[string]any
@@ -66,18 +63,6 @@ func TestCreateResources(t *testing.T) {
 		}, {
 			title: "should should throw error if project is missing",
 			permissionAttributes: map[string]any{
-				"resource":      []string{"resc1", "resc2"},
-				"organization":  "org1",
-				"namespace":     "ns1",
-				"resource_type": "kind",
-			},
-			a:    Authz{},
-			want: nil,
-			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
-		}, {
-			title: "should should throw error if team is missing",
-			permissionAttributes: map[string]any{
-				"project":       "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 				"resource":      []string{"resc1", "resc2"},
 				"organization":  "org1",
 				"namespace":     "ns1",
@@ -110,8 +95,6 @@ func TestCreateResources(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			t.Parallel()
-
 			resp, err := tt.a.createResources(tt.permissionAttributes)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)

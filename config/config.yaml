@@ -6,8 +6,9 @@ log:
   level: debug
 
 app:
-  http_port: 8000
-  grpc_port: 8001
+  port: 8000
+  grpc: 
+    port: 8001
   identity_proxy_header: X-Shield-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:

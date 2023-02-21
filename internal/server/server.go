@@ -121,12 +121,3 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 			nrgrpc.UnaryServerInterceptor(nrApp),
 		))
 }
-
-func customHeaderMatcherFunc(headerKeys map[string]bool) func(key string) (string, bool) {
-	return func(key string) (string, bool) {
-		if _, ok := headerKeys[key]; ok {
-			return key, true
-		}
-		return runtime.DefaultHeaderMatcher(key)
-	}
-}

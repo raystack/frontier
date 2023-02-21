@@ -45,7 +45,7 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 			Level: "fatal",
 		},
 		App: server.Config{
-			HTTPPort:            apiPort,
+			Port:                apiPort,
 			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", wd, "testdata/configs/resources"),
 			RulesPath:           fmt.Sprintf("file://%s/%s", wd, "testdata/configs/rules"),

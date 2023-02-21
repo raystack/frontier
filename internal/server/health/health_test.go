@@ -63,7 +63,6 @@ func TestHealthWatch(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-
 			healthHandler := NewHandler()
 
 			err := healthHandler.Watch(tc.Request, nil)
