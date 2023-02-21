@@ -1,11 +1,21 @@
 package server
 
+import "fmt"
+
+type GRPCConfig struct {
+	Port           int `mapstructure:"port" default:"8081"`
+	MaxRecvMsgSize int `mapstructure:"max_recv_msg_size" default:"33554432"`
+	MaxSendMsgSize int `mapstructure:"max_send_msg_size" default:"33554432"`
+}
+
+func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
+
 type Config struct {
 	// port to listen HTTP requests on
-	HTTPPort int `yaml:"http_port" mapstructure:"http_port" default:"8080"`
+	Port int `yaml:"port" mapstructure:"port" default:"8080"`
 
-	// port to listen gRPC requests on
-	GRPCPort int `yaml:"grpc_port" mapstructure:"grpc_port" default:"8081"`
+	// GRPC Config
+	GRPC GRPCConfig `mapstructure:"grpc"`
 
 	// the network interface to listen on
 	Host string `yaml:"host" mapstructure:"host" default:"127.0.0.1"`
