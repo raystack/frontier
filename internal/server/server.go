@@ -56,6 +56,7 @@ func Serve(
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
+		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),
 	)
 
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
@@ -120,4 +121,13 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 			grpc_ctxtags.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
 		))
+}
+
+func customHeaderMatcherFunc(headerKeys map[string]bool) func(key string) (string, bool) {
+	return func(key string) (string, bool) {
+		if _, ok := headerKeys[key]; ok {
+			return key, true
+		}
+		return runtime.DefaultHeaderMatcher(key)
+	}
 }

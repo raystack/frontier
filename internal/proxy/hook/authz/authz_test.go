@@ -47,6 +47,7 @@ var expectedResources = []resource.Resource{
 }
 
 func TestCreateResources(t *testing.T) {
+	t.Parallel()
 	table := []struct {
 		title                string
 		permissionAttributes map[string]any
@@ -94,7 +95,10 @@ func TestCreateResources(t *testing.T) {
 	}
 
 	for _, tt := range table {
+		tt := tt
 		t.Run(tt.title, func(t *testing.T) {
+			t.Parallel()
+
 			resp, err := tt.a.createResources(tt.permissionAttributes)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)

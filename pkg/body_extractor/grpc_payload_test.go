@@ -88,6 +88,7 @@ func TestNewQuery(t *testing.T) {
 }
 
 func TestExtract(t *testing.T) {
+	t.Parallel()
 	table := []struct {
 		title       string
 		testMessage proto.Message
@@ -236,7 +237,10 @@ func TestExtract(t *testing.T) {
 	testgrpcPayloadHandler := GRPCPayloadHandler{grpcDisabled: true}
 
 	for _, tt := range table {
+		tt := tt
 		t.Run(tt.title, func(t *testing.T) {
+			t.Parallel()
+
 			msg, err := proto.Marshal(tt.testMessage)
 			assert.NoError(t, err)
 
