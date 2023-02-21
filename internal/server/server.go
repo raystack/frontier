@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -14,29 +15,20 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/salt/server"
+	"github.com/odpf/salt/mux"
 	"github.com/odpf/shield/internal/api"
 	"github.com/odpf/shield/internal/api/v1beta1"
 	"github.com/odpf/shield/internal/server/grpc_interceptors"
+	"github.com/odpf/shield/internal/server/health"
+	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
-
-func registerHandler(ctx context.Context, s *server.MuxServer, gw *server.GRPCGateway, deps api.Deps) {
-	s.RegisterHandler("/admin*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "pong")
-	}))
-
-	s.RegisterHandler("/admin/ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "pong")
-	}))
-
-	// grpc gateway api will have version endpoints
-	s.SetGateway("/admin", gw)
-	v1beta1.Register(ctx, s, gw, deps)
-}
 
 func Serve(
 	ctx context.Context,
@@ -44,35 +36,65 @@ func Serve(
 	cfg Config,
 	nrApp newrelic.Application,
 	deps api.Deps,
-) (*server.MuxServer, error) {
-	s, err := server.NewMux(server.Config{
-		Port: cfg.Port,
-	}, server.WithMuxGRPCServerOptions(getGRPCMiddleware(cfg, logger, nrApp)))
+) error {
+	httpMux := http.NewServeMux()
+
+	grpcDialCtx, grpcDialCancel := context.WithTimeout(ctx, time.Second*5)
+	defer grpcDialCancel()
+
+	grpcConn, err := grpc.DialContext(
+		grpcDialCtx,
+		cfg.grpcAddr(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(cfg.GRPC.MaxRecvMsgSize),
+			grpc.MaxCallSendMsgSize(cfg.GRPC.MaxSendMsgSize),
+		))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	gw, err := server.NewGateway("", cfg.Port, server.WithGatewayMuxOptions(
-		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true}))),
+	grpcGateway := runtime.NewServeMux(
+		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
+		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),
 	)
-	if err != nil {
-		return nil, err
+
+	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
+
+	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
+		return err
 	}
 
-	registerHandler(ctx, s, gw, deps)
+	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
+	reflection.Register(grpcServer)
 
-	go s.Serve()
+	healthHandler := health.NewHandler()
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthHandler)
 
-	logger.Info("[shield] api is up", "port", cfg.Port)
+	err = v1beta1.Register(ctx, grpcServer, deps)
+	if err != nil {
+		return err
+	}
 
-	return s, nil
-}
+	logger.Info("[shield] api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port)
 
-func Cleanup(ctx context.Context, s *server.MuxServer) {
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer shutdownCancel()
+	if err := mux.Serve(
+		ctx,
+		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.Port), &http.Server{
+			Handler:        httpMux,
+			ReadTimeout:    120 * time.Second,
+			WriteTimeout:   120 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+		}),
+		mux.WithGRPCTarget(fmt.Sprintf(":%d", cfg.GRPC.Port), grpcServer),
+		mux.WithGracePeriod(5*time.Second),
+	); !errors.Is(err, context.Canceled) {
+		logger.Error("mux serve error", "err", err)
+		return nil
+	}
 
-	s.Shutdown(shutdownCtx)
+	logger.Info("server stopped gracefully")
+	return nil
 }
 
 // REVISIT: passing config.Shield as reference
