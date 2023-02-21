@@ -49,6 +49,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
+require github.com/oklog/run v1.1.0 // indirect
+
 require (
 	cloud.google.com/go v0.108.0 // indirect
 	cloud.google.com/go/compute v1.15.0 // indirect
@@ -120,7 +122,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/schollz/progressbar/v3 v3.13.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
