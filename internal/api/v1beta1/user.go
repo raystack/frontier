@@ -256,7 +256,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 			}
 		}
 	} else {
-		fetchedUser, err := h.userService.GetByEmail(ctx, id)
+		_, err := h.userService.GetByEmail(ctx, id)
 		if err != nil {
 			if err == user.ErrNotExist {
 				createUserResponse, err := h.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{Body: request.GetBody()})
@@ -269,14 +269,10 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 			}
 		}
 
-		for key, value := range metaDataMap {
-			fetchedUser.Metadata[key] = value
-		}
-
 		updatedUser, err = h.userService.UpdateByEmail(ctx, user.User{
 			Name:     request.GetBody().GetName(),
 			Email:    request.GetBody().GetEmail(),
-			Metadata: fetchedUser.Metadata,
+			Metadata: metaDataMap,
 		})
 		if err != nil {
 			logger.Error(err.Error())
