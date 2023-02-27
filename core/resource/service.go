@@ -24,19 +24,25 @@ type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
+type ProjectService interface {
+	Get(ctx context.Context, id string) (project.Project, error)
+}
+
 type Service struct {
 	repository       Repository
 	configRepository ConfigRepository
 	relationService  RelationService
 	userService      UserService
+	projectService   ProjectService
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService) *Service {
 	return &Service{
 		repository:       repository,
 		configRepository: configRepository,
 		relationService:  relationService,
 		userService:      userService,
+		projectService:   projectService,
 	}
 }
 
@@ -52,6 +58,11 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
+	fetchedProject, err := s.projectService.Get(ctx, res.ProjectID)
+	if err != nil {
+		return Resource{}, err
+	}
+
 	userId := res.UserID
 	if strings.TrimSpace(userId) == "" {
 		userId = currentUser.ID
@@ -60,8 +71,8 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	newResource, err := s.repository.Create(ctx, Resource{
 		URN:            urn,
 		Name:           res.Name,
-		OrganizationID: res.OrganizationID,
-		ProjectID:      res.ProjectID,
+		OrganizationID: fetchedProject.Organization.ID,
+		ProjectID:      fetchedProject.ID,
 		NamespaceID:    res.NamespaceID,
 		UserID:         userId,
 	})
@@ -77,7 +88,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.AddOrgToResource(ctx, organization.Organization{ID: res.OrganizationID}, newResource); err != nil {
+	if err = s.AddOrgToResource(ctx, organization.Organization{ID: newResource.OrganizationID}, newResource); err != nil {
 		return Resource{}, err
 	}
 
