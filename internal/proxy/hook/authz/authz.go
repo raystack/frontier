@@ -247,10 +247,10 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 		return nil, err
 	}
 
-	orgs, err := getAttributesValues(permissionAttributes["organization"])
-	if err != nil {
-		return nil, err
-	}
+	//orgs, err := getAttributesValues(permissionAttributes["organization"])
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	// TODO(krtkvrm): this will be decided on type of principal
 	//teams, err := getAttributesValues(permissionAttributes["team"])
@@ -273,23 +273,21 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 		return nil, err
 	}
 
-	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
+	if len(projects) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
 		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
 
 	// TODO(krtkvrm): needs revision
-	for _, org := range orgs {
-		for _, project := range projects {
-			for _, res := range resourceList {
-				resources = append(resources, resource.Resource{
-					Name:           res,
-					OrganizationID: org,
-					ProjectID:      project,
-					NamespaceID:    namespace.CreateID(backendNamespace[0], resourceType[0]),
-				})
-			}
+	for _, project := range projects {
+		for _, res := range resourceList {
+			resources = append(resources, resource.Resource{
+				Name:        res,
+				ProjectID:   project,
+				NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
+			})
 		}
 	}
+
 	return resources, nil
 }
 

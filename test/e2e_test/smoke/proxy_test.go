@@ -136,7 +136,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	}
 	s.orgID = orgID
 
-	projCreationQuery := fmt.Sprintf("INSERT INTO projects (name, slug, org_id) VALUES ('Shield', 'shield proj', '%s') ON CONFLICT DO NOTHING", orgID)
+	projCreationQuery := fmt.Sprintf("INSERT INTO projects (name, slug, org_id, metadata) VALUES ('Shield', 'shield proj', '%s', '{}') ON CONFLICT DO NOTHING", orgID)
 	_, err = dbClient.DB.Query(projCreationQuery)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))

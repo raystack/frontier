@@ -191,7 +191,8 @@ func buildAPIDependencies(
 		resourcePGRepository,
 		resourceBlobRepository,
 		relationService,
-		userService)
+		userService,
+		projectService)
 
 	dependencies := api.Deps{
 		OrgService:       organizationService,

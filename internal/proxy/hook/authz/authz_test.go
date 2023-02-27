@@ -34,15 +34,13 @@ var testPermissionAttributesMap = map[string]any{
 
 var expectedResources = []resource.Resource{
 	{
-		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		OrganizationID: "org1",
-		Name:           "resc1",
-		NamespaceID:    "ns1/kind",
+		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		Name:        "resc1",
+		NamespaceID: "ns1/kind",
 	}, {
-		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		OrganizationID: "org1",
-		Name:           "resc2",
-		NamespaceID:    "ns1/kind",
+		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		Name:        "resc2",
+		NamespaceID: "ns1/kind",
 	},
 }
 
@@ -65,7 +63,6 @@ func TestCreateResources(t *testing.T) {
 			title: "should should throw error if project is missing",
 			permissionAttributes: map[string]any{
 				"resource":      []string{"resc1", "resc2"},
-				"organization":  "org1",
 				"namespace":     "ns1",
 				"resource_type": "kind",
 			},
@@ -76,7 +73,6 @@ func TestCreateResources(t *testing.T) {
 			title: "success/should return resource",
 			permissionAttributes: map[string]any{
 				"project":       "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-				"organization":  "org2",
 				"resource":      "res1",
 				"namespace":     "ns1",
 				"resource_type": "type",
@@ -84,10 +80,9 @@ func TestCreateResources(t *testing.T) {
 			a: Authz{},
 			want: []resource.Resource{
 				{
-					ProjectID:      "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-					OrganizationID: "org2",
-					Name:           "res1",
-					NamespaceID:    "ns1/type",
+					ProjectID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+					Name:        "res1",
+					NamespaceID: "ns1/type",
 				},
 			},
 			err: nil,
@@ -285,11 +280,6 @@ func TestServeHook(t *testing.T) {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
 							},
-							"organization": {
-								Type:   "header",
-								Key:    "organization",
-								Source: "request",
-							},
 							"resource": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["resource"].([]string)[0],
@@ -317,10 +307,9 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:           testPermissionAttributesMap["resource"].([]string)[0],
-			OrganizationID: testPermissionAttributesMap["organization"].(string),
-			ProjectID:      testPermissionAttributesMap["project"].(string),
-			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			Name:        testPermissionAttributesMap["resource"].([]string)[0],
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
@@ -361,11 +350,6 @@ func TestServeHook(t *testing.T) {
 							"project": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
-							},
-							"organization": {
-								Type:   "header",
-								Key:    "organization",
-								Source: "request",
 							},
 							"resource": {
 								Type: "json_payload",
@@ -414,10 +398,9 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:           "bar",
-			OrganizationID: testPermissionAttributesMap["organization"].(string),
-			ProjectID:      testPermissionAttributesMap["project"].(string),
-			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			Name:        "bar",
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
