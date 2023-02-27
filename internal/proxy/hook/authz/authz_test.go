@@ -36,11 +36,11 @@ var expectedResources = []resource.Resource{
 	{
 		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name:        "resc1",
-		NamespaceID: "ns1_kind",
+		NamespaceID: "ns1/kind",
 	}, {
 		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name:        "resc2",
-		NamespaceID: "ns1_kind",
+		NamespaceID: "ns1/kind",
 	},
 }
 
