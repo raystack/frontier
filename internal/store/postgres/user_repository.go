@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -228,6 +229,14 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 		switch {
 		case errors.Is(err, errDuplicateKey):
 			return user.User{}, user.ErrConflict
+		case errors.Is(err, errForeignKeyViolation):
+			re := regexp.MustCompile(`\(([^)]+)\) `)
+			match := re.FindStringSubmatch(err.Error())
+			if len(match) > 1 {
+				return user.User{}, fmt.Errorf("%w:%s", user.ErrKeyDoesNotExists, match[1])
+			}
+			return user.User{}, user.ErrKeyDoesNotExists
+
 		default:
 			tx.Rollback()
 			return user.User{}, err

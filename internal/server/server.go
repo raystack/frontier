@@ -20,6 +20,7 @@ import (
 	"github.com/odpf/shield/internal/api/v1beta1"
 	"github.com/odpf/shield/internal/server/grpc_interceptors"
 	"github.com/odpf/shield/internal/server/health"
+	"github.com/odpf/shield/pkg/telemetry"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -76,12 +77,26 @@ func Serve(
 		return err
 	}
 
-	logger.Info("[shield] api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port)
+	pe, err := telemetry.SetupOpenCensus(ctx, cfg.TelemetryConfig)
+	if err != nil {
+		logger.Error("failed to setup OpenCensus", "err", err)
+	}
+
+	httpMuxMetrics := http.NewServeMux()
+	httpMuxMetrics.Handle("/metrics", pe)
+
+	logger.Info("[shield] api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 
 	if err := mux.Serve(
 		ctx,
 		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.Port), &http.Server{
 			Handler:        httpMux,
+			ReadTimeout:    120 * time.Second,
+			WriteTimeout:   120 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+		}),
+		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.MetricsPort), &http.Server{
+			Handler:        httpMuxMetrics,
 			ReadTimeout:    120 * time.Second,
 			WriteTimeout:   120 * time.Second,
 			MaxHeaderBytes: 1 << 20,
