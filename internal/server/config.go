@@ -1,6 +1,10 @@
 package server
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/odpf/shield/pkg/telemetry"
+)
 
 type GRPCConfig struct {
 	Port           int `mapstructure:"port" default:"8081"`
@@ -16,6 +20,9 @@ type Config struct {
 
 	// GRPC Config
 	GRPC GRPCConfig `mapstructure:"grpc"`
+
+	//metrics port
+	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
 
 	// the network interface to listen on
 	Host string `yaml:"host" mapstructure:"host" default:"127.0.0.1"`
@@ -43,4 +50,6 @@ type Config struct {
 	// ResourcesPathSecretSecret could be a env name, file path or actual value required
 	// to access ResourcesPathSecretPath files
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
+
+	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
 }
