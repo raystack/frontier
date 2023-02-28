@@ -62,13 +62,6 @@ func Serve(
 
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
 
-	pe, err := telemetry.SetupOpenCensus(ctx, cfg.TelemetryConfig)
-	if err != nil {
-		logger.Error("failed to setup OpenCensus", "err", err)
-	}
-
-	httpMux.Handle("/metrics", pe)
-
 	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
@@ -84,12 +77,26 @@ func Serve(
 		return err
 	}
 
-	logger.Info("[shield] api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port)
+	pe, err := telemetry.SetupOpenCensus(ctx, cfg.TelemetryConfig)
+	if err != nil {
+		logger.Error("failed to setup OpenCensus", "err", err)
+	}
+
+	httpMuxMetrics := http.NewServeMux()
+	httpMuxMetrics.Handle("/metrics", pe)
+
+	logger.Info("[shield] api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 
 	if err := mux.Serve(
 		ctx,
 		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.Port), &http.Server{
 			Handler:        httpMux,
+			ReadTimeout:    120 * time.Second,
+			WriteTimeout:   120 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+		}),
+		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.MetricsPort), &http.Server{
+			Handler:        httpMuxMetrics,
 			ReadTimeout:    120 * time.Second,
 			WriteTimeout:   120 * time.Second,
 			MaxHeaderBytes: 1 << 20,

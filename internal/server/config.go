@@ -21,6 +21,9 @@ type Config struct {
 	// GRPC Config
 	GRPC GRPCConfig `mapstructure:"grpc"`
 
+	//metrics port
+	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
+
 	// the network interface to listen on
 	Host string `yaml:"host" mapstructure:"host" default:"127.0.0.1"`
 
