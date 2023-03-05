@@ -23,13 +23,13 @@ type UserRepository struct {
 }
 
 type joinUserMetadata struct {
-	ID        string    `db:"id"`
-	Name      string    `db:"name"`
-	Email     string    `db:"email"`
-	Key       any       `db:"key"`
-	Value     any       `db:"value"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID        string         `db:"id"`
+	Name      string         `db:"name"`
+	Email     string         `db:"email"`
+	Key       any            `db:"key"`
+	Value     sql.NullString `db:"value"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
 }
 
 func NewUserRepository(dbc *db.Client) *UserRepository {
@@ -108,11 +108,19 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 
 		for {
 			var key string
-			var value any
+			var valuejson string
 			if !metadata.Next() {
 				break
 			}
-			metadata.Scan(&key, &value)
+			err := metadata.Scan(&key, &valuejson)
+			if err != nil {
+				return err
+			}
+			var value any
+			err = json.Unmarshal([]byte(valuejson), &value)
+			if err != nil {
+				return err
+			}
 			data[key] = value
 		}
 
@@ -193,19 +201,22 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	}
 
 	var rows []interface{}
-	for key, value := range usr.Metadata {
-		valuejson, err := json.Marshal(value)
+	for k, v := range usr.Metadata {
+		valuejson, err := json.Marshal(v)
 		if err != nil {
 			valuejson = []byte{}
 		}
 
 		rows = append(rows, goqu.Record{
 			"user_id": transformedUser.ID,
-			"key":     key,
-			"value":   string(valuejson),
+			"key":     k,
+			"value":   valuejson,
 		})
 	}
 	metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
+	if err != nil {
+		return user.User{}, err
+	}
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -313,7 +324,13 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		}
 
 		if u.Key != nil {
-			currentUser.Metadata[u.Key.(string)] = u.Value
+			var value any
+			err := json.Unmarshal([]byte(u.Value.String), &value)
+			if err != nil {
+				continue
+			}
+
+			currentUser.Metadata[u.Key.(string)] = value
 		}
 
 		groupedMetadataByUser[u.ID] = currentUser
@@ -460,11 +477,21 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 
 				for {
 					var key string
-					var value any
+					var valuejson string
 					if !metadata.Next() {
 						break
 					}
-					metadata.Scan(&key, &value)
+					err := metadata.Scan(&key, &valuejson)
+					if err != nil {
+						return err
+					}
+
+					var value any
+					err = json.Unmarshal([]byte(valuejson), &value)
+					if err != nil {
+						return err
+					}
+
 					userMetadata[key] = value
 				}
 
@@ -485,6 +512,9 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 						"user_id": transformedUser.ID,
 					},
 				).ToSQL()
+			if err != nil {
+				return nil
+			}
 
 			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 				nrCtx := newrelic.FromContext(ctx)
@@ -518,25 +548,21 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 			}
 
 			var rows []interface{}
-			var valuejson []byte
-
 			for k, v := range userMetadata {
-				vstring, ok := v.(string)
-				if !ok {
-					valuejson, err = json.Marshal(v)
-					if err != nil {
-						valuejson = []byte{}
-					}
-					vstring = string(valuejson)
+				valuejson, err := json.Marshal(v)
+				if err != nil {
+					return err
 				}
-
 				rows = append(rows, goqu.Record{
 					"user_id": transformedUser.ID,
 					"key":     k,
-					"value":   vstring,
+					"value":   valuejson,
 				})
 			}
 			metadataQuery, params, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
+			if err != nil {
+				return err
+			}
 
 			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 				nrCtx := newrelic.FromContext(ctx)
@@ -573,7 +599,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		return user.User{}, err
 	}
 
-	transformedUser.Metadata = usr.Metadata
+	transformedUser.Metadata = userMetadata
 
 	return transformedUser, nil
 }
@@ -646,6 +672,9 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 					"user_id": transformedUser.ID,
 				},
 			).ToSQL()
+		if err != nil {
+			return nil
+		}
 
 		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 			nrCtx := newrelic.FromContext(ctx)
@@ -676,25 +705,23 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 
 		if len(usr.Metadata) > 0 {
 			var rows []interface{}
-			var valuejson []byte
 
 			for k, v := range usr.Metadata {
-				vstring, ok := v.(string)
-				if !ok {
-					valuejson, err = json.Marshal(v)
-					if err != nil {
-						valuejson = []byte{}
-					}
-					vstring = string(valuejson)
+				valuejson, err := json.Marshal(v)
+				if err != nil {
+					valuejson = []byte{}
 				}
 
 				rows = append(rows, goqu.Record{
 					"user_id": transformedUser.ID,
 					"key":     k,
-					"value":   vstring,
+					"value":   valuejson,
 				})
 			}
 			metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
+			if err != nil {
+				return err
+			}
 
 			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 				nrCtx := newrelic.FromContext(ctx)

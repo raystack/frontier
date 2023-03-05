@@ -30,11 +30,11 @@ type NewRelic struct {
 	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
 }
 
-func Load(serverConfigfileFromFlag string) (*Shield, error) {
+func Load(serverConfigFileFromFlag string) (*Shield, error) {
 	conf := &Shield{}
 
 	var options []config.LoaderOption
-	options = append(options, config.WithName("config.yaml"))
+	options = append(options, config.WithName("config"))
 	options = append(options, config.WithEnvKeyReplacer(".", "_"))
 	options = append(options, config.WithEnvPrefix("SHIELD"))
 	if p, err := os.Getwd(); err == nil {
@@ -49,8 +49,8 @@ func Load(serverConfigfileFromFlag string) (*Shield, error) {
 	}
 
 	// override all config sources and prioritize one from file
-	if serverConfigfileFromFlag != "" {
-		options = []config.LoaderOption{config.WithFile(serverConfigfileFromFlag)}
+	if serverConfigFileFromFlag != "" {
+		options = []config.LoaderOption{config.WithFile(serverConfigFileFromFlag)}
 	}
 
 	l := config.NewLoader(options...)

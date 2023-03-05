@@ -18,7 +18,7 @@ generate: ## run all go generate in the code base (including generating mock fil
 lint: ## Run linters
 	golangci-lint run
 
-# TODO: create seperate command for integration tests
+# TODO: create separate command for integration tests
 test: ## Run tests
 	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
 
