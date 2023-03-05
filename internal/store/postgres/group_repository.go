@@ -427,8 +427,8 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 		goqu.I("g.created_at").As("created_at"),
 		goqu.I("g.org_id").As("org_id"),
 	).
-		From(goqu.L("relations r")).
-		Join(goqu.L("groups g"), goqu.On(
+		From(goqu.T(TABLE_RELATIONS).As("r")).
+		Join(goqu.T(TABLE_GROUPS).As("g"), goqu.On(
 			goqu.I("g.id").Cast("VARCHAR").
 				Eq(goqu.I("r.object_id")),
 		)).
