@@ -188,8 +188,8 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 			report = append(report, []string{"ID", "ACTION", "NAMESPACE"})
 			report = append(report, []string{
 				policy.GetId(),
-				policy.GetAction().GetId(),
-				policy.GetNamespace().GetId(),
+				policy.GetActionId(),
+				policy.GetNamespaceId(),
 			})
 			printer.Table(os.Stdout, report)
 
@@ -242,8 +242,8 @@ func listPolicyCommand(cliConfig *Config) *cli.Command {
 			for _, p := range policies {
 				report = append(report, []string{
 					p.GetId(),
-					p.GetAction().GetId(),
-					p.GetNamespace().GetId(),
+					p.GetActionId(),
+					p.GetNamespaceId(),
 				})
 			}
 			printer.Table(os.Stdout, report)

@@ -7,7 +7,6 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
@@ -154,8 +153,9 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 
 func transformPolicyToPB(policy policy.Policy) (shieldv1beta1.Policy, error) {
 	return shieldv1beta1.Policy{
-		Id:        policy.ID,
-		CreatedAt: timestamppb.New(policy.CreatedAt),
-		UpdatedAt: timestamppb.New(policy.UpdatedAt),
+		Id:          policy.ID,
+		RoleId:      policy.RoleID,
+		ActionId:    policy.ActionID,
+		NamespaceId: policy.NamespaceID,
 	}, nil
 }

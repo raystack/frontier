@@ -25,30 +25,12 @@ func NewPolicyRepository(dbc *db.Client) *PolicyRepository {
 }
 
 func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
-	selectStatement := dialect.Select(
+	return dialect.Select(
 		"p.id",
 		"p.namespace_id",
-		goqu.I("roles.id").As(goqu.C("role.id")),
-		goqu.I("roles.name").As(goqu.C("role.name")),
-		goqu.I("roles.types").As(goqu.C("role.types")),
-		goqu.I("roles.namespace_id").As(goqu.C("role.namespace_id")),
-		goqu.I("roles.namespace_id").As(goqu.C("role.namespace.id")),
-		goqu.I("roles.metadata").As(goqu.C("role.metadata")),
-		goqu.I("namespaces.id").As(goqu.C("namespace.id")),
-		goqu.I("namespaces.name").As(goqu.C("namespace.name")),
-		goqu.I("actions.id").As(goqu.C("action.id")),
-		goqu.I("actions.name").As(goqu.C("action.name")),
-		goqu.I("actions.namespace_id").As(goqu.C("action.namespace_id")),
-		goqu.I("actions.namespace_id").As(goqu.C("action.namespace.id")),
+		"p.action_id",
+		"p.role_id",
 	).From(goqu.T(TABLE_POLICIES).As("p"))
-
-	return selectStatement.Join(goqu.T(TABLE_ROLES), goqu.On(
-		goqu.I("roles.id").Eq(goqu.I("p.role_id")),
-	)).Join(goqu.T(TABLE_ACTIONS), goqu.On(
-		goqu.I("actions.id").Eq(goqu.I("p.action_id")),
-	)).Join(goqu.T(TABLE_NAMESPACES), goqu.On(
-		goqu.I("namespaces.id").Eq(goqu.I("p.namespace_id")),
-	))
 }
 
 func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, error) {
