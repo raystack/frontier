@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
@@ -14,7 +13,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -56,7 +54,10 @@ func TestListPolicies(t *testing.T) {
 			},
 			want: &shieldv1beta1.ListPoliciesResponse{Policies: []*shieldv1beta1.Policy{
 				{
-					Id: testPolicyID,
+					Id:          testPolicyID,
+					ActionId:    "read",
+					NamespaceId: "policy-1",
+					RoleId:      "reader",
 					// @TODO(krtkvrm): issues/171
 					//Action: &shieldv1beta1.Action{
 					//	Id:   "read",
@@ -91,8 +92,6 @@ func TestListPolicies(t *testing.T) {
 					//	CreatedAt: timestamppb.New(time.Time{}),
 					//	UpdatedAt: timestamppb.New(time.Time{}),
 					//},
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
 				},
 			}},
 			err: nil,
@@ -178,7 +177,10 @@ func TestCreatePolicy(t *testing.T) {
 			}},
 			want: &shieldv1beta1.CreatePolicyResponse{Policies: []*shieldv1beta1.Policy{
 				{
-					Id: "test",
+					Id:          "test",
+					NamespaceId: "policy-1",
+					ActionId:    "read",
+					RoleId:      "reader",
 					// @TODO(krtkvrm): issues/171
 					//Action: &shieldv1beta1.Action{
 					//	Id:   "read",
@@ -213,8 +215,6 @@ func TestCreatePolicy(t *testing.T) {
 					//	CreatedAt: timestamppb.New(time.Time{}),
 					//	UpdatedAt: timestamppb.New(time.Time{}),
 					//},
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
 				},
 			}},
 			err: nil,
@@ -295,7 +295,10 @@ func TestHandler_GetPolicy(t *testing.T) {
 			},
 			want: &shieldv1beta1.GetPolicyResponse{
 				Policy: &shieldv1beta1.Policy{
-					Id: testPolicyID,
+					Id:          testPolicyID,
+					ActionId:    "read",
+					NamespaceId: "policy-1",
+					RoleId:      "reader",
 					// // @TODO(krtkvrm): issues/171
 					//Role: &shieldv1beta1.Role{
 					//	Id:   testPolicyMap[testPolicyID].Role.ID,
@@ -332,8 +335,6 @@ func TestHandler_GetPolicy(t *testing.T) {
 					//	CreatedAt: timestamppb.New(time.Time{}),
 					//	UpdatedAt: timestamppb.New(time.Time{}),
 					//},
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
 				},
 			},
 			wantErr: nil,
@@ -510,7 +511,10 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 			want: &shieldv1beta1.UpdatePolicyResponse{
 				Policies: []*shieldv1beta1.Policy{
 					{
-						Id: testPolicyID,
+						Id:          testPolicyID,
+						ActionId:    "read",
+						NamespaceId: "policy-1",
+						RoleId:      "reader",
 						// @TODO(krtkvrm): issues/171
 						//Role: &shieldv1beta1.Role{
 						//	Id:   testPolicyMap[testPolicyID].Role.ID,
@@ -547,8 +551,6 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 						//	CreatedAt: timestamppb.New(time.Time{}),
 						//	UpdatedAt: timestamppb.New(time.Time{}),
 						//},
-						CreatedAt: timestamppb.New(time.Time{}),
-						UpdatedAt: timestamppb.New(time.Time{}),
 					},
 				},
 			},

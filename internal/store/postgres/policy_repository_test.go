@@ -128,7 +128,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedPolicy, cmpopts.IgnoreFields(policy.Policy{},
-				"ID", "CreatedAt", "UpdatedAt")) {
+				"ID")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicy)
 			}
 		})
@@ -236,7 +236,7 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			}
 			//TODO figure out how to compare metadata map[string]any
 			if !cmp.Equal(got, tc.ExpectedPolicys, cmpopts.IgnoreFields(policy.Policy{},
-				"ID", "CreatedAt", "UpdatedAt")) {
+				"ID")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicys)
 			}
 		})
