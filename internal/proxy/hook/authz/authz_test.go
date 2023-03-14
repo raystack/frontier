@@ -1,8 +1,10 @@
 package authz
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -32,21 +34,18 @@ var testPermissionAttributesMap = map[string]any{
 
 var expectedResources = []resource.Resource{
 	{
-		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		OrganizationID: "org1",
-		Name:           "resc1",
-		NamespaceID:    "ns1_kind",
+		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		Name:        "resc1",
+		NamespaceID: "ns1/kind",
 	}, {
-		ProjectID:      "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		OrganizationID: "org1",
-		Name:           "resc2",
-		NamespaceID:    "ns1_kind",
+		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		Name:        "resc2",
+		NamespaceID: "ns1/kind",
 	},
 }
 
 func TestCreateResources(t *testing.T) {
 	t.Parallel()
-
 	table := []struct {
 		title                string
 		permissionAttributes map[string]any
@@ -64,19 +63,6 @@ func TestCreateResources(t *testing.T) {
 			title: "should should throw error if project is missing",
 			permissionAttributes: map[string]any{
 				"resource":      []string{"resc1", "resc2"},
-				"organization":  "org1",
-				"namespace":     "ns1",
-				"resource_type": "kind",
-			},
-			a:    Authz{},
-			want: nil,
-			err:  fmt.Errorf("namespace, resource type, projects, resource, and team are required"),
-		}, {
-			title: "should should throw error if team is missing",
-			permissionAttributes: map[string]any{
-				"project":       "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-				"resource":      []string{"resc1", "resc2"},
-				"organization":  "org1",
 				"namespace":     "ns1",
 				"resource_type": "kind",
 			},
@@ -87,7 +73,6 @@ func TestCreateResources(t *testing.T) {
 			title: "success/should return resource",
 			permissionAttributes: map[string]any{
 				"project":       "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-				"organization":  "org2",
 				"resource":      "res1",
 				"namespace":     "ns1",
 				"resource_type": "type",
@@ -95,10 +80,9 @@ func TestCreateResources(t *testing.T) {
 			a: Authz{},
 			want: []resource.Resource{
 				{
-					ProjectID:      "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-					OrganizationID: "org2",
-					Name:           "res1",
-					NamespaceID:    "ns1/type",
+					ProjectID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+					Name:        "res1",
+					NamespaceID: "ns1/type",
 				},
 			},
 			err: nil,
@@ -106,6 +90,7 @@ func TestCreateResources(t *testing.T) {
 	}
 
 	for _, tt := range table {
+		tt := tt
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
 
@@ -295,10 +280,6 @@ func TestServeHook(t *testing.T) {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
 							},
-							"organization": {
-								Type:  "constant",
-								Value: testPermissionAttributesMap["organization"].(string),
-							},
 							"resource": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["resource"].([]string)[0],
@@ -323,12 +304,12 @@ func TestServeHook(t *testing.T) {
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
 		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:           testPermissionAttributesMap["resource"].([]string)[0],
-			OrganizationID: testPermissionAttributesMap["organization"].(string),
-			ProjectID:      testPermissionAttributesMap["project"].(string),
-			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			Name:        testPermissionAttributesMap["resource"].([]string)[0],
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
@@ -351,10 +332,106 @@ func TestServeHook(t *testing.T) {
 
 	t.Run("should not change status code if relations are set", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
+		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{"foo" : "bar"}`)))
 
 		response := &http.Response{
 			Request: req,
 			Header:  http.Header{},
+			Body:    body,
+		}
+		response.StatusCode = 200
+
+		rl := &rule.Rule{
+			Hooks: rule.HookSpecs{
+				rule.HookSpec{
+					Name: "authz",
+					Config: map[string]interface{}{
+						"attributes": map[string]hook.Attribute{
+							"project": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["project"].(string),
+							},
+							"resource": {
+								Type: "json_payload",
+								Key:  "foo",
+							},
+							"namespace": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["namespace"].(string),
+							},
+							"resource_type": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["resource_type"].(string),
+							},
+							"group": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["group"].(string),
+							},
+							"user": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["user"].(string),
+							},
+						},
+						"relations": []Relation{
+							{
+								Role:               "owner",
+								SubjectPrincipal:   "group",
+								SubjectIDAttribute: "group",
+							},
+							{
+								Role:               "owner",
+								SubjectPrincipal:   "user",
+								SubjectIDAttribute: "user",
+							},
+						},
+					},
+				},
+			},
+			Backend: rule.Backend{
+				Namespace: "ns1",
+			},
+		}
+
+		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
+
+		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("organization", "org1")
+
+		rsc := resource.Resource{
+			Name:        "bar",
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+		}
+
+		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+			Idxa:           uuid.NewString(),
+			URN:            "new-resource-urn",
+			ProjectID:      rsc.ProjectID,
+			OrganizationID: rsc.OrganizationID,
+			NamespaceID:    rsc.NamespaceID,
+			UserID:         "user@odpf.io",
+			Name:           "bar",
+			CreatedAt:      time.Time{},
+			UpdatedAt:      time.Time{},
+		}, nil)
+
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
+			relation.RelationV2{}, nil)
+
+		resp, err := a.ServeHook(response, nil)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("should throw internal server error when header type attributes is missing", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
+		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{"foo": "bar"}`)))
+
+		response := &http.Response{
+			Request: req,
+			Header:  http.Header{},
+			Body:    body,
 		}
 		response.StatusCode = 200
 
@@ -369,12 +446,13 @@ func TestServeHook(t *testing.T) {
 								Value: testPermissionAttributesMap["project"].(string),
 							},
 							"organization": {
-								Type:  "constant",
-								Value: testPermissionAttributesMap["organization"].(string),
+								Type:   "header",
+								Key:    "organization",
+								Source: "request",
 							},
 							"resource": {
-								Type:  "constant",
-								Value: testPermissionAttributesMap["resource"].([]string)[0],
+								Type: "json_payload",
+								Key:  "foo",
 							},
 							"namespace": {
 								Type:  "constant",
@@ -418,7 +496,7 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
 
 		rsc := resource.Resource{
-			Name:           testPermissionAttributesMap["resource"].([]string)[0],
+			Name:           "bar",
 			OrganizationID: testPermissionAttributesMap["organization"].(string),
 			ProjectID:      testPermissionAttributesMap["project"].(string),
 			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
@@ -431,7 +509,7 @@ func TestServeHook(t *testing.T) {
 			OrganizationID: rsc.OrganizationID,
 			NamespaceID:    rsc.NamespaceID,
 			UserID:         "user@odpf.io",
-			Name:           rsc.Name,
+			Name:           "bar",
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},
 		}, nil)
@@ -442,6 +520,205 @@ func TestServeHook(t *testing.T) {
 		resp, err := a.ServeHook(response, nil)
 
 		assert.Nil(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+
+	t.Run("should throw internal server error when json_payload type attributes is missing", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
+		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{}`)))
+
+		response := &http.Response{
+			Request: req,
+			Header:  http.Header{},
+			Body:    body,
+		}
+		response.StatusCode = 200
+
+		rl := &rule.Rule{
+			Hooks: rule.HookSpecs{
+				rule.HookSpec{
+					Name: "authz",
+					Config: map[string]interface{}{
+						"attributes": map[string]hook.Attribute{
+							"project": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["project"].(string),
+							},
+							"organization": {
+								Type:   "header",
+								Key:    "organization",
+								Source: "request",
+							},
+							"resource": {
+								Type: "json_payload",
+								Key:  "foo",
+							},
+							"namespace": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["namespace"].(string),
+							},
+							"resource_type": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["resource_type"].(string),
+							},
+							"group": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["group"].(string),
+							},
+							"user": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["user"].(string),
+							},
+						},
+						"relations": []Relation{
+							{
+								Role:               "owner",
+								SubjectPrincipal:   "group",
+								SubjectIDAttribute: "group",
+							},
+							{
+								Role:               "owner",
+								SubjectPrincipal:   "user",
+								SubjectIDAttribute: "user",
+							},
+						},
+					},
+				},
+			},
+			Backend: rule.Backend{
+				Namespace: "ns1",
+			},
+		}
+
+		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
+
+		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("organization", "org1")
+
+		rsc := resource.Resource{
+			Name:           "bar",
+			OrganizationID: testPermissionAttributesMap["organization"].(string),
+			ProjectID:      testPermissionAttributesMap["project"].(string),
+			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+		}
+
+		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+			Idxa:           uuid.NewString(),
+			URN:            "new-resource-urn",
+			ProjectID:      rsc.ProjectID,
+			OrganizationID: rsc.OrganizationID,
+			NamespaceID:    rsc.NamespaceID,
+			UserID:         "user@odpf.io",
+			Name:           "bar",
+			CreatedAt:      time.Time{},
+			UpdatedAt:      time.Time{},
+		}, nil)
+
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
+			relation.RelationV2{}, nil)
+
+		resp, err := a.ServeHook(response, nil)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	})
+
+	t.Run("should throw internal server error when constant type attributes is missing", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
+		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{"foo": "bar"}`)))
+
+		response := &http.Response{
+			Request: req,
+			Header:  http.Header{},
+			Body:    body,
+		}
+		response.StatusCode = 200
+
+		rl := &rule.Rule{
+			Hooks: rule.HookSpecs{
+				rule.HookSpec{
+					Name: "authz",
+					Config: map[string]interface{}{
+						"attributes": map[string]hook.Attribute{
+							"project": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["project"].(string),
+							},
+							"organization": {
+								Type:   "header",
+								Key:    "organization",
+								Source: "request",
+							},
+							"resource": {
+								Type: "json_payload",
+								Key:  "foo",
+							},
+							"namespace": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["namespace"].(string),
+							},
+							"resource_type": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["resource_type"].(string),
+							},
+							"group": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["group"].(string),
+							},
+							"user": {
+								Type: "constant",
+							},
+						},
+						"relations": []Relation{
+							{
+								Role:               "owner",
+								SubjectPrincipal:   "group",
+								SubjectIDAttribute: "group",
+							},
+							{
+								Role:               "owner",
+								SubjectPrincipal:   "user",
+								SubjectIDAttribute: "user",
+							},
+						},
+					},
+				},
+			},
+			Backend: rule.Backend{
+				Namespace: "ns1",
+			},
+		}
+
+		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
+
+		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("organization", "org1")
+
+		rsc := resource.Resource{
+			Name:           "bar",
+			OrganizationID: testPermissionAttributesMap["organization"].(string),
+			ProjectID:      testPermissionAttributesMap["project"].(string),
+			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+		}
+
+		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+			Idxa:           uuid.NewString(),
+			URN:            "new-resource-urn",
+			ProjectID:      rsc.ProjectID,
+			OrganizationID: rsc.OrganizationID,
+			NamespaceID:    rsc.NamespaceID,
+			UserID:         "user@odpf.io",
+			Name:           "bar",
+			CreatedAt:      time.Time{},
+			UpdatedAt:      time.Time{},
+		}, nil)
+
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
+			relation.RelationV2{}, nil)
+
+		resp, err := a.ServeHook(response, nil)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
 }

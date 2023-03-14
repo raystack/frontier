@@ -8,7 +8,8 @@ proxies/*.yml
 .temp
 temp
 shield
-/config.yaml
+config.yaml
+config.yml
 dist
 coverage.txt
 coverage.out
@@ -18,4 +19,5 @@ vendor/
 buf.lock
 buf.yaml
 /resources_config
+resource_config
 /rules

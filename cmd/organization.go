@@ -35,8 +35,6 @@ func OrganizationCommand(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(editOrganizationCommand(cliConfig))
 	cmd.AddCommand(viewOrganizationCommand(cliConfig))
 	cmd.AddCommand(listOrganizationCommand(cliConfig))
-	cmd.AddCommand(admaddOrganizationCommand(cliConfig))
-	cmd.AddCommand(admremoveOrganizationCommand(cliConfig))
 	cmd.AddCommand(admlistOrganizationCommand(cliConfig))
 
 	bindFlagsFromClientConfig(cmd)
@@ -275,104 +273,6 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 			return nil
 		},
 	}
-
-	return cmd
-}
-
-func admaddOrganizationCommand(cliConfig *Config) *cli.Command {
-	var filePath string
-
-	cmd := &cli.Command{
-		Use:   "admadd",
-		Short: "add admins to an organization",
-		Args:  cli.ExactArgs(1),
-		Example: heredoc.Doc(`
-			$ shield organization admadd <organization-id> -file=<add-organization-admin-body>
-		`),
-		Annotations: map[string]string{
-			"group": "core",
-		},
-		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
-			var reqBody shieldv1beta1.AddOrganizationAdminRequestBody
-			if err := file.Parse(filePath, &reqBody); err != nil {
-				return err
-			}
-
-			err := reqBody.ValidateAll()
-			if err != nil {
-				return err
-			}
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			organizationID := args[0]
-			_, err = client.AddOrganizationAdmin(cmd.Context(), &shieldv1beta1.AddOrganizationAdminRequest{
-				Id:   organizationID,
-				Body: &reqBody,
-			})
-			if err != nil {
-				return err
-			}
-
-			spinner.Stop()
-			fmt.Println("successfully added admin(s) to organization")
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the provider config")
-	cmd.MarkFlagRequired("file")
-
-	return cmd
-}
-
-func admremoveOrganizationCommand(cliConfig *Config) *cli.Command {
-	var userID string
-
-	cmd := &cli.Command{
-		Use:   "admremove",
-		Short: "remove admins from an organization",
-		Args:  cli.ExactArgs(1),
-		Example: heredoc.Doc(`
-			$ shield organization admremove <organization-id> --user=<user-id>
-		`),
-		Annotations: map[string]string{
-			"group": "core",
-		},
-		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			organizationID := args[0]
-			_, err = client.RemoveOrganizationAdmin(cmd.Context(), &shieldv1beta1.RemoveOrganizationAdminRequest{
-				Id:     organizationID,
-				UserId: userID,
-			})
-			if err != nil {
-				return err
-			}
-
-			spinner.Stop()
-			fmt.Println("successfully removed admin from organization")
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&userID, "user", "u", "", "Id of the user to be removed")
-	cmd.MarkFlagRequired("user")
 
 	return cmd
 }

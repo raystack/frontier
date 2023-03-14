@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/namespace"
@@ -17,6 +19,7 @@ import (
 	"github.com/odpf/shield/internal/proxy/hook"
 	"github.com/odpf/shield/internal/proxy/middleware"
 	"github.com/odpf/shield/pkg/body_extractor"
+	"github.com/odpf/shield/pkg/telemetry"
 )
 
 type ResourceService interface {
@@ -82,6 +85,20 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, err)
 	}
 
+	isResourceCreated := false
+	attributes := map[string]interface{}{}
+
+	defer func(isResourceCreated bool, ctx context.Context, attributes map[string]interface{}) {
+		if !isResourceCreated {
+			requestDetail := fmt.Sprintf("[status: %d, request: %s, attributes: %s ]", res.StatusCode, res.Request.Method+"@"+res.Request.URL.Host, attributes)
+			ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRequestDetails, requestDetail))
+			if err != nil {
+				a.log.Debug("failed to add metrics tags: ", err.Error())
+			}
+			stats.Record(ctx, telemetry.MResourceFailedToCreate.M(1))
+		}
+	}(isResourceCreated, res.Request.Context(), attributes)
+
 	ruleFromRequest, ok := hook.ExtractRule(res.Request)
 	if !ok {
 		return a.next.ServeHook(res, nil)
@@ -101,7 +118,6 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.next.ServeHook(res, fmt.Errorf("namespace variable not defined in rules"))
 	}
 
-	attributes := map[string]interface{}{}
 	attributes["namespace"] = ruleFromRequest.Backend.Namespace
 
 	identityProxyHeaderValue := res.Request.Header.Get(a.identityProxyHeaderKey)
@@ -151,7 +167,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 		case hook.AttributeTypeHeader:
 			if attr.Key == "" {
-				a.log.Error("middleware: header key field empty", "err", err)
+				a.log.Error("middleware: header key field empty")
 				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
 			}
 			headerAttr := headerSource.Get(attr.Key)
@@ -208,12 +224,22 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			a.log.Error(err.Error())
 			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 		}
+
+		isResourceCreated = true
 		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idxa))
 
 		for _, rel := range config.Relations {
 			subjectId, err := getAttributesValues(attributes[rel.SubjectIDAttribute])
 			if err != nil {
 				a.log.Error(fmt.Sprintf("cannot create relation: %s not found in attributes", rel.SubjectIDAttribute))
+
+				relationDetail := fmt.Sprintf("%s to %s %s on %s", rel.Role, rel.SubjectPrincipal, rel.SubjectIDAttribute, newResource.Name)
+				ctx, err := tag.New(res.Request.Context(), tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRelationDetails, relationDetail))
+				if err != nil {
+					a.log.Debug("failed to add metrics tags: ", err.Error())
+				}
+				stats.Record(ctx, telemetry.MRelationFailedToCreate.M(1))
+
 				continue
 			}
 
@@ -230,6 +256,14 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			})
 			if err != nil {
 				a.log.Error(err.Error())
+
+				relationDetail := fmt.Sprintf("%s to %s %s on %s", rel.Role, rel.SubjectPrincipal, rel.SubjectIDAttribute, newResource.Name)
+				ctx, err := tag.New(res.Request.Context(), tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRelationDetails, relationDetail))
+				if err != nil {
+					a.log.Debug("failed to add metrics tags: ", err.Error())
+				}
+				stats.Record(ctx, telemetry.MRelationFailedToCreate.M(1))
+
 				return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 			}
 
@@ -247,10 +281,10 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 		return nil, err
 	}
 
-	orgs, err := getAttributesValues(permissionAttributes["organization"])
-	if err != nil {
-		return nil, err
-	}
+	//orgs, err := getAttributesValues(permissionAttributes["organization"])
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	// TODO(krtkvrm): this will be decided on type of principal
 	//teams, err := getAttributesValues(permissionAttributes["team"])
@@ -273,23 +307,21 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 		return nil, err
 	}
 
-	if len(projects) < 1 || len(orgs) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
+	if len(projects) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
 		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
 
 	// TODO(krtkvrm): needs revision
-	for _, org := range orgs {
-		for _, project := range projects {
-			for _, res := range resourceList {
-				resources = append(resources, resource.Resource{
-					Name:           res,
-					OrganizationID: org,
-					ProjectID:      project,
-					NamespaceID:    namespace.CreateID(backendNamespace[0], resourceType[0]),
-				})
-			}
+	for _, project := range projects {
+		for _, res := range resourceList {
+			resources = append(resources, resource.Resource{
+				Name:        res,
+				ProjectID:   project,
+				NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
+			})
 		}
 	}
+
 	return resources, nil
 }
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
+	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -113,6 +114,9 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		return "", fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	types := strings.Join(rl.Types, ",")
+	types = fmt.Sprintf("{%s}", types)
+
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -126,7 +130,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 			defer nr.End()
 		}
 
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -227,7 +231,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 		case errors.Is(err, sql.ErrNoRows):
 			return "", role.ErrNotExist
 		case errors.Is(err, errForeignKeyViolation):
-			return "", role.ErrInvalidDetail
+			return "", namespace.ErrNotExist
 		case errors.Is(err, errDuplicateKey):
 			return "", role.ErrConflict
 		default:

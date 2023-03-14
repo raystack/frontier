@@ -35,24 +35,6 @@ const (
 	Message      = "Message"
 )
 
-type queryCacheMutex struct {
-	m          sync.Mutex
-	queryCache map[string][]Query
-}
-
-func (q *queryCacheMutex) Get(key string) ([]Query, bool) {
-	q.m.Lock()
-	defer q.m.Unlock()
-	val, ok := q.queryCache[key]
-	return val, ok
-}
-
-func (q *queryCacheMutex) Set(key string, query []Query) {
-	q.m.Lock()
-	defer q.m.Unlock()
-	q.queryCache[key] = query
-}
-
 type payloadProtoCacheMutex struct {
 	m                 sync.Mutex
 	payloadProtoCache map[string]*desc.MessageDescriptor
@@ -72,7 +54,6 @@ func (p *payloadProtoCacheMutex) Set(key string, msgDescriptor *desc.MessageDesc
 }
 
 var (
-	queryCache        = queryCacheMutex{queryCache: make(map[string][]Query)}
 	payloadProtoCache = payloadProtoCacheMutex{payloadProtoCache: make(map[string]*desc.MessageDescriptor)}
 )
 

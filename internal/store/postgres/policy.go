@@ -1,13 +1,11 @@
 package postgres
 
 import (
-	"fmt"
 	"time"
 
 	"database/sql"
 
 	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/core/role"
 )
 
 type Policy struct {
@@ -30,25 +28,10 @@ type PolicyCols struct {
 }
 
 func (from Policy) transformToPolicy() (policy.Policy, error) {
-	var rl role.Role
-	var err error
-
-	if from.Role.ID != "" {
-		rl, err = from.Role.transformToRole()
-		if err != nil {
-			return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-	}
-
-	act := from.Action.transformToAction()
-	ns := from.Namespace.transformToNamespace()
-
 	return policy.Policy{
 		ID:          from.ID,
-		RoleID:      rl.ID,
-		ActionID:    act.ID,
-		NamespaceID: ns.ID,
-		CreatedAt:   from.CreatedAt,
-		UpdatedAt:   from.UpdatedAt,
+		RoleID:      from.RoleID,
+		ActionID:    from.ActionID.String,
+		NamespaceID: from.NamespaceID,
 	}, nil
 }

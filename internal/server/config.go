@@ -1,8 +1,29 @@
 package server
 
+import (
+	"fmt"
+
+	"github.com/odpf/shield/pkg/telemetry"
+)
+
+type GRPCConfig struct {
+	Port           int `mapstructure:"port" default:"8081"`
+	MaxRecvMsgSize int `mapstructure:"max_recv_msg_size" default:"33554432"`
+	MaxSendMsgSize int `mapstructure:"max_send_msg_size" default:"33554432"`
+}
+
+func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
+
 type Config struct {
-	// port to listen on
+	// port to listen HTTP requests on
 	Port int `yaml:"port" mapstructure:"port" default:"8080"`
+
+	// GRPC Config
+	GRPC GRPCConfig `mapstructure:"grpc"`
+
+	//metrics port
+	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
+
 	// the network interface to listen on
 	Host string `yaml:"host" mapstructure:"host" default:"127.0.0.1"`
 
@@ -29,4 +50,6 @@ type Config struct {
 	// ResourcesPathSecretSecret could be a env name, file path or actual value required
 	// to access ResourcesPathSecretPath files
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
+
+	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
 }

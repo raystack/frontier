@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
@@ -25,19 +24,25 @@ type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
+type ProjectService interface {
+	Get(ctx context.Context, id string) (project.Project, error)
+}
+
 type Service struct {
 	repository       Repository
 	configRepository ConfigRepository
 	relationService  RelationService
 	userService      UserService
+	projectService   ProjectService
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService) *Service {
 	return &Service{
 		repository:       repository,
 		configRepository: configRepository,
 		relationService:  relationService,
 		userService:      userService,
+		projectService:   projectService,
 	}
 }
 
@@ -53,6 +58,11 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
+	fetchedProject, err := s.projectService.Get(ctx, res.ProjectID)
+	if err != nil {
+		return Resource{}, err
+	}
+
 	userId := res.UserID
 	if strings.TrimSpace(userId) == "" {
 		userId = currentUser.ID
@@ -61,8 +71,8 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	newResource, err := s.repository.Create(ctx, Resource{
 		URN:            urn,
 		Name:           res.Name,
-		OrganizationID: res.OrganizationID,
-		ProjectID:      res.ProjectID,
+		OrganizationID: fetchedProject.Organization.ID,
+		ProjectID:      fetchedProject.ID,
 		NamespaceID:    res.NamespaceID,
 		UserID:         userId,
 	})
@@ -78,7 +88,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.AddOrgToResource(ctx, organization.Organization{ID: res.OrganizationID}, newResource); err != nil {
+	if err = s.AddOrgToResource(ctx, organization.Organization{ID: newResource.OrganizationID}, newResource); err != nil {
 		return Resource{}, err
 	}
 
@@ -133,62 +143,6 @@ func (s Service) AddOrgToResource(ctx context.Context, org organization.Organiza
 	return nil
 }
 
-func (s Service) AddTeamToResource(ctx context.Context, team group.Group, res Resource) error {
-	//resourceNS := namespace.Namespace{
-	//	ID: res.NamespaceID,
-	//}
-	//
-	//rel := relation.Relation{
-	//	ObjectNamespace:  resourceNS,
-	//	ObjectID:         res.Idxa,
-	//	SubjectID:        team.ID,
-	//	SubjectNamespace: namespace.DefinitionTeam,
-	//	Role: role.Role{
-	//		ID:          namespace.DefinitionTeam.ID,
-	//		NamespaceID: resourceNS.ID,
-	//	},
-	//	RelationType: relation.RelationTypes.Namespace,
-	//}
-	//if _, err := s.relationService.Create(ctx, rel); err != nil {
-	//	return err
-	//}
-
-	return nil
-}
-
-func (s Service) AddOwnerToResource(ctx context.Context, user user.User, res Resource) error {
-	//nsId := str.DefaultStringIfEmpty(res.NamespaceID, res.Namespace.ID)
-	//
-	//resourceNS := namespace.Namespace{
-	//	ID: nsId,
-	//}
-	//
-	//relationSet, err := s.configRepository.GetRelationsForNamespace(ctx, nsId)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//rl := role.GetOwnerRole(resourceNS)
-	//
-	//if !relationSet[rl.ID] {
-	//	return nil
-	//}
-	//
-	//rel := relation.Relation{
-	//	ObjectNamespace:  resourceNS,
-	//	ObjectID:         res.Idxa,
-	//	SubjectID:        user.ID,
-	//	SubjectNamespace: namespace.DefinitionUser,
-	//	Role:             rl,
-	//}
-	//
-	//if _, err := s.relationService.Create(ctx, rel); err != nil {
-	//	return err
-	//}
-
-	return nil
-}
-
 func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
 	return s.configRepository.GetAll(ctx)
 }
@@ -208,7 +162,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	} else {
 		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
 		if err != nil {
-			return false, err
+			return false, ErrNotExist
 		}
 	}
 

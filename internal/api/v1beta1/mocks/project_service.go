@@ -24,54 +24,6 @@ func (_m *ProjectService) EXPECT() *ProjectService_Expecter {
 	return &ProjectService_Expecter{mock: &_m.Mock}
 }
 
-// AddAdmins provides a mock function with given fields: ctx, idOrSlug, userIds
-func (_m *ProjectService) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	ret := _m.Called(ctx, idOrSlug, userIds)
-
-	var r0 []user.User
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) []user.User); ok {
-		r0 = rf(ctx, idOrSlug, userIds)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]user.User)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
-		r1 = rf(ctx, idOrSlug, userIds)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ProjectService_AddAdmins_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddAdmins'
-type ProjectService_AddAdmins_Call struct {
-	*mock.Call
-}
-
-// AddAdmins is a helper method to define mock.On call
-//  - ctx context.Context
-//  - idOrSlug string
-//  - userIds []string
-func (_e *ProjectService_Expecter) AddAdmins(ctx interface{}, idOrSlug interface{}, userIds interface{}) *ProjectService_AddAdmins_Call {
-	return &ProjectService_AddAdmins_Call{Call: _e.mock.On("AddAdmins", ctx, idOrSlug, userIds)}
-}
-
-func (_c *ProjectService_AddAdmins_Call) Run(run func(ctx context.Context, idOrSlug string, userIds []string)) *ProjectService_AddAdmins_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].([]string))
-	})
-	return _c
-}
-
-func (_c *ProjectService_AddAdmins_Call) Return(_a0 []user.User, _a1 error) *ProjectService_AddAdmins_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
 // Create provides a mock function with given fields: ctx, prj
 func (_m *ProjectService) Create(ctx context.Context, prj project.Project) (project.Project, error) {
 	ret := _m.Called(ctx, prj)
@@ -251,54 +203,6 @@ func (_c *ProjectService_ListAdmins_Call) Run(run func(ctx context.Context, id s
 }
 
 func (_c *ProjectService_ListAdmins_Call) Return(_a0 []user.User, _a1 error) *ProjectService_ListAdmins_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-// RemoveAdmin provides a mock function with given fields: ctx, idOrSlug, userId
-func (_m *ProjectService) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	ret := _m.Called(ctx, idOrSlug, userId)
-
-	var r0 []user.User
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
-		r0 = rf(ctx, idOrSlug, userId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]user.User)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, idOrSlug, userId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ProjectService_RemoveAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAdmin'
-type ProjectService_RemoveAdmin_Call struct {
-	*mock.Call
-}
-
-// RemoveAdmin is a helper method to define mock.On call
-//  - ctx context.Context
-//  - idOrSlug string
-//  - userId string
-func (_e *ProjectService_Expecter) RemoveAdmin(ctx interface{}, idOrSlug interface{}, userId interface{}) *ProjectService_RemoveAdmin_Call {
-	return &ProjectService_RemoveAdmin_Call{Call: _e.mock.On("RemoveAdmin", ctx, idOrSlug, userId)}
-}
-
-func (_c *ProjectService_RemoveAdmin_Call) Run(run func(ctx context.Context, idOrSlug string, userId string)) *ProjectService_RemoveAdmin_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *ProjectService_RemoveAdmin_Call) Return(_a0 []user.User, _a1 error) *ProjectService_RemoveAdmin_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
