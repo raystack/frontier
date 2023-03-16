@@ -35,7 +35,7 @@ A relation in Shield looks like
 --data-raw '{
   "objectId": "a9f784cf-0f29-486f-92d0-51300295f7e8",
   "objectNamespace": "entropy/firehose",
-  "subject": "user:doe.john@odpf.io",
+  "subject": "user:doe.john@gotocompany.com",
   "roleName": "owner"
 }'`}
     </CodeBlock>

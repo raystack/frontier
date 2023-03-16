@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/pkg/errors"
-	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/uuid"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	"github.com/goto/shield/pkg/errors"
+	"github.com/goto/shield/pkg/metadata"
+	"github.com/goto/shield/pkg/uuid"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
@@ -97,7 +97,7 @@ func TestListOrganizations(t *testing.T) {
 }
 
 func TestCreateOrganization(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@gotocompany.com"
 	table := []struct {
 		title string
 		setup func(ctx context.Context, os *mocks.OrganizationService) context.Context

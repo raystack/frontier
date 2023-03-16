@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/core/role"
+	"github.com/goto/shield/core/role"
 )
 
 func PermissionInheritanceFormatter(permissionName, namespaceName string) string {

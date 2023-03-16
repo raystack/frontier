@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/odpf/shield/core/rule"
+	"github.com/goto/shield/core/rule"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 )

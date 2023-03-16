@@ -6,7 +6,7 @@ import (
 
 	"database/sql"
 
-	"github.com/odpf/shield/core/user"
+	"github.com/goto/shield/core/user"
 )
 
 type User struct {

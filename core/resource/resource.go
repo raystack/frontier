@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/core/namespace"
+	"github.com/goto/shield/core/namespace"
 )
 
 const NON_RESOURCE_ID = "*"

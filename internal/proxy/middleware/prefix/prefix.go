@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/internal/proxy/middleware"
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/internal/proxy/middleware"
 )
 
 type Ware struct {

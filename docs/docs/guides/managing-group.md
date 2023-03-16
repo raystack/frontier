@@ -15,7 +15,7 @@ A group in Shield looks like
         "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
         "metadata": {
             "description": "group for users in data batching domain",
-            "org-name": "odpf"
+            "org-name": "gotocompany"
         },
         "createdAt": "2022-12-14T10:22:14.394120Z",
         "updatedAt": "2022-12-14T10:25:34.890645Z"
@@ -102,7 +102,7 @@ A group in Shield looks like
     "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
     "metadata": {
         "description": "group for users in data batching domain",
-        "org-name": "odpf"
+        "org-name": "gotocompany"
     }
 }'`}
     </CodeBlock>

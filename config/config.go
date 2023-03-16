@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/odpf/salt/config"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/server"
-	"github.com/odpf/shield/internal/store/spicedb"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/logger"
+	"github.com/goto/salt/config"
+	"github.com/goto/shield/internal/proxy"
+	"github.com/goto/shield/internal/server"
+	"github.com/goto/shield/internal/store/spicedb"
+	"github.com/goto/shield/pkg/db"
+	"github.com/goto/shield/pkg/logger"
 )
 
 type Shield struct {

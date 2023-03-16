@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/internal/store/postgres"
+	"github.com/goto/shield/pkg/db"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )

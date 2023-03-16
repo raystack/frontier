@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/proxy/hook"
-	"github.com/odpf/shield/internal/store/blob"
-	"github.com/odpf/shield/test/integration_test/fixtures/helloworld"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/internal/proxy"
+	"github.com/goto/shield/internal/proxy/hook"
+	"github.com/goto/shield/internal/store/blob"
+	"github.com/goto/shield/test/integration_test/fixtures/helloworld"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/stretchr/testify/assert"
 
 	"gocloud.dev/blob/fileblob"

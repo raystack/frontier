@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 
-	"github.com/odpf/shield/pkg/telemetry"
+	"github.com/goto/shield/pkg/telemetry"
 )
 
 type GRPCConfig struct {

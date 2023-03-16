@@ -10,16 +10,16 @@ import (
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/proxy/hook"
-	"github.com/odpf/shield/internal/proxy/middleware"
-	"github.com/odpf/shield/pkg/body_extractor"
-	"github.com/odpf/shield/pkg/telemetry"
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/proxy/hook"
+	"github.com/goto/shield/internal/proxy/middleware"
+	"github.com/goto/shield/pkg/body_extractor"
+	"github.com/goto/shield/pkg/telemetry"
 )
 
 type ResourceService interface {

@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "e75b207d66a407eea8b5ead75e25f9bd074c4148"
+PROTON_COMMIT := "5b5dc727b525925bcec025b355983ca61d7ccf68"
 
 install:
 	@echo "Clean up imports..."
@@ -32,7 +32,7 @@ e2e-regression-test: ## Run regression tests
 	go test -v -race ./test/e2e_test/regression  -coverprofile=coverage.out
 
 benchmark: ## Run benchmarks
-	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/integration
+	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/goto/shield/integration
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.txt
@@ -41,10 +41,10 @@ clean :
 	rm -rf dist
 
 proto: ## Generate the protobuf files
-	@echo " > generating protobuf from odpf/proton"
+	@echo " > generating protobuf from goto/proton"
 	@echo " > [info] make sure correct version of dependencies are installed using 'make install'"
-	@buf generate https://github.com/odpf/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path odpf/shield
-	@cp -R proto/odpf/shield/* proto/ && rm -Rf proto/odpf
+	@buf generate https://github.com/goto/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path gotocompany/shield
+	@cp -R proto/gotocompany/shield/* proto/ && rm -Rf proto/gotocompany
 	@echo " > protobuf compilation finished"
 
 help:

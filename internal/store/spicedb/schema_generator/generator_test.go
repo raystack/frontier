@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/odpf/shield/internal/schema"
+	"github.com/goto/shield/internal/schema"
 
 	"github.com/stretchr/testify/assert"
 )

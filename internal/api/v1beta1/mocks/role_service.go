@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	role "github.com/odpf/shield/core/role"
+	role "github.com/goto/shield/core/role"
 	mock "github.com/stretchr/testify/mock"
 )
 

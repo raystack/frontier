@@ -9,15 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/server"
-	"github.com/odpf/shield/internal/store/blob"
-	"github.com/odpf/shield/internal/store/postgres/migrations"
-	"github.com/odpf/shield/internal/store/spicedb"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/logger"
-	"github.com/odpf/shield/test/e2e_test/testbench"
+	"github.com/goto/shield/config"
+	"github.com/goto/shield/internal/proxy"
+	"github.com/goto/shield/internal/server"
+	"github.com/goto/shield/internal/store/blob"
+	"github.com/goto/shield/internal/store/postgres/migrations"
+	"github.com/goto/shield/internal/store/spicedb"
+	"github.com/goto/shield/pkg/db"
+	"github.com/goto/shield/pkg/logger"
+	"github.com/goto/shield/test/e2e_test/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -110,13 +110,13 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 		logger.Fatal(fmt.Sprintf("failed to run migration: %s", err))
 	}
 
-	userCreationQuery := "INSERT INTO users (name,email) VALUES ('John', 'john.doe@odpf.com') ON CONFLICT DO NOTHING"
+	userCreationQuery := "INSERT INTO users (name,email) VALUES ('John', 'john.doe@gotocompany.com') ON CONFLICT DO NOTHING"
 	_, err = dbClient.DB.Query(userCreationQuery)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
 	}
 
-	orgCreationQuery := "INSERT INTO organizations (name, slug) VALUES ('ODPF', 'odpf org') ON CONFLICT DO NOTHING"
+	orgCreationQuery := "INSERT INTO organizations (name, slug) VALUES ('goto', 'goto org') ON CONFLICT DO NOTHING"
 	_, err = dbClient.DB.Query(orgCreationQuery)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("failed to run query: %s", err))
@@ -191,7 +191,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
 
-		req.Header.Set(testbench.IdentityHeader, "john.doe@odpf.com")
+		req.Header.Set(testbench.IdentityHeader, "john.doe@gotocompany.com")
 
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)
@@ -204,7 +204,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		req, err := http.NewRequest(http.MethodPost, url, nil)
 		s.Require().NoError(err)
 
-		req.Header.Set(testbench.IdentityHeader, "john.doe@odpf.com")
+		req.Header.Set(testbench.IdentityHeader, "john.doe@gotocompany.com")
 		req.Header.Set("X-Shield-Project", s.projID)
 		req.Header.Set("X-Shield-Org", s.orgID)
 		req.Header.Set("X-Shield-Name", "test-resource")

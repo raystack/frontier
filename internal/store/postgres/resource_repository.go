@@ -9,10 +9,10 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/pkg/db"
+	"github.com/goto/shield/pkg/uuid"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/uuid"
 )
 
 type ResourceRepository struct {

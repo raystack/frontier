@@ -13,7 +13,7 @@ A project in Shield looks like
             "id": "598688c6-8c6d-487f-b324-ef3f4af120bb",
             "name": "John Doe",
             "slug": "",
-            "email": "john.doe@odpf.io",
+            "email": "john.doe@gotocompany.com",
             "metadata": {
                 "role": "\"user-1\""
             },
@@ -36,10 +36,10 @@ One thing to note here is that Shield only allow to have metadata key from a spe
     {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/users'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
---header 'X-Shield-Email: admin@odpf.io'
+--header 'X-Shield-Email: admin@gotocompany.com'
 --data-raw '{
   "name": "Jonny Doe",
-  "email": "jonny.doe@odpf.io",
+  "email": "jonny.doe@gotocompany.com",
   "metadata": {
       "role": "user-3"
   }
@@ -101,7 +101,7 @@ One thing to note here is that Shield only allow to have metadata key from a spe
 --header 'Accept: application/json'
 --data-raw '{
   "name": "Jonny Doe",
-  "email": "john.doe001@odpf.io",
+  "email": "john.doe001@gotocompany.com",
   "metadata": {
       "role" :   "user-3"
   }

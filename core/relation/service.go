@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 )
 
 type Service struct {

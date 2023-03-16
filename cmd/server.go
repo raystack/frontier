@@ -6,10 +6,10 @@ import (
 	"path"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/store/postgres/migrations"
-	"github.com/odpf/shield/pkg/db"
-	shieldlogger "github.com/odpf/shield/pkg/logger"
+	"github.com/goto/shield/config"
+	"github.com/goto/shield/internal/store/postgres/migrations"
+	"github.com/goto/shield/pkg/db"
+	shieldlogger "github.com/goto/shield/pkg/logger"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )

@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/pkg/str"
+	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/pkg/str"
 )
 
 func TransformRelation(relation relation.Relation) (*pb.Relationship, error) {

@@ -9,14 +9,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/policy"
+	"github.com/goto/shield/internal/store/postgres"
+	"github.com/goto/shield/pkg/db"
 )
 
 type PolicyRepositoryTestSuite struct {

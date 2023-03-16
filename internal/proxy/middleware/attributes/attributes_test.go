@@ -13,11 +13,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/internal/proxy/middleware"
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/internal/proxy/middleware"
 )
 
 var testPermissionAttributesMap = map[string]any{

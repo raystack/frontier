@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/goto/salt/log"
 	"github.com/jackc/pgx/v4"
-	"github.com/odpf/salt/log"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 )

@@ -13,7 +13,7 @@ There are two ways to check a user permission on a resource in shield,
     {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/check'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
---header 'X-Shield-Email: doe.john@odpf.io'
+--header 'X-Shield-Email: doe.john@gotocompany.com'
 --data-raw '{
   "objectId": "test-resource-beta1",
   "objectNamespace": "entropy/firehose",

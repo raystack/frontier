@@ -11,9 +11,9 @@ builds:
     flags:
       - -a
     ldflags:
-      - -s -w -X github.com/odpf/shield/config.Version={{.Tag}}
-      - -X github.com/odpf/shield/config.BuildCommit={{.FullCommit}}
-      - -X github.com/odpf/shield/config.BuildDate={{.Date}}
+      - -s -w -X github.com/goto/shield/config.Version={{.Tag}}
+      - -X github.com/goto/shield/config.BuildCommit={{.FullCommit}}
+      - -X github.com/goto/shield/config.BuildDate={{.Date}}
     goos: [linux, darwin, windows]
     goarch: [amd64, arm, arm64]
     env:
@@ -47,13 +47,13 @@ dockers:
       - shield
     dockerfile: Dockerfile
     image_templates:
-      - "docker.io/odpf/{{.ProjectName}}:latest"
-      - "docker.io/odpf/{{.ProjectName}}:{{ .Version }}"
-      - "docker.io/odpf/{{.ProjectName}}:{{ .Tag }}-amd64"
+      - "docker.io/gotocompany/{{.ProjectName}}:latest"
+      - "docker.io/gotocompany/{{.ProjectName}}:{{ .Version }}"
+      - "docker.io/gotocompany/{{.ProjectName}}:{{ .Tag }}-amd64"
 nfpms:
-  - maintainer: ODPF
+  - maintainer: gotocompany
     description: Identity and authorization system
-    homepage: https://github.com/odpf/shield
+    homepage: https://github.com/goto/shield
     license: Apache 2.0
     formats:
       - deb
@@ -62,17 +62,17 @@ nfpms:
       darwin: macOS
 scoop:
   bucket:
-    owner: odpf
+    owner: goto
     name: scoop-bucket
-  homepage: "https://github.com/odpf/shield"
+  homepage: "https://github.com/goto/shield"
   description: "Identity and authorization system"
   license: Apache 2.0
 brews:
   - name: shield
-    homepage: "https://github.com/odpf/shield"
+    homepage: "https://github.com/goto/shield"
     description: "Identity and authorization system"
     tap:
-      owner: odpf
+      owner: goto
       name: homebrew-tap
     license: "Apache 2.0"
     folder: Formula
@@ -81,5 +81,5 @@ brews:
     install: |-
       bin.install "shield"
     commit_author:
-      name: Ravi Suhag
-      email: suhag.ravi@gmail.com
+      name: github-actions[bot]
+      email: 41898282+github-actions[bot]@users.noreply.github.com

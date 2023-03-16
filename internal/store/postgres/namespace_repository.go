@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/pkg/db"
 )
 
 type NamespaceRepository struct {

@@ -101,7 +101,7 @@ A project in Shield looks like
   "name": "Project Beta",
   "slug": "project-beta",
   "metadata": {
-      "description": "Project Beta by ODPF"
+      "description": "Project Beta by gotocompany"
   },
   "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8"
 }'`}

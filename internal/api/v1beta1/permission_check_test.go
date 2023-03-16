@@ -5,14 +5,14 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	"github.com/goto/shield/internal/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 )
 
 func TestHandler_CheckResourcePermission(t *testing.T) {

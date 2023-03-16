@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/internal/store/spicedb/schema_generator"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	newrelic "github.com/newrelic/go-agent"

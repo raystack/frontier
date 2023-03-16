@@ -1,7 +1,7 @@
 package v1beta1
 
 import (
-	"github.com/odpf/shield/pkg/errors"
+	"github.com/goto/shield/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

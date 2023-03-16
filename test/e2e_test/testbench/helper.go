@@ -8,15 +8,15 @@ import (
 	"io/ioutil"
 	"net"
 
-	"github.com/odpf/shield/pkg/db"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/goto/shield/pkg/db"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
 const (
-	OrgAdminEmail  = "admin1-group1-org1@odpf.io"
+	OrgAdminEmail  = "admin1-group1-org1@gotocompany.com"
 	IdentityHeader = "X-Shield-Email"
 )
 

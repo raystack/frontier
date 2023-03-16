@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/pkg/file"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/goto/salt/printer"
+	"github.com/goto/shield/pkg/file"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 

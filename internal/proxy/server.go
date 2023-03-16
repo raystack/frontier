@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/odpf/shield/cmd"
+	"github.com/goto/shield/cmd"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 )

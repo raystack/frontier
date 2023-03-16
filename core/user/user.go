@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/goto/shield/pkg/metadata"
 )
 
 type Repository interface {

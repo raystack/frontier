@@ -62,14 +62,14 @@ There are two ways to create a resource in the shield,
     {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/resources'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
---header 'X-Shield-Email: admin@odpf.io'
+--header 'X-Shield-Email: admin@gotocompany.com'
 --data-raw '{
   "name": "test-resource-beta",
   "projectId": "1b89026b-6713-4327-9d7e-ed03345da288",
   "namespaceId": "entropy/firehose",
   "relations": [
     {
-      "subject": "user:john.doe@odpf.io",
+      "subject": "user:john.doe@gotocompany.com",
       "roleName": "owner"
     }
   ]

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"

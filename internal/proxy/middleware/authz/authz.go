@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/goto/salt/log"
 	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/proxy/middleware"
-	"github.com/odpf/shield/pkg/body_extractor"
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/proxy/middleware"
+	"github.com/goto/shield/pkg/body_extractor"
 )
 
 type ResourceService interface {

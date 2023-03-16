@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/internal/store/spicedb"
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/internal/store/spicedb"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 )

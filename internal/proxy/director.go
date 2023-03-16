@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/odpf/shield/internal/proxy/middleware"
-	"github.com/odpf/shield/pkg/httputil"
+	"github.com/goto/shield/internal/proxy/middleware"
+	"github.com/goto/shield/pkg/httputil"
 )
 
 var ctxRequestErrorKey = struct{}{}

@@ -3,7 +3,7 @@ package postgres
 import (
 	"time"
 
-	"github.com/odpf/shield/core/action"
+	"github.com/goto/shield/core/action"
 )
 
 type Action struct {

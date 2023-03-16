@@ -7,10 +7,10 @@ Before creating a new organization, let's create an organization admin user.
 ```sh
 curl --location --request POST 'http://localhost:8000/admin/v1beta1/users'
 --header 'Content-Type: application/json'
---header 'X-Shield-Email: admin@odpf.io'
+--header 'X-Shield-Email: admin@gotocompany.com'
 --data-raw '{
     "name": "Shield Org Admin",
-    "email": "admin@odpf.io",
+    "email": "admin@gotocompany.com",
     "metadata": {
         "role": "organization admin"
     }
@@ -58,7 +58,7 @@ Now, we can retry the above user creation request and it should be successful.
         "id": "2fd7f306-61db-4198-9623-6f5f1809df11",
         "name": "Shield Org Admin",
         "slug": "",
-        "email": "admin@odpf.io",
+        "email": "admin@gotocompany.com",
         "metadata": {
             "role": "organization admin"
         },
@@ -75,10 +75,10 @@ From now onwards, we can use the above user to perform all the admin operations.
 ```sh
 curl --location --request POST 'http://localhost:8000/admin/v1beta1/organizations'
 --header 'Content-Type: application/json'
---header 'X-Shield-Email: admin@odpf.io'
+--header 'X-Shield-Email: admin@gotocompany.com'
 --data-raw '{
-    "name": "ODPF",
-    "slug": "odpf",
+    "name": "gotocompany",
+    "slug": "gotocompany",
     "metadata": {
         "description": "Open DataOps Foundation"
     }
@@ -90,8 +90,8 @@ curl --location --request POST 'http://localhost:8000/admin/v1beta1/organization
 {
     "organization": {
         "id": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
-        "name": "ODPF",
-        "slug": "odpf",
+        "name": "gotocompany",
+        "slug": "gotocompany",
         "metadata": {
             "description": "Open DataOps Foundation"
         },

@@ -6,12 +6,12 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 (module.exports = {
   title: 'Shield',
   tagline: 'Identity and authorization for your APIs',
-  url: 'https://odpf.github.io/',
+  url: 'https://goto.github.io/',
   baseUrl: '/shield/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'ODPF',
+  organizationName: 'goto',
   projectName: 'shield',
 
   presets: [
@@ -24,7 +24,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/odpf/shield/edit/master/docs/',
+          editUrl: 'https://github.com/goto/shield/edit/master/docs/',
           sidebarCollapsed: true,
           breadcrumbs: false,
         },
@@ -64,7 +64,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
             className: 'header-slack-link',
           },
           {
-            href: 'https://github.com/odpf/shield',
+            href: 'https://github.com/goto/shield',
             className: 'navbar-item-github',
             position: 'right',
           },
@@ -80,7 +80,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
       },
       announcementBar: {
         id: 'star-repo',
-        content: '⭐️ If you like Shield, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/odpf/shield">GitHub</a>! ⭐',
+        content: '⭐️ If you like Shield, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/goto/shield">GitHub</a>! ⭐',
         backgroundColor: '#222',
         textColor: '#eee',
         isCloseable: true,

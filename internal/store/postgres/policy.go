@@ -5,7 +5,7 @@ import (
 
 	"database/sql"
 
-	"github.com/odpf/shield/core/policy"
+	"github.com/goto/shield/core/policy"
 )
 
 type Policy struct {

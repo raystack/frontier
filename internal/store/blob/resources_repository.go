@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/resource"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/resource"
 
 	"github.com/ghodss/yaml"
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 

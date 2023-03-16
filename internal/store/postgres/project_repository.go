@@ -9,13 +9,13 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/db"
 )
 
 type ProjectRepository struct {

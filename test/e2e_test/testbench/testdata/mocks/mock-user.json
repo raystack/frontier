@@ -1,38 +1,38 @@
 [
     {
         "name": "admin1-group1-org1",
-        "email": "admin1-group1-org1@odpf.io"
+        "email": "admin1-group1-org1@gotocompany.com"
     },
     {
         "name": "member2-group1",
-        "email": "member2-group1@odpf.io"
+        "email": "member2-group1@gotocompany.com"
     },
     {
         "name": "member3-group1",
-        "email": "member3-group1@odpf.io"
+        "email": "member3-group1@gotocompany.com"
     },
     {
         "name": "admin1-group2",
-        "email": "admin1-group2@odpf.io"
+        "email": "admin1-group2@gotocompany.com"
     },
     {
         "name": "member2-group2",
-        "email": "member2-group2@odpf.io"
+        "email": "member2-group2@gotocompany.com"
     },
     {
         "name": "member3-group2",
-        "email": "member3-group2@odpf.io"
+        "email": "member3-group2@gotocompany.com"
     },
     {
         "name": "admin1-group3",
-        "email": "admin1-group3@odpf.io"
+        "email": "admin1-group3@gotocompany.com"
     },
     {
         "name": "member2-group3",
-        "email": "member2-group3@odpf.io"
+        "email": "member2-group3@gotocompany.com"
     },
     {
         "name": "member3-group3",
-        "email": "member3-group3@odpf.io"
+        "email": "member3-group3@gotocompany.com"
     }
 ]

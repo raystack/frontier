@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/pkg/metadata"
 )
 
 type Repository interface {

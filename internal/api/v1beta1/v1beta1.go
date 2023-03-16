@@ -3,8 +3,8 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/odpf/shield/internal/api"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/goto/shield/internal/api"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 )
 

@@ -3,7 +3,7 @@ package role
 import (
 	"fmt"
 
-	"github.com/odpf/shield/core/namespace"
+	"github.com/goto/shield/core/namespace"
 )
 
 var (

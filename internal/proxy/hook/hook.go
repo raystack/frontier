@@ -3,8 +3,8 @@ package hook
 import (
 	"net/http"
 
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/internal/proxy/middleware"
+	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/internal/proxy/middleware"
 )
 
 type Service interface {

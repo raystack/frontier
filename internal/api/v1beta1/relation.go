@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 
+	"github.com/goto/shield/core/relation"
+	errpkg "github.com/goto/shield/pkg/errors"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/core/relation"
-	errpkg "github.com/odpf/shield/pkg/errors"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

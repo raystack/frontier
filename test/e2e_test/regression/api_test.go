@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/server"
-	"github.com/odpf/shield/pkg/logger"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
-	"github.com/odpf/shield/test/e2e_test/testbench"
+	"github.com/goto/shield/config"
+	"github.com/goto/shield/internal/proxy"
+	"github.com/goto/shield/internal/server"
+	"github.com/goto/shield/pkg/logger"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
+	"github.com/goto/shield/test/e2e_test/testbench"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -338,7 +338,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		_, err := s.client.CreateUser(context.Background(), &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -353,7 +353,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		_, err := s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewNullValue(),
@@ -383,7 +383,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		res, err := s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -397,7 +397,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		_, err = s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -413,7 +413,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 			Id: newUser.GetId(),
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "admin1-group1-org1@odpf.io",
+				Email: "admin1-group1-org1@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -447,7 +447,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 		_, err := s.client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "admin1-group1-org1@odpf.io",
+				Email: "admin1-group1-org1@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),

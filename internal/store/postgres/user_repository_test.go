@@ -9,11 +9,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/store/postgres"
+	"github.com/goto/shield/pkg/db"
+	"github.com/goto/shield/pkg/metadata"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -186,15 +186,15 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			Description: "should create a user",
 			UserToCreate: user.User{
 				Name:  "new user",
-				Email: "new.user@odpf.io",
+				Email: "new.user@gotocompany.com",
 			},
-			ExpectedEmail: "new.user@odpf.io",
+			ExpectedEmail: "new.user@gotocompany.com",
 		},
 		{
 			Description: "should return error if user already exist",
 			UserToCreate: user.User{
 				Name:  "new user",
-				Email: "new.user@odpf.io",
+				Email: "new.user@gotocompany.com",
 			},
 			ErrString: user.ErrConflict.Error(),
 		},
@@ -397,7 +397,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			UserToUpdate: user.User{
 				ID:    uuid.NewString(),
 				Name:  "Doe John",
-				Email: "john.doe@odpf.io",
+				Email: "john.doe@gotocompany.com",
 			},
 			Err: user.ErrNotExist,
 		},

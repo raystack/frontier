@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/uuid"
+	"github.com/goto/shield/core/group"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	"github.com/goto/shield/pkg/metadata"
+	"github.com/goto/shield/pkg/uuid"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -20,7 +20,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 )
 
 var (
@@ -118,7 +118,7 @@ func TestListUsers(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@gotocompany.com"
 	table := []struct {
 		title string
 		setup func(ctx context.Context, us *mocks.UserService) context.Context
@@ -379,7 +379,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetCurrentUser(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@gotocompany.com"
 	table := []struct {
 		title  string
 		setup  func(ctx context.Context, us *mocks.UserService) context.Context
@@ -473,7 +473,7 @@ func TestUpdateUser(t *testing.T) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
@@ -483,7 +483,7 @@ func TestUpdateUser(t *testing.T) {
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -498,7 +498,7 @@ func TestUpdateUser(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
@@ -507,7 +507,7 @@ func TestUpdateUser(t *testing.T) {
 			req: &shieldv1beta1.UpdateUserRequest{
 				Body: &shieldv1beta1.UserRequestBody{
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -523,7 +523,7 @@ func TestUpdateUser(t *testing.T) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
@@ -533,7 +533,7 @@ func TestUpdateUser(t *testing.T) {
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -580,7 +580,7 @@ func TestUpdateUser(t *testing.T) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
@@ -588,7 +588,7 @@ func TestUpdateUser(t *testing.T) {
 					user.User{
 						ID:    someID,
 						Name:  "abc user",
-						Email: "user@odpf.io",
+						Email: "user@gotocompany.com",
 						Metadata: metadata.Metadata{
 							"foo": "bar",
 						},
@@ -600,7 +600,7 @@ func TestUpdateUser(t *testing.T) {
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -610,7 +610,7 @@ func TestUpdateUser(t *testing.T) {
 			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
 				Id:    someID,
 				Name:  "abc user",
-				Email: "user@odpf.io",
+				Email: "user@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -626,14 +626,14 @@ func TestUpdateUser(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
 				}).Return(
 					user.User{
 						ID:    someID,
-						Email: "user@odpf.io",
+						Email: "user@gotocompany.com",
 						Metadata: metadata.Metadata{
 							"foo": "bar",
 						},
@@ -644,7 +644,7 @@ func TestUpdateUser(t *testing.T) {
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -653,7 +653,7 @@ func TestUpdateUser(t *testing.T) {
 				}},
 			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
 				Id:    someID,
-				Email: "user@odpf.io",
+				Email: "user@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -682,7 +682,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdateCurrentUser(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@gotocompany.com"
 	table := []struct {
 		title  string
 		setup  func(ctx context.Context, us *mocks.UserService) context.Context
@@ -710,7 +710,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
 				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
@@ -719,7 +719,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "abc user",
-				Email: "user@odpf.io",
+				Email: "user@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -734,7 +734,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
 				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:  "abc user",
-					Email: "user@odpf.io",
+					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
@@ -743,7 +743,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "abc user",
-				Email: "user@odpf.io",
+				Email: "user@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -786,7 +786,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 					user.User{
 						ID:    "user-id-1",
 						Name:  "abc user",
-						Email: "user@odpf.io",
+						Email: "user@gotocompany.com",
 						Metadata: metadata.Metadata{
 							"foo": "bar",
 						},
@@ -797,7 +797,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "abc user",
-				Email: "user@odpf.io",
+				Email: "user@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -807,7 +807,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			want: &shieldv1beta1.UpdateCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
 				Name:  "abc user",
-				Email: "user@odpf.io",
+				Email: "user@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -921,7 +921,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 }
 
 func TestCreateMetadataKey(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@gotocompany.com"
 	table := []struct {
 		title string
 		setup func(ctx context.Context, us *mocks.UserService) context.Context

@@ -1,6 +1,6 @@
 package action
 
-import "github.com/odpf/shield/core/namespace"
+import "github.com/goto/shield/core/namespace"
 
 var DefinitionManageOrganization = Action{
 	ID:          "manage_organization",

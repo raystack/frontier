@@ -1,17 +1,17 @@
 package api
 
 import (
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/core/user"
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/group"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/policy"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/core/user"
 )
 
 type Deps struct {

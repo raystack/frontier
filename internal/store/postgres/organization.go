@@ -6,7 +6,7 @@ import (
 
 	"database/sql"
 
-	"github.com/odpf/shield/core/organization"
+	"github.com/goto/shield/core/organization"
 )
 
 type Organization struct {

@@ -1,7 +1,7 @@
 package schema_generator
 
 import (
-	"github.com/odpf/shield/internal/schema"
+	"github.com/goto/shield/internal/schema"
 
 	sdbnamespace "github.com/authzed/spicedb/pkg/namespace"
 	sdbcore "github.com/authzed/spicedb/pkg/proto/core/v1"

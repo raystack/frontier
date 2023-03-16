@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	action "github.com/odpf/shield/core/action"
+	action "github.com/goto/shield/core/action"
 
 	mock "github.com/stretchr/testify/mock"
 )

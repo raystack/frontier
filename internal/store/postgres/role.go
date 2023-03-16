@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/goto/shield/core/role"
 	"github.com/lib/pq"
-	"github.com/odpf/shield/core/role"
 )
 
 type Role struct {

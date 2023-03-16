@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	user "github.com/odpf/shield/core/user"
+	user "github.com/goto/shield/core/user"
 	mock "github.com/stretchr/testify/mock"
 )
 

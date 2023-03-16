@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/odpf/shield/core/rule"
+	"github.com/goto/shield/core/rule"
 )
 
 type RegexMatcher struct {

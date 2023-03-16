@@ -12,9 +12,9 @@ import (
 
 	_ "embed"
 
+	"github.com/goto/shield/internal/proxy"
+	"github.com/goto/shield/pkg/file"
 	"github.com/mcuadros/go-defaults"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/pkg/file"
 	"gopkg.in/yaml.v2"
 )
 

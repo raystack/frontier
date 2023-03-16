@@ -3,7 +3,7 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/odpf/shield/core/rule"
+	"github.com/goto/shield/core/rule"
 )
 
 //go:generate mockery --name=RuleService -r --case underscore --with-expecter --structname RuleService --filename rule_service.go --output=./mocks

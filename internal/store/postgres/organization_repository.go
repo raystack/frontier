@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/pkg/db"
 )
 
 type OrganizationRepository struct {

@@ -5,7 +5,7 @@ import (
 
 	"database/sql"
 
-	"github.com/odpf/shield/core/namespace"
+	"github.com/goto/shield/core/namespace"
 )
 
 type Namespace struct {

@@ -5,8 +5,8 @@ import (
 
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/spicedb/pkg/tuple"
-	"github.com/odpf/shield/core/relation"
-	shieldRole "github.com/odpf/shield/core/role"
+	"github.com/goto/shield/core/relation"
+	shieldRole "github.com/goto/shield/core/role"
 	"github.com/stretchr/testify/assert"
 )
 

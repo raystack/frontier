@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/user"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"

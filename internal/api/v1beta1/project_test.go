@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/pkg/errors"
-	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/uuid"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	"github.com/goto/shield/pkg/errors"
+	"github.com/goto/shield/pkg/metadata"
+	"github.com/goto/shield/pkg/uuid"
+	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -53,7 +53,7 @@ var (
 )
 
 func TestCreateProject(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@gotocompany.com"
 	table := []struct {
 		title string
 		setup func(ctx context.Context, ps *mocks.ProjectService) context.Context
@@ -65,8 +65,8 @@ func TestCreateProject(t *testing.T) {
 			title: "should return forbidden error if auth email in context is empty and project service return invalid user email",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "gotocompany 1",
+					Slug: "gotocompany-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -74,7 +74,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
+				Name: "gotocompany 1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -87,8 +87,8 @@ func TestCreateProject(t *testing.T) {
 			title: "should return internal error if project service return some error",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "gotocompany 1",
+					Slug: "gotocompany-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -96,7 +96,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
+				Name: "gotocompany 1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -109,8 +109,8 @@ func TestCreateProject(t *testing.T) {
 			title: "should return bad request error if org id is not uuid",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "gotocompany 1",
+					Slug: "gotocompany-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -118,8 +118,8 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
-				Slug: "odpf-1",
+				Name: "gotocompany 1",
+				Slug: "gotocompany-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -132,8 +132,8 @@ func TestCreateProject(t *testing.T) {
 			title: "should return bad request error if org id is not uuid",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "gotocompany 1",
+					Slug: "gotocompany-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -141,8 +141,8 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
-				Slug: "odpf-1",
+				Name: "gotocompany 1",
+				Slug: "gotocompany-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -155,8 +155,8 @@ func TestCreateProject(t *testing.T) {
 			title: "should return already exist error if project service return error conflict",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "gotocompany 1",
+					Slug: "gotocompany-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -164,8 +164,8 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
-				Slug: "odpf-1",
+				Name: "gotocompany 1",
+				Slug: "gotocompany-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -178,7 +178,7 @@ func TestCreateProject(t *testing.T) {
 			title: "should return bad request error if name is empty",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Slug: "odpf-1",
+					Slug: "gotocompany-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -186,7 +186,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Slug: "odpf-1",
+				Slug: "gotocompany-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),

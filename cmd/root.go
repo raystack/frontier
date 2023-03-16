@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/cmdx"
+	"github.com/goto/salt/cmdx"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )
@@ -19,10 +19,10 @@ func New(cliConfig *Config) *cli.Command {
 			"group": "core",
 			"help:learn": heredoc.Doc(`
 				Use 'shield <command> <subcommand> --help' for info about a command.
-				Read the manual at https://odpf.github.io/shield/
+				Read the manual at https://goto.github.io/shield/
 			`),
 			"help:feedback": heredoc.Doc(`
-				Open an issue here https://github.com/odpf/shield/issues
+				Open an issue here https://github.com/goto/shield/issues
 			`),
 			"help:environment": heredoc.Doc(`
 				See 'shield help environment' for the list of supported environment variables.

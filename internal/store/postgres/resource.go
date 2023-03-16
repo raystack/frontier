@@ -5,7 +5,7 @@ import (
 
 	"database/sql"
 
-	"github.com/odpf/shield/core/resource"
+	"github.com/goto/shield/core/resource"
 )
 
 type Resource struct {
