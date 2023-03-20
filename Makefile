@@ -1,15 +1,19 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
-.PHONY: build check fmt lint test test-race vet test-cover-html help install proto
+.PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
 PROTON_COMMIT := "056db0eef064bc5f82343e6a5a312567a39d9ec6"
+
+ui:
+	@echo " > generating ui build"
+	@cd ui && $(MAKE) 
 
 install:
 	@echo "Clean up imports..."
 	@go mod download
 	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
-build: ## build all
+build: ui
 	CGO_ENABLED=0 go build -o shield .
 
 generate: ## run all go generate in the code base (including generating mock files)

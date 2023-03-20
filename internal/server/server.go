@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/internal/server/interceptors"
+	"github.com/odpf/shield/ui"
 
 	"github.com/gorilla/securecookie"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/salt/mux"
+	"github.com/odpf/salt/spa"
 	"github.com/odpf/shield/internal/api"
 	"github.com/odpf/shield/internal/api/v1beta1"
 	"github.com/odpf/shield/internal/server/health"
@@ -90,7 +92,14 @@ func Serve(
 	if err != nil {
 		return err
 	}
+
 	httpMux.Handle("/jwks.json", jwksHandler)
+
+	spaHandler, err := spa.Handler(ui.Assets, "dist", "index.html", false)
+	if err != nil {
+		fmt.Println("Failed to load spa:", err)
+	}
+	httpMux.Handle("/", http.StripPrefix("/", spaHandler))
 
 	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
