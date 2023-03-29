@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/securecookie"
+
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -55,12 +57,34 @@ func Serve(
 		return err
 	}
 
+	// hash and block keys should be 32 bytes long
+	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
+		return errors.New("authentication.session keys should be 32 chars long")
+	}
+	shieldMiddleware := grpc_interceptors.NewSession(
+		securecookie.New(
+			[]byte(cfg.Authentication.Session.HashSecretKey),
+			[]byte(cfg.Authentication.Session.BlockSecretKey),
+		),
+	)
+
 	grpcGateway := runtime.NewServeMux(
 		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
-		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),
+		runtime.WithIncomingHeaderMatcher(grpc_interceptors.GatewayHeaderMatcherFunc(map[string]bool{
+			cfg.IdentityProxyHeader: true,
+		})),
+		runtime.WithForwardResponseOption(shieldMiddleware.GatewayResponseModifier),
+		runtime.WithMetadata(shieldMiddleware.GatewayRequestMetadataAnnotator),
 	)
 
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
+
+	// json web key set handler
+	jwksHandler, err := NewTokenJWKSHandler(cfg.Authentication.Token)
+	if err != nil {
+		return err
+	}
+	httpMux.Handle("/jwks.json", jwksHandler)
 
 	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
@@ -135,14 +159,6 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
+			grpc_interceptors.AuthnUnaryInterceptor(),
 		))
-}
-
-func customHeaderMatcherFunc(headerKeys map[string]bool) func(key string) (string, bool) {
-	return func(key string) (string, bool) {
-		if _, ok := headerKeys[key]; ok {
-			return key, true
-		}
-		return runtime.DefaultHeaderMatcher(key)
-	}
 }

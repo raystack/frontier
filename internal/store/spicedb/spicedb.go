@@ -3,6 +3,7 @@ package spicedb
 import (
 	"context"
 	"fmt"
+	"net"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
@@ -29,7 +30,7 @@ func (s *SpiceDB) Check() error {
 }
 
 func New(config Config, logger log.Logger) (*SpiceDB, error) {
-	endpoint := fmt.Sprintf("%s:%s", config.Host, config.Port)
+	endpoint := net.JoinHostPort(config.Host, config.Port)
 	client, err := authzed.NewClient(
 		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),

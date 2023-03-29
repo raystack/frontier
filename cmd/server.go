@@ -1,9 +1,16 @@
 package cmd
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
+	"strconv"
+	"time"
+
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/config"
@@ -16,7 +23,7 @@ import (
 
 func ServerCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "server <command>",
+		Use:     "server",
 		Aliases: []string{"s"},
 		Short:   "Server management",
 		Long:    "Server management commands.",
@@ -35,6 +42,7 @@ func ServerCommand() *cobra.Command {
 	cmd.AddCommand(serverStartCommand())
 	cmd.AddCommand(serverMigrateCommand())
 	cmd.AddCommand(serverMigrateRollbackCommand())
+	cmd.AddCommand(serverGenRSACommand())
 
 	return cmd
 }
@@ -113,7 +121,7 @@ func serverStartCommand() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVarP(&configFile, "config", "c", "", "Config file path")
+	c.Flags().StringVarP(&configFile, "config", "c", "", "config file path")
 	return c
 }
 
@@ -137,7 +145,7 @@ func serverMigrateCommand() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVarP(&configFile, "config", "c", "", "Config file path")
+	c.Flags().StringVarP(&configFile, "config", "c", "", "config file path")
 	return c
 }
 
@@ -161,6 +169,36 @@ func serverMigrateRollbackCommand() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVarP(&configFile, "config", "c", "", "Config file path")
+	c.Flags().StringVarP(&configFile, "config", "c", "", "config file path")
+	return c
+}
+
+func serverGenRSACommand() *cobra.Command {
+	var numOfKeys int
+	c := &cli.Command{
+		Use:     "keygen",
+		Short:   "Generate 2 rsa keys as jwks for auth token generation",
+		Example: "shield server keygen",
+		RunE: func(c *cli.Command, args []string) error {
+			keySet := jwk.NewSet()
+			for ; numOfKeys > 0; numOfKeys-- {
+				// generate keys
+				keyRaw, err := rsa.GenerateKey(rand.Reader, 2048)
+				if err != nil {
+					return err
+				}
+				rsaKey, err := jwk.FromRaw(keyRaw)
+				if err != nil {
+					return err
+				}
+				rsaKey.Set(jwk.AlgorithmKey, "RS256")
+				rsaKey.Set(jwk.KeyUsageKey, "sig")
+				rsaKey.Set(jwk.KeyIDKey, strconv.FormatInt(time.Now().UnixMilli(), 10))
+				keySet.AddKey(rsaKey)
+			}
+			return json.NewEncoder(os.Stdout).Encode(keySet)
+		},
+	}
+	c.Flags().IntVarP(&numOfKeys, "keys", "k", 2, "num of keys to generate")
 	return c
 }

@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/core/authenticate"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
@@ -15,15 +16,17 @@ import (
 )
 
 type Deps struct {
-	OrgService       *organization.Service
-	ProjectService   *project.Service
-	GroupService     *group.Service
-	RoleService      *role.Service
-	PolicyService    *policy.Service
-	UserService      *user.Service
-	NamespaceService *namespace.Service
-	ActionService    *action.Service
-	RelationService  *relation.Service
-	ResourceService  *resource.Service
-	RuleService      *rule.Service
+	OrgService          *organization.Service
+	ProjectService      *project.Service
+	GroupService        *group.Service
+	RoleService         *role.Service
+	PolicyService       *policy.Service
+	UserService         *user.Service
+	NamespaceService    *namespace.Service
+	ActionService       *action.Service
+	RelationService     *relation.Service
+	ResourceService     *resource.Service
+	RuleService         *rule.Service
+	SessionService      *authenticate.SessionService
+	RegistrationService *authenticate.RegistrationService
 }

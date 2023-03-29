@@ -35,6 +35,991 @@ var (
 	_ = sort.Sort
 )
 
+// Validate checks the field values on AuthLogoutRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *AuthLogoutRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthLogoutRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthLogoutRequestMultiError, or nil if none found.
+func (m *AuthLogoutRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthLogoutRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AuthLogoutRequestMultiError(errors)
+	}
+	return nil
+}
+
+// AuthLogoutRequestMultiError is an error wrapping multiple validation errors
+// returned by AuthLogoutRequest.ValidateAll() if the designated constraints
+// aren't met.
+type AuthLogoutRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthLogoutRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthLogoutRequestMultiError) AllErrors() []error { return m }
+
+// AuthLogoutRequestValidationError is the validation error returned by
+// AuthLogoutRequest.Validate if the designated constraints aren't met.
+type AuthLogoutRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthLogoutRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthLogoutRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthLogoutRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthLogoutRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthLogoutRequestValidationError) ErrorName() string {
+	return "AuthLogoutRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthLogoutRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthLogoutRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthLogoutRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthLogoutRequestValidationError{}
+
+// Validate checks the field values on AuthLogoutResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AuthLogoutResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthLogoutResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthLogoutResponseMultiError, or nil if none found.
+func (m *AuthLogoutResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthLogoutResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AuthLogoutResponseMultiError(errors)
+	}
+	return nil
+}
+
+// AuthLogoutResponseMultiError is an error wrapping multiple validation errors
+// returned by AuthLogoutResponse.ValidateAll() if the designated constraints
+// aren't met.
+type AuthLogoutResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthLogoutResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthLogoutResponseMultiError) AllErrors() []error { return m }
+
+// AuthLogoutResponseValidationError is the validation error returned by
+// AuthLogoutResponse.Validate if the designated constraints aren't met.
+type AuthLogoutResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthLogoutResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthLogoutResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthLogoutResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthLogoutResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthLogoutResponseValidationError) ErrorName() string {
+	return "AuthLogoutResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthLogoutResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthLogoutResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthLogoutResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthLogoutResponseValidationError{}
+
+// Validate checks the field values on AuthCallbackRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AuthCallbackRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthCallbackRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthCallbackRequestMultiError, or nil if none found.
+func (m *AuthCallbackRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthCallbackRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for StrategyName
+
+	// no validation rules for State
+
+	// no validation rules for Code
+
+	if len(errors) > 0 {
+		return AuthCallbackRequestMultiError(errors)
+	}
+	return nil
+}
+
+// AuthCallbackRequestMultiError is an error wrapping multiple validation
+// errors returned by AuthCallbackRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AuthCallbackRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthCallbackRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthCallbackRequestMultiError) AllErrors() []error { return m }
+
+// AuthCallbackRequestValidationError is the validation error returned by
+// AuthCallbackRequest.Validate if the designated constraints aren't met.
+type AuthCallbackRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthCallbackRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthCallbackRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthCallbackRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthCallbackRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthCallbackRequestValidationError) ErrorName() string {
+	return "AuthCallbackRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthCallbackRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthCallbackRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthCallbackRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthCallbackRequestValidationError{}
+
+// Validate checks the field values on AuthCallbackResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AuthCallbackResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthCallbackResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthCallbackResponseMultiError, or nil if none found.
+func (m *AuthCallbackResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthCallbackResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AuthCallbackResponseMultiError(errors)
+	}
+	return nil
+}
+
+// AuthCallbackResponseMultiError is an error wrapping multiple validation
+// errors returned by AuthCallbackResponse.ValidateAll() if the designated
+// constraints aren't met.
+type AuthCallbackResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthCallbackResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthCallbackResponseMultiError) AllErrors() []error { return m }
+
+// AuthCallbackResponseValidationError is the validation error returned by
+// AuthCallbackResponse.Validate if the designated constraints aren't met.
+type AuthCallbackResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthCallbackResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthCallbackResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthCallbackResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthCallbackResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthCallbackResponseValidationError) ErrorName() string {
+	return "AuthCallbackResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthCallbackResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthCallbackResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthCallbackResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthCallbackResponseValidationError{}
+
+// Validate checks the field values on AuthenticateRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AuthenticateRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthenticateRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthenticateRequestMultiError, or nil if none found.
+func (m *AuthenticateRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthenticateRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for StrategyName
+
+	// no validation rules for Redirect
+
+	// no validation rules for ReturnTo
+
+	if len(errors) > 0 {
+		return AuthenticateRequestMultiError(errors)
+	}
+	return nil
+}
+
+// AuthenticateRequestMultiError is an error wrapping multiple validation
+// errors returned by AuthenticateRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AuthenticateRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthenticateRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthenticateRequestMultiError) AllErrors() []error { return m }
+
+// AuthenticateRequestValidationError is the validation error returned by
+// AuthenticateRequest.Validate if the designated constraints aren't met.
+type AuthenticateRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthenticateRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthenticateRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthenticateRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthenticateRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthenticateRequestValidationError) ErrorName() string {
+	return "AuthenticateRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthenticateRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthenticateRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthenticateRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthenticateRequestValidationError{}
+
+// Validate checks the field values on AuthenticateResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AuthenticateResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthenticateResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AuthenticateResponseMultiError, or nil if none found.
+func (m *AuthenticateResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthenticateResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Endpoint
+
+	if len(errors) > 0 {
+		return AuthenticateResponseMultiError(errors)
+	}
+	return nil
+}
+
+// AuthenticateResponseMultiError is an error wrapping multiple validation
+// errors returned by AuthenticateResponse.ValidateAll() if the designated
+// constraints aren't met.
+type AuthenticateResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthenticateResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthenticateResponseMultiError) AllErrors() []error { return m }
+
+// AuthenticateResponseValidationError is the validation error returned by
+// AuthenticateResponse.Validate if the designated constraints aren't met.
+type AuthenticateResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthenticateResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthenticateResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthenticateResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthenticateResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthenticateResponseValidationError) ErrorName() string {
+	return "AuthenticateResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AuthenticateResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthenticateResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthenticateResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthenticateResponseValidationError{}
+
+// Validate checks the field values on AuthStrategy with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AuthStrategy) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthStrategy with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AuthStrategyMultiError, or
+// nil if none found.
+func (m *AuthStrategy) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthStrategy) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	if all {
+		switch v := interface{}(m.GetParams()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AuthStrategyValidationError{
+					field:  "Params",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AuthStrategyValidationError{
+					field:  "Params",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetParams()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AuthStrategyValidationError{
+				field:  "Params",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AuthStrategyMultiError(errors)
+	}
+	return nil
+}
+
+// AuthStrategyMultiError is an error wrapping multiple validation errors
+// returned by AuthStrategy.ValidateAll() if the designated constraints aren't met.
+type AuthStrategyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthStrategyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthStrategyMultiError) AllErrors() []error { return m }
+
+// AuthStrategyValidationError is the validation error returned by
+// AuthStrategy.Validate if the designated constraints aren't met.
+type AuthStrategyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthStrategyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthStrategyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthStrategyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthStrategyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthStrategyValidationError) ErrorName() string { return "AuthStrategyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AuthStrategyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthStrategy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthStrategyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthStrategyValidationError{}
+
+// Validate checks the field values on ListAuthStrategiesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListAuthStrategiesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListAuthStrategiesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListAuthStrategiesRequestMultiError, or nil if none found.
+func (m *ListAuthStrategiesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListAuthStrategiesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListAuthStrategiesRequestMultiError(errors)
+	}
+	return nil
+}
+
+// ListAuthStrategiesRequestMultiError is an error wrapping multiple validation
+// errors returned by ListAuthStrategiesRequest.ValidateAll() if the
+// designated constraints aren't met.
+type ListAuthStrategiesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListAuthStrategiesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListAuthStrategiesRequestMultiError) AllErrors() []error { return m }
+
+// ListAuthStrategiesRequestValidationError is the validation error returned by
+// ListAuthStrategiesRequest.Validate if the designated constraints aren't met.
+type ListAuthStrategiesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListAuthStrategiesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListAuthStrategiesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListAuthStrategiesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListAuthStrategiesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListAuthStrategiesRequestValidationError) ErrorName() string {
+	return "ListAuthStrategiesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListAuthStrategiesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListAuthStrategiesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListAuthStrategiesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListAuthStrategiesRequestValidationError{}
+
+// Validate checks the field values on ListAuthStrategiesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListAuthStrategiesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListAuthStrategiesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListAuthStrategiesResponseMultiError, or nil if none found.
+func (m *ListAuthStrategiesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListAuthStrategiesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetStrategies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListAuthStrategiesResponseValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListAuthStrategiesResponseValidationError{
+						field:  fmt.Sprintf("Strategies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListAuthStrategiesResponseValidationError{
+					field:  fmt.Sprintf("Strategies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListAuthStrategiesResponseMultiError(errors)
+	}
+	return nil
+}
+
+// ListAuthStrategiesResponseMultiError is an error wrapping multiple
+// validation errors returned by ListAuthStrategiesResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ListAuthStrategiesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListAuthStrategiesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListAuthStrategiesResponseMultiError) AllErrors() []error { return m }
+
+// ListAuthStrategiesResponseValidationError is the validation error returned
+// by ListAuthStrategiesResponse.Validate if the designated constraints aren't met.
+type ListAuthStrategiesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListAuthStrategiesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListAuthStrategiesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListAuthStrategiesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListAuthStrategiesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListAuthStrategiesResponseValidationError) ErrorName() string {
+	return "ListAuthStrategiesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListAuthStrategiesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListAuthStrategiesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListAuthStrategiesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListAuthStrategiesResponseValidationError{}
+
 // Validate checks the field values on UserRequestBody with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -60,7 +1045,7 @@ func (m *UserRequestBody) validate(all bool) error {
 	if !_UserRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := UserRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -109,10 +1094,20 @@ func (m *UserRequestBody) validate(all bool) error {
 		}
 	}
 
+	if !_UserRequestBody_Slug_Pattern.MatchString(m.GetSlug()) {
+		err := UserRequestBodyValidationError{
+			field:  "Slug",
+			reason: "value does not match regex pattern \"^[a-zA-Z][a-zA-Z0-9_]{3,64}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return UserRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -237,7 +1232,9 @@ var _ interface {
 	ErrorName() string
 } = UserRequestBodyValidationError{}
 
-var _UserRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _UserRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+
+var _UserRequestBody_Slug_Pattern = regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_]{3,64}$")
 
 // Validate checks the field values on CreateUserRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -260,6 +1257,17 @@ func (m *CreateUserRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetBody() == nil {
+		err := CreateUserRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -293,7 +1301,6 @@ func (m *CreateUserRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateUserRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -396,7 +1403,7 @@ func (m *User) validate(all bool) error {
 	if !_User_Name_Pattern.MatchString(m.GetName()) {
 		err := UserValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -404,7 +1411,16 @@ func (m *User) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Slug
+	if !_User_Slug_Pattern.MatchString(m.GetSlug()) {
+		err := UserValidationError{
+			field:  "Slug",
+			reason: "value does not match regex pattern \"^[a-zA-Z][a-zA-Z0-9_]{3,64}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if err := m._validateEmail(m.GetEmail()); err != nil {
 		err = UserValidationError{
@@ -508,7 +1524,6 @@ func (m *User) validate(all bool) error {
 	if len(errors) > 0 {
 		return UserMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -632,7 +1647,9 @@ var _ interface {
 	ErrorName() string
 } = UserValidationError{}
 
-var _User_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _User_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+
+var _User_Slug_Pattern = regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_]{3,64}$")
 
 // Validate checks the field values on CreateUserResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -688,7 +1705,6 @@ func (m *CreateUserResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateUserResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -803,7 +1819,6 @@ func (m *MetadataKeyRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return MetadataKeyRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -936,7 +1951,6 @@ func (m *CreateMetadataKeyRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateMetadataKeyRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1051,7 +2065,6 @@ func (m *MetadataKey) validate(all bool) error {
 	if len(errors) > 0 {
 		return MetadataKeyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1181,7 +2194,6 @@ func (m *CreateMetadataKeyResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateMetadataKeyResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1258,6 +2270,246 @@ var _ interface {
 	ErrorName() string
 } = CreateMetadataKeyResponseValidationError{}
 
+// Validate checks the field values on GetOrganizationsByUserRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetOrganizationsByUserRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetOrganizationsByUserRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetOrganizationsByUserRequestMultiError, or nil if none found.
+func (m *GetOrganizationsByUserRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetOrganizationsByUserRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return GetOrganizationsByUserRequestMultiError(errors)
+	}
+	return nil
+}
+
+// GetOrganizationsByUserRequestMultiError is an error wrapping multiple
+// validation errors returned by GetOrganizationsByUserRequest.ValidateAll()
+// if the designated constraints aren't met.
+type GetOrganizationsByUserRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetOrganizationsByUserRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetOrganizationsByUserRequestMultiError) AllErrors() []error { return m }
+
+// GetOrganizationsByUserRequestValidationError is the validation error
+// returned by GetOrganizationsByUserRequest.Validate if the designated
+// constraints aren't met.
+type GetOrganizationsByUserRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetOrganizationsByUserRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetOrganizationsByUserRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetOrganizationsByUserRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetOrganizationsByUserRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetOrganizationsByUserRequestValidationError) ErrorName() string {
+	return "GetOrganizationsByUserRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetOrganizationsByUserRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetOrganizationsByUserRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetOrganizationsByUserRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetOrganizationsByUserRequestValidationError{}
+
+// Validate checks the field values on GetOrganizationsByUserResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetOrganizationsByUserResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetOrganizationsByUserResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetOrganizationsByUserResponseMultiError, or nil if none found.
+func (m *GetOrganizationsByUserResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetOrganizationsByUserResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetOrganizations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetOrganizationsByUserResponseValidationError{
+						field:  fmt.Sprintf("Organizations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetOrganizationsByUserResponseValidationError{
+						field:  fmt.Sprintf("Organizations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetOrganizationsByUserResponseValidationError{
+					field:  fmt.Sprintf("Organizations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetOrganizationsByUserResponseMultiError(errors)
+	}
+	return nil
+}
+
+// GetOrganizationsByUserResponseMultiError is an error wrapping multiple
+// validation errors returned by GetOrganizationsByUserResponse.ValidateAll()
+// if the designated constraints aren't met.
+type GetOrganizationsByUserResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetOrganizationsByUserResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetOrganizationsByUserResponseMultiError) AllErrors() []error { return m }
+
+// GetOrganizationsByUserResponseValidationError is the validation error
+// returned by GetOrganizationsByUserResponse.Validate if the designated
+// constraints aren't met.
+type GetOrganizationsByUserResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetOrganizationsByUserResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetOrganizationsByUserResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetOrganizationsByUserResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetOrganizationsByUserResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetOrganizationsByUserResponseValidationError) ErrorName() string {
+	return "GetOrganizationsByUserResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetOrganizationsByUserResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetOrganizationsByUserResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetOrganizationsByUserResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetOrganizationsByUserResponseValidationError{}
+
 // Validate checks the field values on GetUserResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -1312,7 +2564,6 @@ func (m *GetUserResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetUserResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1387,6 +2638,107 @@ var _ interface {
 	ErrorName() string
 } = GetUserResponseValidationError{}
 
+// Validate checks the field values on GetCurrentUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetCurrentUserRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetCurrentUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetCurrentUserRequestMultiError, or nil if none found.
+func (m *GetCurrentUserRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetCurrentUserRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return GetCurrentUserRequestMultiError(errors)
+	}
+	return nil
+}
+
+// GetCurrentUserRequestMultiError is an error wrapping multiple validation
+// errors returned by GetCurrentUserRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetCurrentUserRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetCurrentUserRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetCurrentUserRequestMultiError) AllErrors() []error { return m }
+
+// GetCurrentUserRequestValidationError is the validation error returned by
+// GetCurrentUserRequest.Validate if the designated constraints aren't met.
+type GetCurrentUserRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetCurrentUserRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetCurrentUserRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetCurrentUserRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetCurrentUserRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetCurrentUserRequestValidationError) ErrorName() string {
+	return "GetCurrentUserRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetCurrentUserRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetCurrentUserRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetCurrentUserRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetCurrentUserRequestValidationError{}
+
 // Validate checks the field values on GetCurrentUserResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1441,7 +2793,6 @@ func (m *GetCurrentUserResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetCurrentUserResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1572,7 +2923,6 @@ func (m *UpdateUserResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateUserResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1703,7 +3053,6 @@ func (m *UpdateCurrentUserResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateCurrentUserResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1836,7 +3185,6 @@ func (m *UpdateUserRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateUserRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -1940,7 +3288,6 @@ func (m *GetUserRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetUserRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -2044,7 +3391,6 @@ func (m *ListUserGroupsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListUserGroupsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -2121,108 +3467,6 @@ var _ interface {
 	ErrorName() string
 } = ListUserGroupsRequestValidationError{}
 
-// Validate checks the field values on GetCurrentUserRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetCurrentUserRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on GetCurrentUserRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// GetCurrentUserRequestMultiError, or nil if none found.
-func (m *GetCurrentUserRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *GetCurrentUserRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(errors) > 0 {
-		return GetCurrentUserRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// GetCurrentUserRequestMultiError is an error wrapping multiple validation
-// errors returned by GetCurrentUserRequest.ValidateAll() if the designated
-// constraints aren't met.
-type GetCurrentUserRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m GetCurrentUserRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m GetCurrentUserRequestMultiError) AllErrors() []error { return m }
-
-// GetCurrentUserRequestValidationError is the validation error returned by
-// GetCurrentUserRequest.Validate if the designated constraints aren't met.
-type GetCurrentUserRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e GetCurrentUserRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e GetCurrentUserRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e GetCurrentUserRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e GetCurrentUserRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e GetCurrentUserRequestValidationError) ErrorName() string {
-	return "GetCurrentUserRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e GetCurrentUserRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sGetCurrentUserRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = GetCurrentUserRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = GetCurrentUserRequestValidationError{}
-
 // Validate checks the field values on ListUsersRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -2254,7 +3498,6 @@ func (m *ListUsersRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListUsersRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -2390,7 +3633,6 @@ func (m *ListUsersResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListUsersResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -2536,7 +3778,6 @@ func (m *GroupRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return GroupRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -2667,7 +3908,6 @@ func (m *CreateGroupRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateGroupRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -2803,7 +4043,6 @@ func (m *ListUserGroupsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListUserGroupsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3008,7 +4247,6 @@ func (m *Group) validate(all bool) error {
 	if len(errors) > 0 {
 		return GroupMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3138,7 +4376,6 @@ func (m *CreateGroupResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateGroupResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3269,7 +4506,6 @@ func (m *GetGroupResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetGroupResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3398,7 +4634,6 @@ func (m *UpdateGroupResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateGroupResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3531,7 +4766,6 @@ func (m *UpdateGroupRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateGroupRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3662,7 +4896,6 @@ func (m *UpdateCurrentUserRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateCurrentUserRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3766,7 +4999,6 @@ func (m *GetGroupRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetGroupRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -3879,7 +5111,6 @@ func (m *ListGroupsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListGroupsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -4017,7 +5248,6 @@ func (m *ListGroupsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListGroupsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -4249,7 +5479,6 @@ func (m *Role) validate(all bool) error {
 	if len(errors) > 0 {
 		return RoleMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -4394,7 +5623,6 @@ func (m *RoleRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return RoleRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -4525,7 +5753,6 @@ func (m *CreateRoleRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateRoleRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -4656,7 +5883,6 @@ func (m *CreateRoleResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateRoleResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -4787,7 +6013,6 @@ func (m *GetRoleResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetRoleResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -4916,7 +6141,6 @@ func (m *UpdateRoleResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateRoleResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5020,7 +6244,6 @@ func (m *GetRoleRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetRoleRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5151,7 +6374,6 @@ func (m *UpdateRoleRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateRoleRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5253,7 +6475,6 @@ func (m *ListRolesRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListRolesRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5387,7 +6608,6 @@ func (m *ListRolesResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListRolesResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5531,7 +6751,6 @@ func (m *OrganizationRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return OrganizationRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5664,7 +6883,6 @@ func (m *CreateOrganizationRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateOrganizationRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5868,7 +7086,6 @@ func (m *Organization) validate(all bool) error {
 	if len(errors) > 0 {
 		return OrganizationMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -5998,7 +7215,6 @@ func (m *CreateOrganizationResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateOrganizationResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6129,7 +7345,6 @@ func (m *GetOrganizationResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetOrganizationResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6260,7 +7475,6 @@ func (m *UpdateOrganizationResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateOrganizationResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6362,7 +7576,6 @@ func (m *ListOrganizationsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListOrganizationsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6498,7 +7711,6 @@ func (m *ListOrganizationsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListOrganizationsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6602,7 +7814,6 @@ func (m *GetOrganizationRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetOrganizationRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6735,7 +7946,6 @@ func (m *UpdateOrganizationRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateOrganizationRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6839,7 +8049,6 @@ func (m *ListOrganizationAdminsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListOrganizationAdminsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -6976,7 +8185,6 @@ func (m *ListOrganizationAdminsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListOrganizationAdminsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -7123,7 +8331,6 @@ func (m *ProjectRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return ProjectRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -7256,7 +8463,6 @@ func (m *CreateProjectRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateProjectRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -7461,7 +8667,6 @@ func (m *Project) validate(all bool) error {
 	if len(errors) > 0 {
 		return ProjectMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -7591,7 +8796,6 @@ func (m *CreateProjectResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateProjectResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -7722,7 +8926,6 @@ func (m *GetProjectResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetProjectResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -7853,7 +9056,6 @@ func (m *UpdateProjectResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateProjectResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -7955,7 +9157,6 @@ func (m *ListProjectsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListProjectsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -8091,7 +9292,6 @@ func (m *ListProjectsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListProjectsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -8195,7 +9395,6 @@ func (m *GetProjectRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetProjectRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -8328,7 +9527,6 @@ func (m *UpdateProjectRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateProjectRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -8432,7 +9630,6 @@ func (m *ListProjectAdminsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListProjectAdminsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -8568,7 +9765,6 @@ func (m *ListProjectAdminsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListProjectAdminsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -8771,7 +9967,6 @@ func (m *Action) validate(all bool) error {
 	if len(errors) > 0 {
 		return ActionMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -8943,7 +10138,6 @@ func (m *Namespace) validate(all bool) error {
 	if len(errors) > 0 {
 		return NamespaceMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9042,6 +10236,151 @@ func (m *Policy) validate(all bool) error {
 
 	// no validation rules for Id
 
+	if all {
+		switch v := interface{}(m.GetRole()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Role",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Role",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRole()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "Role",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetAction()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Action",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Action",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAction()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "Action",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetNamespace()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Namespace",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Namespace",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetNamespace()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "Namespace",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	// no validation rules for NamespaceId
 
 	// no validation rules for RoleId
@@ -9051,7 +10390,6 @@ func (m *Policy) validate(all bool) error {
 	if len(errors) > 0 {
 		return PolicyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9165,7 +10503,6 @@ func (m *ActionRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return ActionRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9282,7 +10619,6 @@ func (m *NamespaceRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return NamespaceRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9392,7 +10728,6 @@ func (m *PolicyRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return PolicyRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9494,7 +10829,6 @@ func (m *ListActionsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListActionsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9630,7 +10964,6 @@ func (m *ListActionsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListActionsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9761,7 +11094,6 @@ func (m *CreateActionRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateActionRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9892,7 +11224,6 @@ func (m *CreateActionResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateActionResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -9996,7 +11327,6 @@ func (m *GetActionRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetActionRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10125,7 +11455,6 @@ func (m *GetActionResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetActionResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10258,7 +11587,6 @@ func (m *UpdateActionRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateActionRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10389,7 +11717,6 @@ func (m *UpdateActionResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateActionResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10491,7 +11818,6 @@ func (m *ListNamespacesRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListNamespacesRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10627,7 +11953,6 @@ func (m *ListNamespacesResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListNamespacesResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10758,7 +12083,6 @@ func (m *CreateNamespaceRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateNamespaceRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10889,7 +12213,6 @@ func (m *CreateNamespaceResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateNamespaceResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -10993,7 +12316,6 @@ func (m *GetNamespaceRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetNamespaceRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11124,7 +12446,6 @@ func (m *GetNamespaceResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetNamespaceResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11257,7 +12578,6 @@ func (m *UpdateNamespaceRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateNamespaceRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11388,7 +12708,6 @@ func (m *UpdateNamespaceResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateNamespaceResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11490,7 +12809,6 @@ func (m *ListPoliciesRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListPoliciesRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11626,7 +12944,6 @@ func (m *ListPoliciesResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListPoliciesResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11757,7 +13074,6 @@ func (m *CreatePolicyRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreatePolicyRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11893,7 +13209,6 @@ func (m *CreatePolicyResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreatePolicyResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -11997,7 +13312,6 @@ func (m *GetPolicyRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetPolicyRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -12126,7 +13440,6 @@ func (m *GetPolicyResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetPolicyResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -12259,7 +13572,6 @@ func (m *UpdatePolicyRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdatePolicyRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -12395,7 +13707,6 @@ func (m *UpdatePolicyResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdatePolicyResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -12565,7 +13876,6 @@ func (m *Relation) validate(all bool) error {
 	if len(errors) > 0 {
 		return RelationMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -12844,7 +14154,6 @@ func (m *Resource) validate(all bool) error {
 	if len(errors) > 0 {
 		return ResourceMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13013,7 +14322,6 @@ func (m *GroupRelation) validate(all bool) error {
 	if len(errors) > 0 {
 		return GroupRelationMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13113,7 +14421,6 @@ func (m *ListRelationsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListRelationsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13249,7 +14556,6 @@ func (m *ListRelationsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListRelationsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13359,7 +14665,6 @@ func (m *RelationRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return RelationRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13490,7 +14795,6 @@ func (m *CreateRelationRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateRelationRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13621,7 +14925,6 @@ func (m *CreateRelationResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateRelationResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13725,7 +15028,6 @@ func (m *GetRelationRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetRelationRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13856,7 +15158,6 @@ func (m *GetRelationResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetRelationResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -13989,7 +15290,6 @@ func (m *UpdateRelationRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateRelationRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14120,7 +15420,6 @@ func (m *UpdateRelationResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateRelationResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14228,7 +15527,6 @@ func (m *ListGroupRelationsRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListGroupRelationsRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14364,7 +15662,6 @@ func (m *ListGroupRelationsResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListGroupRelationsResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14472,7 +15769,6 @@ func (m *DeleteRelationRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return DeleteRelationRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14576,7 +15872,6 @@ func (m *DeleteRelationResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return DeleteRelationResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14686,7 +15981,6 @@ func (m *ListResourcesRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListResourcesRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14822,7 +16116,6 @@ func (m *ListResourcesResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return ListResourcesResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -14964,7 +16257,6 @@ func (m *ResourceRequestBody) validate(all bool) error {
 	if len(errors) > 0 {
 		return ResourceRequestBodyMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15095,7 +16387,6 @@ func (m *CreateResourceRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateResourceRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15226,7 +16517,6 @@ func (m *CreateResourceResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CreateResourceResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15330,7 +16620,6 @@ func (m *GetResourceRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetResourceRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15461,7 +16750,6 @@ func (m *GetResourceResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return GetResourceResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15594,7 +16882,6 @@ func (m *UpdateResourceRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateResourceRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15725,7 +17012,6 @@ func (m *UpdateResourceResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return UpdateResourceResponseMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15860,7 +17146,6 @@ func (m *CheckResourcePermissionRequest) validate(all bool) error {
 	if len(errors) > 0 {
 		return CheckResourcePermissionRequestMultiError(errors)
 	}
-
 	return nil
 }
 
@@ -15971,7 +17256,6 @@ func (m *CheckResourcePermissionResponse) validate(all bool) error {
 	if len(errors) > 0 {
 		return CheckResourcePermissionResponseMultiError(errors)
 	}
-
 	return nil
 }
 

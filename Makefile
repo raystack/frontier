@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "e75b207d66a407eea8b5ead75e25f9bd074c4148"
+PROTON_COMMIT := "735b6aa2a38a5fa43067c2fe1e65a24edfd8971b"
 
 install:
 	@echo "Clean up imports..."
@@ -17,6 +17,9 @@ generate: ## run all go generate in the code base (including generating mock fil
 
 lint: ## Run linters
 	golangci-lint run
+
+lint-fix:
+	golangci-lint run --fix
 
 # TODO: create separate command for integration tests
 test: ## Run tests

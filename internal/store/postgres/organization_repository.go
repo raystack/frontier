@@ -387,3 +387,58 @@ func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID str
 
 	return transformedUsers, nil
 }
+
+func (r OrganizationRepository) ListByUser(ctx context.Context, userID string) ([]organization.Organization, error) {
+	query, params, err := dialect.Select(
+		goqu.I("o.id").As("id"),
+		goqu.I("o.name").As("name"),
+		goqu.I("o.slug").As("slug"),
+		goqu.I("o.metadata").As("metadata"),
+		goqu.I("o.created_at").As("created_at"),
+		goqu.I("o.updated_at").As("updated_at"),
+	).
+		From(goqu.T(TABLE_RELATIONS).As("r")).
+		Join(goqu.T(TABLE_ORGANIZATIONS).As("o"), goqu.On(
+			goqu.I("o.id").Cast("VARCHAR").Eq(goqu.I("r.object_id")),
+		)).Where(goqu.Ex{
+		"r.subject_id":           userID,
+		"r.subject_namespace_id": schema.UserPrincipal,
+		"r.object_namespace_id":  schema.OrganizationNamespace,
+	}).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var orgModels []Organization
+	// TODO(kushsharma): clean up this unnecessary newrelic blot over each query
+	// abstract it over database using a facade
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ORGANIZATIONS,
+				Operation:  "GetOrganizations",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+		return r.dbc.SelectContext(ctx, &orgModels, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedOrgs []organization.Organization
+	for _, o := range orgModels {
+		transformedOrg, err := o.transformToOrg()
+		if err != nil {
+			return nil, fmt.Errorf("%w: %s", parseErr, err)
+		}
+		transformedOrgs = append(transformedOrgs, transformedOrg)
+	}
+
+	return transformedOrgs, nil
+}

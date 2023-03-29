@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 
+	"github.com/odpf/shield/core/authenticate"
+
 	"github.com/odpf/shield/pkg/telemetry"
 )
 
@@ -52,4 +54,6 @@ type Config struct {
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
 
 	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
+
+	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
 }

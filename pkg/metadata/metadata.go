@@ -13,7 +13,7 @@ type Metadata map[string]any
 
 // ToStructPB transforms Metadata to *structpb.Struct
 func (m Metadata) ToStructPB() (*structpb.Struct, error) {
-	newMap := make(map[string]interface{})
+	newMap := make(map[string]any)
 
 	for key, value := range m {
 		newMap[key] = value
@@ -22,8 +22,8 @@ func (m Metadata) ToStructPB() (*structpb.Struct, error) {
 	return structpb.NewStruct(newMap)
 }
 
-// Build transforms a Metadata from map[string]interface{}
-func Build(m map[string]interface{}) (Metadata, error) {
+// Build transforms a Metadata from map[string]any
+func Build(m map[string]any) (Metadata, error) {
 	newMap := make(Metadata)
 
 	for key, value := range m {
