@@ -1,22 +1,19 @@
-import { Flex } from "~/primitives/flex/Flex";
+import { Flex, Text } from "@odpf/apsara";
 
-const BRAND_NAME = "Shield UI";
+const BRAND_NAME = "Shield";
 export default function SidebarHeader() {
   return (
-    <Flex
-      align="center"
-      justify="between"
-      direction="row"
-      css={sidebarHeaderContainerStyle}
-    >
-      {BRAND_NAME}
+    <Flex align="center" direction="row" css={sidebarHeaderContainerStyle}>
+      <img src="/logo.svg" alt="shield" />
+      <Text css={{ marginLeft: "8px" }}>{BRAND_NAME}</Text>
     </Flex>
   );
 }
 
 const sidebarHeaderContainerStyle = {
-  height: "3.2rem",
-  marginBottom: "2.4rem",
+  height: "2rem",
   fontSize: "1.6rem",
   fontWeight: "bold",
+  padding: "$2",
+  marginBottom: "22px",
 };

@@ -1,7 +1,5 @@
-import { Link } from "react-router-dom";
-import { Flex } from "~/primitives/flex/Flex";
-import { Text } from "~/primitives/text/Text";
-import { styled } from "~/stitches";
+import { styled, Text } from "@odpf/apsara";
+import { NavLink } from "react-router-dom";
 
 export type NavigationItemsTypes = {
   active?: boolean;
@@ -10,23 +8,22 @@ export type NavigationItemsTypes = {
   icon?: React.ReactNode;
 };
 
-const NavItem = styled(Link, {
+const NavItem = styled(NavLink, {
   cursor: "pointer",
-  height: "3.2rem",
   display: "flex",
   flexDirection: "row",
   alignItems: "center",
-  padding: "$8",
+  padding: "8px",
   color: "$gray12",
   textDecoration: "none",
-  marginBottom: "$4",
+  marginBottom: "4px",
   svg: {
     width: "1.8rem",
     height: "1.6rem",
   },
   "& + a": {},
   "&:hover,&:focus,&:active, &.active": {
-    borderRadius: "$4",
+    borderRadius: "$1",
     backgroundColor: "$gray4",
   },
 });
@@ -34,25 +31,42 @@ const NavItem = styled(Link, {
 export default function SidebarContent() {
   const navigationItems: NavigationItemsTypes[] = [
     {
-      active: true,
-      name: "Home",
-      to: `/`,
+      name: "Dashboard",
+      icon: "dashboard",
+      to: `/dashboard`,
     },
     {
-      active: true,
-      name: "Dashboard",
-      to: `/dashboard`,
+      name: "Organisations",
+      icon: "organisations",
+      to: `/organisations`,
+    },
+    {
+      name: "Projects",
+      icon: "projects",
+      to: `/projects`,
+    },
+    {
+      name: "Users",
+      icon: "users",
+      to: `/users`,
+    },
+    {
+      name: "Groups",
+      icon: "groups",
+      to: `/groups`,
     },
   ];
   return (
-    <Flex as="nav" css={sidebarNavigationContainerStyle}>
+    <>
       {navigationItems.map(({ active, name, icon, to }) => (
         <NavItem key={name} className={`${active && "active"} `} to={to || ""}>
-          {icon}
-          <Text css={{ marginLeft: "$8", fontWeight: "500" }}>{name}</Text>
+          <img src={`/${icon}.svg`} />
+          <Text size={2} css={{ fontWeight: "500", marginLeft: "8px" }}>
+            {name}
+          </Text>
         </NavItem>
       ))}
-    </Flex>
+    </>
   );
 }
 const sidebarNavigationContainerStyle = {};

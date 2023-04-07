@@ -1,4 +1,4 @@
-import { Flex } from "~/primitives/flex/Flex";
+import { Flex } from "@odpf/apsara";
 import SidebarContent from "./SidebarContent";
 import SidebarFooter from "./SidebarFooter";
 import SidebarHeader from "./SidebarHeader";
@@ -17,8 +17,5 @@ Sidebar.Footer = SidebarFooter;
 
 const sidebarContainerStyle = {
   width: "100%",
-  padding: "1.6rem",
-  "@media (max-width: 1200px)": {
-    display: "none",
-  },
+  padding: "1rem",
 };

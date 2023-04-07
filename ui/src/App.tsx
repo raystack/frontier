@@ -1,15 +1,15 @@
+import { Box, Flex } from "@odpf/apsara";
 import { Outlet } from "react-router-dom";
+import "./App.css";
 import Layout from "./components/Layout";
 import Sidebar from "./components/sidebar/Sidebar";
-import { Box } from "./primitives/box/Box";
-import { Flex } from "./primitives/flex/Flex";
 
 function App() {
   return (
     <Layout
       sidebar={
         <Sidebar>
-          <Flex>
+          <Flex direction="column" css={{ width: "100%" }}>
             <Sidebar.Header></Sidebar.Header>
             <Sidebar.Content></Sidebar.Content>
           </Flex>

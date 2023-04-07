@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@odpf/apsara": "^0.9.0",
     "@radix-ui/colors": "^0.1.8",
     "@stitches/react": "^1.2.8",
     "re-resizable": "^6.9.9",

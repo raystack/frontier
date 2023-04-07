@@ -1,8 +1,6 @@
+import { Box, Flex, styled } from "@odpf/apsara";
 import React from "react";
 import Resizable from "~/components/Resizable";
-import { BaseContainer } from "~/primitives/container/BaseContainer";
-import { Flex } from "~/primitives/flex/Flex";
-import { styled } from "~/stitches";
 
 type Props = {
   header?: React.ReactNode;
@@ -14,14 +12,14 @@ type Props = {
 const RESIZABLE = {
   width: 220,
   height: "100%",
-  minWidth: "260px",
+  minWidth: "220px",
   maxWidth: "330px",
   minHeight: "100%",
 };
 const ResizableContainer = styled(Resizable, {});
 export default function Layout({ header, children, sidebar }: Props) {
   return (
-    <BaseContainer>
+    <Box>
       <Flex direction={"row"} css={containerStyle}>
         <ResizableContainer
           minWidth={RESIZABLE.minWidth}
@@ -39,7 +37,7 @@ export default function Layout({ header, children, sidebar }: Props) {
           <Flex css={contentContainerStyle}>{children}</Flex>
         </Flex>
       </Flex>
-    </BaseContainer>
+    </Box>
   );
 }
 
