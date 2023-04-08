@@ -1,4 +1,4 @@
-import { Box, Flex } from "@odpf/apsara";
+import { Flex } from "@odpf/apsara";
 import { Outlet } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout";
@@ -17,9 +17,7 @@ function App() {
         </Sidebar>
       }
     >
-      <Box css={{ padding: "$8" }}>
-        <Outlet />
-      </Box>
+      <Outlet />
     </Layout>
   );
 }
