@@ -4,5 +4,13 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    proxy: {
+      "/admin": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [react(), tsconfigPaths()],
 });
