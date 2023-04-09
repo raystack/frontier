@@ -1,9 +1,11 @@
 import { EmptyState, Flex, Table } from "@odpf/apsara";
 import { Outlet, useOutletContext } from "react-router-dom";
 import useSWR from "swr";
+import { tableStyle } from "~/styles";
 import { Organisation } from "~/types/organisation";
-import { fetcher, reduceByKey, tableStyle } from "~/utils/helper";
+import { fetcher, reduceByKey } from "~/utils/helper";
 import { columns } from "./columns";
+import { OrganizationsHeader } from "./header";
 
 type ContextType = { organizationMapByName: Record<string, Organisation> | {} };
 export default function OrganisationList() {
@@ -18,7 +20,11 @@ export default function OrganisationList() {
         columns={columns}
         data={organizations ?? []}
         noDataChildren={noDataChildren}
-      ></Table>
+      >
+        <Table.TopContainer>
+          <OrganizationsHeader />
+        </Table.TopContainer>
+      </Table>
       <Outlet context={{ organizationMapByName }} />
     </Flex>
   );

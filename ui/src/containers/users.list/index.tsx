@@ -1,8 +1,10 @@
 import { EmptyState, Flex, Table } from "@odpf/apsara";
 import { Outlet } from "react-router-dom";
 import useSWR from "swr";
-import { fetcher, tableStyle } from "~/utils/helper";
+import { tableStyle } from "~/styles";
+import { fetcher } from "~/utils/helper";
 import { columns } from "./columns";
+import { UsersHeader } from "./header";
 
 export default function UserList() {
   const { data, error } = useSWR("/admin/v1beta1/users", fetcher);
@@ -14,7 +16,11 @@ export default function UserList() {
         columns={columns}
         data={users ?? []}
         noDataChildren={noDataChildren}
-      ></Table>
+      >
+        <Table.TopContainer>
+          <UsersHeader />
+        </Table.TopContainer>
+      </Table>
       <Outlet />
     </Flex>
   );

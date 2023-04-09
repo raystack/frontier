@@ -1,8 +1,10 @@
 import { EmptyState, Flex, Table } from "@odpf/apsara";
 import { Outlet } from "react-router-dom";
 import useSWR from "swr";
-import { fetcher, tableStyle } from "~/utils/helper";
+import { tableStyle } from "~/styles";
+import { fetcher } from "~/utils/helper";
 import { columns } from "./columns";
+import { GroupsHeader } from "./header";
 
 export default function GroupList() {
   const { data, error } = useSWR("/admin/v1beta1/groups", fetcher);
@@ -14,7 +16,11 @@ export default function GroupList() {
         columns={columns}
         data={groups ?? []}
         noDataChildren={noDataChildren}
-      ></Table>
+      >
+        <Table.TopContainer>
+          <GroupsHeader />
+        </Table.TopContainer>
+      </Table>
       <Outlet />
     </Flex>
   );
