@@ -50,6 +50,18 @@ proto: ## Generate the protobuf files
 	@cp -R proto/odpf/shield/* proto/ && rm -Rf proto/odpf
 	@echo " > protobuf compilation finished"
 
+update-swagger-md:
+	npx swagger-markdown -i proto/apidocs.swagger.json -o docs/docs/reference/api.md
+
+clean-doc:
+	@echo "> cleaning up auto-generated docs"
+	@rm -rf ./docs/docs/reference/cli.md
+	@rm -f ./docs/docs/reference/api.md
+
+doc: clean-doc update-swagger-md ## Generate api and cli documentation
+	@echo "> generate cli docs"
+	@go run . reference --plain | sed '1 s,.*,# CLI,' > ./docs/docs/reference/cli.md
+
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
