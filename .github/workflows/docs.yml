@@ -10,7 +10,7 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
       - name: Installation
         uses: bahmutov/npm-install@v1

@@ -34,7 +34,7 @@ app:
       block_secret_key: "block-secret-should-be-32-chars-"
     # once authenticated, server responds with a jwt with user context
     token:
-      # generate key file via "./shield server gen rsa"
+      # generate key file via "./shield server keygen"
       rsa_path: ./temp/rsa
       iss: "http://localhost.shield"
     # external host used for oidc redirect uri, e.g. http://localhost:8000/admin/v1beta1/auth/callback

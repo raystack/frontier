@@ -27,7 +27,10 @@ func NewPolicyRepository(spiceDB *SpiceDB) *PolicyRepository {
 }
 
 func (r PolicyRepository) WriteSchema(ctx context.Context, schema schema.NamespaceConfigMapType) error {
-	generatedSchema := schema_generator.GenerateSchema(schema)
+	generatedSchema, err := schema_generator.GenerateSchema(schema)
+	if err != nil {
+		return err
+	}
 	request := &authzedpb.WriteSchemaRequest{Schema: strings.Join(generatedSchema, "\n")}
 	fmt.Println(strings.Join(generatedSchema, "\n"))
 	if _, err := r.spiceDB.client.WriteSchema(ctx, request); err != nil {
