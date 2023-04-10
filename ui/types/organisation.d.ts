@@ -3,6 +3,6 @@ export type Organisation = {
   name: string;
   slug: string;
   metadata: Record<string, string>;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 };

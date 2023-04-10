@@ -23,16 +23,16 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             <Route index element={<Home />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="organisations" element={<Organisations />}>
-              <Route path=":id" element={<OrganisationDetails />} />
+              <Route path=":organisationId" element={<OrganisationDetails />} />
             </Route>
             <Route path="projects" element={<Projects />}>
-              <Route path=":id" element={<ProjectDetails />} />
+              <Route path=":projectId" element={<ProjectDetails />} />
             </Route>
             <Route path="users" element={<Users />}>
-              <Route path=":id" element={<UserDetails />} />
+              <Route path=":userId" element={<UserDetails />} />
             </Route>
             <Route path="groups" element={<Groups />}>
-              <Route path=":id" element={<GroupDetails />} />
+              <Route path=":groupId" element={<GroupDetails />} />
             </Route>
 
             {/* Using path="*"" means "match anything", so this route

@@ -1,3 +1,5 @@
+import type { TableColumnMetadata } from "~/types/types";
+
 const DEFAULT_REDIRECT = "/";
 
 export function reduceByKey(data: Record<string, any>[], key: string) {
@@ -15,3 +17,6 @@ export const capitalizeFirstLetter = (str: string) => {
 
 // @ts-ignore
 export const fetcher = (...args) => fetch(...args).then((res) => res.json());
+
+export const keyToColumnMetaObject = (key: any) =>
+  ({ key: key, name: key, value: key } as TableColumnMetadata);

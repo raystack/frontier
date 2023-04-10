@@ -1,6 +1,7 @@
 export const tableStyle = {
-  height: "calc(100% - 52px)",
-
+  table: {
+    height: "calc(100vh - 52px)",
+  },
   tbody: {
     tr: {
       py: "$3",

@@ -1,14 +1,20 @@
 import { EmptyState, Flex, Table } from "@odpf/apsara";
-import { Outlet } from "react-router-dom";
+import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { tableStyle } from "~/styles";
-import { fetcher } from "~/utils/helper";
+import { Project } from "~/types/project";
+import { fetcher, reduceByKey } from "~/utils/helper";
 import { columns } from "./columns";
 import { ProjectsHeader } from "./header";
 
+type ContextType = { project: Project | null };
 export default function ProjectList() {
   const { data, error } = useSWR("/admin/v1beta1/projects", fetcher);
+
   const { projects = [] } = data || { projects: [] };
+  let { projectId } = useParams();
+
+  const projectMapByName = reduceByKey(projects ?? [], "id");
   return (
     <Flex direction="row" css={{ height: "100%", width: "100%" }}>
       <Table
@@ -20,10 +26,25 @@ export default function ProjectList() {
         <Table.TopContainer>
           <ProjectsHeader />
         </Table.TopContainer>
+        <Table.DetailContainer
+          css={{
+            borderLeft: "1px solid $gray4",
+            borderTop: "1px solid $gray4",
+          }}
+        >
+          <Outlet
+            context={{
+              project: projectId ? projectMapByName[projectId] : null,
+            }}
+          />
+        </Table.DetailContainer>
       </Table>
-      <Outlet />
     </Flex>
   );
+}
+
+export function useProject() {
+  return useOutletContext<ContextType>();
 }
 
 export const noDataChildren = (
