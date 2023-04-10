@@ -32,9 +32,9 @@ type UserService interface {
 }
 
 type FlowRepository interface {
-	Set(flow *Flow) error
-	Get(id uuid.UUID) (*Flow, error)
-	Delete(id uuid.UUID) error
+	Set(ctx context.Context, flow *Flow) error
+	Get(ctx context.Context, id uuid.UUID) (*Flow, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type RegistrationService struct {
@@ -120,7 +120,7 @@ func (r RegistrationService) Start(ctx context.Context, request RegistrationStar
 
 		flow.StartURL = endpoint
 		flow.Nonce = nonce
-		if err = r.flowRepo.Set(flow); err != nil {
+		if err = r.flowRepo.Set(ctx, flow); err != nil {
 			return nil, err
 		}
 		return &RegistrationStartResponse{
@@ -181,7 +181,7 @@ func (r RegistrationService) applyOIDC(ctx context.Context, request Registration
 		return nil, ErrStrategyNotApplicable
 	}
 	// fetch auth flow
-	flow, err := r.flowRepo.Get(flowID)
+	flow, err := r.flowRepo.Get(ctx, flowID)
 	if err != nil {
 		return nil, err
 	}

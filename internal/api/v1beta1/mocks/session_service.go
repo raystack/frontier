@@ -27,25 +27,25 @@ func (_m *SessionService) EXPECT() *SessionService_Expecter {
 	return &SessionService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: _a0
-func (_m *SessionService) Create(_a0 user.User) (*authenticate.Session, error) {
-	ret := _m.Called(_a0)
+// Create provides a mock function with given fields: ctx, _a1
+func (_m *SessionService) Create(ctx context.Context, _a1 user.User) (*authenticate.Session, error) {
+	ret := _m.Called(ctx, _a1)
 
 	var r0 *authenticate.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(user.User) (*authenticate.Session, error)); ok {
-		return rf(_a0)
+	if rf, ok := ret.Get(0).(func(context.Context, user.User) (*authenticate.Session, error)); ok {
+		return rf(ctx, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(user.User) *authenticate.Session); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(context.Context, user.User) *authenticate.Session); ok {
+		r0 = rf(ctx, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*authenticate.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(user.User) error); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func(context.Context, user.User) error); ok {
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -59,14 +59,15 @@ type SessionService_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//   - _a0 user.User
-func (_e *SessionService_Expecter) Create(_a0 interface{}) *SessionService_Create_Call {
-	return &SessionService_Create_Call{Call: _e.mock.On("Create", _a0)}
+//  - ctx context.Context
+//  - _a1 user.User
+func (_e *SessionService_Expecter) Create(ctx interface{}, _a1 interface{}) *SessionService_Create_Call {
+	return &SessionService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
 }
 
-func (_c *SessionService_Create_Call) Run(run func(_a0 user.User)) *SessionService_Create_Call {
+func (_c *SessionService_Create_Call) Run(run func(ctx context.Context, _a1 user.User)) *SessionService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(user.User))
+		run(args[0].(context.Context), args[1].(user.User))
 	})
 	return _c
 }
@@ -76,18 +77,18 @@ func (_c *SessionService_Create_Call) Return(_a0 *authenticate.Session, _a1 erro
 	return _c
 }
 
-func (_c *SessionService_Create_Call) RunAndReturn(run func(user.User) (*authenticate.Session, error)) *SessionService_Create_Call {
+func (_c *SessionService_Create_Call) RunAndReturn(run func(context.Context, user.User) (*authenticate.Session, error)) *SessionService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// Delete provides a mock function with given fields: sessionID
-func (_m *SessionService) Delete(sessionID uuid.UUID) error {
-	ret := _m.Called(sessionID)
+// Delete provides a mock function with given fields: ctx, sessionID
+func (_m *SessionService) Delete(ctx context.Context, sessionID uuid.UUID) error {
+	ret := _m.Called(ctx, sessionID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(uuid.UUID) error); ok {
-		r0 = rf(sessionID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, sessionID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -101,14 +102,15 @@ type SessionService_Delete_Call struct {
 }
 
 // Delete is a helper method to define mock.On call
-//   - sessionID uuid.UUID
-func (_e *SessionService_Expecter) Delete(sessionID interface{}) *SessionService_Delete_Call {
-	return &SessionService_Delete_Call{Call: _e.mock.On("Delete", sessionID)}
+//  - ctx context.Context
+//  - sessionID uuid.UUID
+func (_e *SessionService_Expecter) Delete(ctx interface{}, sessionID interface{}) *SessionService_Delete_Call {
+	return &SessionService_Delete_Call{Call: _e.mock.On("Delete", ctx, sessionID)}
 }
 
-func (_c *SessionService_Delete_Call) Run(run func(sessionID uuid.UUID)) *SessionService_Delete_Call {
+func (_c *SessionService_Delete_Call) Run(run func(ctx context.Context, sessionID uuid.UUID)) *SessionService_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
@@ -118,7 +120,7 @@ func (_c *SessionService_Delete_Call) Return(_a0 error) *SessionService_Delete_C
 	return _c
 }
 
-func (_c *SessionService_Delete_Call) RunAndReturn(run func(uuid.UUID) error) *SessionService_Delete_Call {
+func (_c *SessionService_Delete_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *SessionService_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }

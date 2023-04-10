@@ -197,8 +197,8 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
-	sessionService := authenticate.NewSessionManager(postgres.NewSessionRepository(), grpc_interceptors.SessionValidity)
-	registrationService := authenticate.NewRegistrationService(postgres.NewFlowRepository(), userService, cfg.App.Authentication)
+	sessionService := authenticate.NewSessionManager(postgres.NewSessionRepository(dbc), grpc_interceptors.SessionValidity)
+	registrationService := authenticate.NewRegistrationService(postgres.NewFlowRepository(dbc), userService, cfg.App.Authentication)
 
 	dependencies := api.Deps{
 		OrgService:          organizationService,

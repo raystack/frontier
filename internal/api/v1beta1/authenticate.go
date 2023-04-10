@@ -29,8 +29,8 @@ type RegistrationService interface {
 //go:generate mockery --name=SessionService -r --case underscore --with-expecter --structname SessionService --filename session_service.go --output=./mocks
 type SessionService interface {
 	ExtractFromMD(ctx context.Context) (*authenticate.Session, error)
-	Create(user user.User) (*authenticate.Session, error)
-	Delete(sessionID uuid.UUID) error
+	Create(ctx context.Context, user user.User) (*authenticate.Session, error)
+	Delete(ctx context.Context, sessionID uuid.UUID) error
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.AuthenticateRequest) (*shieldv1beta1.AuthenticateResponse, error) {
@@ -89,7 +89,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCa
 	}
 
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(response.User)
+	session, err := h.sessionService.Create(ctx, response.User)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
@@ -121,7 +121,7 @@ func (h Handler) AuthLogout(ctx context.Context, request *shieldv1beta1.AuthLogo
 	// delete user session if exists
 	sessionID, err := h.getLoggedInSessionID(ctx)
 	if err == nil {
-		if err = h.sessionService.Delete(sessionID); err != nil {
+		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
 			logger.Error(err.Error())
 			return nil, status.Error(codes.Internal, err.Error())
 		}
