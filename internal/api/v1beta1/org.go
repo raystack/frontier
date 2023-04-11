@@ -8,7 +8,7 @@ import (
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
-	"github.com/odpf/shield/pkg/uuid"
+	suuid "github.com/odpf/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -30,6 +30,7 @@ type OrganizationService interface {
 	List(ctx context.Context) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
+	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
@@ -151,7 +152,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	}
 
 	var updatedOrg organization.Organization
-	if uuid.IsValid(request.GetId()) {
+	if suuid.IsValid(request.GetId()) {
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
 			ID:       request.GetId(),
 			Name:     request.GetBody().GetName(),

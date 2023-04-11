@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<head>
+	<link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css">
+</head>
+<body>
+	<main class="container">
+		<header>
+			<div>
+				<h1>
+					{{ .page }} | {{ .title }}
+				</h1>
+			</div>
+			<div>
+				<nav>
+					<ul>
+						<li><a href="/">Home</a></li>
+						<li><a href="/login">Login/Register</a></li>
+						<li><a href="/logout">Logout</a></li>
+						<li><a href="/profile">Profile</a></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+		<hr>
+		<div>
+			{{ .content }}
+		</div>
+		<div>
+			{{ .token }}
+		</div>
+	</main>
+</body>
+</html>

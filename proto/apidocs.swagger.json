@@ -141,6 +141,207 @@
         ]
       }
     },
+    "/v1beta1/auth": {
+      "get": {
+        "summary": "Authn",
+        "operationId": "ShieldService_ListAuthStrategies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListAuthStrategiesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ShieldService"
+        ]
+      }
+    },
+    "/v1beta1/auth/callback": {
+      "get": {
+        "operationId": "ShieldService_AuthCallback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AuthCallbackResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "strategyName",
+            "description": "strategy_name will not be set for oidc but can be utilized for methods like email magic links.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "description": "for oidc.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ShieldService"
+        ]
+      },
+      "post": {
+        "operationId": "ShieldService_AuthCallback2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AuthCallbackResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ShieldService"
+        ]
+      }
+    },
+    "/v1beta1/auth/logout": {
+      "get": {
+        "operationId": "ShieldService_AuthLogout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AuthLogoutResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ShieldService"
+        ]
+      },
+      "delete": {
+        "operationId": "ShieldService_AuthLogout2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AuthLogoutResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ShieldService"
+        ]
+      }
+    },
+    "/v1beta1/auth/register/{strategyName}": {
+      "get": {
+        "operationId": "ShieldService_Authenticate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AuthenticateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "strategyName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "redirect",
+            "description": "by default, location header for redirect if applicable\nwill be skipped unless this is set to true, useful in browser.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "returnTo",
+            "description": "be default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ShieldService"
+        ]
+      },
+      "post": {
+        "operationId": "ShieldService_Authenticate2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AuthenticateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "strategyName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ShieldService"
+        ]
+      }
+    },
     "/v1beta1/check": {
       "post": {
         "summary": "check permission for action on a resource by an user",
@@ -310,111 +511,6 @@
         ]
       }
     },
-    "/v1beta1/groups/{id}/admins": {
-      "get": {
-        "summary": "Get all Admins of a Group",
-        "operationId": "ShieldService_ListGroupAdmins",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1ListGroupAdminsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      },
-      "post": {
-        "summary": "Add Admin to Group",
-        "operationId": "ShieldService_AddGroupAdmin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddGroupAdminResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddGroupAdminRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/groups/{id}/admins/{userId}": {
-      "delete": {
-        "summary": "Remove Admin from Group",
-        "operationId": "ShieldService_RemoveGroupAdmin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1RemoveGroupAdminResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
     "/v1beta1/groups/{id}/relations": {
       "get": {
         "summary": "Get all relations for a group",
@@ -450,111 +546,6 @@
             "name": "role",
             "in": "query",
             "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/groups/{id}/users": {
-      "get": {
-        "summary": "Get all Users in a Group",
-        "operationId": "ShieldService_ListGroupUsers",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1ListGroupUsersResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      },
-      "post": {
-        "summary": "Add User to Group",
-        "operationId": "ShieldService_AddGroupUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddGroupUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddGroupUserRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/groups/{id}/users/{userId}": {
-      "delete": {
-        "summary": "Remove User from Group",
-        "operationId": "ShieldService_RemoveGroupUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1RemoveGroupUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
             "type": "string"
           }
         ],
@@ -817,7 +808,7 @@
     },
     "/v1beta1/organizations/{id}": {
       "get": {
-        "summary": "Get Organization by ID",
+        "summary": "Get Organization by ID or slug",
         "operationId": "ShieldService_GetOrganization",
         "responses": {
           "200": {
@@ -904,80 +895,6 @@
         "parameters": [
           {
             "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Organization"
-        ]
-      },
-      "post": {
-        "summary": "Add Admin to Organization",
-        "operationId": "ShieldService_AddOrganizationAdmin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddOrganizationAdminResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddOrganizationAdminRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Organization"
-        ]
-      }
-    },
-    "/v1beta1/organizations/{id}/admins/{userId}": {
-      "delete": {
-        "summary": "Remove Admin from Organization",
-        "operationId": "ShieldService_RemoveOrganizationAdmin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1RemoveOrganizationAdminResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1253,80 +1170,6 @@
         "parameters": [
           {
             "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Project"
-        ]
-      },
-      "post": {
-        "summary": "Add Admin to Project",
-        "operationId": "ShieldService_AddProjectAdmin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddProjectAdminResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1AddProjectAdminRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Project"
-        ]
-      }
-    },
-    "/v1beta1/projects/{id}/admins/{userId}": {
-      "delete": {
-        "summary": "Remove Admin from Project",
-        "operationId": "ShieldService_RemoveProjectAdmin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1RemoveProjectAdminResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1926,6 +1769,37 @@
           "User"
         ]
       }
+    },
+    "/v1beta1/users/{id}/organizations": {
+      "get": {
+        "summary": "Get all organizations a user belongs to",
+        "operationId": "ShieldService_GetOrganizationsByUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1GetOrganizationsByUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
     }
   },
   "definitions": {
@@ -2003,91 +1877,28 @@
         }
       }
     },
-    "v1beta1AddGroupAdminRequestBody": {
+    "v1beta1AuthCallbackResponse": {
+      "type": "object"
+    },
+    "v1beta1AuthLogoutResponse": {
+      "type": "object"
+    },
+    "v1beta1AuthStrategy": {
       "type": "object",
       "properties": {
-        "userIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "name": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object"
         }
       }
     },
-    "v1beta1AddGroupAdminResponse": {
+    "v1beta1AuthenticateResponse": {
       "type": "object",
       "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1beta1User"
-          }
-        }
-      }
-    },
-    "v1beta1AddGroupUserRequestBody": {
-      "type": "object",
-      "properties": {
-        "userIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1beta1AddGroupUserResponse": {
-      "type": "object",
-      "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1beta1User"
-          }
-        }
-      }
-    },
-    "v1beta1AddOrganizationAdminRequestBody": {
-      "type": "object",
-      "properties": {
-        "userIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1beta1AddOrganizationAdminResponse": {
-      "type": "object",
-      "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1beta1User"
-          }
-        }
-      }
-    },
-    "v1beta1AddProjectAdminRequestBody": {
-      "type": "object",
-      "properties": {
-        "userIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1beta1AddProjectAdminResponse": {
-      "type": "object",
-      "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1beta1User"
-          }
+        "endpoint": {
+          "type": "string"
         }
       }
     },
@@ -2252,6 +2063,17 @@
         }
       }
     },
+    "v1beta1GetOrganizationsByUserResponse": {
+      "type": "object",
+      "properties": {
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1Organization"
+          }
+        }
+      }
+    },
     "v1beta1GetPolicyResponse": {
       "type": "object",
       "properties": {
@@ -2373,13 +2195,13 @@
         }
       }
     },
-    "v1beta1ListGroupAdminsResponse": {
+    "v1beta1ListAuthStrategiesResponse": {
       "type": "object",
       "properties": {
-        "users": {
+        "strategies": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1beta1User"
+            "$ref": "#/definitions/v1beta1AuthStrategy"
           }
         }
       }
@@ -2391,17 +2213,6 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1beta1GroupRelation"
-          }
-        }
-      }
-    },
-    "v1beta1ListGroupUsersResponse": {
-      "type": "object",
-      "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1beta1User"
           }
         }
       }
@@ -2771,38 +2582,6 @@
         }
       }
     },
-    "v1beta1RemoveGroupAdminResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "v1beta1RemoveGroupUserResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "v1beta1RemoveOrganizationAdminResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "v1beta1RemoveProjectAdminResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
-    },
     "v1beta1Resource": {
       "type": "object",
       "properties": {
@@ -3036,6 +2815,9 @@
         },
         "metadata": {
           "type": "object"
+        },
+        "slug": {
+          "type": "string"
         }
       }
     }

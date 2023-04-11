@@ -91,7 +91,7 @@ One thing to note here is that Shield only allow to have metadata key from a spe
   </TabItem>
 </Tabs>
 
-### Update Projects
+### Update Users
 
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>

@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/core/authenticate"
+	"github.com/odpf/shield/core/organization"
+
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
@@ -382,7 +385,7 @@ func TestGetCurrentUser(t *testing.T) {
 	email := "user@odpf.io"
 	table := []struct {
 		title  string
-		setup  func(ctx context.Context, us *mocks.UserService) context.Context
+		setup  func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context
 		header string
 		want   *shieldv1beta1.GetCurrentUserResponse
 		err    error
@@ -391,10 +394,14 @@ func TestGetCurrentUser(t *testing.T) {
 			title: "should return unauthenticated error if no auth email header in context",
 			want:  nil,
 			err:   grpcUnauthenticated,
+			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
+				ss.EXPECT().ExtractFromMD(ctx).Return(nil, authenticate.ErrNoSession)
+				return ctx
+			},
 		},
 		{
 			title: "should return not found error if user does not exist",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, user.ErrNotExist)
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -403,7 +410,7 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return error if user service return some error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -412,7 +419,7 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return user if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(
 					user.User{
 						ID:    "user-id-1",
@@ -445,11 +452,25 @@ func TestGetCurrentUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+
+			mockSessionService := new(mocks.SessionService)
+			defer mockSessionService.AssertExpectations(t)
+
+			mockOrgService := new(mocks.OrganizationService)
+			mockOrgService.EXPECT().ListByUser(mock.Anything, "user-id-1").Return([]organization.Organization{}, nil)
+			registrationService := new(mocks.RegistrationService)
+			registrationService.EXPECT().Token(mock.AnythingOfType("user.User"), []organization.Organization{}).Return(nil, authenticate.ErrMissingRSADisableToken)
+
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv)
+				ctx = tt.setup(ctx, mockUserSrv, mockSessionService)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{
+				userService:         mockUserSrv,
+				sessionService:      mockSessionService,
+				orgService:          mockOrgService,
+				registrationService: registrationService,
+			}
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)

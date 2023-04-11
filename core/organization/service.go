@@ -109,3 +109,7 @@ func (s Service) addAdminToOrg(ctx context.Context, user user.User, org Organiza
 	}
 	return nil
 }
+
+func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization, error) {
+	return s.repository.ListByUser(ctx, userID)
+}

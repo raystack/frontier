@@ -16,7 +16,7 @@ import (
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/telemetry"
-	"github.com/odpf/shield/pkg/uuid"
+	shielduuid "github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
@@ -190,19 +190,35 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 
 func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurrentUserRequest) (*shieldv1beta1.GetCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
+	var currentUser user.User
+	var userID string
+	var err error
 
-	email, ok := user.GetEmailFromContext(ctx)
-	if !ok {
-		return nil, grpcUnauthenticated
+	// TODO(kushsharma): discuss if we are disabling header based email field verification?
+	// Should we do it if email header config is set?
+
+	// check if header with user email is set
+	if email, ok := user.GetEmailFromContext(ctx); ok {
+		if email = strings.TrimSpace(email); email != "" {
+			userID = email
+		}
 	}
 
-	email = strings.TrimSpace(email)
-	if email == "" {
-		logger.Error(ErrEmptyEmailID.Error())
-		return nil, grpcUnauthenticated
+	// try fetching user from session if no email found
+	if userID == "" {
+		userID, err = h.getLoggedInUserID(ctx)
+		if err != nil {
+			return nil, grpcUnauthenticated
+		}
 	}
 
-	fetchedUser, err := h.userService.GetByEmail(ctx, email)
+	if ok := shielduuid.IsValid(userID); ok {
+		// userID is an uuid
+		currentUser, err = h.userService.GetByID(ctx, userID)
+	} else {
+		// userID must be email
+		currentUser, err = h.userService.GetByEmail(ctx, userID)
+	}
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -213,12 +229,16 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		}
 	}
 
-	userPB, err := transformUserToPB(fetchedUser)
+	if err = h.setUserContextTokenInHeaders(ctx, currentUser); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	userPB, err := transformUserToPB(currentUser)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-
 	return &shieldv1beta1.GetCurrentUserResponse{
 		User: &userPB,
 	}, nil
@@ -247,7 +267,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	}
 
 	id := request.GetId()
-	if uuid.IsValid(id) {
+	if shielduuid.IsValid(id) {
 		updatedUser, err = h.userService.UpdateByID(ctx, user.User{
 			ID:       request.GetId(),
 			Name:     request.GetBody().GetName(),
@@ -376,6 +396,28 @@ func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.List
 	return &shieldv1beta1.ListUserGroupsResponse{
 		Groups: groups,
 	}, nil
+}
+
+func (h Handler) GetOrganizationsByUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByUserRequest) (*shieldv1beta1.GetOrganizationsByUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	// valid uuid
+	orgList, err := h.orgService.ListByUser(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var orgs []*shieldv1beta1.Organization
+	for _, v := range orgList {
+		orgPB, err := transformOrgToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		orgs = append(orgs, &orgPB)
+	}
+	return &shieldv1beta1.GetOrganizationsByUserResponse{Organizations: orgs}, nil
 }
 
 func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {

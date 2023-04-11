@@ -10,6 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/core/authenticate"
+	"github.com/odpf/shield/internal/server/grpc_interceptors"
+
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
@@ -116,7 +119,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := buildAPIDependencies(logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -152,8 +155,8 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 }
 
 func buildAPIDependencies(
-	ctx context.Context,
 	logger log.Logger,
+	cfg *config.Shield,
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
@@ -194,17 +197,22 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
+	sessionService := authenticate.NewSessionManager(postgres.NewSessionRepository(), grpc_interceptors.SessionValidity)
+	registrationService := authenticate.NewRegistrationService(postgres.NewFlowRepository(), userService, cfg.App.Authentication)
+
 	dependencies := api.Deps{
-		OrgService:       organizationService,
-		UserService:      userService,
-		ProjectService:   projectService,
-		GroupService:     groupService,
-		RelationService:  relationService,
-		ResourceService:  resourceService,
-		RoleService:      roleService,
-		PolicyService:    policyService,
-		ActionService:    actionService,
-		NamespaceService: namespaceService,
+		OrgService:          organizationService,
+		ProjectService:      projectService,
+		GroupService:        groupService,
+		RoleService:         roleService,
+		PolicyService:       policyService,
+		UserService:         userService,
+		NamespaceService:    namespaceService,
+		ActionService:       actionService,
+		RelationService:     relationService,
+		ResourceService:     resourceService,
+		SessionService:      sessionService,
+		RegistrationService: registrationService,
 	}
 	return dependencies, nil
 }
