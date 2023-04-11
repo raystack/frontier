@@ -50,7 +50,16 @@ func main() {
 	r.GET("/callback", callback())
 	r.GET("/logout", logout())
 	r.GET("/profile", profile())
+	r.GET("/test", test())
 	r.Run(appHost) // listen and serve
+}
+
+func test() func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"headers": ctx.Request.Header,
+		})
+	}
 }
 
 func home() func(ctx *gin.Context) {

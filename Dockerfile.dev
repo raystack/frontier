@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine3.15 as builder
+FROM golang:1.20-alpine3.17 as builder
 
 RUN apk add make
 
@@ -11,7 +11,7 @@ COPY . .
 
 RUN make build
 
-FROM alpine:3.16
+FROM alpine:3.17
 COPY --from=builder /go/src/app/shield /usr/bin/
 RUN apk update
 RUN apk add ca-certificates

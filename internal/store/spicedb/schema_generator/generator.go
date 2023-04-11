@@ -8,7 +8,7 @@ import (
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
 )
 
-func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
+func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) ([]string, error) {
 	definitionSchemaStringified := make([]string, 0)
 	for name, config := range namespaceConfig {
 		roles := make([]*sdbcore.Relation, 0)
@@ -22,7 +22,11 @@ func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
 				relationList = append(relationList, sdbnamespace.AllowedRelation(processPrincipal(p), "..."))
 			}
 
-			roles = append(roles, sdbnamespace.Relation(roleName, nil, relationList...))
+			rel, err := sdbnamespace.Relation(roleName, nil, relationList...)
+			if err != nil {
+				return nil, err
+			}
+			roles = append(roles, rel)
 		}
 
 		// generate spicedb permissions
@@ -32,19 +36,30 @@ func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
 				rolesList = append(rolesList, sdbnamespace.ComputedUserset(schema.SpiceDBPermissionInheritanceFormatter(role)))
 			}
 
-			permissions = append(permissions, sdbnamespace.Relation(permissioName, sdbnamespace.Union(rolesList[0], rolesList[1:]...)))
+			rel, err := sdbnamespace.Relation(permissioName, sdbnamespace.Union(rolesList[0], rolesList[1:]...))
+			if err != nil {
+				return nil, err
+			}
+			permissions = append(permissions, rel)
 		}
 
 		// generate inheritance
 		for _, namespace := range config.InheritedNamespaces {
-			inheritedNamespaces = append(inheritedNamespaces, sdbnamespace.Relation(namespace.Name, nil, sdbnamespace.AllowedRelation(namespace.NamespaceId, "...")))
+			rel, err := sdbnamespace.Relation(namespace.Name, nil, sdbnamespace.AllowedRelation(namespace.NamespaceId, "..."))
+			if err != nil {
+				return nil, err
+			}
+			inheritedNamespaces = append(inheritedNamespaces, rel)
 		}
 
-		source, _ := generator.GenerateSource(sdbnamespace.Namespace(name, append(roles, append(permissions, inheritedNamespaces...)...)...))
+		source, _, err := generator.GenerateSource(sdbnamespace.Namespace(name, append(roles, append(permissions, inheritedNamespaces...)...)...))
+		if err != nil {
+			return nil, err
+		}
 		definitionSchemaStringified = append(definitionSchemaStringified, source)
 	}
 
-	return definitionSchemaStringified
+	return definitionSchemaStringified, nil
 }
 
 func processPrincipal(s string) string {

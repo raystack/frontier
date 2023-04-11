@@ -68,9 +68,8 @@ func serveProxies(
 
 		cps := proxy.Serve(ctx, logger, svcConfig, middlewarePipeline)
 		cleanUpProxies = append(cleanUpProxies, cps)
+		logger.Info("[shield] proxy is up")
 	}
-
-	logger.Info("[shield] proxy is up")
 	return cleanUpBlobs, cleanUpProxies, nil
 }
 

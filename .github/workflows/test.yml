@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:12
+        image: postgres:13
         ports:
           - 5432:5432
         env:
@@ -23,13 +23,13 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: '1.20'
       - name: install dependencies
         run: go mod tidy
       - name: test binaries
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       pg1:
-        image: postgres:12
+        image: postgres:13
         env:
           POSTGRES_DB: "shield"
           POSTGRES_USER: "shield"
@@ -61,20 +61,20 @@ jobs:
         ports:
           - "4000:80"
       spicedb:
-        image: quay.io/authzed/spicedb:v1.0.0
+        image: quay.io/authzed/spicedb:v1.19.0
         ports:
           - "8080:8080"
           - "50051:50051"
           - "50053:50053"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: '1.20'
       - name: install dependencies
         run: go mod tidy
       - name: install spicedb binary

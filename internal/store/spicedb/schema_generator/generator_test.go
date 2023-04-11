@@ -31,7 +31,9 @@ func TestPredefinedSchema(t *testing.T) {
 
 	// slice and sort as GenerateSchema() generated the permissions and relations in random order
 
-	actualPredefinedConfigs := makeDefnMap(GenerateSchema(schema.PreDefinedSystemNamespaceConfig))
+	scm, err := GenerateSchema(schema.PreDefinedSystemNamespaceConfig)
+	assert.Nil(t, err)
+	actualPredefinedConfigs := makeDefnMap(scm)
 	expectedPredefinedConfigs := makeDefnMap(strings.Split(string(content), "\n--\n"))
 	assert.Equal(t, actualPredefinedConfigs, expectedPredefinedConfigs)
 }
