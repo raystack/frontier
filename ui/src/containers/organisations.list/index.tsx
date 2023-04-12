@@ -31,15 +31,16 @@ export default function OrganisationList() {
             borderTop: "1px solid $gray4",
           }}
         >
-          <Outlet
-            context={{
-              organisation: organisationId
-                ? organisationMapByName[organisationId]
-                : null,
-            }}
-          />
+          {organisationId && (
+            <Outlet
+              context={{
+                organisation: organisationMapByName[organisationId],
+              }}
+            />
+          )}
         </Table.DetailContainer>
       </Table>
+      {!organisationId && <Outlet />}
     </Flex>
   );
 }
