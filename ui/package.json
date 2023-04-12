@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.0.1",
-    "@odpf/apsara": "^0.9.0",
+    "@odpf/apsara": "^0.9.1",
     "@radix-ui/colors": "^0.1.8",
     "@radix-ui/react-form": "^0.0.2",
     "@stitches/react": "^1.2.8",
