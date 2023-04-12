@@ -24,7 +24,6 @@ func NewSessionRepository(dbc *db.Client) *SessionRepository {
 }
 
 func (s *SessionRepository) Set(ctx context.Context, session *authenticate.Session) error {
-
 	query, params, err := dialect.Insert(TABLE_SESSIONS).Rows(
 		goqu.Record{
 			"id":               session.ID,
