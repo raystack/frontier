@@ -17,8 +17,8 @@ export const columns: ColumnDef<User, any>[] = [
     cell: (info) => info.getValue(),
   },
   {
-    header: "Slug",
-    accessorKey: "slug",
+    header: "Email",
+    accessorKey: "email",
     cell: (info) => info.getValue(),
     footer: (props) => props.column.id,
   },

@@ -36,6 +36,12 @@ export const getColumns: (groups: Group[]) => ColumnDef<Group, any>[] = (
       filterVariant: "text",
     },
     {
+      header: "Slug",
+      accessorKey: "slug",
+      cell: (info: any) => info.getValue(),
+      filterVariant: "text",
+    },
+    {
       header: "Create At",
       accessorKey: "createdAt",
       filterVariant: "text",
