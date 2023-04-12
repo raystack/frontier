@@ -7,9 +7,10 @@ import Dashboard from "./containers/dashboard";
 import Groups from "./containers/groups.list";
 import GroupDetails from "./containers/groups.list/details";
 import Home from "./containers/home";
-import NewOrganisation from "./containers/organisation.create";
+import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
 import OrganisationDetails from "./containers/organisations.list/details";
+import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
 import Users from "./containers/users.list";
@@ -28,6 +29,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
               <Route path=":organisationId" element={<OrganisationDetails />} />
             </Route>
             <Route path="projects" element={<Projects />}>
+              <Route path="create" element={<NewProject />} />
               <Route path=":projectId" element={<ProjectDetails />} />
             </Route>
             <Route path="users" element={<Users />}>

@@ -1,9 +1,11 @@
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
 
 import { Button, Flex, Table, useTable } from "@odpf/apsara";
+import { useNavigate } from "react-router-dom";
 import { styles } from "~/styles";
 
 export const ProjectsHeader = () => {
+  const navigate = useNavigate();
   const { filterQuery = [], clearFilters } = useTable();
 
   return (
@@ -37,7 +39,10 @@ export const ProjectsHeader = () => {
           </Table.TableColumnsFilter>
           <Table.TableGlobalSearch placeholder="Search all projects" />
 
-          <Button css={styles.button}>
+          <Button
+            css={styles.button}
+            onClick={() => navigate("/projects/create")}
+          >
             <Flex align="center" css={{ paddingRight: "$2" }}>
               <PlusIcon />
             </Flex>
