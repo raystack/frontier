@@ -19,6 +19,7 @@ func (m AuthMethod) String() string {
 // Flow is a temporary state used to finish login/registration flows
 type Flow struct {
 	ID uuid.UUID
+
 	// authentication flow type
 	Method string
 
@@ -26,6 +27,7 @@ type Flow struct {
 	StartURL string
 	// FinishURL is where flow should end to after successful verification
 	FinishURL string
+
 	// Nonce is a once time use random string
 	Nonce string
 
