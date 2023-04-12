@@ -30,12 +30,12 @@ func (s *FlowRepository) Set(ctx context.Context, session *authenticate.Flow) er
 			"finish_url": session.FinishURL,
 			"nonce":      session.Nonce,
 			"created_at": session.CreatedAt,
-		}).Returning(&authenticate.Flow{}).ToSQL()
+		}).Returning(&Flow{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var flowModel authenticate.Flow
+	var flowModel Flow
 	if err = s.dbc.WithTimeout(context.TODO(), func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -58,7 +58,7 @@ func (s *FlowRepository) Set(ctx context.Context, session *authenticate.Flow) er
 }
 
 func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.Flow, error) {
-	var flowModel authenticate.Flow
+	var flowModel Flow
 	query, params, err := dialect.From(TABLE_FLOWS).Where(
 		goqu.Ex{
 			"id": id,
@@ -66,7 +66,7 @@ func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.F
 	).ToSQL()
 
 	if err != nil {
-		return &authenticate.Flow{}, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -84,10 +84,10 @@ func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.F
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&flowModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return &authenticate.Flow{}, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return &flowModel, nil
+	return flowModel.transformToFlow(), nil
 }
 
 func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {

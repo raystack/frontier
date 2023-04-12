@@ -18,36 +18,34 @@ func (m AuthMethod) String() string {
 
 // Flow is a temporary state used to finish login/registration flows
 type Flow struct {
-	ID uuid.UUID `db:"id"`
-
+	ID uuid.UUID
 	// authentication flow type
-	Method string `db:"method"`
+	Method string
 
 	// StartURL is where flow should start from for verification
-	StartURL string `db:"start_url"`
+	StartURL string
 	// FinishURL is where flow should end to after successful verification
-	FinishURL string `db:"finish_url"`
-
+	FinishURL string
 	// Nonce is a once time use random string
-	Nonce string `db:"nonce"`
+	Nonce string
 
 	// CreatedAt will be used to clean-up dead auth flows
-	CreatedAt time.Time `db:"created_at"`
+	CreatedAt time.Time
 }
 
 // Session is created on successful authentication of users
 type Session struct {
-	ID uuid.UUID `db:"id"`
+	ID uuid.UUID
 
 	// UserID is a unique identifier for logged in users
-	UserID string `db:"user_id"`
+	UserID string
 
 	// AuthenticatedAt is set when a user is successfully authn
-	AuthenticatedAt time.Time `db:"authenticated_at"`
+	AuthenticatedAt time.Time
 
 	// ExpiresAt is ideally now() + lifespan of session, e.g. 7 days
-	ExpiresAt time.Time `db:"expires_at"`
-	CreatedAt time.Time `db:"created_at"`
+	ExpiresAt time.Time
+	CreatedAt time.Time
 }
 
 func (s Session) IsValid() bool {

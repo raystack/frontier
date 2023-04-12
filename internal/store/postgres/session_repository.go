@@ -24,25 +24,20 @@ func NewSessionRepository(dbc *db.Client) *SessionRepository {
 }
 
 func (s *SessionRepository) Set(ctx context.Context, session *authenticate.Session) error {
-	// converting the userID string to uuid
-	userUUID, err := uuid.Parse(session.UserID)
-	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
-	}
 
 	query, params, err := dialect.Insert(TABLE_SESSIONS).Rows(
 		goqu.Record{
 			"id":               session.ID,
-			"user_id":          userUUID,
+			"user_id":          session.UserID,
 			"authenticated_at": session.CreatedAt,
 			"expires_at":       session.ExpiresAt,
 			"created_at":       session.CreatedAt,
-		}).Returning(&authenticate.Session{}).ToSQL()
+		}).Returning(&Session{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var sessionModel authenticate.Session
+	var sessionModel Session
 	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -65,13 +60,13 @@ func (s *SessionRepository) Set(ctx context.Context, session *authenticate.Sessi
 }
 
 func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.Session, error) {
-	var session authenticate.Session
+	var session Session
 	query, params, err := dialect.From(TABLE_SESSIONS).Where(
 		goqu.Ex{
 			"id": id,
 		}).ToSQL()
 	if err != nil {
-		return &authenticate.Session{}, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if err := s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -91,13 +86,13 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*authenticat
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return &authenticate.Session{}, fmt.Errorf("%w: %s", dbErr, authenticate.ErrNoSession)
+			return nil, fmt.Errorf("%w: %s", dbErr, authenticate.ErrNoSession)
 		default:
-			return &authenticate.Session{}, fmt.Errorf("%w: %s", dbErr, err)
+			return nil, fmt.Errorf("%w: %s", dbErr, err)
 		}
 	}
 
-	return &session, nil
+	return session.transformToSession(), nil
 }
 
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
