@@ -197,7 +197,10 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
-	sessionService := authenticate.NewSessionManager(postgres.NewSessionRepository(dbc), grpc_interceptors.SessionValidity)
+	sessionService := authenticate.NewSessionManager(postgres.NewSessionRepository(dbc), grpc_interceptors.SessionValidity, logger)
+	if err := sessionService.RemoveExpiredSessions(context.Background()); err != nil {
+		logger.Warn("sessions database cleanup failed", "err", err)
+	}
 	registrationService := authenticate.NewRegistrationService(postgres.NewFlowRepository(dbc), userService, cfg.App.Authentication)
 
 	dependencies := api.Deps{
