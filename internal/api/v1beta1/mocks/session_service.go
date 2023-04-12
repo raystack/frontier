@@ -157,7 +157,7 @@ type SessionService_ExtractFromMD_Call struct {
 }
 
 // ExtractFromMD is a helper method to define mock.On call
-//   - ctx context.Context
+//  - ctx context.Context
 func (_e *SessionService_Expecter) ExtractFromMD(ctx interface{}) *SessionService_ExtractFromMD_Call {
 	return &SessionService_ExtractFromMD_Call{Call: _e.mock.On("ExtractFromMD", ctx)}
 }
@@ -175,6 +175,48 @@ func (_c *SessionService_ExtractFromMD_Call) Return(_a0 *authenticate.Session, _
 }
 
 func (_c *SessionService_ExtractFromMD_Call) RunAndReturn(run func(context.Context) (*authenticate.Session, error)) *SessionService_ExtractFromMD_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveExpiredSessions provides a mock function with given fields: ctx
+func (_m *SessionService) RemoveExpiredSessions(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SessionService_RemoveExpiredSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveExpiredSessions'
+type SessionService_RemoveExpiredSessions_Call struct {
+	*mock.Call
+}
+
+// RemoveExpiredSessions is a helper method to define mock.On call
+//  - ctx context.Context
+func (_e *SessionService_Expecter) RemoveExpiredSessions(ctx interface{}) *SessionService_RemoveExpiredSessions_Call {
+	return &SessionService_RemoveExpiredSessions_Call{Call: _e.mock.On("RemoveExpiredSessions", ctx)}
+}
+
+func (_c *SessionService_RemoveExpiredSessions_Call) Run(run func(ctx context.Context)) *SessionService_RemoveExpiredSessions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *SessionService_RemoveExpiredSessions_Call) Return(_a0 error) *SessionService_RemoveExpiredSessions_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SessionService_RemoveExpiredSessions_Call) RunAndReturn(run func(context.Context) error) *SessionService_RemoveExpiredSessions_Call {
 	_c.Call.Return(run)
 	return _c
 }
