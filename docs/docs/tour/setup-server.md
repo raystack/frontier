@@ -91,6 +91,7 @@ entropy:
         - name: view
           roles:
             - owner
+            - organization:owner
             - viewer
         - name: sink_edit
           roles:

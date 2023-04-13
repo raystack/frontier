@@ -24,10 +24,14 @@ func NewSessionRepository(dbc *db.Client) *SessionRepository {
 }
 
 func (s *SessionRepository) Set(ctx context.Context, session *authenticate.Session) error {
+	userID, err := uuid.Parse(session.UserID)
+	if err != nil {
+		return fmt.Errorf("error parsing user id: %w", err)
+	}
 	query, params, err := dialect.Insert(TABLE_SESSIONS).Rows(
 		goqu.Record{
 			"id":               session.ID,
-			"user_id":          session.UserID,
+			"user_id":          userID,
 			"authenticated_at": session.CreatedAt,
 			"expires_at":       session.ExpiresAt,
 			"created_at":       session.CreatedAt,

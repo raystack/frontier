@@ -9,7 +9,7 @@ import (
 
 type Session struct {
 	ID              uuid.UUID `db:"id"`
-	UserID          string    `db:"user_id"`
+	UserID          uuid.UUID `db:"user_id"`
 	AuthenticatedAt time.Time `db:"authenticated_at"`
 	ExpiresAt       time.Time `db:"expires_at"`
 	CreatedAt       time.Time `db:"created_at"`
@@ -18,7 +18,7 @@ type Session struct {
 func (s *Session) transformToSession() *authenticate.Session {
 	return &authenticate.Session{
 		ID:              s.ID,
-		UserID:          s.UserID,
+		UserID:          s.UserID.String(),
 		AuthenticatedAt: s.AuthenticatedAt,
 		ExpiresAt:       s.ExpiresAt,
 		CreatedAt:       s.CreatedAt,
