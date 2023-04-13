@@ -27,6 +27,38 @@ func (_m *SessionService) EXPECT() *SessionService_Expecter {
 	return &SessionService_Expecter{mock: &_m.Mock}
 }
 
+// Close provides a mock function with given fields:
+func (_m *SessionService) Close() {
+	_m.Called()
+}
+
+// SessionService_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type SessionService_Close_Call struct {
+	*mock.Call
+}
+
+// Close is a helper method to define mock.On call
+func (_e *SessionService_Expecter) Close() *SessionService_Close_Call {
+	return &SessionService_Close_Call{Call: _e.mock.On("Close")}
+}
+
+func (_c *SessionService_Close_Call) Run(run func()) *SessionService_Close_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *SessionService_Close_Call) Return() *SessionService_Close_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *SessionService_Close_Call) RunAndReturn(run func()) *SessionService_Close_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: ctx, _a1
 func (_m *SessionService) Create(ctx context.Context, _a1 user.User) (*authenticate.Session, error) {
 	ret := _m.Called(ctx, _a1)
@@ -179,8 +211,8 @@ func (_c *SessionService_ExtractFromMD_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
-// RemoveExpiredSessions provides a mock function with given fields: ctx
-func (_m *SessionService) RemoveExpiredSessions(ctx context.Context) error {
+// InitSessions provides a mock function with given fields: ctx
+func (_m *SessionService) InitSessions(ctx context.Context) error {
 	ret := _m.Called(ctx)
 
 	var r0 error
@@ -193,30 +225,30 @@ func (_m *SessionService) RemoveExpiredSessions(ctx context.Context) error {
 	return r0
 }
 
-// SessionService_RemoveExpiredSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveExpiredSessions'
-type SessionService_RemoveExpiredSessions_Call struct {
+// SessionService_InitSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InitSessions'
+type SessionService_InitSessions_Call struct {
 	*mock.Call
 }
 
-// RemoveExpiredSessions is a helper method to define mock.On call
+// InitSessions is a helper method to define mock.On call
 //  - ctx context.Context
-func (_e *SessionService_Expecter) RemoveExpiredSessions(ctx interface{}) *SessionService_RemoveExpiredSessions_Call {
-	return &SessionService_RemoveExpiredSessions_Call{Call: _e.mock.On("RemoveExpiredSessions", ctx)}
+func (_e *SessionService_Expecter) InitSessions(ctx interface{}) *SessionService_InitSessions_Call {
+	return &SessionService_InitSessions_Call{Call: _e.mock.On("InitSessions", ctx)}
 }
 
-func (_c *SessionService_RemoveExpiredSessions_Call) Run(run func(ctx context.Context)) *SessionService_RemoveExpiredSessions_Call {
+func (_c *SessionService_InitSessions_Call) Run(run func(ctx context.Context)) *SessionService_InitSessions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context))
 	})
 	return _c
 }
 
-func (_c *SessionService_RemoveExpiredSessions_Call) Return(_a0 error) *SessionService_RemoveExpiredSessions_Call {
+func (_c *SessionService_InitSessions_Call) Return(_a0 error) *SessionService_InitSessions_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *SessionService_RemoveExpiredSessions_Call) RunAndReturn(run func(context.Context) error) *SessionService_RemoveExpiredSessions_Call {
+func (_c *SessionService_InitSessions_Call) RunAndReturn(run func(context.Context) error) *SessionService_InitSessions_Call {
 	_c.Call.Return(run)
 	return _c
 }

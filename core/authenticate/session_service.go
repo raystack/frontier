@@ -16,7 +16,7 @@ import (
 var (
 	ErrNoSession       = errors.New("no session")
 	ErrDeletingSession = errors.New("error deleting session")
-	refreshTime        = "0 3 * * *" // Once a day at midnight (UTC)
+	refreshTime        = "0 0 * * *" // Once a day at midnight (UTC)
 )
 
 type SessionRepository interface {
@@ -30,6 +30,7 @@ type SessionService struct {
 	repo     SessionRepository
 	validity time.Duration
 	log      log.Logger
+	cron     *cron.Cron
 	Now      func() time.Time
 }
 
@@ -37,6 +38,7 @@ func NewSessionManager(repo SessionRepository, validity time.Duration, logger lo
 	return &SessionService{
 		log:      logger,
 		repo:     repo,
+		cron:     cron.New(),
 		validity: validity,
 		Now: func() time.Time {
 			return time.Now().UTC()
@@ -83,10 +85,9 @@ func (s SessionService) ExtractFromMD(ctx context.Context) (*Session, error) {
 	return s.repo.Get(ctx, sessionID)
 }
 
-// Initiates CronJob to delete expired sessions
-func (s SessionService) RemoveExpiredSessions(ctx context.Context) error {
-	cron := cron.New()
-	_, err := cron.AddFunc(refreshTime, func() {
+// Initiates CronJob to delete expired sessions from the database
+func (s SessionService) InitSessions(ctx context.Context) error {
+	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.repo.DeleteExpiredSessions(ctx, s.log); err != nil {
 			s.log.Warn("failed to delete expired sessions", "err", err)
 		}
@@ -94,8 +95,10 @@ func (s SessionService) RemoveExpiredSessions(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	cron.Start()
-	// how to stop cron?
-	// if a defer and select{} statement is used, the program will never exit this function
+	s.cron.Start()
 	return nil
+}
+
+func (s SessionService) Close() {
+	s.cron.Stop()
 }

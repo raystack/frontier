@@ -168,7 +168,7 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger lo
 		}
 
 		count, _ := result.RowsAffected()
-		logger.Debug("deleted expired sessions", "expired_session_count", count)
+		logger.Info("deleted expired sessions", "expired_session_count", count)
 
 		return nil
 	})

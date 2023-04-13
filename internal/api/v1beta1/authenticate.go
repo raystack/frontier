@@ -31,7 +31,8 @@ type SessionService interface {
 	ExtractFromMD(ctx context.Context) (*authenticate.Session, error)
 	Create(ctx context.Context, user user.User) (*authenticate.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
-	RemoveExpiredSessions(ctx context.Context) error
+	InitSessions(ctx context.Context) error
+	Close()
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.AuthenticateRequest) (*shieldv1beta1.AuthenticateResponse, error) {
