@@ -2,7 +2,7 @@
 
 Shield can be configured with config.yaml file. An example of such is:
 
-```yaml
+```yaml title=config.yaml
 version: 1
 
 # logging configuration
@@ -12,6 +12,10 @@ log:
 
 app:
   port: 8000
+  grpc: 
+    port: 8001
+  metrics_port: 9000
+  host: 127.0.0.1
   identity_proxy_header: X-Shield-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
@@ -25,15 +29,37 @@ app:
   # secret string "val://user:password"
   # optional
   resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
+  authentication:
+    session:
+      # both of them should be 32 chars long
+      # hash helps identify if the value is tempered with
+      hash_secret_key: "hash-secret-should-be-32-chars--"
+      # block helps in encryption
+      block_secret_key: "block-secret-should-be-32-chars-"
+    token:
+      # generate key file via "./shield server keygen"
+      rsa_path: ./temp/rsa
+      iss: "http://localhost.shield"
+    # external host used for oidc redirect uri, e.g. http://localhost:8000/admin/v1beta1/auth/callback
+    # oidc_callback_host: http://localhost:8000/admin/v1beta1/auth/callback
+    oidc_callback_host: http://localhost:8888/callback
+    oidc_config:
+      google:
+        client_id: "xxxxx.apps.googleusercontent.com"
+        client_secret: "xxxxx"
+        issuer_url: "https://accounts.google.com"
 
 db:
   driver: postgres
-  url: postgres://shield:@localhost:5432/shield?sslmode=disable
-  max_query_timeout: 500ms
+  url: postgres://username:password@localhost:5432/databaseName?sslmode=disable
+  max_idle_conns: 10
+  max_open_conns: 10
+  conn_max_life_time: 10ms
+  max_query_timeout: 100ms
 
 spicedb:
-  host: spicedb.localhost
-  pre_shared_key: randomkey
+  host: localhost
+  pre_shared_key: random_key
   port: 50051
 
 # proxy configuration

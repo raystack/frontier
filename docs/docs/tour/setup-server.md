@@ -9,7 +9,7 @@ Shield binary contains both the CLI client and the server itself. Each has it's 
 Dependencies:
 
 - PostgreSQL
-- [SpiceDB]((https://github.com/authzed/spicedb)
+- [SpiceDB](https://github.com/authzed/spicedb)
 
 You need to prepare and run above dependencies first before running Shield. Shield also has a `docker-compose.yaml` file in its repo that has all required dependencies. If you are interested to use it, you just need to git clone the repo and run `docker-compose up` in the root project.
 
@@ -19,14 +19,14 @@ This steps assumes all dependencies already up and running. Create a server conf
 
 Setup a database in postgres and provide the details in the DB field as given in the example below. For the purpose of this tutorial, we'll assume that the username is shield, password is 12345, database name is shield, host and port are localhost and 5432. Also, setup a SpiceDB database on localhost port 50051 and pre_shared_key value shield.
 
-```
+```yaml title=config.yaml
 version: 1
 proxy:
   services:
-  - port: 5556
-    host: 0.0.0.0
-    name: base
-    ruleset: file:///path/to/shield/rules
+    - port: 5556
+      host: 0.0.0.0
+      name: base
+      ruleset: file:///path/to/shield/rules
 log:
   level: info
   format: json
@@ -36,12 +36,29 @@ new_relic:
   enabled: false
 app:
   port: 8000
+  grpc:
+    port: 8001
+  metrics_port: 9000
   host: 127.0.0.1
   identity_proxy_header: X-Shield-Email
   resources_config_path: file:///path/to/shield/resources_config
+  resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
+  authentication:
+    session:
+      hash_secret_key: "hash-secret-should-be-32-chars--"
+      block_secret_key: "block-secret-should-be-32-chars-"
+    token:
+      rsa_path: ./temp/rsa
+      iss: "http://localhost.shield"
+    oidc_callback_host: http://localhost:8888/callback
+    oidc_config:
+      google:
+        client_id: xxxxx.apps.googleusercontent.com
+        client_secret: xxxxx
+        issuer_url: "https://accounts.google.com"
 db:
   driver: postgres
-  url: postgres://shield:12345@localhost:5432/shield?sslmode=disable
+  url: postgres://username:password@localhost:5432/databaseName?sslmode=disable
   max_idle_conns: 10
   max_open_conns: 10
   conn_max_life_time: 10ms
@@ -49,15 +66,14 @@ db:
 spicedb:
   host: localhost
   port: 50051
-  pre_shared_key: shield
-
+  pre_shared_key: random_key
 ```
 
 You need to define the policies in a YAML file and pass it's directory path to `resources_config_path`. The rules for each path shall be defined in another YAML file and pass it's path to `ruleset`.
 
 Next, let's look at a example policy configuration for a backend `entropy` with `firehose` and `dagger` resource types. Also, we have defined roles for `organizations` and `project` to demonstrate shield's flexibility to define policy for different category of namespaces.
 
-```
+```yaml title=ruleset.yaml
 entropy:
   type: resource_group
   resource_types:
@@ -75,17 +91,19 @@ entropy:
         - name: view
           roles:
             - owner
-            - organization/owner
+            - organization:owner
             - viewer
         - name: sink_edit
           roles:
             - owner
             - sink_editor
-            - organization/sink_editor
 
 shield/organization:
   type: system
   roles:
+    - name: owner
+      principals:
+        - shield/group
     - name: sink_editor
       principals:
         - shield/user
@@ -104,12 +122,11 @@ shield/project:
     - name: owner
       principals:
         - shield/group
-
 ```
 
 Finally, we'll have a look at an example rule configuration.
 
-```
+```yaml title="rules.yaml"
 rules:
   - backends:
       - name: entropy
@@ -209,7 +226,6 @@ rules:
                     resource_type:
                       value: "firehose"
                       type: constant
-
 ```
 
 ### Migrating the server

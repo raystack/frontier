@@ -1,10 +1,10 @@
 # CLI
 
-##  shield action 
+## `shield action`
 
 Manage actions
 
-###  shield action create [flags] 
+### `shield action create [flags]`
 
 Create an action
 
@@ -13,7 +13,7 @@ Create an action
 -H, --header string   Header <key>:<value>
 ````
 
-###  shield action edit [flags] 
+### `shield action edit [flags]`
 
 Edit an action
 
@@ -21,43 +21,43 @@ Edit an action
 -f, --file string   Path to the action body file
 ````
 
-###  shield action list 
+### `shield action list`
 
 List all actions
 
-###  shield action view 
+### `shield action view`
 
 View an action
 
-##  shield auth 
+## `shield auth`
 
 Auth configs that need to be used with shield
 
-##  shield completion [bash|zsh|fish|powershell] 
+## `shield completion [bash|zsh|fish|powershell]`
 
 Generate shell completion scripts
 
-##  shield config
+## `shield config <command>`
 
 Manage client configurations
 
-###  shield config init 
+### `shield config init`
 
 Initialize a new client configuration
 
-###  shield config list 
+### `shield config list`
 
 List client configuration settings
 
-##  shield environment 
+## `shield environment`
 
 List of supported environment variables
 
-##  shield group 
+## `shield group`
 
 Manage groups
 
-###  shield group create [flags] 
+### `shield group create [flags]`
 
 Create a group
 
@@ -66,7 +66,7 @@ Create a group
 -H, --header string   Header <key>:<value>
 ````
 
-###  shield group edit [flags] 
+### `shield group edit [flags]`
 
 Edit a group
 
@@ -74,11 +74,11 @@ Edit a group
 -f, --file string   Path to the group body file
 ````
 
-###  shield group list 
+### `shield group list`
 
 List all groups
 
-###  shield group view [flags] 
+### `shield group view [flags]`
 
 View a group
 
@@ -86,11 +86,11 @@ View a group
 -m, --metadata   Set this flag to see metadata
 ````
 
-##  shield namespace 
+## `shield namespace`
 
 Manage namespaces
 
-###  shield namespace create [flags] 
+### `shield namespace create [flags]`
 
 Create a namespace
 
@@ -98,7 +98,7 @@ Create a namespace
 -f, --file string   Path to the namespace body file
 ````
 
-###  shield namespace edit [flags] 
+### `shield namespace edit [flags]`
 
 Edit a namespace
 
@@ -106,39 +106,23 @@ Edit a namespace
 -f, --file string   Path to the namespace body file
 ````
 
-###  shield namespace list 
+### `shield namespace list`
 
 List all namespaces
 
-###  shield namespace view 
+### `shield namespace view`
 
 View a namespace
 
-##  shield organization 
+## `shield organization`
 
 Manage organizations
 
-###  shield organization admadd [flags] 
-
-add admins to an organization
-
-```
--f, --file string   Path to the provider config
-````
-
-###  shield organization admlist 
+### `shield organization admlist`
 
 list admins of an organization
 
-###  shield organization admremove [flags] 
-
-remove admins from an organization
-
-```
--u, --user string   Id of the user to be removed
-````
-
-###  shield organization create [flags] 
+### `shield organization create [flags]`
 
 Create an organization
 
@@ -147,7 +131,7 @@ Create an organization
 -H, --header string   Header <key>:<value>
 ````
 
-###  shield organization edit [flags] 
+### `shield organization edit [flags]`
 
 Edit an organization
 
@@ -155,11 +139,11 @@ Edit an organization
 -f, --file string   Path to the organization body file
 ````
 
-###  shield organization list 
+### `shield organization list`
 
 List all organizations
 
-###  shield organization view [flags] 
+### `shield organization view [flags]`
 
 View an organization
 
@@ -167,11 +151,11 @@ View an organization
 -m, --metadata   Set this flag to see metadata
 ````
 
-##  shield policy 
+## `shield policy`
 
 Manage policies
 
-###  shield policy create [flags] 
+### `shield policy create [flags]`
 
 Create a policy
 
@@ -180,7 +164,7 @@ Create a policy
 -H, --header string   Header <key>:<value>
 ````
 
-###  shield policy edit [flags] 
+### `shield policy edit [flags]`
 
 Edit a policy
 
@@ -188,19 +172,19 @@ Edit a policy
 -f, --file string   Path to the policy body file
 ````
 
-###  shield policy list 
+### `shield policy list`
 
 List all policies
 
-###  shield policy view 
+### `shield policy view`
 
 View a policy
 
-##  shield project 
+## `shield project`
 
 Manage projects
 
-###  shield project create [flags] 
+### `shield project create [flags]`
 
 Create a project
 
@@ -209,7 +193,7 @@ Create a project
 -H, --header string   Header <key>:<value>
 ````
 
-###  shield project edit [flags] 
+### `shield project edit [flags]`
 
 Edit a project
 
@@ -217,11 +201,11 @@ Edit a project
 -f, --file string   Path to the project body file
 ````
 
-###  shield project list 
+### `shield project list`
 
 List all projects
 
-###  shield project view [flags] 
+### `shield project view [flags]`
 
 View a project
 
@@ -229,11 +213,11 @@ View a project
 -m, --metadata   Set this flag to see metadata
 ````
 
-##  shield role 
+## `shield role`
 
 Manage roles
 
-###  shield role create [flags] 
+### `shield role create [flags]`
 
 Create a role
 
@@ -242,7 +226,7 @@ Create a role
 -H, --header string   Header <key>:<value>
 ````
 
-###  shield role edit [flags] 
+### `shield role edit [flags]`
 
 Edit a role
 
@@ -250,11 +234,11 @@ Edit a role
 -f, --file string   Path to the role body file
 ````
 
-###  shield role list 
+### `shield role list`
 
 List all roles
 
-###  shield role view [flags] 
+### `shield role view [flags]`
 
 View a role
 
@@ -262,11 +246,11 @@ View a role
 -m, --metadata   Set this flag to see metadata
 ````
 
-##  shield server
+## `shield server`
 
 Server management
 
-###  shield server init [flags] 
+### `shield server init [flags]`
 
 Initialize server
 
@@ -283,37 +267,46 @@ Initialize server
                          local storage file "file:///tmp/rules"
                          GCS Bucket "gs://shield-bucket-example"
                          (default: file://{pwd}/rules)
-````                      
+                         
+````
 
-###  shield server migrate [flags] 
+### `shield server keygen [flags]`
+
+Generate 2 rsa keys as jwks for auth token generation
+
+```
+-k, --keys int   num of keys to generate (default 2)
+````
+
+### `shield server migrate [flags]`
 
 Run DB Schema Migrations
 
 ```
--c, --config string   Config file path
+-c, --config string   config file path
 ````
 
-###  shield server migration-rollback [flags] 
+### `shield server migration-rollback [flags]`
 
 Run DB Schema Migrations Rollback to last state
 
 ```
--c, --config string   Config file path
+-c, --config string   config file path
 ````
 
-###  shield server start [flags] 
+### `shield server start [flags]`
 
 Start server and proxy default on port 8080
 
 ```
--c, --config string   Config file path
+-c, --config string   config file path
 ````
 
-##  shield user 
+## `shield user`
 
 Manage users
 
-###  shield user create [flags] 
+### `shield user create [flags]`
 
 Create an user
 
@@ -322,7 +315,7 @@ Create an user
 -H, --header string   Header <key>:<value>
 ````
 
-###  shield user edit [flags] 
+### `shield user edit [flags]`
 
 Edit an user
 
@@ -330,11 +323,11 @@ Edit an user
 -f, --file string   Path to the user body file
 ````
 
-###  shield user list 
+### `shield user list`
 
 List all users
 
-###  shield user view [flags] 
+### `shield user view [flags]`
 
 View an user
 

@@ -12,13 +12,14 @@ import (
 )
 
 var (
-	ErrNoSession = errors.New("no session")
+	ErrNoSession       = errors.New("no session")
+	ErrDeletingSession = errors.New("error deleting session")
 )
 
 type SessionRepository interface {
-	Set(session *Session) error
-	Get(id uuid.UUID) (*Session, error)
-	Delete(id uuid.UUID) error
+	Set(ctx context.Context, session *Session) error
+	Get(ctx context.Context, id uuid.UUID) (*Session, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type SessionService struct {
@@ -38,7 +39,7 @@ func NewSessionManager(repo SessionRepository, validity time.Duration) *SessionS
 	}
 }
 
-func (s SessionService) Create(user user.User) (*Session, error) {
+func (s SessionService) Create(ctx context.Context, user user.User) (*Session, error) {
 	sess := &Session{
 		ID:              uuid.New(),
 		UserID:          user.ID,
@@ -46,7 +47,7 @@ func (s SessionService) Create(user user.User) (*Session, error) {
 		ExpiresAt:       s.Now().Add(s.validity),
 		CreatedAt:       s.Now(),
 	}
-	return sess, s.repo.Set(sess)
+	return sess, s.repo.Set(ctx, sess)
 }
 
 // Refresh extends validity of session
@@ -55,8 +56,8 @@ func (s SessionService) Refresh(session *Session) error {
 	panic("not implemented")
 }
 
-func (s SessionService) Delete(sessionID uuid.UUID) error {
-	return s.repo.Delete(sessionID)
+func (s SessionService) Delete(ctx context.Context, sessionID uuid.UUID) error {
+	return s.repo.Delete(ctx, sessionID)
 }
 
 func (s SessionService) ExtractFromMD(ctx context.Context) (*Session, error) {
@@ -74,5 +75,5 @@ func (s SessionService) ExtractFromMD(ctx context.Context) (*Session, error) {
 	if err != nil {
 		return nil, ErrNoSession
 	}
-	return s.repo.Get(sessionID)
+	return s.repo.Get(ctx, sessionID)
 }
