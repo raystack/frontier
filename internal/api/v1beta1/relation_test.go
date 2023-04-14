@@ -469,7 +469,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 
-				rs.EXPECT().DeleteV2(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
+				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
 					Subject: relation.Subject{
 						ID:     testRelationV2.Subject.ID,
 						RoleID: testRelationV2.Subject.RoleID,
@@ -517,7 +517,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 
-				rs.EXPECT().DeleteV2(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
+				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
 					Subject: relation.Subject{
 						ID:     testRelationV2.Subject.ID,
 						RoleID: testRelationV2.Subject.RoleID,

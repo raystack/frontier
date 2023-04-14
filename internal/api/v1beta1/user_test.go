@@ -2,9 +2,10 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
+
+	"github.com/odpf/shield/pkg/errors"
 
 	"github.com/odpf/shield/core/authenticate"
 	"github.com/odpf/shield/core/organization"
@@ -395,14 +396,14 @@ func TestGetCurrentUser(t *testing.T) {
 			want:  nil,
 			err:   grpcUnauthenticated,
 			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				ss.EXPECT().ExtractFromMD(ctx).Return(nil, authenticate.ErrNoSession)
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.emptyCtx")).Return(user.User{}, errors.ErrUnauthenticated)
 				return ctx
 			},
 		},
 		{
 			title: "should return not found error if user does not exist",
 			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, user.ErrNotExist)
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(user.User{}, user.ErrNotExist)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want: nil,
@@ -411,7 +412,7 @@ func TestGetCurrentUser(t *testing.T) {
 		{
 			title: "should return error if user service return some error",
 			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, errors.New("some error"))
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(user.User{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want: nil,
@@ -420,7 +421,7 @@ func TestGetCurrentUser(t *testing.T) {
 		{
 			title: "should return user if user service return nil error",
 			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(
 					user.User{
 						ID:    "user-id-1",
 						Name:  "some user",
@@ -453,9 +454,6 @@ func TestGetCurrentUser(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
 
-			mockSessionService := new(mocks.SessionService)
-			defer mockSessionService.AssertExpectations(t)
-
 			mockOrgService := new(mocks.OrganizationService)
 			mockOrgService.EXPECT().ListByUser(mock.Anything, "user-id-1").Return([]organization.Organization{}, nil)
 			registrationService := new(mocks.RegistrationService)
@@ -463,11 +461,10 @@ func TestGetCurrentUser(t *testing.T) {
 
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv, mockSessionService)
+				ctx = tt.setup(ctx, mockUserSrv, nil)
 			}
 			mockDep := Handler{
 				userService:         mockUserSrv,
-				sessionService:      mockSessionService,
 				orgService:          mockOrgService,
 				registrationService: registrationService,
 			}

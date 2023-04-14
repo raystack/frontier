@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/odpf/shield/internal/server/interceptors"
+
 	"github.com/gorilla/securecookie"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -20,7 +22,6 @@ import (
 	"github.com/odpf/salt/mux"
 	"github.com/odpf/shield/internal/api"
 	"github.com/odpf/shield/internal/api/v1beta1"
-	"github.com/odpf/shield/internal/server/grpc_interceptors"
 	"github.com/odpf/shield/internal/server/health"
 	"github.com/odpf/shield/pkg/telemetry"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -57,26 +58,31 @@ func Serve(
 		return err
 	}
 
-	// hash and block keys should be 32 bytes long
-	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
-		return errors.New("authentication.session keys should be 32 chars long")
-	}
-	shieldMiddleware := grpc_interceptors.NewSession(
-		securecookie.New(
-			[]byte(cfg.Authentication.Session.HashSecretKey),
-			[]byte(cfg.Authentication.Session.BlockSecretKey),
+	var grpcGatewayServerInterceptors []runtime.ServeMuxOption
+	grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,
+		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
+		runtime.WithIncomingHeaderMatcher(interceptors.GatewayHeaderMatcherFunc(map[string]bool{
+			cfg.IdentityProxyHeader: true,
+		}),
 		),
 	)
+	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
+		// hash and block keys should be 32 bytes long
+		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
+	} else {
+		sessionMiddleware := interceptors.NewSession(
+			securecookie.New(
+				[]byte(cfg.Authentication.Session.HashSecretKey),
+				[]byte(cfg.Authentication.Session.BlockSecretKey),
+			),
+		)
+		grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,
+			runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
+			runtime.WithMetadata(sessionMiddleware.GatewayRequestMetadataAnnotator),
+		)
+	}
 
-	grpcGateway := runtime.NewServeMux(
-		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
-		runtime.WithIncomingHeaderMatcher(grpc_interceptors.GatewayHeaderMatcherFunc(map[string]bool{
-			cfg.IdentityProxyHeader: true,
-		})),
-		runtime.WithForwardResponseOption(shieldMiddleware.GatewayResponseModifier),
-		runtime.WithMetadata(shieldMiddleware.GatewayRequestMetadataAnnotator),
-	)
-
+	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
 
 	// json web key set handler
@@ -154,11 +160,10 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 	}
 	return grpc.UnaryInterceptor(
 		grpc_middleware.ChainUnaryServer(
-			grpc_interceptors.EnrichCtxWithIdentity(cfg.IdentityProxyHeader),
+			interceptors.EnrichCtxWithIdentity(cfg.IdentityProxyHeader),
 			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
-			grpc_interceptors.AuthnUnaryInterceptor(),
 		))
 }

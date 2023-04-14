@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
@@ -24,7 +26,7 @@ type RelationService interface {
 	Get(ctx context.Context, id string) (relation.RelationV2, error)
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	List(ctx context.Context) ([]relation.RelationV2, error)
-	DeleteV2(ctx context.Context, rel relation.RelationV2) error
+	Delete(ctx context.Context, rel relation.RelationV2) error
 	GetRelationByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 }
 
@@ -47,7 +49,7 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 			return nil, grpcInternalServerError
 		}
 
-		relations = append(relations, &relationPB)
+		relations = append(relations, relationPB)
 	}
 
 	return &shieldv1beta1.ListRelationsResponse{
@@ -61,7 +63,10 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
+	principal, subjectID, err := extractSubjectFromPrincipal(request.GetBody().GetSubject())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	}
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 		Name:        request.GetBody().GetObjectId(),
@@ -93,14 +98,15 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 			RoleID:    request.GetBody().GetRoleName(),
 		},
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:
-			return nil, grpcInternalServerError
+			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
+			logger.Error(formattedErr.Error())
+			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
 		}
 	}
 
@@ -111,7 +117,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	return &shieldv1beta1.CreateRelationResponse{
-		Relation: &relationPB,
+		Relation: relationPB,
 	}, nil
 }
 
@@ -138,7 +144,7 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 	}
 
 	return &shieldv1beta1.GetRelationResponse{
-		Relation: &relationPB,
+		Relation: relationPB,
 	}, nil
 }
 
@@ -183,7 +189,7 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
 	}
 
-	err = h.relationService.DeleteV2(ctx, relation.RelationV2{
+	err = h.relationService.Delete(ctx, relation.RelationV2{
 		Object: relation.Object{
 			ID: request.GetObjectId(),
 		},
@@ -209,21 +215,29 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 	}, nil
 }
 
-func transformRelationV2ToPB(relation relation.RelationV2) (shieldv1beta1.Relation, error) {
-	return shieldv1beta1.Relation{
+func transformRelationV2ToPB(relation relation.RelationV2) (*shieldv1beta1.Relation, error) {
+	rel := &shieldv1beta1.Relation{
 		Id:              relation.ID,
 		ObjectId:        relation.Object.ID,
 		ObjectNamespace: relation.Object.NamespaceID,
 		Subject:         generateSubject(relation.Subject.ID, relation.Subject.Namespace),
 		RoleName:        relation.Subject.RoleID,
-		CreatedAt:       nil,
-		UpdatedAt:       nil,
-	}, nil
+	}
+	if !relation.CreatedAt.IsZero() {
+		rel.CreatedAt = timestamppb.New(relation.CreatedAt)
+	}
+	if !relation.UpdatedAt.IsZero() {
+		rel.UpdatedAt = timestamppb.New(relation.UpdatedAt)
+	}
+	return rel, nil
 }
 
-func extractSubjectFromPrincipal(principal string) (string, string) {
+func extractSubjectFromPrincipal(principal string) (string, string, error) {
 	splits := strings.Split(principal, ":")
-	return splits[0], splits[1]
+	if len(splits) < 1 {
+		return "", "", errors.New("subject should be provided as subjectNamespace:subjectID")
+	}
+	return splits[0], splits[1], nil
 }
 
 func generateSubject(subjectId, principal string) string {

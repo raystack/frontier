@@ -10,12 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/odpf/shield/core/authenticate"
-	"github.com/odpf/shield/internal/server/grpc_interceptors"
+	"github.com/odpf/shield/core/authenticate/session"
+	"github.com/odpf/shield/internal/server/consts"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
+	"github.com/odpf/shield/core/authenticate"
 
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/core/action"
@@ -167,8 +168,10 @@ func buildAPIDependencies(
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
 
+	sessionService := session.NewService(postgres.NewSessionRepository(dbc), consts.SessionValidity)
+
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository)
+	userService := user.NewService(userRepository, sessionService)
 
 	roleRepository := postgres.NewRoleRepository(dbc)
 	roleService := role.NewService(roleRepository)
@@ -197,7 +200,6 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
-	sessionService := authenticate.NewSessionManager(postgres.NewSessionRepository(dbc), grpc_interceptors.SessionValidity)
 	registrationService := authenticate.NewRegistrationService(postgres.NewFlowRepository(dbc), userService, cfg.App.Authentication)
 
 	dependencies := api.Deps{

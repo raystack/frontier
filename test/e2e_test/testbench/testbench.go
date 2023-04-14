@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/odpf/shield/core/authenticate/session"
+	"github.com/odpf/shield/internal/server/consts"
+	"github.com/odpf/shield/internal/store/memory"
+
 	"github.com/google/uuid"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/config"
@@ -241,8 +245,10 @@ func BuildAPIDependenciesAndMigrate(
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
 
+	sessionRepository := session.NewService(memory.NewSessionRepository(), consts.SessionValidity)
+
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository)
+	userService := user.NewService(userRepository, sessionRepository)
 
 	roleRepository := postgres.NewRoleRepository(dbc)
 	roleService := role.NewService(roleRepository)

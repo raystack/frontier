@@ -294,6 +294,62 @@ func (_c *OrganizationService_ListByUser_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
+// ListUsers provides a mock function with given fields: ctx, id, permissionFilter
+func (_m *OrganizationService) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
+	ret := _m.Called(ctx, id, permissionFilter)
+
+	var r0 []user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]user.User, error)); ok {
+		return rf(ctx, id, permissionFilter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
+		r0 = rf(ctx, id, permissionFilter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]user.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, id, permissionFilter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OrganizationService_ListUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUsers'
+type OrganizationService_ListUsers_Call struct {
+	*mock.Call
+}
+
+// ListUsers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - permissionFilter string
+func (_e *OrganizationService_Expecter) ListUsers(ctx interface{}, id interface{}, permissionFilter interface{}) *OrganizationService_ListUsers_Call {
+	return &OrganizationService_ListUsers_Call{Call: _e.mock.On("ListUsers", ctx, id, permissionFilter)}
+}
+
+func (_c *OrganizationService_ListUsers_Call) Run(run func(ctx context.Context, id string, permissionFilter string)) *OrganizationService_ListUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *OrganizationService_ListUsers_Call) Return(_a0 []user.User, _a1 error) *OrganizationService_ListUsers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrganizationService_ListUsers_Call) RunAndReturn(run func(context.Context, string, string) ([]user.User, error)) *OrganizationService_ListUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: ctx, toUpdate
 func (_m *OrganizationService) Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error) {
 	ret := _m.Called(ctx, toUpdate)

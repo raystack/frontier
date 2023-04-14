@@ -15,7 +15,6 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 }

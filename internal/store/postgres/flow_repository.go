@@ -123,6 +123,6 @@ func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			return nil
 		}
 
-		return authenticate.ErrDeletingSession
+		return fmt.Errorf("no entry to delete")
 	})
 }

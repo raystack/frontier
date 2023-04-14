@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/authenticate"
+	"github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
@@ -27,6 +28,6 @@ type Deps struct {
 	RelationService     *relation.Service
 	ResourceService     *resource.Service
 	RuleService         *rule.Service
-	SessionService      *authenticate.SessionService
+	SessionService      *session.Service
 	RegistrationService *authenticate.RegistrationService
 }

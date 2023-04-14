@@ -14,12 +14,11 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
+	FindSubjectRelations(ctx context.Context, rel relation.RelationV2) ([]string, error)
 }
 
 type UserService interface {
-	FetchCurrentUser(ctx context.Context) (user.User, error)
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
@@ -79,8 +78,25 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 	return []user.User{}, nil
 }
 
-func (s Service) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
-	return s.repository.ListAdmins(ctx, id)
+func (s Service) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
+	userIDs, err := s.relationService.FindSubjectRelations(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:          id,
+			NamespaceID: schema.ProjectNamespace,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.UserPrincipal,
+			RoleID:    permissionFilter,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(userIDs) == 0 {
+		// no users
+		return []user.User{}, nil
+	}
+	return s.userService.GetByIDs(ctx, userIDs)
 }
 
 func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
