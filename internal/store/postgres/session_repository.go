@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 
+<<<<<<< HEAD
 	"github.com/odpf/salt/log"
 
+=======
+>>>>>>> 3a05af9 (feat(authentication): add support to persist sessions and flows in database (#218))
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	newrelic "github.com/newrelic/go-agent"
