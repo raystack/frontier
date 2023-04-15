@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/odpf/salt/log"
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
 
 	"github.com/doug-martin/goqu/v9"
@@ -138,5 +139,41 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		}
 
 		return shieldsession.ErrDeletingSession
+	})
+}
+
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger) error {
+	query, params, err := dialect.Delete(TABLE_SESSIONS).
+		Where(
+			goqu.Ex{
+				"expires_at": goqu.Op{"lt": goqu.L("NOW()")},
+			},
+		).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	return s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_SESSIONS,
+				Operation:  "DeleteAllExpired",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			err = checkPostgresError(err)
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+
+		count, _ := result.RowsAffected()
+		logger.Info("deleted expired sessions", "expired_session_count", count)
+
+		return nil
 	})
 }

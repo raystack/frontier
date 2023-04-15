@@ -125,6 +125,15 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
+	// session service initialization and cleanup
+	if err := deps.SessionService.InitSessions(context.Background()); err != nil {
+		logger.Warn("sessions database cleanup failed", "err", err)
+	}
+	defer func() {
+		logger.Info("cleaning up cron jobs")
+		deps.SessionService.Close()
+	}()
+
 	// serving proxies
 	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
 	if err != nil {
@@ -168,7 +177,7 @@ func buildAPIDependencies(
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
 
-	sessionService := session.NewService(postgres.NewSessionRepository(dbc), consts.SessionValidity)
+	sessionService := session.NewService(logger, postgres.NewSessionRepository(dbc), consts.SessionValidity)
 
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository, sessionService)

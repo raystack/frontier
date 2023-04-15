@@ -24,6 +24,38 @@ func (_m *SessionService) EXPECT() *SessionService_Expecter {
 	return &SessionService_Expecter{mock: &_m.Mock}
 }
 
+// Close provides a mock function with given fields:
+func (_m *SessionService) Close() {
+	_m.Called()
+}
+
+// SessionService_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type SessionService_Close_Call struct {
+	*mock.Call
+}
+
+// Close is a helper method to define mock.On call
+func (_e *SessionService_Expecter) Close() *SessionService_Close_Call {
+	return &SessionService_Close_Call{Call: _e.mock.On("Close")}
+}
+
+func (_c *SessionService_Close_Call) Run(run func()) *SessionService_Close_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *SessionService_Close_Call) Return() *SessionService_Close_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *SessionService_Close_Call) RunAndReturn(run func()) *SessionService_Close_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: ctx, userID
 func (_m *SessionService) Create(ctx context.Context, userID string) (*session.Session, error) {
 	ret := _m.Called(ctx, userID)
@@ -56,8 +88,8 @@ type SessionService_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//   - ctx context.Context
-//   - userID string
+//  - ctx context.Context
+//  - userID string
 func (_e *SessionService_Expecter) Create(ctx interface{}, userID interface{}) *SessionService_Create_Call {
 	return &SessionService_Create_Call{Call: _e.mock.On("Create", ctx, userID)}
 }
@@ -99,8 +131,8 @@ type SessionService_Delete_Call struct {
 }
 
 // Delete is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sessionID uuid.UUID
+//  - ctx context.Context
+//  - sessionID uuid.UUID
 func (_e *SessionService_Expecter) Delete(ctx interface{}, sessionID interface{}) *SessionService_Delete_Call {
 	return &SessionService_Delete_Call{Call: _e.mock.On("Delete", ctx, sessionID)}
 }
@@ -154,7 +186,7 @@ type SessionService_ExtractFromContext_Call struct {
 }
 
 // ExtractFromContext is a helper method to define mock.On call
-//   - ctx context.Context
+//  - ctx context.Context
 func (_e *SessionService_Expecter) ExtractFromContext(ctx interface{}) *SessionService_ExtractFromContext_Call {
 	return &SessionService_ExtractFromContext_Call{Call: _e.mock.On("ExtractFromContext", ctx)}
 }
@@ -172,6 +204,48 @@ func (_c *SessionService_ExtractFromContext_Call) Return(_a0 *session.Session, _
 }
 
 func (_c *SessionService_ExtractFromContext_Call) RunAndReturn(run func(context.Context) (*session.Session, error)) *SessionService_ExtractFromContext_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InitSessions provides a mock function with given fields: ctx
+func (_m *SessionService) InitSessions(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SessionService_InitSessions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InitSessions'
+type SessionService_InitSessions_Call struct {
+	*mock.Call
+}
+
+// InitSessions is a helper method to define mock.On call
+//  - ctx context.Context
+func (_e *SessionService_Expecter) InitSessions(ctx interface{}) *SessionService_InitSessions_Call {
+	return &SessionService_InitSessions_Call{Call: _e.mock.On("InitSessions", ctx)}
+}
+
+func (_c *SessionService_InitSessions_Call) Run(run func(ctx context.Context)) *SessionService_InitSessions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *SessionService_InitSessions_Call) Return(_a0 error) *SessionService_InitSessions_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SessionService_InitSessions_Call) RunAndReturn(run func(context.Context) error) *SessionService_InitSessions_Call {
 	_c.Call.Return(run)
 	return _c
 }

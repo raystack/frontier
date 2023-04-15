@@ -8,30 +8,37 @@ import (
 	"github.com/odpf/shield/internal/server/consts"
 
 	"github.com/google/uuid"
+	"github.com/odpf/salt/log"
+	"github.com/robfig/cron/v3"
 	"google.golang.org/grpc/metadata"
 )
 
 var (
 	ErrNoSession       = errors.New("no session")
 	ErrDeletingSession = errors.New("error deleting session")
+	refreshTime        = "0 0 * * *" // Once a day at midnight (UTC)
 )
 
 type Repository interface {
 	Set(ctx context.Context, session *Session) error
 	Get(ctx context.Context, id uuid.UUID) (*Session, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	DeleteExpiredSessions(ctx context.Context, logger log.Logger) error
 }
 
 type Service struct {
 	repo     Repository
 	validity time.Duration
-
-	Now func() time.Time
+	log      log.Logger
+	cron     *cron.Cron
+	Now      func() time.Time
 }
 
-func NewService(repo Repository, validity time.Duration) *Service {
+func NewService(logger log.Logger, repo Repository, validity time.Duration) *Service {
 	return &Service{
+		log:      logger,
 		repo:     repo,
+		cron:     cron.New(),
 		validity: validity,
 		Now: func() time.Time {
 			return time.Now().UTC()
@@ -76,4 +83,22 @@ func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
 		return nil, ErrNoSession
 	}
 	return s.repo.Get(ctx, sessionID)
+}
+
+// Initiates CronJob to delete expired sessions from the database
+func (s Service) InitSessions(ctx context.Context) error {
+	_, err := s.cron.AddFunc(refreshTime, func() {
+		if err := s.repo.DeleteExpiredSessions(ctx, s.log); err != nil {
+			s.log.Warn("failed to delete expired sessions", "err", err)
+		}
+	})
+	if err != nil {
+		return err
+	}
+	s.cron.Start()
+	return nil
+}
+
+func (s Service) Close() {
+	s.cron.Stop()
 }
