@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/odpf/salt/log"
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
@@ -142,11 +143,11 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger) error {
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger, expiryTime time.Time) error {
 	query, params, err := dialect.Delete(TABLE_SESSIONS).
 		Where(
 			goqu.Ex{
-				"expires_at": goqu.Op{"lt": goqu.L("NOW()")},
+				"expires_at": goqu.Op{"lt": expiryTime},
 			},
 		).ToSQL()
 	if err != nil {

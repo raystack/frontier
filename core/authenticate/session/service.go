@@ -23,7 +23,7 @@ type Repository interface {
 	Set(ctx context.Context, session *Session) error
 	Get(ctx context.Context, id uuid.UUID) (*Session, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	DeleteExpiredSessions(ctx context.Context, logger log.Logger) error
+	DeleteExpiredSessions(ctx context.Context, logger log.Logger, expiryTime time.Time) error
 }
 
 type Service struct {
@@ -87,8 +87,9 @@ func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
 
 // Initiates CronJob to delete expired sessions from the database
 func (s Service) InitSessions(ctx context.Context) error {
+	expiryTime := time.Now()
 	_, err := s.cron.AddFunc(refreshTime, func() {
-		if err := s.repo.DeleteExpiredSessions(ctx, s.log); err != nil {
+		if err := s.repo.DeleteExpiredSessions(ctx, s.log, expiryTime); err != nil {
 			s.log.Warn("failed to delete expired sessions", "err", err)
 		}
 	})
