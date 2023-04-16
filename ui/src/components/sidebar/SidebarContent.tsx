@@ -1,4 +1,4 @@
-import { styled, Text } from "@odpf/apsara";
+import { Box, styled, Text } from "@odpf/apsara";
 import { NavLink } from "react-router-dom";
 
 export type NavigationItemsTypes = {
@@ -57,7 +57,7 @@ export default function SidebarContent() {
     },
   ];
   return (
-    <>
+    <Box css={sidebarNavigationContainerStyle}>
       {navigationItems.map(({ active, name, icon, to }) => (
         <NavItem key={name} className={`${active && "active"} `} to={to || ""}>
           <img src={`/${icon}.svg`} />
@@ -66,7 +66,9 @@ export default function SidebarContent() {
           </Text>
         </NavItem>
       ))}
-    </>
+    </Box>
   );
 }
-const sidebarNavigationContainerStyle = {};
+const sidebarNavigationContainerStyle = {
+  margin: "1rem",
+};

@@ -17,5 +17,4 @@ Sidebar.Footer = SidebarFooter;
 
 const sidebarContainerStyle = {
   width: "100%",
-  padding: "1rem",
 };
