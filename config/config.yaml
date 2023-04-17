@@ -23,6 +23,7 @@ app:
   # secret string "val://user:password"
   # optional
   resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
+  check_api_limit: 5
 
 db:
   driver: postgres

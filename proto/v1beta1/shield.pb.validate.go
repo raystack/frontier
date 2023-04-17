@@ -15947,6 +15947,147 @@ var _ interface {
 	ErrorName() string
 } = UpdateResourceResponseValidationError{}
 
+// Validate checks the field values on ResourcePermission with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ResourcePermission) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ResourcePermission with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ResourcePermissionMultiError, or nil if none found.
+func (m *ResourcePermission) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ResourcePermission) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_ResourcePermission_ObjectId_Pattern.MatchString(m.GetObjectId()) {
+		err := ResourcePermissionValidationError{
+			field:  "ObjectId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_ResourcePermission_ObjectNamespace_Pattern.MatchString(m.GetObjectNamespace()) {
+		err := ResourcePermissionValidationError{
+			field:  "ObjectNamespace",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_ResourcePermission_Permission_Pattern.MatchString(m.GetPermission()) {
+		err := ResourcePermissionValidationError{
+			field:  "Permission",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ResourcePermissionMultiError(errors)
+	}
+
+	return nil
+}
+
+// ResourcePermissionMultiError is an error wrapping multiple validation errors
+// returned by ResourcePermission.ValidateAll() if the designated constraints
+// aren't met.
+type ResourcePermissionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ResourcePermissionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ResourcePermissionMultiError) AllErrors() []error { return m }
+
+// ResourcePermissionValidationError is the validation error returned by
+// ResourcePermission.Validate if the designated constraints aren't met.
+type ResourcePermissionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ResourcePermissionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ResourcePermissionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ResourcePermissionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ResourcePermissionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ResourcePermissionValidationError) ErrorName() string {
+	return "ResourcePermissionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ResourcePermissionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResourcePermission.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ResourcePermissionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ResourcePermissionValidationError{}
+
+var _ResourcePermission_ObjectId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
+var _ResourcePermission_ObjectNamespace_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
+var _ResourcePermission_Permission_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
 // Validate checks the field values on CheckResourcePermissionRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -16000,6 +16141,40 @@ func (m *CheckResourcePermissionRequest) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetResourcePermissions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CheckResourcePermissionRequestValidationError{
+						field:  fmt.Sprintf("ResourcePermissions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CheckResourcePermissionRequestValidationError{
+						field:  fmt.Sprintf("ResourcePermissions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CheckResourcePermissionRequestValidationError{
+					field:  fmt.Sprintf("ResourcePermissions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if len(errors) > 0 {
@@ -16113,6 +16288,40 @@ func (m *CheckResourcePermissionResponse) validate(all bool) error {
 
 	// no validation rules for Status
 
+	for idx, item := range m.GetResourcePermissions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CheckResourcePermissionResponseValidationError{
+						field:  fmt.Sprintf("ResourcePermissions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CheckResourcePermissionResponseValidationError{
+						field:  fmt.Sprintf("ResourcePermissions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CheckResourcePermissionResponseValidationError{
+					field:  fmt.Sprintf("ResourcePermissions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return CheckResourcePermissionResponseMultiError(errors)
 	}
@@ -16193,3 +16402,162 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CheckResourcePermissionResponseValidationError{}
+
+// Validate checks the field values on
+// CheckResourcePermissionResponse_ResourcePermissionResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CheckResourcePermissionResponse_ResourcePermissionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// CheckResourcePermissionResponse_ResourcePermissionResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CheckResourcePermissionResponse_ResourcePermissionResponseMultiError, or
+// nil if none found.
+func (m *CheckResourcePermissionResponse_ResourcePermissionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckResourcePermissionResponse_ResourcePermissionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_CheckResourcePermissionResponse_ResourcePermissionResponse_ObjectId_Pattern.MatchString(m.GetObjectId()) {
+		err := CheckResourcePermissionResponse_ResourcePermissionResponseValidationError{
+			field:  "ObjectId",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CheckResourcePermissionResponse_ResourcePermissionResponse_ObjectNamespace_Pattern.MatchString(m.GetObjectNamespace()) {
+		err := CheckResourcePermissionResponse_ResourcePermissionResponseValidationError{
+			field:  "ObjectNamespace",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CheckResourcePermissionResponse_ResourcePermissionResponse_Permission_Pattern.MatchString(m.GetPermission()) {
+		err := CheckResourcePermissionResponse_ResourcePermissionResponseValidationError{
+			field:  "Permission",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Allowed
+
+	if len(errors) > 0 {
+		return CheckResourcePermissionResponse_ResourcePermissionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckResourcePermissionResponse_ResourcePermissionResponseMultiError is an
+// error wrapping multiple validation errors returned by
+// CheckResourcePermissionResponse_ResourcePermissionResponse.ValidateAll() if
+// the designated constraints aren't met.
+type CheckResourcePermissionResponse_ResourcePermissionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckResourcePermissionResponse_ResourcePermissionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckResourcePermissionResponse_ResourcePermissionResponseMultiError) AllErrors() []error {
+	return m
+}
+
+// CheckResourcePermissionResponse_ResourcePermissionResponseValidationError is
+// the validation error returned by
+// CheckResourcePermissionResponse_ResourcePermissionResponse.Validate if the
+// designated constraints aren't met.
+type CheckResourcePermissionResponse_ResourcePermissionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckResourcePermissionResponse_ResourcePermissionResponseValidationError) Field() string {
+	return e.field
+}
+
+// Reason function returns reason value.
+func (e CheckResourcePermissionResponse_ResourcePermissionResponseValidationError) Reason() string {
+	return e.reason
+}
+
+// Cause function returns cause value.
+func (e CheckResourcePermissionResponse_ResourcePermissionResponseValidationError) Cause() error {
+	return e.cause
+}
+
+// Key function returns key value.
+func (e CheckResourcePermissionResponse_ResourcePermissionResponseValidationError) Key() bool {
+	return e.key
+}
+
+// ErrorName returns error name.
+func (e CheckResourcePermissionResponse_ResourcePermissionResponseValidationError) ErrorName() string {
+	return "CheckResourcePermissionResponse_ResourcePermissionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckResourcePermissionResponse_ResourcePermissionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckResourcePermissionResponse_ResourcePermissionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckResourcePermissionResponse_ResourcePermissionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckResourcePermissionResponse_ResourcePermissionResponseValidationError{}
+
+var _CheckResourcePermissionResponse_ResourcePermissionResponse_ObjectId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
+var _CheckResourcePermissionResponse_ResourcePermissionResponse_ObjectNamespace_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
+var _CheckResourcePermissionResponse_ResourcePermissionResponse_Permission_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")

@@ -52,4 +52,8 @@ type Config struct {
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
 
 	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
+
+	// CheckAPILimit will have the maximum number of resource permissions that can be included
+	// in the resource permission check API. Default: 5
+	CheckAPILimit int `yaml:"check_api_limit" mapstructure:"check_api_limit" default:"5"`
 }

@@ -1571,6 +1571,23 @@
     }
   },
   "definitions": {
+    "CheckResourcePermissionResponseResourcePermissionResponse": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string"
+        },
+        "objectNamespace": {
+          "type": "string"
+        },
+        "permission": {
+          "type": "string"
+        },
+        "allowed": {
+          "type": "boolean"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -1656,6 +1673,12 @@
         },
         "permission": {
           "type": "string"
+        },
+        "resourcePermissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1ResourcePermission"
+          }
         }
       }
     },
@@ -1664,6 +1687,12 @@
       "properties": {
         "status": {
           "type": "boolean"
+        },
+        "resourcePermissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CheckResourcePermissionResponseResourcePermissionResponse"
+          }
         }
       }
     },
@@ -2333,6 +2362,20 @@
           "$ref": "#/definitions/v1beta1User"
         },
         "urn": {
+          "type": "string"
+        }
+      }
+    },
+    "v1beta1ResourcePermission": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string"
+        },
+        "objectNamespace": {
+          "type": "string"
+        },
+        "permission": {
           "type": "string"
         }
       }

@@ -6479,7 +6479,7 @@ func (x *UpdateResourceResponse) GetResource() *Resource {
 	return nil
 }
 
-type CheckResourcePermissionRequest struct {
+type ResourcePermission struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -6489,10 +6489,77 @@ type CheckResourcePermissionRequest struct {
 	Permission      string `protobuf:"bytes,3,opt,name=permission,proto3" json:"permission,omitempty"`
 }
 
+func (x *ResourcePermission) Reset() {
+	*x = ResourcePermission{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[119]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResourcePermission) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourcePermission) ProtoMessage() {}
+
+func (x *ResourcePermission) ProtoReflect() protoreflect.Message {
+	mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[119]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResourcePermission.ProtoReflect.Descriptor instead.
+func (*ResourcePermission) Descriptor() ([]byte, []int) {
+	return file_gotocompany_shield_v1beta1_shield_proto_rawDescGZIP(), []int{119}
+}
+
+func (x *ResourcePermission) GetObjectId() string {
+	if x != nil {
+		return x.ObjectId
+	}
+	return ""
+}
+
+func (x *ResourcePermission) GetObjectNamespace() string {
+	if x != nil {
+		return x.ObjectNamespace
+	}
+	return ""
+}
+
+func (x *ResourcePermission) GetPermission() string {
+	if x != nil {
+		return x.Permission
+	}
+	return ""
+}
+
+type CheckResourcePermissionRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Deprecated: Do not use.
+	ObjectId string `protobuf:"bytes,1,opt,name=object_id,json=objectId,proto3" json:"object_id,omitempty"`
+	// Deprecated: Do not use.
+	ObjectNamespace string `protobuf:"bytes,2,opt,name=object_namespace,json=objectNamespace,proto3" json:"object_namespace,omitempty"`
+	// Deprecated: Do not use.
+	Permission          string                `protobuf:"bytes,3,opt,name=permission,proto3" json:"permission,omitempty"`
+	ResourcePermissions []*ResourcePermission `protobuf:"bytes,4,rep,name=resource_permissions,json=resourcePermissions,proto3" json:"resource_permissions,omitempty"`
+}
+
 func (x *CheckResourcePermissionRequest) Reset() {
 	*x = CheckResourcePermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[119]
+		mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[120]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6505,7 +6572,7 @@ func (x *CheckResourcePermissionRequest) String() string {
 func (*CheckResourcePermissionRequest) ProtoMessage() {}
 
 func (x *CheckResourcePermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[119]
+	mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[120]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6518,9 +6585,10 @@ func (x *CheckResourcePermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResourcePermissionRequest.ProtoReflect.Descriptor instead.
 func (*CheckResourcePermissionRequest) Descriptor() ([]byte, []int) {
-	return file_gotocompany_shield_v1beta1_shield_proto_rawDescGZIP(), []int{119}
+	return file_gotocompany_shield_v1beta1_shield_proto_rawDescGZIP(), []int{120}
 }
 
+// Deprecated: Do not use.
 func (x *CheckResourcePermissionRequest) GetObjectId() string {
 	if x != nil {
 		return x.ObjectId
@@ -6528,6 +6596,7 @@ func (x *CheckResourcePermissionRequest) GetObjectId() string {
 	return ""
 }
 
+// Deprecated: Do not use.
 func (x *CheckResourcePermissionRequest) GetObjectNamespace() string {
 	if x != nil {
 		return x.ObjectNamespace
@@ -6535,6 +6604,7 @@ func (x *CheckResourcePermissionRequest) GetObjectNamespace() string {
 	return ""
 }
 
+// Deprecated: Do not use.
 func (x *CheckResourcePermissionRequest) GetPermission() string {
 	if x != nil {
 		return x.Permission
@@ -6542,18 +6612,27 @@ func (x *CheckResourcePermissionRequest) GetPermission() string {
 	return ""
 }
 
+func (x *CheckResourcePermissionRequest) GetResourcePermissions() []*ResourcePermission {
+	if x != nil {
+		return x.ResourcePermissions
+	}
+	return nil
+}
+
 type CheckResourcePermissionResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Status bool `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	// Deprecated: Do not use.
+	Status              bool                                                          `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	ResourcePermissions []*CheckResourcePermissionResponse_ResourcePermissionResponse `protobuf:"bytes,2,rep,name=resource_permissions,json=resourcePermissions,proto3" json:"resource_permissions,omitempty"`
 }
 
 func (x *CheckResourcePermissionResponse) Reset() {
 	*x = CheckResourcePermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[120]
+		mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[121]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6566,7 +6645,7 @@ func (x *CheckResourcePermissionResponse) String() string {
 func (*CheckResourcePermissionResponse) ProtoMessage() {}
 
 func (x *CheckResourcePermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[120]
+	mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[121]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6579,12 +6658,91 @@ func (x *CheckResourcePermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResourcePermissionResponse.ProtoReflect.Descriptor instead.
 func (*CheckResourcePermissionResponse) Descriptor() ([]byte, []int) {
-	return file_gotocompany_shield_v1beta1_shield_proto_rawDescGZIP(), []int{120}
+	return file_gotocompany_shield_v1beta1_shield_proto_rawDescGZIP(), []int{121}
 }
 
+// Deprecated: Do not use.
 func (x *CheckResourcePermissionResponse) GetStatus() bool {
 	if x != nil {
 		return x.Status
+	}
+	return false
+}
+
+func (x *CheckResourcePermissionResponse) GetResourcePermissions() []*CheckResourcePermissionResponse_ResourcePermissionResponse {
+	if x != nil {
+		return x.ResourcePermissions
+	}
+	return nil
+}
+
+type CheckResourcePermissionResponse_ResourcePermissionResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ObjectId        string `protobuf:"bytes,1,opt,name=object_id,json=objectId,proto3" json:"object_id,omitempty"`
+	ObjectNamespace string `protobuf:"bytes,2,opt,name=object_namespace,json=objectNamespace,proto3" json:"object_namespace,omitempty"`
+	Permission      string `protobuf:"bytes,3,opt,name=permission,proto3" json:"permission,omitempty"`
+	Allowed         bool   `protobuf:"varint,4,opt,name=allowed,proto3" json:"allowed,omitempty"`
+}
+
+func (x *CheckResourcePermissionResponse_ResourcePermissionResponse) Reset() {
+	*x = CheckResourcePermissionResponse_ResourcePermissionResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[122]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CheckResourcePermissionResponse_ResourcePermissionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckResourcePermissionResponse_ResourcePermissionResponse) ProtoMessage() {}
+
+func (x *CheckResourcePermissionResponse_ResourcePermissionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gotocompany_shield_v1beta1_shield_proto_msgTypes[122]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckResourcePermissionResponse_ResourcePermissionResponse.ProtoReflect.Descriptor instead.
+func (*CheckResourcePermissionResponse_ResourcePermissionResponse) Descriptor() ([]byte, []int) {
+	return file_gotocompany_shield_v1beta1_shield_proto_rawDescGZIP(), []int{121, 0}
+}
+
+func (x *CheckResourcePermissionResponse_ResourcePermissionResponse) GetObjectId() string {
+	if x != nil {
+		return x.ObjectId
+	}
+	return ""
+}
+
+func (x *CheckResourcePermissionResponse_ResourcePermissionResponse) GetObjectNamespace() string {
+	if x != nil {
+		return x.ObjectNamespace
+	}
+	return ""
+}
+
+func (x *CheckResourcePermissionResponse_ResourcePermissionResponse) GetPermission() string {
+	if x != nil {
+		return x.Permission
+	}
+	return ""
+}
+
+func (x *CheckResourcePermissionResponse_ResourcePermissionResponse) GetAllowed() bool {
+	if x != nil {
+		return x.Allowed
 	}
 	return false
 }
@@ -7397,24 +7555,67 @@ var file_gotocompany_shield_v1beta1_shield_proto_rawDesc = []byte{
 	0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24,
 	0x2e, 0x67, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6d, 0x70, 0x61, 0x6e, 0x79, 0x2e, 0x73, 0x68, 0x69,
 	0x65, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x65, 0x73, 0x6f,
-	0x75, 0x72, 0x63, 0x65, 0x52, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x22, 0xd3,
-	0x01, 0x0a, 0x1e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
-	0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x34, 0x0a, 0x09, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41,
-	0x2d, 0x5a, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x08, 0x6f,
-	0x62, 0x6a, 0x65, 0x63, 0x74, 0x49, 0x64, 0x12, 0x42, 0x0a, 0x10, 0x6f, 0x62, 0x6a, 0x65, 0x63,
-	0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61,
-	0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x0f, 0x6f, 0x62, 0x6a, 0x65,
-	0x63, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x37, 0x0a, 0x0a, 0x70,
-	0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x42,
-	0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61, 0x2d, 0x7a,
+	0x75, 0x72, 0x63, 0x65, 0x52, 0x08, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x22, 0xc7,
+	0x01, 0x0a, 0x12, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x34, 0x0a, 0x09, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32,
+	0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b,
+	0x24, 0x52, 0x08, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x49, 0x64, 0x12, 0x42, 0x0a, 0x10, 0x6f,
+	0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b,
+	0x41, 0x2d, 0x5a, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x0f,
+	0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12,
+	0x37, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d,
+	0x5a, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x0a, 0x70, 0x65,
+	0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0xbc, 0x02, 0x0a, 0x1e, 0x43, 0x68, 0x65,
+	0x63, 0x6b, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73,
+	0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x36, 0x0a, 0x09, 0x6f,
+	0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x19,
+	0x18, 0x01, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61, 0x2d,
+	0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x08, 0x6f, 0x62, 0x6a, 0x65, 0x63,
+	0x74, 0x49, 0x64, 0x12, 0x44, 0x0a, 0x10, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f, 0x6e, 0x61,
+	0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x19, 0x18,
+	0x01, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61, 0x2d, 0x7a,
+	0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x0f, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74,
+	0x4e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x39, 0x0a, 0x0a, 0x70, 0x65, 0x72,
+	0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x42, 0x19, 0x18,
+	0x01, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61, 0x2d, 0x7a,
 	0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73,
-	0x73, 0x69, 0x6f, 0x6e, 0x22, 0x39, 0x0a, 0x1f, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73,
-	0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
-	0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x32,
+	0x73, 0x69, 0x6f, 0x6e, 0x12, 0x61, 0x0a, 0x14, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
+	0x5f, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x2e, 0x2e, 0x67, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6d, 0x70, 0x61, 0x6e, 0x79,
+	0x2e, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
+	0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
+	0x6f, 0x6e, 0x52, 0x13, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d,
+	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xb5, 0x03, 0x0a, 0x1f, 0x43, 0x68, 0x65, 0x63,
+	0x6b, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x06, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x42, 0x02, 0x18, 0x01, 0x52,
+	0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x89, 0x01, 0x0a, 0x14, 0x72, 0x65, 0x73, 0x6f,
+	0x75, 0x72, 0x63, 0x65, 0x5f, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73,
+	0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x56, 0x2e, 0x67, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6d,
+	0x70, 0x61, 0x6e, 0x79, 0x2e, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63,
+	0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d,
+	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x13,
+	0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
+	0x6f, 0x6e, 0x73, 0x1a, 0xe9, 0x01, 0x0a, 0x1a, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
+	0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x34, 0x0a, 0x09, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b,
+	0x41, 0x2d, 0x5a, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x08,
+	0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x49, 0x64, 0x12, 0x42, 0x0a, 0x10, 0x6f, 0x62, 0x6a, 0x65,
+	0x63, 0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a,
+	0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x0f, 0x6f, 0x62, 0x6a,
+	0x65, 0x63, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x37, 0x0a, 0x0a,
+	0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x42, 0x17, 0xfa, 0x42, 0x14, 0x72, 0x12, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61, 0x2d,
+	0x7a, 0x30, 0x2d, 0x39, 0x5f, 0x2d, 0x5d, 0x2b, 0x24, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x32,
 	0xc4, 0x45, 0x0a, 0x0d, 0x53, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x12, 0x98, 0x01, 0x0a, 0x09, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x73, 0x12,
 	0x2c, 0x2e, 0x67, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6d, 0x70, 0x61, 0x6e, 0x79, 0x2e, 0x73, 0x68,
@@ -7994,7 +8195,7 @@ func file_gotocompany_shield_v1beta1_shield_proto_rawDescGZIP() []byte {
 	return file_gotocompany_shield_v1beta1_shield_proto_rawDescData
 }
 
-var file_gotocompany_shield_v1beta1_shield_proto_msgTypes = make([]protoimpl.MessageInfo, 121)
+var file_gotocompany_shield_v1beta1_shield_proto_msgTypes = make([]protoimpl.MessageInfo, 123)
 var file_gotocompany_shield_v1beta1_shield_proto_goTypes = []interface{}{
 	(*UserRequestBody)(nil),                 // 0: gotocompany.shield.v1beta1.UserRequestBody
 	(*CreateUserRequest)(nil),               // 1: gotocompany.shield.v1beta1.CreateUserRequest
@@ -8115,17 +8316,19 @@ var file_gotocompany_shield_v1beta1_shield_proto_goTypes = []interface{}{
 	(*GetResourceResponse)(nil),             // 116: gotocompany.shield.v1beta1.GetResourceResponse
 	(*UpdateResourceRequest)(nil),           // 117: gotocompany.shield.v1beta1.UpdateResourceRequest
 	(*UpdateResourceResponse)(nil),          // 118: gotocompany.shield.v1beta1.UpdateResourceResponse
-	(*CheckResourcePermissionRequest)(nil),  // 119: gotocompany.shield.v1beta1.CheckResourcePermissionRequest
-	(*CheckResourcePermissionResponse)(nil), // 120: gotocompany.shield.v1beta1.CheckResourcePermissionResponse
-	(*structpb.Struct)(nil),                 // 121: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),           // 122: google.protobuf.Timestamp
+	(*ResourcePermission)(nil),              // 119: gotocompany.shield.v1beta1.ResourcePermission
+	(*CheckResourcePermissionRequest)(nil),  // 120: gotocompany.shield.v1beta1.CheckResourcePermissionRequest
+	(*CheckResourcePermissionResponse)(nil), // 121: gotocompany.shield.v1beta1.CheckResourcePermissionResponse
+	(*CheckResourcePermissionResponse_ResourcePermissionResponse)(nil), // 122: gotocompany.shield.v1beta1.CheckResourcePermissionResponse.ResourcePermissionResponse
+	(*structpb.Struct)(nil),       // 123: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil), // 124: google.protobuf.Timestamp
 }
 var file_gotocompany_shield_v1beta1_shield_proto_depIdxs = []int32{
-	121, // 0: gotocompany.shield.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
+	123, // 0: gotocompany.shield.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
 	0,   // 1: gotocompany.shield.v1beta1.CreateUserRequest.body:type_name -> gotocompany.shield.v1beta1.UserRequestBody
-	121, // 2: gotocompany.shield.v1beta1.User.metadata:type_name -> google.protobuf.Struct
-	122, // 3: gotocompany.shield.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
-	122, // 4: gotocompany.shield.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
+	123, // 2: gotocompany.shield.v1beta1.User.metadata:type_name -> google.protobuf.Struct
+	124, // 3: gotocompany.shield.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
+	124, // 4: gotocompany.shield.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
 	2,   // 5: gotocompany.shield.v1beta1.CreateUserResponse.user:type_name -> gotocompany.shield.v1beta1.User
 	4,   // 6: gotocompany.shield.v1beta1.CreateMetadataKeyRequest.body:type_name -> gotocompany.shield.v1beta1.MetadataKeyRequestBody
 	6,   // 7: gotocompany.shield.v1beta1.CreateMetadataKeyResponse.metadatakey:type_name -> gotocompany.shield.v1beta1.MetadataKey
@@ -8135,12 +8338,12 @@ var file_gotocompany_shield_v1beta1_shield_proto_depIdxs = []int32{
 	2,   // 11: gotocompany.shield.v1beta1.UpdateCurrentUserResponse.user:type_name -> gotocompany.shield.v1beta1.User
 	0,   // 12: gotocompany.shield.v1beta1.UpdateUserRequest.body:type_name -> gotocompany.shield.v1beta1.UserRequestBody
 	2,   // 13: gotocompany.shield.v1beta1.ListUsersResponse.users:type_name -> gotocompany.shield.v1beta1.User
-	121, // 14: gotocompany.shield.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
+	123, // 14: gotocompany.shield.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
 	18,  // 15: gotocompany.shield.v1beta1.CreateGroupRequest.body:type_name -> gotocompany.shield.v1beta1.GroupRequestBody
 	21,  // 16: gotocompany.shield.v1beta1.ListUserGroupsResponse.groups:type_name -> gotocompany.shield.v1beta1.Group
-	121, // 17: gotocompany.shield.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
-	122, // 18: gotocompany.shield.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
-	122, // 19: gotocompany.shield.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
+	123, // 17: gotocompany.shield.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
+	124, // 18: gotocompany.shield.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
+	124, // 19: gotocompany.shield.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
 	21,  // 20: gotocompany.shield.v1beta1.CreateGroupResponse.group:type_name -> gotocompany.shield.v1beta1.Group
 	21,  // 21: gotocompany.shield.v1beta1.GetGroupResponse.group:type_name -> gotocompany.shield.v1beta1.Group
 	21,  // 22: gotocompany.shield.v1beta1.UpdateGroupResponse.group:type_name -> gotocompany.shield.v1beta1.Group
@@ -8148,32 +8351,32 @@ var file_gotocompany_shield_v1beta1_shield_proto_depIdxs = []int32{
 	0,   // 24: gotocompany.shield.v1beta1.UpdateCurrentUserRequest.body:type_name -> gotocompany.shield.v1beta1.UserRequestBody
 	21,  // 25: gotocompany.shield.v1beta1.ListGroupsResponse.groups:type_name -> gotocompany.shield.v1beta1.Group
 	65,  // 26: gotocompany.shield.v1beta1.Role.namespace:type_name -> gotocompany.shield.v1beta1.Namespace
-	121, // 27: gotocompany.shield.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
-	122, // 28: gotocompany.shield.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
-	122, // 29: gotocompany.shield.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
-	121, // 30: gotocompany.shield.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
+	123, // 27: gotocompany.shield.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
+	124, // 28: gotocompany.shield.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
+	124, // 29: gotocompany.shield.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
+	123, // 30: gotocompany.shield.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
 	31,  // 31: gotocompany.shield.v1beta1.CreateRoleRequest.body:type_name -> gotocompany.shield.v1beta1.RoleRequestBody
 	30,  // 32: gotocompany.shield.v1beta1.CreateRoleResponse.role:type_name -> gotocompany.shield.v1beta1.Role
 	30,  // 33: gotocompany.shield.v1beta1.GetRoleResponse.role:type_name -> gotocompany.shield.v1beta1.Role
 	30,  // 34: gotocompany.shield.v1beta1.UpdateRoleResponse.role:type_name -> gotocompany.shield.v1beta1.Role
 	31,  // 35: gotocompany.shield.v1beta1.UpdateRoleRequest.body:type_name -> gotocompany.shield.v1beta1.RoleRequestBody
 	30,  // 36: gotocompany.shield.v1beta1.ListRolesResponse.roles:type_name -> gotocompany.shield.v1beta1.Role
-	121, // 37: gotocompany.shield.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
+	123, // 37: gotocompany.shield.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
 	40,  // 38: gotocompany.shield.v1beta1.CreateOrganizationRequest.body:type_name -> gotocompany.shield.v1beta1.OrganizationRequestBody
-	121, // 39: gotocompany.shield.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
-	122, // 40: gotocompany.shield.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
-	122, // 41: gotocompany.shield.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
+	123, // 39: gotocompany.shield.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
+	124, // 40: gotocompany.shield.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
+	124, // 41: gotocompany.shield.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
 	42,  // 42: gotocompany.shield.v1beta1.CreateOrganizationResponse.organization:type_name -> gotocompany.shield.v1beta1.Organization
 	42,  // 43: gotocompany.shield.v1beta1.GetOrganizationResponse.organization:type_name -> gotocompany.shield.v1beta1.Organization
 	42,  // 44: gotocompany.shield.v1beta1.UpdateOrganizationResponse.organization:type_name -> gotocompany.shield.v1beta1.Organization
 	42,  // 45: gotocompany.shield.v1beta1.ListOrganizationsResponse.organizations:type_name -> gotocompany.shield.v1beta1.Organization
 	40,  // 46: gotocompany.shield.v1beta1.UpdateOrganizationRequest.body:type_name -> gotocompany.shield.v1beta1.OrganizationRequestBody
 	2,   // 47: gotocompany.shield.v1beta1.ListOrganizationAdminsResponse.users:type_name -> gotocompany.shield.v1beta1.User
-	121, // 48: gotocompany.shield.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
+	123, // 48: gotocompany.shield.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
 	52,  // 49: gotocompany.shield.v1beta1.CreateProjectRequest.body:type_name -> gotocompany.shield.v1beta1.ProjectRequestBody
-	121, // 50: gotocompany.shield.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
-	122, // 51: gotocompany.shield.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
-	122, // 52: gotocompany.shield.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
+	123, // 50: gotocompany.shield.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
+	124, // 51: gotocompany.shield.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
+	124, // 52: gotocompany.shield.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
 	54,  // 53: gotocompany.shield.v1beta1.CreateProjectResponse.project:type_name -> gotocompany.shield.v1beta1.Project
 	54,  // 54: gotocompany.shield.v1beta1.GetProjectResponse.project:type_name -> gotocompany.shield.v1beta1.Project
 	54,  // 55: gotocompany.shield.v1beta1.UpdateProjectResponse.project:type_name -> gotocompany.shield.v1beta1.Project
@@ -8181,15 +8384,15 @@ var file_gotocompany_shield_v1beta1_shield_proto_depIdxs = []int32{
 	52,  // 57: gotocompany.shield.v1beta1.UpdateProjectRequest.body:type_name -> gotocompany.shield.v1beta1.ProjectRequestBody
 	2,   // 58: gotocompany.shield.v1beta1.ListProjectAdminsResponse.users:type_name -> gotocompany.shield.v1beta1.User
 	65,  // 59: gotocompany.shield.v1beta1.Action.namespace:type_name -> gotocompany.shield.v1beta1.Namespace
-	122, // 60: gotocompany.shield.v1beta1.Action.created_at:type_name -> google.protobuf.Timestamp
-	122, // 61: gotocompany.shield.v1beta1.Action.updated_at:type_name -> google.protobuf.Timestamp
-	122, // 62: gotocompany.shield.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
-	122, // 63: gotocompany.shield.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
+	124, // 60: gotocompany.shield.v1beta1.Action.created_at:type_name -> google.protobuf.Timestamp
+	124, // 61: gotocompany.shield.v1beta1.Action.updated_at:type_name -> google.protobuf.Timestamp
+	124, // 62: gotocompany.shield.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
+	124, // 63: gotocompany.shield.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
 	30,  // 64: gotocompany.shield.v1beta1.Policy.role:type_name -> gotocompany.shield.v1beta1.Role
 	64,  // 65: gotocompany.shield.v1beta1.Policy.action:type_name -> gotocompany.shield.v1beta1.Action
 	65,  // 66: gotocompany.shield.v1beta1.Policy.namespace:type_name -> gotocompany.shield.v1beta1.Namespace
-	122, // 67: gotocompany.shield.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
-	122, // 68: gotocompany.shield.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
+	124, // 67: gotocompany.shield.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
+	124, // 68: gotocompany.shield.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
 	64,  // 69: gotocompany.shield.v1beta1.ListActionsResponse.actions:type_name -> gotocompany.shield.v1beta1.Action
 	67,  // 70: gotocompany.shield.v1beta1.CreateActionRequest.body:type_name -> gotocompany.shield.v1beta1.ActionRequestBody
 	64,  // 71: gotocompany.shield.v1beta1.CreateActionResponse.action:type_name -> gotocompany.shield.v1beta1.Action
@@ -8208,13 +8411,13 @@ var file_gotocompany_shield_v1beta1_shield_proto_depIdxs = []int32{
 	66,  // 84: gotocompany.shield.v1beta1.GetPolicyResponse.policy:type_name -> gotocompany.shield.v1beta1.Policy
 	69,  // 85: gotocompany.shield.v1beta1.UpdatePolicyRequest.body:type_name -> gotocompany.shield.v1beta1.PolicyRequestBody
 	66,  // 86: gotocompany.shield.v1beta1.UpdatePolicyResponse.policies:type_name -> gotocompany.shield.v1beta1.Policy
-	122, // 87: gotocompany.shield.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
-	122, // 88: gotocompany.shield.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
+	124, // 87: gotocompany.shield.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
+	124, // 88: gotocompany.shield.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
 	54,  // 89: gotocompany.shield.v1beta1.Resource.project:type_name -> gotocompany.shield.v1beta1.Project
 	42,  // 90: gotocompany.shield.v1beta1.Resource.organization:type_name -> gotocompany.shield.v1beta1.Organization
 	65,  // 91: gotocompany.shield.v1beta1.Resource.namespace:type_name -> gotocompany.shield.v1beta1.Namespace
-	122, // 92: gotocompany.shield.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
-	122, // 93: gotocompany.shield.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
+	124, // 92: gotocompany.shield.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
+	124, // 93: gotocompany.shield.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
 	2,   // 94: gotocompany.shield.v1beta1.Resource.user:type_name -> gotocompany.shield.v1beta1.User
 	2,   // 95: gotocompany.shield.v1beta1.GroupRelation.user:type_name -> gotocompany.shield.v1beta1.User
 	21,  // 96: gotocompany.shield.v1beta1.GroupRelation.group:type_name -> gotocompany.shield.v1beta1.Group
@@ -8232,107 +8435,109 @@ var file_gotocompany_shield_v1beta1_shield_proto_depIdxs = []int32{
 	95,  // 108: gotocompany.shield.v1beta1.GetResourceResponse.resource:type_name -> gotocompany.shield.v1beta1.Resource
 	112, // 109: gotocompany.shield.v1beta1.UpdateResourceRequest.body:type_name -> gotocompany.shield.v1beta1.ResourceRequestBody
 	95,  // 110: gotocompany.shield.v1beta1.UpdateResourceResponse.resource:type_name -> gotocompany.shield.v1beta1.Resource
-	16,  // 111: gotocompany.shield.v1beta1.ShieldService.ListUsers:input_type -> gotocompany.shield.v1beta1.ListUsersRequest
-	1,   // 112: gotocompany.shield.v1beta1.ShieldService.CreateUser:input_type -> gotocompany.shield.v1beta1.CreateUserRequest
-	13,  // 113: gotocompany.shield.v1beta1.ShieldService.GetUser:input_type -> gotocompany.shield.v1beta1.GetUserRequest
-	14,  // 114: gotocompany.shield.v1beta1.ShieldService.ListUserGroups:input_type -> gotocompany.shield.v1beta1.ListUserGroupsRequest
-	15,  // 115: gotocompany.shield.v1beta1.ShieldService.GetCurrentUser:input_type -> gotocompany.shield.v1beta1.GetCurrentUserRequest
-	12,  // 116: gotocompany.shield.v1beta1.ShieldService.UpdateUser:input_type -> gotocompany.shield.v1beta1.UpdateUserRequest
-	26,  // 117: gotocompany.shield.v1beta1.ShieldService.UpdateCurrentUser:input_type -> gotocompany.shield.v1beta1.UpdateCurrentUserRequest
-	5,   // 118: gotocompany.shield.v1beta1.ShieldService.CreateMetadataKey:input_type -> gotocompany.shield.v1beta1.CreateMetadataKeyRequest
-	28,  // 119: gotocompany.shield.v1beta1.ShieldService.ListGroups:input_type -> gotocompany.shield.v1beta1.ListGroupsRequest
-	19,  // 120: gotocompany.shield.v1beta1.ShieldService.CreateGroup:input_type -> gotocompany.shield.v1beta1.CreateGroupRequest
-	27,  // 121: gotocompany.shield.v1beta1.ShieldService.GetGroup:input_type -> gotocompany.shield.v1beta1.GetGroupRequest
-	25,  // 122: gotocompany.shield.v1beta1.ShieldService.UpdateGroup:input_type -> gotocompany.shield.v1beta1.UpdateGroupRequest
-	106, // 123: gotocompany.shield.v1beta1.ShieldService.ListGroupRelations:input_type -> gotocompany.shield.v1beta1.ListGroupRelationsRequest
-	38,  // 124: gotocompany.shield.v1beta1.ShieldService.ListRoles:input_type -> gotocompany.shield.v1beta1.ListRolesRequest
-	32,  // 125: gotocompany.shield.v1beta1.ShieldService.CreateRole:input_type -> gotocompany.shield.v1beta1.CreateRoleRequest
-	36,  // 126: gotocompany.shield.v1beta1.ShieldService.GetRole:input_type -> gotocompany.shield.v1beta1.GetRoleRequest
-	37,  // 127: gotocompany.shield.v1beta1.ShieldService.UpdateRole:input_type -> gotocompany.shield.v1beta1.UpdateRoleRequest
-	46,  // 128: gotocompany.shield.v1beta1.ShieldService.ListOrganizations:input_type -> gotocompany.shield.v1beta1.ListOrganizationsRequest
-	41,  // 129: gotocompany.shield.v1beta1.ShieldService.CreateOrganization:input_type -> gotocompany.shield.v1beta1.CreateOrganizationRequest
-	48,  // 130: gotocompany.shield.v1beta1.ShieldService.GetOrganization:input_type -> gotocompany.shield.v1beta1.GetOrganizationRequest
-	49,  // 131: gotocompany.shield.v1beta1.ShieldService.UpdateOrganization:input_type -> gotocompany.shield.v1beta1.UpdateOrganizationRequest
-	50,  // 132: gotocompany.shield.v1beta1.ShieldService.ListOrganizationAdmins:input_type -> gotocompany.shield.v1beta1.ListOrganizationAdminsRequest
-	58,  // 133: gotocompany.shield.v1beta1.ShieldService.ListProjects:input_type -> gotocompany.shield.v1beta1.ListProjectsRequest
-	53,  // 134: gotocompany.shield.v1beta1.ShieldService.CreateProject:input_type -> gotocompany.shield.v1beta1.CreateProjectRequest
-	60,  // 135: gotocompany.shield.v1beta1.ShieldService.GetProject:input_type -> gotocompany.shield.v1beta1.GetProjectRequest
-	61,  // 136: gotocompany.shield.v1beta1.ShieldService.UpdateProject:input_type -> gotocompany.shield.v1beta1.UpdateProjectRequest
-	62,  // 137: gotocompany.shield.v1beta1.ShieldService.ListProjectAdmins:input_type -> gotocompany.shield.v1beta1.ListProjectAdminsRequest
-	70,  // 138: gotocompany.shield.v1beta1.ShieldService.ListActions:input_type -> gotocompany.shield.v1beta1.ListActionsRequest
-	72,  // 139: gotocompany.shield.v1beta1.ShieldService.CreateAction:input_type -> gotocompany.shield.v1beta1.CreateActionRequest
-	74,  // 140: gotocompany.shield.v1beta1.ShieldService.GetAction:input_type -> gotocompany.shield.v1beta1.GetActionRequest
-	76,  // 141: gotocompany.shield.v1beta1.ShieldService.UpdateAction:input_type -> gotocompany.shield.v1beta1.UpdateActionRequest
-	78,  // 142: gotocompany.shield.v1beta1.ShieldService.ListNamespaces:input_type -> gotocompany.shield.v1beta1.ListNamespacesRequest
-	80,  // 143: gotocompany.shield.v1beta1.ShieldService.CreateNamespace:input_type -> gotocompany.shield.v1beta1.CreateNamespaceRequest
-	82,  // 144: gotocompany.shield.v1beta1.ShieldService.GetNamespace:input_type -> gotocompany.shield.v1beta1.GetNamespaceRequest
-	84,  // 145: gotocompany.shield.v1beta1.ShieldService.UpdateNamespace:input_type -> gotocompany.shield.v1beta1.UpdateNamespaceRequest
-	86,  // 146: gotocompany.shield.v1beta1.ShieldService.ListPolicies:input_type -> gotocompany.shield.v1beta1.ListPoliciesRequest
-	88,  // 147: gotocompany.shield.v1beta1.ShieldService.CreatePolicy:input_type -> gotocompany.shield.v1beta1.CreatePolicyRequest
-	90,  // 148: gotocompany.shield.v1beta1.ShieldService.GetPolicy:input_type -> gotocompany.shield.v1beta1.GetPolicyRequest
-	92,  // 149: gotocompany.shield.v1beta1.ShieldService.UpdatePolicy:input_type -> gotocompany.shield.v1beta1.UpdatePolicyRequest
-	97,  // 150: gotocompany.shield.v1beta1.ShieldService.ListRelations:input_type -> gotocompany.shield.v1beta1.ListRelationsRequest
-	100, // 151: gotocompany.shield.v1beta1.ShieldService.CreateRelation:input_type -> gotocompany.shield.v1beta1.CreateRelationRequest
-	102, // 152: gotocompany.shield.v1beta1.ShieldService.GetRelation:input_type -> gotocompany.shield.v1beta1.GetRelationRequest
-	108, // 153: gotocompany.shield.v1beta1.ShieldService.DeleteRelation:input_type -> gotocompany.shield.v1beta1.DeleteRelationRequest
-	110, // 154: gotocompany.shield.v1beta1.ShieldService.ListResources:input_type -> gotocompany.shield.v1beta1.ListResourcesRequest
-	113, // 155: gotocompany.shield.v1beta1.ShieldService.CreateResource:input_type -> gotocompany.shield.v1beta1.CreateResourceRequest
-	115, // 156: gotocompany.shield.v1beta1.ShieldService.GetResource:input_type -> gotocompany.shield.v1beta1.GetResourceRequest
-	117, // 157: gotocompany.shield.v1beta1.ShieldService.UpdateResource:input_type -> gotocompany.shield.v1beta1.UpdateResourceRequest
-	119, // 158: gotocompany.shield.v1beta1.ShieldService.CheckResourcePermission:input_type -> gotocompany.shield.v1beta1.CheckResourcePermissionRequest
-	17,  // 159: gotocompany.shield.v1beta1.ShieldService.ListUsers:output_type -> gotocompany.shield.v1beta1.ListUsersResponse
-	3,   // 160: gotocompany.shield.v1beta1.ShieldService.CreateUser:output_type -> gotocompany.shield.v1beta1.CreateUserResponse
-	8,   // 161: gotocompany.shield.v1beta1.ShieldService.GetUser:output_type -> gotocompany.shield.v1beta1.GetUserResponse
-	20,  // 162: gotocompany.shield.v1beta1.ShieldService.ListUserGroups:output_type -> gotocompany.shield.v1beta1.ListUserGroupsResponse
-	9,   // 163: gotocompany.shield.v1beta1.ShieldService.GetCurrentUser:output_type -> gotocompany.shield.v1beta1.GetCurrentUserResponse
-	10,  // 164: gotocompany.shield.v1beta1.ShieldService.UpdateUser:output_type -> gotocompany.shield.v1beta1.UpdateUserResponse
-	11,  // 165: gotocompany.shield.v1beta1.ShieldService.UpdateCurrentUser:output_type -> gotocompany.shield.v1beta1.UpdateCurrentUserResponse
-	7,   // 166: gotocompany.shield.v1beta1.ShieldService.CreateMetadataKey:output_type -> gotocompany.shield.v1beta1.CreateMetadataKeyResponse
-	29,  // 167: gotocompany.shield.v1beta1.ShieldService.ListGroups:output_type -> gotocompany.shield.v1beta1.ListGroupsResponse
-	22,  // 168: gotocompany.shield.v1beta1.ShieldService.CreateGroup:output_type -> gotocompany.shield.v1beta1.CreateGroupResponse
-	23,  // 169: gotocompany.shield.v1beta1.ShieldService.GetGroup:output_type -> gotocompany.shield.v1beta1.GetGroupResponse
-	24,  // 170: gotocompany.shield.v1beta1.ShieldService.UpdateGroup:output_type -> gotocompany.shield.v1beta1.UpdateGroupResponse
-	107, // 171: gotocompany.shield.v1beta1.ShieldService.ListGroupRelations:output_type -> gotocompany.shield.v1beta1.ListGroupRelationsResponse
-	39,  // 172: gotocompany.shield.v1beta1.ShieldService.ListRoles:output_type -> gotocompany.shield.v1beta1.ListRolesResponse
-	33,  // 173: gotocompany.shield.v1beta1.ShieldService.CreateRole:output_type -> gotocompany.shield.v1beta1.CreateRoleResponse
-	34,  // 174: gotocompany.shield.v1beta1.ShieldService.GetRole:output_type -> gotocompany.shield.v1beta1.GetRoleResponse
-	35,  // 175: gotocompany.shield.v1beta1.ShieldService.UpdateRole:output_type -> gotocompany.shield.v1beta1.UpdateRoleResponse
-	47,  // 176: gotocompany.shield.v1beta1.ShieldService.ListOrganizations:output_type -> gotocompany.shield.v1beta1.ListOrganizationsResponse
-	43,  // 177: gotocompany.shield.v1beta1.ShieldService.CreateOrganization:output_type -> gotocompany.shield.v1beta1.CreateOrganizationResponse
-	44,  // 178: gotocompany.shield.v1beta1.ShieldService.GetOrganization:output_type -> gotocompany.shield.v1beta1.GetOrganizationResponse
-	45,  // 179: gotocompany.shield.v1beta1.ShieldService.UpdateOrganization:output_type -> gotocompany.shield.v1beta1.UpdateOrganizationResponse
-	51,  // 180: gotocompany.shield.v1beta1.ShieldService.ListOrganizationAdmins:output_type -> gotocompany.shield.v1beta1.ListOrganizationAdminsResponse
-	59,  // 181: gotocompany.shield.v1beta1.ShieldService.ListProjects:output_type -> gotocompany.shield.v1beta1.ListProjectsResponse
-	55,  // 182: gotocompany.shield.v1beta1.ShieldService.CreateProject:output_type -> gotocompany.shield.v1beta1.CreateProjectResponse
-	56,  // 183: gotocompany.shield.v1beta1.ShieldService.GetProject:output_type -> gotocompany.shield.v1beta1.GetProjectResponse
-	57,  // 184: gotocompany.shield.v1beta1.ShieldService.UpdateProject:output_type -> gotocompany.shield.v1beta1.UpdateProjectResponse
-	63,  // 185: gotocompany.shield.v1beta1.ShieldService.ListProjectAdmins:output_type -> gotocompany.shield.v1beta1.ListProjectAdminsResponse
-	71,  // 186: gotocompany.shield.v1beta1.ShieldService.ListActions:output_type -> gotocompany.shield.v1beta1.ListActionsResponse
-	73,  // 187: gotocompany.shield.v1beta1.ShieldService.CreateAction:output_type -> gotocompany.shield.v1beta1.CreateActionResponse
-	75,  // 188: gotocompany.shield.v1beta1.ShieldService.GetAction:output_type -> gotocompany.shield.v1beta1.GetActionResponse
-	77,  // 189: gotocompany.shield.v1beta1.ShieldService.UpdateAction:output_type -> gotocompany.shield.v1beta1.UpdateActionResponse
-	79,  // 190: gotocompany.shield.v1beta1.ShieldService.ListNamespaces:output_type -> gotocompany.shield.v1beta1.ListNamespacesResponse
-	81,  // 191: gotocompany.shield.v1beta1.ShieldService.CreateNamespace:output_type -> gotocompany.shield.v1beta1.CreateNamespaceResponse
-	83,  // 192: gotocompany.shield.v1beta1.ShieldService.GetNamespace:output_type -> gotocompany.shield.v1beta1.GetNamespaceResponse
-	85,  // 193: gotocompany.shield.v1beta1.ShieldService.UpdateNamespace:output_type -> gotocompany.shield.v1beta1.UpdateNamespaceResponse
-	87,  // 194: gotocompany.shield.v1beta1.ShieldService.ListPolicies:output_type -> gotocompany.shield.v1beta1.ListPoliciesResponse
-	89,  // 195: gotocompany.shield.v1beta1.ShieldService.CreatePolicy:output_type -> gotocompany.shield.v1beta1.CreatePolicyResponse
-	91,  // 196: gotocompany.shield.v1beta1.ShieldService.GetPolicy:output_type -> gotocompany.shield.v1beta1.GetPolicyResponse
-	93,  // 197: gotocompany.shield.v1beta1.ShieldService.UpdatePolicy:output_type -> gotocompany.shield.v1beta1.UpdatePolicyResponse
-	98,  // 198: gotocompany.shield.v1beta1.ShieldService.ListRelations:output_type -> gotocompany.shield.v1beta1.ListRelationsResponse
-	101, // 199: gotocompany.shield.v1beta1.ShieldService.CreateRelation:output_type -> gotocompany.shield.v1beta1.CreateRelationResponse
-	103, // 200: gotocompany.shield.v1beta1.ShieldService.GetRelation:output_type -> gotocompany.shield.v1beta1.GetRelationResponse
-	109, // 201: gotocompany.shield.v1beta1.ShieldService.DeleteRelation:output_type -> gotocompany.shield.v1beta1.DeleteRelationResponse
-	111, // 202: gotocompany.shield.v1beta1.ShieldService.ListResources:output_type -> gotocompany.shield.v1beta1.ListResourcesResponse
-	114, // 203: gotocompany.shield.v1beta1.ShieldService.CreateResource:output_type -> gotocompany.shield.v1beta1.CreateResourceResponse
-	116, // 204: gotocompany.shield.v1beta1.ShieldService.GetResource:output_type -> gotocompany.shield.v1beta1.GetResourceResponse
-	118, // 205: gotocompany.shield.v1beta1.ShieldService.UpdateResource:output_type -> gotocompany.shield.v1beta1.UpdateResourceResponse
-	120, // 206: gotocompany.shield.v1beta1.ShieldService.CheckResourcePermission:output_type -> gotocompany.shield.v1beta1.CheckResourcePermissionResponse
-	159, // [159:207] is the sub-list for method output_type
-	111, // [111:159] is the sub-list for method input_type
-	111, // [111:111] is the sub-list for extension type_name
-	111, // [111:111] is the sub-list for extension extendee
-	0,   // [0:111] is the sub-list for field type_name
+	119, // 111: gotocompany.shield.v1beta1.CheckResourcePermissionRequest.resource_permissions:type_name -> gotocompany.shield.v1beta1.ResourcePermission
+	122, // 112: gotocompany.shield.v1beta1.CheckResourcePermissionResponse.resource_permissions:type_name -> gotocompany.shield.v1beta1.CheckResourcePermissionResponse.ResourcePermissionResponse
+	16,  // 113: gotocompany.shield.v1beta1.ShieldService.ListUsers:input_type -> gotocompany.shield.v1beta1.ListUsersRequest
+	1,   // 114: gotocompany.shield.v1beta1.ShieldService.CreateUser:input_type -> gotocompany.shield.v1beta1.CreateUserRequest
+	13,  // 115: gotocompany.shield.v1beta1.ShieldService.GetUser:input_type -> gotocompany.shield.v1beta1.GetUserRequest
+	14,  // 116: gotocompany.shield.v1beta1.ShieldService.ListUserGroups:input_type -> gotocompany.shield.v1beta1.ListUserGroupsRequest
+	15,  // 117: gotocompany.shield.v1beta1.ShieldService.GetCurrentUser:input_type -> gotocompany.shield.v1beta1.GetCurrentUserRequest
+	12,  // 118: gotocompany.shield.v1beta1.ShieldService.UpdateUser:input_type -> gotocompany.shield.v1beta1.UpdateUserRequest
+	26,  // 119: gotocompany.shield.v1beta1.ShieldService.UpdateCurrentUser:input_type -> gotocompany.shield.v1beta1.UpdateCurrentUserRequest
+	5,   // 120: gotocompany.shield.v1beta1.ShieldService.CreateMetadataKey:input_type -> gotocompany.shield.v1beta1.CreateMetadataKeyRequest
+	28,  // 121: gotocompany.shield.v1beta1.ShieldService.ListGroups:input_type -> gotocompany.shield.v1beta1.ListGroupsRequest
+	19,  // 122: gotocompany.shield.v1beta1.ShieldService.CreateGroup:input_type -> gotocompany.shield.v1beta1.CreateGroupRequest
+	27,  // 123: gotocompany.shield.v1beta1.ShieldService.GetGroup:input_type -> gotocompany.shield.v1beta1.GetGroupRequest
+	25,  // 124: gotocompany.shield.v1beta1.ShieldService.UpdateGroup:input_type -> gotocompany.shield.v1beta1.UpdateGroupRequest
+	106, // 125: gotocompany.shield.v1beta1.ShieldService.ListGroupRelations:input_type -> gotocompany.shield.v1beta1.ListGroupRelationsRequest
+	38,  // 126: gotocompany.shield.v1beta1.ShieldService.ListRoles:input_type -> gotocompany.shield.v1beta1.ListRolesRequest
+	32,  // 127: gotocompany.shield.v1beta1.ShieldService.CreateRole:input_type -> gotocompany.shield.v1beta1.CreateRoleRequest
+	36,  // 128: gotocompany.shield.v1beta1.ShieldService.GetRole:input_type -> gotocompany.shield.v1beta1.GetRoleRequest
+	37,  // 129: gotocompany.shield.v1beta1.ShieldService.UpdateRole:input_type -> gotocompany.shield.v1beta1.UpdateRoleRequest
+	46,  // 130: gotocompany.shield.v1beta1.ShieldService.ListOrganizations:input_type -> gotocompany.shield.v1beta1.ListOrganizationsRequest
+	41,  // 131: gotocompany.shield.v1beta1.ShieldService.CreateOrganization:input_type -> gotocompany.shield.v1beta1.CreateOrganizationRequest
+	48,  // 132: gotocompany.shield.v1beta1.ShieldService.GetOrganization:input_type -> gotocompany.shield.v1beta1.GetOrganizationRequest
+	49,  // 133: gotocompany.shield.v1beta1.ShieldService.UpdateOrganization:input_type -> gotocompany.shield.v1beta1.UpdateOrganizationRequest
+	50,  // 134: gotocompany.shield.v1beta1.ShieldService.ListOrganizationAdmins:input_type -> gotocompany.shield.v1beta1.ListOrganizationAdminsRequest
+	58,  // 135: gotocompany.shield.v1beta1.ShieldService.ListProjects:input_type -> gotocompany.shield.v1beta1.ListProjectsRequest
+	53,  // 136: gotocompany.shield.v1beta1.ShieldService.CreateProject:input_type -> gotocompany.shield.v1beta1.CreateProjectRequest
+	60,  // 137: gotocompany.shield.v1beta1.ShieldService.GetProject:input_type -> gotocompany.shield.v1beta1.GetProjectRequest
+	61,  // 138: gotocompany.shield.v1beta1.ShieldService.UpdateProject:input_type -> gotocompany.shield.v1beta1.UpdateProjectRequest
+	62,  // 139: gotocompany.shield.v1beta1.ShieldService.ListProjectAdmins:input_type -> gotocompany.shield.v1beta1.ListProjectAdminsRequest
+	70,  // 140: gotocompany.shield.v1beta1.ShieldService.ListActions:input_type -> gotocompany.shield.v1beta1.ListActionsRequest
+	72,  // 141: gotocompany.shield.v1beta1.ShieldService.CreateAction:input_type -> gotocompany.shield.v1beta1.CreateActionRequest
+	74,  // 142: gotocompany.shield.v1beta1.ShieldService.GetAction:input_type -> gotocompany.shield.v1beta1.GetActionRequest
+	76,  // 143: gotocompany.shield.v1beta1.ShieldService.UpdateAction:input_type -> gotocompany.shield.v1beta1.UpdateActionRequest
+	78,  // 144: gotocompany.shield.v1beta1.ShieldService.ListNamespaces:input_type -> gotocompany.shield.v1beta1.ListNamespacesRequest
+	80,  // 145: gotocompany.shield.v1beta1.ShieldService.CreateNamespace:input_type -> gotocompany.shield.v1beta1.CreateNamespaceRequest
+	82,  // 146: gotocompany.shield.v1beta1.ShieldService.GetNamespace:input_type -> gotocompany.shield.v1beta1.GetNamespaceRequest
+	84,  // 147: gotocompany.shield.v1beta1.ShieldService.UpdateNamespace:input_type -> gotocompany.shield.v1beta1.UpdateNamespaceRequest
+	86,  // 148: gotocompany.shield.v1beta1.ShieldService.ListPolicies:input_type -> gotocompany.shield.v1beta1.ListPoliciesRequest
+	88,  // 149: gotocompany.shield.v1beta1.ShieldService.CreatePolicy:input_type -> gotocompany.shield.v1beta1.CreatePolicyRequest
+	90,  // 150: gotocompany.shield.v1beta1.ShieldService.GetPolicy:input_type -> gotocompany.shield.v1beta1.GetPolicyRequest
+	92,  // 151: gotocompany.shield.v1beta1.ShieldService.UpdatePolicy:input_type -> gotocompany.shield.v1beta1.UpdatePolicyRequest
+	97,  // 152: gotocompany.shield.v1beta1.ShieldService.ListRelations:input_type -> gotocompany.shield.v1beta1.ListRelationsRequest
+	100, // 153: gotocompany.shield.v1beta1.ShieldService.CreateRelation:input_type -> gotocompany.shield.v1beta1.CreateRelationRequest
+	102, // 154: gotocompany.shield.v1beta1.ShieldService.GetRelation:input_type -> gotocompany.shield.v1beta1.GetRelationRequest
+	108, // 155: gotocompany.shield.v1beta1.ShieldService.DeleteRelation:input_type -> gotocompany.shield.v1beta1.DeleteRelationRequest
+	110, // 156: gotocompany.shield.v1beta1.ShieldService.ListResources:input_type -> gotocompany.shield.v1beta1.ListResourcesRequest
+	113, // 157: gotocompany.shield.v1beta1.ShieldService.CreateResource:input_type -> gotocompany.shield.v1beta1.CreateResourceRequest
+	115, // 158: gotocompany.shield.v1beta1.ShieldService.GetResource:input_type -> gotocompany.shield.v1beta1.GetResourceRequest
+	117, // 159: gotocompany.shield.v1beta1.ShieldService.UpdateResource:input_type -> gotocompany.shield.v1beta1.UpdateResourceRequest
+	120, // 160: gotocompany.shield.v1beta1.ShieldService.CheckResourcePermission:input_type -> gotocompany.shield.v1beta1.CheckResourcePermissionRequest
+	17,  // 161: gotocompany.shield.v1beta1.ShieldService.ListUsers:output_type -> gotocompany.shield.v1beta1.ListUsersResponse
+	3,   // 162: gotocompany.shield.v1beta1.ShieldService.CreateUser:output_type -> gotocompany.shield.v1beta1.CreateUserResponse
+	8,   // 163: gotocompany.shield.v1beta1.ShieldService.GetUser:output_type -> gotocompany.shield.v1beta1.GetUserResponse
+	20,  // 164: gotocompany.shield.v1beta1.ShieldService.ListUserGroups:output_type -> gotocompany.shield.v1beta1.ListUserGroupsResponse
+	9,   // 165: gotocompany.shield.v1beta1.ShieldService.GetCurrentUser:output_type -> gotocompany.shield.v1beta1.GetCurrentUserResponse
+	10,  // 166: gotocompany.shield.v1beta1.ShieldService.UpdateUser:output_type -> gotocompany.shield.v1beta1.UpdateUserResponse
+	11,  // 167: gotocompany.shield.v1beta1.ShieldService.UpdateCurrentUser:output_type -> gotocompany.shield.v1beta1.UpdateCurrentUserResponse
+	7,   // 168: gotocompany.shield.v1beta1.ShieldService.CreateMetadataKey:output_type -> gotocompany.shield.v1beta1.CreateMetadataKeyResponse
+	29,  // 169: gotocompany.shield.v1beta1.ShieldService.ListGroups:output_type -> gotocompany.shield.v1beta1.ListGroupsResponse
+	22,  // 170: gotocompany.shield.v1beta1.ShieldService.CreateGroup:output_type -> gotocompany.shield.v1beta1.CreateGroupResponse
+	23,  // 171: gotocompany.shield.v1beta1.ShieldService.GetGroup:output_type -> gotocompany.shield.v1beta1.GetGroupResponse
+	24,  // 172: gotocompany.shield.v1beta1.ShieldService.UpdateGroup:output_type -> gotocompany.shield.v1beta1.UpdateGroupResponse
+	107, // 173: gotocompany.shield.v1beta1.ShieldService.ListGroupRelations:output_type -> gotocompany.shield.v1beta1.ListGroupRelationsResponse
+	39,  // 174: gotocompany.shield.v1beta1.ShieldService.ListRoles:output_type -> gotocompany.shield.v1beta1.ListRolesResponse
+	33,  // 175: gotocompany.shield.v1beta1.ShieldService.CreateRole:output_type -> gotocompany.shield.v1beta1.CreateRoleResponse
+	34,  // 176: gotocompany.shield.v1beta1.ShieldService.GetRole:output_type -> gotocompany.shield.v1beta1.GetRoleResponse
+	35,  // 177: gotocompany.shield.v1beta1.ShieldService.UpdateRole:output_type -> gotocompany.shield.v1beta1.UpdateRoleResponse
+	47,  // 178: gotocompany.shield.v1beta1.ShieldService.ListOrganizations:output_type -> gotocompany.shield.v1beta1.ListOrganizationsResponse
+	43,  // 179: gotocompany.shield.v1beta1.ShieldService.CreateOrganization:output_type -> gotocompany.shield.v1beta1.CreateOrganizationResponse
+	44,  // 180: gotocompany.shield.v1beta1.ShieldService.GetOrganization:output_type -> gotocompany.shield.v1beta1.GetOrganizationResponse
+	45,  // 181: gotocompany.shield.v1beta1.ShieldService.UpdateOrganization:output_type -> gotocompany.shield.v1beta1.UpdateOrganizationResponse
+	51,  // 182: gotocompany.shield.v1beta1.ShieldService.ListOrganizationAdmins:output_type -> gotocompany.shield.v1beta1.ListOrganizationAdminsResponse
+	59,  // 183: gotocompany.shield.v1beta1.ShieldService.ListProjects:output_type -> gotocompany.shield.v1beta1.ListProjectsResponse
+	55,  // 184: gotocompany.shield.v1beta1.ShieldService.CreateProject:output_type -> gotocompany.shield.v1beta1.CreateProjectResponse
+	56,  // 185: gotocompany.shield.v1beta1.ShieldService.GetProject:output_type -> gotocompany.shield.v1beta1.GetProjectResponse
+	57,  // 186: gotocompany.shield.v1beta1.ShieldService.UpdateProject:output_type -> gotocompany.shield.v1beta1.UpdateProjectResponse
+	63,  // 187: gotocompany.shield.v1beta1.ShieldService.ListProjectAdmins:output_type -> gotocompany.shield.v1beta1.ListProjectAdminsResponse
+	71,  // 188: gotocompany.shield.v1beta1.ShieldService.ListActions:output_type -> gotocompany.shield.v1beta1.ListActionsResponse
+	73,  // 189: gotocompany.shield.v1beta1.ShieldService.CreateAction:output_type -> gotocompany.shield.v1beta1.CreateActionResponse
+	75,  // 190: gotocompany.shield.v1beta1.ShieldService.GetAction:output_type -> gotocompany.shield.v1beta1.GetActionResponse
+	77,  // 191: gotocompany.shield.v1beta1.ShieldService.UpdateAction:output_type -> gotocompany.shield.v1beta1.UpdateActionResponse
+	79,  // 192: gotocompany.shield.v1beta1.ShieldService.ListNamespaces:output_type -> gotocompany.shield.v1beta1.ListNamespacesResponse
+	81,  // 193: gotocompany.shield.v1beta1.ShieldService.CreateNamespace:output_type -> gotocompany.shield.v1beta1.CreateNamespaceResponse
+	83,  // 194: gotocompany.shield.v1beta1.ShieldService.GetNamespace:output_type -> gotocompany.shield.v1beta1.GetNamespaceResponse
+	85,  // 195: gotocompany.shield.v1beta1.ShieldService.UpdateNamespace:output_type -> gotocompany.shield.v1beta1.UpdateNamespaceResponse
+	87,  // 196: gotocompany.shield.v1beta1.ShieldService.ListPolicies:output_type -> gotocompany.shield.v1beta1.ListPoliciesResponse
+	89,  // 197: gotocompany.shield.v1beta1.ShieldService.CreatePolicy:output_type -> gotocompany.shield.v1beta1.CreatePolicyResponse
+	91,  // 198: gotocompany.shield.v1beta1.ShieldService.GetPolicy:output_type -> gotocompany.shield.v1beta1.GetPolicyResponse
+	93,  // 199: gotocompany.shield.v1beta1.ShieldService.UpdatePolicy:output_type -> gotocompany.shield.v1beta1.UpdatePolicyResponse
+	98,  // 200: gotocompany.shield.v1beta1.ShieldService.ListRelations:output_type -> gotocompany.shield.v1beta1.ListRelationsResponse
+	101, // 201: gotocompany.shield.v1beta1.ShieldService.CreateRelation:output_type -> gotocompany.shield.v1beta1.CreateRelationResponse
+	103, // 202: gotocompany.shield.v1beta1.ShieldService.GetRelation:output_type -> gotocompany.shield.v1beta1.GetRelationResponse
+	109, // 203: gotocompany.shield.v1beta1.ShieldService.DeleteRelation:output_type -> gotocompany.shield.v1beta1.DeleteRelationResponse
+	111, // 204: gotocompany.shield.v1beta1.ShieldService.ListResources:output_type -> gotocompany.shield.v1beta1.ListResourcesResponse
+	114, // 205: gotocompany.shield.v1beta1.ShieldService.CreateResource:output_type -> gotocompany.shield.v1beta1.CreateResourceResponse
+	116, // 206: gotocompany.shield.v1beta1.ShieldService.GetResource:output_type -> gotocompany.shield.v1beta1.GetResourceResponse
+	118, // 207: gotocompany.shield.v1beta1.ShieldService.UpdateResource:output_type -> gotocompany.shield.v1beta1.UpdateResourceResponse
+	121, // 208: gotocompany.shield.v1beta1.ShieldService.CheckResourcePermission:output_type -> gotocompany.shield.v1beta1.CheckResourcePermissionResponse
+	161, // [161:209] is the sub-list for method output_type
+	113, // [113:161] is the sub-list for method input_type
+	113, // [113:113] is the sub-list for extension type_name
+	113, // [113:113] is the sub-list for extension extendee
+	0,   // [0:113] is the sub-list for field type_name
 }
 
 func init() { file_gotocompany_shield_v1beta1_shield_proto_init() }
@@ -9770,7 +9975,7 @@ func file_gotocompany_shield_v1beta1_shield_proto_init() {
 			}
 		}
 		file_gotocompany_shield_v1beta1_shield_proto_msgTypes[119].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CheckResourcePermissionRequest); i {
+			switch v := v.(*ResourcePermission); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9782,7 +9987,31 @@ func file_gotocompany_shield_v1beta1_shield_proto_init() {
 			}
 		}
 		file_gotocompany_shield_v1beta1_shield_proto_msgTypes[120].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CheckResourcePermissionRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gotocompany_shield_v1beta1_shield_proto_msgTypes[121].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckResourcePermissionResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gotocompany_shield_v1beta1_shield_proto_msgTypes[122].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CheckResourcePermissionResponse_ResourcePermissionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -9804,7 +10033,7 @@ func file_gotocompany_shield_v1beta1_shield_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_gotocompany_shield_v1beta1_shield_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   121,
+			NumMessages:   123,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

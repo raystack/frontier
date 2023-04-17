@@ -72,7 +72,7 @@ func Serve(
 	healthHandler := health.NewHandler()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthHandler)
 
-	err = v1beta1.Register(ctx, grpcServer, deps)
+	err = v1beta1.Register(ctx, grpcServer, deps, cfg.CheckAPILimit)
 	if err != nil {
 		return err
 	}
