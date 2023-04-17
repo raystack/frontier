@@ -20,4 +20,4 @@ RUN apk add ca-certificates
 # don't work well with musl libc that alpine uses
 RUN apk add libc6-compat
 
-CMD ["shield", "serve"]
+ENTRYPOINT ["shield", "server"]

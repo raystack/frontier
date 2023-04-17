@@ -117,7 +117,11 @@ func serverStartCommand() *cobra.Command {
 			}
 			logger := shieldlogger.InitLogger(appConfig.Log)
 
-			return StartServer(logger, appConfig)
+			if err = StartServer(logger, appConfig); err != nil {
+				logger.Error("error starting server", "error", err)
+				return err
+			}
+			return nil
 		},
 	}
 
@@ -131,7 +135,7 @@ func serverMigrateCommand() *cobra.Command {
 	c := &cli.Command{
 		Use:     "migrate",
 		Short:   "Run DB Schema Migrations",
-		Example: "shield migrate",
+		Example: "shield server migrate",
 		RunE: func(c *cli.Command, args []string) error {
 			appConfig, err := config.Load(configFile)
 			if err != nil {
