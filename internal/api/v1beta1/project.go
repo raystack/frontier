@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/odpf/shield/internal/schema"
+
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
@@ -30,7 +32,7 @@ type ProjectService interface {
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
 	List(ctx context.Context) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
-	ListAdmins(ctx context.Context, id string) ([]user.User, error)
+	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
 }
 
 func (h Handler) ListProjects(
@@ -199,7 +201,7 @@ func (h Handler) ListProjectAdmins(
 ) (*shieldv1beta1.ListProjectAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	admins, err := h.projectService.ListAdmins(ctx, request.GetId())
+	users, err := h.projectService.ListUsers(ctx, request.GetId(), schema.DeletePermission)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -211,7 +213,7 @@ func (h Handler) ListProjectAdmins(
 	}
 
 	var transformedAdmins []*shieldv1beta1.User
-	for _, a := range admins {
+	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
 			logger.Error(err.Error())
@@ -222,6 +224,42 @@ func (h Handler) ListProjectAdmins(
 	}
 
 	return &shieldv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
+}
+
+func (h Handler) ListProjectUsers(
+	ctx context.Context,
+	request *shieldv1beta1.ListProjectUsersRequest,
+) (*shieldv1beta1.ListProjectUsersResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	permissionFilter := schema.ViewPermission
+	if len(request.GetPermissionFilter()) > 0 {
+		permissionFilter = request.GetPermissionFilter()
+	}
+
+	users, err := h.projectService.ListUsers(ctx, request.GetId(), permissionFilter)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ErrNotExist):
+			return nil, grpcProjectNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var transformedUsers []*shieldv1beta1.User
+	for _, a := range users {
+		u, err := transformUserToPB(a)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, ErrInternalServer
+		}
+
+		transformedUsers = append(transformedUsers, &u)
+	}
+
+	return &shieldv1beta1.ListProjectUsersResponse{Users: transformedUsers}, nil
 }
 
 func transformProjectToPB(prj project.Project) (shieldv1beta1.Project, error) {

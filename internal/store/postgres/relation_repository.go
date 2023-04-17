@@ -236,3 +236,51 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 
 	return fetchedRelation.transformToRelationV2(), nil
 }
+
+func (r RelationRepository) ListByFields(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error) {
+	var fetchedRelation []Relation
+	like := "%:" + rel.Subject.RoleID
+
+	var exprs []goqu.Expression
+	if len(rel.Subject.ID) != 0 {
+		exprs = append(exprs, goqu.Ex{"subject_id": rel.Subject.ID})
+	}
+	if len(rel.Subject.RoleID) != 0 {
+		exprs = append(exprs, goqu.Ex{"role_id": goqu.Op{"like": like}})
+	}
+	if len(rel.Object.ID) != 0 {
+		exprs = append(exprs, goqu.Ex{"object_id": rel.Object.ID})
+	}
+	query, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(exprs...).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_RELATIONS,
+				Operation:  "GetByFields",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.SelectContext(ctx, &fetchedRelation, query)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, relation.ErrNotExist
+		default:
+			return nil, err
+		}
+	}
+
+	var relations []relation.RelationV2
+	for _, fr := range fetchedRelation {
+		relations = append(relations, fr.transformToRelationV2())
+	}
+	return relations, nil
+}

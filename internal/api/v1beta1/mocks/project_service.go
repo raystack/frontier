@@ -184,25 +184,25 @@ func (_c *ProjectService_List_Call) RunAndReturn(run func(context.Context) ([]pr
 	return _c
 }
 
-// ListAdmins provides a mock function with given fields: ctx, id
-func (_m *ProjectService) ListAdmins(ctx context.Context, id string) ([]user.User, error) {
-	ret := _m.Called(ctx, id)
+// ListUsers provides a mock function with given fields: ctx, id, permissionFilter
+func (_m *ProjectService) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
+	ret := _m.Called(ctx, id, permissionFilter)
 
 	var r0 []user.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]user.User, error)); ok {
-		return rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]user.User, error)); ok {
+		return rf(ctx, id, permissionFilter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []user.User); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
+		r0 = rf(ctx, id, permissionFilter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]user.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, id, permissionFilter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -210,31 +210,32 @@ func (_m *ProjectService) ListAdmins(ctx context.Context, id string) ([]user.Use
 	return r0, r1
 }
 
-// ProjectService_ListAdmins_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAdmins'
-type ProjectService_ListAdmins_Call struct {
+// ProjectService_ListUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUsers'
+type ProjectService_ListUsers_Call struct {
 	*mock.Call
 }
 
-// ListAdmins is a helper method to define mock.On call
+// ListUsers is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *ProjectService_Expecter) ListAdmins(ctx interface{}, id interface{}) *ProjectService_ListAdmins_Call {
-	return &ProjectService_ListAdmins_Call{Call: _e.mock.On("ListAdmins", ctx, id)}
+//   - permissionFilter string
+func (_e *ProjectService_Expecter) ListUsers(ctx interface{}, id interface{}, permissionFilter interface{}) *ProjectService_ListUsers_Call {
+	return &ProjectService_ListUsers_Call{Call: _e.mock.On("ListUsers", ctx, id, permissionFilter)}
 }
 
-func (_c *ProjectService_ListAdmins_Call) Run(run func(ctx context.Context, id string)) *ProjectService_ListAdmins_Call {
+func (_c *ProjectService_ListUsers_Call) Run(run func(ctx context.Context, id string, permissionFilter string)) *ProjectService_ListUsers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *ProjectService_ListAdmins_Call) Return(_a0 []user.User, _a1 error) *ProjectService_ListAdmins_Call {
+func (_c *ProjectService_ListUsers_Call) Return(_a0 []user.User, _a1 error) *ProjectService_ListUsers_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ProjectService_ListAdmins_Call) RunAndReturn(run func(context.Context, string) ([]user.User, error)) *ProjectService_ListAdmins_Call {
+func (_c *ProjectService_ListUsers_Call) RunAndReturn(run func(context.Context, string, string) ([]user.User, error)) *ProjectService_ListUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }

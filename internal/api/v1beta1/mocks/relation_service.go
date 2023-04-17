@@ -75,8 +75,8 @@ func (_c *RelationService_Create_Call) RunAndReturn(run func(context.Context, re
 	return _c
 }
 
-// DeleteV2 provides a mock function with given fields: ctx, rel
-func (_m *RelationService) DeleteV2(ctx context.Context, rel relation.RelationV2) error {
+// Delete provides a mock function with given fields: ctx, rel
+func (_m *RelationService) Delete(ctx context.Context, rel relation.RelationV2) error {
 	ret := _m.Called(ctx, rel)
 
 	var r0 error
@@ -89,31 +89,31 @@ func (_m *RelationService) DeleteV2(ctx context.Context, rel relation.RelationV2
 	return r0
 }
 
-// RelationService_DeleteV2_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteV2'
-type RelationService_DeleteV2_Call struct {
+// RelationService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type RelationService_Delete_Call struct {
 	*mock.Call
 }
 
-// DeleteV2 is a helper method to define mock.On call
+// Delete is a helper method to define mock.On call
 //   - ctx context.Context
 //   - rel relation.RelationV2
-func (_e *RelationService_Expecter) DeleteV2(ctx interface{}, rel interface{}) *RelationService_DeleteV2_Call {
-	return &RelationService_DeleteV2_Call{Call: _e.mock.On("DeleteV2", ctx, rel)}
+func (_e *RelationService_Expecter) Delete(ctx interface{}, rel interface{}) *RelationService_Delete_Call {
+	return &RelationService_Delete_Call{Call: _e.mock.On("Delete", ctx, rel)}
 }
 
-func (_c *RelationService_DeleteV2_Call) Run(run func(ctx context.Context, rel relation.RelationV2)) *RelationService_DeleteV2_Call {
+func (_c *RelationService_Delete_Call) Run(run func(ctx context.Context, rel relation.RelationV2)) *RelationService_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(relation.RelationV2))
 	})
 	return _c
 }
 
-func (_c *RelationService_DeleteV2_Call) Return(_a0 error) *RelationService_DeleteV2_Call {
+func (_c *RelationService_Delete_Call) Return(_a0 error) *RelationService_Delete_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *RelationService_DeleteV2_Call) RunAndReturn(run func(context.Context, relation.RelationV2) error) *RelationService_DeleteV2_Call {
+func (_c *RelationService_Delete_Call) RunAndReturn(run func(context.Context, relation.RelationV2) error) *RelationService_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/odpf/shield/internal/schema"
+
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
@@ -31,6 +33,7 @@ type OrganizationService interface {
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
+	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
@@ -213,6 +216,39 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 	}
 
 	return &shieldv1beta1.ListOrganizationAdminsResponse{Users: adminsPB}, nil
+}
+
+func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1beta1.ListOrganizationUsersRequest) (*shieldv1beta1.ListOrganizationUsersResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	permissionFilter := schema.ViewPermission
+	if len(request.GetPermissionFilter()) > 0 {
+		permissionFilter = request.GetPermissionFilter()
+	}
+
+	users, err := h.orgService.ListUsers(ctx, request.GetId(), permissionFilter)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var usersPB []*shieldv1beta1.User
+	for _, rel := range users {
+		u, err := transformUserToPB(rel)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, ErrInternalServer
+		}
+
+		usersPB = append(usersPB, &u)
+	}
+
+	return &shieldv1beta1.ListOrganizationUsersResponse{Users: usersPB}, nil
 }
 
 func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization, error) {

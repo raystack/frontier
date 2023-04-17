@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/internal/schema"
+
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/user"
@@ -666,7 +668,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return([]user.User{}, errors.New("some error"))
+				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -677,7 +679,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		{
 			name: "should return not found error if org id is not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return([]user.User{}, project.ErrNotExist)
+				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, project.ErrNotExist)
 			},
 			request: &shieldv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -692,7 +694,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(testUserList, nil)
+				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return(testUserList, nil)
 			},
 			request: &shieldv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,

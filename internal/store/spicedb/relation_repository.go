@@ -3,6 +3,7 @@ package spicedb
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/relation"
@@ -221,4 +222,30 @@ func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resource
 	}
 
 	return nil
+}
+
+func (r RelationRepository) FindSubjectRelations(ctx context.Context, rel relation.RelationV2) ([]string, error) {
+	resp, err := r.spiceDB.client.LookupSubjects(ctx, &authzedpb.LookupSubjectsRequest{
+		Resource: &authzedpb.ObjectReference{
+			ObjectType: rel.Object.NamespaceID,
+			ObjectId:   rel.Object.ID,
+		},
+		Permission:        rel.Subject.RoleID,
+		SubjectObjectType: rel.Subject.Namespace,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var subjects []string
+	for {
+		resp, err := resp.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		subjects = append(subjects, resp.GetSubject().SubjectObjectId)
+	}
+	return subjects, nil
 }

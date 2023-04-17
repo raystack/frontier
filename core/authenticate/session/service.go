@@ -1,13 +1,13 @@
-package authenticate
+package session
 
 import (
 	"context"
 	"errors"
 	"time"
 
+	"github.com/odpf/shield/internal/server/consts"
+
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/server/grpc_interceptors"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -16,21 +16,21 @@ var (
 	ErrDeletingSession = errors.New("error deleting session")
 )
 
-type SessionRepository interface {
+type Repository interface {
 	Set(ctx context.Context, session *Session) error
 	Get(ctx context.Context, id uuid.UUID) (*Session, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type SessionService struct {
-	repo     SessionRepository
+type Service struct {
+	repo     Repository
 	validity time.Duration
 
 	Now func() time.Time
 }
 
-func NewSessionManager(repo SessionRepository, validity time.Duration) *SessionService {
-	return &SessionService{
+func NewService(repo Repository, validity time.Duration) *Service {
+	return &Service{
 		repo:     repo,
 		validity: validity,
 		Now: func() time.Time {
@@ -39,10 +39,10 @@ func NewSessionManager(repo SessionRepository, validity time.Duration) *SessionS
 	}
 }
 
-func (s SessionService) Create(ctx context.Context, user user.User) (*Session, error) {
+func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 	sess := &Session{
 		ID:              uuid.New(),
-		UserID:          user.ID,
+		UserID:          userID,
 		AuthenticatedAt: s.Now(),
 		ExpiresAt:       s.Now().Add(s.validity),
 		CreatedAt:       s.Now(),
@@ -51,22 +51,22 @@ func (s SessionService) Create(ctx context.Context, user user.User) (*Session, e
 }
 
 // Refresh extends validity of session
-func (s SessionService) Refresh(session *Session) error {
+func (s Service) Refresh(session *Session) error {
 	// TODO(kushsharma)
 	panic("not implemented")
 }
 
-func (s SessionService) Delete(ctx context.Context, sessionID uuid.UUID) error {
+func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	return s.repo.Delete(ctx, sessionID)
 }
 
-func (s SessionService) ExtractFromMD(ctx context.Context) (*Session, error) {
+func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, ErrNoSession
 	}
 
-	sessionHeaders := md.Get(grpc_interceptors.SessionIDGatewayKey)
+	sessionHeaders := md.Get(consts.SessionIDGatewayKey)
 	if len(sessionHeaders) == 0 || len(sessionHeaders[0]) == 0 {
 		return nil, ErrNoSession
 	}

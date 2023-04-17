@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/odpf/shield/internal/schema"
+
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
@@ -23,8 +25,9 @@ type AuthzRepository interface {
 	Add(ctx context.Context, rel Relation) error
 	Check(ctx context.Context, rel Relation, act action.Action) (bool, error)
 	DeleteV2(ctx context.Context, rel RelationV2) error
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 	AddV2(ctx context.Context, rel RelationV2) error
+	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	FindSubjectRelations(ctx context.Context, rel RelationV2) ([]string, error)
 }
 
 type RoleService interface {
@@ -33,6 +36,7 @@ type RoleService interface {
 
 type UserService interface {
 	GetByEmail(ctx context.Context, email string) (user.User, error)
+	GetByID(ctx context.Context, id string) (user.User, error)
 }
 
 type Relation struct {
@@ -78,4 +82,20 @@ var RelationTypes = struct {
 }{
 	Role:      "role",
 	Namespace: "namespace",
+}
+
+func BuildUserResourceAdminSubject(user user.User) Subject {
+	return Subject{
+		ID:        user.Email,
+		Namespace: schema.UserPrincipal,
+		RoleID:    schema.OwnerRole,
+	}
+}
+
+func BuildUserGroupAdminSubject(user user.User) Subject {
+	return Subject{
+		ID:        user.Email,
+		Namespace: schema.UserPrincipal,
+		RoleID:    schema.ManagerRole,
+	}
 }

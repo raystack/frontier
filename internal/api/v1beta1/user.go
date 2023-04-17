@@ -31,8 +31,8 @@ type UserService interface {
 	List(ctx context.Context, flt user.Filter) (user.PagedUsers, error)
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
-	FetchCurrentUser(ctx context.Context) (user.User, error)
 	CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error)
+	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
@@ -190,43 +190,11 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 
 func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurrentUserRequest) (*shieldv1beta1.GetCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var currentUser user.User
-	var userID string
-	var err error
 
-	// TODO(kushsharma): discuss if we are disabling header based email field verification?
-	// Should we do it if email header config is set?
-
-	// check if header with user email is set
-	if email, ok := user.GetEmailFromContext(ctx); ok {
-		if email = strings.TrimSpace(email); email != "" {
-			userID = email
-		}
-	}
-
-	// try fetching user from session if no email found
-	if userID == "" {
-		userID, err = h.getLoggedInUserID(ctx)
-		if err != nil {
-			return nil, grpcUnauthenticated
-		}
-	}
-
-	if ok := shielduuid.IsValid(userID); ok {
-		// userID is an uuid
-		currentUser, err = h.userService.GetByID(ctx, userID)
-	} else {
-		// userID must be email
-		currentUser, err = h.userService.GetByEmail(ctx, userID)
-	}
+	currentUser, err := h.getLoggedInUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUserNotFoundError
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, err
 	}
 
 	if err = h.setUserContextTokenInHeaders(ctx, currentUser); err != nil {

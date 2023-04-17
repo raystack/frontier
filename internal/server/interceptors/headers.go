@@ -1,4 +1,4 @@
-package grpc_interceptors
+package interceptors
 
 import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"

@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "735b6aa2a38a5fa43067c2fe1e65a24edfd8971b"
+PROTON_COMMIT := "056db0eef064bc5f82343e6a5a312567a39d9ec6"
 
 install:
 	@echo "Clean up imports..."
@@ -23,7 +23,7 @@ lint-fix:
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
+	@go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
 
 e2e-test: ## Run all e2e tests
 	go test -v -race ./test/e2e_test/... -coverprofile=coverage.out

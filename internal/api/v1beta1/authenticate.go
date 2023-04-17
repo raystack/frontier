@@ -2,15 +2,16 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/authenticate"
+	shieldsession "github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/server/grpc_interceptors"
+	"github.com/odpf/shield/internal/server/consts"
+	"github.com/odpf/shield/pkg/errors"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -28,8 +29,8 @@ type RegistrationService interface {
 
 //go:generate mockery --name=SessionService -r --case underscore --with-expecter --structname SessionService --filename session_service.go --output=./mocks
 type SessionService interface {
-	ExtractFromMD(ctx context.Context) (*authenticate.Session, error)
-	Create(ctx context.Context, user user.User) (*authenticate.Session, error)
+	ExtractFromContext(ctx context.Context) (*shieldsession.Session, error)
+	Create(ctx context.Context, userID string) (*shieldsession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 }
 
@@ -37,7 +38,7 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 	logger := grpczap.Extract(ctx)
 
 	// check if user is already logged in
-	session, err := h.sessionService.ExtractFromMD(ctx)
+	session, err := h.sessionService.ExtractFromContext(ctx)
 	if err == nil && session.IsValid() {
 		// already logged in, set location header for return to?
 		if len(request.GetReturnTo()) > 0 {
@@ -47,7 +48,7 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 			}
 		}
 		return &shieldv1beta1.AuthenticateResponse{}, nil
-	} else if err != nil && !errors.Is(err, authenticate.ErrNoSession) {
+	} else if err != nil && !errors.Is(err, shieldsession.ErrNoSession) {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -89,7 +90,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCa
 	}
 
 	// registration/login complete, build a session
-	session, err := h.sessionService.Create(ctx, response.User)
+	session, err := h.sessionService.Create(ctx, response.User.ID)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
@@ -146,19 +147,26 @@ func (h Handler) ListAuthStrategies(ctx context.Context, request *shieldv1beta1.
 }
 
 func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
-	session, err := h.sessionService.ExtractFromMD(ctx)
+	session, err := h.sessionService.ExtractFromContext(ctx)
 	if err == nil && session.IsValid() {
 		return session.ID, nil
 	}
 	return uuid.Nil, err
 }
 
-func (h Handler) getLoggedInUserID(ctx context.Context) (string, error) {
-	session, err := h.sessionService.ExtractFromMD(ctx)
-	if err == nil && session.IsValid() {
-		return session.UserID, nil
+func (h Handler) getLoggedInUser(ctx context.Context) (user.User, error) {
+	u, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
+			return u, grpcUserNotFoundError
+		case errors.Is(err, errors.ErrUnauthenticated):
+			return u, grpcUnauthenticated
+		default:
+			return u, grpcInternalServerError
+		}
 	}
-	return "", err
+	return u, nil
 }
 
 // setUserContextTokenInHeaders sends a jwt token with user/org details
@@ -180,20 +188,20 @@ func (h Handler) setUserContextTokenInHeaders(ctx context.Context, user user.Use
 	}
 
 	// pass as response headers
-	if err = grpc.SetHeader(ctx, metadata.Pairs(grpc_interceptors.UserTokenGatewayKey, string(token))); err != nil {
+	if err = grpc.SetHeader(ctx, metadata.Pairs(consts.UserTokenGatewayKey, string(token))); err != nil {
 		return fmt.Errorf("failed to set header: %w", err)
 	}
 	return nil
 }
 
 func setRedirectHeaders(ctx context.Context, url string) error {
-	return grpc.SetHeader(ctx, metadata.Pairs(grpc_interceptors.LocationGatewayKey, url))
+	return grpc.SetHeader(ctx, metadata.Pairs(consts.LocationGatewayKey, url))
 }
 
 func setCookieHeaders(ctx context.Context, cookie string) error {
-	return grpc.SetHeader(ctx, metadata.Pairs(grpc_interceptors.SessionIDGatewayKey, cookie))
+	return grpc.SetHeader(ctx, metadata.Pairs(consts.SessionIDGatewayKey, cookie))
 }
 
 func deleteCookieHeaders(ctx context.Context) error {
-	return grpc.SetHeader(ctx, metadata.Pairs(grpc_interceptors.SessionDeleteGatewayKey, "true"))
+	return grpc.SetHeader(ctx, metadata.Pairs(consts.SessionDeleteGatewayKey, "true"))
 }

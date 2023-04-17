@@ -6,10 +6,11 @@ import (
 	"errors"
 	"fmt"
 
+	shieldsession "github.com/odpf/shield/core/authenticate/session"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/authenticate"
 	"github.com/odpf/shield/pkg/db"
 )
 
@@ -23,7 +24,7 @@ func NewSessionRepository(dbc *db.Client) *SessionRepository {
 	}
 }
 
-func (s *SessionRepository) Set(ctx context.Context, session *authenticate.Session) error {
+func (s *SessionRepository) Set(ctx context.Context, session *shieldsession.Session) error {
 	userID, err := uuid.Parse(session.UserID)
 	if err != nil {
 		return fmt.Errorf("error parsing user id: %w", err)
@@ -62,7 +63,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *authenticate.Sessi
 	return nil
 }
 
-func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.Session, error) {
+func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*shieldsession.Session, error) {
 	var session Session
 	query, params, err := dialect.From(TABLE_SESSIONS).Where(
 		goqu.Ex{
@@ -89,7 +90,7 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*authenticat
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, fmt.Errorf("%w: %s", dbErr, authenticate.ErrNoSession)
+			return nil, fmt.Errorf("%w: %s", dbErr, shieldsession.ErrNoSession)
 		default:
 			return nil, fmt.Errorf("%w: %s", dbErr, err)
 		}
@@ -126,7 +127,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			err = checkPostgresError(err)
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
-				return fmt.Errorf("%w: %s", dbErr, authenticate.ErrNoSession)
+				return fmt.Errorf("%w: %s", dbErr, shieldsession.ErrNoSession)
 			default:
 				return fmt.Errorf("%w: %s", dbErr, err)
 			}
@@ -136,6 +137,6 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			return nil
 		}
 
-		return authenticate.ErrDeletingSession
+		return shieldsession.ErrDeletingSession
 	})
 }

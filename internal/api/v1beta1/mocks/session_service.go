@@ -5,11 +5,8 @@ package mocks
 import (
 	context "context"
 
-	authenticate "github.com/odpf/shield/core/authenticate"
-
+	session "github.com/odpf/shield/core/authenticate/session"
 	mock "github.com/stretchr/testify/mock"
-
-	user "github.com/odpf/shield/core/user"
 
 	uuid "github.com/google/uuid"
 )
@@ -27,25 +24,25 @@ func (_m *SessionService) EXPECT() *SessionService_Expecter {
 	return &SessionService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *SessionService) Create(ctx context.Context, _a1 user.User) (*authenticate.Session, error) {
-	ret := _m.Called(ctx, _a1)
+// Create provides a mock function with given fields: ctx, userID
+func (_m *SessionService) Create(ctx context.Context, userID string) (*session.Session, error) {
+	ret := _m.Called(ctx, userID)
 
-	var r0 *authenticate.Session
+	var r0 *session.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, user.User) (*authenticate.Session, error)); ok {
-		return rf(ctx, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*session.Session, error)); ok {
+		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, user.User) *authenticate.Session); ok {
-		r0 = rf(ctx, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *session.Session); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*authenticate.Session)
+			r0 = ret.Get(0).(*session.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, user.User) error); ok {
-		r1 = rf(ctx, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -59,25 +56,25 @@ type SessionService_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//  - ctx context.Context
-//  - _a1 user.User
-func (_e *SessionService_Expecter) Create(ctx interface{}, _a1 interface{}) *SessionService_Create_Call {
-	return &SessionService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
+//   - ctx context.Context
+//   - userID string
+func (_e *SessionService_Expecter) Create(ctx interface{}, userID interface{}) *SessionService_Create_Call {
+	return &SessionService_Create_Call{Call: _e.mock.On("Create", ctx, userID)}
 }
 
-func (_c *SessionService_Create_Call) Run(run func(ctx context.Context, _a1 user.User)) *SessionService_Create_Call {
+func (_c *SessionService_Create_Call) Run(run func(ctx context.Context, userID string)) *SessionService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(user.User))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *SessionService_Create_Call) Return(_a0 *authenticate.Session, _a1 error) *SessionService_Create_Call {
+func (_c *SessionService_Create_Call) Return(_a0 *session.Session, _a1 error) *SessionService_Create_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *SessionService_Create_Call) RunAndReturn(run func(context.Context, user.User) (*authenticate.Session, error)) *SessionService_Create_Call {
+func (_c *SessionService_Create_Call) RunAndReturn(run func(context.Context, string) (*session.Session, error)) *SessionService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -102,8 +99,8 @@ type SessionService_Delete_Call struct {
 }
 
 // Delete is a helper method to define mock.On call
-//  - ctx context.Context
-//  - sessionID uuid.UUID
+//   - ctx context.Context
+//   - sessionID uuid.UUID
 func (_e *SessionService_Expecter) Delete(ctx interface{}, sessionID interface{}) *SessionService_Delete_Call {
 	return &SessionService_Delete_Call{Call: _e.mock.On("Delete", ctx, sessionID)}
 }
@@ -125,20 +122,20 @@ func (_c *SessionService_Delete_Call) RunAndReturn(run func(context.Context, uui
 	return _c
 }
 
-// ExtractFromMD provides a mock function with given fields: ctx
-func (_m *SessionService) ExtractFromMD(ctx context.Context) (*authenticate.Session, error) {
+// ExtractFromContext provides a mock function with given fields: ctx
+func (_m *SessionService) ExtractFromContext(ctx context.Context) (*session.Session, error) {
 	ret := _m.Called(ctx)
 
-	var r0 *authenticate.Session
+	var r0 *session.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*authenticate.Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) (*session.Session, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *authenticate.Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) *session.Session); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*authenticate.Session)
+			r0 = ret.Get(0).(*session.Session)
 		}
 	}
 
@@ -151,30 +148,30 @@ func (_m *SessionService) ExtractFromMD(ctx context.Context) (*authenticate.Sess
 	return r0, r1
 }
 
-// SessionService_ExtractFromMD_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExtractFromMD'
-type SessionService_ExtractFromMD_Call struct {
+// SessionService_ExtractFromContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExtractFromContext'
+type SessionService_ExtractFromContext_Call struct {
 	*mock.Call
 }
 
-// ExtractFromMD is a helper method to define mock.On call
+// ExtractFromContext is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *SessionService_Expecter) ExtractFromMD(ctx interface{}) *SessionService_ExtractFromMD_Call {
-	return &SessionService_ExtractFromMD_Call{Call: _e.mock.On("ExtractFromMD", ctx)}
+func (_e *SessionService_Expecter) ExtractFromContext(ctx interface{}) *SessionService_ExtractFromContext_Call {
+	return &SessionService_ExtractFromContext_Call{Call: _e.mock.On("ExtractFromContext", ctx)}
 }
 
-func (_c *SessionService_ExtractFromMD_Call) Run(run func(ctx context.Context)) *SessionService_ExtractFromMD_Call {
+func (_c *SessionService_ExtractFromContext_Call) Run(run func(ctx context.Context)) *SessionService_ExtractFromContext_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context))
 	})
 	return _c
 }
 
-func (_c *SessionService_ExtractFromMD_Call) Return(_a0 *authenticate.Session, _a1 error) *SessionService_ExtractFromMD_Call {
+func (_c *SessionService_ExtractFromContext_Call) Return(_a0 *session.Session, _a1 error) *SessionService_ExtractFromContext_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *SessionService_ExtractFromMD_Call) RunAndReturn(run func(context.Context) (*authenticate.Session, error)) *SessionService_ExtractFromMD_Call {
+func (_c *SessionService_ExtractFromContext_Call) RunAndReturn(run func(context.Context) (*session.Session, error)) *SessionService_ExtractFromContext_Call {
 	_c.Call.Return(run)
 	return _c
 }

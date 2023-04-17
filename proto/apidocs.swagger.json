@@ -905,6 +905,43 @@
         ]
       }
     },
+    "/v1beta1/organizations/{id}/users": {
+      "get": {
+        "summary": "List Organization users",
+        "operationId": "ShieldService_ListOrganizationUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListOrganizationUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "permissionFilter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
     "/v1beta1/policies": {
       "get": {
         "summary": "Get all Policy",
@@ -1172,6 +1209,43 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      }
+    },
+    "/v1beta1/projects/{id}/users": {
+      "get": {
+        "summary": "Get all users of a Project",
+        "operationId": "ShieldService_ListProjectUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListProjectUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "permissionFilter",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -2250,6 +2324,17 @@
         }
       }
     },
+    "v1beta1ListOrganizationUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
     "v1beta1ListOrganizationsResponse": {
       "type": "object",
       "properties": {
@@ -2273,6 +2358,17 @@
       }
     },
     "v1beta1ListProjectAdminsResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
+    "v1beta1ListProjectUsersResponse": {
       "type": "object",
       "properties": {
         "users": {

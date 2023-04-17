@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/user"
@@ -33,7 +34,15 @@ func (s Service) Get(ctx context.Context, id string) (RelationV2, error) {
 func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error) {
 	// If Principal is a user, then we will get ID for that user as Subject.ID
 	if rel.Subject.Namespace == schema.UserPrincipal || rel.Subject.Namespace == "user" {
-		fetchedUser, err := s.userService.GetByEmail(ctx, rel.Subject.ID)
+		var fetchedUser user.User
+		var err error
+		if _, err := uuid.Parse(rel.Subject.ID); err == nil {
+			// must be uuid
+			fetchedUser, err = s.userService.GetByID(ctx, rel.Subject.ID)
+		} else {
+			// could be email
+			fetchedUser, err = s.userService.GetByEmail(ctx, rel.Subject.ID)
+		}
 		if err != nil {
 			return RelationV2{}, fmt.Errorf("%w: %s", ErrFetchingUser, err.Error())
 		}
@@ -83,20 +92,6 @@ func (s Service) Update(ctx context.Context, toUpdate Relation) (Relation, error
 	return Relation{}, nil
 }
 
-func (s Service) Delete(ctx context.Context, rel Relation) error {
-	//fetchedRel, err := s.repository.GetByFields(ctx, rel)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if err = s.authzRepository.Delete(ctx, rel); err != nil {
-	//	return err
-	//}
-	//
-	//return s.repository.DeleteByID(ctx, fetchedRel.ID)
-	return nil
-}
-
 func (s Service) GetRelationByFields(ctx context.Context, rel RelationV2) (RelationV2, error) {
 	fetchedRel, err := s.repository.GetByFields(ctx, rel)
 	if err != nil {
@@ -106,7 +101,7 @@ func (s Service) GetRelationByFields(ctx context.Context, rel RelationV2) (Relat
 	return fetchedRel, nil
 }
 
-func (s Service) DeleteV2(ctx context.Context, rel RelationV2) error {
+func (s Service) Delete(ctx context.Context, rel RelationV2) error {
 	fetchedRel, err := s.repository.GetByFields(ctx, rel)
 	if err != nil {
 		return err
@@ -129,4 +124,8 @@ func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS 
 
 func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
 	return s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
+}
+
+func (s Service) FindSubjectRelations(ctx context.Context, rel RelationV2) ([]string, error) {
+	return s.authzRepository.FindSubjectRelations(ctx, rel)
 }

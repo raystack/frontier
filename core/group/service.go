@@ -10,13 +10,11 @@ import (
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
 )
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 }
 
@@ -46,7 +44,26 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	if err = s.addTeamToOrg(ctx, newGroup); err != nil {
+	// add relationship between group to org
+	if err = s.CreateRelation(ctx, newGroup, relation.Subject{
+		ID:        newGroup.OrganizationID,
+		Namespace: schema.OrganizationNamespace,
+		RoleID:    schema.OrganizationRelationName,
+	}); err != nil {
+		return Group{}, err
+	}
+
+	// attach group to org as viewer
+	if err = s.addGroupAsViewer(ctx, newGroup); err != nil {
+		return Group{}, err
+	}
+
+	// attach current user to group as admin
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+	if err = s.CreateRelation(ctx, newGroup, relation.BuildUserGroupAdminSubject(currentUser)); err != nil {
 		return Group{}, err
 	}
 
@@ -123,17 +140,30 @@ func (s Service) ListGroupRelations(ctx context.Context, objectId, subjectType, 
 	return users, groups, userIDRoleMap, groupIDRoleMap, nil
 }
 
-func (s Service) addTeamToOrg(ctx context.Context, team Group) error {
-	orgId := str.DefaultStringIfEmpty(team.OrganizationID, team.OrganizationID)
+func (s Service) CreateRelation(ctx context.Context, team Group, subject relation.Subject) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
 			ID:          team.ID,
-			NamespaceID: schema.GroupNamespace,
+			NamespaceID: schema.OrganizationNamespace,
+		},
+		Subject: subject,
+	}
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) addGroupAsViewer(ctx context.Context, team Group) error {
+	rel := relation.RelationV2{
+		Object: relation.Object{
+			ID:          team.OrganizationID,
+			NamespaceID: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        orgId,
-			Namespace: schema.OrganizationNamespace,
-			RoleID:    schema.OrganizationRelationName,
+			ID:        team.ID,
+			Namespace: schema.GroupNamespace,
+			RoleID:    schema.ViewerRole,
 		},
 	}
 

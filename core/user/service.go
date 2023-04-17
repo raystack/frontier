@@ -3,15 +3,25 @@ package user
 import (
 	"context"
 	"strings"
+
+	shieldsession "github.com/odpf/shield/core/authenticate/session"
+	"github.com/odpf/shield/pkg/errors"
+	shielduuid "github.com/odpf/shield/pkg/uuid"
 )
 
-type Service struct {
-	repository Repository
+type SessionService interface {
+	ExtractFromContext(ctx context.Context) (*shieldsession.Session, error)
 }
 
-func NewService(repository Repository) *Service {
+type Service struct {
+	repository     Repository
+	sessionService SessionService
+}
+
+func NewService(repository Repository, sessionService SessionService) *Service {
 	return &Service{
-		repository: repository,
+		repository:     repository,
+		sessionService: sessionService,
 	}
 }
 
@@ -73,20 +83,26 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 }
 
 func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
-	email, ok := GetEmailFromContext(ctx)
-	if !ok {
-		return User{}, ErrMissingEmail
+	var currentUser User
+
+	// extract user from session if present
+	session, err := s.sessionService.ExtractFromContext(ctx)
+	if err == nil && session.IsValid() && shielduuid.IsValid(session.UserID) {
+		// userID is a valid uuid
+		currentUser, err = s.GetByID(ctx, session.UserID)
+		if err != nil {
+			return User{}, err
+		}
+		return currentUser, nil
 	}
 
-	email = strings.TrimSpace(email)
-	if email == "" {
-		return User{}, ErrMissingEmail
+	// check if header with user email is set
+	if val, ok := GetEmailFromContext(ctx); ok && len(val) > 0 {
+		currentUser, err = s.GetByEmail(ctx, strings.TrimSpace(val))
+		if err != nil {
+			return User{}, err
+		}
+		return currentUser, nil
 	}
-
-	fetchedUser, err := s.repository.GetByEmail(ctx, email)
-	if err != nil {
-		return User{}, err
-	}
-
-	return fetchedUser, nil
+	return User{}, errors.ErrUnauthenticated
 }
