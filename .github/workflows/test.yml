@@ -61,7 +61,7 @@ jobs:
         ports:
           - "4000:80"
       spicedb:
-        image: quay.io/authzed/spicedb:v1.19.0
+        image: quay.io/authzed/spicedb:v1.19.1
         ports:
           - "8080:8080"
           - "50051:50051"

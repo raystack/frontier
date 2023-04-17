@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   pg:
-    image: postgres:12
+    image: postgres:13
     environment:
       - POSTGRES_DB=shield
       - POSTGRES_USER=shield
@@ -10,15 +10,15 @@ services:
     volumes:
       - ./temp/pgdata:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shield"]
+      test: [ "CMD-SHELL", "pg_isready -U shield" ]
       interval: 30s
       timeout: 30s
       retries: 3
-  
+
   pg2:
-    image: "postgres:12"
+    image: "postgres:13"
     environment:
       POSTGRES_USER: "spicedb"
       POSTGRES_DB: "spicedb"
@@ -28,7 +28,7 @@ services:
     ports:
       - "5431:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U spicedb"]
+      test: [ "CMD-SHELL", "pg_isready -U spicedb" ]
       interval: 30s
       timeout: 30s
       retries: 3
@@ -37,25 +37,26 @@ services:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile.dev
-#    command:
-#      - "migrate"
+#    command: migrate
+#    restart: on-failure
 #    depends_on:
 #      pg:
 #        condition: service_healthy
 #    environment:
 #      - SHIELD_DB_DRIVER=postgres
 #      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+#      - SHIELD_SPICEDB_PORT=50051
 #      - SHIELD_SPICEDB_HOST=spicedb
-#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield;
-
+#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield
+#
 #  shield:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile.dev
 #    ports:
 #      - "8081:8080"
-#    command:
-#      - "serve"
+#    command: start
+#    restart: on-failure
 #    depends_on:
 #      pg:
 #        condition: service_healthy
@@ -64,25 +65,26 @@ services:
 #    environment:
 #      - SHIELD_DB_DRIVER=postgres
 #      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+#      - SHIELD_SPICEDB_PORT=50051
 #      - SHIELD_SPICEDB_HOST=spicedb
-#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield;
+#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield
+#      - SHIELD_APP_RESOURCES_CONFIG_PATH=file:///opt
 
   spicedb-migration:
-    image: quay.io/authzed/spicedb:v1.0.0
-    command: spicedb migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
+    image: quay.io/authzed/spicedb:v1.19.1
+    command: migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
     restart: on-failure
     depends_on:
       pg2:
         condition: service_healthy
-        
+
   spicedb:
-    image: quay.io/authzed/spicedb:v1.0.0
+    image: quay.io/authzed/spicedb:v1.19.1
     ports:
-      - "8080:8080"
+      - "8082:8080"
       - "50051:50051"
-      - "50053:50053"
     command:
-      spicedb serve --grpc-preshared-key "shield" --grpc-no-tls --datastore-engine postgres
+      serve --grpc-preshared-key "shield" --datastore-engine postgres
       --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
     restart: on-failure
     depends_on:
