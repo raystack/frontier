@@ -2,6 +2,9 @@ package memory
 
 import (
 	"context"
+	"time"
+
+	"github.com/odpf/salt/log"
 
 	"github.com/google/uuid"
 	"github.com/odpf/shield/core/authenticate/session"
@@ -31,5 +34,14 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*session.Ses
 
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	delete(s.data, id.String())
+	return nil
+}
+
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger, expiryTime time.Time) error {
+	for _, sess := range s.data {
+		if sess.ExpiresAt.Before(expiryTime) {
+			delete(s.data, sess.ID.String())
+		}
+	}
 	return nil
 }
