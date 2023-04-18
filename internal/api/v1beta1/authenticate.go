@@ -25,6 +25,8 @@ type RegistrationService interface {
 	Finish(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
 	Token(user user.User, orgs []organization.Organization) ([]byte, error)
 	SupportedStrategies() []string
+	InitFlows(ctx context.Context) error
+	Close()
 }
 
 //go:generate mockery --name=SessionService -r --case underscore --with-expecter --structname SessionService --filename session_service.go --output=./mocks

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/odpf/salt/log"
+
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -14,6 +16,7 @@ import (
 	"github.com/odpf/shield/core/authenticate/strategy"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
+	"github.com/robfig/cron/v3"
 )
 
 const (
@@ -22,6 +25,7 @@ const (
 )
 
 var (
+	refreshTime               = "0 0 * * *" // Once a day at midnight
 	ErrMissingRSADisableToken = errors.New("rsa key missing in config, generate and pass file path")
 	ErrStrategyNotApplicable  = errors.New("strategy not applicable")
 )
@@ -35,16 +39,21 @@ type FlowRepository interface {
 	Set(ctx context.Context, flow *Flow) error
 	Get(ctx context.Context, id uuid.UUID) (*Flow, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	DeleteExpiredFlows(ctx context.Context, logger log.Logger, expiry_time time.Time) error
 }
 
 type RegistrationService struct {
+	log         log.Logger
+	cron        *cron.Cron
 	flowRepo    FlowRepository
 	userService UserService
 	config      Config
 }
 
-func NewRegistrationService(flowRepo FlowRepository, userService UserService, config Config) *RegistrationService {
+func NewRegistrationService(logger log.Logger, flowRepo FlowRepository, userService UserService, config Config) *RegistrationService {
 	return &RegistrationService{
+		log:         logger,
+		cron:        cron.New(),
 		flowRepo:    flowRepo,
 		userService: userService,
 		config:      config,
@@ -270,4 +279,22 @@ func (r RegistrationService) Token(user user.User, orgs []organization.Organizat
 	}
 
 	return jwt.Sign(tok, jwt.WithKey(jwa.RS256, rsaKey))
+}
+
+func (r RegistrationService) InitFlows(ctx context.Context) error {
+	expiryTime := time.Now()
+	_, err := r.cron.AddFunc(refreshTime, func() {
+		if err := r.flowRepo.DeleteExpiredFlows(ctx, r.log, expiryTime); err != nil {
+			r.log.Warn("failed to delete expired sessions", "err", err)
+		}
+	})
+	if err != nil {
+		return fmt.Errorf("failed to start flows cronjob: %w", err)
+	}
+	r.cron.Start()
+	return nil
+}
+
+func (r RegistrationService) Close() {
+	r.cron.Stop()
 }

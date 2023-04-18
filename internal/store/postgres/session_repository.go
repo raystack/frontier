@@ -147,7 +147,7 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger lo
 	query, params, err := dialect.Delete(TABLE_SESSIONS).
 		Where(
 			goqu.Ex{
-				"expires_at": goqu.Op{"lt": expiryTime},
+				"expires_at": goqu.Op{"lte": expiryTime},
 			},
 		).ToSQL()
 	if err != nil {
