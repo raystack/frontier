@@ -130,7 +130,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		logger.Warn("sessions database cleanup failed", "err", err)
 	}
 	defer func() {
-		logger.Info("cleaning up cron jobs")
+		logger.Debug("cleaning up cron jobs")
 		deps.SessionService.Close()
 	}()
 
