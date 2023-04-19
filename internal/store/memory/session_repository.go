@@ -45,3 +45,11 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger lo
 	}
 	return nil
 }
+
+func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error {
+	if val, ok := s.data[id.String()]; ok {
+		val.ExpiresAt = val.ExpiresAt.Add(validity)
+		return nil
+	}
+	return session.ErrNoSession
+}

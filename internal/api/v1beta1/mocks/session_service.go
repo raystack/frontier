@@ -250,6 +250,49 @@ func (_c *SessionService_InitSessions_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// Refresh provides a mock function with given fields: ctx, sessionID
+func (_m *SessionService) Refresh(ctx context.Context, sessionID uuid.UUID) error {
+	ret := _m.Called(ctx, sessionID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, sessionID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SessionService_Refresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Refresh'
+type SessionService_Refresh_Call struct {
+	*mock.Call
+}
+
+// Refresh is a helper method to define mock.On call
+//  - ctx context.Context
+//  - sessionID uuid.UUID
+func (_e *SessionService_Expecter) Refresh(ctx interface{}, sessionID interface{}) *SessionService_Refresh_Call {
+	return &SessionService_Refresh_Call{Call: _e.mock.On("Refresh", ctx, sessionID)}
+}
+
+func (_c *SessionService_Refresh_Call) Run(run func(ctx context.Context, sessionID uuid.UUID)) *SessionService_Refresh_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *SessionService_Refresh_Call) Return(_a0 error) *SessionService_Refresh_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *SessionService_Refresh_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *SessionService_Refresh_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewSessionService interface {
 	mock.TestingT
 	Cleanup(func())

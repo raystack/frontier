@@ -34,6 +34,7 @@ type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*shieldsession.Session, error)
 	Create(ctx context.Context, userID string) (*shieldsession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Refresh(ctx context.Context, sessionID uuid.UUID) error
 	InitSessions(ctx context.Context) error
 	Close()
 }

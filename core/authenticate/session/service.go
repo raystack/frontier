@@ -24,6 +24,7 @@ type Repository interface {
 	Get(ctx context.Context, id uuid.UUID) (*Session, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	DeleteExpiredSessions(ctx context.Context, logger log.Logger, expiryTime time.Time) error
+	UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error
 }
 
 type Service struct {
@@ -58,9 +59,8 @@ func (s Service) Create(ctx context.Context, userID string) (*Session, error) {
 }
 
 // Refresh extends validity of session
-func (s Service) Refresh(session *Session) error {
-	// TODO(kushsharma)
-	panic("not implemented")
+func (s Service) Refresh(ctx context.Context, sessionID uuid.UUID) error {
+	return s.repo.UpdateValidity(ctx, sessionID, s.validity)
 }
 
 func (s Service) Delete(ctx context.Context, sessionID uuid.UUID) error {
