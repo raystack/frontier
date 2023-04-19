@@ -129,8 +129,8 @@ func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context, logger log.Logger, expiryTime time.Time) error {
-	expiryTime = expiryTime.AddDate(0, 0, -7)
+func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context, logger log.Logger) error {
+	expiryTime := time.Now().UTC().AddDate(0, 0, -7)
 	query, params, err := dialect.Delete(TABLE_FLOWS).
 		Where(
 			goqu.Ex{

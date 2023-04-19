@@ -143,11 +143,11 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger, expiryTime time.Time) error {
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger) error {
 	query, params, err := dialect.Delete(TABLE_SESSIONS).
 		Where(
 			goqu.Ex{
-				"expires_at": goqu.Op{"lte": expiryTime},
+				"expires_at": goqu.Op{"lte": time.Now().UTC()},
 			},
 		).ToSQL()
 	if err != nil {

@@ -37,9 +37,9 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger, expiryTime time.Time) error {
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger) error {
 	for _, sess := range s.data {
-		if sess.ExpiresAt.Before(expiryTime) {
+		if sess.ExpiresAt.Before(time.Now().UTC()) {
 			delete(s.data, sess.ID.String())
 		}
 	}
