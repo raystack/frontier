@@ -30,9 +30,9 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 		goqu.Record{
 			"subject_namespace_id": relationToCreate.Subject.Namespace,
 			"subject_id":           relationToCreate.Subject.ID,
-			"object_namespace_id":  relationToCreate.Object.NamespaceID,
+			"object_namespace_id":  relationToCreate.Object.Namespace,
 			"object_id":            relationToCreate.Object.ID,
-			"role_id":              schema.GetRoleID(relationToCreate.Object.NamespaceID, relationToCreate.Subject.RoleID),
+			"role_id":              schema.GetRoleID(relationToCreate.Object.Namespace, relationToCreate.Subject.RoleID),
 		}).OnConflict(
 		goqu.DoUpdate("subject_namespace_id, subject_id, object_namespace_id,  object_id, role_id", goqu.Record{
 			"subject_namespace_id": relationToCreate.Subject.Namespace,

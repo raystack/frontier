@@ -245,8 +245,8 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 
 			newRelation, err := a.relationService.Create(res.Request.Context(), relation.RelationV2{
 				Object: relation.Object{
-					ID:          newResource.Idxa,
-					NamespaceID: newResource.NamespaceID,
+					ID:        newResource.Idxa,
+					Namespace: newResource.NamespaceID,
 				},
 				Subject: relation.Subject{
 					RoleID:    rel.Role,

@@ -107,8 +107,8 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 
 		_, err := h.relationService.Create(ctx, relation.RelationV2{
 			Object: relation.Object{
-				ID:          newResource.Idxa,
-				NamespaceID: newResource.NamespaceID,
+				ID:        newResource.Idxa,
+				Namespace: newResource.NamespaceID,
 			},
 			Subject: relation.Subject{
 				RoleID:    r.RoleName,

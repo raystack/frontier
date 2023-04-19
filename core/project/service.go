@@ -5,7 +5,6 @@ import (
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/schema"
@@ -15,7 +14,8 @@ import (
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
-	FindSubjectRelations(ctx context.Context, rel relation.RelationV2) ([]string, error)
+	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
+	ListRelations(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error)
 }
 
 type UserService interface {
@@ -44,6 +44,10 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Project, error) {
 	return s.repository.GetBySlug(ctx, idOrSlug)
 }
 
+func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Project, error) {
+	return s.repository.GetByIDs(ctx, ids)
+}
+
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	newProject, err := s.repository.Create(ctx, Project{
 		Name:         prj.Name,
@@ -55,7 +59,7 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	if err = s.addProjectToOrg(ctx, newProject, prj.Organization); err != nil {
+	if err = s.addProjectToOrg(ctx, newProject, prj.Organization.ID); err != nil {
 		return Project{}, err
 	}
 
@@ -79,10 +83,10 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 }
 
 func (s Service) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
-	userIDs, err := s.relationService.FindSubjectRelations(ctx, relation.RelationV2{
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
 		Object: relation.Object{
-			ID:          id,
-			NamespaceID: schema.ProjectNamespace,
+			ID:        id,
+			Namespace: schema.ProjectNamespace,
 		},
 		Subject: relation.Subject{
 			Namespace: schema.UserPrincipal,
@@ -104,14 +108,14 @@ func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string
 	return []user.User{}, nil
 }
 
-func (s Service) addProjectToOrg(ctx context.Context, prj Project, org organization.Organization) error {
+func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:          prj.ID,
-			NamespaceID: schema.ProjectNamespace,
+			ID:        prj.ID,
+			Namespace: schema.ProjectNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        org.ID,
+			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
 			RoleID:    schema.OrganizationRelationName,
 		},
@@ -122,4 +126,30 @@ func (s Service) addProjectToOrg(ctx context.Context, prj Project, org organizat
 	}
 
 	return nil
+}
+
+func (s Service) ListByOrganization(ctx context.Context, id string) ([]Project, error) {
+	relations, err := s.relationService.ListRelations(ctx, relation.RelationV2{
+		Object: relation.Object{
+			Namespace: schema.ProjectNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        id,
+			Namespace: schema.OrganizationNamespace,
+			RoleID:    schema.OrganizationRelationName,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var projectIDs []string
+	for _, rel := range relations {
+		projectIDs = append(projectIDs, rel.Object.ID)
+	}
+	if len(projectIDs) == 0 {
+		// no projects
+		return []Project{}, nil
+	}
+	return s.repository.GetByIDs(ctx, projectIDs)
 }

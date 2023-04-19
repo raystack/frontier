@@ -33,6 +33,7 @@ type ProjectService interface {
 	List(ctx context.Context) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
 	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
+	ListByOrganization(ctx context.Context, organizationID string) ([]project.Project, error)
 }
 
 func (h Handler) ListProjects(

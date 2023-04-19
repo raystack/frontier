@@ -28,12 +28,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
-				ObjectNamespace: testRelationV2.Object.NamespaceID,
+				ObjectNamespace: testRelationV2.Object.Namespace,
 				Permission:      schema.EditPermission,
 			},
 			want:    nil,
@@ -44,12 +44,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
-				ObjectNamespace: testRelationV2.Object.NamespaceID,
+				ObjectNamespace: testRelationV2.Object.Namespace,
 				Permission:      schema.EditPermission,
 			},
 			want: &shieldv1beta1.CheckResourcePermissionResponse{
@@ -62,12 +62,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
-				ObjectNamespace: testRelationV2.Object.NamespaceID,
+				ObjectNamespace: testRelationV2.Object.Namespace,
 				Permission:      schema.EditPermission,
 			},
 			want: &shieldv1beta1.CheckResourcePermissionResponse{

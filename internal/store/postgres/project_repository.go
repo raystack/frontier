@@ -74,6 +74,55 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 	return transformedProject, nil
 }
 
+func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string) ([]project.Project, error) {
+	if len(ids) == 0 {
+		return nil, project.ErrInvalidID
+	}
+
+	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
+		"id": goqu.Op{"in": ids},
+	}).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var projects []Project
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_PROJECTS,
+				Operation:  "GetByIDs",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.SelectContext(ctx, &projects, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, project.ErrNotExist
+		case errors.Is(err, errInvalidTexRepresentation):
+			return nil, project.ErrInvalidUUID
+		default:
+			return nil, err
+		}
+	}
+
+	var transformedProjects []project.Project
+	for _, p := range projects {
+		tp, err := p.transformToProject()
+		if err != nil {
+			return nil, err
+		}
+		transformedProjects = append(transformedProjects, tp)
+	}
+	return transformedProjects, nil
+}
+
 func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.Project, error) {
 	if strings.TrimSpace(slug) == "" {
 		return project.Project{}, project.ErrInvalidID

@@ -89,8 +89,8 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 
 	newRelation, err := h.relationService.Create(ctx, relation.RelationV2{
 		Object: relation.Object{
-			ID:          request.GetBody().GetObjectId(),
-			NamespaceID: request.GetBody().GetObjectNamespace(),
+			ID:        request.GetBody().GetObjectId(),
+			Namespace: request.GetBody().GetObjectNamespace(),
 		},
 		Subject: relation.Subject{
 			ID:        subjectID,
@@ -172,7 +172,7 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 		Name:        reln.Object.ID,
-		NamespaceID: reln.Object.NamespaceID,
+		NamespaceID: reln.Object.Namespace,
 	}, action.Action{ID: schema.EditPermission})
 	if err != nil {
 		switch {
@@ -219,7 +219,7 @@ func transformRelationV2ToPB(relation relation.RelationV2) (*shieldv1beta1.Relat
 	rel := &shieldv1beta1.Relation{
 		Id:              relation.ID,
 		ObjectId:        relation.Object.ID,
-		ObjectNamespace: relation.Object.NamespaceID,
+		ObjectNamespace: relation.Object.Namespace,
 		Subject:         generateSubject(relation.Subject.ID, relation.Subject.Namespace),
 		RoleName:        relation.Subject.RoleID,
 	}

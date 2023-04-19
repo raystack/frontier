@@ -88,8 +88,8 @@ func (s *OrganizationRepositoryTestSuite) SetupTest() {
 			RoleID:    schema.OwnerRole,
 		},
 		Object: relation.Object{
-			ID:          s.orgs[0].ID,
-			NamespaceID: schema.OrganizationNamespace,
+			ID:        s.orgs[0].ID,
+			Namespace: schema.OrganizationNamespace,
 		},
 	})
 	if err != nil {

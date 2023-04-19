@@ -46,6 +46,7 @@ type ShieldServiceClient interface {
 	UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*UpdateOrganizationResponse, error)
 	ListOrganizationAdmins(ctx context.Context, in *ListOrganizationAdminsRequest, opts ...grpc.CallOption) (*ListOrganizationAdminsResponse, error)
 	ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
+	ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error)
 	// Projects
 	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
@@ -305,6 +306,15 @@ func (c *shieldServiceClient) ListOrganizationAdmins(ctx context.Context, in *Li
 func (c *shieldServiceClient) ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error) {
 	out := new(ListOrganizationUsersResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListOrganizationUsers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error) {
+	out := new(ListOrganizationProjectsResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListOrganizationProjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -622,6 +632,7 @@ type ShieldServiceServer interface {
 	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error)
 	ListOrganizationAdmins(context.Context, *ListOrganizationAdminsRequest) (*ListOrganizationAdminsResponse, error)
 	ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
+	ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error)
 	// Projects
 	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
@@ -739,6 +750,9 @@ func (UnimplementedShieldServiceServer) ListOrganizationAdmins(context.Context, 
 }
 func (UnimplementedShieldServiceServer) ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationUsers not implemented")
+}
+func (UnimplementedShieldServiceServer) ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationProjects not implemented")
 }
 func (UnimplementedShieldServiceServer) ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjects not implemented")
@@ -1274,6 +1288,24 @@ func _ShieldService_ListOrganizationUsers_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListOrganizationUsers(ctx, req.(*ListOrganizationUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListOrganizationProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationProjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListOrganizationProjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, req.(*ListOrganizationProjectsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1938,6 +1970,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrganizationUsers",
 			Handler:    _ShieldService_ListOrganizationUsers_Handler,
+		},
+		{
+			MethodName: "ListOrganizationProjects",
+			Handler:    _ShieldService_ListOrganizationProjects_Handler,
 		},
 		{
 			MethodName: "ListProjects",

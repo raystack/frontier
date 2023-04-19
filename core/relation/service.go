@@ -126,6 +126,19 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optio
 	return s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
 }
 
-func (s Service) FindSubjectRelations(ctx context.Context, rel RelationV2) ([]string, error) {
-	return s.authzRepository.FindSubjectRelations(ctx, rel)
+// LookupSubjects returns all the subjects of a given type that have access whether
+// via a computed permission or relation membership.
+func (s Service) LookupSubjects(ctx context.Context, rel RelationV2) ([]string, error) {
+	return s.authzRepository.LookupSubjects(ctx, rel)
+}
+
+// LookupResources returns all the resources of a given type that a subject can access whether
+// via a computed permission or relation membership.
+func (s Service) LookupResources(ctx context.Context, rel RelationV2) ([]string, error) {
+	return s.authzRepository.LookupResources(ctx, rel)
+}
+
+// ListRelations lists a set of the relationships matching filter
+func (s Service) ListRelations(ctx context.Context, rel RelationV2) ([]RelationV2, error) {
+	return s.authzRepository.ListRelations(ctx, rel)
 }

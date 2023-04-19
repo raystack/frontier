@@ -143,8 +143,8 @@ func (s Service) ListGroupRelations(ctx context.Context, objectId, subjectType, 
 func (s Service) CreateRelation(ctx context.Context, team Group, subject relation.Subject) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:          team.ID,
-			NamespaceID: schema.OrganizationNamespace,
+			ID:        team.ID,
+			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: subject,
 	}
@@ -157,8 +157,8 @@ func (s Service) CreateRelation(ctx context.Context, team Group, subject relatio
 func (s Service) addGroupAsViewer(ctx context.Context, team Group) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:          team.OrganizationID,
-			NamespaceID: schema.OrganizationNamespace,
+			ID:        team.OrganizationID,
+			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
 			ID:        team.ID,

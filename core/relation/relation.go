@@ -27,7 +27,9 @@ type AuthzRepository interface {
 	DeleteV2(ctx context.Context, rel RelationV2) error
 	AddV2(ctx context.Context, rel RelationV2) error
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
-	FindSubjectRelations(ctx context.Context, rel RelationV2) ([]string, error)
+	LookupSubjects(ctx context.Context, rel RelationV2) ([]string, error)
+	LookupResources(ctx context.Context, rel RelationV2) ([]string, error)
+	ListRelations(ctx context.Context, rel RelationV2) ([]RelationV2, error)
 }
 
 type RoleService interface {
@@ -56,8 +58,8 @@ type Relation struct {
 }
 
 type Object struct {
-	ID          string
-	NamespaceID string
+	ID        string
+	Namespace string
 }
 
 type Subject struct {
