@@ -11,6 +11,7 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Project, error)
+	GetByIDs(ctx context.Context, ids []string) ([]Project, error)
 	GetBySlug(ctx context.Context, slug string) (Project, error)
 	Create(ctx context.Context, org Project) (Project, error)
 	List(ctx context.Context) ([]Project, error)

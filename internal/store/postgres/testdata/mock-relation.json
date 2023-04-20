@@ -7,7 +7,7 @@
         },
         "object": {
             "id": "uuid2",
-            "namespaceId": "ns1"
+            "namespace": "ns1"
         }
     },
     {
@@ -18,7 +18,7 @@
         },
         "object": {
             "id": "uuid4",
-            "namespaceId": "ns2"
+            "namespace": "ns2"
         }
     }
 ]

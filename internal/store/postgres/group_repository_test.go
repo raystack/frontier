@@ -96,8 +96,8 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 				RoleID:    schema.MemberRole,
 			},
 			Object: relation.Object{
-				ID:          group.ID,
-				NamespaceID: schema.GroupNamespace,
+				ID:        group.ID,
+				Namespace: schema.GroupNamespace,
 			},
 		})
 		if err != nil {
@@ -113,8 +113,8 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 				RoleID:    schema.MemberRole,
 			},
 			Object: relation.Object{
-				ID:          s.groups[0].ID,
-				NamespaceID: schema.GroupNamespace,
+				ID:        s.groups[0].ID,
+				Namespace: schema.GroupNamespace,
 			},
 		})
 		if err != nil {
@@ -692,8 +692,8 @@ func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
 			ExpectedRelations: []relation.RelationV2{
 				{
 					Object: relation.Object{
-						ID:          s.groups[0].ID,
-						NamespaceID: schema.GroupNamespace,
+						ID:        s.groups[0].ID,
+						Namespace: schema.GroupNamespace,
 					},
 					Subject: relation.Subject{
 						ID:        s.users[0].ID,
@@ -703,8 +703,8 @@ func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
 				},
 				{
 					Object: relation.Object{
-						ID:          s.groups[0].ID,
-						NamespaceID: schema.GroupNamespace,
+						ID:        s.groups[0].ID,
+						Namespace: schema.GroupNamespace,
 					},
 					Subject: relation.Subject{
 						ID:        s.users[1].ID,

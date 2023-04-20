@@ -25,8 +25,8 @@ var (
 			RoleID:    "role1",
 		},
 		Object: relation.Object{
-			ID:          "object-id",
-			NamespaceID: "ns2",
+			ID:        "object-id",
+			Namespace: "ns2",
 		},
 	}
 
@@ -96,13 +96,13 @@ func TestHandler_CreateRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
-					ObjectNamespace: testRelationV2.Object.NamespaceID,
+					ObjectNamespace: testRelationV2.Object.Namespace,
 					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
@@ -115,13 +115,13 @@ func TestHandler_CreateRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
-					ObjectNamespace: testRelationV2.Object.NamespaceID,
+					ObjectNamespace: testRelationV2.Object.Namespace,
 					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
@@ -134,7 +134,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
@@ -144,15 +144,15 @@ func TestHandler_CreateRelation(t *testing.T) {
 						RoleID:    testRelationV2.Subject.RoleID,
 					},
 					Object: relation.Object{
-						ID:          testRelationV2.Object.ID,
-						NamespaceID: testRelationV2.Object.NamespaceID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 				}).Return(relation.RelationV2{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
-					ObjectNamespace: testRelationV2.Object.NamespaceID,
+					ObjectNamespace: testRelationV2.Object.Namespace,
 					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
@@ -165,7 +165,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
@@ -175,15 +175,15 @@ func TestHandler_CreateRelation(t *testing.T) {
 						RoleID:    testRelationV2.Subject.RoleID,
 					},
 					Object: relation.Object{
-						ID:          testRelationV2.Object.ID,
-						NamespaceID: testRelationV2.Object.NamespaceID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 				}).Return(relation.RelationV2{}, relation.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
-					ObjectNamespace: testRelationV2.Object.NamespaceID,
+					ObjectNamespace: testRelationV2.Object.Namespace,
 					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
@@ -196,7 +196,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
@@ -206,15 +206,15 @@ func TestHandler_CreateRelation(t *testing.T) {
 						RoleID:    testRelationV2.Subject.RoleID,
 					},
 					Object: relation.Object{
-						ID:          testRelationV2.Object.ID,
-						NamespaceID: testRelationV2.Object.NamespaceID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 				}).Return(testRelationV2, nil)
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
-					ObjectNamespace: testRelationV2.Object.NamespaceID,
+					ObjectNamespace: testRelationV2.Object.Namespace,
 					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
@@ -382,8 +382,8 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					},
 				}).Return(relation.RelationV2{
 					Object: relation.Object{
-						ID:          testRelationV2.Object.ID,
-						NamespaceID: testRelationV2.Object.NamespaceID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 					Subject: relation.Subject{
 						ID:        testRelationV2.Subject.ID,
@@ -394,7 +394,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
@@ -418,8 +418,8 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					},
 				}).Return(relation.RelationV2{
 					Object: relation.Object{
-						ID:          testRelationV2.Object.ID,
-						NamespaceID: testRelationV2.Object.NamespaceID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 					Subject: relation.Subject{
 						ID:        testRelationV2.Subject.ID,
@@ -430,7 +430,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
@@ -454,8 +454,8 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					},
 				}).Return(relation.RelationV2{
 					Object: relation.Object{
-						ID:          testRelationV2.Object.ID,
-						NamespaceID: testRelationV2.Object.NamespaceID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 					Subject: relation.Subject{
 						ID:        testRelationV2.Subject.ID,
@@ -466,7 +466,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 
 				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
@@ -502,8 +502,8 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					},
 				}).Return(relation.RelationV2{
 					Object: relation.Object{
-						ID:          testRelationV2.Object.ID,
-						NamespaceID: testRelationV2.Object.NamespaceID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 					Subject: relation.Subject{
 						ID:        testRelationV2.Subject.ID,
@@ -514,7 +514,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.NamespaceID,
+					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
 
 				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{

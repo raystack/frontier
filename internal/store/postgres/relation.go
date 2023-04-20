@@ -43,8 +43,8 @@ func (from Relation) transformToRelationV2() relation.RelationV2 {
 			RoleID:    from.RoleID,
 		},
 		Object: relation.Object{
-			ID:          from.ObjectID,
-			NamespaceID: from.ObjectNamespaceID,
+			ID:        from.ObjectID,
+			Namespace: from.ObjectNamespaceID,
 		},
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,

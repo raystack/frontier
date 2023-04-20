@@ -141,8 +141,8 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					RoleID:    "role1",
 				},
 				Object: relation.Object{
-					ID:          "uuid2",
-					NamespaceID: "ns1",
+					ID:        "uuid2",
+					Namespace: "ns1",
 				},
 			},
 			ExpectedRelation: relation.RelationV2{
@@ -152,8 +152,8 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					RoleID:    "ns1:role1",
 				},
 				Object: relation.Object{
-					ID:          "uuid2",
-					NamespaceID: "ns1",
+					ID:        "uuid2",
+					Namespace: "ns1",
 				},
 			},
 		},
@@ -166,8 +166,8 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					RoleID:    "role1",
 				},
 				Object: relation.Object{
-					ID:          "uuid2",
-					NamespaceID: "ns1",
+					ID:        "uuid2",
+					Namespace: "ns1",
 				},
 			},
 			Err: relation.ErrInvalidDetail,
@@ -181,8 +181,8 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					RoleID:    "role1-random",
 				},
 				Object: relation.Object{
-					ID:          "uuid2",
-					NamespaceID: "ns1",
+					ID:        "uuid2",
+					Namespace: "ns1",
 				},
 			},
 			Err: relation.ErrInvalidDetail,
@@ -196,8 +196,8 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 					RoleID:    "role1",
 				},
 				Object: relation.Object{
-					ID:          "uuid2",
-					NamespaceID: "ns10",
+					ID:        "uuid2",
+					Namespace: "ns10",
 				},
 			},
 			Err: relation.ErrInvalidDetail,
@@ -240,8 +240,8 @@ func (s *RelationRepositoryTestSuite) TestList() {
 						RoleID:    "ns1:role1",
 					},
 					Object: relation.Object{
-						ID:          "uuid2",
-						NamespaceID: "ns1",
+						ID:        "uuid2",
+						Namespace: "ns1",
 					},
 				},
 				{
@@ -251,8 +251,8 @@ func (s *RelationRepositoryTestSuite) TestList() {
 						RoleID:    "ns2:role2",
 					},
 					Object: relation.Object{
-						ID:          "uuid4",
-						NamespaceID: "ns2",
+						ID:        "uuid4",
+						Namespace: "ns2",
 					},
 				},
 			},

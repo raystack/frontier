@@ -251,6 +251,34 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1bet
 	return &shieldv1beta1.ListOrganizationUsersResponse{Users: usersPB}, nil
 }
 
+func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1beta1.ListOrganizationProjectsRequest) (*shieldv1beta1.ListOrganizationProjectsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	projects, err := h.projectService.ListByOrganization(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var projectPB []*shieldv1beta1.Project
+	for _, rel := range projects {
+		u, err := transformProjectToPB(rel)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, ErrInternalServer
+		}
+
+		projectPB = append(projectPB, &u)
+	}
+
+	return &shieldv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}, nil
+}
+
 func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization, error) {
 	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {

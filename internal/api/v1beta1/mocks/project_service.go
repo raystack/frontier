@@ -184,6 +184,61 @@ func (_c *ProjectService_List_Call) RunAndReturn(run func(context.Context) ([]pr
 	return _c
 }
 
+// ListByOrganization provides a mock function with given fields: ctx, organizationID
+func (_m *ProjectService) ListByOrganization(ctx context.Context, organizationID string) ([]project.Project, error) {
+	ret := _m.Called(ctx, organizationID)
+
+	var r0 []project.Project
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]project.Project, error)); ok {
+		return rf(ctx, organizationID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []project.Project); ok {
+		r0 = rf(ctx, organizationID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]project.Project)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, organizationID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ProjectService_ListByOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByOrganization'
+type ProjectService_ListByOrganization_Call struct {
+	*mock.Call
+}
+
+// ListByOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - organizationID string
+func (_e *ProjectService_Expecter) ListByOrganization(ctx interface{}, organizationID interface{}) *ProjectService_ListByOrganization_Call {
+	return &ProjectService_ListByOrganization_Call{Call: _e.mock.On("ListByOrganization", ctx, organizationID)}
+}
+
+func (_c *ProjectService_ListByOrganization_Call) Run(run func(ctx context.Context, organizationID string)) *ProjectService_ListByOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ProjectService_ListByOrganization_Call) Return(_a0 []project.Project, _a1 error) *ProjectService_ListByOrganization_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ProjectService_ListByOrganization_Call) RunAndReturn(run func(context.Context, string) ([]project.Project, error)) *ProjectService_ListByOrganization_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListUsers provides a mock function with given fields: ctx, id, permissionFilter
 func (_m *ProjectService) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
 	ret := _m.Called(ctx, id, permissionFilter)

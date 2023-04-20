@@ -15,7 +15,8 @@ import (
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
-	FindSubjectRelations(ctx context.Context, rel relation.RelationV2) ([]string, error)
+	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
+	LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error)
 }
 
 type UserService interface {
@@ -94,8 +95,8 @@ func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, 
 func (s Service) CreateRelation(ctx context.Context, org Organization, subject relation.Subject) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:          org.ID,
-			NamespaceID: schema.OrganizationNamespace,
+			ID:        org.ID,
+			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: subject,
 	}
@@ -106,10 +107,10 @@ func (s Service) CreateRelation(ctx context.Context, org Organization, subject r
 }
 
 func (s Service) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
-	userIDs, err := s.relationService.FindSubjectRelations(ctx, relation.RelationV2{
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
 		Object: relation.Object{
-			ID:          id,
-			NamespaceID: schema.OrganizationNamespace,
+			ID:        id,
+			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
 			Namespace: schema.UserPrincipal,
@@ -127,5 +128,22 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 }
 
 func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization, error) {
-	return s.repository.ListByUser(ctx, userID)
+	subjectIDs, err := s.relationService.LookupResources(ctx, relation.RelationV2{
+		Object: relation.Object{
+			Namespace: schema.OrganizationNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        userID,
+			Namespace: schema.UserPrincipal,
+			RoleID:    schema.ViewPermission,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(subjectIDs) == 0 {
+		// no organizations
+		return []Organization{}, nil
+	}
+	return s.repository.GetByIDs(ctx, subjectIDs)
 }

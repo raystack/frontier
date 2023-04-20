@@ -62,7 +62,7 @@ func TransformRelationV2(relation relation.RelationV2) (*pb.Relationship, error)
 }
 
 func transformObjectAndSubjectV2(relation relation.RelationV2) (*pb.Relationship, error) {
-	objectNSID := strings.ReplaceAll(relation.Object.NamespaceID, "-", "_")
+	objectNSID := strings.ReplaceAll(relation.Object.Namespace, "-", "_")
 	subjectNSID := strings.ReplaceAll(relation.Subject.Namespace, "-", "_")
 
 	return &pb.Relationship{

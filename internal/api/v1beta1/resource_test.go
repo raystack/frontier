@@ -235,8 +235,8 @@ func TestHandler_CreateResource(t *testing.T) {
 
 				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), relation.RelationV2{
 					Object: relation.Object{
-						ID:          testResource.Idxa,
-						NamespaceID: testResource.NamespaceID,
+						ID:        testResource.Idxa,
+						Namespace: testResource.NamespaceID,
 					},
 					Subject: relation.Subject{
 						RoleID:    "owner",

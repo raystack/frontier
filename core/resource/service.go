@@ -106,8 +106,8 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:          res.Idxa,
-			NamespaceID: res.NamespaceID,
+			ID:        res.Idxa,
+			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
 			RoleID:    schema.ProjectRelationName,
@@ -126,8 +126,8 @@ func (s Service) AddProjectToResource(ctx context.Context, project project.Proje
 func (s Service) AddOrgToResource(ctx context.Context, org organization.Organization, res Resource) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:          res.Idxa,
-			NamespaceID: res.NamespaceID,
+			ID:        res.Idxa,
+			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
 			RoleID:    schema.OrganizationRelationName,

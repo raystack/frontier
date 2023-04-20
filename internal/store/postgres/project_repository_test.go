@@ -95,8 +95,8 @@ func (s *ProjectRepositoryTestSuite) SetupTest() {
 			RoleID:    schema.OwnerRole,
 		},
 		Object: relation.Object{
-			ID:          s.projects[0].ID,
-			NamespaceID: schema.ProjectNamespace,
+			ID:        s.projects[0].ID,
+			Namespace: schema.ProjectNamespace,
 		},
 	})
 	if err != nil {

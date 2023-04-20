@@ -905,6 +905,37 @@
         ]
       }
     },
+    "/v1beta1/organizations/{id}/projects": {
+      "get": {
+        "summary": "Get all projects that belong to an organization",
+        "operationId": "ShieldService_ListOrganizationProjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListOrganizationProjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
     "/v1beta1/organizations/{id}/users": {
       "get": {
         "summary": "List Organization users",
@@ -2320,6 +2351,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
+    "v1beta1ListOrganizationProjectsResponse": {
+      "type": "object",
+      "properties": {
+        "projects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1beta1Project"
           }
         }
       }

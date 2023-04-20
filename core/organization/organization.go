@@ -10,13 +10,13 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Organization, error)
+	GetByIDs(ctx context.Context, ids []string) ([]Organization, error)
 	GetBySlug(ctx context.Context, slug string) (Organization, error)
 	Create(ctx context.Context, org Organization) (Organization, error)
 	List(ctx context.Context) ([]Organization, error)
 	UpdateByID(ctx context.Context, org Organization) (Organization, error)
 	UpdateBySlug(ctx context.Context, org Organization) (Organization, error)
 	ListAdminsByOrgID(ctx context.Context, id string) ([]user.User, error)
-	ListByUser(ctx context.Context, userID string) ([]Organization, error)
 }
 
 type Organization struct {
