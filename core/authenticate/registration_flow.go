@@ -39,7 +39,7 @@ type FlowRepository interface {
 	Set(ctx context.Context, flow *Flow) error
 	Get(ctx context.Context, id uuid.UUID) (*Flow, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	DeleteExpiredFlows(ctx context.Context, logger log.Logger) error
+	DeleteExpiredFlows(ctx context.Context) error
 }
 
 type RegistrationService struct {
@@ -283,7 +283,7 @@ func (r RegistrationService) Token(user user.User, orgs []organization.Organizat
 
 func (r RegistrationService) InitFlows(ctx context.Context) error {
 	_, err := r.cron.AddFunc(refreshTime, func() {
-		if err := r.flowRepo.DeleteExpiredFlows(ctx, r.log); err != nil {
+		if err := r.flowRepo.DeleteExpiredFlows(ctx); err != nil {
 			r.log.Warn("failed to delete expired sessions", "err", err)
 		}
 	})

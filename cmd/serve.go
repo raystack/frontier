@@ -184,7 +184,7 @@ func buildAPIDependencies(
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
 
-	sessionService := session.NewService(logger, postgres.NewSessionRepository(dbc), consts.SessionValidity)
+	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
 
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository, sessionService)
@@ -216,7 +216,7 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
-	registrationService := authenticate.NewRegistrationService(logger, postgres.NewFlowRepository(dbc), userService, cfg.App.Authentication)
+	registrationService := authenticate.NewRegistrationService(logger, postgres.NewFlowRepository(logger, dbc), userService, cfg.App.Authentication)
 
 	dependencies := api.Deps{
 		OrgService:          organizationService,

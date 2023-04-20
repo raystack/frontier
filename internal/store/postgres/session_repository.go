@@ -17,12 +17,18 @@ import (
 )
 
 type SessionRepository struct {
+	log log.Logger
 	dbc *db.Client
+	Now func() time.Time
 }
 
-func NewSessionRepository(dbc *db.Client) *SessionRepository {
+func NewSessionRepository(logger log.Logger, dbc *db.Client) *SessionRepository {
 	return &SessionRepository{
+		log: logger,
 		dbc: dbc,
+		Now: func() time.Time {
+			return time.Now().UTC()
+		},
 	}
 }
 
@@ -143,11 +149,11 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger) error {
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 	query, params, err := dialect.Delete(TABLE_SESSIONS).
 		Where(
 			goqu.Ex{
-				"expires_at": goqu.Op{"lte": time.Now().UTC()},
+				"expires_at": goqu.Op{"lte": s.Now()},
 			},
 		).ToSQL()
 	if err != nil {
@@ -173,7 +179,7 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger lo
 		}
 
 		count, _ := result.RowsAffected()
-		logger.Info("deleted expired sessions", "expired_session_count", count)
+		s.log.Debug("deleted expired sessions", "expired_session_count", count)
 
 		return nil
 	})

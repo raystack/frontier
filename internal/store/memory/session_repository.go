@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/salt/log"
-
 	"github.com/google/uuid"
 	"github.com/odpf/shield/core/authenticate/session"
 )
@@ -37,7 +35,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context, logger log.Logger) error {
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 	for _, sess := range s.data {
 		if sess.ExpiresAt.Before(time.Now().UTC()) {
 			delete(s.data, sess.ID.String())

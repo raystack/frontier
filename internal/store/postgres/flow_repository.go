@@ -14,12 +14,18 @@ import (
 )
 
 type FlowRepository struct {
+	log log.Logger
 	dbc *db.Client
+	Now func() time.Time
 }
 
-func NewFlowRepository(dbc *db.Client) *FlowRepository {
+func NewFlowRepository(logger log.Logger, dbc *db.Client) *FlowRepository {
 	return &FlowRepository{
 		dbc: dbc,
+		log: logger,
+		Now: func() time.Time {
+			return time.Now().UTC()
+		},
 	}
 }
 
@@ -129,8 +135,8 @@ func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context, logger log.Logger) error {
-	expiryTime := time.Now().UTC().AddDate(0, 0, -7)
+func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
+	expiryTime := s.Now().AddDate(0, 0, -7)
 	query, params, err := dialect.Delete(TABLE_FLOWS).
 		Where(
 			goqu.Ex{
@@ -160,7 +166,7 @@ func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context, logger log.Logg
 		}
 
 		count, _ := result.RowsAffected()
-		logger.Info("deleted expired flows", "expired_flows_count", count)
+		s.log.Debug("deleted expired flows", "expired_flows_count", count)
 
 		return nil
 	})
