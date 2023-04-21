@@ -25,17 +25,23 @@ lint-fix:
 test: ## Run tests
 	@go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
 
+test-all: test e2e-smoke-test e2e-regression-test integration-test ## Run all tests
+
 e2e-test: ## Run all e2e tests
-	go test -v -race ./test/e2e_test/... -coverprofile=coverage.out
+	## run `docker network prune` if docker fails to find non-overlapping ipv4 address pool
+	go test -v -race ./test/e2e/...
 
 e2e-smoke-test: ## Run smoke tests
-	go test -v -race ./test/e2e_test/smoke -coverprofile=coverage.out
+	go test -v -race ./test/e2e/smoke
 
 e2e-regression-test: ## Run regression tests
-	go test -v -race ./test/e2e_test/regression  -coverprofile=coverage.out
+	go test -v -race ./test/e2e/regression
+
+integration-test:
+	go test -v -race ./test/integration
 
 benchmark: ## Run benchmarks
-	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/integration
+	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/test/integration
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.txt

@@ -2,17 +2,28 @@ package testbench
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"net"
 
-	"github.com/odpf/shield/pkg/db"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+)
+
+var (
+	//go:embed testdata/mocks/mock-user.json
+	mockUserFixture []byte
+	//go:embed testdata/mocks/mock-group.json
+	mockGroupFixture []byte
+	//go:embed testdata/mocks/mock-organization.json
+	mockOrganizationFixture []byte
+	//go:embed testdata/mocks/mock-project.json
+	mockProjectFixture []byte
+	//go:embed testdata/mocks/mock-metadata-key.json
+	mockMetadataFixture []byte
 )
 
 const (
@@ -43,28 +54,18 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 	return grpc.DialContext(ctx, host, opts...)
 }
 
-func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
-	conn, err := createConnection(context.Background(), host)
+func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func() error, error) {
+	conn, err := createConnection(ctx, host)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	cancel := func() {
-		conn.Close()
-	}
-
 	client := shieldv1beta1.NewShieldServiceClient(conn)
-	return client, cancel, nil
+	return client, conn.Close, nil
 }
 
-func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-user.json")
-	if err != nil {
-		return err
-	}
-
+func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
 	var data []*shieldv1beta1.UserRequestBody
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+	if err := json.Unmarshal(mockUserFixture, &data); err != nil {
 		return err
 	}
 
@@ -82,14 +83,9 @@ func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, cr
 	return nil
 }
 
-func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-metadata-key.json")
-	if err != nil {
-		return err
-	}
-
+func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
 	var data []*shieldv1beta1.MetadataKeyRequestBody
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+	if err := json.Unmarshal(mockMetadataFixture, &data); err != nil {
 		return err
 	}
 
@@ -107,14 +103,9 @@ func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceCli
 	return nil
 }
 
-func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-organization.json")
-	if err != nil {
-		return err
-	}
-
+func BootstrapOrganizations(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
 	var data []*shieldv1beta1.OrganizationRequestBody
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+	if err := json.Unmarshal(mockOrganizationFixture, &data); err != nil {
 		return err
 	}
 
@@ -132,12 +123,7 @@ func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 	return nil
 }
 
-func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-project.json")
-	if err != nil {
-		return err
-	}
-
+func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
 	orgResp, err := cl.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
 	if err != nil {
 		return err
@@ -148,13 +134,12 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	}
 
 	var data []*shieldv1beta1.ProjectRequestBody
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+	if err = json.Unmarshal(mockProjectFixture, &data); err != nil {
 		return err
 	}
 
-	data[0].OrgId = orgResp.GetOrganizations()[0].GetId()
-
 	for _, d := range data {
+		d.OrgId = orgResp.GetOrganizations()[0].GetId()
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
@@ -168,12 +153,7 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	return nil
 }
 
-func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-group.json")
-	if err != nil {
-		return err
-	}
-
+func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
 	orgResp, err := cl.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
 	if err != nil {
 		return err
@@ -184,15 +164,12 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	var data []*shieldv1beta1.GroupRequestBody
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+	if err = json.Unmarshal(mockGroupFixture, &data); err != nil {
 		return err
 	}
 
-	data[0].OrgId = orgResp.GetOrganizations()[0].GetId()
-	data[1].OrgId = orgResp.GetOrganizations()[0].GetId()
-	data[2].OrgId = orgResp.GetOrganizations()[0].GetId()
-
 	for _, d := range data {
+		d.OrgId = orgResp.GetOrganizations()[0].GetId()
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
@@ -204,14 +181,4 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	return nil
-}
-
-func SetupDB(cfg db.Config) (dbc *db.Client, err error) {
-	dbc, err = db.New(cfg)
-	if err != nil {
-		err = fmt.Errorf("failed to setup db: %w", err)
-		return
-	}
-
-	return
 }

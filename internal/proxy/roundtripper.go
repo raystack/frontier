@@ -29,10 +29,6 @@ type h2cTransportWrapper struct {
 }
 
 func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
-	logger := log.ZapFromContext(req.Context()).GetInternalZapLogger().Desugar().With(
-		zap.String("backend", req.URL.Host),
-	)
-
 	// we need to apply errors if it failed in Director
 	if err, ok := req.Context().Value(ctxRequestErrorKey).(error); ok {
 		return nil, err
@@ -48,25 +44,26 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 
 	req = req.WithContext(WithoutCancel(req.Context()))
 
-	logger.Info("request_forwarded")
+	t.log.Debug("backend", req.URL.Host, "request_forwarded")
 
 	res, err := transport.RoundTrip(req)
 	if err != nil {
 		return res, err
 	}
 
-	logger.Info("request_completed", zap.String("status", res.Status))
+	t.log.Debug("backend", req.URL.Host, "request_completed", zap.String("status", res.Status))
 
 	return t.hook.ServeHook(res, nil)
 }
 
 func NewH2cRoundTripper(log log.Logger, hook hook.Service) http.RoundTripper {
+	dialer := &net.Dialer{
+		Timeout:   10 * time.Second,
+		KeepAlive: 1 * time.Minute,
+	}
 	return &h2cTransportWrapper{
 		httpTransport: &http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout:   10 * time.Second,
-				KeepAlive: 1 * time.Minute,
-			}).DialContext,
+			DialContext:        dialer.DialContext,
 			DisableCompression: true,
 		},
 		grpcTransport: &http2.Transport{

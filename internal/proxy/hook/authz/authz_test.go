@@ -313,7 +313,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			Idxa:           uuid.NewString(),
+			Idx:            uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
@@ -404,7 +404,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			Idxa:           uuid.NewString(),
+			Idx:            uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
@@ -503,7 +503,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			Idxa:           uuid.NewString(),
+			Idx:            uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
@@ -603,7 +603,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			Idxa:           uuid.NewString(),
+			Idx:            uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
@@ -702,7 +702,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			Idxa:           uuid.NewString(),
+			Idx:            uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,

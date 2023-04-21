@@ -90,8 +90,8 @@ func buildMiddlewarePipeline(
 ) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService)
-	basicAuthn := basic_auth.New(logger, casbinAuthz)
+	spiceDBAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService)
+	basicAuthn := basic_auth.New(logger, spiceDBAuthz)
 	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey, projectService)
 	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
 	observability := observability.New(logger, matchWare)

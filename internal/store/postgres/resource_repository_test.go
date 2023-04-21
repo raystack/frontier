@@ -110,9 +110,9 @@ func (s *ResourceRepositoryTestSuite) TestGetByID() {
 	var testCases = []testCase{
 		{
 			Description: "should get a resource",
-			SelectedID:  s.resources[0].Idxa,
+			SelectedID:  s.resources[0].Idx,
 			ExpectedResource: resource.Resource{
-				Idxa:           s.resources[0].Idxa,
+				Idx:            s.resources[0].Idx,
 				URN:            s.resources[0].URN,
 				Name:           s.resources[0].Name,
 				ProjectID:      s.resources[0].ProjectID,
@@ -167,7 +167,7 @@ func (s *ResourceRepositoryTestSuite) TestGetByURN() {
 			Description: "should get a resource",
 			SelectedURN: s.resources[0].URN,
 			ExpectedResource: resource.Resource{
-				Idxa:           s.resources[0].Idxa,
+				Idx:            s.resources[0].Idx,
 				URN:            s.resources[0].URN,
 				Name:           s.resources[0].Name,
 				ProjectID:      s.resources[0].ProjectID,
@@ -331,7 +331,7 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedResource, cmpopts.IgnoreFields(resource.Resource{},
-				"Idxa",
+				"Idx",
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedResource)
@@ -362,7 +362,7 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 			},
 			ExpectedResources: []resource.Resource{
 				{
-					Idxa:           s.resources[1].Idxa,
+					Idx:            s.resources[1].Idx,
 					URN:            s.resources[1].URN,
 					Name:           s.resources[1].Name,
 					ProjectID:      s.resources[1].ProjectID,
@@ -403,7 +403,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 	var testCases = []testCase{
 		{
 			Description: "should update a resource",
-			ResourceID:  s.resources[0].Idxa,
+			ResourceID:  s.resources[0].Idx,
 			ResourceToUpdate: resource.Resource{
 				Name:           "resource-1",
 				ProjectID:      s.resources[0].ProjectID,
@@ -411,7 +411,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 				NamespaceID:    s.resources[0].NamespaceID,
 			},
 			ExpectedResource: resource.Resource{
-				Idxa:           s.resources[0].Idxa,
+				Idx:            s.resources[0].Idx,
 				URN:            "resource-1-urn",
 				Name:           "resource-1",
 				ProjectID:      s.resources[0].ProjectID,
@@ -423,7 +423,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		},
 		// {
 		// 	Description: "should return error if namespace id does not exist",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            "new-urn-notexist",
 		// 		Name:           "resource4",
@@ -437,7 +437,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		// },
 		// {
 		// 	Description: "should return error if org id does not exist",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            "new-urn-notexist",
 		// 		Name:           "resource4",
@@ -451,7 +451,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		// },
 		// {
 		// 	Description: "should return error if org id is not uuid",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            "new-urn-notexist",
 		// 		Name:           "resource4",
@@ -465,7 +465,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		// },
 		// {
 		// 	Description: "should return error if group id does not exist",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            "new-urn-notexist",
 		// 		Name:           "resource4",
@@ -479,7 +479,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		// },
 		// {
 		// 	Description: "should return error if group id is not uuid",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            "new-urn-notexist",
 		// 		Name:           "resource4",
@@ -493,7 +493,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		// },
 		// {
 		// 	Description: "should return error if project id does not exist",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            "new-urn-notexist",
 		// 		Name:           "resource4",
@@ -507,7 +507,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		// },
 		// {
 		// 	Description: "should return error if project id is not uuid",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            "new-urn-notexist",
 		// 		Name:           "resource4",
@@ -521,7 +521,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 		// },
 		// {
 		// 	Description: "should return error if urn already exist",
-		// 	ResourceID:  s.resources[0].Idxa,
+		// 	ResourceID:  s.resources[0].Idx,
 		// 	ResourceToUpdate: resource.Resource{
 		// 		URN:            s.resources[2].URN,
 		// 		Name:           "resource4",

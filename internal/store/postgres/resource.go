@@ -28,7 +28,7 @@ type Resource struct {
 func (from Resource) transformToResource() resource.Resource {
 	// TODO: remove *ID
 	return resource.Resource{
-		Idxa:           from.ID,
+		Idx:            from.ID,
 		URN:            from.URN,
 		Name:           from.Name,
 		ProjectID:      from.ProjectID,

@@ -39,6 +39,11 @@ func NewService(repository Repository, relationService RelationService, userServ
 }
 
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	newGroup, err := s.repository.Create(ctx, grp)
 	if err != nil {
 		return Group{}, err
@@ -59,10 +64,6 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	}
 
 	// attach current user to group as admin
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
-	if err != nil {
-		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
-	}
 	if err = s.CreateRelation(ctx, newGroup, relation.BuildUserGroupAdminSubject(currentUser)); err != nil {
 		return Group{}, err
 	}
@@ -144,7 +145,7 @@ func (s Service) CreateRelation(ctx context.Context, team Group, subject relatio
 	rel := relation.RelationV2{
 		Object: relation.Object{
 			ID:        team.ID,
-			Namespace: schema.OrganizationNamespace,
+			Namespace: schema.GroupNamespace,
 		},
 		Subject: subject,
 	}
