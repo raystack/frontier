@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { tableStyle } from "~/styles";
 import { User } from "~/types/user";
 import { fetcher, reduceByKey } from "~/utils/helper";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import { UsersHeader } from "./header";
 
 type ContextType = { user: User | null };
@@ -19,7 +19,7 @@ export default function UserList() {
     <Flex direction="row" css={{ height: "100%", width: "100%" }}>
       <Table
         css={tableStyle}
-        columns={columns}
+        columns={getColumns(users)}
         data={users ?? []}
         noDataChildren={noDataChildren}
       >

@@ -9,7 +9,9 @@ type SheetHeaderProps = {
 export function SheetHeader({ title, onClick }: SheetHeaderProps) {
   return (
     <Flex css={styles.header}>
-      <Text>{title}</Text>
+      <Text size="4" css={{ fontWeight: "500" }}>
+        {title}
+      </Text>
       <Cross1Icon onClick={onClick} />
     </Flex>
   );

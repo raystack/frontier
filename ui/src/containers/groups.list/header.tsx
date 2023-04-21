@@ -1,6 +1,6 @@
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, Flex, Table, useTable } from "@odpf/apsara";
+import { Button, Flex, Table, Text, useTable } from "@odpf/apsara";
 import { useNavigate } from "react-router-dom";
 import { styles } from "~/styles";
 
@@ -15,7 +15,9 @@ export const GroupsHeader = () => {
         justify="between"
         css={{ width: "100%", padding: "$4 24px", fontSize: 12 }}
       >
-        <Flex>Groups</Flex>
+        <Text size={4} css={{ fontWeight: "500" }}>
+          Groups
+        </Text>
         <Flex align="center" direction="row" css={{ columnGap: "8px" }}>
           {filterQuery.length ? (
             <Button onClick={clearFilters} css={styles.button}>
@@ -26,7 +28,7 @@ export const GroupsHeader = () => {
             </Button>
           ) : (
             <Table.ColumnFilterSelection align="end">
-              <Button css={styles.button}>
+              <Button css={{ ...styles.button, border: "1px dashed $gray6" }}>
                 <Flex align="center" css={{ paddingRight: "$2" }}>
                   <PlusIcon />
                 </Flex>
@@ -37,7 +39,10 @@ export const GroupsHeader = () => {
           <Table.TableColumnsFilter>
             <Button css={styles.button}>View</Button>
           </Table.TableColumnsFilter>
-          <Table.TableGlobalSearch placeholder="Search all groups" />
+          <Table.TableGlobalSearch
+            css={{ height: "24px" }}
+            placeholder="Search all groups"
+          />
 
           <Button
             css={styles.button}
@@ -46,7 +51,7 @@ export const GroupsHeader = () => {
             <Flex align="center" css={{ paddingRight: "$2" }}>
               <PlusIcon />
             </Flex>
-            new group
+            New group
           </Button>
         </Flex>
       </Flex>

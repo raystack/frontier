@@ -34,12 +34,12 @@ const GroupSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(3, { message: "Must be 3 or more characters long" }),
+    .min(2, { message: "Must be 2 or more characters long" }),
   slug: z
     .string()
     .trim()
     .toLowerCase()
-    .min(3, { message: "Must be 3 or more characters long" }),
+    .min(2, { message: "Must be 2 or more characters long" }),
   orgId: z.string().trim(),
 });
 export type GroupForm = z.infer<typeof GroupSchema>;
@@ -93,12 +93,22 @@ export default function NewGroup() {
                     justifyContent: "space-between",
                   }}
                 >
-                  <FormLabel>Organisation Id</FormLabel>
+                  <FormLabel
+                    style={{
+                      fontSize: "11px",
+                      color: "#6F6F6F",
+                      lineHeight: "16px",
+                    }}
+                  >
+                    Organisation Id
+                  </FormLabel>
                 </Flex>
                 <FormControl asChild>
-                  <select {...methods.register("orgId")}>
+                  <select {...methods.register("orgId")} style={styles.select}>
                     {organizations.map((org: Organisation) => (
-                      <option value={org.id}>{org.name}</option>
+                      <option value={org.id} key={org.id}>
+                        {org.name}
+                      </option>
                     ))}
                   </select>
                 </FormControl>
@@ -143,7 +153,11 @@ const CustomFieldName = ({ name, register }: CustomFieldNameProps) => {
           justifyContent: "space-between",
         }}
       >
-        <FormLabel>{capitalizeFirstLetter(name)}</FormLabel>
+        <FormLabel
+          style={{ fontSize: "11px", color: "#6F6F6F", lineHeight: "16px" }}
+        >
+          {capitalizeFirstLetter(name)}
+        </FormLabel>
         <FormMessage match="valueMissing">Please enter your {name}</FormMessage>
         <FormMessage match="typeMismatch">
           Please provide a valid {name}
@@ -151,7 +165,12 @@ const CustomFieldName = ({ name, register }: CustomFieldNameProps) => {
       </Flex>
       <FormControl asChild>
         <TextField
-          size={2}
+          css={{
+            height: "32px",
+            color: "$grass12",
+            borderRadius: "$3",
+            padding: "$2",
+          }}
           type="name"
           {...register(name as any)}
           required
@@ -163,8 +182,26 @@ const CustomFieldName = ({ name, register }: CustomFieldNameProps) => {
 };
 
 const styles = {
-  main: { padding: "32px", width: "80%", margin: 0 },
+  main: {
+    padding: "32px",
+    margin: 0,
+    height: "calc(100vh - 125px)",
+    overflow: "auto",
+  },
   formfield: {
+    width: "80%",
     marginBottom: "40px",
+  },
+  select: {
+    height: "32px",
+    borderRadius: "8px",
+    padding: "8px",
+    border: "none",
+    backgroundColor: "transparent",
+    "&:active,&:focus": {
+      border: "none",
+      outline: "none",
+      boxShadow: "none",
+    },
   },
 };

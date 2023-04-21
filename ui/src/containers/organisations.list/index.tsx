@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { tableStyle } from "~/styles";
 import { Organisation } from "~/types/organisation";
 import { fetcher, reduceByKey } from "~/utils/helper";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import { OrganizationsHeader } from "./header";
 
 type ContextType = { organisation: Organisation | null };
@@ -18,7 +18,7 @@ export default function OrganisationList() {
     <Flex direction="row" css={{ height: "100%", width: "100%" }}>
       <Table
         css={tableStyle}
-        columns={columns}
+        columns={getColumns(organizations)}
         data={organizations ?? []}
         noDataChildren={noDataChildren}
       >

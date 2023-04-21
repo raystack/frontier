@@ -41,7 +41,7 @@ export default function ProjectDetails() {
 
   const detailList: DetailsProps[] = [
     {
-      key: "slug",
+      key: "Slug",
       value: project?.slug,
     },
     {
@@ -75,7 +75,7 @@ export default function ProjectDetails() {
       css={{
         width: "320px",
         height: "100%",
-        padding: "$2",
+        padding: "$4",
       }}
     >
       <Text css={{ fontSize: "14px" }}>{project?.name}</Text>

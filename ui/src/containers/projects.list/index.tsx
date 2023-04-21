@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { tableStyle } from "~/styles";
 import { Project } from "~/types/project";
 import { fetcher, reduceByKey } from "~/utils/helper";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import { ProjectsHeader } from "./header";
 
 type ContextType = { project: Project | null };
@@ -19,7 +19,7 @@ export default function ProjectList() {
     <Flex direction="row" css={{ height: "100%", width: "100%" }}>
       <Table
         css={tableStyle}
-        columns={columns}
+        columns={getColumns(projects)}
         data={projects ?? []}
         noDataChildren={noDataChildren}
       >

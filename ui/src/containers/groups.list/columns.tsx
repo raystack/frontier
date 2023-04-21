@@ -10,7 +10,6 @@ const columnHelper = createColumnHelper<Group>();
 export const getColumns: (groups: Group[]) => ColumnDef<Group, any>[] = (
   groups: Group[]
 ) => {
-  console.log(groups);
   if (!groups) return [];
 
   const uniqueValues = (propsValue: string) =>
@@ -25,6 +24,8 @@ export const getColumns: (groups: Group[]) => ColumnDef<Group, any>[] = (
   return [
     columnHelper.accessor("id", {
       header: "ID",
+      //@ts-ignore
+      filterVariant: "text",
       cell: ({ row, getValue }) => {
         return <Link to={`${row.getValue("id")}`}>{getValue()}</Link>;
       },
@@ -45,6 +46,9 @@ export const getColumns: (groups: Group[]) => ColumnDef<Group, any>[] = (
       header: "Create At",
       accessorKey: "createdAt",
       filterVariant: "text",
+      meta: {
+        headerFilter: false,
+      },
       cell: (info: any) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
           month: "long",

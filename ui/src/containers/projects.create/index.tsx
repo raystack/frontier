@@ -143,7 +143,11 @@ const CustomFieldName = ({ name, register }: CustomFieldNameProps) => {
           justifyContent: "space-between",
         }}
       >
-        <FormLabel>{capitalizeFirstLetter(name)}</FormLabel>
+        <FormLabel
+          style={{ fontSize: "11px", color: "#6F6F6F", lineHeight: "16px" }}
+        >
+          {capitalizeFirstLetter(name)}
+        </FormLabel>
         <FormMessage match="valueMissing">Please enter your {name}</FormMessage>
         <FormMessage match="typeMismatch">
           Please provide a valid {name}
@@ -151,7 +155,12 @@ const CustomFieldName = ({ name, register }: CustomFieldNameProps) => {
       </Flex>
       <FormControl asChild>
         <TextField
-          size={2}
+          css={{
+            height: "32px",
+            color: "$grass12",
+            borderRadius: "$3",
+            padding: "$2",
+          }}
           type="name"
           {...register(name as any)}
           required
