@@ -1,5 +1,7 @@
 run:
   timeout: 5m
+  skip-dirs:
+    - ui
 output:
   format: colored-line-number
 linters:
