@@ -55,6 +55,11 @@ export default function SidebarContent() {
       icon: "groups",
       to: `/groups`,
     },
+    {
+      name: "Roles",
+      icon: "groups",
+      to: `/roles`,
+    },
   ];
   return (
     <Box css={sidebarNavigationContainerStyle}>

@@ -14,6 +14,8 @@ import OrganisationDetails from "./containers/organisations.list/details";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
+import Roles from "./containers/roles.list";
+import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
 import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
@@ -41,6 +43,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             <Route path="groups" element={<Groups />}>
               <Route path="create" element={<NewGroup />} />
               <Route path=":groupId" element={<GroupDetails />} />
+            </Route>
+            <Route path="roles" element={<Roles />}>
+              <Route path=":roleId" element={<RoleDetails />} />
             </Route>
 
             {/* Using path="*"" means "match anything", so this route
