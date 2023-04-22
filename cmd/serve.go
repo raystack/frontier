@@ -125,6 +125,22 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
+	// session service initialization and cleanup
+	if err := deps.SessionService.InitSessions(context.Background()); err != nil {
+		logger.Warn("sessions database cleanup failed", "err", err)
+	}
+	defer func() {
+		logger.Debug("cleaning up cron jobs")
+		deps.SessionService.Close()
+	}()
+
+	if err := deps.RegistrationService.InitFlows(context.Background()); err != nil {
+		logger.Warn("flows database cleanup failed", "err", err)
+	}
+	defer func() {
+		deps.RegistrationService.Close()
+	}()
+
 	// serving proxies
 	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
 	if err != nil {
@@ -168,7 +184,7 @@ func buildAPIDependencies(
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
 
-	sessionService := session.NewService(postgres.NewSessionRepository(dbc), consts.SessionValidity)
+	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
 
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository, sessionService)
@@ -200,7 +216,7 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
-	registrationService := authenticate.NewRegistrationService(postgres.NewFlowRepository(dbc), userService, cfg.App.Authentication)
+	registrationService := authenticate.NewRegistrationService(logger, postgres.NewFlowRepository(logger, dbc), userService, cfg.App.Authentication)
 
 	dependencies := api.Deps{
 		OrgService:          organizationService,

@@ -245,7 +245,7 @@ func BuildAPIDependenciesAndMigrate(
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
 
-	sessionRepository := session.NewService(memory.NewSessionRepository(), consts.SessionValidity)
+	sessionRepository := session.NewService(logger, memory.NewSessionRepository(), consts.SessionValidity)
 
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository, sessionRepository)

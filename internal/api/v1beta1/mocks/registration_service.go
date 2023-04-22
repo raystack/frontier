@@ -27,6 +27,38 @@ func (_m *RegistrationService) EXPECT() *RegistrationService_Expecter {
 	return &RegistrationService_Expecter{mock: &_m.Mock}
 }
 
+// Close provides a mock function with given fields:
+func (_m *RegistrationService) Close() {
+	_m.Called()
+}
+
+// RegistrationService_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type RegistrationService_Close_Call struct {
+	*mock.Call
+}
+
+// Close is a helper method to define mock.On call
+func (_e *RegistrationService_Expecter) Close() *RegistrationService_Close_Call {
+	return &RegistrationService_Close_Call{Call: _e.mock.On("Close")}
+}
+
+func (_c *RegistrationService_Close_Call) Run(run func()) *RegistrationService_Close_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *RegistrationService_Close_Call) Return() *RegistrationService_Close_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *RegistrationService_Close_Call) RunAndReturn(run func()) *RegistrationService_Close_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Finish provides a mock function with given fields: ctx, request
 func (_m *RegistrationService) Finish(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error) {
 	ret := _m.Called(ctx, request)
@@ -59,8 +91,8 @@ type RegistrationService_Finish_Call struct {
 }
 
 // Finish is a helper method to define mock.On call
-//   - ctx context.Context
-//   - request authenticate.RegistrationFinishRequest
+//  - ctx context.Context
+//  - request authenticate.RegistrationFinishRequest
 func (_e *RegistrationService_Expecter) Finish(ctx interface{}, request interface{}) *RegistrationService_Finish_Call {
 	return &RegistrationService_Finish_Call{Call: _e.mock.On("Finish", ctx, request)}
 }
@@ -78,6 +110,48 @@ func (_c *RegistrationService_Finish_Call) Return(_a0 *authenticate.Registration
 }
 
 func (_c *RegistrationService_Finish_Call) RunAndReturn(run func(context.Context, authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)) *RegistrationService_Finish_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InitFlows provides a mock function with given fields: ctx
+func (_m *RegistrationService) InitFlows(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegistrationService_InitFlows_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InitFlows'
+type RegistrationService_InitFlows_Call struct {
+	*mock.Call
+}
+
+// InitFlows is a helper method to define mock.On call
+//  - ctx context.Context
+func (_e *RegistrationService_Expecter) InitFlows(ctx interface{}) *RegistrationService_InitFlows_Call {
+	return &RegistrationService_InitFlows_Call{Call: _e.mock.On("InitFlows", ctx)}
+}
+
+func (_c *RegistrationService_InitFlows_Call) Run(run func(ctx context.Context)) *RegistrationService_InitFlows_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *RegistrationService_InitFlows_Call) Return(_a0 error) *RegistrationService_InitFlows_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *RegistrationService_InitFlows_Call) RunAndReturn(run func(context.Context) error) *RegistrationService_InitFlows_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -114,8 +188,8 @@ type RegistrationService_Start_Call struct {
 }
 
 // Start is a helper method to define mock.On call
-//   - ctx context.Context
-//   - request authenticate.RegistrationStartRequest
+//  - ctx context.Context
+//  - request authenticate.RegistrationStartRequest
 func (_e *RegistrationService_Expecter) Start(ctx interface{}, request interface{}) *RegistrationService_Start_Call {
 	return &RegistrationService_Start_Call{Call: _e.mock.On("Start", ctx, request)}
 }
@@ -212,8 +286,8 @@ type RegistrationService_Token_Call struct {
 }
 
 // Token is a helper method to define mock.On call
-//   - _a0 user.User
-//   - orgs []organization.Organization
+//  - _a0 user.User
+//  - orgs []organization.Organization
 func (_e *RegistrationService_Expecter) Token(_a0 interface{}, orgs interface{}) *RegistrationService_Token_Call {
 	return &RegistrationService_Token_Call{Call: _e.mock.On("Token", _a0, orgs)}
 }

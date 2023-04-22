@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/odpf/shield/core/authenticate/session"
@@ -32,4 +33,21 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*session.Ses
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	delete(s.data, id.String())
 	return nil
+}
+
+func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
+	for _, sess := range s.data {
+		if sess.ExpiresAt.Before(time.Now().UTC()) {
+			delete(s.data, sess.ID.String())
+		}
+	}
+	return nil
+}
+
+func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, validity time.Duration) error {
+	if val, ok := s.data[id.String()]; ok {
+		val.ExpiresAt = val.ExpiresAt.Add(validity)
+		return nil
+	}
+	return session.ErrNoSession
 }

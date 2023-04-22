@@ -25,6 +25,8 @@ type RegistrationService interface {
 	Finish(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
 	Token(user user.User, orgs []organization.Organization) ([]byte, error)
 	SupportedStrategies() []string
+	InitFlows(ctx context.Context) error
+	Close()
 }
 
 //go:generate mockery --name=SessionService -r --case underscore --with-expecter --structname SessionService --filename session_service.go --output=./mocks
@@ -32,6 +34,9 @@ type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*shieldsession.Session, error)
 	Create(ctx context.Context, userID string) (*shieldsession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Refresh(ctx context.Context, sessionID uuid.UUID) error
+	InitSessions(ctx context.Context) error
+	Close()
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.AuthenticateRequest) (*shieldv1beta1.AuthenticateResponse, error) {
