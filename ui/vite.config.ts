@@ -4,6 +4,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    outDir: "dist/ui",
+  },
   server: {
     proxy: {
       "/admin": {

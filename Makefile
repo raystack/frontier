@@ -13,7 +13,7 @@ install:
 	@go mod download
 	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
-build: ui
+build:
 	CGO_ENABLED=0 go build -o shield .
 
 generate: ## run all go generate in the code base (including generating mock files)

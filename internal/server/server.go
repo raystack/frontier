@@ -95,11 +95,12 @@ func Serve(
 
 	httpMux.Handle("/jwks.json", jwksHandler)
 
-	spaHandler, err := spa.Handler(ui.Assets, "dist", "index.html", false)
+	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
 	if err != nil {
 		fmt.Println("Failed to load spa:", err)
+	} else {
+		httpMux.Handle("/", http.StripPrefix("/", spaHandler))
 	}
-	httpMux.Handle("/", http.StripPrefix("/", spaHandler))
 
 	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err

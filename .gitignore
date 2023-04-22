@@ -10,7 +10,6 @@ temp
 shield
 config.yaml
 config.yml
-dist
 coverage.txt
 coverage.out
 *.pprof
