@@ -1,15 +1,19 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
-.PHONY: build check fmt lint test test-race vet test-cover-html help install proto
+.PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
 PROTON_COMMIT := "b224946fadc752992e0d7d5ed5de8a1527e5fd35"
+
+ui:
+	@echo " > generating ui build"
+	@cd ui && $(MAKE) 
 
 install:
 	@echo "Clean up imports..."
 	@go mod download
 	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
-build: ## build all
+build:
 	CGO_ENABLED=0 go build -o shield .
 
 generate: ## run all go generate in the code base (including generating mock files)
@@ -23,7 +27,7 @@ lint-fix:
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
+	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
 
 e2e-test: ## Run all e2e tests
 	go test -v -race ./test/e2e_test/... -coverprofile=coverage.out
