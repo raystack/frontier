@@ -16,13 +16,18 @@ import (
 
 type RelationRepository struct {
 	spiceDB *SpiceDB
+
+	// fullyConsistent makes sure all APIs are highly consistent on their responses
+	// turning it on will result in slower API calls but useful in tests
+	fullyConsistent bool
 }
 
 const nrProductName = "spicedb"
 
-func NewRelationRepository(spiceDB *SpiceDB) *RelationRepository {
+func NewRelationRepository(spiceDB *SpiceDB, fullyConsistent bool) *RelationRepository {
 	return &RelationRepository{
-		spiceDB: spiceDB,
+		spiceDB:         spiceDB,
+		fullyConsistent: fullyConsistent,
 	}
 }
 
@@ -108,9 +113,10 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, ac
 	}
 
 	request := &authzedpb.CheckPermissionRequest{
-		Resource:   relationship.Resource,
-		Subject:    relationship.Subject,
-		Permission: act.ID,
+		Consistency: r.getConsistency(),
+		Resource:    relationship.Resource,
+		Subject:     relationship.Subject,
+		Permission:  act.ID,
 	}
 
 	nrCtx := newrelic.FromContext(ctx)
@@ -226,6 +232,7 @@ func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resource
 
 func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error) {
 	resp, err := r.spiceDB.client.LookupSubjects(ctx, &authzedpb.LookupSubjectsRequest{
+		Consistency: r.getConsistency(),
 		Resource: &authzedpb.ObjectReference{
 			ObjectType: rel.Object.Namespace,
 			ObjectId:   rel.Object.ID,
@@ -238,20 +245,21 @@ func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.Rel
 	}
 	var subjects []string
 	for {
-		resp, err := resp.Recv()
+		item, err := resp.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			return nil, err
 		}
-		subjects = append(subjects, resp.GetSubject().SubjectObjectId)
+		subjects = append(subjects, item.GetSubject().SubjectObjectId)
 	}
 	return subjects, nil
 }
 
 func (r RelationRepository) LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error) {
 	resp, err := r.spiceDB.client.LookupResources(ctx, &authzedpb.LookupResourcesRequest{
+		Consistency:        r.getConsistency(),
 		ResourceObjectType: rel.Object.Namespace,
 		Permission:         rel.Subject.RoleID,
 		Subject: &authzedpb.SubjectReference{
@@ -266,20 +274,22 @@ func (r RelationRepository) LookupResources(ctx context.Context, rel relation.Re
 	}
 	var subjects []string
 	for {
-		resp, err := resp.Recv()
+		item, err := resp.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			return nil, err
 		}
-		subjects = append(subjects, resp.GetResourceObjectId())
+		subjects = append(subjects, item.GetResourceObjectId())
 	}
 	return subjects, nil
 }
 
+// ListRelations shouldn't be used in high TPS flows as consistency requirements are set high
 func (r RelationRepository) ListRelations(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error) {
 	resp, err := r.spiceDB.client.ReadRelationships(ctx, &authzedpb.ReadRelationshipsRequest{
+		Consistency: r.getConsistency(),
 		RelationshipFilter: &authzedpb.RelationshipFilter{
 			ResourceType:       rel.Object.Namespace,
 			OptionalResourceId: rel.Object.ID,
@@ -296,14 +306,14 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 	}
 	var rels []relation.RelationV2
 	for {
-		resp, err := resp.Recv()
+		item, err := resp.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			return nil, err
 		}
-		pbRel := resp.GetRelationship()
+		pbRel := item.GetRelationship()
 		rels = append(rels, relation.RelationV2{
 			Object: relation.Object{
 				ID:        pbRel.Resource.ObjectId,
@@ -317,4 +327,11 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 		})
 	}
 	return rels, nil
+}
+
+func (r RelationRepository) getConsistency() *authzedpb.Consistency {
+	if !r.fullyConsistent {
+		return &authzedpb.Consistency{}
+	}
+	return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_FullyConsistent{FullyConsistent: true}}
 }

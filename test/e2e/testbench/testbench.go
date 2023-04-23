@@ -76,9 +76,10 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 		MaxQueryTimeoutInMS: time.Millisecond * 100,
 	}
 	appConfig.SpiceDB = spicedb.Config{
-		Host:         "localhost",
-		Port:         spiceDBPort,
-		PreSharedKey: preSharedKey,
+		Host:            "localhost",
+		Port:            spiceDBPort,
+		PreSharedKey:    preSharedKey,
+		FullyConsistent: true,
 	}
 
 	if err = MigrateShield(appConfig); err != nil {

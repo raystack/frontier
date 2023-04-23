@@ -4,8 +4,10 @@ definition shield/organization {
 	relation owner: shield/user | shield/group#membership
 	relation editor: shield/user | shield/group#membership
 	relation viewer: shield/user | shield/group#membership
+	relation member: shield/user | shield/group#membership
 	permission edit = owner + editor
 	permission view = owner + editor + viewer
+	permission membership = member + viewer + editor + owner
 }
 --
 definition shield/project {

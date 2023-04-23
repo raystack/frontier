@@ -193,7 +193,7 @@ func buildAPIDependencies(
 	roleService := role.NewService(roleRepository)
 
 	relationPGRepository := postgres.NewRelationRepository(dbc)
-	relationSpiceRepository := spicedb.NewRelationRepository(sdb)
+	relationSpiceRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent)
 	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, roleService, userService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)

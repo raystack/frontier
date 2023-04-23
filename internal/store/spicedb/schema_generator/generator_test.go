@@ -1,15 +1,19 @@
 package schema_generator
 
 import (
-	"io/ioutil"
 	"sort"
 	"strings"
 	"testing"
 
 	"github.com/odpf/shield/internal/schema"
 
+	_ "embed"
+
 	"github.com/stretchr/testify/assert"
 )
+
+//go:embed predefined_schema
+var predefinedSchema string
 
 func makeDefnMap(s []string) map[string][]string {
 	finalMap := make(map[string][]string)
@@ -26,14 +30,11 @@ func makeDefnMap(s []string) map[string][]string {
 
 // Test to check difference between predefined_schema.txt and schema defined in predefined.go
 func TestPredefinedSchema(t *testing.T) {
-	content, err := ioutil.ReadFile("predefined_schema")
-	assert.NoError(t, err)
-
 	// slice and sort as GenerateSchema() generated the permissions and relations in random order
 
 	scm, err := GenerateSchema(schema.PreDefinedSystemNamespaceConfig)
 	assert.Nil(t, err)
 	actualPredefinedConfigs := makeDefnMap(scm)
-	expectedPredefinedConfigs := makeDefnMap(strings.Split(string(content), "\n--\n"))
+	expectedPredefinedConfigs := makeDefnMap(strings.Split(predefinedSchema, "\n--\n"))
 	assert.Equal(t, actualPredefinedConfigs, expectedPredefinedConfigs)
 }
