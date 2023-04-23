@@ -144,6 +144,12 @@ Install all the golang dependencies
 make install
 ```
 
+Optional: build shield admin ui 
+
+```
+make ui
+```
+
 Build shield binary file
 
 ```

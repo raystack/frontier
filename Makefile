@@ -27,7 +27,7 @@ lint-fix:
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
+	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
 
 e2e-test: ## Run all e2e tests
 	go test -v -race ./test/e2e_test/... -coverprofile=coverage.out

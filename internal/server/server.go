@@ -97,7 +97,7 @@ func Serve(
 
 	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
 	if err != nil {
-		fmt.Println("Failed to load spa:", err)
+		logger.Warn("failed to load spa", "err", err)
 	} else {
 		httpMux.Handle("/", http.StripPrefix("/", spaHandler))
 	}
