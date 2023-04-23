@@ -5,6 +5,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 First, run the development server:
 
 ```bash
+# copy .env.example into .env file
+# update .env file with SHILD_API_URL
 npm run dev
 ```
 
