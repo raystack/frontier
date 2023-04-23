@@ -232,14 +232,6 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 			},
 		},
 		{
-			Description: "should return error if organization name already exist",
-			OrganizationToCreate: organization.Organization{
-				Name: "org1",
-				Slug: "new-slug",
-			},
-			ErrString: organization.ErrConflict.Error(),
-		},
-		{
 			Description: "should return error if organization slug already exist",
 			OrganizationToCreate: organization.Organization{
 				Name: "newslug",
@@ -324,15 +316,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 			},
 		},
 		{
-			Description: "should return error if organization name already exist",
-			OrganizationToUpdate: organization.Organization{
-				ID:   s.orgs[0].ID,
-				Name: "org2",
-				Slug: "new-slug",
-			},
-			ErrString: organization.ErrConflict.Error(),
-		},
-		{
 			Description: "should return error if organization slug already exist",
 			OrganizationToUpdate: organization.Organization{
 				ID:   s.orgs[0].ID,
@@ -399,14 +382,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 				Name: "new org update",
 				Slug: "org-1",
 			},
-		},
-		{
-			Description: "should return error if organization name already exist",
-			OrganizationToUpdate: organization.Organization{
-				Name: "org2",
-				Slug: "org-1",
-			},
-			ErrString: organization.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if organization not found",

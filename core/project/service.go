@@ -49,12 +49,7 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Project, error) 
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
-	newProject, err := s.repository.Create(ctx, Project{
-		Name:         prj.Name,
-		Slug:         prj.Slug,
-		Metadata:     prj.Metadata,
-		Organization: prj.Organization,
-	})
+	newProject, err := s.repository.Create(ctx, prj)
 	if err != nil {
 		return Project{}, err
 	}

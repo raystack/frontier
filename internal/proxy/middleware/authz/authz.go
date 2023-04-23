@@ -63,31 +63,29 @@ func New(
 func (c Authz) Info() *middleware.MiddlewareInfo {
 	return &middleware.MiddlewareInfo{
 		Name:        "authz",
-		Description: "rule based authorization using casbin",
+		Description: "rule based authorization using spicedb",
 	}
 }
 
 func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	rule, ok := middleware.ExtractRule(req)
+	if !ok {
+		c.next.ServeHTTP(rw, req)
+		return
+	}
+	wareSpec, ok := rule.Middlewares.Get(c.Info().Name)
+	if !ok {
+		c.next.ServeHTTP(rw, req)
+		return
+	}
+
 	usr, err := c.userService.FetchCurrentUser(req.Context())
 	if err != nil {
 		c.log.Error("middleware: failed to get user details", "err", err.Error())
 		c.notAllowed(rw, nil)
 		return
 	}
-
 	req.Header.Set(c.userIDHeaderKey, usr.ID)
-
-	rule, ok := middleware.ExtractRule(req)
-	if !ok {
-		c.next.ServeHTTP(rw, req)
-		return
-	}
-
-	wareSpec, ok := middleware.ExtractMiddleware(req, c.Info().Name)
-	if !ok {
-		c.next.ServeHTTP(rw, req)
-		return
-	}
 
 	if rule.Backend.Namespace == "" {
 		c.log.Error("namespace is not defined for this rule")

@@ -147,6 +147,9 @@ func (h Handler) UpdateProject(
 	request *shieldv1beta1.UpdateProjectRequest,
 ) (*shieldv1beta1.UpdateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
+	if request.GetBody() == nil {
+		return nil, grpcBadBodyError
+	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {

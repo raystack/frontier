@@ -40,7 +40,6 @@ func Init(resourcesURL, rulesURL, configFile string) error {
 		return err
 	}
 
-	cfg.App.RulesPath = rulesURL
 	cfg.App.ResourcesConfigPath = resourcesURL
 	// sample proxy
 	cfg.Proxy = proxy.ServicesConfig{

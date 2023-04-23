@@ -323,13 +323,17 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 			},
 		},
 		{
-			Description: "should return error if group name already exist",
+			Description: "should not return error if group name already exist",
 			GroupToCreate: group.Group{
 				Name:           "group2",
 				Slug:           "new-slug",
 				OrganizationID: s.orgs[0].ID,
 			},
-			ErrString: group.ErrConflict.Error(),
+			ExpectedGroup: group.Group{
+				Name:           "group2",
+				Slug:           "new-slug",
+				OrganizationID: s.orgs[0].ID,
+			},
 		},
 		{
 			Description: "should return error if group slug already exist",
@@ -458,16 +462,6 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 			},
 		},
 		{
-			Description: "should return error if group name already exist",
-			GroupToUpdate: group.Group{
-				ID:             s.groups[0].ID,
-				Name:           "group2",
-				Slug:           "new-slug",
-				OrganizationID: s.orgs[0].ID,
-			},
-			ErrString: group.ErrConflict.Error(),
-		},
-		{
 			Description: "should return error if group slug already exist",
 			GroupToUpdate: group.Group{
 				ID:             s.groups[0].ID,
@@ -559,15 +553,6 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 				Slug:           "group-1",
 				OrganizationID: s.orgs[0].ID,
 			},
-		},
-		{
-			Description: "should return error if group name already exist",
-			GroupToUpdate: group.Group{
-				Name:           "group2",
-				Slug:           "group-1",
-				OrganizationID: s.orgs[0].ID,
-			},
-			ErrString: group.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if group not found",

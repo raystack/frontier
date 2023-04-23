@@ -107,7 +107,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 
 		_, err := h.relationService.Create(ctx, relation.RelationV2{
 			Object: relation.Object{
-				ID:        newResource.Idxa,
+				ID:        newResource.Idx,
 				Namespace: newResource.NamespaceID,
 			},
 			Subject: relation.Subject{
@@ -218,7 +218,7 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
 	// TODO(krtkvrm): will be replaced with IDs
 	return shieldv1beta1.Resource{
-		Id:   from.Idxa,
+		Id:   from.Idx,
 		Urn:  from.URN,
 		Name: from.Name,
 		Project: &shieldv1beta1.Project{

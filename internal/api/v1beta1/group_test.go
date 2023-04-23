@@ -224,14 +224,14 @@ func TestHandler_CreateGroup(t *testing.T) {
 	someGroupID := uuid.NewString()
 	tests := []struct {
 		name    string
-		setup   func(ctx context.Context, gs *mocks.GroupService) context.Context
+		setup   func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context
 		request *shieldv1beta1.CreateGroupRequest
 		want    *shieldv1beta1.CreateGroupResponse
 		wantErr error
 	}{
 		{
 			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
-			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -251,7 +251,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return internal error if group service return some error",
-			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -271,7 +271,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return already exist error if group service return error conflict",
-			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -292,7 +292,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if name empty",
-			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Slug: "some-group",
 
@@ -311,7 +311,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id is not uuid",
-			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name:           "some group",
 					Slug:           "some-group",
@@ -331,7 +331,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id not exist",
-			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -358,7 +358,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return success if group service return nil",
-			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -399,11 +399,13 @@ func TestHandler_CreateGroup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGroupSvc := new(mocks.GroupService)
+			mockUserSvc := new(mocks.UserService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockGroupSvc)
+				ctx = tt.setup(ctx, mockGroupSvc, mockUserSvc)
 			}
 			h := Handler{
+				userService:  mockUserSvc,
 				groupService: mockGroupSvc,
 			}
 			got, err := h.CreateGroup(ctx, tt.request)

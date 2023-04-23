@@ -22,7 +22,7 @@ import (
 var (
 	testResourceID = uuid.NewString()
 	testResource   = resource.Resource{
-		Idxa:           testResourceID,
+		Idx:            testResourceID,
 		URN:            "res-urn",
 		Name:           "a resource name",
 		ProjectID:      testProjectID,
@@ -31,7 +31,7 @@ var (
 		UserID:         testUserID,
 	}
 	testResourcePB = &shieldv1beta1.Resource{
-		Id:   testResource.Idxa,
+		Id:   testResource.Idx,
 		Name: testResource.Name,
 		Urn:  testResource.URN,
 		Project: &shieldv1beta1.Project{
@@ -235,7 +235,7 @@ func TestHandler_CreateResource(t *testing.T) {
 
 				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), relation.RelationV2{
 					Object: relation.Object{
-						ID:        testResource.Idxa,
+						ID:        testResource.Idx,
 						Namespace: testResource.NamespaceID,
 					},
 					Subject: relation.Subject{
@@ -300,10 +300,10 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(resource.Resource{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idx).Return(resource.Resource{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetResourceRequest{
-				Id: testResource.Idxa,
+				Id: testResource.Idx,
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -331,10 +331,10 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(resource.Resource{}, resource.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idx).Return(resource.Resource{}, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetResourceRequest{
-				Id: testResource.Idxa,
+				Id: testResource.Idx,
 			},
 			want:    nil,
 			wantErr: grpcResourceNotFoundErr,
@@ -342,10 +342,10 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return success if resource service return nil error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(testResource, nil)
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idx).Return(testResource, nil)
 			},
 			request: &shieldv1beta1.GetResourceRequest{
-				Id: testResource.Idxa,
+				Id: testResource.Idx,
 			},
 			want: &shieldv1beta1.GetResourceResponse{
 				Resource: testResourcePB,

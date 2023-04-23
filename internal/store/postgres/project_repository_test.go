@@ -250,17 +250,6 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 			},
 		},
 		{
-			Description: "should return error if project name already exist",
-			ProjectToCreate: project.Project{
-				Name: "project2",
-				Slug: "new-slug",
-				Organization: organization.Organization{
-					ID: s.orgs[0].ID,
-				},
-			},
-			ErrString: project.ErrConflict.Error(),
-		},
-		{
 			Description: "should return error if project slug already exist",
 			ProjectToCreate: project.Project{
 				Name: "newslug",
@@ -377,18 +366,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			},
 		},
 		{
-			Description: "should return error if project name already exist",
-			ProjectToUpdate: project.Project{
-				ID:   s.projects[0].ID,
-				Name: "project2",
-				Slug: "new-slug",
-				Organization: organization.Organization{
-					ID: s.orgs[0].ID,
-				},
-			},
-			ErrString: project.ErrConflict.Error(),
-		},
-		{
 			Description: "should return error if project slug already exist",
 			ProjectToUpdate: project.Project{
 				ID:   s.projects[0].ID,
@@ -491,17 +468,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 				Name: "new project update",
 				Slug: "project-1",
 			},
-		},
-		{
-			Description: "should return error if project name already exist",
-			ProjectToUpdate: project.Project{
-				Name: "project2",
-				Slug: "project-1",
-				Organization: organization.Organization{
-					ID: s.orgs[0].ID,
-				},
-			},
-			ErrString: project.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if project not found",

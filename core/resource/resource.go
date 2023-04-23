@@ -24,7 +24,7 @@ type ConfigRepository interface {
 }
 
 type Resource struct {
-	Idxa           string
+	Idx            string
 	URN            string
 	Name           string
 	ProjectID      string

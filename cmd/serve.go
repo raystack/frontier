@@ -100,7 +100,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	roleService := role.NewService(roleRepository)
 
 	policyPGRepository := postgres.NewPolicyRepository(dbClient)
-	policySpiceRepository := spicedb.NewPolicyRepository(spiceDBClient)
+	policySpiceRepository := spicedb.NewPolicyRepository(logger, spiceDBClient)
 	policyService := policy.NewService(policyPGRepository)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbClient)

@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:4000"
+        target: "http://{{.host}}:{{.port}}"
         prefix: "/api"
         frontends:
           - name: ping

@@ -226,7 +226,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		}
 
 		isResourceCreated = true
-		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idxa))
+		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idx))
 
 		for _, rel := range config.Relations {
 			subjectId, err := getAttributesValues(attributes[rel.SubjectIDAttribute])
@@ -245,7 +245,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 
 			newRelation, err := a.relationService.Create(res.Request.Context(), relation.RelationV2{
 				Object: relation.Object{
-					ID:        newResource.Idxa,
+					ID:        newResource.Idx,
 					Namespace: newResource.NamespaceID,
 				},
 				Subject: relation.Subject{

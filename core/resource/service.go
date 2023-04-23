@@ -79,7 +79,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.relationService.DeleteSubjectRelations(ctx, newResource.NamespaceID, newResource.Idxa); err != nil {
+	if err = s.relationService.DeleteSubjectRelations(ctx, newResource.NamespaceID, newResource.Idx); err != nil {
 		return Resource{}, err
 	}
 
@@ -106,7 +106,7 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:        res.Idxa,
+			ID:        res.Idx,
 			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
@@ -126,7 +126,7 @@ func (s Service) AddProjectToResource(ctx context.Context, project project.Proje
 func (s Service) AddOrgToResource(ctx context.Context, org organization.Organization, res Resource) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:        res.Idxa,
+			ID:        res.Idx,
 			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
@@ -157,7 +157,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	fetchedResource := res
 
 	if isSystemNS {
-		fetchedResource.Idxa = res.Name
+		fetchedResource.Idx = res.Name
 	} else {
 		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
 		if err != nil {
@@ -166,5 +166,5 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	}
 
 	fetchedResourceNS := namespace.Namespace{ID: fetchedResource.NamespaceID}
-	return s.relationService.CheckPermission(ctx, currentUser, fetchedResourceNS, fetchedResource.Idxa, act)
+	return s.relationService.CheckPermission(ctx, currentUser, fetchedResourceNS, fetchedResource.Idx, act)
 }

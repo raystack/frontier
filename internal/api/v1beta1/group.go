@@ -65,7 +65,6 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 
 func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroupRequest) (*shieldv1beta1.CreateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
-
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}

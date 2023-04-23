@@ -14,7 +14,7 @@ import (
 	"github.com/odpf/shield/internal/proxy"
 	"github.com/odpf/shield/internal/proxy/hook"
 	"github.com/odpf/shield/internal/store/blob"
-	"github.com/odpf/shield/test/integration_test/fixtures/helloworld"
+	"github.com/odpf/shield/test/integration/fixtures/helloworld"
 
 	"github.com/odpf/salt/log"
 	"github.com/stretchr/testify/assert"

@@ -7,9 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
-	"github.com/odpf/salt/log"
-	"github.com/ory/dockertest"
-	"github.com/ory/dockertest/docker"
+	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 )
 
 const (
@@ -17,12 +16,12 @@ const (
 	pgPasswd = "test_pass"
 )
 
-func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, dbName string) (connStringInternal, connStringExternal string, res *dockertest.Resource, err error) {
+func StartPG(network *docker.Network, pool *dockertest.Pool, dbName string) (connStringInternal, connStringExternal string, res *dockertest.Resource, err error) {
 	name := fmt.Sprintf("postgres-%s", uuid.New().String())
 	res, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Name:       name,
 		Repository: "postgres",
-		Tag:        "12",
+		Tag:        "13",
 		Env: []string{
 			"POSTGRES_PASSWORD=" + pgPasswd,
 			"POSTGRES_USER=" + pgUname,
@@ -34,6 +33,7 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 		config.RestartPolicy = docker.RestartPolicy{
 			Name: "no",
 		}
+		config.AutoRemove = true
 	})
 	if err != nil {
 		return

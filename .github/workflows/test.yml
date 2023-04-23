@@ -9,18 +9,6 @@ on:
 jobs:
   unit:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -32,55 +20,9 @@ jobs:
           go-version: '1.20'
       - name: install dependencies
         run: go mod tidy
-      - name: test binaries
-        env:
-          POSTGRES_PASSWORD: postgres
+      - name: run unit tests
         run: make test
       - name: Send coverage to coveralls
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: coverage.out
-  e2e-smoke-test:
-    runs-on: ubuntu-latest
-    services:
-      pg1:
-        image: postgres:13
-        env:
-          POSTGRES_DB: "shield"
-          POSTGRES_USER: "shield"
-          POSTGRES_HOST_AUTH_METHOD: "trust"
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 30s
-          --health-timeout 30s
-          --health-retries 3
-      echo-server:
-        image: ealen/echo-server
-        ports:
-          - "4000:80"
-      spicedb:
-        image: quay.io/authzed/spicedb:v1.19.1
-        ports:
-          - "8080:8080"
-          - "50051:50051"
-          - "50053:50053"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '1.20'
-      - name: install dependencies
-        run: go mod tidy
-      - name: install spicedb binary
-        uses: authzed/action-spicedb@v1
-      - name: run proxy tests
-        env:
-          POSTGRES_PASSWORD: postgres
-        run: make e2e-smoke-test
-        
