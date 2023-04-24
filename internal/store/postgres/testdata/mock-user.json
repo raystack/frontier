@@ -1,18 +1,20 @@
 [
-    {
-        "name": "John Doe",
-        "email": "john.doe@odpf.io"
-    },
-    {
-        "name": "Jane Dee",
-        "email": "jane.dee@odpf.io",
-        "metadata": {
-            "k1": "value-string",
-            "k2": 123,
-            "k3": {
-                "foo": "v1",
-                "bar": "v2"
-            }
-        }
+  {
+    "name": "John Doe",
+    "email": "john.doe@odpf.io",
+    "slug": "john-doe-slug"
+  },
+  {
+    "name": "Jane Dee",
+    "email": "jane.dee@odpf.io",
+    "slug": "john-dee-slug",
+    "metadata": {
+      "k1": "value-string",
+      "k2": 123,
+      "k3": {
+        "foo": "v1",
+        "bar": "v2"
+      }
     }
+  }
 ]

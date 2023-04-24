@@ -26,6 +26,7 @@ type joinUserMetadata struct {
 	ID        string         `db:"id"`
 	Name      string         `db:"name"`
 	Email     string         `db:"email"`
+	Slug      string         `db:"slug"`
 	Key       any            `db:"key"`
 	Value     sql.NullString `db:"value"`
 	CreatedAt time.Time      `db:"created_at"`
@@ -153,9 +154,110 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	return transformedUser, nil
 }
 
+func (r UserRepository) GetBySlug(ctx context.Context, slug string) (user.User, error) {
+	if strings.TrimSpace(slug) == "" {
+		return user.User{}, user.ErrMissingSlug
+	}
+
+	var fetchedUser User
+	query, params, err := dialect.From(TABLE_USERS).
+		Where(goqu.Ex{
+			"slug": slug,
+		}).ToSQL()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_USERS,
+				Operation:  "GetByUserSlug",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+		return r.dbc.GetContext(ctx, &fetchedUser, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return user.User{}, user.ErrNotExist
+		default:
+			return user.User{}, err
+		}
+	}
+
+	metadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
+		Where(goqu.Ex{
+			"user_id": fetchedUser.ID,
+		}).ToSQL()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	data := make(map[string]interface{})
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_METADATA,
+				Operation:  "GetByUserID",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		metadata, err := r.dbc.QueryContext(ctx, metadataQuery)
+		if err != nil {
+			return err
+		}
+
+		for {
+			var key string
+			var valuejson string
+			if !metadata.Next() {
+				break
+			}
+			err := metadata.Scan(&key, &valuejson)
+			if err != nil {
+				return err
+			}
+			var value any
+			err = json.Unmarshal([]byte(valuejson), &value)
+			if err != nil {
+				return err
+			}
+			data[key] = value
+		}
+
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			return user.User{}, err
+		}
+	}
+
+	transformedUser, err := fetchedUser.transformToUser()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+	transformedUser.Metadata = data
+
+	return transformedUser, nil
+}
+
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
-	if strings.TrimSpace(usr.Email) == "" {
-		return user.User{}, user.ErrInvalidEmail
+	if strings.TrimSpace(usr.Name) == "" || strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" {
+		return user.User{}, user.ErrInvalidDetails
 	}
 
 	tx, err := r.dbc.BeginTx(ctx, nil)
@@ -166,11 +268,12 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	insertRow := goqu.Record{
 		"name":  usr.Name,
 		"email": usr.Email,
+		"slug":  usr.Slug,
 	}
 	if usr.State != "" {
 		insertRow["state"] = usr.State
 	}
-	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning("created_at", "deleted_at", "email", "id", "name", "state", "updated_at").ToSQL()
+	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning("created_at", "deleted_at", "email", "id", "name", "slug", "state", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -195,6 +298,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 				&userModel.ID,
 				&userModel.Name,
 				&userModel.State,
+				&userModel.Slug,
 				&userModel.UpdatedAt,
 			)
 	}); err != nil {
@@ -291,7 +395,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 
 	sqlStmt := dialect.From(TABLE_USERS).
 		LeftOuterJoin(goqu.T(TABLE_METADATA), goqu.On(goqu.Ex{"users.id": goqu.I("metadata.user_id")})).
-		Select("users.id", "name", "email", "key", "value", "users.created_at", "users.updated_at")
+		Select("users.id", "name", "email", "slug", "key", "value", "users.created_at", "users.updated_at")
 
 	if len(flt.Keyword) != 0 {
 		sqlStmt = sqlStmt.Where(goqu.Or(
@@ -341,6 +445,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		currentUser.ID = u.ID
 		currentUser.Email = u.Email
 		currentUser.Name = u.Name
+		currentUser.Slug = u.Slug
 		currentUser.CreatedAt = u.CreatedAt
 		currentUser.UpdatedAt = u.UpdatedAt
 
@@ -372,7 +477,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
 	var fetchedUsers []User
 
-	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "state").Where(
+	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "slug", "state").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
 		}).Where(notDisabledUserExp).ToSQL()
@@ -430,12 +535,13 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
+				"slug":       usr.Slug,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"email": usr.Email,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "updated_at").ToSQL()
+		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "slug", "updated_at").ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -460,6 +566,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 					&userModel.ID,
 					&userModel.Name,
 					&userModel.State,
+					&userModel.Slug,
 					&userModel.UpdatedAt,
 				)
 		}); err != nil {
@@ -633,8 +740,8 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	if usr.ID == "" || !uuid.IsValid(usr.ID) {
 		return user.User{}, user.ErrInvalidID
 	}
-	if strings.TrimSpace(usr.Email) == "" {
-		return user.User{}, user.ErrInvalidEmail
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" || strings.TrimSpace(usr.Name) == "" {
+		return user.User{}, user.ErrInvalidDetails
 	}
 
 	var transformedUser user.User
@@ -644,12 +751,13 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			goqu.Record{
 				"name":       usr.Name,
 				"email":      usr.Email,
+				"slug":       usr.Slug,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"id": usr.ID,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "updated_at").ToSQL()
+		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "slug", "updated_at").ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -673,6 +781,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 				&userModel.ID,
 				&userModel.Name,
 				&userModel.State,
+				&userModel.Slug,
 				&userModel.UpdatedAt,
 			)
 		}); err != nil {
@@ -709,6 +818,163 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 					Product:    newrelic.DatastorePostgres,
 					Collection: TABLE_METADATA,
 					Operation:  "DeleteByUserID",
+					StartTime:  nrCtx.StartSegmentNow(),
+				}
+				defer nr.End()
+			}
+
+			_, err := tx.ExecContext(ctx, metadataDeleteQuery, params...)
+			if err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			err = checkPostgresError(err)
+			switch {
+			case errors.Is(err, errDuplicateKey):
+				return user.ErrConflict
+			default:
+				return err
+			}
+		}
+
+		if len(usr.Metadata) > 0 {
+			var rows []interface{}
+
+			for k, v := range usr.Metadata {
+				valuejson, err := json.Marshal(v)
+				if err != nil {
+					valuejson = []byte{}
+				}
+
+				rows = append(rows, goqu.Record{
+					"user_id": transformedUser.ID,
+					"key":     k,
+					"value":   valuejson,
+				})
+			}
+			metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
+			if err != nil {
+				return err
+			}
+
+			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+				nrCtx := newrelic.FromContext(ctx)
+				if nrCtx != nil {
+					nr := newrelic.DatastoreSegment{
+						Product:    newrelic.DatastorePostgres,
+						Collection: TABLE_METADATA,
+						Operation:  "Create",
+						StartTime:  nrCtx.StartSegmentNow(),
+					}
+					defer nr.End()
+				}
+
+				_, err := tx.ExecContext(ctx, metadataQuery, params...)
+				if err != nil {
+					return err
+				}
+				return nil
+			}); err != nil {
+				err = checkPostgresError(err)
+				switch {
+				case errors.Is(err, errDuplicateKey):
+					return user.ErrConflict
+				default:
+					return err
+				}
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return user.User{}, err
+	}
+
+	transformedUser.Metadata = usr.Metadata
+	return transformedUser, nil
+}
+
+func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.User, error) {
+	if usr.Slug == "" {
+		return user.User{}, user.ErrMissingSlug
+	}
+
+	if strings.TrimSpace(usr.Name) == "" || strings.TrimSpace(usr.Email) == "" {
+		return user.User{}, user.ErrInvalidDetails
+	}
+	var transformedUser user.User
+
+	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		query, params, err := dialect.Update(TABLE_USERS).Set(
+			goqu.Record{
+				"name":       usr.Name,
+				"email":      usr.Email,
+				"updated_at": goqu.L("now()"),
+			}).Where(
+			goqu.Ex{
+				"slug": usr.Slug,
+			},
+		).Returning("created_at", "deleted_at", "email", "id", "name", "slug", "updated_at").ToSQL()
+		if err != nil {
+			return fmt.Errorf("%w: %s", queryErr, err)
+		}
+
+		var userModel User
+		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+			nrCtx := newrelic.FromContext(ctx)
+			if nrCtx != nil {
+				nr := newrelic.DatastoreSegment{
+					Product:    newrelic.DatastorePostgres,
+					Collection: TABLE_USERS,
+					Operation:  "UpdateBySlug",
+					StartTime:  nrCtx.StartSegmentNow(),
+				}
+				defer nr.End()
+			}
+
+			return tx.QueryRowContext(ctx, query, params...).Scan(&userModel.CreatedAt,
+				&userModel.DeletedAt,
+				&userModel.Email,
+				&userModel.ID,
+				&userModel.Name,
+				&userModel.Slug,
+				&userModel.UpdatedAt)
+		}); err != nil {
+			err = checkPostgresError(err)
+			switch {
+			case errors.Is(err, sql.ErrNoRows):
+				return user.ErrNotExist
+			case errors.Is(err, errDuplicateKey):
+				return user.ErrConflict
+			default:
+				return err
+			}
+		}
+
+		transformedUser, err = userModel.transformToUser()
+		if err != nil {
+			return fmt.Errorf("%s: %w", parseErr, err)
+		}
+
+		metadataDeleteQuery, params, err := dialect.Delete(TABLE_METADATA).
+			Where(
+				goqu.Ex{
+					"user_id": transformedUser.ID,
+				},
+			).ToSQL()
+		if err != nil {
+			return nil
+		}
+
+		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+			nrCtx := newrelic.FromContext(ctx)
+			if nrCtx != nil {
+				nr := newrelic.DatastoreSegment{
+					Product:    newrelic.DatastorePostgres,
+					Collection: TABLE_METADATA,
+					Operation:  "DeleteByUserSlug",
 					StartTime:  nrCtx.StartSegmentNow(),
 				}
 				defer nr.End()

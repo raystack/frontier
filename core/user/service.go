@@ -36,8 +36,11 @@ func NewService(repository Repository, sessionService SessionService, relationRe
 	}
 }
 
-func (s Service) GetByID(ctx context.Context, id string) (User, error) {
-	return s.repository.GetByID(ctx, id)
+func (s Service) GetByID(ctx context.Context, idOrSlug string) (User, error) {
+	if shielduuid.IsValid(idOrSlug) {
+		return s.repository.GetByID(ctx, idOrSlug)
+	}
+	return s.repository.GetBySlug(ctx, idOrSlug)
 }
 
 func (s Service) GetByIDs(ctx context.Context, userIDs []string) ([]User, error) {
@@ -52,6 +55,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	newUser, err := s.repository.Create(ctx, User{
 		Name:     user.Name,
 		Email:    user.Email,
+		Slug:     user.Slug,
 		Metadata: user.Metadata,
 	})
 	if err != nil {
@@ -86,7 +90,10 @@ func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 }
 
 func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
-	return s.repository.UpdateByID(ctx, toUpdate)
+	if toUpdate.ID != "" {
+		return s.repository.UpdateByID(ctx, toUpdate)
+	}
+	return s.repository.UpdateBySlug(ctx, toUpdate)
 }
 
 func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error) {
