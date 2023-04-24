@@ -491,6 +491,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "new-user-a@odpf.io",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -506,6 +507,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "new-user-a@odpf.io",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewNullValue(),
@@ -521,6 +523,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -536,6 +539,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "new-user-a@odpf.io",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -550,6 +554,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "new-user-a@odpf.io",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -566,6 +571,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "admin1-group1-org1@odpf.io",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -585,6 +591,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
@@ -599,6 +606,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
 				Email: "admin1-group1-org1@odpf.io",
+				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewBoolValue(true),
