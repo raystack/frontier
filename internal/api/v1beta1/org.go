@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/odpf/shield/core/project"
+
 	"github.com/odpf/shield/internal/schema"
 
 	"github.com/odpf/shield/core/user"
@@ -29,18 +31,21 @@ var grpcOrgNotFoundErr = status.Errorf(codes.NotFound, "org doesn't exist")
 type OrganizationService interface {
 	Get(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
-	List(ctx context.Context) ([]organization.Organization, error)
+	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	ListAdmins(ctx context.Context, id string) ([]user.User, error)
 	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
-	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
+	Enable(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var orgs []*shieldv1beta1.Organization
 
-	orgList, err := h.orgService.List(ctx)
+	orgList, err := h.orgService.List(ctx, organization.Filter{
+		State:  organization.State(request.GetState()),
+		UserID: request.GetUserId(),
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -193,7 +198,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1beta1.ListOrganizationAdminsRequest) (*shieldv1beta1.ListOrganizationAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	admins, err := h.orgService.ListAdmins(ctx, request.GetId())
+	admins, err := h.userService.ListByOrg(ctx, request.GetId(), organization.AdminPermission)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -226,7 +231,7 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1bet
 		permissionFilter = request.GetPermissionFilter()
 	}
 
-	users, err := h.orgService.ListUsers(ctx, request.GetId(), permissionFilter)
+	users, err := h.userService.ListByOrg(ctx, request.GetId(), permissionFilter)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -254,7 +259,9 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1bet
 func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1beta1.ListOrganizationProjectsRequest) (*shieldv1beta1.ListOrganizationProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	projects, err := h.projectService.ListByOrganization(ctx, request.GetId())
+	projects, err := h.projectService.List(ctx, project.Filter{
+		OrgID: request.GetId(),
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -277,6 +284,24 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1
 	}
 
 	return &shieldv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}, nil
+}
+
+func (h Handler) EnableOrganization(ctx context.Context, request *shieldv1beta1.EnableOrganizationRequest) (*shieldv1beta1.EnableOrganizationResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.orgService.Enable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.EnableOrganizationResponse{}, nil
+}
+
+func (h Handler) DisableOrganization(ctx context.Context, request *shieldv1beta1.DisableOrganizationRequest) (*shieldv1beta1.DisableOrganizationResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.orgService.Disable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.DisableOrganizationResponse{}, nil
 }
 
 func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization, error) {

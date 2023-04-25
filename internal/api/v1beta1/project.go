@@ -30,10 +30,11 @@ var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exis
 type ProjectService interface {
 	Get(ctx context.Context, idOrSlugd string) (project.Project, error)
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
-	List(ctx context.Context) ([]project.Project, error)
+	List(ctx context.Context, f project.Filter) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
 	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
-	ListByOrganization(ctx context.Context, organizationID string) ([]project.Project, error)
+	Enable(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
 }
 
 func (h Handler) ListProjects(
@@ -43,7 +44,10 @@ func (h Handler) ListProjects(
 	logger := grpczap.Extract(ctx)
 	var projects []*shieldv1beta1.Project
 
-	projectList, err := h.projectService.List(ctx)
+	projectList, err := h.projectService.List(ctx, project.Filter{
+		State: project.State(request.GetState()),
+		OrgID: request.GetOrgId(),
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -264,6 +268,24 @@ func (h Handler) ListProjectUsers(
 	}
 
 	return &shieldv1beta1.ListProjectUsersResponse{Users: transformedUsers}, nil
+}
+
+func (h Handler) EnableProject(ctx context.Context, request *shieldv1beta1.EnableProjectRequest) (*shieldv1beta1.EnableProjectResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.projectService.Enable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.EnableProjectResponse{}, nil
+}
+
+func (h Handler) DisableProject(ctx context.Context, request *shieldv1beta1.DisableProjectRequest) (*shieldv1beta1.DisableProjectResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.projectService.Disable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.DisableProjectResponse{}, nil
 }
 
 func transformProjectToPB(prj project.Project) (shieldv1beta1.Project, error) {

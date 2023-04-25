@@ -268,7 +268,7 @@ func TestListProjects(t *testing.T) {
 			title: "should return internal error if project service return some error",
 			req:   &shieldv1beta1.ListProjectsRequest{},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]project.Project{}, errors.New("some error"))
+				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), project.Filter{}).Return([]project.Project{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  grpcInternalServerError,
@@ -283,7 +283,7 @@ func TestListProjects(t *testing.T) {
 					prjs = append(prjs, testProjectMap[projectID])
 				}
 
-				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(prjs, nil)
+				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), project.Filter{}).Return(prjs, nil)
 			},
 			want: &shieldv1beta1.ListProjectsResponse{Projects: []*shieldv1beta1.Project{
 				{

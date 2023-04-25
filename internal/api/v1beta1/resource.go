@@ -36,9 +36,7 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 		NamespaceID:    request.GetNamespaceId(),
 		OrganizationID: request.GetOrganizationId(),
 		ProjectID:      request.GetProjectId(),
-		GroupID:        request.GetGroupId(),
 	}
-
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
 		logger.Error(err.Error())
@@ -65,24 +63,10 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	projId := request.GetBody().GetProjectId()
-	project, err := h.projectService.Get(ctx, projId)
-	if err != nil {
-		logger.Error(err.Error())
-
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
-		OrganizationID: project.Organization.ID,
-		ProjectID:      request.GetBody().GetProjectId(),
-		NamespaceID:    request.GetBody().GetNamespaceId(),
-		Name:           request.GetBody().GetName(),
+		ProjectID:   request.GetBody().GetProjectId(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
+		Name:        request.GetBody().GetName(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -107,7 +91,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 
 		_, err := h.relationService.Create(ctx, relation.RelationV2{
 			Object: relation.Object{
-				ID:        newResource.Idx,
+				ID:        newResource.ID,
 				Namespace: newResource.NamespaceID,
 			},
 			Subject: relation.Subject{
@@ -218,7 +202,7 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
 	// TODO(krtkvrm): will be replaced with IDs
 	return shieldv1beta1.Resource{
-		Id:   from.Idx,
+		Id:   from.ID,
 		Urn:  from.URN,
 		Name: from.Name,
 		Project: &shieldv1beta1.Project{

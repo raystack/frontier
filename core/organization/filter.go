@@ -1,8 +1,8 @@
-package group
+package organization
 
 type Filter struct {
 	// only one filter gets applied at a time
 
-	OrganizationID string
-	State          State
+	UserID string
+	State  State
 }

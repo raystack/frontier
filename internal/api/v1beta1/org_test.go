@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/internal/schema"
+
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
@@ -49,7 +51,7 @@ func TestListOrganizations(t *testing.T) {
 		{
 			title: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]organization.Organization{}, errors.New("some error"))
+				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), organization.Filter{}).Return([]organization.Organization{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
@@ -60,7 +62,7 @@ func TestListOrganizations(t *testing.T) {
 				for _, o := range testOrgMap {
 					testOrgList = append(testOrgList, o)
 				}
-				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(testOrgList, nil)
+				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), organization.Filter{}).Return(testOrgList, nil)
 			},
 			want: &shieldv1beta1.ListOrganizationsResponse{Organizations: []*shieldv1beta1.Organization{
 				{
@@ -586,15 +588,15 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 	someOrgID := uuid.NewString()
 	tests := []struct {
 		name    string
-		setup   func(os *mocks.OrganizationService)
+		setup   func(us *mocks.UserService)
 		request *shieldv1beta1.ListOrganizationAdminsRequest
 		want    *shieldv1beta1.ListOrganizationAdminsResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return([]user.User{}, errors.New("some error"))
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.EditPermission).Return([]user.User{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
@@ -603,24 +605,24 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 			wantErr: grpcInternalServerError,
 		},
 		{
-			name: "should return not found error if org id is not exist",
-			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return([]user.User{}, organization.ErrNotExist)
+			name: "should return empty list of users if org id is not exist",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.EditPermission).Return([]user.User{}, nil)
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
 			},
-			want:    nil,
-			wantErr: grpcOrgNotFoundErr,
+			want:    &shieldv1beta1.ListOrganizationAdminsResponse{},
+			wantErr: nil,
 		},
 		{
 			name: "should return success if org service return nil error",
-			setup: func(os *mocks.OrganizationService) {
+			setup: func(us *mocks.UserService) {
 				var testUserList []user.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(testUserList, nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.EditPermission).Return(testUserList, nil)
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
@@ -648,12 +650,12 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockOrgSrv := new(mocks.OrganizationService)
+			mockUserService := new(mocks.UserService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				tt.setup(mockOrgSrv)
+				tt.setup(mockUserService)
 			}
-			mockDep := Handler{orgService: mockOrgSrv}
+			mockDep := Handler{userService: mockUserService}
 			got, err := mockDep.ListOrganizationAdmins(ctx, tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)

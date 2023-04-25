@@ -405,6 +405,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -473,6 +479,35 @@
           "Group"
         ]
       },
+      "delete": {
+        "summary": "Delete a Group permanently forever and all of its relations",
+        "operationId": "ShieldService_DeleteGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      },
       "put": {
         "summary": "Update Group by ID",
         "operationId": "ShieldService_UpdateGroup",
@@ -503,6 +538,84 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1beta1GroupRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/groups/{id}/disable": {
+      "post": {
+        "summary": "Disable a Group",
+        "operationId": "ShieldService_DisableGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DisableGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/groups/{id}/enable": {
+      "post": {
+        "summary": "Enable a Group",
+        "operationId": "ShieldService_EnableGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1EnableGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
             }
           }
         ],
@@ -770,6 +883,20 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Organization"
         ]
@@ -815,6 +942,35 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/v1beta1GetOrganizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "delete": {
+        "summary": "Delete an Organization permanently forever and all of its relations",
+        "operationId": "ShieldService_DeleteOrganization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteOrganizationResponse"
             }
           },
           "default": {
@@ -898,6 +1054,84 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{id}/disable": {
+      "post": {
+        "summary": "Disable an Organization",
+        "operationId": "ShieldService_DisableOrganization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DisableOrganizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{id}/enable": {
+      "post": {
+        "summary": "Enable an Organization",
+        "operationId": "ShieldService_EnableOrganization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1EnableOrganizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
           }
         ],
         "tags": [
@@ -1113,6 +1347,20 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Project"
         ]
@@ -1158,6 +1406,35 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/v1beta1GetProjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a Project permanently forever and all of its relations",
+        "operationId": "ShieldService_DeleteProject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteProjectResponse"
             }
           },
           "default": {
@@ -1241,6 +1518,84 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      }
+    },
+    "/v1beta1/projects/{id}/disable": {
+      "post": {
+        "summary": "Disable a Project",
+        "operationId": "ShieldService_DisableProject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DisableProjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      }
+    },
+    "/v1beta1/projects/{id}/enable": {
+      "post": {
+        "summary": "Enable a Project",
+        "operationId": "ShieldService_EnableProject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1EnableProjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
           }
         ],
         "tags": [
@@ -1678,6 +2033,24 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "groupId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1800,6 +2173,35 @@
           "User"
         ]
       },
+      "delete": {
+        "summary": "Delete an user permanently forever and all of its relations",
+        "operationId": "ShieldService_DeleteUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      },
       "put": {
         "summary": "Update User by ID",
         "operationId": "ShieldService_UpdateUser",
@@ -1830,6 +2232,84 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1beta1UserRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/v1beta1/users/{id}/disable": {
+      "post": {
+        "summary": "Disable a user",
+        "operationId": "ShieldService_DisableUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DisableUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/v1beta1/users/{id}/enable": {
+      "post": {
+        "summary": "Enable a user",
+        "operationId": "ShieldService_EnableUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1EnableUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
             }
           }
         ],
@@ -2120,6 +2600,15 @@
         }
       }
     },
+    "v1beta1DeleteGroupResponse": {
+      "type": "object"
+    },
+    "v1beta1DeleteOrganizationResponse": {
+      "type": "object"
+    },
+    "v1beta1DeleteProjectResponse": {
+      "type": "object"
+    },
     "v1beta1DeleteRelationResponse": {
       "type": "object",
       "properties": {
@@ -2127,6 +2616,33 @@
           "type": "string"
         }
       }
+    },
+    "v1beta1DeleteUserResponse": {
+      "type": "object"
+    },
+    "v1beta1DisableGroupResponse": {
+      "type": "object"
+    },
+    "v1beta1DisableOrganizationResponse": {
+      "type": "object"
+    },
+    "v1beta1DisableProjectResponse": {
+      "type": "object"
+    },
+    "v1beta1DisableUserResponse": {
+      "type": "object"
+    },
+    "v1beta1EnableGroupResponse": {
+      "type": "object"
+    },
+    "v1beta1EnableOrganizationResponse": {
+      "type": "object"
+    },
+    "v1beta1EnableProjectResponse": {
+      "type": "object"
+    },
+    "v1beta1EnableUserResponse": {
+      "type": "object"
     },
     "v1beta1GetActionResponse": {
       "type": "object",

@@ -3,8 +3,6 @@ package project
 import (
 	"context"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/schema"
@@ -13,9 +11,8 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
-	ListRelations(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error)
+	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 }
 
 type UserService interface {
@@ -61,8 +58,8 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	return newProject, nil
 }
 
-func (s Service) List(ctx context.Context) ([]Project, error) {
-	return s.repository.List(ctx)
+func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
+	return s.repository.List(ctx, f)
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
@@ -119,32 +116,21 @@ func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string)
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (s Service) ListByOrganization(ctx context.Context, id string) ([]Project, error) {
-	relations, err := s.relationService.ListRelations(ctx, relation.RelationV2{
-		Object: relation.Object{
-			Namespace: schema.ProjectNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        id,
-			Namespace: schema.OrganizationNamespace,
-			RoleID:    schema.OrganizationRelationName,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
+func (s Service) Enable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Enabled)
+}
 
-	var projectIDs []string
-	for _, rel := range relations {
-		projectIDs = append(projectIDs, rel.Object.ID)
+func (s Service) Disable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Disabled)
+}
+
+// DeleteModel doesn't delete the nested resource, only itself
+func (s Service) DeleteModel(ctx context.Context, id string) error {
+	if err := s.relationService.DeleteSubjectRelations(ctx, schema.ProjectNamespace, id); err != nil {
+		return err
 	}
-	if len(projectIDs) == 0 {
-		// no projects
-		return []Project{}, nil
-	}
-	return s.repository.GetByIDs(ctx, projectIDs)
+	return s.repository.Delete(ctx, id)
 }

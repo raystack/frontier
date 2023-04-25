@@ -56,7 +56,7 @@ func TestListUsers(t *testing.T) {
 		{
 			title: "should return internal error in if user service return some error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().List(mock.Anything, mock.Anything).Return(user.PagedUsers{}, errors.New("some error"))
+				us.EXPECT().List(mock.Anything, mock.Anything).Return([]user.User{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.ListUsersRequest{
 				PageSize: 50,
@@ -72,11 +72,7 @@ func TestListUsers(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().List(mock.Anything, mock.Anything).Return(
-					user.PagedUsers{
-						Users: testUserList,
-						Count: int32(len(testUserList)),
-					}, nil)
+				us.EXPECT().List(mock.Anything, mock.Anything).Return(testUserList, nil)
 			},
 			req: &shieldv1beta1.ListUsersRequest{
 				PageSize: 50,

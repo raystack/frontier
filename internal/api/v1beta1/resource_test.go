@@ -22,7 +22,7 @@ import (
 var (
 	testResourceID = uuid.NewString()
 	testResource   = resource.Resource{
-		Idx:            testResourceID,
+		ID:             testResourceID,
 		URN:            "res-urn",
 		Name:           "a resource name",
 		ProjectID:      testProjectID,
@@ -31,7 +31,7 @@ var (
 		UserID:         testUserID,
 	}
 	testResourcePB = &shieldv1beta1.Resource{
-		Id:   testResource.Idx,
+		Id:   testResource.ID,
 		Name: testResource.Name,
 		Urn:  testResource.URN,
 		Project: &shieldv1beta1.Project{
@@ -110,13 +110,10 @@ func TestHandler_CreateResource(t *testing.T) {
 		{
 			name: "should return unauthenticated error if auth email in context is empty and org service return invalid user email",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{}, user.ErrInvalidEmail)
-
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, user.ErrInvalidEmail)
 				return ctx
 			},
@@ -136,41 +133,12 @@ func TestHandler_CreateResource(t *testing.T) {
 			wantErr: grpcUnauthenticated,
 		},
 		{
-			name: "should return internal error if project service return some error",
-			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
-			},
-			request: &shieldv1beta1.CreateResourceRequest{
-				Body: &shieldv1beta1.ResourceRequestBody{
-					Name:        testResource.Name,
-					ProjectId:   testResource.ProjectID,
-					NamespaceId: testResource.NamespaceID,
-					Relations: []*shieldv1beta1.Relation{
-						{
-							RoleName: "owner",
-							Subject:  "user:" + testUserID,
-						},
-					},
-				}},
-			want:    nil,
-			wantErr: grpcInternalServerError,
-		},
-		{
 			name: "should return internal error if resource service return some error",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
-				}, nil)
-
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					NamespaceID:    testResource.NamespaceID,
-					OrganizationID: testResource.OrganizationID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -192,18 +160,10 @@ func TestHandler_CreateResource(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
-				}, nil)
-
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -226,16 +186,9 @@ func TestHandler_CreateResource(t *testing.T) {
 		{
 			name: "should return success if resource service return nil",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
-				}, nil)
-
 				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), relation.RelationV2{
 					Object: relation.Object{
-						ID:        testResource.Idx,
+						ID:        testResource.ID,
 						Namespace: testResource.NamespaceID,
 					},
 					Subject: relation.Subject{
@@ -246,10 +199,9 @@ func TestHandler_CreateResource(t *testing.T) {
 				}).Return(relation.RelationV2{}, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(testResource, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -300,10 +252,10 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idx).Return(resource.Resource{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ID).Return(resource.Resource{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetResourceRequest{
-				Id: testResource.Idx,
+				Id: testResource.ID,
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -331,10 +283,10 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idx).Return(resource.Resource{}, resource.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ID).Return(resource.Resource{}, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetResourceRequest{
-				Id: testResource.Idx,
+				Id: testResource.ID,
 			},
 			want:    nil,
 			wantErr: grpcResourceNotFoundErr,
@@ -342,10 +294,10 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return success if resource service return nil error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idx).Return(testResource, nil)
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ID).Return(testResource, nil)
 			},
 			request: &shieldv1beta1.GetResourceRequest{
-				Id: testResource.Idx,
+				Id: testResource.ID,
 			},
 			want: &shieldv1beta1.GetResourceResponse{
 				Resource: testResourcePB,

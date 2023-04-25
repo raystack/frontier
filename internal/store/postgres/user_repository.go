@@ -38,6 +38,15 @@ func NewUserRepository(dbc *db.Client) *UserRepository {
 	}
 }
 
+var notDisabledUserExp = goqu.Or(
+	goqu.Ex{
+		"state": nil,
+	},
+	goqu.Ex{
+		"state": goqu.Op{"neq": user.Disabled},
+	},
+)
+
 func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, error) {
 	if strings.TrimSpace(id) == "" {
 		return user.User{}, user.ErrInvalidID
@@ -47,7 +56,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	userQuery, params, err := dialect.From(TABLE_USERS).
 		Where(goqu.Ex{
 			"id": id,
-		}).ToSQL()
+		}).Where(notDisabledUserExp).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -154,11 +163,14 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 		return user.User{}, err
 	}
 
-	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(
-		goqu.Record{
-			"name":  usr.Name,
-			"email": usr.Email,
-		}).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
+	insertRow := goqu.Record{
+		"name":  usr.Name,
+		"email": usr.Email,
+	}
+	if usr.State != "" {
+		insertRow["state"] = usr.State
+	}
+	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning("created_at", "deleted_at", "email", "id", "name", "state", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -182,6 +194,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 				&userModel.Email,
 				&userModel.ID,
 				&userModel.Name,
+				&userModel.State,
 				&userModel.UpdatedAt,
 			)
 	}); err != nil {
@@ -274,15 +287,27 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	if flt.Page < 1 {
 		flt.Page = defaultPage
 	}
-
 	offset := (flt.Page - 1) * flt.Limit
 
-	query, params, err := dialect.From(TABLE_USERS).LeftOuterJoin(
-		goqu.T(TABLE_METADATA),
-		goqu.On(goqu.Ex{"users.id": goqu.I("metadata.user_id")})).Select("users.id", "name", "email", "key", "value", "users.created_at", "users.updated_at").Where(goqu.Or(
-		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-	)).Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
+	sqlStmt := dialect.From(TABLE_USERS).
+		LeftOuterJoin(goqu.T(TABLE_METADATA), goqu.On(goqu.Ex{"users.id": goqu.I("metadata.user_id")})).
+		Select("users.id", "name", "email", "key", "value", "users.created_at", "users.updated_at")
+
+	if len(flt.Keyword) != 0 {
+		sqlStmt = sqlStmt.Where(goqu.Or(
+			goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+			goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+		))
+	}
+	if len(flt.State) != 0 {
+		sqlStmt = sqlStmt.Where(goqu.Ex{
+			"state": flt.State.String(),
+		})
+	} else {
+		sqlStmt = sqlStmt.Where(notDisabledUserExp)
+	}
+
+	query, params, err := sqlStmt.Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -347,10 +372,10 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
 	var fetchedUsers []User
 
-	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email").Where(
+	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "state").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
-		}).ToSQL()
+		}).Where(notDisabledUserExp).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -382,11 +407,10 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 
 	var transformedUsers []user.User
 	for _, u := range fetchedUsers {
-		var transformedUser user.User
-		transformedUser.ID = u.ID
-		transformedUser.Email = u.Email
-		transformedUser.Name = u.Name
-
+		transformedUser, err := u.transformToUser()
+		if err != nil {
+			return nil, err
+		}
 		transformedUsers = append(transformedUsers, transformedUser)
 	}
 
@@ -411,7 +435,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 			goqu.Ex{
 				"email": usr.Email,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
+		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "updated_at").ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -435,6 +459,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 					&userModel.Email,
 					&userModel.ID,
 					&userModel.Name,
+					&userModel.State,
 					&userModel.UpdatedAt,
 				)
 		}); err != nil {
@@ -624,7 +649,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			goqu.Ex{
 				"id": usr.ID,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
+		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "updated_at").ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -647,6 +672,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 				&userModel.Email,
 				&userModel.ID,
 				&userModel.Name,
+				&userModel.State,
 				&userModel.UpdatedAt,
 			)
 		}); err != nil {
@@ -772,7 +798,7 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
 			"email": email,
-		}).ToSQL()
+		}).Where(notDisabledUserExp).ToSQL()
 
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -894,4 +920,83 @@ func (r UserRepository) CreateMetadataKey(ctx context.Context, key user.UserMeta
 	}
 
 	return metadataKey.tranformUserMetadataKey(), nil
+}
+
+func (r UserRepository) SetState(ctx context.Context, id string, state user.State) error {
+	query, params, err := dialect.Update(TABLE_USERS).Set(
+		goqu.Record{
+			"state": state.String(),
+		}).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_USERS,
+				Operation:  "SetState",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return user.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
+func (r UserRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := dialect.Delete(TABLE_USERS).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_USERS,
+				Operation:  "Delete",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return user.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
 }

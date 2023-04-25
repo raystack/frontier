@@ -31,6 +31,9 @@ type GroupService interface {
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error)
 	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []group.Group, map[string][]string, map[string][]string, error)
+	Enable(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string) error
 }
 
 var (
@@ -44,6 +47,7 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 
 	groupList, err := h.groupService.List(ctx, group.Filter{
 		OrganizationID: request.GetOrgId(),
+		State:          group.State(request.GetState()),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -196,23 +200,6 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	return &shieldv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
 }
 
-func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
-	metaData, err := grp.Metadata.ToStructPB()
-	if err != nil {
-		return shieldv1beta1.Group{}, err
-	}
-
-	return shieldv1beta1.Group{
-		Id:        grp.ID,
-		Name:      grp.Name,
-		Slug:      grp.Slug,
-		OrgId:     grp.OrganizationID,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(grp.CreatedAt),
-		UpdatedAt: timestamppb.New(grp.UpdatedAt),
-	}, nil
-}
-
 func (h Handler) ListGroupRelations(ctx context.Context, request *shieldv1beta1.ListGroupRelationsRequest) (*shieldv1beta1.ListGroupRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	groupRelations := []*shieldv1beta1.GroupRelation{}
@@ -267,5 +254,49 @@ func (h Handler) ListGroupRelations(ctx context.Context, request *shieldv1beta1.
 
 	return &shieldv1beta1.ListGroupRelationsResponse{
 		Relations: groupRelations,
+	}, nil
+}
+
+func (h Handler) EnableGroup(ctx context.Context, request *shieldv1beta1.EnableGroupRequest) (*shieldv1beta1.EnableGroupResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.groupService.Enable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.EnableGroupResponse{}, nil
+}
+
+func (h Handler) DisableGroup(ctx context.Context, request *shieldv1beta1.DisableGroupRequest) (*shieldv1beta1.DisableGroupResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.groupService.Disable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.DisableGroupResponse{}, nil
+}
+
+func (h Handler) DeleteGroup(ctx context.Context, request *shieldv1beta1.DeleteGroupRequest) (*shieldv1beta1.DeleteGroupResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.groupService.Delete(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.DeleteGroupResponse{}, nil
+}
+
+func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
+	metaData, err := grp.Metadata.ToStructPB()
+	if err != nil {
+		return shieldv1beta1.Group{}, err
+	}
+
+	return shieldv1beta1.Group{
+		Id:        grp.ID,
+		Name:      grp.Name,
+		Slug:      grp.Slug,
+		OrgId:     grp.OrganizationID,
+		Metadata:  metaData,
+		CreatedAt: timestamppb.New(grp.CreatedAt),
+		UpdatedAt: timestamppb.New(grp.UpdatedAt),
 	}, nil
 }

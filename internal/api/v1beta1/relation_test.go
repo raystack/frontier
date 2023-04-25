@@ -5,6 +5,9 @@ import (
 	"errors"
 	"testing"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/resource"
@@ -103,7 +106,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
 					ObjectNamespace: testRelationV2.Object.Namespace,
-					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
+					Subject:         GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
 			},
@@ -122,7 +125,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
 					ObjectNamespace: testRelationV2.Object.Namespace,
-					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
+					Subject:         GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
 			},
@@ -153,7 +156,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
 					ObjectNamespace: testRelationV2.Object.Namespace,
-					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
+					Subject:         GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
 			},
@@ -184,7 +187,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
 					ObjectNamespace: testRelationV2.Object.Namespace,
-					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
+					Subject:         GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
 			},
@@ -215,7 +218,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				Body: &shieldv1beta1.RelationRequestBody{
 					ObjectId:        testRelationV2.Object.ID,
 					ObjectNamespace: testRelationV2.Object.Namespace,
-					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
+					Subject:         GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					RoleName:        testRelationV2.Subject.RoleID,
 				},
 			},
@@ -328,17 +331,8 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return internal error if relation service return some error",
+			name: "should return error for invalid object subjects",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().GetRelationByFields(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
-					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
-					},
-					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
-					},
-				}).Return(relation.RelationV2{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
 				ObjectId:  testRelationV2.Object.ID,
@@ -346,60 +340,19 @@ func TestHandler_DeleteRelation(t *testing.T) {
 				Role:      testRelationV2.Subject.RoleID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
-		},
-		{
-			name: "should return not found error if relation does not exist",
-			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().GetRelationByFields(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
-					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
-					},
-					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
-					},
-				}).Return(relation.RelationV2{}, relation.ErrNotExist)
-			},
-			request: &shieldv1beta1.DeleteRelationRequest{
-				ObjectId:  testRelationV2.Object.ID,
-				SubjectId: testRelationV2.Subject.ID,
-				Role:      testRelationV2.Subject.RoleID,
-			},
-			want:    nil,
-			wantErr: grpcRelationNotFoundErr,
+			wantErr: status.Errorf(codes.InvalidArgument, ErrSubjectSplitNotation.Error()),
 		},
 		{
 			name: "should return internal server error if resource service's CheckAuthz returns some error",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().GetRelationByFields(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
-					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
-					},
-					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
-					},
-				}).Return(relation.RelationV2{
-					Object: relation.Object{
-						ID:        testRelationV2.Object.ID,
-						Namespace: testRelationV2.Object.Namespace,
-					},
-					Subject: relation.Subject{
-						ID:        testRelationV2.Subject.ID,
-						Namespace: testRelationV2.Subject.Namespace,
-						RoleID:    testRelationV2.Subject.RoleID,
-					},
-				}, nil)
-
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
-				ObjectId:  testRelationV2.Object.ID,
-				SubjectId: testRelationV2.Subject.ID,
+				ObjectId:  GenerateSubject(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				SubjectId: GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 				Role:      testRelationV2.Subject.RoleID,
 			},
 			want:    nil,
@@ -408,34 +361,14 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		{
 			name: "should return permission denied error if resource service returns false response while checking permission",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().GetRelationByFields(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
-					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
-					},
-					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
-					},
-				}).Return(relation.RelationV2{
-					Object: relation.Object{
-						ID:        testRelationV2.Object.ID,
-						Namespace: testRelationV2.Object.Namespace,
-					},
-					Subject: relation.Subject{
-						ID:        testRelationV2.Subject.ID,
-						Namespace: testRelationV2.Subject.Namespace,
-						RoleID:    testRelationV2.Subject.RoleID,
-					},
-				}, nil)
-
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
 				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
-				ObjectId:  testRelationV2.Object.ID,
-				SubjectId: testRelationV2.Subject.ID,
+				ObjectId:  GenerateSubject(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				SubjectId: GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 				Role:      testRelationV2.Subject.RoleID,
 			},
 			want:    nil,
@@ -444,26 +377,6 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		{
 			name: "should return internal server error when relation service returns some error while deletion",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().GetRelationByFields(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
-					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
-					},
-					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
-					},
-				}).Return(relation.RelationV2{
-					Object: relation.Object{
-						ID:        testRelationV2.Object.ID,
-						Namespace: testRelationV2.Object.Namespace,
-					},
-					Subject: relation.Subject{
-						ID:        testRelationV2.Subject.ID,
-						Namespace: testRelationV2.Subject.Namespace,
-						RoleID:    testRelationV2.Subject.RoleID,
-					},
-				}, nil)
-
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
@@ -471,47 +384,29 @@ func TestHandler_DeleteRelation(t *testing.T) {
 
 				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
 					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
+						Namespace: testRelationV2.Subject.Namespace,
+						ID:        testRelationV2.Subject.ID,
+						RoleID:    testRelationV2.Subject.RoleID,
 					},
 					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 				}).Return(nil)
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
-				ObjectId:  testRelationV2.Object.ID,
-				SubjectId: testRelationV2.Subject.ID,
+				ObjectId:  GenerateSubject(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				SubjectId: GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 				Role:      testRelationV2.Subject.RoleID,
 			},
 			want: &shieldv1beta1.DeleteRelationResponse{
-				Message: "Relation deleted",
+				Message: "relation deleted",
 			},
 			wantErr: nil,
 		},
 		{
 			name: "should successfully delete when relation exist and user has permission to edit it",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().GetRelationByFields(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
-					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
-					},
-					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
-					},
-				}).Return(relation.RelationV2{
-					Object: relation.Object{
-						ID:        testRelationV2.Object.ID,
-						Namespace: testRelationV2.Object.Namespace,
-					},
-					Subject: relation.Subject{
-						ID:        testRelationV2.Subject.ID,
-						Namespace: testRelationV2.Subject.Namespace,
-						RoleID:    testRelationV2.Subject.RoleID,
-					},
-				}, nil)
-
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
@@ -519,21 +414,23 @@ func TestHandler_DeleteRelation(t *testing.T) {
 
 				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
 					Subject: relation.Subject{
-						ID:     testRelationV2.Subject.ID,
-						RoleID: testRelationV2.Subject.RoleID,
+						Namespace: testRelationV2.Subject.Namespace,
+						ID:        testRelationV2.Subject.ID,
+						RoleID:    testRelationV2.Subject.RoleID,
 					},
 					Object: relation.Object{
-						ID: testRelationV2.Object.ID,
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
 					},
 				}).Return(nil)
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
-				ObjectId:  testRelationV2.Object.ID,
-				SubjectId: testRelationV2.Subject.ID,
+				ObjectId:  GenerateSubject(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				SubjectId: GenerateSubject(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 				Role:      testRelationV2.Subject.RoleID,
 			},
 			want: &shieldv1beta1.DeleteRelationResponse{
-				Message: "Relation deleted",
+				Message: "relation deleted",
 			},
 			wantErr: nil,
 		},

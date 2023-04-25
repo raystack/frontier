@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/schema"
@@ -15,7 +13,8 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
+	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	ListRelations(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error)
 }
 
 type UserService interface {
@@ -58,13 +57,13 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	// attach group to org as viewer
-	if err = s.addGroupAsViewer(ctx, newGroup); err != nil {
+	// attach group to org
+	if err = s.addGroupAsMember(ctx, newGroup); err != nil {
 		return Group{}, err
 	}
 
 	// attach current user to group as admin
-	if err = s.CreateRelation(ctx, newGroup, relation.BuildUserGroupAdminSubject(currentUser)); err != nil {
+	if err = s.CreateRelation(ctx, newGroup, BuildUserGroupAdminSubject(currentUser)); err != nil {
 		return Group{}, err
 	}
 
@@ -83,6 +82,11 @@ func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, erro
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
+	if flt.OrganizationID != "" {
+		return s.ListByOrganization(ctx, flt.OrganizationID)
+	}
+
+	// state gets filtered in db
 	return s.repository.List(ctx, flt)
 }
 
@@ -155,7 +159,7 @@ func (s Service) CreateRelation(ctx context.Context, team Group, subject relatio
 	return nil
 }
 
-func (s Service) addGroupAsViewer(ctx context.Context, team Group) error {
+func (s Service) addGroupAsMember(ctx context.Context, team Group) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
 			ID:        team.OrganizationID,
@@ -164,7 +168,7 @@ func (s Service) addGroupAsViewer(ctx context.Context, team Group) error {
 		Subject: relation.Subject{
 			ID:        team.ID,
 			Namespace: schema.GroupNamespace,
-			RoleID:    schema.ViewerRole,
+			RoleID:    schema.MemberRole,
 		},
 	}
 
@@ -174,4 +178,45 @@ func (s Service) addGroupAsViewer(ctx context.Context, team Group) error {
 	}
 
 	return nil
+}
+
+func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, error) {
+	relations, err := s.relationService.ListRelations(ctx, relation.RelationV2{
+		Object: relation.Object{
+			Namespace: schema.GroupNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        id,
+			Namespace: schema.OrganizationNamespace,
+			RoleID:    schema.OrganizationRelationName,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var groupIDs []string
+	for _, rel := range relations {
+		groupIDs = append(groupIDs, rel.Object.ID)
+	}
+	if len(groupIDs) == 0 {
+		// no groups
+		return []Group{}, nil
+	}
+	return s.repository.GetByIDs(ctx, groupIDs)
+}
+
+func (s Service) Enable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Enabled)
+}
+
+func (s Service) Disable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Disabled)
+}
+
+func (s Service) Delete(ctx context.Context, id string) error {
+	if err := s.relationService.DeleteSubjectRelations(ctx, schema.GroupPrincipal, id); err != nil {
+		return err
+	}
+	return s.repository.Delete(ctx, id)
 }

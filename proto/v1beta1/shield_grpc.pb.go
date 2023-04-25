@@ -26,6 +26,9 @@ type ShieldServiceClient interface {
 	GetCurrentUser(ctx context.Context, in *GetCurrentUserRequest, opts ...grpc.CallOption) (*GetCurrentUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	UpdateCurrentUser(ctx context.Context, in *UpdateCurrentUserRequest, opts ...grpc.CallOption) (*UpdateCurrentUserResponse, error)
+	EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*EnableUserResponse, error)
+	DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*DisableUserResponse, error)
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error)
 	CreateMetadataKey(ctx context.Context, in *CreateMetadataKeyRequest, opts ...grpc.CallOption) (*CreateMetadataKeyResponse, error)
 	// Group
@@ -34,6 +37,9 @@ type ShieldServiceClient interface {
 	GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupResponse, error)
 	UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error)
 	ListGroupRelations(ctx context.Context, in *ListGroupRelationsRequest, opts ...grpc.CallOption) (*ListGroupRelationsResponse, error)
+	EnableGroup(ctx context.Context, in *EnableGroupRequest, opts ...grpc.CallOption) (*EnableGroupResponse, error)
+	DisableGroup(ctx context.Context, in *DisableGroupRequest, opts ...grpc.CallOption) (*DisableGroupResponse, error)
+	DeleteGroup(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*DeleteGroupResponse, error)
 	// Roles
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
@@ -47,6 +53,9 @@ type ShieldServiceClient interface {
 	ListOrganizationAdmins(ctx context.Context, in *ListOrganizationAdminsRequest, opts ...grpc.CallOption) (*ListOrganizationAdminsResponse, error)
 	ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
 	ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error)
+	EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error)
+	DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error)
+	DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error)
 	// Projects
 	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
@@ -54,6 +63,9 @@ type ShieldServiceClient interface {
 	UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error)
 	ListProjectAdmins(ctx context.Context, in *ListProjectAdminsRequest, opts ...grpc.CallOption) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error)
+	EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error)
+	DisableProject(ctx context.Context, in *DisableProjectRequest, opts ...grpc.CallOption) (*DisableProjectResponse, error)
+	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
 	// Actions
 	ListActions(ctx context.Context, in *ListActionsRequest, opts ...grpc.CallOption) (*ListActionsResponse, error)
 	CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*CreateActionResponse, error)
@@ -159,6 +171,33 @@ func (c *shieldServiceClient) UpdateCurrentUser(ctx context.Context, in *UpdateC
 	return out, nil
 }
 
+func (c *shieldServiceClient) EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*EnableUserResponse, error) {
+	out := new(EnableUserResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/EnableUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*DisableUserResponse, error) {
+	out := new(DisableUserResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DisableUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	out := new(DeleteUserResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error) {
 	out := new(GetOrganizationsByUserResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetOrganizationsByUser", in, out, opts...)
@@ -216,6 +255,33 @@ func (c *shieldServiceClient) UpdateGroup(ctx context.Context, in *UpdateGroupRe
 func (c *shieldServiceClient) ListGroupRelations(ctx context.Context, in *ListGroupRelationsRequest, opts ...grpc.CallOption) (*ListGroupRelationsResponse, error) {
 	out := new(ListGroupRelationsResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) EnableGroup(ctx context.Context, in *EnableGroupRequest, opts ...grpc.CallOption) (*EnableGroupResponse, error) {
+	out := new(EnableGroupResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/EnableGroup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DisableGroup(ctx context.Context, in *DisableGroupRequest, opts ...grpc.CallOption) (*DisableGroupResponse, error) {
+	out := new(DisableGroupResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DisableGroup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteGroup(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*DeleteGroupResponse, error) {
+	out := new(DeleteGroupResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DeleteGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -321,6 +387,33 @@ func (c *shieldServiceClient) ListOrganizationProjects(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *shieldServiceClient) EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error) {
+	out := new(EnableOrganizationResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/EnableOrganization", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error) {
+	out := new(DisableOrganizationResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DisableOrganization", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error) {
+	out := new(DeleteOrganizationResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DeleteOrganization", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error) {
 	out := new(ListProjectsResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListProjects", in, out, opts...)
@@ -369,6 +462,33 @@ func (c *shieldServiceClient) ListProjectAdmins(ctx context.Context, in *ListPro
 func (c *shieldServiceClient) ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error) {
 	out := new(ListProjectUsersResponse)
 	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListProjectUsers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error) {
+	out := new(EnableProjectResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/EnableProject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DisableProject(ctx context.Context, in *DisableProjectRequest, opts ...grpc.CallOption) (*DisableProjectResponse, error) {
+	out := new(DisableProjectResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DisableProject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error) {
+	out := new(DeleteProjectResponse)
+	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DeleteProject", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -612,6 +732,9 @@ type ShieldServiceServer interface {
 	GetCurrentUser(context.Context, *GetCurrentUserRequest) (*GetCurrentUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	UpdateCurrentUser(context.Context, *UpdateCurrentUserRequest) (*UpdateCurrentUserResponse, error)
+	EnableUser(context.Context, *EnableUserRequest) (*EnableUserResponse, error)
+	DisableUser(context.Context, *DisableUserRequest) (*DisableUserResponse, error)
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error)
 	CreateMetadataKey(context.Context, *CreateMetadataKeyRequest) (*CreateMetadataKeyResponse, error)
 	// Group
@@ -620,6 +743,9 @@ type ShieldServiceServer interface {
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupResponse, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupResponse, error)
 	ListGroupRelations(context.Context, *ListGroupRelationsRequest) (*ListGroupRelationsResponse, error)
+	EnableGroup(context.Context, *EnableGroupRequest) (*EnableGroupResponse, error)
+	DisableGroup(context.Context, *DisableGroupRequest) (*DisableGroupResponse, error)
+	DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupResponse, error)
 	// Roles
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
@@ -633,6 +759,9 @@ type ShieldServiceServer interface {
 	ListOrganizationAdmins(context.Context, *ListOrganizationAdminsRequest) (*ListOrganizationAdminsResponse, error)
 	ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
 	ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error)
+	EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error)
+	DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error)
+	DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error)
 	// Projects
 	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
@@ -640,6 +769,9 @@ type ShieldServiceServer interface {
 	UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error)
 	ListProjectAdmins(context.Context, *ListProjectAdminsRequest) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error)
+	EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error)
+	DisableProject(context.Context, *DisableProjectRequest) (*DisableProjectResponse, error)
+	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
 	// Actions
 	ListActions(context.Context, *ListActionsRequest) (*ListActionsResponse, error)
 	CreateAction(context.Context, *CreateActionRequest) (*CreateActionResponse, error)
@@ -700,6 +832,15 @@ func (UnimplementedShieldServiceServer) UpdateUser(context.Context, *UpdateUserR
 func (UnimplementedShieldServiceServer) UpdateCurrentUser(context.Context, *UpdateCurrentUserRequest) (*UpdateCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCurrentUser not implemented")
 }
+func (UnimplementedShieldServiceServer) EnableUser(context.Context, *EnableUserRequest) (*EnableUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableUser not implemented")
+}
+func (UnimplementedShieldServiceServer) DisableUser(context.Context, *DisableUserRequest) (*DisableUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableUser not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
 func (UnimplementedShieldServiceServer) GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationsByUser not implemented")
 }
@@ -720,6 +861,15 @@ func (UnimplementedShieldServiceServer) UpdateGroup(context.Context, *UpdateGrou
 }
 func (UnimplementedShieldServiceServer) ListGroupRelations(context.Context, *ListGroupRelationsRequest) (*ListGroupRelationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGroupRelations not implemented")
+}
+func (UnimplementedShieldServiceServer) EnableGroup(context.Context, *EnableGroupRequest) (*EnableGroupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableGroup not implemented")
+}
+func (UnimplementedShieldServiceServer) DisableGroup(context.Context, *DisableGroupRequest) (*DisableGroupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableGroup not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteGroup not implemented")
 }
 func (UnimplementedShieldServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRoles not implemented")
@@ -754,6 +904,15 @@ func (UnimplementedShieldServiceServer) ListOrganizationUsers(context.Context, *
 func (UnimplementedShieldServiceServer) ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationProjects not implemented")
 }
+func (UnimplementedShieldServiceServer) EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableOrganization not implemented")
+}
+func (UnimplementedShieldServiceServer) DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableOrganization not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrganization not implemented")
+}
 func (UnimplementedShieldServiceServer) ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjects not implemented")
 }
@@ -771,6 +930,15 @@ func (UnimplementedShieldServiceServer) ListProjectAdmins(context.Context, *List
 }
 func (UnimplementedShieldServiceServer) ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjectUsers not implemented")
+}
+func (UnimplementedShieldServiceServer) EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableProject not implemented")
+}
+func (UnimplementedShieldServiceServer) DisableProject(context.Context, *DisableProjectRequest) (*DisableProjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableProject not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteProject not implemented")
 }
 func (UnimplementedShieldServiceServer) ListActions(context.Context, *ListActionsRequest) (*ListActionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListActions not implemented")
@@ -986,6 +1154,60 @@ func _ShieldService_UpdateCurrentUser_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_EnableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).EnableUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/EnableUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).EnableUser(ctx, req.(*EnableUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DisableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DisableUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DisableUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DisableUser(ctx, req.(*DisableUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_GetOrganizationsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationsByUserRequest)
 	if err := dec(in); err != nil {
@@ -1108,6 +1330,60 @@ func _ShieldService_ListGroupRelations_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListGroupRelations(ctx, req.(*ListGroupRelationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_EnableGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).EnableGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/EnableGroup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).EnableGroup(ctx, req.(*EnableGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DisableGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DisableGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DisableGroup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DisableGroup(ctx, req.(*DisableGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DeleteGroup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteGroup(ctx, req.(*DeleteGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1310,6 +1586,60 @@ func _ShieldService_ListOrganizationProjects_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_EnableOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).EnableOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/EnableOrganization",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).EnableOrganization(ctx, req.(*EnableOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DisableOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DisableOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DisableOrganization",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DisableOrganization(ctx, req.(*DisableOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DeleteOrganization",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteOrganization(ctx, req.(*DeleteOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_ListProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProjectsRequest)
 	if err := dec(in); err != nil {
@@ -1414,6 +1744,60 @@ func _ShieldService_ListProjectUsers_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListProjectUsers(ctx, req.(*ListProjectUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_EnableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).EnableProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/EnableProject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).EnableProject(ctx, req.(*EnableProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DisableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DisableProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DisableProject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DisableProject(ctx, req.(*DisableProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/odpf.shield.v1beta1.ShieldService/DeleteProject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteProject(ctx, req.(*DeleteProjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1904,6 +2288,18 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_UpdateCurrentUser_Handler,
 		},
 		{
+			MethodName: "EnableUser",
+			Handler:    _ShieldService_EnableUser_Handler,
+		},
+		{
+			MethodName: "DisableUser",
+			Handler:    _ShieldService_DisableUser_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _ShieldService_DeleteUser_Handler,
+		},
+		{
 			MethodName: "GetOrganizationsByUser",
 			Handler:    _ShieldService_GetOrganizationsByUser_Handler,
 		},
@@ -1930,6 +2326,18 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListGroupRelations",
 			Handler:    _ShieldService_ListGroupRelations_Handler,
+		},
+		{
+			MethodName: "EnableGroup",
+			Handler:    _ShieldService_EnableGroup_Handler,
+		},
+		{
+			MethodName: "DisableGroup",
+			Handler:    _ShieldService_DisableGroup_Handler,
+		},
+		{
+			MethodName: "DeleteGroup",
+			Handler:    _ShieldService_DeleteGroup_Handler,
 		},
 		{
 			MethodName: "ListRoles",
@@ -1976,6 +2384,18 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_ListOrganizationProjects_Handler,
 		},
 		{
+			MethodName: "EnableOrganization",
+			Handler:    _ShieldService_EnableOrganization_Handler,
+		},
+		{
+			MethodName: "DisableOrganization",
+			Handler:    _ShieldService_DisableOrganization_Handler,
+		},
+		{
+			MethodName: "DeleteOrganization",
+			Handler:    _ShieldService_DeleteOrganization_Handler,
+		},
+		{
 			MethodName: "ListProjects",
 			Handler:    _ShieldService_ListProjects_Handler,
 		},
@@ -1998,6 +2418,18 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListProjectUsers",
 			Handler:    _ShieldService_ListProjectUsers_Handler,
+		},
+		{
+			MethodName: "EnableProject",
+			Handler:    _ShieldService_EnableProject_Handler,
+		},
+		{
+			MethodName: "DisableProject",
+			Handler:    _ShieldService_DisableProject_Handler,
+		},
+		{
+			MethodName: "DeleteProject",
+			Handler:    _ShieldService_DeleteProject_Handler,
 		},
 		{
 			MethodName: "ListActions",

@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"github.com/odpf/shield/internal/api/v1beta1"
+
 	"github.com/odpf/shield/internal/schema"
 
 	"github.com/odpf/shield/config"
@@ -41,7 +43,7 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 
 	appConfig := &config.Shield{
 		Log: logger.Config{
-			Level: "fatal",
+			Level: "error",
 		},
 		App: server.Config{
 			Host: "localhost",
@@ -66,23 +68,6 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
 	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, testbench.OrgAdminEmail))
-
-	// validate
-	uRes, err := s.testBench.Client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
-	s.Require().NoError(err)
-	s.Require().Equal(9, len(uRes.GetUsers()))
-
-	oRes, err := s.testBench.Client.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
-	s.Require().NoError(err)
-	s.Require().Equal(1, len(oRes.GetOrganizations()))
-
-	pRes, err := s.testBench.Client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
-	s.Require().NoError(err)
-	s.Require().Equal(1, len(pRes.GetProjects()))
-
-	gRes, err := s.testBench.Client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
-	s.Require().NoError(err)
-	s.Require().Equal(3, len(gRes.GetGroups()))
 }
 
 func (s *APIRegressionTestSuite) TearDownSuite() {
@@ -107,13 +92,12 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 				},
 			},
 		})
-		s.Assert().Nil(err)
+		s.Assert().NoError(err)
 
 		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
 			Id: createOrgResp.GetOrganization().GetId(),
-			//PermissionFilter: schema.EditPermission,
 		})
-		s.Assert().Nil(err)
+		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
 		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].Email)
 	})
@@ -129,14 +113,14 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 				},
 			},
 		})
-		s.Assert().Nil(err)
+		s.Assert().NoError(err)
 
 		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 			Name:  "acme 2 member",
 			Email: "acme-member@odpf.io",
 			Slug:  "acme-2-member",
 		}})
-		s.Assert().Nil(err)
+		s.Assert().NoError(err)
 
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			ObjectId:        createOrgResp.GetOrganization().GetId(),
@@ -144,13 +128,95 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 			Subject:         schema.UserPrincipal + ":" + userResp.GetUser().GetId(),
 			RoleName:        schema.MemberRole,
 		}})
-		s.Assert().Nil(err)
+		s.Assert().NoError(err)
 
 		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
 			Id: createOrgResp.GetOrganization().GetId(),
 		})
-		s.Assert().Nil(err)
+		s.Assert().NoError(err)
 		s.Assert().Equal(2, len(orgUsersResp.GetUsers()))
+	})
+	s.Run("3. deleting an org should delete all of its internal relations/projects/groups/resources", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationRequest{
+			Body: &shieldv1beta1.OrganizationRequestBody{
+				Name: "org acme 3",
+				Slug: "org-acme-3",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createUserResponse, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			Name:  "acme 3 member 1",
+			Email: "acme-member-1@odpf.io",
+			Slug:  "acme-3-member-1",
+		}})
+		s.Assert().NoError(err)
+
+		// attach user to org
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        createOrgResp.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         schema.UserPrincipal + ":" + createUserResponse.GetUser().GetId(),
+			RoleName:        schema.MemberRole,
+		}})
+		s.Assert().NoError(err)
+
+		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "proj-1",
+				Slug:  "org-3-proj-1",
+				OrgId: createOrgResp.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		createResourceResp, err := s.testBench.Client.CreateResource(ctxOrgAdminAuth, &shieldv1beta1.CreateResourceRequest{
+			Body: &shieldv1beta1.ResourceRequestBody{
+				Name:        "res-1",
+				ProjectId:   createProjResp.GetProject().GetId(),
+				NamespaceId: "root/compass",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createResourceResp)
+
+		// check users
+		listUsersBeforeDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, &shieldv1beta1.ListUsersRequest{
+			OrgId: createOrgResp.Organization.Id,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(listUsersBeforeDelete.Users))
+
+		// delete org and all its items
+		_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, &shieldv1beta1.DeleteOrganizationRequest{
+			Id: createOrgResp.Organization.Id,
+		})
+		s.Assert().NoError(err)
+
+		// check org
+		_, err = s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: createOrgResp.Organization.Id,
+		})
+		s.Assert().NotNil(err)
+
+		// check project
+		_, err = s.testBench.Client.GetProject(ctxOrgAdminAuth, &shieldv1beta1.GetProjectRequest{
+			Id: createProjResp.Project.Id,
+		})
+		s.Assert().NotNil(err)
+
+		// check resource
+		_, err = s.testBench.Client.GetResource(ctxOrgAdminAuth, &shieldv1beta1.GetResourceRequest{
+			Id: createResourceResp.Resource.Id,
+		})
+		s.Assert().NotNil(err)
+
+		// check user relations
+		listUsersAfterDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, &shieldv1beta1.ListUsersRequest{
+			OrgId: createOrgResp.Organization.Id,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(0, len(listUsersAfterDelete.Users))
 	})
 }
 
@@ -180,7 +246,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 				},
 			},
 		})
-		s.Assert().Nil(err)
+		s.Assert().NoError(err)
 	})
 
 	s.Run("2. org admin create a new project with empty name should return invalid argument", func() {
@@ -268,6 +334,37 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 			},
 		})
 		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+	})
+
+	s.Run("9. list all projects attached/filtered to an org", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-project-1",
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "org-project-1-p1",
+				OrgId: existingOrg.Organization.GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "new project",
+				Slug:  "org-project-1-p2",
+				OrgId: existingOrg.Organization.GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		listResp, err := s.testBench.Client.ListOrganizationProjects(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationProjectsRequest{
+			Id: existingOrg.Organization.GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(listResp.Projects))
 	})
 }
 
@@ -497,7 +594,6 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		})
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
-
 	s.Run("7. update current user with different email in header and body should return invalid argument error", func() {
 		_, err := s.testBench.Client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
@@ -512,8 +608,411 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		})
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
+	s.Run("8. deleting a user should detach it from its respective relations", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-user-1",
+		})
+		s.Assert().NoError(err)
+		existingGroup, err := s.testBench.Client.GetGroup(ctxOrgAdminAuth, &shieldv1beta1.GetGroupRequest{
+			Id: "org1-group1",
+		})
+		s.Assert().NoError(err)
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user for org 1",
+				Email: "user-1-for-org-1@odpf.io",
+				Slug:  "user-1-for-org-1-odpf-io",
+			},
+		})
+		s.Assert().NoError(err)
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			RoleName:        schema.ViewerRole,
+		}})
+		s.Assert().NoError(err)
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        existingGroup.GetGroup().GetId(),
+			ObjectNamespace: schema.GroupNamespace,
+			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			RoleName:        schema.MemberRole,
+		}})
+		s.Assert().NoError(err)
+		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
+		groupUsersResp, err := s.testBench.Client.ListGroupRelations(ctxOrgAdminAuth, &shieldv1beta1.ListGroupRelationsRequest{
+			Id:          existingGroup.Group.Id,
+			SubjectType: schema.UserPrincipal,
+		})
+		s.Assert().NoError(err)
+		var userPartOfGroup bool
+		for _, rel := range groupUsersResp.GetRelations() {
+			if createUserResp.GetUser().GetId() == rel.GetUser().GetId() {
+				userPartOfGroup = true
+				break
+			}
+		}
+		s.Assert().True(userPartOfGroup)
+
+		// delete user
+		_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, &shieldv1beta1.DeleteUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+
+		// check its existence
+		getUserResp, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, &shieldv1beta1.GetUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NotNil(err)
+		s.Assert().Nil(getUserResp)
+
+		// check its relations with org
+		orgUsersRespAfterDeletion, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(orgUsersRespAfterDeletion.GetUsers()))
+
+		// check its relations with group
+		groupUsersRespAfterDeletion, err := s.testBench.Client.ListGroupRelations(ctxOrgAdminAuth, &shieldv1beta1.ListGroupRelationsRequest{
+			Id:          existingGroup.Group.Id,
+			SubjectType: schema.UserPrincipal,
+		})
+		s.Assert().NoError(err)
+		for _, rel := range groupUsersRespAfterDeletion.GetRelations() {
+			s.Assert().NotEqual(createUserResp.GetUser().GetId(), rel.GetUser().GetId())
+		}
+	})
+	s.Run("9. disabling a user should return not found in list/get api", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-user-1",
+		})
+		s.Assert().NoError(err)
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user for org 1",
+				Email: "user-2-for-org-1@odpf.io",
+				Slug:  "user-2-for-org-1-odpf-io",
+			},
+		})
+		s.Assert().NoError(err)
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			RoleName:        schema.ViewerRole,
+		}})
+		s.Assert().NoError(err)
+		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
+
+		// disable user
+		_, err = s.testBench.Client.DisableUser(ctxOrgAdminAuth, &shieldv1beta1.DisableUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+
+		// check its existence
+		getUserResp, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, &shieldv1beta1.GetUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NotNil(err)
+		s.Assert().Nil(getUserResp)
+
+		// check its relations with org
+		orgUsersRespAfterDisable, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(orgUsersRespAfterDisable.GetUsers()))
+
+		// enable user
+		_, err = s.testBench.Client.EnableUser(ctxOrgAdminAuth, &shieldv1beta1.EnableUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+
+		// check its existence
+		getUserAfterEnableResp, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, &shieldv1beta1.GetUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getUserAfterEnableResp)
+
+		// check its relations with org
+		orgUsersRespAfterEnable, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(orgUsersRespAfterEnable.GetUsers()))
+	})
+	s.Run("10. correctly filter users using list api in an org", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-user-2",
+		})
+		s.Assert().NoError(err)
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user for org 2",
+				Email: "user-1-for-org-2@odpf.io",
+				Slug:  "user-1-for-org-2-odpf-io",
+			},
+		})
+		s.Assert().NoError(err)
+
+		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, &shieldv1beta1.ListUsersRequest{
+			OrgId: existingOrg.Organization.Id,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(listExistingUsers.GetUsers()))
+
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			RoleName:        schema.ViewerRole,
+		}})
+		s.Assert().NoError(err)
+
+		listNewUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, &shieldv1beta1.ListUsersRequest{
+			OrgId: existingOrg.Organization.Id,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(listNewUsers.GetUsers()))
+	})
+	s.Run("11. correctly filter users using list api with user keyword", func() {
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user",
+				Email: "user-1-random-1@odpf.io",
+				Slug:  "user-1-random-1-odpf-io",
+			},
+		})
+		s.Assert().NoError(err)
+
+		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, &shieldv1beta1.ListUsersRequest{
+			Keyword: createUserResp.User.Email,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(listExistingUsers.GetUsers()))
+	})
 }
 
+func (s *APIRegressionTestSuite) TestRelationAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	s.Run("1. creating a new relation between org and user should attach user to the org", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-relation-1",
+		})
+		s.Assert().NoError(err)
+
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user 1",
+				Email: "new-user-for-rel-1@odpf.io",
+				Slug:  "new-user-for-rel-1-odpf-io",
+			},
+		})
+		s.Assert().NoError(err)
+
+		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
+
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			RoleName:        schema.ViewerRole,
+		}})
+		s.Assert().NoError(err)
+
+		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
+	})
+	s.Run("2. creating a relation between org and user with editor role should provide view & edit permission in that org", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-relation-2",
+		})
+		s.Assert().NoError(err)
+
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user 2",
+				Email: "new-user-for-rel-2@odpf.io",
+				Slug:  "new-user-for-rel-2-odpf-io",
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			RoleName:        schema.EditorRole,
+		}})
+		s.Assert().NoError(err)
+
+		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.EditPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
+
+		checkViewPermResp, err := s.testBench.Client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.CheckResourcePermissionRequest{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Permission:      schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(true, checkViewPermResp.Status)
+
+		checkEditPermResp, err := s.testBench.Client.CheckResourcePermission(ctxOrgAdminAuth, &shieldv1beta1.CheckResourcePermissionRequest{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Permission:      schema.EditPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(true, checkEditPermResp.Status)
+	})
+	s.Run("3. deleting a relation between user and org should remove user from that org", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-relation-3",
+		})
+		s.Assert().NoError(err)
+
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "new user 3",
+				Email: "new-user-for-rel-3@odpf.io",
+				Slug:  "new-user-for-rel-3-odpf-io",
+			},
+		})
+		s.Assert().NoError(err)
+
+		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
+
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        existingOrg.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			RoleName:        schema.ViewerRole,
+		}})
+		s.Assert().NoError(err)
+
+		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
+
+		_, err = s.testBench.Client.DeleteRelation(ctxOrgAdminAuth, &shieldv1beta1.DeleteRelationRequest{
+			ObjectId:  v1beta1.GenerateSubject(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+			SubjectId: v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+			Role:      schema.ViewerRole,
+		})
+		s.Assert().NoError(err)
+
+		orgUsersRespAfterRelationDelete, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id:               existingOrg.GetOrganization().GetId(),
+			PermissionFilter: schema.ViewPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(orgUsersRespAfterRelationDelete.GetUsers()))
+		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersRespAfterRelationDelete.GetUsers()[0].Email)
+	})
+}
+
+func (s *APIRegressionTestSuite) TestResourceAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	s.Run("1. creating a resource under a project/org successfully", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationRequest{
+			Body: &shieldv1beta1.OrganizationRequestBody{
+				Name: "org 1",
+				Slug: "org-resource-1",
+			},
+		})
+		s.Assert().NoError(err)
+
+		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			Name:  "member 1",
+			Email: "user-org-resource-1@odpf.io",
+			Slug:  "user-org-resource-1",
+		}})
+		s.Assert().NoError(err)
+
+		// attach user to org
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        createOrgResp.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         schema.UserPrincipal + ":" + userResp.GetUser().GetId(),
+			RoleName:        schema.MemberRole,
+		}})
+		s.Assert().NoError(err)
+
+		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "proj-1",
+				Slug:  "org-1-proj-1",
+				OrgId: createOrgResp.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		compassNamespacesResp, err := s.testBench.Client.GetNamespace(ctxOrgAdminAuth, &shieldv1beta1.GetNamespaceRequest{
+			Id: "root/compass",
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(compassNamespacesResp)
+
+		createResourceResp, err := s.testBench.Client.CreateResource(ctxOrgAdminAuth, &shieldv1beta1.CreateResourceRequest{
+			Body: &shieldv1beta1.ResourceRequestBody{
+				Name:        "res-1",
+				ProjectId:   createProjResp.GetProject().GetId(),
+				NamespaceId: compassNamespacesResp.Namespace.Id,
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createResourceResp)
+
+		listResourcesResp, err := s.testBench.Client.ListResources(ctxOrgAdminAuth, &shieldv1beta1.ListResourcesRequest{
+			ProjectId: createProjResp.GetProject().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal("res-1", listResourcesResp.GetResources()[0].Name)
+	})
+}
 func TestEndToEndAPIRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(APIRegressionTestSuite))
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
@@ -15,7 +14,7 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
+	CheckPermission(ctx context.Context, userID string, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 }
 
@@ -50,8 +49,6 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 }
 
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
-	urn := res.CreateURN()
-
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Resource{}, err
@@ -68,10 +65,10 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{
-		URN:            urn,
+		URN:            res.CreateURN(),
 		Name:           res.Name,
 		OrganizationID: fetchedProject.Organization.ID,
-		ProjectID:      fetchedProject.ID,
+		ProjectID:      res.ProjectID,
 		NamespaceID:    res.NamespaceID,
 		UserID:         userId,
 	})
@@ -79,15 +76,15 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.relationService.DeleteSubjectRelations(ctx, newResource.NamespaceID, newResource.Idx); err != nil {
+	if err = s.relationService.DeleteSubjectRelations(ctx, newResource.NamespaceID, newResource.ID); err != nil {
 		return Resource{}, err
 	}
 
-	if err = s.AddProjectToResource(ctx, project.Project{ID: res.ProjectID}, newResource); err != nil {
+	if err = s.AddProjectToResource(ctx, newResource.ProjectID, newResource); err != nil {
 		return Resource{}, err
 	}
 
-	if err = s.AddOrgToResource(ctx, organization.Organization{ID: newResource.OrganizationID}, newResource); err != nil {
+	if err = s.AddOrgToResource(ctx, newResource.OrganizationID, newResource); err != nil {
 		return Resource{}, err
 	}
 
@@ -103,15 +100,15 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 	return s.repository.Update(ctx, id, resource)
 }
 
-func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {
+func (s Service) AddProjectToResource(ctx context.Context, projectID string, res Resource) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:        res.Idx,
+			ID:        res.ID,
 			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
 			RoleID:    schema.ProjectRelationName,
-			ID:        project.ID,
+			ID:        projectID,
 			Namespace: schema.ProjectNamespace,
 		},
 	}
@@ -119,19 +116,18 @@ func (s Service) AddProjectToResource(ctx context.Context, project project.Proje
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (s Service) AddOrgToResource(ctx context.Context, org organization.Organization, res Resource) error {
+func (s Service) AddOrgToResource(ctx context.Context, orgID string, res Resource) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
-			ID:        res.Idx,
+			ID:        res.ID,
 			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
 			RoleID:    schema.OrganizationRelationName,
-			ID:        org.ID,
+			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
 		},
 	}
@@ -157,7 +153,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	fetchedResource := res
 
 	if isSystemNS {
-		fetchedResource.Idx = res.Name
+		fetchedResource.ID = res.Name
 	} else {
 		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
 		if err != nil {
@@ -166,5 +162,12 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	}
 
 	fetchedResourceNS := namespace.Namespace{ID: fetchedResource.NamespaceID}
-	return s.relationService.CheckPermission(ctx, currentUser, fetchedResourceNS, fetchedResource.Idx, act)
+	return s.relationService.CheckPermission(ctx, currentUser.ID, fetchedResourceNS, fetchedResource.ID, act)
+}
+
+func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
+	if err := s.relationService.DeleteSubjectRelations(ctx, namespaceID, id); err != nil {
+		return err
+	}
+	return s.repository.Delete(ctx, id)
 }

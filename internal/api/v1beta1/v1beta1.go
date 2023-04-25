@@ -23,6 +23,7 @@ type Handler struct {
 	ruleService         RuleService
 	sessionService      SessionService
 	registrationService RegistrationService
+	deleterService      CascadeDeleter
 }
 
 func Register(ctx context.Context, s *grpc.Server, deps api.Deps) error {
@@ -42,6 +43,7 @@ func Register(ctx context.Context, s *grpc.Server, deps api.Deps) error {
 			ruleService:         deps.RuleService,
 			sessionService:      deps.SessionService,
 			registrationService: deps.RegistrationService,
+			deleterService:      deps.DeleterService,
 		},
 	)
 

@@ -17,6 +17,7 @@ type Repository interface {
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, id string, resource Resource) (Resource, error)
 	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type ConfigRepository interface {
@@ -24,7 +25,7 @@ type ConfigRepository interface {
 }
 
 type Resource struct {
-	Idx            string
+	ID             string
 	URN            string
 	Name           string
 	ProjectID      string
@@ -44,13 +45,6 @@ func (res Resource) CreateURN() string {
 		return fmt.Sprintf("p/%s/%s", res.ProjectID, res.NamespaceID)
 	}
 	return fmt.Sprintf("r/%s/%s", res.NamespaceID, res.Name)
-}
-
-type Filter struct {
-	ProjectID      string
-	GroupID        string
-	OrganizationID string
-	NamespaceID    string
 }
 
 type YAML struct {
