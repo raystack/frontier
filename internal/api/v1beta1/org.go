@@ -221,7 +221,7 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1beta1.ListOrganizationUsersRequest) (*shieldv1beta1.ListOrganizationUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	permissionFilter := schema.ViewPermission
+	permissionFilter := schema.MembershipPermission
 	if len(request.GetPermissionFilter()) > 0 {
 		permissionFilter = request.GetPermissionFilter()
 	}

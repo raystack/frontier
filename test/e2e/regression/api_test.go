@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"github.com/odpf/shield/internal/schema"
+
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/pkg/logger"
@@ -86,6 +88,70 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 func (s *APIRegressionTestSuite) TearDownSuite() {
 	err := s.testBench.Close()
 	s.Require().NoError(err)
+}
+
+func (s *APIRegressionTestSuite) TestOrganizationAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	s.Run("1. a user should successfully create a new org and become its admin", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationRequest{
+			Body: &shieldv1beta1.OrganizationRequestBody{
+				Name: "org acme 1",
+				Slug: "org-acme-1",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			},
+		})
+		s.Assert().Nil(err)
+
+		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id: createOrgResp.GetOrganization().GetId(),
+			//PermissionFilter: schema.EditPermission,
+		})
+		s.Assert().Nil(err)
+		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
+		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].Email)
+	})
+	s.Run("2. user attached to an org as member should have no basic permission other than membership", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationRequest{
+			Body: &shieldv1beta1.OrganizationRequestBody{
+				Name: "org acme 2",
+				Slug: "org-acme-2",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
+			},
+		})
+		s.Assert().Nil(err)
+
+		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			Name:  "acme 2 member",
+			Email: "acme-member@odpf.io",
+			Slug:  "acme-2-member",
+		}})
+		s.Assert().Nil(err)
+
+		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
+			ObjectId:        createOrgResp.GetOrganization().GetId(),
+			ObjectNamespace: schema.OrganizationNamespace,
+			Subject:         schema.UserPrincipal + ":" + userResp.GetUser().GetId(),
+			RoleName:        schema.MemberRole,
+		}})
+		s.Assert().Nil(err)
+
+		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
+			Id: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().Nil(err)
+		s.Assert().Equal(2, len(orgUsersResp.GetUsers()))
+	})
 }
 
 func (s *APIRegressionTestSuite) TestProjectAPI() {

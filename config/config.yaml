@@ -55,6 +55,9 @@ spicedb:
   host: spicedb.localhost
   pre_shared_key: randomkey
   port: 50051
+  # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
+  # suggested to keep it false for performance
+  fully_consistent: false
 
 # proxy configuration
 proxy:

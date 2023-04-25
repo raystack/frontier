@@ -98,9 +98,10 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 			MaxQueryTimeoutInMS: time.Millisecond * 100,
 		},
 		SpiceDB: spicedb.Config{
-			Host:         "localhost",
-			Port:         "50051",
-			PreSharedKey: "shield",
+			Host:            "localhost",
+			Port:            "50051",
+			PreSharedKey:    "shield",
+			FullyConsistent: true,
 		},
 	}
 

@@ -42,6 +42,7 @@ var OrganizationNamespaceConfig = NamespaceConfig{
 		OwnerRole:  {UserPrincipal, GroupPrincipal},
 		EditorRole: {UserPrincipal, GroupPrincipal},
 		ViewerRole: {UserPrincipal, GroupPrincipal},
+		MemberRole: {UserPrincipal, GroupPrincipal},
 	},
 	Permissions: map[string][]string{
 		EditPermission: {
@@ -49,6 +50,9 @@ var OrganizationNamespaceConfig = NamespaceConfig{
 		},
 		ViewPermission: {
 			OwnerRole, EditorRole, ViewerRole,
+		},
+		MembershipPermission: {
+			MemberRole, ViewerRole, EditorRole, OwnerRole,
 		},
 	},
 }
