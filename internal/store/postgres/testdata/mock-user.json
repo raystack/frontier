@@ -2,12 +2,12 @@
   {
     "name": "John Doe",
     "email": "john.doe@odpf.io",
-    "slug": "john-doe-slug"
+    "slug": "john_doe_slug"
   },
   {
     "name": "Jane Dee",
     "email": "jane.dee@odpf.io",
-    "slug": "john-dee-slug",
+    "slug": "john_dee_slug",
     "metadata": {
       "k1": "value-string",
       "k2": 123,

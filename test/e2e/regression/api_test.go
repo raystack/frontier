@@ -236,7 +236,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 	s.Run("1. org admin create a new project with empty auth email should not return unauthenticated error", func() {
 		_, err := s.testBench.Client.CreateProject(context.Background(), &shieldv1beta1.CreateProjectRequest{
 			Body: &shieldv1beta1.ProjectRequestBody{
-				Name:  "new project",
+				Name:  "new-project",
 				Slug:  "new-project",
 				OrgId: myOrg.GetId(),
 				Metadata: &structpb.Struct{
@@ -273,7 +273,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 	s.Run("4. org admin create a new project with same name and org-id should conflict", func() {
 		res, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
 			Body: &shieldv1beta1.ProjectRequestBody{
-				Name:  "new project",
+				Name:  "new-project",
 				Slug:  "new-project-duplicate",
 				OrgId: myOrg.GetId(),
 			},
@@ -284,7 +284,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 
 		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
 			Body: &shieldv1beta1.ProjectRequestBody{
-				Name:  "new project",
+				Name:  "new-project",
 				Slug:  "new-project-duplicate",
 				OrgId: myOrg.GetId(),
 			},
@@ -304,7 +304,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		_, err := s.testBench.Client.UpdateProject(ctxOrgAdminAuth, &shieldv1beta1.UpdateProjectRequest{
 			Id: "",
 			Body: &shieldv1beta1.ProjectRequestBody{
-				Name:  "new project",
+				Name:  "new-project",
 				Slug:  "new-project",
 				OrgId: myOrg.GetId(),
 			},
@@ -316,7 +316,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		_, err := s.testBench.Client.UpdateProject(ctxOrgAdminAuth, &shieldv1beta1.UpdateProjectRequest{
 			Id: "random",
 			Body: &shieldv1beta1.ProjectRequestBody{
-				Name:  "new project",
+				Name:  "new-project",
 				Slug:  "new-project",
 				OrgId: myOrg.GetId(),
 			},
@@ -328,7 +328,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		_, err := s.testBench.Client.UpdateProject(ctxOrgAdminAuth, &shieldv1beta1.UpdateProjectRequest{
 			Id: newProject.GetId(),
 			Body: &shieldv1beta1.ProjectRequestBody{
-				Name:  "project 1",
+				Name:  "project-1",
 				Slug:  "project-1",
 				OrgId: myOrg.GetId(),
 			},
@@ -384,6 +384,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 	s.Run("1. org admin create a new team with empty auth email should return unauthenticated error", func() {
 		_, err := s.testBench.Client.CreateGroup(context.Background(), &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
+				Name:  "group-1",
 				Slug:  "new-group",
 				OrgId: myOrg.GetId(),
 			},
@@ -404,7 +405,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 	s.Run("3. org admin create a new team with wrong org id should return invalid argument", func() {
 		_, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
+				Name:  "group-1",
 				Slug:  "new-group",
 				OrgId: "not-uuid",
 			},
@@ -415,7 +416,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 	s.Run("4. org admin create a new team with same name and org-id should conflict", func() {
 		res, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
+				Name:  "group-1",
 				Slug:  "new-group",
 				OrgId: myOrg.GetId(),
 			},
@@ -426,7 +427,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 
 		_, err = s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
 			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
+				Name:  "group-1",
 				Slug:  "new-group",
 				OrgId: myOrg.GetId(),
 			},
@@ -446,7 +447,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		_, err := s.testBench.Client.UpdateGroup(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupRequest{
 			Id: "",
 			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
+				Name:  "new-group",
 				Slug:  "new-group",
 				OrgId: myOrg.GetId(),
 			},
@@ -458,7 +459,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		_, err := s.testBench.Client.UpdateGroup(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupRequest{
 			Id: "random",
 			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "new group",
+				Name:  "new-group",
 				Slug:  "new-group",
 				OrgId: myOrg.GetId(),
 			},
@@ -470,7 +471,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		_, err := s.testBench.Client.UpdateGroup(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupRequest{
 			Id: newGroup.GetId(),
 			Body: &shieldv1beta1.GroupRequestBody{
-				Name:  "org1 group1",
+				Name:  "org1-group1",
 				Slug:  "org1-group1",
 				OrgId: myOrg.GetId(),
 			},
@@ -518,7 +519,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("3. org admin create a new user with empty email should use email from header", func() {
+	s.Run("3. org admin create a new user with empty email should return invalid argument error", func() {
 		_, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
@@ -531,7 +532,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 				},
 			},
 		})
-		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
 	s.Run("4. org admin create a new user with same email should return conflict error", func() {

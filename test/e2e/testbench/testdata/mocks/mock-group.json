@@ -1,14 +1,14 @@
 [
     {
-        "name": "org1 group1",
+        "name": "org1-group1",
         "slug": "org1-group1"
     },
     {
-        "name": "org1 group2",
+        "name": "org1-group2",
         "slug": "org1-group2"
     },
     {
-        "name": "org1 group3",
+        "name": "org1-group3",
         "slug": "org1-group3"
     }
 ]
