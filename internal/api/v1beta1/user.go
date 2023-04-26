@@ -34,7 +34,6 @@ type UserService interface {
 	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
-	CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error

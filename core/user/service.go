@@ -70,18 +70,6 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	return newUser, nil
 }
 
-func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error) {
-	newUserMetadataKey, err := s.repository.CreateMetadataKey(ctx, UserMetadataKey{
-		Key:         key.Key,
-		Description: key.Description,
-	})
-	if err != nil {
-		return UserMetadataKey{}, err
-	}
-
-	return newUserMetadataKey, nil
-}
-
 func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 	if flt.OrgID != "" {
 		return s.ListByOrg(ctx, flt.OrgID, schema.MembershipPermission)

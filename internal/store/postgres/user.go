@@ -21,13 +21,6 @@ type User struct {
 	DeletedAt sql.NullTime   `db:"deleted_at"`
 }
 
-type UserMetadataKey struct {
-	Key         string    `db:"key"`
-	Description string    `db:"description"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
-}
-
 func (from User) transformToUser() (user.User, error) {
 	var unmarshalledMetadata map[string]any
 	if from.Metadata != nil {
@@ -46,13 +39,4 @@ func (from User) transformToUser() (user.User, error) {
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,
 	}, nil
-}
-
-func (from UserMetadataKey) tranformUserMetadataKey() user.UserMetadataKey {
-	return user.UserMetadataKey{
-		Key:         from.Key,
-		Description: from.Description,
-		CreatedAt:   from.CreatedAt,
-		UpdatedAt:   from.UpdatedAt,
-	}
 }

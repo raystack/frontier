@@ -3,7 +3,6 @@ package postgres_test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -225,31 +224,6 @@ func bootstrapUser(client *db.Client) ([]user.User, error) {
 	for _, d := range data {
 		domain, err := userRepository.Create(context.Background(), d)
 		if err != nil {
-			return nil, err
-		}
-
-		insertedData = append(insertedData, domain)
-	}
-
-	return insertedData, nil
-}
-
-func bootstrapMetadataKeys(client *db.Client) ([]user.UserMetadataKey, error) {
-	userRepository := postgres.NewUserRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-metadata-keys.json")
-	if err != nil {
-		return nil, err
-	}
-
-	var data []user.UserMetadataKey
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-		return nil, err
-	}
-
-	var insertedData []user.UserMetadataKey
-	for _, d := range data {
-		domain, err := userRepository.CreateMetadataKey(context.Background(), d)
-		if err != nil && !errors.Is(err, user.ErrKeyAlreadyExists) {
 			return nil, err
 		}
 

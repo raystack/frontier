@@ -44,10 +44,6 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 func (s *UserRepositoryTestSuite) SetupTest() {
 	var err error
 
-	_, err = bootstrapMetadataKeys(s.client)
-	if err != nil {
-		s.T().Fatal(err)
-	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)
@@ -71,7 +67,6 @@ func (s *UserRepositoryTestSuite) cleanup() error {
 	queries := []string{
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA_KEYS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }

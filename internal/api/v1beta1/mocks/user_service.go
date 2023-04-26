@@ -75,59 +75,6 @@ func (_c *UserService_Create_Call) RunAndReturn(run func(context.Context, user.U
 	return _c
 }
 
-// CreateMetadataKey provides a mock function with given fields: ctx, key
-func (_m *UserService) CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error) {
-	ret := _m.Called(ctx, key)
-
-	var r0 user.UserMetadataKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, user.UserMetadataKey) (user.UserMetadataKey, error)); ok {
-		return rf(ctx, key)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, user.UserMetadataKey) user.UserMetadataKey); ok {
-		r0 = rf(ctx, key)
-	} else {
-		r0 = ret.Get(0).(user.UserMetadataKey)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, user.UserMetadataKey) error); ok {
-		r1 = rf(ctx, key)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserService_CreateMetadataKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateMetadataKey'
-type UserService_CreateMetadataKey_Call struct {
-	*mock.Call
-}
-
-// CreateMetadataKey is a helper method to define mock.On call
-//   - ctx context.Context
-//   - key user.UserMetadataKey
-func (_e *UserService_Expecter) CreateMetadataKey(ctx interface{}, key interface{}) *UserService_CreateMetadataKey_Call {
-	return &UserService_CreateMetadataKey_Call{Call: _e.mock.On("CreateMetadataKey", ctx, key)}
-}
-
-func (_c *UserService_CreateMetadataKey_Call) Run(run func(ctx context.Context, key user.UserMetadataKey)) *UserService_CreateMetadataKey_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(user.UserMetadataKey))
-	})
-	return _c
-}
-
-func (_c *UserService_CreateMetadataKey_Call) Return(_a0 user.UserMetadataKey, _a1 error) *UserService_CreateMetadataKey_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *UserService_CreateMetadataKey_Call) RunAndReturn(run func(context.Context, user.UserMetadataKey) (user.UserMetadataKey, error)) *UserService_CreateMetadataKey_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Delete provides a mock function with given fields: ctx, id
 func (_m *UserService) Delete(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)

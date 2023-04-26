@@ -47,10 +47,6 @@ func (s *GroupRepositoryTestSuite) SetupSuite() {
 	s.ctx = context.TODO()
 	s.repository = postgres.NewGroupRepository(s.client)
 
-	_, err = bootstrapMetadataKeys(s.client)
-	if err != nil {
-		s.T().Fatal(err)
-	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)

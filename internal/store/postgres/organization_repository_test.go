@@ -45,10 +45,6 @@ func (s *OrganizationRepositoryTestSuite) SetupSuite() {
 	s.ctx = context.TODO()
 	s.repository = postgres.NewOrganizationRepository(s.client)
 
-	_, err = bootstrapMetadataKeys(s.client)
-	if err != nil {
-		s.T().Fatal(err)
-	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)
