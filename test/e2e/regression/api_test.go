@@ -83,7 +83,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 	s.Run("1. a user should successfully create a new org and become its admin", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationRequest{
 			Body: &shieldv1beta1.OrganizationRequestBody{
-				Name: "org acme 1",
+				Name: "org-acme-1",
 				Slug: "org-acme-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -104,7 +104,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 	s.Run("2. user attached to an org as member should have no basic permission other than membership", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationRequest{
 			Body: &shieldv1beta1.OrganizationRequestBody{
-				Name: "org acme 2",
+				Name: "org-acme-2",
 				Slug: "org-acme-2",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -116,9 +116,9 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NoError(err)
 
 		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-			Name:  "acme 2 member",
+			Name:  "acme-2-member",
 			Email: "acme-member@odpf.io",
-			Slug:  "acme-2-member",
+			Slug:  "acme_2_member",
 		}})
 		s.Assert().NoError(err)
 
