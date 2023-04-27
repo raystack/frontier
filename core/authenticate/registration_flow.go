@@ -236,7 +236,7 @@ func (r RegistrationService) applyOIDC(ctx context.Context, request Registration
 	newUser, err := r.userService.Create(ctx, user.User{
 		Name:  oauthProfile.Name,
 		Email: oauthProfile.Email,
-		Slug:  str.GenerateUserSlug(oauthProfile.Name),
+		Slug:  str.GenerateUserSlug(oauthProfile.Email),
 	})
 	if err != nil {
 		return nil, err

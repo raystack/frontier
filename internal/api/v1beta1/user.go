@@ -100,7 +100,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	name := request.GetBody().GetName()
 	slug := strings.TrimSpace(request.GetBody().GetSlug())
 	if slug == "" {
-		slug = str.GenerateUserSlug(name)
+		slug = str.GenerateUserSlug(email)
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -250,7 +250,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	}
 
 	id := request.GetId()
-	// update by email
+	// upsert by email
 	if isValidEmail(id) {
 		_, err = h.userService.GetByEmail(ctx, id)
 		if err != nil {

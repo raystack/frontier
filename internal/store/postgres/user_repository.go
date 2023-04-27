@@ -256,7 +256,7 @@ func (r UserRepository) GetBySlug(ctx context.Context, slug string) (user.User, 
 }
 
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
-	if strings.TrimSpace(usr.Name) == "" || strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" {
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" {
 		return user.User{}, user.ErrInvalidDetails
 	}
 
@@ -740,7 +740,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	if usr.ID == "" || !uuid.IsValid(usr.ID) {
 		return user.User{}, user.ErrInvalidID
 	}
-	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" || strings.TrimSpace(usr.Name) == "" {
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" {
 		return user.User{}, user.ErrInvalidDetails
 	}
 
@@ -901,7 +901,7 @@ func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.U
 		return user.User{}, user.ErrMissingSlug
 	}
 
-	if strings.TrimSpace(usr.Name) == "" || strings.TrimSpace(usr.Email) == "" {
+	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidDetails
 	}
 	var transformedUser user.User

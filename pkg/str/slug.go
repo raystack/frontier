@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
+	"unicode"
 )
 
 type SlugifyOptions struct {
@@ -37,19 +37,24 @@ func GenerateSlug(name string) string {
 }
 
 /*
-in case the user name doesnt begin with an alphabet this function returns a slug of type "user_1682290750".
-Otherwise, slug of type "John_Doe_1682290750" is returned, with name being appended with epoch time from now
+in case user email begins with a digit, 20230123@acme.org the returned user slug is `u2023123_acme_org`,
+otherwise removes all the non-alpha numeric charecters from the provided email and returns an _ seperated slug.
+For eg: "$john-doe@acme.org" returns "johndoe_acme_org"
 */
-func GenerateUserSlug(name string) string {
-	regex := "^[a-zA-Z]"
-	preProcessed := strings.TrimSpace(strings.TrimSpace(name))
-	if !regexp.MustCompile(regex).MatchString(preProcessed) {
-		preProcessed = "user"
+func GenerateUserSlug(email string) string {
+	email = strings.ToLower(strings.TrimSpace(email))
+
+	i := strings.LastIndexByte(email, '@')
+	// remove all the non-alphanumeric charecters from local part
+	regex := "[^a-zA-Z0-9]+"
+	localPart := regexp.MustCompile(regex).ReplaceAllString(email[:i], "")
+	if unicode.IsDigit(rune(localPart[0])) {
+		localPart = fmt.Sprintf("u%s", localPart)
 	}
-	epoch := time.Now().UTC().Unix()
-	preProcessed = fmt.Sprintf("%s %v", preProcessed, epoch)
-	return strings.Join(
-		strings.Split(preProcessed, " "),
-		"_",
-	)
+
+	// remove all the non-numeric charecters except periods from the domain part
+	regex = "[^a-zA-Z0-9.]+"
+	domainPart := strings.ReplaceAll(regexp.MustCompile(regex).ReplaceAllString(email[i+1:], ""), ".", "_")
+
+	return fmt.Sprintf("%s_%s", localPart, domainPart)
 }

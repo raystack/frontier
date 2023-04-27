@@ -65,13 +65,13 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			if reqBody.Slug == "" {
-				reqBody.Slug = str.GenerateUserSlug(reqBody.Name)
-			}
-
 			err := reqBody.ValidateAll()
 			if err != nil {
 				return err
+			}
+
+			if reqBody.Slug == "" {
+				reqBody.Slug = str.GenerateUserSlug(reqBody.Email)
 			}
 
 			ctx := context.Background()
