@@ -409,20 +409,25 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			UserToUpdate: user.User{
 				ID:    uuid.NewString(),
 				Name:  "Doe John",
-				Email: "john.doe@odpf.io",
+				Email: s.users[0].Email,
 				Slug:  s.users[0].Slug,
 			},
 			Err: user.ErrNotExist,
 		},
 		{
-			Description: "should return error if user email already exist",
+			Description: "should not update the user email",
 			UserToUpdate: user.User{
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[1].Email,
 				Slug:  s.users[0].Slug,
 			},
-			Err: user.ErrConflict,
+			ExpectedUser: user.User{
+				ID:    s.users[0].ID,
+				Name:  "Doe John",
+				Email: s.users[0].Email,
+				Slug:  s.users[0].Slug,
+			},
 		},
 		{
 			Description: "should return error if user id is empty",

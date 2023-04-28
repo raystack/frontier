@@ -26,7 +26,7 @@ type joinUserMetadata struct {
 	ID        string         `db:"id"`
 	Name      string         `db:"name"`
 	Email     string         `db:"email"`
-	Slug      string         `db:"slug"`
+	Slug      sql.NullString `db:"slug"`
 	Key       any            `db:"key"`
 	Value     sql.NullString `db:"value"`
 	CreatedAt time.Time      `db:"created_at"`
@@ -445,7 +445,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		currentUser.ID = u.ID
 		currentUser.Email = u.Email
 		currentUser.Name = u.Name
-		currentUser.Slug = u.Slug
+		currentUser.Slug = u.Slug.String
 		currentUser.CreatedAt = u.CreatedAt
 		currentUser.UpdatedAt = u.UpdatedAt
 
@@ -750,7 +750,6 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
-				"email":      usr.Email,
 				"slug":       usr.Slug,
 				"updated_at": goqu.L("now()"),
 			}).Where(
@@ -910,7 +909,7 @@ func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.U
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
-				"email":      usr.Email,
+				"slug":       usr.Slug,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{

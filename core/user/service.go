@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"net/mail"
 	"strings"
 
 	"github.com/odpf/shield/core/relation"
@@ -36,11 +37,15 @@ func NewService(repository Repository, sessionService SessionService, relationRe
 	}
 }
 
-func (s Service) GetByID(ctx context.Context, idOrSlug string) (User, error) {
-	if shielduuid.IsValid(idOrSlug) {
-		return s.repository.GetByID(ctx, idOrSlug)
+// Get by user uuid, email or slug
+func (s Service) GetByID(ctx context.Context, id string) (User, error) {
+	if isValidEmail(id) {
+		return s.repository.GetByEmail(ctx, id)
 	}
-	return s.repository.GetBySlug(ctx, idOrSlug)
+	if shielduuid.IsValid(id) {
+		return s.repository.GetByID(ctx, id)
+	}
+	return s.repository.GetBySlug(ctx, id)
 }
 
 func (s Service) GetByIDs(ctx context.Context, userIDs []string) ([]User, error) {
@@ -89,8 +94,13 @@ func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 	return s.repository.List(ctx, flt)
 }
 
+// Update by user uuid, email or slug
 func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
-	if toUpdate.ID != "" {
+	id := toUpdate.ID
+	if isValidEmail(id) {
+		return s.repository.UpdateByEmail(ctx, toUpdate)
+	}
+	if shielduuid.IsValid(id) {
 		return s.repository.UpdateByID(ctx, toUpdate)
 	}
 	return s.repository.UpdateBySlug(ctx, toUpdate)
@@ -180,4 +190,9 @@ func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilt
 		return []User{}, nil
 	}
 	return s.repository.GetByIDs(ctx, userIDs)
+}
+
+func isValidEmail(str string) bool {
+	_, err := mail.ParseAddress(str)
+	return err == nil
 }

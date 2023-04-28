@@ -2,9 +2,10 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"net/mail"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.opencensus.io/stats"
@@ -18,7 +19,6 @@ import (
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/telemetry"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
@@ -264,29 +264,19 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 				return nil, grpcInternalServerError
 			}
 		}
-
-		updatedUser, err = h.userService.UpdateByEmail(ctx, user.User{
-			Name:     request.GetBody().GetName(),
-			Email:    request.GetId(),
-			Slug:     request.GetBody().GetSlug(),
-			Metadata: metaDataMap,
-		})
-	} else if shielduuid.IsValid(id) { // update by uuid
-		updatedUser, err = h.userService.UpdateByID(ctx, user.User{
-			ID:       request.GetId(),
-			Name:     request.GetBody().GetName(),
-			Email:    request.GetBody().GetEmail(),
-			Slug:     request.GetBody().GetSlug(),
-			Metadata: metaDataMap,
-		})
-	} else { // update by slug
-		updatedUser, err = h.userService.UpdateByID(ctx, user.User{
-			Name:     request.GetBody().GetName(),
-			Email:    request.GetBody().GetEmail(),
-			Slug:     request.GetId(),
-			Metadata: metaDataMap,
-		})
+		// if email in request body is different from that of user getting updated
+		if email != id {
+			return nil, status.Errorf(codes.InvalidArgument, ErrEmailConflict.Error())
+		}
 	}
+
+	updatedUser, err = h.userService.UpdateByID(ctx, user.User{
+		ID:       request.GetId(),
+		Name:     request.GetBody().GetName(),
+		Email:    request.GetBody().GetEmail(),
+		Slug:     request.GetBody().GetSlug(),
+		Metadata: metaDataMap,
+	})
 
 	if err != nil {
 		logger.Error(err.Error())

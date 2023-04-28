@@ -566,12 +566,13 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
 	})
 
-	s.Run("5. org admin update user with conflicted detail should return conflict error", func() {
-		_, err := s.testBench.Client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
+	s.Run("5. org admin update user with conflicted detail should not update the email and return nil error", func() {
+		ExpectedEmail := "new-user-a@odpf.io"
+		res, err := s.testBench.Client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
 			Id: newUser.GetId(),
 			Body: &shieldv1beta1.UserRequestBody{
 				Name:  "new user a",
-				Email: "admin1-group1-org1@odpf.io",
+				Email: "admin1-group2-org1@odpf.io",
 				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -580,7 +581,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 				},
 			},
 		})
-		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+		s.Assert().Equal(ExpectedEmail, res.User.Email)
+		s.Assert().NoError(err)
 	})
 
 	ctxCurrentUser := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
