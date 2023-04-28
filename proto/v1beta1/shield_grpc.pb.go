@@ -85,6 +85,11 @@ const (
 	ShieldService_Authenticate_FullMethodName             = "/odpf.shield.v1beta1.ShieldService/Authenticate"
 	ShieldService_AuthCallback_FullMethodName             = "/odpf.shield.v1beta1.ShieldService/AuthCallback"
 	ShieldService_AuthLogout_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/AuthLogout"
+	ShieldService_ListMetaSchemas_FullMethodName          = "/odpf.shield.v1beta1.ShieldService/ListMetaSchemas"
+	ShieldService_CreateMetaSchema_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/CreateMetaSchema"
+	ShieldService_GetMetaSchema_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/GetMetaSchema"
+	ShieldService_UpdateMetaSchema_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/UpdateMetaSchema"
+	ShieldService_DeleteMetaSchema_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/DeleteMetaSchema"
 )
 
 // ShieldServiceClient is the client API for ShieldService service.
@@ -169,6 +174,12 @@ type ShieldServiceClient interface {
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error)
 	AuthLogout(ctx context.Context, in *AuthLogoutRequest, opts ...grpc.CallOption) (*AuthLogoutResponse, error)
+	// MetaSchemas
+	ListMetaSchemas(ctx context.Context, in *ListMetaSchemasRequest, opts ...grpc.CallOption) (*ListMetaSchemasResponse, error)
+	CreateMetaSchema(ctx context.Context, in *CreateMetaSchemaRequest, opts ...grpc.CallOption) (*CreateMetaSchemaResponse, error)
+	GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error)
+	UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error)
+	DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error)
 }
 
 type shieldServiceClient struct {
@@ -773,6 +784,51 @@ func (c *shieldServiceClient) AuthLogout(ctx context.Context, in *AuthLogoutRequ
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListMetaSchemas(ctx context.Context, in *ListMetaSchemasRequest, opts ...grpc.CallOption) (*ListMetaSchemasResponse, error) {
+	out := new(ListMetaSchemasResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListMetaSchemas_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) CreateMetaSchema(ctx context.Context, in *CreateMetaSchemaRequest, opts ...grpc.CallOption) (*CreateMetaSchemaResponse, error) {
+	out := new(CreateMetaSchemaResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateMetaSchema_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error) {
+	out := new(GetMetaSchemaResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetMetaSchema_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error) {
+	out := new(UpdateMetaSchemaResponse)
+	err := c.cc.Invoke(ctx, ShieldService_UpdateMetaSchema_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error) {
+	out := new(DeleteMetaSchemaResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteMetaSchema_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShieldServiceServer is the server API for ShieldService service.
 // All implementations must embed UnimplementedShieldServiceServer
 // for forward compatibility
@@ -855,6 +911,12 @@ type ShieldServiceServer interface {
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error)
 	AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error)
+	// MetaSchemas
+	ListMetaSchemas(context.Context, *ListMetaSchemasRequest) (*ListMetaSchemasResponse, error)
+	CreateMetaSchema(context.Context, *CreateMetaSchemaRequest) (*CreateMetaSchemaResponse, error)
+	GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error)
+	UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error)
+	DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error)
 	mustEmbedUnimplementedShieldServiceServer()
 }
 
@@ -1059,6 +1121,21 @@ func (UnimplementedShieldServiceServer) AuthCallback(context.Context, *AuthCallb
 }
 func (UnimplementedShieldServiceServer) AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthLogout not implemented")
+}
+func (UnimplementedShieldServiceServer) ListMetaSchemas(context.Context, *ListMetaSchemasRequest) (*ListMetaSchemasResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMetaSchemas not implemented")
+}
+func (UnimplementedShieldServiceServer) CreateMetaSchema(context.Context, *CreateMetaSchemaRequest) (*CreateMetaSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMetaSchema not implemented")
+}
+func (UnimplementedShieldServiceServer) GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetaSchema not implemented")
+}
+func (UnimplementedShieldServiceServer) UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetaSchema not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMetaSchema not implemented")
 }
 func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
 
@@ -2261,6 +2338,96 @@ func _ShieldService_AuthLogout_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListMetaSchemas_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMetaSchemasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListMetaSchemas(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListMetaSchemas_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListMetaSchemas(ctx, req.(*ListMetaSchemasRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_CreateMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMetaSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).CreateMetaSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_CreateMetaSchema_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).CreateMetaSchema(ctx, req.(*CreateMetaSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMetaSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetMetaSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetMetaSchema_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetMetaSchema(ctx, req.(*GetMetaSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_UpdateMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMetaSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).UpdateMetaSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_UpdateMetaSchema_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).UpdateMetaSchema(ctx, req.(*UpdateMetaSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMetaSchemaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteMetaSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_DeleteMetaSchema_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteMetaSchema(ctx, req.(*DeleteMetaSchemaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShieldService_ServiceDesc is the grpc.ServiceDesc for ShieldService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2531,6 +2698,26 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthLogout",
 			Handler:    _ShieldService_AuthLogout_Handler,
+		},
+		{
+			MethodName: "ListMetaSchemas",
+			Handler:    _ShieldService_ListMetaSchemas_Handler,
+		},
+		{
+			MethodName: "CreateMetaSchema",
+			Handler:    _ShieldService_CreateMetaSchema_Handler,
+		},
+		{
+			MethodName: "GetMetaSchema",
+			Handler:    _ShieldService_GetMetaSchema_Handler,
+		},
+		{
+			MethodName: "UpdateMetaSchema",
+			Handler:    _ShieldService_UpdateMetaSchema_Handler,
+		},
+		{
+			MethodName: "DeleteMetaSchema",
+			Handler:    _ShieldService_DeleteMetaSchema_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -17886,3 +17886,1345 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CheckResourcePermissionResponseValidationError{}
+
+// Validate checks the field values on MetaSchemaRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MetaSchemaRequestBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MetaSchemaRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MetaSchemaRequestBodyMultiError, or nil if none found.
+func (m *MetaSchemaRequestBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MetaSchemaRequestBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_MetaSchemaRequestBody_Name_Pattern.MatchString(m.GetName()) {
+		err := MetaSchemaRequestBodyValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetSchema()) < 2 {
+		err := MetaSchemaRequestBodyValidationError{
+			field:  "Schema",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return MetaSchemaRequestBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// MetaSchemaRequestBodyMultiError is an error wrapping multiple validation
+// errors returned by MetaSchemaRequestBody.ValidateAll() if the designated
+// constraints aren't met.
+type MetaSchemaRequestBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MetaSchemaRequestBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MetaSchemaRequestBodyMultiError) AllErrors() []error { return m }
+
+// MetaSchemaRequestBodyValidationError is the validation error returned by
+// MetaSchemaRequestBody.Validate if the designated constraints aren't met.
+type MetaSchemaRequestBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MetaSchemaRequestBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MetaSchemaRequestBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MetaSchemaRequestBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MetaSchemaRequestBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MetaSchemaRequestBodyValidationError) ErrorName() string {
+	return "MetaSchemaRequestBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MetaSchemaRequestBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMetaSchemaRequestBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MetaSchemaRequestBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MetaSchemaRequestBodyValidationError{}
+
+var _MetaSchemaRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+
+// Validate checks the field values on CreateMetaSchemaRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateMetaSchemaRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateMetaSchemaRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateMetaSchemaRequestMultiError, or nil if none found.
+func (m *CreateMetaSchemaRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateMetaSchemaRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateMetaSchemaRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateMetaSchemaRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateMetaSchemaRequestValidationError{
+				field:  "Body",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateMetaSchemaRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateMetaSchemaRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateMetaSchemaRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateMetaSchemaRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateMetaSchemaRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateMetaSchemaRequestMultiError) AllErrors() []error { return m }
+
+// CreateMetaSchemaRequestValidationError is the validation error returned by
+// CreateMetaSchemaRequest.Validate if the designated constraints aren't met.
+type CreateMetaSchemaRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateMetaSchemaRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateMetaSchemaRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateMetaSchemaRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateMetaSchemaRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateMetaSchemaRequestValidationError) ErrorName() string {
+	return "CreateMetaSchemaRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateMetaSchemaRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateMetaSchemaRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateMetaSchemaRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateMetaSchemaRequestValidationError{}
+
+// Validate checks the field values on CreateMetaSchemaResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateMetaSchemaResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateMetaSchemaResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateMetaSchemaResponseMultiError, or nil if none found.
+func (m *CreateMetaSchemaResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateMetaSchemaResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetMetaschema()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateMetaSchemaResponseValidationError{
+					field:  "Metaschema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateMetaSchemaResponseValidationError{
+					field:  "Metaschema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetaschema()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateMetaSchemaResponseValidationError{
+				field:  "Metaschema",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateMetaSchemaResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateMetaSchemaResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateMetaSchemaResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateMetaSchemaResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateMetaSchemaResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateMetaSchemaResponseMultiError) AllErrors() []error { return m }
+
+// CreateMetaSchemaResponseValidationError is the validation error returned by
+// CreateMetaSchemaResponse.Validate if the designated constraints aren't met.
+type CreateMetaSchemaResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateMetaSchemaResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateMetaSchemaResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateMetaSchemaResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateMetaSchemaResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateMetaSchemaResponseValidationError) ErrorName() string {
+	return "CreateMetaSchemaResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateMetaSchemaResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateMetaSchemaResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateMetaSchemaResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateMetaSchemaResponseValidationError{}
+
+// Validate checks the field values on GetMetaSchemaRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetMetaSchemaRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetMetaSchemaRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetMetaSchemaRequestMultiError, or nil if none found.
+func (m *GetMetaSchemaRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetMetaSchemaRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return GetMetaSchemaRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetMetaSchemaRequestMultiError is an error wrapping multiple validation
+// errors returned by GetMetaSchemaRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetMetaSchemaRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetMetaSchemaRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetMetaSchemaRequestMultiError) AllErrors() []error { return m }
+
+// GetMetaSchemaRequestValidationError is the validation error returned by
+// GetMetaSchemaRequest.Validate if the designated constraints aren't met.
+type GetMetaSchemaRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetMetaSchemaRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetMetaSchemaRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetMetaSchemaRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetMetaSchemaRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetMetaSchemaRequestValidationError) ErrorName() string {
+	return "GetMetaSchemaRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetMetaSchemaRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetMetaSchemaRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetMetaSchemaRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetMetaSchemaRequestValidationError{}
+
+// Validate checks the field values on GetMetaSchemaResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetMetaSchemaResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetMetaSchemaResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetMetaSchemaResponseMultiError, or nil if none found.
+func (m *GetMetaSchemaResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetMetaSchemaResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetMetaschema()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetMetaSchemaResponseValidationError{
+					field:  "Metaschema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetMetaSchemaResponseValidationError{
+					field:  "Metaschema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetaschema()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetMetaSchemaResponseValidationError{
+				field:  "Metaschema",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetMetaSchemaResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetMetaSchemaResponseMultiError is an error wrapping multiple validation
+// errors returned by GetMetaSchemaResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetMetaSchemaResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetMetaSchemaResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetMetaSchemaResponseMultiError) AllErrors() []error { return m }
+
+// GetMetaSchemaResponseValidationError is the validation error returned by
+// GetMetaSchemaResponse.Validate if the designated constraints aren't met.
+type GetMetaSchemaResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetMetaSchemaResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetMetaSchemaResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetMetaSchemaResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetMetaSchemaResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetMetaSchemaResponseValidationError) ErrorName() string {
+	return "GetMetaSchemaResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetMetaSchemaResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetMetaSchemaResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetMetaSchemaResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetMetaSchemaResponseValidationError{}
+
+// Validate checks the field values on UpdateMetaSchemaRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateMetaSchemaRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateMetaSchemaRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateMetaSchemaRequestMultiError, or nil if none found.
+func (m *UpdateMetaSchemaRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateMetaSchemaRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if m.GetBody() == nil {
+		err := UpdateMetaSchemaRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateMetaSchemaRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateMetaSchemaRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateMetaSchemaRequestValidationError{
+				field:  "Body",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateMetaSchemaRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateMetaSchemaRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateMetaSchemaRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateMetaSchemaRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateMetaSchemaRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateMetaSchemaRequestMultiError) AllErrors() []error { return m }
+
+// UpdateMetaSchemaRequestValidationError is the validation error returned by
+// UpdateMetaSchemaRequest.Validate if the designated constraints aren't met.
+type UpdateMetaSchemaRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateMetaSchemaRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateMetaSchemaRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateMetaSchemaRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateMetaSchemaRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateMetaSchemaRequestValidationError) ErrorName() string {
+	return "UpdateMetaSchemaRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateMetaSchemaRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateMetaSchemaRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateMetaSchemaRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateMetaSchemaRequestValidationError{}
+
+// Validate checks the field values on UpdateMetaSchemaResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateMetaSchemaResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateMetaSchemaResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateMetaSchemaResponseMultiError, or nil if none found.
+func (m *UpdateMetaSchemaResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateMetaSchemaResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetMetaschema()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateMetaSchemaResponseValidationError{
+					field:  "Metaschema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateMetaSchemaResponseValidationError{
+					field:  "Metaschema",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetaschema()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateMetaSchemaResponseValidationError{
+				field:  "Metaschema",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateMetaSchemaResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateMetaSchemaResponseMultiError is an error wrapping multiple validation
+// errors returned by UpdateMetaSchemaResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateMetaSchemaResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateMetaSchemaResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateMetaSchemaResponseMultiError) AllErrors() []error { return m }
+
+// UpdateMetaSchemaResponseValidationError is the validation error returned by
+// UpdateMetaSchemaResponse.Validate if the designated constraints aren't met.
+type UpdateMetaSchemaResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateMetaSchemaResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateMetaSchemaResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateMetaSchemaResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateMetaSchemaResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateMetaSchemaResponseValidationError) ErrorName() string {
+	return "UpdateMetaSchemaResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateMetaSchemaResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateMetaSchemaResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateMetaSchemaResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateMetaSchemaResponseValidationError{}
+
+// Validate checks the field values on DeleteMetaSchemaRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteMetaSchemaRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteMetaSchemaRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteMetaSchemaRequestMultiError, or nil if none found.
+func (m *DeleteMetaSchemaRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteMetaSchemaRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return DeleteMetaSchemaRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteMetaSchemaRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteMetaSchemaRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteMetaSchemaRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteMetaSchemaRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteMetaSchemaRequestMultiError) AllErrors() []error { return m }
+
+// DeleteMetaSchemaRequestValidationError is the validation error returned by
+// DeleteMetaSchemaRequest.Validate if the designated constraints aren't met.
+type DeleteMetaSchemaRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteMetaSchemaRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteMetaSchemaRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteMetaSchemaRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteMetaSchemaRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteMetaSchemaRequestValidationError) ErrorName() string {
+	return "DeleteMetaSchemaRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteMetaSchemaRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteMetaSchemaRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteMetaSchemaRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteMetaSchemaRequestValidationError{}
+
+// Validate checks the field values on DeleteMetaSchemaResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteMetaSchemaResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteMetaSchemaResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteMetaSchemaResponseMultiError, or nil if none found.
+func (m *DeleteMetaSchemaResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteMetaSchemaResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DeleteMetaSchemaResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteMetaSchemaResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteMetaSchemaResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteMetaSchemaResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteMetaSchemaResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteMetaSchemaResponseMultiError) AllErrors() []error { return m }
+
+// DeleteMetaSchemaResponseValidationError is the validation error returned by
+// DeleteMetaSchemaResponse.Validate if the designated constraints aren't met.
+type DeleteMetaSchemaResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteMetaSchemaResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteMetaSchemaResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteMetaSchemaResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteMetaSchemaResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteMetaSchemaResponseValidationError) ErrorName() string {
+	return "DeleteMetaSchemaResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteMetaSchemaResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteMetaSchemaResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteMetaSchemaResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteMetaSchemaResponseValidationError{}
+
+// Validate checks the field values on ListMetaSchemasRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListMetaSchemasRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListMetaSchemasRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListMetaSchemasRequestMultiError, or nil if none found.
+func (m *ListMetaSchemasRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListMetaSchemasRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListMetaSchemasRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListMetaSchemasRequestMultiError is an error wrapping multiple validation
+// errors returned by ListMetaSchemasRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListMetaSchemasRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListMetaSchemasRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListMetaSchemasRequestMultiError) AllErrors() []error { return m }
+
+// ListMetaSchemasRequestValidationError is the validation error returned by
+// ListMetaSchemasRequest.Validate if the designated constraints aren't met.
+type ListMetaSchemasRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListMetaSchemasRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListMetaSchemasRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListMetaSchemasRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListMetaSchemasRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListMetaSchemasRequestValidationError) ErrorName() string {
+	return "ListMetaSchemasRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListMetaSchemasRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListMetaSchemasRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListMetaSchemasRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListMetaSchemasRequestValidationError{}
+
+// Validate checks the field values on ListMetaSchemasResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListMetaSchemasResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListMetaSchemasResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListMetaSchemasResponseMultiError, or nil if none found.
+func (m *ListMetaSchemasResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListMetaSchemasResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetMetaschemas() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListMetaSchemasResponseValidationError{
+						field:  fmt.Sprintf("Metaschemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListMetaSchemasResponseValidationError{
+						field:  fmt.Sprintf("Metaschemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListMetaSchemasResponseValidationError{
+					field:  fmt.Sprintf("Metaschemas[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListMetaSchemasResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListMetaSchemasResponseMultiError is an error wrapping multiple validation
+// errors returned by ListMetaSchemasResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListMetaSchemasResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListMetaSchemasResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListMetaSchemasResponseMultiError) AllErrors() []error { return m }
+
+// ListMetaSchemasResponseValidationError is the validation error returned by
+// ListMetaSchemasResponse.Validate if the designated constraints aren't met.
+type ListMetaSchemasResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListMetaSchemasResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListMetaSchemasResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListMetaSchemasResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListMetaSchemasResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListMetaSchemasResponseValidationError) ErrorName() string {
+	return "ListMetaSchemasResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListMetaSchemasResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListMetaSchemasResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListMetaSchemasResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListMetaSchemasResponseValidationError{}
