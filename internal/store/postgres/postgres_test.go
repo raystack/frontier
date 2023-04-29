@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/odpf/salt/log"
@@ -389,7 +390,7 @@ func bootstrapProject(client *db.Client, orgs []organization.Organization) ([]pr
 
 func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]group.Group, error) {
 	groupRepository := postgres.NewGroupRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-group.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-group.json")
 	if err != nil {
 		return nil, err
 	}
@@ -402,6 +403,7 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 	data[0].OrganizationID = orgs[0].ID
 	data[1].OrganizationID = orgs[0].ID
 	data[2].OrganizationID = orgs[1].ID
+	data[3].OrganizationID = orgs[1].ID
 
 	var insertedData []group.Group
 	for _, d := range data {

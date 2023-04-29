@@ -128,6 +128,135 @@ func (_c *UserService_CreateMetadataKey_Call) RunAndReturn(run func(context.Cont
 	return _c
 }
 
+// Delete provides a mock function with given fields: ctx, id
+func (_m *UserService) Delete(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UserService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type UserService_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *UserService_Expecter) Delete(ctx interface{}, id interface{}) *UserService_Delete_Call {
+	return &UserService_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+}
+
+func (_c *UserService_Delete_Call) Run(run func(ctx context.Context, id string)) *UserService_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_Delete_Call) Return(_a0 error) *UserService_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *UserService_Delete_Call) RunAndReturn(run func(context.Context, string) error) *UserService_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Disable provides a mock function with given fields: ctx, id
+func (_m *UserService) Disable(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UserService_Disable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Disable'
+type UserService_Disable_Call struct {
+	*mock.Call
+}
+
+// Disable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *UserService_Expecter) Disable(ctx interface{}, id interface{}) *UserService_Disable_Call {
+	return &UserService_Disable_Call{Call: _e.mock.On("Disable", ctx, id)}
+}
+
+func (_c *UserService_Disable_Call) Run(run func(ctx context.Context, id string)) *UserService_Disable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_Disable_Call) Return(_a0 error) *UserService_Disable_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *UserService_Disable_Call) RunAndReturn(run func(context.Context, string) error) *UserService_Disable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Enable provides a mock function with given fields: ctx, id
+func (_m *UserService) Enable(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UserService_Enable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Enable'
+type UserService_Enable_Call struct {
+	*mock.Call
+}
+
+// Enable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *UserService_Expecter) Enable(ctx interface{}, id interface{}) *UserService_Enable_Call {
+	return &UserService_Enable_Call{Call: _e.mock.On("Enable", ctx, id)}
+}
+
+func (_c *UserService_Enable_Call) Run(run func(ctx context.Context, id string)) *UserService_Enable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_Enable_Call) Return(_a0 error) *UserService_Enable_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *UserService_Enable_Call) RunAndReturn(run func(context.Context, string) error) *UserService_Enable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchCurrentUser provides a mock function with given fields: ctx
 func (_m *UserService) FetchCurrentUser(ctx context.Context) (user.User, error) {
 	ret := _m.Called(ctx)
@@ -342,18 +471,20 @@ func (_c *UserService_GetByIDs_Call) RunAndReturn(run func(context.Context, []st
 }
 
 // List provides a mock function with given fields: ctx, flt
-func (_m *UserService) List(ctx context.Context, flt user.Filter) (user.PagedUsers, error) {
+func (_m *UserService) List(ctx context.Context, flt user.Filter) ([]user.User, error) {
 	ret := _m.Called(ctx, flt)
 
-	var r0 user.PagedUsers
+	var r0 []user.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, user.Filter) (user.PagedUsers, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, user.Filter) ([]user.User, error)); ok {
 		return rf(ctx, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, user.Filter) user.PagedUsers); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, user.Filter) []user.User); ok {
 		r0 = rf(ctx, flt)
 	} else {
-		r0 = ret.Get(0).(user.PagedUsers)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]user.User)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, user.Filter) error); ok {
@@ -384,12 +515,68 @@ func (_c *UserService_List_Call) Run(run func(ctx context.Context, flt user.Filt
 	return _c
 }
 
-func (_c *UserService_List_Call) Return(_a0 user.PagedUsers, _a1 error) *UserService_List_Call {
+func (_c *UserService_List_Call) Return(_a0 []user.User, _a1 error) *UserService_List_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserService_List_Call) RunAndReturn(run func(context.Context, user.Filter) (user.PagedUsers, error)) *UserService_List_Call {
+func (_c *UserService_List_Call) RunAndReturn(run func(context.Context, user.Filter) ([]user.User, error)) *UserService_List_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListByOrg provides a mock function with given fields: ctx, orgID, permissionFilter
+func (_m *UserService) ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error) {
+	ret := _m.Called(ctx, orgID, permissionFilter)
+
+	var r0 []user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]user.User, error)); ok {
+		return rf(ctx, orgID, permissionFilter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
+		r0 = rf(ctx, orgID, permissionFilter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]user.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, orgID, permissionFilter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_ListByOrg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByOrg'
+type UserService_ListByOrg_Call struct {
+	*mock.Call
+}
+
+// ListByOrg is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - permissionFilter string
+func (_e *UserService_Expecter) ListByOrg(ctx interface{}, orgID interface{}, permissionFilter interface{}) *UserService_ListByOrg_Call {
+	return &UserService_ListByOrg_Call{Call: _e.mock.On("ListByOrg", ctx, orgID, permissionFilter)}
+}
+
+func (_c *UserService_ListByOrg_Call) Run(run func(ctx context.Context, orgID string, permissionFilter string)) *UserService_ListByOrg_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_ListByOrg_Call) Return(_a0 []user.User, _a1 error) *UserService_ListByOrg_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_ListByOrg_Call) RunAndReturn(run func(context.Context, string, string) ([]user.User, error)) *UserService_ListByOrg_Call {
 	_c.Call.Return(run)
 	return _c
 }

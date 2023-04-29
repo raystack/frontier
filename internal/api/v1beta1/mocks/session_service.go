@@ -88,8 +88,8 @@ type SessionService_Create_Call struct {
 }
 
 // Create is a helper method to define mock.On call
-//  - ctx context.Context
-//  - userID string
+//   - ctx context.Context
+//   - userID string
 func (_e *SessionService_Expecter) Create(ctx interface{}, userID interface{}) *SessionService_Create_Call {
 	return &SessionService_Create_Call{Call: _e.mock.On("Create", ctx, userID)}
 }
@@ -131,8 +131,8 @@ type SessionService_Delete_Call struct {
 }
 
 // Delete is a helper method to define mock.On call
-//  - ctx context.Context
-//  - sessionID uuid.UUID
+//   - ctx context.Context
+//   - sessionID uuid.UUID
 func (_e *SessionService_Expecter) Delete(ctx interface{}, sessionID interface{}) *SessionService_Delete_Call {
 	return &SessionService_Delete_Call{Call: _e.mock.On("Delete", ctx, sessionID)}
 }
@@ -186,7 +186,7 @@ type SessionService_ExtractFromContext_Call struct {
 }
 
 // ExtractFromContext is a helper method to define mock.On call
-//  - ctx context.Context
+//   - ctx context.Context
 func (_e *SessionService_Expecter) ExtractFromContext(ctx interface{}) *SessionService_ExtractFromContext_Call {
 	return &SessionService_ExtractFromContext_Call{Call: _e.mock.On("ExtractFromContext", ctx)}
 }
@@ -228,7 +228,7 @@ type SessionService_InitSessions_Call struct {
 }
 
 // InitSessions is a helper method to define mock.On call
-//  - ctx context.Context
+//   - ctx context.Context
 func (_e *SessionService_Expecter) InitSessions(ctx interface{}) *SessionService_InitSessions_Call {
 	return &SessionService_InitSessions_Call{Call: _e.mock.On("InitSessions", ctx)}
 }
@@ -270,8 +270,8 @@ type SessionService_Refresh_Call struct {
 }
 
 // Refresh is a helper method to define mock.On call
-//  - ctx context.Context
-//  - sessionID uuid.UUID
+//   - ctx context.Context
+//   - sessionID uuid.UUID
 func (_e *SessionService_Expecter) Refresh(ctx interface{}, sessionID interface{}) *SessionService_Refresh_Call {
 	return &SessionService_Refresh_Call{Call: _e.mock.On("Refresh", ctx, sessionID)}
 }

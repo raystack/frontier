@@ -10,5 +10,29 @@
                 "k2": "v2"
             }
         }
+    },
+    {
+        "name": "org",
+        "slug": "org-user-1"
+    },
+    {
+        "name": "org",
+        "slug": "org-user-2"
+    },
+    {
+        "name": "org",
+        "slug": "org-project-1"
+    },
+    {
+        "name": "org",
+        "slug": "org-relation-1"
+    },
+    {
+        "name": "org",
+        "slug": "org-relation-2"
+    },
+    {
+        "name": "org",
+        "slug": "org-relation-3"
     }
 ]

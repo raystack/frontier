@@ -4,6 +4,7 @@ import (
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/authenticate"
 	"github.com/odpf/shield/core/authenticate/session"
+	"github.com/odpf/shield/core/deleter"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
@@ -30,4 +31,5 @@ type Deps struct {
 	RuleService         *rule.Service
 	SessionService      *session.Service
 	RegistrationService *authenticate.RegistrationService
+	DeleterService      *deleter.Service
 }

@@ -1,0 +1,28 @@
+root:
+  type: resource_group
+  resource_types:
+    - name: compass
+      roles:
+        - name: viewer
+          principals:
+            - shield/user
+            - shield/group
+        - name: editor
+          principals:
+            - shield/user
+            - shield/group
+        - name: public
+          principals:
+            - shield/user
+      permissions:
+        - name: view
+          roles:
+            - editor
+            - viewer
+        - name: edit
+          roles:
+            - owner
+        - name: search
+          roles:
+            - public
+            - organization:owner

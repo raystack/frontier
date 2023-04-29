@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	shielduuid "github.com/odpf/shield/pkg/uuid"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/odpf/shield/core/action"
@@ -30,7 +32,10 @@ type RelationService interface {
 	GetRelationByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 }
 
-var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
+var (
+	grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
+	ErrSubjectSplitNotation = errors.New("subject/object should be provided as 'namespace:uuid'")
+)
 
 func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListRelationsRequest) (*shieldv1beta1.ListRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
@@ -63,7 +68,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	principal, subjectID, err := extractSubjectFromPrincipal(request.GetBody().GetSubject())
+	subjectNamespace, subjectID, err := extractSubjectFromPrincipal(request.GetBody().GetSubject())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -82,9 +87,21 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
 		}
 	}
-
 	if !result {
 		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
+	}
+
+	// If Principal is a user, then we will get ID for that user as Subject.ID
+	if subjectNamespace == schema.UserPrincipal || subjectNamespace == "user" {
+		if !shielduuid.IsValid(subjectID) {
+			// could be email
+			fetchedUser, err := h.userService.GetByEmail(ctx, subjectID)
+			if err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, err.Error())
+			}
+			subjectID = fetchedUser.ID
+		}
+		subjectNamespace = schema.UserPrincipal
 	}
 
 	newRelation, err := h.relationService.Create(ctx, relation.RelationV2{
@@ -94,7 +111,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		},
 		Subject: relation.Subject{
 			ID:        subjectID,
-			Namespace: principal,
+			Namespace: subjectNamespace,
 			RoleID:    request.GetBody().GetRoleName(),
 		},
 	})
@@ -151,28 +168,18 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.DeleteRelationRequest) (*shieldv1beta1.DeleteRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	reln, err := h.relationService.GetRelationByFields(ctx, relation.RelationV2{
-		Object: relation.Object{
-			ID: request.GetObjectId(),
-		},
-		Subject: relation.Subject{
-			ID:     request.GetSubjectId(),
-			RoleID: request.GetRole(),
-		},
-	})
+	subjectNamespace, subjectID, err := extractSubjectFromPrincipal(request.GetSubjectId())
 	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, relation.ErrNotExist):
-			return nil, grpcRelationNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	}
+	objectNamespace, objectID, err := extractSubjectFromPrincipal(request.GetObjectId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		Name:        reln.Object.ID,
-		NamespaceID: reln.Object.Namespace,
+		Name:        objectID,
+		NamespaceID: objectNamespace,
 	}, action.Action{ID: schema.EditPermission})
 	if err != nil {
 		switch {
@@ -191,11 +198,13 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 
 	err = h.relationService.Delete(ctx, relation.RelationV2{
 		Object: relation.Object{
-			ID: request.GetObjectId(),
+			Namespace: objectNamespace,
+			ID:        objectID,
 		},
 		Subject: relation.Subject{
-			ID:     request.GetSubjectId(),
-			RoleID: request.GetRole(),
+			Namespace: subjectNamespace,
+			ID:        subjectID,
+			RoleID:    request.GetRole(),
 		},
 	})
 	if err != nil {
@@ -211,7 +220,7 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 	}
 
 	return &shieldv1beta1.DeleteRelationResponse{
-		Message: "Relation deleted",
+		Message: "relation deleted",
 	}, nil
 }
 
@@ -220,7 +229,7 @@ func transformRelationV2ToPB(relation relation.RelationV2) (*shieldv1beta1.Relat
 		Id:              relation.ID,
 		ObjectId:        relation.Object.ID,
 		ObjectNamespace: relation.Object.Namespace,
-		Subject:         generateSubject(relation.Subject.ID, relation.Subject.Namespace),
+		Subject:         GenerateSubject(relation.Subject.Namespace, relation.Subject.ID),
 		RoleName:        relation.Subject.RoleID,
 	}
 	if !relation.CreatedAt.IsZero() {
@@ -234,12 +243,12 @@ func transformRelationV2ToPB(relation relation.RelationV2) (*shieldv1beta1.Relat
 
 func extractSubjectFromPrincipal(principal string) (string, string, error) {
 	splits := strings.Split(principal, ":")
-	if len(splits) < 1 {
-		return "", "", errors.New("subject should be provided as subjectNamespace:subjectID")
+	if len(splits) < 2 {
+		return "", "", ErrSubjectSplitNotation
 	}
 	return splits[0], splits[1], nil
 }
 
-func generateSubject(subjectId, principal string) string {
-	return fmt.Sprintf("%s:%s", principal, subjectId)
+func GenerateSubject(principal, Id string) string {
+	return fmt.Sprintf("%s:%s", principal, Id)
 }

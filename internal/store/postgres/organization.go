@@ -10,13 +10,14 @@ import (
 )
 
 type Organization struct {
-	ID        string       `db:"id"`
-	Name      string       `db:"name"`
-	Slug      string       `db:"slug"`
-	Metadata  []byte       `db:"metadata"`
-	CreatedAt time.Time    `db:"created_at"`
-	UpdatedAt time.Time    `db:"updated_at"`
-	DeletedAt sql.NullTime `db:"deleted_at"`
+	ID        string         `db:"id"`
+	Name      string         `db:"name"`
+	Slug      string         `db:"slug"`
+	Metadata  []byte         `db:"metadata"`
+	State     sql.NullString `db:"state"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at"`
 }
 
 func (from Organization) transformToOrg() (organization.Organization, error) {
@@ -30,6 +31,7 @@ func (from Organization) transformToOrg() (organization.Organization, error) {
 		Name:      from.Name,
 		Slug:      from.Slug,
 		Metadata:  unmarshalledMetadata,
+		State:     organization.State(from.State.String),
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,
 	}, nil

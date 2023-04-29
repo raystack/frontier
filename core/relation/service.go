@@ -2,28 +2,26 @@ package relation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
+	shielduuid "github.com/odpf/shield/pkg/uuid"
+
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
 )
 
 type Service struct {
 	repository      Repository
 	authzRepository AuthzRepository
 	roleService     RoleService
-	userService     UserService
 }
 
-func NewService(repository Repository, authzRepository AuthzRepository, roleService RoleService, userService UserService) *Service {
+func NewService(repository Repository, authzRepository AuthzRepository, roleService RoleService) *Service {
 	return &Service{
 		repository:      repository,
 		authzRepository: authzRepository,
 		roleService:     roleService,
-		userService:     userService,
 	}
 }
 
@@ -32,23 +30,8 @@ func (s Service) Get(ctx context.Context, id string) (RelationV2, error) {
 }
 
 func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error) {
-	// If Principal is a user, then we will get ID for that user as Subject.ID
-	if rel.Subject.Namespace == schema.UserPrincipal || rel.Subject.Namespace == "user" {
-		var fetchedUser user.User
-		var err error
-		if _, err := uuid.Parse(rel.Subject.ID); err == nil {
-			// must be uuid
-			fetchedUser, err = s.userService.GetByID(ctx, rel.Subject.ID)
-		} else {
-			// could be email
-			fetchedUser, err = s.userService.GetByEmail(ctx, rel.Subject.ID)
-		}
-		if err != nil {
-			return RelationV2{}, fmt.Errorf("%w: %s", ErrFetchingUser, err.Error())
-		}
-
-		rel.Subject.Namespace = schema.UserPrincipal
-		rel.Subject.ID = fetchedUser.ID
+	if !shielduuid.IsValid(rel.Object.ID) || !shielduuid.IsValid(rel.Subject.ID) {
+		return RelationV2{}, errors.New("subject/object id should be a valid uuid")
 	}
 
 	createdRelation, err := s.repository.Create(ctx, rel)
@@ -113,11 +96,11 @@ func (s Service) Delete(ctx context.Context, rel RelationV2) error {
 	return s.repository.DeleteByID(ctx, fetchedRel.ID)
 }
 
-func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error) {
+func (s Service) CheckPermission(ctx context.Context, userID string, resourceNS namespace.Namespace, resourceIdx string, action action.Action) (bool, error) {
 	return s.authzRepository.Check(ctx, Relation{
 		ObjectNamespace:  resourceNS,
-		ObjectID:         resourceIdxa,
-		SubjectID:        usr.ID,
+		ObjectID:         resourceIdx,
+		SubjectID:        userID,
 		SubjectNamespace: namespace.DefinitionUser,
 	}, action)
 }

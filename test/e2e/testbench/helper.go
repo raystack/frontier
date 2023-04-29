@@ -80,6 +80,14 @@ func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 		}
 	}
 
+	// validate
+	uRes, err := cl.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
+	if err != nil {
+		return err
+	}
+	if len(data) != len(uRes.GetUsers()) {
+		return errors.New("failed to validate number of users created")
+	}
 	return nil
 }
 
@@ -120,6 +128,14 @@ func BootstrapOrganizations(ctx context.Context, cl shieldv1beta1.ShieldServiceC
 		}
 	}
 
+	// validate
+	uRes, err := cl.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
+	if err != nil {
+		return err
+	}
+	if len(data) != len(uRes.GetOrganizations()) {
+		return errors.New("failed to validate number of organizations created")
+	}
 	return nil
 }
 
@@ -150,6 +166,14 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 		}
 	}
 
+	// validate
+	uRes, err := cl.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
+	if err != nil {
+		return err
+	}
+	if len(data) != len(uRes.GetProjects()) {
+		return errors.New("failed to validate number of projects created")
+	}
 	return nil
 }
 
@@ -180,5 +204,13 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 		}
 	}
 
+	// validate
+	uRes, err := cl.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
+	if err != nil {
+		return err
+	}
+	if len(data) != len(uRes.GetGroups()) {
+		return errors.New("failed to validate number of groups created")
+	}
 	return nil
 }

@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/shield/core/user"
+
 	"github.com/odpf/shield/core/project"
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/db"
 )
 
@@ -28,6 +28,15 @@ func NewOrganizationRepository(dbc *db.Client) *OrganizationRepository {
 	}
 }
 
+var notDisabledOrgExp = goqu.Or(
+	goqu.Ex{
+		"state": nil,
+	},
+	goqu.Ex{
+		"state": goqu.Op{"neq": organization.Disabled},
+	},
+)
+
 func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organization.Organization, error) {
 	if strings.TrimSpace(id) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
@@ -35,7 +44,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"id": id,
-	}).ToSQL()
+	}).Where(notDisabledOrgExp).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -81,7 +90,7 @@ func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]o
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"id": goqu.Op{"in": ids},
-	}).ToSQL()
+	}).Where(notDisabledOrgExp).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -132,7 +141,7 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"slug": slug,
-	}).ToSQL()
+	}).Where(notDisabledOrgExp).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -180,12 +189,15 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	query, params, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(
-		goqu.Record{
-			"name":     org.Name,
-			"slug":     org.Slug,
-			"metadata": marshaledMetadata,
-		}).Returning(&Organization{}).ToSQL()
+	insertRow := goqu.Record{
+		"name":     org.Name,
+		"slug":     org.Slug,
+		"metadata": marshaledMetadata,
+	}
+	if org.State != "" {
+		insertRow["state"] = org.State
+	}
+	query, params, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(insertRow).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -221,8 +233,16 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	return transformedOrg, nil
 }
 
-func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organization, error) {
-	query, params, err := dialect.From(TABLE_ORGANIZATIONS).ToSQL()
+func (r OrganizationRepository) List(ctx context.Context, flt organization.Filter) ([]organization.Organization, error) {
+	stmt := dialect.From(TABLE_ORGANIZATIONS)
+	if flt.State == "" {
+		stmt = stmt.Where(notDisabledOrgExp)
+	} else {
+		stmt = stmt.Where(goqu.Ex{
+			"state": flt.State.String(),
+		})
+	}
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -382,61 +402,81 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 	return org, nil
 }
 
-func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID string) ([]user.User, error) {
-	if strings.TrimSpace(orgID) == "" {
-		return []user.User{}, organization.ErrInvalidID
-	}
-
-	query, params, err := dialect.Select(
-		goqu.I("u.id").As("id"),
-		goqu.I("u.name").As("name"),
-		goqu.I("u.email").As("email"),
-		goqu.I("u.created_at").As("created_at"),
-		goqu.I("u.updated_at").As("updated_at"),
-	).
-		From(goqu.T(TABLE_RELATIONS).As("r")).
-		Join(goqu.T(TABLE_USERS).As("u"), goqu.On(
-			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
-		)).Where(goqu.Ex{
-		"r.object_id":            orgID,
-		"r.role_id":              schema.GetRoleID(schema.OrganizationNamespace, schema.OwnerRole),
-		"r.subject_namespace_id": schema.UserPrincipal,
-		"r.object_namespace_id":  schema.OrganizationNamespace,
-	}).ToSQL()
+func (r OrganizationRepository) SetState(ctx context.Context, id string, state organization.State) error {
+	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
+		goqu.Record{
+			"state": state.String(),
+		}).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
 	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var userModels []User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "ListAdminsByOrgID",
+				Operation:  "SetState",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
 		}
-		return r.dbc.SelectContext(ctx, &userModels, query, params...)
+
+		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
-		// List should not return error if empty
-		if errors.Is(err, sql.ErrNoRows) {
-			return []user.User{}, nil
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return user.ErrNotExist
+		default:
+			return err
 		}
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+	return nil
+}
+
+func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := dialect.Delete(TABLE_ORGANIZATIONS).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var transformedUsers []user.User
-	for _, u := range userModels {
-		transformedUser, err := u.transformToUser()
-		if err != nil {
-			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ORGANIZATIONS,
+				Operation:  "Delete",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
 		}
 
-		transformedUsers = append(transformedUsers, transformedUser)
+		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return user.ErrNotExist
+		default:
+			return err
+		}
 	}
-
-	return transformedUsers, nil
+	return nil
 }

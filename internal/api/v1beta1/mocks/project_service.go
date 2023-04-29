@@ -77,6 +77,92 @@ func (_c *ProjectService_Create_Call) RunAndReturn(run func(context.Context, pro
 	return _c
 }
 
+// Disable provides a mock function with given fields: ctx, id
+func (_m *ProjectService) Disable(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ProjectService_Disable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Disable'
+type ProjectService_Disable_Call struct {
+	*mock.Call
+}
+
+// Disable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ProjectService_Expecter) Disable(ctx interface{}, id interface{}) *ProjectService_Disable_Call {
+	return &ProjectService_Disable_Call{Call: _e.mock.On("Disable", ctx, id)}
+}
+
+func (_c *ProjectService_Disable_Call) Run(run func(ctx context.Context, id string)) *ProjectService_Disable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ProjectService_Disable_Call) Return(_a0 error) *ProjectService_Disable_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ProjectService_Disable_Call) RunAndReturn(run func(context.Context, string) error) *ProjectService_Disable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Enable provides a mock function with given fields: ctx, id
+func (_m *ProjectService) Enable(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ProjectService_Enable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Enable'
+type ProjectService_Enable_Call struct {
+	*mock.Call
+}
+
+// Enable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ProjectService_Expecter) Enable(ctx interface{}, id interface{}) *ProjectService_Enable_Call {
+	return &ProjectService_Enable_Call{Call: _e.mock.On("Enable", ctx, id)}
+}
+
+func (_c *ProjectService_Enable_Call) Run(run func(ctx context.Context, id string)) *ProjectService_Enable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ProjectService_Enable_Call) Return(_a0 error) *ProjectService_Enable_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ProjectService_Enable_Call) RunAndReturn(run func(context.Context, string) error) *ProjectService_Enable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Get provides a mock function with given fields: ctx, idOrSlugd
 func (_m *ProjectService) Get(ctx context.Context, idOrSlugd string) (project.Project, error) {
 	ret := _m.Called(ctx, idOrSlugd)
@@ -130,25 +216,25 @@ func (_c *ProjectService_Get_Call) RunAndReturn(run func(context.Context, string
 	return _c
 }
 
-// List provides a mock function with given fields: ctx
-func (_m *ProjectService) List(ctx context.Context) ([]project.Project, error) {
-	ret := _m.Called(ctx)
+// List provides a mock function with given fields: ctx, f
+func (_m *ProjectService) List(ctx context.Context, f project.Filter) ([]project.Project, error) {
+	ret := _m.Called(ctx, f)
 
 	var r0 []project.Project
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]project.Project, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, project.Filter) ([]project.Project, error)); ok {
+		return rf(ctx, f)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []project.Project); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, project.Filter) []project.Project); ok {
+		r0 = rf(ctx, f)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]project.Project)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, project.Filter) error); ok {
+		r1 = rf(ctx, f)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -163,13 +249,14 @@ type ProjectService_List_Call struct {
 
 // List is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *ProjectService_Expecter) List(ctx interface{}) *ProjectService_List_Call {
-	return &ProjectService_List_Call{Call: _e.mock.On("List", ctx)}
+//   - f project.Filter
+func (_e *ProjectService_Expecter) List(ctx interface{}, f interface{}) *ProjectService_List_Call {
+	return &ProjectService_List_Call{Call: _e.mock.On("List", ctx, f)}
 }
 
-func (_c *ProjectService_List_Call) Run(run func(ctx context.Context)) *ProjectService_List_Call {
+func (_c *ProjectService_List_Call) Run(run func(ctx context.Context, f project.Filter)) *ProjectService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		run(args[0].(context.Context), args[1].(project.Filter))
 	})
 	return _c
 }
@@ -179,62 +266,7 @@ func (_c *ProjectService_List_Call) Return(_a0 []project.Project, _a1 error) *Pr
 	return _c
 }
 
-func (_c *ProjectService_List_Call) RunAndReturn(run func(context.Context) ([]project.Project, error)) *ProjectService_List_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ListByOrganization provides a mock function with given fields: ctx, organizationID
-func (_m *ProjectService) ListByOrganization(ctx context.Context, organizationID string) ([]project.Project, error) {
-	ret := _m.Called(ctx, organizationID)
-
-	var r0 []project.Project
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]project.Project, error)); ok {
-		return rf(ctx, organizationID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []project.Project); ok {
-		r0 = rf(ctx, organizationID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]project.Project)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, organizationID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ProjectService_ListByOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByOrganization'
-type ProjectService_ListByOrganization_Call struct {
-	*mock.Call
-}
-
-// ListByOrganization is a helper method to define mock.On call
-//   - ctx context.Context
-//   - organizationID string
-func (_e *ProjectService_Expecter) ListByOrganization(ctx interface{}, organizationID interface{}) *ProjectService_ListByOrganization_Call {
-	return &ProjectService_ListByOrganization_Call{Call: _e.mock.On("ListByOrganization", ctx, organizationID)}
-}
-
-func (_c *ProjectService_ListByOrganization_Call) Run(run func(ctx context.Context, organizationID string)) *ProjectService_ListByOrganization_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *ProjectService_ListByOrganization_Call) Return(_a0 []project.Project, _a1 error) *ProjectService_ListByOrganization_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ProjectService_ListByOrganization_Call) RunAndReturn(run func(context.Context, string) ([]project.Project, error)) *ProjectService_ListByOrganization_Call {
+func (_c *ProjectService_List_Call) RunAndReturn(run func(context.Context, project.Filter) ([]project.Project, error)) *ProjectService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

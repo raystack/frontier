@@ -28,40 +28,45 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 	Create(ctx context.Context, user user.User) (user.User, error)
-	List(ctx context.Context, flt user.Filter) (user.PagedUsers, error)
+	List(ctx context.Context, flt user.Filter) ([]user.User, error)
+	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
+	Enable(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string) error
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
 
-	userResp, err := h.userService.List(ctx, user.Filter{
+	usersList, err := h.userService.List(ctx, user.Filter{
 		Limit:   request.GetPageSize(),
 		Page:    request.GetPageNum(),
 		Keyword: request.GetKeyword(),
+		OrgID:   request.GetOrgId(),
+		GroupID: request.GetGroupId(),
+		State:   user.State(request.GetState()),
 	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
-	userList := userResp.Users
-	for _, user := range userList {
+	for _, user := range usersList {
 		userPB, err := transformUserToPB(user)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-
 		users = append(users, &userPB)
 	}
 
 	return &shieldv1beta1.ListUsersResponse{
-		Count: userResp.Count,
+		Count: int32(len(users)),
 		Users: users,
 	}, nil
 }
@@ -386,6 +391,33 @@ func (h Handler) GetOrganizationsByUser(ctx context.Context, request *shieldv1be
 		orgs = append(orgs, &orgPB)
 	}
 	return &shieldv1beta1.GetOrganizationsByUserResponse{Organizations: orgs}, nil
+}
+
+func (h Handler) EnableUser(ctx context.Context, request *shieldv1beta1.EnableUserRequest) (*shieldv1beta1.EnableUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.userService.Enable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.EnableUserResponse{}, nil
+}
+
+func (h Handler) DisableUser(ctx context.Context, request *shieldv1beta1.DisableUserRequest) (*shieldv1beta1.DisableUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.userService.Disable(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.DisableUserResponse{}, nil
+}
+
+func (h Handler) DeleteUser(ctx context.Context, request *shieldv1beta1.DeleteUserRequest) (*shieldv1beta1.DeleteUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.userService.Delete(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.DeleteUserResponse{}, nil
 }
 
 func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {

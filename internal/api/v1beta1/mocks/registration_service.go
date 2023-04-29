@@ -91,8 +91,8 @@ type RegistrationService_Finish_Call struct {
 }
 
 // Finish is a helper method to define mock.On call
-//  - ctx context.Context
-//  - request authenticate.RegistrationFinishRequest
+//   - ctx context.Context
+//   - request authenticate.RegistrationFinishRequest
 func (_e *RegistrationService_Expecter) Finish(ctx interface{}, request interface{}) *RegistrationService_Finish_Call {
 	return &RegistrationService_Finish_Call{Call: _e.mock.On("Finish", ctx, request)}
 }
@@ -134,7 +134,7 @@ type RegistrationService_InitFlows_Call struct {
 }
 
 // InitFlows is a helper method to define mock.On call
-//  - ctx context.Context
+//   - ctx context.Context
 func (_e *RegistrationService_Expecter) InitFlows(ctx interface{}) *RegistrationService_InitFlows_Call {
 	return &RegistrationService_InitFlows_Call{Call: _e.mock.On("InitFlows", ctx)}
 }
@@ -188,8 +188,8 @@ type RegistrationService_Start_Call struct {
 }
 
 // Start is a helper method to define mock.On call
-//  - ctx context.Context
-//  - request authenticate.RegistrationStartRequest
+//   - ctx context.Context
+//   - request authenticate.RegistrationStartRequest
 func (_e *RegistrationService_Expecter) Start(ctx interface{}, request interface{}) *RegistrationService_Start_Call {
 	return &RegistrationService_Start_Call{Call: _e.mock.On("Start", ctx, request)}
 }
@@ -286,8 +286,8 @@ type RegistrationService_Token_Call struct {
 }
 
 // Token is a helper method to define mock.On call
-//  - _a0 user.User
-//  - orgs []organization.Organization
+//   - _a0 user.User
+//   - orgs []organization.Organization
 func (_e *RegistrationService_Expecter) Token(_a0 interface{}, orgs interface{}) *RegistrationService_Token_Call {
 	return &RegistrationService_Token_Call{Call: _e.mock.On("Token", _a0, orgs)}
 }

@@ -30,16 +30,16 @@ type PingSmokeTestSuite struct {
 
 func (s *PingSmokeTestSuite) SetupSuite() {
 	wd, err := os.Getwd()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 	testDataPath := path.Join("file://", wd, fixturesDir)
 
 	apiPort, err := testbench.GetFreePort()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 	s.apiPort = apiPort
 	grpcPort, err := testbench.GetFreePort()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 	proxyPort, err := testbench.GetFreePort()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 	s.proxyPort = proxyPort
 
 	appConfig := &config.Shield{
@@ -71,7 +71,7 @@ func (s *PingSmokeTestSuite) SetupSuite() {
 	}
 
 	tb, err := testbench.Init(appConfig)
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 
 	s.close = func() error {
 		return tb.Close()

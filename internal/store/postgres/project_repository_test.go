@@ -145,6 +145,7 @@ func (s *ProjectRepositoryTestSuite) TestGetByID() {
 				Organization: organization.Organization{
 					ID: s.projects[0].ID,
 				},
+				State: project.Enabled,
 			},
 		},
 		{
@@ -196,8 +197,9 @@ func (s *ProjectRepositoryTestSuite) TestGetBySlug() {
 			Description:  "should get a project",
 			SelectedSlug: "project-1",
 			ExpectedProject: project.Project{
-				Name: "project1",
-				Slug: "project-1",
+				Name:  "project1",
+				Slug:  "project-1",
+				State: project.Enabled,
 			},
 		},
 		{
@@ -245,8 +247,9 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 				},
 			},
 			ExpectedProject: project.Project{
-				Name: "new-project",
-				Slug: "new-project-slug",
+				Name:  "new-project",
+				Slug:  "new-project-slug",
+				State: project.Enabled,
 			},
 		},
 		{
@@ -311,16 +314,19 @@ func (s *ProjectRepositoryTestSuite) TestList() {
 			Description: "should get all projects",
 			ExpectedProjects: []project.Project{
 				{
-					Name: "project1",
-					Slug: "project-1",
+					Name:  "project1",
+					Slug:  "project-1",
+					State: project.Enabled,
 				},
 				{
-					Name: "project2",
-					Slug: "project-2",
+					Name:  "project2",
+					Slug:  "project-2",
+					State: project.Enabled,
 				},
 				{
-					Name: "project3",
-					Slug: "project-3",
+					Name:  "project3",
+					Slug:  "project-3",
+					State: project.Enabled,
 				},
 			},
 		},
@@ -328,7 +334,7 @@ func (s *ProjectRepositoryTestSuite) TestList() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx)
+			got, err := s.repository.List(s.ctx, project.Filter{})
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -361,8 +367,9 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 				},
 			},
 			ExpectedProject: project.Project{
-				Name: "new project update",
-				Slug: "new-project-update",
+				Name:  "new project update",
+				Slug:  "new-project-update",
+				State: project.Enabled,
 			},
 		},
 		{
@@ -465,8 +472,9 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 				},
 			},
 			ExpectedProject: project.Project{
-				Name: "new project update",
-				Slug: "project-1",
+				Name:  "new project update",
+				Slug:  "project-1",
+				State: project.Enabled,
 			},
 		},
 		{

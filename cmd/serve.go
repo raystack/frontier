@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/core/deleter"
+
 	"github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/internal/server/consts"
 
@@ -186,15 +188,15 @@ func buildAPIDependencies(
 
 	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
 
-	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, sessionService)
-
 	roleRepository := postgres.NewRoleRepository(dbc)
 	roleService := role.NewService(roleRepository)
 
 	relationPGRepository := postgres.NewRelationRepository(dbc)
 	relationSpiceRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent)
-	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, roleService, userService)
+	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, roleService)
+
+	userRepository := postgres.NewUserRepository(dbc)
+	userService := user.NewService(userRepository, sessionService, relationService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, userService)
@@ -218,6 +220,8 @@ func buildAPIDependencies(
 
 	registrationService := authenticate.NewRegistrationService(logger, postgres.NewFlowRepository(logger, dbc), userService, cfg.App.Authentication)
 
+	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService)
+
 	dependencies := api.Deps{
 		OrgService:          organizationService,
 		ProjectService:      projectService,
@@ -231,6 +235,7 @@ func buildAPIDependencies(
 		ResourceService:     resourceService,
 		SessionService:      sessionService,
 		RegistrationService: registrationService,
+		DeleterService:      cascadeDeleter,
 	}
 	return dependencies, nil
 }

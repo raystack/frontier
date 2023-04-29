@@ -4,12 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/internal/schema"
-
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/core/user"
 )
 
 type Repository interface {
@@ -34,11 +31,6 @@ type AuthzRepository interface {
 
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
-}
-
-type UserService interface {
-	GetByEmail(ctx context.Context, email string) (user.User, error)
-	GetByID(ctx context.Context, id string) (user.User, error)
 }
 
 type Relation struct {
@@ -84,20 +76,4 @@ var RelationTypes = struct {
 }{
 	Role:      "role",
 	Namespace: "namespace",
-}
-
-func BuildUserResourceAdminSubject(user user.User) Subject {
-	return Subject{
-		ID:        user.Email,
-		Namespace: schema.UserPrincipal,
-		RoleID:    schema.OwnerRole,
-	}
-}
-
-func BuildUserGroupAdminSubject(user user.User) Subject {
-	return Subject{
-		ID:        user.Email,
-		Namespace: schema.UserPrincipal,
-		RoleID:    schema.ManagerRole,
-	}
 }

@@ -9,14 +9,15 @@ import (
 )
 
 type Group struct {
-	ID        string       `db:"id"`
-	Name      string       `db:"name"`
-	Slug      string       `db:"slug"`
-	OrgID     string       `db:"org_id"`
-	Metadata  []byte       `db:"metadata"`
-	CreatedAt time.Time    `db:"created_at"`
-	UpdatedAt time.Time    `db:"updated_at"`
-	DeletedAt sql.NullTime `db:"deleted_at"`
+	ID        string         `db:"id"`
+	Name      string         `db:"name"`
+	Slug      string         `db:"slug"`
+	OrgID     string         `db:"org_id"`
+	Metadata  []byte         `db:"metadata"`
+	State     sql.NullString `db:"state"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at"`
 }
 
 func (from Group) transformToGroup() (group.Group, error) {
@@ -31,6 +32,7 @@ func (from Group) transformToGroup() (group.Group, error) {
 		Slug:           from.Slug,
 		OrganizationID: from.OrgID,
 		Metadata:       unmarshalledMetadata,
+		State:          group.State(from.State.String),
 		CreatedAt:      from.CreatedAt,
 		UpdatedAt:      from.UpdatedAt,
 	}, nil

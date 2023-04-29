@@ -7,6 +7,17 @@ import (
 	"github.com/odpf/shield/pkg/metadata"
 )
 
+type State string
+
+func (s State) String() string {
+	return string(s)
+}
+
+const (
+	Enabled  State = "enabled"
+	Disabled State = "disabled"
+)
+
 type Repository interface {
 	GetByID(ctx context.Context, id string) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
@@ -16,12 +27,15 @@ type Repository interface {
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error)
+	Delete(ctx context.Context, id string) error
+	SetState(ctx context.Context, id string, state State) error
 }
 
 type User struct {
 	ID        string
 	Name      string
 	Email     string
+	State     State
 	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/schema"
@@ -14,15 +12,13 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
-	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
 	LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error)
+	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 }
 
 type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 	GetByID(ctx context.Context, id string) (user.User, error)
-	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
 type Service struct {
@@ -62,14 +58,19 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	}
 
 	// attach user as admin
-	if err = s.CreateRelation(ctx, newOrg, relation.BuildUserResourceAdminSubject(currentUser)); err != nil {
+	if err = s.CreateRelation(ctx, newOrg, BuildUserOrgAdminSubject(currentUser)); err != nil {
 		return Organization{}, err
 	}
 	return newOrg, nil
 }
 
-func (s Service) List(ctx context.Context) ([]Organization, error) {
-	return s.repository.List(ctx)
+func (s Service) List(ctx context.Context, f Filter) ([]Organization, error) {
+	if f.UserID != "" {
+		return s.ListByUser(ctx, f.UserID)
+	}
+
+	// state gets filtered in db
+	return s.repository.List(ctx, f)
 }
 
 func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
@@ -77,19 +78,6 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 		return s.repository.UpdateByID(ctx, org)
 	}
 	return s.repository.UpdateBySlug(ctx, org)
-}
-
-func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, error) {
-	var org Organization
-	var err error
-	if uuid.IsValid(idOrSlug) {
-		return s.repository.ListAdminsByOrgID(ctx, idOrSlug)
-	}
-	org, err = s.repository.GetBySlug(ctx, idOrSlug)
-	if err != nil {
-		return []user.User{}, err
-	}
-	return s.repository.ListAdminsByOrgID(ctx, org.ID)
 }
 
 func (s Service) CreateRelation(ctx context.Context, org Organization, subject relation.Subject) error {
@@ -106,27 +94,6 @@ func (s Service) CreateRelation(ctx context.Context, org Organization, subject r
 	return nil
 }
 
-func (s Service) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
-		Object: relation.Object{
-			ID:        id,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-			RoleID:    permissionFilter,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	if len(userIDs) == 0 {
-		// no users
-		return []user.User{}, nil
-	}
-	return s.userService.GetByIDs(ctx, userIDs)
-}
-
 func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization, error) {
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.RelationV2{
 		Object: relation.Object{
@@ -135,7 +102,7 @@ func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization,
 		Subject: relation.Subject{
 			ID:        userID,
 			Namespace: schema.UserPrincipal,
-			RoleID:    schema.ViewPermission,
+			RoleID:    schema.MembershipPermission,
 		},
 	})
 	if err != nil {
@@ -146,4 +113,20 @@ func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization,
 		return []Organization{}, nil
 	}
 	return s.repository.GetByIDs(ctx, subjectIDs)
+}
+
+func (s Service) Enable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Enabled)
+}
+
+func (s Service) Disable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Disabled)
+}
+
+// DeleteModel doesn't delete the nested resource, only itself
+func (s Service) DeleteModel(ctx context.Context, id string) error {
+	if err := s.relationService.DeleteSubjectRelations(ctx, schema.OrganizationNamespace, id); err != nil {
+		return err
+	}
+	return s.repository.Delete(ctx, id)
 }

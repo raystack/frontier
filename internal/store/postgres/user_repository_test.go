@@ -93,6 +93,7 @@ func (s *UserRepositoryTestSuite) TestGetByID() {
 				Name:     s.users[0].Name,
 				Email:    s.users[0].Email,
 				Metadata: s.users[0].Metadata,
+				State:    user.Enabled,
 			},
 		},
 		{
@@ -144,6 +145,7 @@ func (s *UserRepositoryTestSuite) TestGetByEmail() {
 				Name:     s.users[0].Name,
 				Email:    s.users[0].Email,
 				Metadata: s.users[0].Metadata,
+				State:    user.Enabled,
 			},
 		},
 		{
@@ -329,6 +331,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 				Metadata: metadata.Metadata{
 					"k1": "v1",
 				},
+				State: user.Enabled,
 			},
 		},
 		{
@@ -390,6 +393,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				Metadata: metadata.Metadata{
 					"k2": "v2",
 				},
+				State: user.Enabled,
 			},
 		},
 		{

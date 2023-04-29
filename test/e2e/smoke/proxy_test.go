@@ -45,16 +45,16 @@ type ProxySmokeTestSuite struct {
 
 func (s *ProxySmokeTestSuite) SetupSuite() {
 	wd, err := os.Getwd()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 	testDataPath := path.Join("file://", wd, fixturesDir)
 
 	proxyPort, err := testbench.GetFreePort()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 	s.proxyPort = proxyPort
 	apiPort, err := testbench.GetFreePort()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 	grpcPort, err := testbench.GetFreePort()
-	s.Require().Nil(err)
+	s.Assert().NoError(err)
 
 	ruleDir, err := os.MkdirTemp("", "shield_rules_")
 	s.Assert().NoError(err)

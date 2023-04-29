@@ -162,6 +162,7 @@ func (s *GroupRepositoryTestSuite) TestGetByID() {
 				Name:           "group1",
 				Slug:           "group-1",
 				OrganizationID: s.groups[0].OrganizationID,
+				State:          group.Enabled,
 			},
 		},
 		{
@@ -215,10 +216,12 @@ func (s *GroupRepositoryTestSuite) TestGetByIDs() {
 				Name:           "group1",
 				Slug:           "group-1",
 				OrganizationID: s.groups[0].OrganizationID,
+				State:          group.Enabled,
 			}, {
 				Name:           "group2",
 				Slug:           "group-2",
 				OrganizationID: s.groups[1].OrganizationID,
+				State:          group.Enabled,
 			},
 			},
 		},
@@ -272,6 +275,7 @@ func (s *GroupRepositoryTestSuite) TestGetBySlug() {
 				Name:           "group1",
 				Slug:           "group-1",
 				OrganizationID: s.groups[0].OrganizationID,
+				State:          group.Enabled,
 			},
 		},
 		{
@@ -320,6 +324,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 				Name:           "new-group",
 				Slug:           "new-group-slug",
 				OrganizationID: s.orgs[0].ID,
+				State:          group.Enabled,
 			},
 		},
 		{
@@ -333,6 +338,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 				Name:           "group2",
 				Slug:           "new-slug",
 				OrganizationID: s.orgs[0].ID,
+				State:          group.Enabled,
 			},
 		},
 		{
@@ -395,16 +401,19 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					Name:           "group1",
 					Slug:           "group-1",
 					OrganizationID: s.orgs[0].ID,
+					State:          group.Enabled,
 				},
 				{
 					Name:           "group2",
 					Slug:           "group-2",
 					OrganizationID: s.orgs[0].ID,
+					State:          group.Enabled,
 				},
 				{
 					Name:           "group3",
 					Slug:           "group-3",
 					OrganizationID: s.orgs[1].ID,
+					State:          group.Enabled,
 				},
 			},
 		},
@@ -418,6 +427,21 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					Name:           "group3",
 					Slug:           "group-3",
 					OrganizationID: s.orgs[1].ID,
+					State:          group.Enabled,
+				},
+			},
+		},
+		{
+			Description: "should get filtered groups for disabled state",
+			Filter: group.Filter{
+				State: group.Disabled,
+			},
+			ExpectedGroups: []group.Group{
+				{
+					Name:           "group4",
+					Slug:           "group-4",
+					OrganizationID: s.orgs[1].ID,
+					State:          group.Disabled,
 				},
 			},
 		},
@@ -459,6 +483,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 				Name:           "new group update",
 				Slug:           "new-group-update",
 				OrganizationID: s.orgs[0].ID,
+				State:          group.Enabled,
 			},
 		},
 		{
@@ -552,6 +577,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 				Name:           "new group update",
 				Slug:           "group-1",
 				OrganizationID: s.orgs[0].ID,
+				State:          group.Enabled,
 			},
 		},
 		{

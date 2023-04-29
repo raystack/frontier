@@ -133,8 +133,9 @@ func (s *OrganizationRepositoryTestSuite) TestGetByID() {
 			Description: "should get an organization",
 			SelectedID:  s.orgs[0].ID,
 			ExpectedOrganization: organization.Organization{
-				Name: "org1",
-				Slug: "org-1",
+				Name:  "org1",
+				Slug:  "org-1",
+				State: organization.Enabled,
 			},
 		},
 		{
@@ -181,8 +182,9 @@ func (s *OrganizationRepositoryTestSuite) TestGetBySlug() {
 			Description:  "should get an organization",
 			SelectedSlug: "org-1",
 			ExpectedOrganization: organization.Organization{
-				Name: "org1",
-				Slug: "org-1",
+				Name:  "org1",
+				Slug:  "org-1",
+				State: organization.Enabled,
 			},
 		},
 		{
@@ -227,8 +229,9 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 				Slug: "new-org-slug",
 			},
 			ExpectedOrganization: organization.Organization{
-				Name: "new-org",
-				Slug: "new-org-slug",
+				Name:  "new-org",
+				Slug:  "new-org-slug",
+				State: organization.Enabled,
 			},
 		},
 		{
@@ -268,12 +271,14 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 			Description: "should get all organizations",
 			ExpectedOrganizations: []organization.Organization{
 				{
-					Name: "org1",
-					Slug: "org-1",
+					Name:  "org1",
+					Slug:  "org-1",
+					State: organization.Enabled,
 				},
 				{
-					Name: "org2",
-					Slug: "org-2",
+					Name:  "org2",
+					Slug:  "org-2",
+					State: organization.Enabled,
 				},
 			},
 		},
@@ -281,7 +286,7 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx)
+			got, err := s.repository.List(s.ctx, organization.Filter{})
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -311,8 +316,9 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 				Slug: "new-org-update",
 			},
 			ExpectedOrganization: organization.Organization{
-				Name: "new org update",
-				Slug: "new-org-update",
+				Name:  "new org update",
+				Slug:  "new-org-update",
+				State: organization.Enabled,
 			},
 		},
 		{
@@ -379,8 +385,9 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 				Name: "new org update",
 			},
 			ExpectedOrganization: organization.Organization{
-				Name: "new org update",
-				Slug: "org-1",
+				Name:  "new org update",
+				Slug:  "org-1",
+				State: organization.Enabled,
 			},
 		},
 		{
@@ -407,46 +414,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 			}
 			if !cmp.Equal(got, tc.ExpectedOrganization, cmpopts.IgnoreFields(organization.Organization{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganization)
-			}
-		})
-	}
-}
-
-func (s *OrganizationRepositoryTestSuite) TestListAdmins() {
-	type testCase struct {
-		Description    string
-		OrgID          string
-		ExpectedAdmins []user.User
-		ErrString      string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should return list of admins if org does have admins",
-			OrgID:       s.orgs[0].ID,
-			ExpectedAdmins: []user.User{
-				{
-					Name:  s.users[0].Name,
-					Email: s.users[0].Email,
-				},
-			},
-		},
-		{
-			Description: "should get empty admins if org does not have admin",
-			OrgID:       s.orgs[1].ID,
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListAdminsByOrgID(s.ctx, tc.OrgID)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedAdmins, cmpopts.IgnoreFields(user.User{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedAdmins)
 			}
 		})
 	}

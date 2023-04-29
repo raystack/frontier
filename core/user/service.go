@@ -4,6 +4,9 @@ import (
 	"context"
 	"strings"
 
+	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/internal/schema"
+
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/pkg/errors"
 	shielduuid "github.com/odpf/shield/pkg/uuid"
@@ -13,15 +16,23 @@ type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*shieldsession.Session, error)
 }
 
-type Service struct {
-	repository     Repository
-	sessionService SessionService
+type RelationRepository interface {
+	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
+	LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error)
 }
 
-func NewService(repository Repository, sessionService SessionService) *Service {
+type Service struct {
+	repository      Repository
+	relationService RelationRepository
+	sessionService  SessionService
+}
+
+func NewService(repository Repository, sessionService SessionService, relationRepo RelationRepository) *Service {
 	return &Service{
-		repository:     repository,
-		sessionService: sessionService,
+		repository:      repository,
+		sessionService:  sessionService,
+		relationService: relationRepo,
 	}
 }
 
@@ -62,16 +73,16 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 	return newUserMetadataKey, nil
 }
 
-func (s Service) List(ctx context.Context, flt Filter) (PagedUsers, error) {
-	users, err := s.repository.List(ctx, flt)
-	if err != nil {
-		return PagedUsers{}, err
+func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
+	if flt.OrgID != "" {
+		return s.ListByOrg(ctx, flt.OrgID, schema.MembershipPermission)
 	}
-	//TODO might better to do this in handler level
-	return PagedUsers{
-		Count: int32(len(users)),
-		Users: users,
-	}, nil
+	if flt.GroupID != "" {
+		return s.ListByGroup(ctx, flt.GroupID, schema.MembershipPermission)
+	}
+
+	// state gets filtered in db
+	return s.repository.List(ctx, flt)
 }
 
 func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
@@ -105,4 +116,61 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 		return currentUser, nil
 	}
 	return User{}, errors.ErrUnauthenticated
+}
+
+func (s Service) Enable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Enabled)
+}
+
+func (s Service) Disable(ctx context.Context, id string) error {
+	return s.repository.SetState(ctx, id, Disabled)
+}
+
+func (s Service) Delete(ctx context.Context, id string) error {
+	if err := s.relationService.DeleteSubjectRelations(ctx, schema.ProjectNamespace, id); err != nil {
+		return err
+	}
+	return s.repository.Delete(ctx, id)
+}
+
+func (s Service) ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]User, error) {
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        orgID,
+			Namespace: schema.OrganizationNamespace,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.UserPrincipal,
+			RoleID:    permissionFilter,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(userIDs) == 0 {
+		// no users
+		return []User{}, nil
+	}
+	return s.repository.GetByIDs(ctx, userIDs)
+}
+
+func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilter string) ([]User, error) {
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        groupID,
+			Namespace: schema.GroupPrincipal,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.UserPrincipal,
+			RoleID:    permissionFilter,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(userIDs) == 0 {
+		// no users
+		return []User{}, nil
+	}
+	return s.repository.GetByIDs(ctx, userIDs)
 }

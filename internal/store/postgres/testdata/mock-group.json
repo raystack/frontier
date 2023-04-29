@@ -18,5 +18,10 @@
                 "k2": "v2"
             }
         }
+    },
+    {
+        "name": "group4",
+        "slug": "group-4",
+        "state": "disabled"
     }
 ]

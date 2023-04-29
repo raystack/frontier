@@ -10,13 +10,14 @@ import (
 )
 
 type User struct {
-	ID        string       `db:"id"`
-	Name      string       `db:"name"`
-	Email     string       `db:"email"`
-	Metadata  []byte       `db:"metadata"`
-	CreatedAt time.Time    `db:"created_at"`
-	UpdatedAt time.Time    `db:"updated_at"`
-	DeletedAt sql.NullTime `db:"deleted_at"`
+	ID        string         `db:"id"`
+	Name      string         `db:"name"`
+	Email     string         `db:"email"`
+	Metadata  []byte         `db:"metadata"`
+	State     sql.NullString `db:"state"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at"`
 }
 
 type UserMetadataKey struct {
@@ -38,6 +39,7 @@ func (from User) transformToUser() (user.User, error) {
 		ID:        from.ID,
 		Name:      from.Name,
 		Email:     from.Email,
+		State:     user.State(from.State.String),
 		Metadata:  unmarshalledMetadata,
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,

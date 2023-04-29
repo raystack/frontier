@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/shield/core/user"
+
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
@@ -87,9 +89,6 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	sqlStatement := dialect.From(TABLE_RESOURCES)
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
-	}
-	if flt.GroupID != "" {
-		sqlStatement = sqlStatement.Where(goqu.Ex{"group_id": flt.GroupID})
 	}
 	if flt.OrganizationID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
@@ -309,4 +308,42 @@ func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns 
 	}
 
 	return fetchedResource.transformToResource(), nil
+}
+
+func (r ResourceRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := dialect.Delete(TABLE_RESOURCES).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_RESOURCES,
+				Operation:  "Delete",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return user.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
 }
