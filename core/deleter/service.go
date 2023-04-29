@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/odpf/shield/core/group"
+
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/resource"
@@ -24,14 +26,26 @@ type ResourceService interface {
 	Delete(ctx context.Context, namespaceID, id string) error
 }
 
-type Service struct {
-	projService ProjectService
-	orgService  OrganizationService
-	resService  ResourceService
+type GroupService interface {
+	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
+	Delete(ctx context.Context, id string) error
 }
 
-func NewCascadeDeleter(orgService OrganizationService, projService ProjectService, resService ResourceService) *Service {
-	return &Service{projService: projService, orgService: orgService, resService: resService}
+type Service struct {
+	projService  ProjectService
+	orgService   OrganizationService
+	resService   ResourceService
+	groupService GroupService
+}
+
+func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
+	resService ResourceService, groupService GroupService) *Service {
+	return &Service{
+		projService:  projService,
+		orgService:   orgService,
+		resService:   resService,
+		groupService: groupService,
+	}
 }
 
 func (d Service) DeleteProject(ctx context.Context, id string) error {
@@ -62,6 +76,17 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	for _, p := range projects {
 		if err = d.DeleteProject(ctx, p.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a project[%s]: %w", p.Slug, err)
+		}
+	}
+
+	// delete all related groups
+	groups, err := d.groupService.List(ctx, group.Filter{OrganizationID: id})
+	if err != nil {
+		return err
+	}
+	for _, g := range groups {
+		if err = d.groupService.Delete(ctx, g.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Slug, err)
 		}
 	}
 	return d.orgService.DeleteModel(ctx, id)
