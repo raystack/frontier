@@ -82,11 +82,6 @@ func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, erro
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
-	if flt.OrganizationID != "" {
-		return s.ListByOrganization(ctx, flt.OrganizationID)
-	}
-
-	// state gets filtered in db
 	return s.repository.List(ctx, flt)
 }
 
@@ -180,6 +175,8 @@ func (s Service) addGroupAsMember(ctx context.Context, team Group) error {
 	return nil
 }
 
+// ListByOrganization will be useful for nested groups but we don't do that at the moment
+// so it will not be directly used
 func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, error) {
 	relations, err := s.relationService.ListRelations(ctx, relation.RelationV2{
 		Object: relation.Object{

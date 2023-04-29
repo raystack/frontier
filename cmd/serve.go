@@ -220,7 +220,7 @@ func buildAPIDependencies(
 
 	registrationService := authenticate.NewRegistrationService(logger, postgres.NewFlowRepository(logger, dbc), userService, cfg.App.Authentication)
 
-	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService)
+	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService, groupService)
 
 	dependencies := api.Deps{
 		OrgService:          organizationService,
