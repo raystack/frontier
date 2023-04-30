@@ -1,11 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  Flex,
-  Grid,
-  Text,
-} from "@odpf/apsara";
+import { Dialog, Flex, Grid, Text } from "@odpf/apsara";
 import { ColumnDef } from "@tanstack/table-core";
 import useSWR from "swr";
 import { DialogHeader } from "~/components/dialog/header";
@@ -56,14 +49,14 @@ export default function ProjectDetails() {
       key: "Users",
       value: (
         <Dialog>
-          <DialogTrigger style={css.button}>{users.length}</DialogTrigger>
-          <DialogContent css={{ padding: 0, button: { my: "$2" } }}>
+          <Dialog.Trigger style={css.button}>{users.length}</Dialog.Trigger>
+          <Dialog.Content css={{ padding: 0, button: { my: "$2" } }}>
             <DialogTable
               columns={userColumns}
               data={users}
               header={<DialogHeader title="Organization users" />}
             />
-          </DialogContent>
+          </Dialog.Content>
         </Dialog>
       ),
     },

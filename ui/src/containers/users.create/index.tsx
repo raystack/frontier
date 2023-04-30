@@ -1,13 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Button,
-  Container,
-  Flex,
-  Sheet,
-  SheetContent,
-  Text,
-  TextField,
-} from "@odpf/apsara";
+import { Button, Container, Flex, Sheet, Text, TextField } from "@odpf/apsara";
 import {
   Form,
   FormControl,
@@ -56,7 +48,7 @@ export default function NewUser() {
 
   return (
     <Sheet open={true}>
-      <SheetContent
+      <Sheet.Content
         side="right"
         css={{
           width: "30vw",
@@ -95,7 +87,7 @@ export default function NewUser() {
             </SheetFooter>
           </Form>
         </FormProvider>
-      </SheetContent>
+      </Sheet.Content>
     </Sheet>
   );
 }

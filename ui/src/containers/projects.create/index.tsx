@@ -2,15 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
-import {
-  Button,
-  Container,
-  Flex,
-  Sheet,
-  SheetContent,
-  Text,
-  TextField,
-} from "@odpf/apsara";
+import { Button, Container, Flex, Sheet, Text, TextField } from "@odpf/apsara";
 import {
   Form,
   FormControl,
@@ -66,7 +58,7 @@ export default function NewProject() {
 
   return (
     <Sheet open={true}>
-      <SheetContent
+      <Sheet.Content
         side="right"
         css={{
           width: "30vw",
@@ -123,7 +115,7 @@ export default function NewProject() {
             </SheetFooter>
           </Form>
         </FormProvider>
-      </SheetContent>
+      </Sheet.Content>
     </Sheet>
   );
 }
