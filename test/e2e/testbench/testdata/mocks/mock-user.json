@@ -1,46 +1,46 @@
 [
   {
-    "name": "admin1-group1-org1",
+    "name": "admin1 group1 org1",
     "email": "admin1-group1-org1@odpf.io",
     "slug": "admin1_group1_slug"
   },
   {
-    "name": "member2-group1",
+    "name": "member2 group1",
     "email": "member2-group1@odpf.io",
     "slug": "member2_group1_slug"
   },
   {
-    "name": "member3-group1",
+    "name": "member3 group1",
     "email": "member3-group1@odpf.io",
     "slug": "member3_group1_slug"
   },
   {
-    "name": "admin1-group2",
+    "name": "admin1 group2",
     "email": "admin1-group2@odpf.io",
     "slug": "admin1_group2_slug"
   },
   {
-    "name": "member2-group2",
+    "name": "member2 group2",
     "email": "member2-group2@odpf.io",
     "slug": "member2_group2_slug"
   },
   {
-    "name": "member3-group2",
+    "name": "member3 group2",
     "email": "member3-group2@odpf.io",
     "slug": "member3_group2_slug"
   },
   {
-    "name": "admin1-group3",
+    "name": "admin1 group3",
     "email": "admin1-group3@odpf.io",
     "slug": "admin1_group3_slug"
   },
   {
-    "name": "member2-group3",
+    "name": "member2 group3",
     "email": "member2-group3@odpf.io",
     "slug": "member2_group3_slug"
   },
   {
-    "name": "member3-group3",
+    "name": "member3 group3",
     "email": "member3-group3@odpf.io",
     "slug": "member3_group3_slug"
   }

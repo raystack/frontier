@@ -427,6 +427,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				Name:  "Doe John",
 				Email: s.users[0].Email,
 				Slug:  s.users[0].Slug,
+				State: user.Enabled,
 			},
 		},
 		{

@@ -297,8 +297,8 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 				&userModel.Email,
 				&userModel.ID,
 				&userModel.Name,
-				&userModel.State,
 				&userModel.Slug,
+				&userModel.State,
 				&userModel.UpdatedAt,
 			)
 	}); err != nil {
@@ -913,7 +913,7 @@ func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.U
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
-				"slug": usr.Slug,
+				"slug": usr.ID,
 			},
 		).Returning("created_at", "deleted_at", "email", "id", "name", "slug", "updated_at").ToSQL()
 		if err != nil {

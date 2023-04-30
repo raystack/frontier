@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "6e5f60edc8d5470e4314cdeb5a14b1d16acaef73"
+PROTON_COMMIT := "e75e2d4980aaca692ca0de4ada1c0ffc32b7cf69"
 
 ui:
 	@echo " > generating ui build"

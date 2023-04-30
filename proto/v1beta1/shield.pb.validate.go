@@ -20313,7 +20313,7 @@ func (m *CheckResourcePermissionRequest) validate(all bool) error {
 	if !_CheckResourcePermissionRequest_ObjectNamespace_Pattern.MatchString(m.GetObjectNamespace()) {
 		err := CheckResourcePermissionRequestValidationError{
 			field:  "ObjectNamespace",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9/_-]+$\"",
 		}
 		if !all {
 			return err
@@ -20414,7 +20414,7 @@ var _ interface {
 
 var _CheckResourcePermissionRequest_ObjectId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
-var _CheckResourcePermissionRequest_ObjectNamespace_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _CheckResourcePermissionRequest_ObjectNamespace_Pattern = regexp.MustCompile("^[A-Za-z0-9/_-]+$")
 
 var _CheckResourcePermissionRequest_Permission_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
