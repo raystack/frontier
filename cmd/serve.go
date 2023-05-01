@@ -218,11 +218,13 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
-	registrationService := authenticate.NewRegistrationService(logger, postgres.NewFlowRepository(logger, dbc), userService, cfg.App.Authentication)
+	registrationService := authenticate.NewRegistrationService(logger, cfg.App.Authentication, postgres.NewFlowRepository(logger, dbc), userService)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService, groupService)
 
 	dependencies := api.Deps{
+		DisableOrgsListing:  cfg.App.DisableOrgsListing,
+		DisableUsersListing: cfg.App.DisableUsersListing,
 		OrgService:          organizationService,
 		ProjectService:      projectService,
 		GroupService:        groupService,

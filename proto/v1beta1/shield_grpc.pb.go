@@ -30,8 +30,7 @@ const (
 	ShieldService_DisableUser_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/DisableUser"
 	ShieldService_DeleteUser_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/DeleteUser"
 	ShieldService_GetOrganizationsByUser_FullMethodName   = "/odpf.shield.v1beta1.ShieldService/GetOrganizationsByUser"
-	ShieldService_CreateMetadataKey_FullMethodName        = "/odpf.shield.v1beta1.ShieldService/CreateMetadataKey"
-	ShieldService_ListGroups_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/ListGroups"
+	ShieldService_ListOrganizationGroups_FullMethodName   = "/odpf.shield.v1beta1.ShieldService/ListOrganizationGroups"
 	ShieldService_CreateGroup_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/CreateGroup"
 	ShieldService_GetGroup_FullMethodName                 = "/odpf.shield.v1beta1.ShieldService/GetGroup"
 	ShieldService_UpdateGroup_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/UpdateGroup"
@@ -53,7 +52,6 @@ const (
 	ShieldService_EnableOrganization_FullMethodName       = "/odpf.shield.v1beta1.ShieldService/EnableOrganization"
 	ShieldService_DisableOrganization_FullMethodName      = "/odpf.shield.v1beta1.ShieldService/DisableOrganization"
 	ShieldService_DeleteOrganization_FullMethodName       = "/odpf.shield.v1beta1.ShieldService/DeleteOrganization"
-	ShieldService_ListProjects_FullMethodName             = "/odpf.shield.v1beta1.ShieldService/ListProjects"
 	ShieldService_CreateProject_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/CreateProject"
 	ShieldService_GetProject_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/GetProject"
 	ShieldService_UpdateProject_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/UpdateProject"
@@ -74,14 +72,14 @@ const (
 	ShieldService_CreatePolicy_FullMethodName             = "/odpf.shield.v1beta1.ShieldService/CreatePolicy"
 	ShieldService_GetPolicy_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/GetPolicy"
 	ShieldService_UpdatePolicy_FullMethodName             = "/odpf.shield.v1beta1.ShieldService/UpdatePolicy"
-	ShieldService_ListRelations_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/ListRelations"
 	ShieldService_CreateRelation_FullMethodName           = "/odpf.shield.v1beta1.ShieldService/CreateRelation"
 	ShieldService_GetRelation_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/GetRelation"
 	ShieldService_DeleteRelation_FullMethodName           = "/odpf.shield.v1beta1.ShieldService/DeleteRelation"
-	ShieldService_ListResources_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/ListResources"
+	ShieldService_ListProjectResources_FullMethodName     = "/odpf.shield.v1beta1.ShieldService/ListProjectResources"
 	ShieldService_CreateResource_FullMethodName           = "/odpf.shield.v1beta1.ShieldService/CreateResource"
 	ShieldService_GetResource_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/GetResource"
 	ShieldService_UpdateResource_FullMethodName           = "/odpf.shield.v1beta1.ShieldService/UpdateResource"
+	ShieldService_DeleteResource_FullMethodName           = "/odpf.shield.v1beta1.ShieldService/DeleteResource"
 	ShieldService_CheckResourcePermission_FullMethodName  = "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission"
 	ShieldService_ListAuthStrategies_FullMethodName       = "/odpf.shield.v1beta1.ShieldService/ListAuthStrategies"
 	ShieldService_Authenticate_FullMethodName             = "/odpf.shield.v1beta1.ShieldService/Authenticate"
@@ -105,9 +103,8 @@ type ShieldServiceClient interface {
 	DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*DisableUserResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error)
-	CreateMetadataKey(ctx context.Context, in *CreateMetadataKeyRequest, opts ...grpc.CallOption) (*CreateMetadataKeyResponse, error)
 	// Group
-	ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error)
+	ListOrganizationGroups(ctx context.Context, in *ListOrganizationGroupsRequest, opts ...grpc.CallOption) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
 	GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupResponse, error)
 	UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error)
@@ -132,7 +129,6 @@ type ShieldServiceClient interface {
 	DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error)
 	DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error)
 	// Projects
-	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
 	GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error)
 	UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error)
@@ -156,16 +152,16 @@ type ShieldServiceClient interface {
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
 	UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error)
-	// Relations--------------------------------------------------------------------
-	ListRelations(ctx context.Context, in *ListRelationsRequest, opts ...grpc.CallOption) (*ListRelationsResponse, error)
+	// Relations
 	CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error)
 	GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error)
 	DeleteRelation(ctx context.Context, in *DeleteRelationRequest, opts ...grpc.CallOption) (*DeleteRelationResponse, error)
 	// Resources
-	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
+	ListProjectResources(ctx context.Context, in *ListProjectResourcesRequest, opts ...grpc.CallOption) (*ListProjectResourcesResponse, error)
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*GetResourceResponse, error)
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error)
+	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
 	// Authz
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
 	// Authn
@@ -282,18 +278,9 @@ func (c *shieldServiceClient) GetOrganizationsByUser(ctx context.Context, in *Ge
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateMetadataKey(ctx context.Context, in *CreateMetadataKeyRequest, opts ...grpc.CallOption) (*CreateMetadataKeyResponse, error) {
-	out := new(CreateMetadataKeyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateMetadataKey_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error) {
-	out := new(ListGroupsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListGroups_FullMethodName, in, out, opts...)
+func (c *shieldServiceClient) ListOrganizationGroups(ctx context.Context, in *ListOrganizationGroupsRequest, opts ...grpc.CallOption) (*ListOrganizationGroupsResponse, error) {
+	out := new(ListOrganizationGroupsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationGroups_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -489,15 +476,6 @@ func (c *shieldServiceClient) DeleteOrganization(ctx context.Context, in *Delete
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error) {
-	out := new(ListProjectsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListProjects_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *shieldServiceClient) CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error) {
 	out := new(CreateProjectResponse)
 	err := c.cc.Invoke(ctx, ShieldService_CreateProject_FullMethodName, in, out, opts...)
@@ -678,15 +656,6 @@ func (c *shieldServiceClient) UpdatePolicy(ctx context.Context, in *UpdatePolicy
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListRelations(ctx context.Context, in *ListRelationsRequest, opts ...grpc.CallOption) (*ListRelationsResponse, error) {
-	out := new(ListRelationsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListRelations_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *shieldServiceClient) CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error) {
 	out := new(CreateRelationResponse)
 	err := c.cc.Invoke(ctx, ShieldService_CreateRelation_FullMethodName, in, out, opts...)
@@ -714,9 +683,9 @@ func (c *shieldServiceClient) DeleteRelation(ctx context.Context, in *DeleteRela
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error) {
-	out := new(ListResourcesResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListResources_FullMethodName, in, out, opts...)
+func (c *shieldServiceClient) ListProjectResources(ctx context.Context, in *ListProjectResourcesRequest, opts ...grpc.CallOption) (*ListProjectResourcesResponse, error) {
+	out := new(ListProjectResourcesResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListProjectResources_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -744,6 +713,15 @@ func (c *shieldServiceClient) GetResource(ctx context.Context, in *GetResourceRe
 func (c *shieldServiceClient) UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error) {
 	out := new(UpdateResourceResponse)
 	err := c.cc.Invoke(ctx, ShieldService_UpdateResource_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error) {
+	out := new(DeleteResourceResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -811,9 +789,8 @@ type ShieldServiceServer interface {
 	DisableUser(context.Context, *DisableUserRequest) (*DisableUserResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error)
-	CreateMetadataKey(context.Context, *CreateMetadataKeyRequest) (*CreateMetadataKeyResponse, error)
 	// Group
-	ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error)
+	ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupResponse, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupResponse, error)
@@ -838,7 +815,6 @@ type ShieldServiceServer interface {
 	DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error)
 	DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error)
 	// Projects
-	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
 	GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error)
 	UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error)
@@ -862,16 +838,16 @@ type ShieldServiceServer interface {
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
 	UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error)
-	// Relations--------------------------------------------------------------------
-	ListRelations(context.Context, *ListRelationsRequest) (*ListRelationsResponse, error)
+	// Relations
 	CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error)
 	GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error)
 	DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error)
 	// Resources
-	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
+	ListProjectResources(context.Context, *ListProjectResourcesRequest) (*ListProjectResourcesResponse, error)
 	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	GetResource(context.Context, *GetResourceRequest) (*GetResourceResponse, error)
 	UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error)
+	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
 	// Authz
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
 	// Authn
@@ -919,11 +895,8 @@ func (UnimplementedShieldServiceServer) DeleteUser(context.Context, *DeleteUserR
 func (UnimplementedShieldServiceServer) GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationsByUser not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateMetadataKey(context.Context, *CreateMetadataKeyRequest) (*CreateMetadataKeyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateMetadataKey not implemented")
-}
-func (UnimplementedShieldServiceServer) ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListGroups not implemented")
+func (UnimplementedShieldServiceServer) ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationGroups not implemented")
 }
 func (UnimplementedShieldServiceServer) CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGroup not implemented")
@@ -988,9 +961,6 @@ func (UnimplementedShieldServiceServer) DisableOrganization(context.Context, *Di
 func (UnimplementedShieldServiceServer) DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrganization not implemented")
 }
-func (UnimplementedShieldServiceServer) ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListProjects not implemented")
-}
 func (UnimplementedShieldServiceServer) CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProject not implemented")
 }
@@ -1051,9 +1021,6 @@ func (UnimplementedShieldServiceServer) GetPolicy(context.Context, *GetPolicyReq
 func (UnimplementedShieldServiceServer) UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePolicy not implemented")
 }
-func (UnimplementedShieldServiceServer) ListRelations(context.Context, *ListRelationsRequest) (*ListRelationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListRelations not implemented")
-}
 func (UnimplementedShieldServiceServer) CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRelation not implemented")
 }
@@ -1063,8 +1030,8 @@ func (UnimplementedShieldServiceServer) GetRelation(context.Context, *GetRelatio
 func (UnimplementedShieldServiceServer) DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRelation not implemented")
 }
-func (UnimplementedShieldServiceServer) ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListResources not implemented")
+func (UnimplementedShieldServiceServer) ListProjectResources(context.Context, *ListProjectResourcesRequest) (*ListProjectResourcesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProjectResources not implemented")
 }
 func (UnimplementedShieldServiceServer) CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateResource not implemented")
@@ -1074,6 +1041,9 @@ func (UnimplementedShieldServiceServer) GetResource(context.Context, *GetResourc
 }
 func (UnimplementedShieldServiceServer) UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateResource not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteResource not implemented")
 }
 func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
@@ -1301,38 +1271,20 @@ func _ShieldService_GetOrganizationsByUser_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateMetadataKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMetadataKeyRequest)
+func _ShieldService_ListOrganizationGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationGroupsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateMetadataKey(ctx, in)
+		return srv.(ShieldServiceServer).ListOrganizationGroups(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateMetadataKey_FullMethodName,
+		FullMethod: ShieldService_ListOrganizationGroups_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateMetadataKey(ctx, req.(*CreateMetadataKeyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_ListGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGroupsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListGroups(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_ListGroups_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListGroups(ctx, req.(*ListGroupsRequest))
+		return srv.(ShieldServiceServer).ListOrganizationGroups(ctx, req.(*ListOrganizationGroupsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1715,24 +1667,6 @@ func _ShieldService_DeleteOrganization_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListProjectsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListProjects(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_ListProjects_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListProjects(ctx, req.(*ListProjectsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ShieldService_CreateProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateProjectRequest)
 	if err := dec(in); err != nil {
@@ -2093,24 +2027,6 @@ func _ShieldService_UpdatePolicy_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListRelations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRelationsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListRelations(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_ListRelations_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListRelations(ctx, req.(*ListRelationsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ShieldService_CreateRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRelationRequest)
 	if err := dec(in); err != nil {
@@ -2165,20 +2081,20 @@ func _ShieldService_DeleteRelation_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListResourcesRequest)
+func _ShieldService_ListProjectResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProjectResourcesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListResources(ctx, in)
+		return srv.(ShieldServiceServer).ListProjectResources(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListResources_FullMethodName,
+		FullMethod: ShieldService_ListProjectResources_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListResources(ctx, req.(*ListResourcesRequest))
+		return srv.(ShieldServiceServer).ListProjectResources(ctx, req.(*ListProjectResourcesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2233,6 +2149,24 @@ func _ShieldService_UpdateResource_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateResource(ctx, req.(*UpdateResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_DeleteResource_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteResource(ctx, req.(*DeleteResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2379,12 +2313,8 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_GetOrganizationsByUser_Handler,
 		},
 		{
-			MethodName: "CreateMetadataKey",
-			Handler:    _ShieldService_CreateMetadataKey_Handler,
-		},
-		{
-			MethodName: "ListGroups",
-			Handler:    _ShieldService_ListGroups_Handler,
+			MethodName: "ListOrganizationGroups",
+			Handler:    _ShieldService_ListOrganizationGroups_Handler,
 		},
 		{
 			MethodName: "CreateGroup",
@@ -2471,10 +2401,6 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_DeleteOrganization_Handler,
 		},
 		{
-			MethodName: "ListProjects",
-			Handler:    _ShieldService_ListProjects_Handler,
-		},
-		{
 			MethodName: "CreateProject",
 			Handler:    _ShieldService_CreateProject_Handler,
 		},
@@ -2555,10 +2481,6 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_UpdatePolicy_Handler,
 		},
 		{
-			MethodName: "ListRelations",
-			Handler:    _ShieldService_ListRelations_Handler,
-		},
-		{
 			MethodName: "CreateRelation",
 			Handler:    _ShieldService_CreateRelation_Handler,
 		},
@@ -2571,8 +2493,8 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_DeleteRelation_Handler,
 		},
 		{
-			MethodName: "ListResources",
-			Handler:    _ShieldService_ListResources_Handler,
+			MethodName: "ListProjectResources",
+			Handler:    _ShieldService_ListProjectResources_Handler,
 		},
 		{
 			MethodName: "CreateResource",
@@ -2585,6 +2507,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateResource",
 			Handler:    _ShieldService_UpdateResource_Handler,
+		},
+		{
+			MethodName: "DeleteResource",
+			Handler:    _ShieldService_DeleteResource_Handler,
 		},
 		{
 			MethodName: "CheckResourcePermission",

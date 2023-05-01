@@ -23,6 +23,10 @@ app:
   # secret string "val://user:password"
   # optional
   resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
+  # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
+  disable_orgs_listing: false
+  # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
+  disable_users_listing: false
   # configuration to allow authentication in shield
   authentication:
     # to use shield as session store
@@ -37,8 +41,8 @@ app:
       # generate key file via "./shield server keygen"
       rsa_path: ./temp/rsa
       iss: "http://localhost.shield"
-    # external host used for oidc redirect uri, e.g. http://localhost:8000/admin/v1beta1/auth/callback
-    oidc_callback_host: http://localhost:8000/admin/v1beta1/auth/callback
+    # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
+    oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
     # oidc auth server configs
     oidc_config:
       google:

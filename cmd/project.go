@@ -226,9 +226,9 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all projects",
-		Args:  cli.NoArgs,
+		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield project list
+			$ shield project list <orgid>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
@@ -243,7 +243,9 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListProjects(cmd.Context(), &shieldv1beta1.ListProjectsRequest{})
+			res, err := client.ListOrganizationProjects(cmd.Context(), &shieldv1beta1.ListOrganizationProjectsRequest{
+				Id: args[0],
+			})
 			if err != nil {
 				return err
 			}

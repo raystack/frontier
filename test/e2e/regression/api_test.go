@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"github.com/odpf/shield/core/organization"
+
 	"github.com/odpf/shield/internal/api/v1beta1"
 
 	"github.com/odpf/shield/internal/schema"
@@ -63,7 +65,6 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 
 	ctx := context.Background()
 
-	s.Require().NoError(testbench.BootstrapMetadataKey(ctx, s.testBench.Client, testbench.OrgAdminEmail))
 	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, testbench.OrgAdminEmail))
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, testbench.OrgAdminEmail))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, testbench.OrgAdminEmail))
@@ -538,13 +539,12 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 	s.Run("4. org admin create a new user with same email should return conflict error", func() {
 		res, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user a",
-				Email: "new-user-a@odpf.io",
-				Slug:  "new_user_123456",
+				Name:     "new user a",
+				Email:    "new-user-a@odpf.io",
+				Slug:     "new-user-123456",
 				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
-					},
+					// TODO(kushsharma) add back foo fields once metadata jsonschema
+					// is implemented
 				},
 			},
 		})
@@ -553,13 +553,12 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 
 		_, err = s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user a",
-				Email: "new-user-a@odpf.io",
-				Slug:  "new_user_123456",
+				Name:     "new user a",
+				Email:    "new-user-a@odpf.io",
+				Slug:     "new_user_123456",
 				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
-					},
+					// TODO(kushsharma) add back foo fields once metadata jsonschema
+					// is implemented
 				},
 			},
 		})
@@ -571,13 +570,12 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		res, err := s.testBench.Client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
 			Id: newUser.GetId(),
 			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user a",
-				Email: "admin1-group2-org1@odpf.io",
-				Slug:  "new_user_123456",
+				Name:     "new user a",
+				Email:    "admin1-group2-org1@odpf.io",
+				Slug:     "new_user_123456",
 				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
-					},
+					// TODO(kushsharma) add back foo fields once metadata jsonschema
+					// is implemented
 				},
 			},
 		})
@@ -592,13 +590,12 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 	s.Run("6. update current user with empty email should return invalid argument error", func() {
 		_, err := s.testBench.Client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user a",
-				Email: "",
-				Slug:  "new_user_123456",
+				Name:     "new user a",
+				Email:    "",
+				Slug:     "new_user_123456",
 				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
-					},
+					// TODO(kushsharma) add back foo fields once metadata jsonschema
+					// is implemented
 				},
 			},
 		})
@@ -607,13 +604,12 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 	s.Run("7. update current user with different email in header and body should return invalid argument error", func() {
 		_, err := s.testBench.Client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user a",
-				Email: "admin1-group1-org1@odpf.io",
-				Slug:  "new_user_123456",
+				Name:     "new user a",
+				Email:    "admin1-group1-org1@odpf.io",
+				Slug:     "new_user_123456",
 				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
-					},
+					// TODO(kushsharma) add back foo fields once metadata jsonschema
+					// is implemented
 				},
 			},
 		})
@@ -882,13 +878,13 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 			ObjectId:        existingOrg.GetOrganization().GetId(),
 			ObjectNamespace: schema.OrganizationNamespace,
 			Subject:         v1beta1.GenerateSubject(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			RoleName:        schema.EditorRole,
+			RoleName:        organization.AdminRole,
 		}})
 		s.Assert().NoError(err)
 
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
 			Id:               existingOrg.GetOrganization().GetId(),
-			PermissionFilter: schema.EditPermission,
+			PermissionFilter: organization.AdminPermission,
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
@@ -1017,7 +1013,7 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createResourceResp)
 
-		listResourcesResp, err := s.testBench.Client.ListResources(ctxOrgAdminAuth, &shieldv1beta1.ListResourcesRequest{
+		listResourcesResp, err := s.testBench.Client.ListProjectResources(ctxOrgAdminAuth, &shieldv1beta1.ListProjectResourcesRequest{
 			ProjectId: createProjResp.GetProject().GetId(),
 		})
 		s.Assert().NoError(err)

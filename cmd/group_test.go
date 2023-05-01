@@ -6,11 +6,14 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/odpf/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestClientGroup(t *testing.T) {
+	orgID := uuid.New().String()
 	t.Run("without config file", func(t *testing.T) {
 		tests := []struct {
 			name        string
@@ -22,13 +25,13 @@ func TestClientGroup(t *testing.T) {
 			{
 				name:        "`group` list only should throw error host not found",
 				want:        "",
-				subCommands: []string{"list"},
+				subCommands: []string{"list", orgID},
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
 				name:        "`group` list with host flag should pass",
 				want:        "",
-				subCommands: []string{"list", "-h", "test"},
+				subCommands: []string{"list", orgID, "-h", "test"},
 				err:         context.DeadlineExceeded,
 			},
 			{
@@ -58,13 +61,13 @@ func TestClientGroup(t *testing.T) {
 			{
 				name:        "`group` view without host should throw error host not found",
 				want:        "",
-				subCommands: []string{"view", "123"},
+				subCommands: []string{"view", orgID, "123"},
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
 				name:        "`group` view with host flag should pass",
 				want:        "",
-				subCommands: []string{"view", "123", "-h", "test"},
+				subCommands: []string{"view", orgID, "123", "-h", "test"},
 				err:         context.DeadlineExceeded,
 			},
 		}

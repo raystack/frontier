@@ -178,7 +178,9 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	err = testbench.BootstrapProject(ctx, sClient, testbench.OrgAdminEmail)
 	s.Assert().NoError(err)
 
-	projResp, err := sClient.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
+	projResp, err := sClient.ListOrganizationProjects(ctx, &shieldv1beta1.ListOrganizationProjectsRequest{
+		Id: s.orgID,
+	})
 	s.Assert().NoError(err)
 	s.Assert().NotEqual(0, len(projResp.Projects))
 	s.projID = projResp.Projects[0].GetId()
@@ -226,7 +228,9 @@ func (s *ProxySmokeTestSuite) TestProxyToEchoServer() {
 
 		defer res.Body.Close()
 
-		resourceResp, err := s.sClient.ListResources(context.Background(), &shieldv1beta1.ListResourcesRequest{})
+		resourceResp, err := s.sClient.ListProjectResources(context.Background(), &shieldv1beta1.ListProjectResourcesRequest{
+			ProjectId: s.projID,
+		})
 		s.Assert().NoError(err)
 
 		s.Assert().Equal(1, len(resourceResp.GetResources()))

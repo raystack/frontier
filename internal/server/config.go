@@ -47,4 +47,9 @@ type Config struct {
 	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
 
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
+
+	// DisableOrgsListing if set to true will disallow non-admin APIs to list all organizations
+	DisableOrgsListing bool `yaml:"disable_orgs_listing" mapstructure:"disable_orgs_listing"`
+	// DisableUsersListing if set to true will disallow non-admin APIs to list all users
+	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing"`
 }

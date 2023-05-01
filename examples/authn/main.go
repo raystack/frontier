@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	shieldRouteListConn    = "/admin/v1beta1/auth"
-	shieldRegister         = "/admin/v1beta1/auth/register"
-	shieldRegisterCallback = "/admin/v1beta1/auth/callback"
-	shieldLogout           = "/admin/v1beta1/auth/logout"
-	shieldUserProfile      = "/admin/v1beta1/users/self"
+	shieldRouteListConn    = "/v1beta1/auth"
+	shieldRegister         = "/v1beta1/auth/register"
+	shieldRegisterCallback = "/v1beta1/auth/callback"
+	shieldLogout           = "/v1beta1/auth/logout"
+	shieldUserProfile      = "/v1beta1/users/self"
 )
 
 var (

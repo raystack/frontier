@@ -5,7 +5,7 @@ Before creating a new organization, let's create an organization admin user.
 ## User creation in Shield
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/users'
+curl --location --request POST 'http://localhost:8000/v1beta1/users'
 --header 'Content-Type: application/json'
 --header 'X-Shield-Email: admin@odpf.io'
 --data-raw '{
@@ -73,7 +73,7 @@ From now onwards, we can use the above user to perform all the admin operations.
 ## Organization creation in Shield
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/organizations'
+curl --location --request POST 'http://localhost:8000/v1beta1/organizations'
 --header 'Content-Type: application/json'
 --header 'X-Shield-Email: admin@odpf.io'
 --data-raw '{

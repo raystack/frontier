@@ -22,8 +22,6 @@ var (
 	mockOrganizationFixture []byte
 	//go:embed testdata/mocks/mock-project.json
 	mockProjectFixture []byte
-	//go:embed testdata/mocks/mock-metadata-key.json
-	mockMetadataFixture []byte
 )
 
 const (
@@ -91,26 +89,6 @@ func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	return nil
 }
 
-func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	var data []*shieldv1beta1.MetadataKeyRequestBody
-	if err := json.Unmarshal(mockMetadataFixture, &data); err != nil {
-		return err
-	}
-
-	for _, d := range data {
-		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			IdentityHeader: creatorEmail,
-		}))
-		if _, err := cl.CreateMetadataKey(ctx, &shieldv1beta1.CreateMetadataKeyRequest{
-			Body: d,
-		}); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func BootstrapOrganizations(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
 	var data []*shieldv1beta1.OrganizationRequestBody
 	if err := json.Unmarshal(mockOrganizationFixture, &data); err != nil {
@@ -167,7 +145,9 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	}
 
 	// validate
-	uRes, err := cl.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
+	uRes, err := cl.ListOrganizationProjects(ctx, &shieldv1beta1.ListOrganizationProjectsRequest{
+		Id: orgResp.GetOrganizations()[0].GetId(),
+	})
 	if err != nil {
 		return err
 	}
@@ -205,7 +185,7 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	// validate
-	uRes, err := cl.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{
+	uRes, err := cl.ListOrganizationGroups(ctx, &shieldv1beta1.ListOrganizationGroupsRequest{
 		OrgId: orgResp.GetOrganizations()[0].GetId(),
 	})
 	if err != nil {

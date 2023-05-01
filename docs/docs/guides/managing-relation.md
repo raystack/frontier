@@ -29,7 +29,7 @@ A relation in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/relations'
+    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/relations'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
@@ -47,7 +47,7 @@ A relation in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/relations'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/admin/relations'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -58,7 +58,7 @@ A relation in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/relations/f959a605-8755-4ee4-b898-a1e26f596c4d'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/relations/f959a605-8755-4ee4-b898-a1e26f596c4d'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -69,7 +69,7 @@ A relation in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request DELETE 'http://localhost:8000/admin/v1beta1/
+    {`$ curl --location --request DELETE 'http://localhost:8000/v1beta1/
     object/a9f784cf-0f29-486f-92d0-51300295f7e8/
     subject/448d52d4-48cb-495e-8ec5-8afc55c624ca/
     role/owner'

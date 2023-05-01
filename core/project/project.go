@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/odpf/shield/internal/schema"
+
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/pkg/metadata"
 )
@@ -18,6 +20,9 @@ const (
 	Enabled  State = "enabled"
 	Disabled State = "disabled"
 )
+
+var AdminPermission = schema.DeletePermission
+var MemberPermission = schema.ViewPermission
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Project, error)

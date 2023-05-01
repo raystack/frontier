@@ -5,7 +5,7 @@ In this part we'll learn to add `members` and `managers` to a group. For this, w
 ## Add a Member to a Group
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/relations'
+curl --location --request POST 'http://localhost:8000/v1beta1/relations'
 --header 'Content-Type: application/json'
 --data-raw '{
 "objectId": "86e2f95d-92c7-4c59-8fed-b7686cccbf4f",
@@ -32,7 +32,7 @@ curl --location --request POST 'http://localhost:8000/admin/v1beta1/relations'
 ## Add a Manager to a Group
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/relations'
+curl --location --request POST 'http://localhost:8000/v1beta1/relations'
 --header 'Content-Type: application/json'
 --data-raw '{
 "objectId": "86e2f95d-92c7-4c59-8fed-b7686cccbf4f",

@@ -39,8 +39,9 @@ var (
 
 func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListRelationsRequest) (*shieldv1beta1.ListRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var relations []*shieldv1beta1.Relation
+	//TODO(kushsharma): apply admin level authz
 
+	var relations []*shieldv1beta1.Relation
 	relationsList, err := h.relationService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())

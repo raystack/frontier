@@ -155,9 +155,9 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View a group",
-		Args:  cli.ExactArgs(1),
+		Args:  cli.ExactArgs(2),
 		Example: heredoc.Doc(`
-			$ shield group view <group-id>
+			$ shield group view <org-id> <group-id>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -172,9 +172,11 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			groupID := args[0]
+			orgID := args[0]
+			groupID := args[1]
 			res, err := client.GetGroup(cmd.Context(), &shieldv1beta1.GetGroupRequest{
-				Id: groupID,
+				Id:    groupID,
+				OrgId: orgID,
 			})
 			if err != nil {
 				return err
@@ -225,9 +227,9 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "list",
 		Short: "List all groups",
-		Args:  cli.NoArgs,
+		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield group list
+			$ shield group list <orgid>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -242,7 +244,9 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListGroups(cmd.Context(), &shieldv1beta1.ListGroupsRequest{})
+			res, err := client.ListOrganizationGroups(cmd.Context(), &shieldv1beta1.ListOrganizationGroupsRequest{
+				OrgId: args[0],
+			})
 			if err != nil {
 				return err
 			}

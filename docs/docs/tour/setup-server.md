@@ -295,7 +295,7 @@ You will see the similar logs as following, based on your configs
 You can ping the server to verify
 
 ```sh
-curl --location --request GET 'http://localhost:8000/admin/ping'
+curl --location --request GET 'http://localhost:8000/ping'
 ```
 
 ```sh

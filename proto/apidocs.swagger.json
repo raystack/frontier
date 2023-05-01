@@ -1,10 +1,13 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Shield",
-    "version": "0.1.0"
+    "title": "Shield Administration API",
+    "version": "0.2.0"
   },
   "tags": [
+    {
+      "name": "AdminService"
+    },
     {
       "name": "ShieldService"
     }
@@ -138,6 +141,258 @@
         ],
         "tags": [
           "Action"
+        ]
+      }
+    },
+    "/v1beta1/admin/groups": {
+      "get": {
+        "summary": "Get all groups",
+        "operationId": "AdminService_ListGroups",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListGroupsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/admin/organizations": {
+      "get": {
+        "summary": "Get all organization",
+        "operationId": "AdminService_ListAllOrganizations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListAllOrganizationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/v1beta1/admin/projects": {
+      "get": {
+        "summary": "Get all project",
+        "operationId": "AdminService_ListProjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListProjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Project"
+        ]
+      }
+    },
+    "/v1beta1/admin/relations": {
+      "get": {
+        "summary": "Get all relations",
+        "operationId": "AdminService_ListRelations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListRelationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Relation"
+        ]
+      }
+    },
+    "/v1beta1/admin/resources": {
+      "get": {
+        "summary": "Get all resources",
+        "operationId": "AdminService_ListResources",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListResourcesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "organizationId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespaceId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
+    "/v1beta1/admin/users": {
+      "get": {
+        "summary": "Get all users",
+        "operationId": "AdminService_ListAllUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListAllUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageNum",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "groupId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "User"
         ]
       }
     },
@@ -411,331 +666,6 @@
         ]
       }
     },
-    "/v1beta1/groups": {
-      "get": {
-        "summary": "Get all Groups",
-        "operationId": "ShieldService_ListGroups",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1ListGroupsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "orgId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "state",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      },
-      "post": {
-        "summary": "Create Group",
-        "operationId": "ShieldService_CreateGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1CreateGroupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1GroupRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/groups/{id}": {
-      "get": {
-        "summary": "Get Group by ID",
-        "operationId": "ShieldService_GetGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1GetGroupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      },
-      "delete": {
-        "summary": "Delete a Group permanently forever and all of its relations",
-        "operationId": "ShieldService_DeleteGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1DeleteGroupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      },
-      "put": {
-        "summary": "Update Group by ID",
-        "operationId": "ShieldService_UpdateGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateGroupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1GroupRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/groups/{id}/disable": {
-      "post": {
-        "summary": "Disable a Group",
-        "operationId": "ShieldService_DisableGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1DisableGroupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object"
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/groups/{id}/enable": {
-      "post": {
-        "summary": "Enable a Group",
-        "operationId": "ShieldService_EnableGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1EnableGroupResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object"
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/groups/{id}/relations": {
-      "get": {
-        "summary": "Get all relations for a group",
-        "operationId": "ShieldService_ListGroupRelations",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1ListGroupRelationsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "subjectType",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "role",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/metadatakey": {
-      "post": {
-        "summary": "Create Metadata Key",
-        "operationId": "ShieldService_CreateMetadataKey",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1CreateMetadataKeyResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1MetadataKeyRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Metadata Key"
-        ]
-      }
-    },
     "/v1beta1/namespaces": {
       "get": {
         "summary": "Get all Namespaces",
@@ -903,7 +833,7 @@
     },
     "/v1beta1/organizations": {
       "get": {
-        "summary": "Get all Organization",
+        "summary": "Get all organization",
         "operationId": "ShieldService_ListOrganizations",
         "responses": {
           "200": {
@@ -938,7 +868,7 @@
         ]
       },
       "post": {
-        "summary": "Create Organization",
+        "summary": "Create organization",
         "operationId": "ShieldService_CreateOrganization",
         "responses": {
           "200": {
@@ -966,6 +896,112 @@
         ],
         "tags": [
           "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{body.orgId}/groups": {
+      "post": {
+        "summary": "Create Group",
+        "operationId": "ShieldService_CreateGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body.orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{body.orgId}/groups/{id}": {
+      "put": {
+        "summary": "Update Group by ID",
+        "operationId": "ShieldService_UpdateGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1UpdateGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body.orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Group"
         ]
       }
     },
@@ -1199,6 +1235,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1240,6 +1282,264 @@
         ],
         "tags": [
           "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/groups": {
+      "post": {
+        "summary": "Create Group",
+        "operationId": "ShieldService_ListOrganizationGroups",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListOrganizationGroupsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/groups/{id}": {
+      "get": {
+        "summary": "Get Group by ID",
+        "operationId": "ShieldService_GetGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1GetGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a Group permanently forever and all of its relations",
+        "operationId": "ShieldService_DeleteGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/groups/{id}/disable": {
+      "post": {
+        "summary": "Disable a Group",
+        "operationId": "ShieldService_DisableGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DisableGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/groups/{id}/enable": {
+      "post": {
+        "summary": "Enable a Group",
+        "operationId": "ShieldService_EnableGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1EnableGroupResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/groups/{id}/relations": {
+      "get": {
+        "summary": "Get all relations for a group",
+        "operationId": "ShieldService_ListGroupRelations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListGroupRelationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subjectType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
         ]
       }
     },
@@ -1366,41 +1666,6 @@
       }
     },
     "/v1beta1/projects": {
-      "get": {
-        "summary": "Get all Project",
-        "operationId": "ShieldService_ListProjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1ListProjectsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "orgId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "state",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Project"
-        ]
-      },
       "post": {
         "summary": "Create Project",
         "operationId": "ShieldService_CreateProject",
@@ -1430,6 +1695,126 @@
         ],
         "tags": [
           "Project"
+        ]
+      }
+    },
+    "/v1beta1/projects/{body.projectId}/resources": {
+      "post": {
+        "summary": "Create Resource",
+        "operationId": "ShieldService_CreateResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateResourceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body.projectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "namespaceId": {
+                  "type": "string"
+                },
+                "relations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1beta1Relation"
+                  }
+                },
+                "orgId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
+    "/v1beta1/projects/{body.projectId}/resources/{id}": {
+      "put": {
+        "summary": "Update Resource by ID",
+        "operationId": "ShieldService_UpdateResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1UpdateResourceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body.projectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "namespaceId": {
+                  "type": "string"
+                },
+                "relations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1beta1Relation"
+                  }
+                },
+                "orgId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Resource"
         ]
       }
     },
@@ -1676,15 +2061,15 @@
         ]
       }
     },
-    "/v1beta1/relations": {
+    "/v1beta1/projects/{projectId}/resources": {
       "get": {
-        "summary": "Get all Relations",
-        "operationId": "ShieldService_ListRelations",
+        "summary": "Get all resources",
+        "operationId": "ShieldService_ListProjectResources",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1beta1ListRelationsResponse"
+              "$ref": "#/definitions/v1beta1ListProjectResourcesResponse"
             }
           },
           "default": {
@@ -1694,10 +2079,98 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespaceId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
-          "Relation"
+          "Resource"
+        ]
+      }
+    },
+    "/v1beta1/projects/{projectId}/resources/{id}": {
+      "get": {
+        "summary": "Get Resource by ID",
+        "operationId": "ShieldService_GetResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1GetResourceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
         ]
       },
+      "delete": {
+        "summary": "Delete a resource permanently forever",
+        "operationId": "ShieldService_DeleteResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteResourceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
+    "/v1beta1/relations": {
       "post": {
         "summary": "Create Relation",
         "operationId": "ShieldService_CreateRelation",
@@ -1758,154 +2231,6 @@
         ],
         "tags": [
           "Relation"
-        ]
-      }
-    },
-    "/v1beta1/resources": {
-      "get": {
-        "summary": "Get all Resources",
-        "operationId": "ShieldService_ListResources",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1ListResourcesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "groupId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "projectId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "organizationId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "namespaceId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Resource"
-        ]
-      },
-      "post": {
-        "summary": "Create Resource",
-        "operationId": "ShieldService_CreateResource",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1CreateResourceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1ResourceRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Resource"
-        ]
-      }
-    },
-    "/v1beta1/resources/{id}": {
-      "get": {
-        "summary": "Get Resource by ID",
-        "operationId": "ShieldService_GetResource",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1GetResourceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Resource"
-        ]
-      },
-      "put": {
-        "summary": "Update Resource by ID",
-        "operationId": "ShieldService_UpdateResource",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateResourceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1ResourceRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Resource"
         ]
       }
     },
@@ -2033,7 +2358,7 @@
     },
     "/v1beta1/users": {
       "get": {
-        "summary": "Get All Users",
+        "summary": "Get all public users",
         "operationId": "ShieldService_ListUsers",
         "responses": {
           "200": {
@@ -2094,7 +2419,7 @@
         ]
       },
       "post": {
-        "summary": "Create User",
+        "summary": "Create user",
         "operationId": "ShieldService_CreateUser",
         "responses": {
           "200": {
@@ -2181,7 +2506,7 @@
     },
     "/v1beta1/users/{id}": {
       "get": {
-        "summary": "Get a User by id",
+        "summary": "Get a user by id",
         "operationId": "ShieldService_GetUser",
         "responses": {
           "200": {
@@ -2562,14 +2887,6 @@
         }
       }
     },
-    "v1beta1CreateMetadataKeyResponse": {
-      "type": "object",
-      "properties": {
-        "metadatakey": {
-          "$ref": "#/definitions/v1beta1MetadataKey"
-        }
-      }
-    },
     "v1beta1CreateNamespaceResponse": {
       "type": "object",
       "properties": {
@@ -2654,6 +2971,9 @@
           "type": "string"
         }
       }
+    },
+    "v1beta1DeleteResourceResponse": {
+      "type": "object"
     },
     "v1beta1DeleteUserResponse": {
       "type": "object"
@@ -2856,6 +3176,34 @@
         }
       }
     },
+    "v1beta1ListAllOrganizationsResponse": {
+      "type": "object",
+      "properties": {
+        "organizations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1Organization"
+          }
+        }
+      }
+    },
+    "v1beta1ListAllUsersResponse": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
     "v1beta1ListAuthStrategiesResponse": {
       "type": "object",
       "properties": {
@@ -2916,6 +3264,18 @@
         }
       }
     },
+    "v1beta1ListOrganizationGroupsResponse": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1Group"
+          }
+        }
+      }
+    },
     "v1beta1ListOrganizationProjectsResponse": {
       "type": "object",
       "properties": {
@@ -2972,6 +3332,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1beta1User"
+          }
+        }
+      }
+    },
+    "v1beta1ListProjectResourcesResponse": {
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1Resource"
           }
         }
       }
@@ -3061,28 +3433,6 @@
             "type": "object",
             "$ref": "#/definitions/v1beta1User"
           }
-        }
-      }
-    },
-    "v1beta1MetadataKey": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        }
-      }
-    },
-    "v1beta1MetadataKeyRequestBody": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
         }
       }
     },
@@ -3345,6 +3695,9 @@
             "type": "object",
             "$ref": "#/definitions/v1beta1Relation"
           }
+        },
+        "orgId": {
+          "type": "string"
         }
       }
     },

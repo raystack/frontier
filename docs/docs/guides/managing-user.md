@@ -33,7 +33,7 @@ One thing to note here is that Shield only allow to have metadata key from a spe
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/users'
+    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/users'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --header 'X-Shield-Email: admin@odpf.io'
@@ -55,12 +55,12 @@ One thing to note here is that Shield only allow to have metadata key from a spe
   </TabItem>
 </Tabs>
 
-### List users
+### List all users
 
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`curl --location --request GET 'http://localhost:8000/admin/v1beta1/users'
+    {`curl --location --request GET 'http://localhost:8000/v1beta1/admin/users'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -78,7 +78,7 @@ One thing to note here is that Shield only allow to have metadata key from a spe
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/users/e9fba4af-ab23-4631-abba-597b1c8e6608'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/users/e9fba4af-ab23-4631-abba-597b1c8e6608'
 --header 'Accept: application/json''`}
     </CodeBlock>
   </TabItem>
@@ -96,7 +96,7 @@ One thing to note here is that Shield only allow to have metadata key from a spe
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request PUT 'http://localhost:8000/admin/v1beta1/users/e9fba4af-ab23-4631-abba-597b1c8e6608'
+    {`$ curl --location --request PUT 'http://localhost:8000/v1beta1/users/e9fba4af-ab23-4631-abba-597b1c8e6608'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{

@@ -30,8 +30,9 @@ var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't ex
 
 func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListResourcesRequest) (*shieldv1beta1.ListResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var resources []*shieldv1beta1.Resource
+	//TODO(kushsharma): apply admin level authz
 
+	var resources []*shieldv1beta1.Resource
 	filters := resource.Filter{
 		NamespaceID:    request.GetNamespaceId(),
 		OrganizationID: request.GetOrganizationId(),
@@ -53,6 +54,34 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 	}
 
 	return &shieldv1beta1.ListResourcesResponse{
+		Resources: resources,
+	}, nil
+}
+
+func (h Handler) ListProjectResources(ctx context.Context, request *shieldv1beta1.ListProjectResourcesRequest) (*shieldv1beta1.ListProjectResourcesResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	var resources []*shieldv1beta1.Resource
+	filters := resource.Filter{
+		NamespaceID: request.GetNamespaceId(),
+		ProjectID:   request.GetProjectId(),
+	}
+	resourcesList, err := h.resourceService.List(ctx, filters)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, r := range resourcesList {
+		resourcePB, err := transformResourceToPB(r)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		resources = append(resources, &resourcePB)
+	}
+
+	return &shieldv1beta1.ListProjectResourcesResponse{
 		Resources: resources,
 	}, nil
 }
