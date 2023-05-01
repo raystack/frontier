@@ -2,8 +2,10 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
+	"net/mail"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.opencensus.io/stats"
@@ -15,8 +17,8 @@ import (
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
+	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/telemetry"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )
 
@@ -95,6 +97,12 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		email = currentUserEmail
 	}
 
+	name := request.GetBody().GetName()
+	slug := strings.TrimSpace(request.GetBody().GetSlug())
+	if slug == "" {
+		slug = str.GenerateUserSlug(email)
+	}
+
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
@@ -103,8 +111,9 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 
 	// TODO might need to check the valid email form
 	newUser, err := h.userService.Create(ctx, user.User{
-		Name:     request.GetBody().GetName(),
+		Name:     name,
 		Email:    email,
+		Slug:     slug,
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -135,6 +144,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		Id:        newUser.ID,
 		Name:      newUser.Name,
 		Email:     newUser.Email,
+		Slug:      newUser.Slug,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(newUser.CreatedAt),
 		UpdatedAt: timestamppb.New(newUser.UpdatedAt),
@@ -240,28 +250,9 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	}
 
 	id := request.GetId()
-	if shielduuid.IsValid(id) {
-		updatedUser, err = h.userService.UpdateByID(ctx, user.User{
-			ID:       request.GetId(),
-			Name:     request.GetBody().GetName(),
-			Email:    request.GetBody().GetEmail(),
-			Metadata: metaDataMap,
-		})
-		if err != nil {
-			logger.Error(err.Error())
-			switch {
-			case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
-				return nil, grpcUserNotFoundError
-			case errors.Is(err, user.ErrInvalidEmail):
-				return nil, grpcBadBodyError
-			case errors.Is(err, user.ErrConflict):
-				return nil, grpcConflictError
-			default:
-				return nil, grpcInternalServerError
-			}
-		}
-	} else {
-		_, err := h.userService.GetByEmail(ctx, id)
+	// upsert by email
+	if isValidEmail(id) {
+		_, err = h.userService.GetByEmail(ctx, id)
 		if err != nil {
 			if err == user.ErrNotExist {
 				createUserResponse, err := h.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{Body: request.GetBody()})
@@ -273,14 +264,30 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 				return nil, grpcInternalServerError
 			}
 		}
+		// if email in request body is different from that of user getting updated
+		if email != id {
+			return nil, status.Errorf(codes.InvalidArgument, ErrEmailConflict.Error())
+		}
+	}
 
-		updatedUser, err = h.userService.UpdateByEmail(ctx, user.User{
-			Name:     request.GetBody().GetName(),
-			Email:    request.GetBody().GetEmail(),
-			Metadata: metaDataMap,
-		})
-		if err != nil {
-			logger.Error(err.Error())
+	updatedUser, err = h.userService.UpdateByID(ctx, user.User{
+		ID:       request.GetId(),
+		Name:     request.GetBody().GetName(),
+		Email:    request.GetBody().GetEmail(),
+		Slug:     request.GetBody().GetSlug(),
+		Metadata: metaDataMap,
+	})
+
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
+			return nil, grpcUserNotFoundError
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcBadBodyError
+		case errors.Is(err, user.ErrConflict):
+			return nil, grpcConflictError
+		default:
 			return nil, grpcInternalServerError
 		}
 	}
@@ -325,6 +332,7 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 	updatedUser, err := h.userService.UpdateByEmail(ctx, user.User{
 		Name:     request.GetBody().GetName(),
 		Email:    email,
+		Slug:     request.GetBody().GetSlug(),
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -430,8 +438,14 @@ func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {
 		Id:        usr.ID,
 		Name:      usr.Name,
 		Email:     usr.Email,
+		Slug:      usr.Slug,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(usr.CreatedAt),
 		UpdatedAt: timestamppb.New(usr.UpdatedAt),
 	}, nil
+}
+
+func isValidEmail(str string) bool {
+	_, err := mail.ParseAddress(str)
+	return err == nil
 }

@@ -92,6 +92,7 @@ func (s *UserRepositoryTestSuite) TestGetByID() {
 				ID:       s.users[0].ID,
 				Name:     s.users[0].Name,
 				Email:    s.users[0].Email,
+				Slug:     s.users[0].Slug,
 				Metadata: s.users[0].Metadata,
 				State:    user.Enabled,
 			},
@@ -144,6 +145,7 @@ func (s *UserRepositoryTestSuite) TestGetByEmail() {
 				ID:       s.users[0].ID,
 				Name:     s.users[0].Name,
 				Email:    s.users[0].Email,
+				Slug:     s.users[0].Slug,
 				Metadata: s.users[0].Metadata,
 				State:    user.Enabled,
 			},
@@ -189,6 +191,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			UserToCreate: user.User{
 				Name:  "new user",
 				Email: "new.user@odpf.io",
+				Slug:  "test_user_slug",
 			},
 			ExpectedEmail: "new.user@odpf.io",
 		},
@@ -197,6 +200,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			UserToCreate: user.User{
 				Name:  "new user",
 				Email: "new.user@odpf.io",
+				Slug:  "test_user_slug",
 			},
 			ErrString: user.ErrConflict.Error(),
 		},
@@ -321,6 +325,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			UserToUpdate: user.User{
 				Name:  "Doe John",
 				Email: s.users[0].Email,
+				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
 					"k1": "v1",
 				},
@@ -328,6 +333,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			ExpectedUser: user.User{
 				Name:  "Doe John",
 				Email: s.users[0].Email,
+				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
 					"k1": "v1",
 				},
@@ -382,6 +388,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
+				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
 					"k2": "v2",
 				},
@@ -390,6 +397,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
+				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
 					"k2": "v2",
 				},
@@ -401,18 +409,26 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			UserToUpdate: user.User{
 				ID:    uuid.NewString(),
 				Name:  "Doe John",
-				Email: "john.doe@odpf.io",
+				Email: s.users[0].Email,
+				Slug:  s.users[0].Slug,
 			},
 			Err: user.ErrNotExist,
 		},
 		{
-			Description: "should return error if user email already exist",
+			Description: "should not update the user email",
 			UserToUpdate: user.User{
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[1].Email,
+				Slug:  s.users[0].Slug,
 			},
-			Err: user.ErrConflict,
+			ExpectedUser: user.User{
+				ID:    s.users[0].ID,
+				Name:  "Doe John",
+				Email: s.users[0].Email,
+				Slug:  s.users[0].Slug,
+				State: user.Enabled,
+			},
 		},
 		{
 			Description: "should return error if user id is empty",

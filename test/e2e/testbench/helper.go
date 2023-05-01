@@ -205,7 +205,9 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	// validate
-	uRes, err := cl.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
+	uRes, err := cl.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{
+		OrgId: orgResp.GetOrganizations()[0].GetId(),
+	})
 	if err != nil {
 		return err
 	}

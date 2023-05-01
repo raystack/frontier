@@ -1097,7 +1097,7 @@ func (m *UserRequestBody) validate(all bool) error {
 	if !_UserRequestBody_Slug_Pattern.MatchString(m.GetSlug()) {
 		err := UserRequestBodyValidationError{
 			field:  "Slug",
-			reason: "value does not match regex pattern \"^[a-zA-Z][a-zA-Z0-9_]{3,64}$\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9_]{3,64})?$\"",
 		}
 		if !all {
 			return err
@@ -1234,7 +1234,7 @@ var _ interface {
 
 var _UserRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
-var _UserRequestBody_Slug_Pattern = regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_]{3,64}$")
+var _UserRequestBody_Slug_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9_]{3,64})?$")
 
 // Validate checks the field values on CreateUserRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -1414,7 +1414,7 @@ func (m *User) validate(all bool) error {
 	if !_User_Slug_Pattern.MatchString(m.GetSlug()) {
 		err := UserValidationError{
 			field:  "Slug",
-			reason: "value does not match regex pattern \"^[a-zA-Z][a-zA-Z0-9_]{3,64}$\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9_]{3,64})?$\"",
 		}
 		if !all {
 			return err
@@ -1649,7 +1649,7 @@ var _ interface {
 
 var _User_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
-var _User_Slug_Pattern = regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9_]{3,64}$")
+var _User_Slug_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9_]{3,64})?$")
 
 // Validate checks the field values on CreateUserResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -4352,7 +4352,7 @@ func (m *GroupRequestBody) validate(all bool) error {
 	if !_GroupRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := GroupRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -4470,7 +4470,7 @@ var _ interface {
 	ErrorName() string
 } = GroupRequestBodyValidationError{}
 
-var _GroupRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _GroupRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on CreateGroupRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -4763,7 +4763,7 @@ func (m *Group) validate(all bool) error {
 	if !_Group_Name_Pattern.MatchString(m.GetName()) {
 		err := GroupValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -4938,7 +4938,7 @@ var _ interface {
 	ErrorName() string
 } = GroupValidationError{}
 
-var _Group_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _Group_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on CreateGroupResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -5970,7 +5970,7 @@ func (m *Role) validate(all bool) error {
 	if !_Role_Name_Pattern.MatchString(m.GetName()) {
 		err := RoleValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -6172,7 +6172,7 @@ var _ interface {
 	ErrorName() string
 } = RoleValidationError{}
 
-var _Role_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _Role_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on RoleRequestBody with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -6201,7 +6201,7 @@ func (m *RoleRequestBody) validate(all bool) error {
 	if !_RoleRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := RoleRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -6317,7 +6317,7 @@ var _ interface {
 	ErrorName() string
 } = RoleRequestBodyValidationError{}
 
-var _RoleRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _RoleRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on CreateRoleRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -7329,7 +7329,7 @@ func (m *OrganizationRequestBody) validate(all bool) error {
 	if !_OrganizationRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := OrganizationRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -7447,7 +7447,7 @@ var _ interface {
 	ErrorName() string
 } = OrganizationRequestBodyValidationError{}
 
-var _OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on CreateOrganizationRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -7606,7 +7606,7 @@ func (m *Organization) validate(all bool) error {
 	if !_Organization_Name_Pattern.MatchString(m.GetName()) {
 		err := OrganizationValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -7779,7 +7779,7 @@ var _ interface {
 	ErrorName() string
 } = OrganizationValidationError{}
 
-var _Organization_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _Organization_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on CreateOrganizationResponse with the
 // rules defined in the proto definition for this message. If any rules are
@@ -10008,7 +10008,7 @@ func (m *ProjectRequestBody) validate(all bool) error {
 	if !_ProjectRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := ProjectRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -10128,7 +10128,7 @@ var _ interface {
 	ErrorName() string
 } = ProjectRequestBodyValidationError{}
 
-var _ProjectRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _ProjectRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on CreateProjectRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -10286,7 +10286,7 @@ func (m *Project) validate(all bool) error {
 	if !_Project_Name_Pattern.MatchString(m.GetName()) {
 		err := ProjectValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -10461,7 +10461,7 @@ var _ interface {
 	ErrorName() string
 } = ProjectValidationError{}
 
-var _Project_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _Project_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on CreateProjectResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -12444,7 +12444,7 @@ func (m *Action) validate(all bool) error {
 	if !_Action_Name_Pattern.MatchString(m.GetName()) {
 		err := ActionValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -12617,7 +12617,7 @@ var _ interface {
 	ErrorName() string
 } = ActionValidationError{}
 
-var _Action_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _Action_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on Namespace with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -12646,7 +12646,7 @@ func (m *Namespace) validate(all bool) error {
 	if !_Namespace_Name_Pattern.MatchString(m.GetName()) {
 		err := NamespaceValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -12788,7 +12788,7 @@ var _ interface {
 	ErrorName() string
 } = NamespaceValidationError{}
 
-var _Namespace_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _Namespace_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on Policy with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -13067,7 +13067,7 @@ func (m *ActionRequestBody) validate(all bool) error {
 	if !_ActionRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := ActionRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -13156,7 +13156,7 @@ var _ interface {
 	ErrorName() string
 } = ActionRequestBodyValidationError{}
 
-var _ActionRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _ActionRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on NamespaceRequestBody with the rules
 // defined in the proto definition for this message. If any rules are
@@ -13185,7 +13185,7 @@ func (m *NamespaceRequestBody) validate(all bool) error {
 	if !_NamespaceRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := NamespaceRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -13272,7 +13272,7 @@ var _ interface {
 	ErrorName() string
 } = NamespaceRequestBodyValidationError{}
 
-var _NamespaceRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _NamespaceRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on PolicyRequestBody with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -20313,7 +20313,7 @@ func (m *CheckResourcePermissionRequest) validate(all bool) error {
 	if !_CheckResourcePermissionRequest_ObjectNamespace_Pattern.MatchString(m.GetObjectNamespace()) {
 		err := CheckResourcePermissionRequestValidationError{
 			field:  "ObjectNamespace",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9/_-]+$\"",
 		}
 		if !all {
 			return err
@@ -20414,7 +20414,7 @@ var _ interface {
 
 var _CheckResourcePermissionRequest_ObjectId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
-var _CheckResourcePermissionRequest_ObjectNamespace_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+var _CheckResourcePermissionRequest_ObjectNamespace_Pattern = regexp.MustCompile("^[A-Za-z0-9/_-]+$")
 
 var _CheckResourcePermissionRequest_Permission_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 

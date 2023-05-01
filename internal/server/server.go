@@ -16,6 +16,7 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
@@ -174,6 +175,7 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
 			grpc_ctxtags.UnaryServerInterceptor(),
+			grpc_validator.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
 		))
 }

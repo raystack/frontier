@@ -14,6 +14,7 @@ var (
 	ErrConflictRequest       = errors.New("already exist")
 	ErrRequestBodyValidation = errors.New("invalid format for field(s)")
 	ErrEmptyEmailID          = errors.New("email id is empty")
+	ErrEmailConflict         = errors.New("user email can't be updated")
 
 	grpcInternalServerError = status.Errorf(codes.Internal, ErrInternalServer.Error())
 	grpcConflictError       = status.Errorf(codes.AlreadyExists, ErrConflictRequest.Error())

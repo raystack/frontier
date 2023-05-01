@@ -16,6 +16,7 @@ import (
 	"github.com/odpf/shield/core/authenticate/strategy"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/str"
 	"github.com/robfig/cron/v3"
 )
 
@@ -235,6 +236,7 @@ func (r RegistrationService) applyOIDC(ctx context.Context, request Registration
 	newUser, err := r.userService.Create(ctx, user.User{
 		Name:  oauthProfile.Name,
 		Email: oauthProfile.Email,
+		Slug:  str.GenerateUserSlug(oauthProfile.Email),
 	})
 	if err != nil {
 		return nil, err

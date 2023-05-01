@@ -1,6 +1,11 @@
 package str
 
-import "strings"
+import (
+	"fmt"
+	"regexp"
+	"strings"
+	"unicode"
+)
 
 type SlugifyOptions struct {
 	KeepHyphen bool
@@ -29,4 +34,27 @@ func GenerateSlug(name string) string {
 		strings.Split(preProcessed, " "),
 		"-",
 	)
+}
+
+/*
+in case user email begins with a digit, 20230123@acme.org the returned user slug is `u2023123_acme_org`,
+otherwise removes all the non-alpha numeric characters from the provided email and returns an _ separated slug.
+For eg: "$john-doe@acme.org" returns "johndoe_acme_org"
+*/
+func GenerateUserSlug(email string) string {
+	email = strings.ToLower(strings.TrimSpace(email))
+
+	i := strings.LastIndexByte(email, '@')
+	// remove all the non-alphanumeric characters from local part
+	regex := "[^a-zA-Z0-9]+"
+	localPart := regexp.MustCompile(regex).ReplaceAllString(email[:i], "")
+	if unicode.IsDigit(rune(localPart[0])) {
+		localPart = fmt.Sprintf("u%s", localPart)
+	}
+
+	// remove all the non-numeric characters except periods from the domain part
+	regex = "[^a-zA-Z0-9.]+"
+	domainPart := strings.ReplaceAll(regexp.MustCompile(regex).ReplaceAllString(email[i+1:], ""), ".", "_")
+
+	return fmt.Sprintf("%s_%s", localPart, domainPart)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/salt/printer"
 	"github.com/odpf/shield/pkg/file"
+	"github.com/odpf/shield/pkg/str"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
@@ -69,6 +70,10 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
+			if reqBody.Slug == "" {
+				reqBody.Slug = str.GenerateUserSlug(reqBody.Email)
+			}
+
 			ctx := context.Background()
 			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
@@ -106,6 +111,7 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield user edit <user-id> --file=<user-body>
+			$ shield user edit <user-slug> --file=<user-body>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -161,6 +167,7 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
 			$ shield user view <user-id>
+			$ shield user view <user-slug>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -190,11 +197,12 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
-			report = append(report, []string{"ID", "NAME", "EMAIL"})
+			report = append(report, []string{"ID", "NAME", "EMAIL", "SLUG"})
 			report = append(report, []string{
 				user.GetId(),
 				user.GetName(),
 				user.GetEmail(),
+				user.GetSlug(),
 			})
 			printer.Table(os.Stdout, report)
 
@@ -253,12 +261,13 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 
 			fmt.Printf(" \nShowing %d users\n \n", len(users))
 
-			report = append(report, []string{"ID", "NAME", "EMAIL"})
+			report = append(report, []string{"ID", "NAME", "EMAIL", "SLUG"})
 			for _, u := range users {
 				report = append(report, []string{
 					u.GetId(),
 					u.GetName(),
 					u.GetEmail(),
+					u.GetSlug(),
 				})
 			}
 			printer.Table(os.Stdout, report)
