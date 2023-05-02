@@ -31,6 +31,7 @@ const (
 	TABLE_ROLES         = "roles"
 	TABLE_USERS         = "users"
 	TABLE_METADATA      = "metadata"
+	TABLE_METASCHEMA    = "metaschema"
 	TABLE_FLOWS         = "flows"
 	TABLE_SESSIONS      = "sessions"
 )

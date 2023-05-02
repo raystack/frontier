@@ -10,6 +10,7 @@ import (
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/core/role"
+	"github.com/odpf/shield/pkg/metadata"
 
 	"golang.org/x/exp/maps"
 )
@@ -134,6 +135,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				Name:        roleId,
 				Types:       principals,
 				NamespaceID: namespaceId,
+				Metadata:    metadata.Metadata{},
 			})
 			if err != nil {
 				return fmt.Errorf("%w: %s", ErrMigration, err.Error())
@@ -147,6 +149,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				Name:        ins.Name,
 				Types:       []string{ins.NamespaceId},
 				NamespaceID: namespaceId,
+				Metadata:    metadata.Metadata{},
 			})
 			if err != nil {
 				return fmt.Errorf("%w: %s", ErrMigration, err.Error())

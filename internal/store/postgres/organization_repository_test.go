@@ -15,6 +15,7 @@ import (
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/metadata"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -221,20 +222,23 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create an organization",
 			OrganizationToCreate: organization.Organization{
-				Name: "new-org",
-				Slug: "new-org-slug",
+				Name:     "new-org",
+				Slug:     "new-org-slug",
+				Metadata: metadata.Metadata{},
 			},
 			ExpectedOrganization: organization.Organization{
-				Name:  "new-org",
-				Slug:  "new-org-slug",
-				State: organization.Enabled,
+				Name:     "new-org",
+				Slug:     "new-org-slug",
+				State:    organization.Enabled,
+				Metadata: metadata.Metadata{},
 			},
 		},
 		{
 			Description: "should return error if organization slug already exist",
 			OrganizationToCreate: organization.Organization{
-				Name: "newslug",
-				Slug: "org-1",
+				Name:     "newslug",
+				Slug:     "org-1",
+				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrConflict.Error(),
 		},
@@ -267,14 +271,16 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 			Description: "should get all organizations",
 			ExpectedOrganizations: []organization.Organization{
 				{
-					Name:  "org1",
-					Slug:  "org-1",
-					State: organization.Enabled,
+					Name:     "org1",
+					Slug:     "org-1",
+					State:    organization.Enabled,
+					Metadata: metadata.Metadata{},
 				},
 				{
-					Name:  "org2",
-					Slug:  "org-2",
-					State: organization.Enabled,
+					Name:     "org2",
+					Slug:     "org-2",
+					State:    organization.Enabled,
+					Metadata: metadata.Metadata{},
 				},
 			},
 		},
@@ -307,40 +313,45 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 		{
 			Description: "should update a organization",
 			OrganizationToUpdate: organization.Organization{
-				ID:   s.orgs[0].ID,
-				Name: "new org update",
-				Slug: "new-org-update",
+				ID:       s.orgs[0].ID,
+				Name:     "new org update",
+				Slug:     "new-org-update",
+				Metadata: metadata.Metadata{},
 			},
 			ExpectedOrganization: organization.Organization{
-				Name:  "new org update",
-				Slug:  "new-org-update",
-				State: organization.Enabled,
+				Name:     "new org update",
+				Slug:     "new-org-update",
+				State:    organization.Enabled,
+				Metadata: metadata.Metadata{},
 			},
 		},
 		{
 			Description: "should return error if organization slug already exist",
 			OrganizationToUpdate: organization.Organization{
-				ID:   s.orgs[0].ID,
-				Name: "new-org-2",
-				Slug: "org-2",
+				ID:       s.orgs[0].ID,
+				Name:     "new-org-2",
+				Slug:     "org-2",
+				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if organization not found",
 			OrganizationToUpdate: organization.Organization{
-				ID:   uuid.NewString(),
-				Name: "not-exist",
-				Slug: "some-slug",
+				ID:       uuid.NewString(),
+				Name:     "not-exist",
+				Slug:     "some-slug",
+				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if organization id is not uuid",
 			OrganizationToUpdate: organization.Organization{
-				ID:   "12345",
-				Name: "not-exist",
-				Slug: "some-slug",
+				ID:       "12345",
+				Name:     "not-exist",
+				Slug:     "some-slug",
+				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrInvalidUUID.Error(),
 		},
@@ -377,20 +388,23 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 		{
 			Description: "should update a organization",
 			OrganizationToUpdate: organization.Organization{
-				Slug: "org-1",
-				Name: "new org update",
+				Slug:     "org-1",
+				Name:     "new org update",
+				Metadata: metadata.Metadata{},
 			},
 			ExpectedOrganization: organization.Organization{
-				Name:  "new org update",
-				Slug:  "org-1",
-				State: organization.Enabled,
+				Name:     "new org update",
+				Slug:     "org-1",
+				State:    organization.Enabled,
+				Metadata: metadata.Metadata{},
 			},
 		},
 		{
 			Description: "should return error if organization not found",
 			OrganizationToUpdate: organization.Organization{
-				Slug: "slug",
-				Name: "not-exist",
+				Slug:     "slug",
+				Name:     "not-exist",
+				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrNotExist.Error(),
 		},

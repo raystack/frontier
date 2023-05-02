@@ -10,6 +10,7 @@ import (
 
 	"github.com/odpf/shield/core/user"
 
+	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/project"
 
 	"github.com/doug-martin/goqu/v9"
@@ -189,6 +190,10 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	if err = validateMetadataSchema(marshaledMetadata, orgMetaSchemaName); err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
+	}
+
 	insertRow := goqu.Record{
 		"name":     org.Name,
 		"slug":     org.Slug,
@@ -293,6 +298,10 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	if err = validateMetadataSchema(marshaledMetadata, orgMetaSchemaName); err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
+	}
+
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
 			"name":       org.Name,
@@ -353,6 +362,10 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	if err = validateMetadataSchema(marshaledMetadata, orgMetaSchemaName); err != nil {
+		return organization.Organization{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(

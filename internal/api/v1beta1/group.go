@@ -5,14 +5,15 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
+	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/core/group"
+	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
 
@@ -126,6 +127,8 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 			return nil, grpcBadBodyError
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcUnauthenticated
+		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
+			return nil, grpcBadBodyMetaSchemaError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -213,6 +216,8 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 			errors.Is(err, organization.ErrInvalidUUID),
 			errors.Is(err, organization.ErrNotExist):
 			return nil, grpcBadBodyError
+		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
+			return nil, grpcBadBodyMetaSchemaError
 		default:
 			return nil, grpcInternalServerError
 		}

@@ -8,11 +8,12 @@ import (
 
 	"github.com/odpf/shield/internal/schema"
 
+	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	suuid "github.com/odpf/shield/pkg/uuid"
+	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -133,8 +134,11 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 			return nil, grpcBadBodyError
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
+			return nil, grpcBadBodyMetaSchemaError
+		default:
+			return nil, grpcInternalServerError
 		}
-		return nil, grpcInternalServerError
 	}
 
 	metaData, err := newOrg.Metadata.ToStructPB()
@@ -214,6 +218,8 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
+			return nil, grpcBadBodyMetaSchemaError
 		default:
 			return nil, grpcInternalServerError
 		}

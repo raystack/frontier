@@ -13,6 +13,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/group"
+	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
@@ -198,6 +199,10 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	if err = validateMetadataSchema(marshaledMetadata, groupMetaSchemaName); err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
+	}
+
 	insertRow := goqu.Record{
 		"name":     grp.Name,
 		"slug":     grp.Slug,
@@ -316,6 +321,10 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	if err = validateMetadataSchema(marshaledMetadata, groupMetaSchemaName); err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
+	}
+
 	query, params, err := dialect.Update(TABLE_GROUPS).Set(
 		goqu.Record{
 			"name":       grp.Name,
@@ -380,6 +389,10 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	if err = validateMetadataSchema(marshaledMetadata, groupMetaSchemaName); err != nil {
+		return group.Group{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_GROUPS).Set(

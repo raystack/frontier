@@ -4,15 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	newrelic "github.com/newrelic/go-agent"
+	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/uuid"
@@ -258,6 +260,14 @@ func (r UserRepository) GetBySlug(ctx context.Context, slug string) (user.User, 
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
 	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" {
 		return user.User{}, user.ErrInvalidDetails
+	}
+
+	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+	if err = validateMetadataSchema(marshaledMetadata, userMetaSchemaName); err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
 	}
 
 	tx, err := r.dbc.BeginTx(ctx, nil)
@@ -529,9 +539,17 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		return user.User{}, user.ErrInvalidEmail
 	}
 
+	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+	if err = validateMetadataSchema(marshaledMetadata, userMetaSchemaName); err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
+	}
+
 	var transformedUser user.User
 
-	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
@@ -744,9 +762,17 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return user.User{}, user.ErrInvalidDetails
 	}
 
+	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+	if err = validateMetadataSchema(marshaledMetadata, userMetaSchemaName); err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
+	}
+
 	var transformedUser user.User
 
-	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,

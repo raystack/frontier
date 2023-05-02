@@ -1,0 +1,18 @@
+{
+    "title":"group metadata",
+    "description":"JSON-schema for validating group metadata",
+    "type":"object",
+    "properties":{
+       "label":{
+          "title":"Label",
+          "description":"Additional context about the group",
+          "type":"string"
+       },
+       "description":{
+          "title":"Description",
+          "description":"Some additional information for the group",
+          "type":"string"
+       }
+    },
+  "additionalProperties": false
+ }

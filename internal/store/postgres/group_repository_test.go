@@ -16,23 +16,25 @@ import (
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
+	"github.com/odpf/shield/pkg/metadata"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
 
 type GroupRepositoryTestSuite struct {
 	suite.Suite
-	ctx                 context.Context
-	client              *db.Client
-	pool                *dockertest.Pool
-	resource            *dockertest.Resource
-	repository          *postgres.GroupRepository
-	relationRepository  *postgres.RelationRepository
-	namespaceRepository *postgres.NamespaceRepository
-	roleRepository      *postgres.RoleRepository
-	orgs                []organization.Organization
-	groups              []group.Group
-	users               []user.User
+	ctx                  context.Context
+	client               *db.Client
+	pool                 *dockertest.Pool
+	resource             *dockertest.Resource
+	repository           *postgres.GroupRepository
+	relationRepository   *postgres.RelationRepository
+	namespaceRepository  *postgres.NamespaceRepository
+	roleRepository       *postgres.RoleRepository
+	metaschemaRepository *postgres.MetaSchemaRepository
+	orgs                 []organization.Organization
+	groups               []group.Group
+	users                []user.User
 }
 
 func (s *GroupRepositoryTestSuite) SetupSuite() {
@@ -46,6 +48,8 @@ func (s *GroupRepositoryTestSuite) SetupSuite() {
 
 	s.ctx = context.TODO()
 	s.repository = postgres.NewGroupRepository(s.client)
+	s.metaschemaRepository = postgres.NewMetaSchemaRepository(s.client)
+	s.metaschemaRepository.InitMetaSchemas(s.ctx)
 
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
@@ -315,12 +319,14 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 				Name:           "new-group",
 				Slug:           "new-group-slug",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ExpectedGroup: group.Group{
 				Name:           "new-group",
 				Slug:           "new-group-slug",
 				OrganizationID: s.orgs[0].ID,
 				State:          group.Enabled,
+				Metadata:       metadata.Metadata{},
 			},
 		},
 		{
@@ -329,12 +335,14 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 				Name:           "group2",
 				Slug:           "new-slug",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ExpectedGroup: group.Group{
 				Name:           "group2",
 				Slug:           "new-slug",
 				OrganizationID: s.orgs[0].ID,
 				State:          group.Enabled,
+				Metadata:       metadata.Metadata{},
 			},
 		},
 		{
@@ -343,6 +351,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 				Name:           "newslug",
 				Slug:           "group-2",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: group.ErrConflict.Error(),
 		},
@@ -352,6 +361,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 				Name:           "newslug",
 				Slug:           "groupnewslug",
 				OrganizationID: "some-id",
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: group.ErrInvalidUUID.Error(),
 		},
@@ -361,6 +371,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 				Name:           "newslug",
 				Slug:           "groupnewslug",
 				OrganizationID: uuid.NewString(),
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: organization.ErrNotExist.Error(),
 		},
@@ -398,18 +409,21 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					Slug:           "group-1",
 					OrganizationID: s.orgs[0].ID,
 					State:          group.Enabled,
+					Metadata:       metadata.Metadata{},
 				},
 				{
 					Name:           "group2",
 					Slug:           "group-2",
 					OrganizationID: s.orgs[0].ID,
 					State:          group.Enabled,
+					Metadata:       metadata.Metadata{},
 				},
 				{
 					Name:           "group3",
 					Slug:           "group-3",
 					OrganizationID: s.orgs[1].ID,
 					State:          group.Enabled,
+					Metadata:       metadata.Metadata{},
 				},
 			},
 		},
@@ -424,6 +438,7 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					Slug:           "group-3",
 					OrganizationID: s.orgs[1].ID,
 					State:          group.Enabled,
+					Metadata:       metadata.Metadata{},
 				},
 			},
 		},
@@ -438,6 +453,7 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					Slug:           "group-4",
 					OrganizationID: s.orgs[1].ID,
 					State:          group.Disabled,
+					Metadata:       metadata.Metadata{},
 				},
 			},
 		},
@@ -474,12 +490,14 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 				Name:           "new group update",
 				Slug:           "new-group-update",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ExpectedGroup: group.Group{
 				Name:           "new group update",
 				Slug:           "new-group-update",
 				OrganizationID: s.orgs[0].ID,
 				State:          group.Enabled,
+				Metadata:       metadata.Metadata{},
 			},
 		},
 		{
@@ -489,6 +507,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 				Name:           "new-group-2",
 				Slug:           "group-2",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: group.ErrConflict.Error(),
 		},
@@ -499,6 +518,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 				Name:           "not-exist",
 				Slug:           "some-slug",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: group.ErrNotExist.Error(),
 		},
@@ -509,6 +529,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 				Name:           "not-exist",
 				Slug:           "some-slug",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: group.ErrInvalidUUID.Error(),
 		},
@@ -519,6 +540,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 				Slug:           "new-prj",
 				Name:           "not-exist",
 				OrganizationID: "not-uuid",
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: organization.ErrInvalidUUID.Error(),
 		},
@@ -529,6 +551,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 				Slug:           "new-prj",
 				Name:           "not-exist",
 				OrganizationID: uuid.NewString(),
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: organization.ErrNotExist.Error(),
 		},
@@ -568,12 +591,14 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 				Name:           "new group update",
 				Slug:           "group-1",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ExpectedGroup: group.Group{
 				Name:           "new group update",
 				Slug:           "group-1",
 				OrganizationID: s.orgs[0].ID,
 				State:          group.Enabled,
+				Metadata:       metadata.Metadata{},
 			},
 		},
 		{
@@ -582,6 +607,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 				Slug:           "slug",
 				Name:           "not-exist",
 				OrganizationID: s.orgs[0].ID,
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: group.ErrNotExist.Error(),
 		},
@@ -591,6 +617,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 				Slug:           "group-1",
 				Name:           "not-exist",
 				OrganizationID: "not-uuid",
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: organization.ErrInvalidUUID.Error(),
 		},
@@ -600,6 +627,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 				Slug:           "group-1",
 				Name:           "not-exist",
 				OrganizationID: uuid.NewString(),
+				Metadata:       metadata.Metadata{},
 			},
 			ErrString: organization.ErrNotExist.Error(),
 		},
@@ -643,16 +671,19 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 					Name:           "group1",
 					Slug:           "group-1",
 					OrganizationID: s.groups[0].OrganizationID,
+					Metadata:       metadata.Metadata{},
 				},
 				{
 					Name:           "group2",
 					Slug:           "group-2",
 					OrganizationID: s.groups[1].OrganizationID,
+					Metadata:       metadata.Metadata{},
 				},
 				{
 					Name:           "group3",
 					Slug:           "group-3",
 					OrganizationID: s.groups[2].OrganizationID,
+					Metadata:       metadata.Metadata{},
 				},
 			},
 		},
