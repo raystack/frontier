@@ -190,6 +190,40 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name: "should return internal error if resource service's CheckAuthz returns some error even with multiple resource check failures",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.ViewPermission}).Return(false, errors.New("some error")).Twice()
+			},
+			request: &shieldv1beta1.CheckResourcePermissionRequest{
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.ViewPermission,
+					},
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.ViewPermission,
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -41,7 +41,7 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	}
 
 	var results []*shieldv1beta1.CheckResourcePermissionResponse_ResourcePermissionResponse
-	checkCtx, cancel := context.WithCancel(context.Background())
+	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	resultCh := make(chan resourcePermissionResult)
 	defer close(resultCh)
@@ -51,6 +51,7 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	for _, permission := range req.ResourcePermissions {
 		go func(checkCtx context.Context, resourcePermission *shieldv1beta1.ResourcePermission,
 			resCh chan<- resourcePermissionResult, errCh chan<- error) {
+			var checkErr error
 			result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 				Name:        resourcePermission.GetObjectId(),
 				NamespaceID: resourcePermission.GetObjectNamespace(),
@@ -58,24 +59,27 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 			if err != nil {
 				switch {
 				case errors.Is(err, user.ErrInvalidEmail):
-					errCh <- grpcUnauthenticated
-					return
+					checkErr = grpcUnauthenticated
 				default:
 					formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
 					logger.Error(formattedErr.Error())
-					errCh <- status.Errorf(codes.Internal, ErrInternalServer.Error())
-					return
+					checkErr = status.Errorf(codes.Internal, ErrInternalServer.Error())
 				}
 			}
 			select {
 			case <-checkCtx.Done():
 				return
-			case resCh <- resourcePermissionResult{
-				objectId:        resourcePermission.GetObjectId(),
-				objectNamespace: resourcePermission.GetObjectNamespace(),
-				permission:      resourcePermission.GetPermission(),
-				allowed:         result,
-			}:
+			default:
+				if checkErr != nil {
+					errorCh <- checkErr
+				} else {
+					resCh <- resourcePermissionResult{
+						objectId:        resourcePermission.GetObjectId(),
+						objectNamespace: resourcePermission.GetObjectNamespace(),
+						permission:      resourcePermission.GetPermission(),
+						allowed:         result,
+					}
+				}
 			}
 		}(checkCtx, permission, resultCh, errorCh)
 	}
