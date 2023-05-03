@@ -307,7 +307,7 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 
 func (r RelationRepository) getConsistency() *authzedpb.Consistency {
 	if !r.fullyConsistent {
-		return &authzedpb.Consistency{}
+		return nil
 	}
 	return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_FullyConsistent{FullyConsistent: true}}
 }

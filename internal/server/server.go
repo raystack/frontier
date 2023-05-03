@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
+
 	"github.com/odpf/shield/internal/server/interceptors"
 	"github.com/odpf/shield/ui"
 
@@ -16,7 +18,6 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
@@ -48,7 +49,6 @@ func Serve(
 
 	grpcDialCtx, grpcDialCancel := context.WithTimeout(ctx, time.Second*5)
 	defer grpcDialCancel()
-
 	grpcConn, err := grpc.DialContext(
 		grpcDialCtx,
 		cfg.grpcAddr(),
@@ -86,15 +86,20 @@ func Serve(
 	}
 
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
-	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
-
-	// json web key set handler
-	jwksHandler, err := NewTokenJWKSHandler(cfg.Authentication.Token)
-	if err != nil {
+	httpMux.Handle("/", grpcGateway)
+	if err := shieldv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
+		return err
+	}
+	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
 
-	httpMux.Handle("/jwks.json", jwksHandler)
+	// json web key set handler
+	if jwksHandler, err := NewTokenJWKSHandler(cfg.Authentication.Token); err != nil {
+		return err
+	} else {
+		httpMux.Handle("/jwks.json", jwksHandler)
+	}
 
 	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
 	if err != nil {
@@ -103,18 +108,12 @@ func Serve(
 		httpMux.Handle("/", http.StripPrefix("/", spaHandler))
 	}
 
-	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
-		return err
-	}
-
 	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
 	reflection.Register(grpcServer)
 
-	healthHandler := health.NewHandler()
-	grpc_health_v1.RegisterHealthServer(grpcServer, healthHandler)
+	grpc_health_v1.RegisterHealthServer(grpcServer, health.NewHandler())
 
-	err = v1beta1.Register(ctx, grpcServer, deps)
-	if err != nil {
+	if err = v1beta1.Register(grpcServer, deps); err != nil {
 		return err
 	}
 
@@ -175,7 +174,7 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
 			grpc_ctxtags.UnaryServerInterceptor(),
-			grpc_validator.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
+			grpc_validator.UnaryServerInterceptor(),
 		))
 }

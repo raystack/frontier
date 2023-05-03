@@ -85,7 +85,7 @@ func (s *PingSmokeTestSuite) TearDownSuite() {
 
 func (s *PingSmokeTestSuite) TestPing() {
 	s.Run("should be able to ping shield", func() {
-		url := fmt.Sprintf("http://localhost:%d/admin/ping", s.apiPort)
+		url := fmt.Sprintf("http://localhost:%d/ping", s.apiPort)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
 

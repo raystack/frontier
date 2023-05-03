@@ -59,7 +59,7 @@ There are two ways to create a resource in the shield,
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/resources'
+    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --header 'X-Shield-Email: admin@odpf.io'
@@ -110,12 +110,12 @@ Hooks can read query, header, params, payload, and response to get the values fo
                 type: json_payload
 ```
 
-### List resources
+### List all resources across projects
 
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/resources'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/admin/resources'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -126,7 +126,7 @@ Hooks can read query, header, params, payload, and response to get the values fo
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl -curl --location --request GET 'http://localhost:8000/admin/v1beta1/resources/28105b9a-1717-47cf-a5d9-49249b6638df'
+    {`$ curl -curl --location --request GET 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/28105b9a-1717-47cf-a5d9-49249b6638df'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -137,7 +137,7 @@ Hooks can read query, header, params, payload, and response to get the values fo
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request PUT 'http://localhost:8000/admin/v1beta1/resources/a9f784cf-0f29-486f-92d0-51300295f7e8'
+    {`$ curl --location --request PUT 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/a9f784cf-0f29-486f-92d0-51300295f7e8'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{

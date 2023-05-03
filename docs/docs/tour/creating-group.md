@@ -3,7 +3,7 @@
 In this, we will be using the organization id of the organization we created. Groups in shield belong to one organization.
 
 ```sh
-curl --location --request POST 'http://localhost:8000/admin/v1beta1/groups'
+curl --location --request POST 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8/groups'
 --header 'Content-Type: application/json'
 --data-raw '{
     "name": "Data Streaming",

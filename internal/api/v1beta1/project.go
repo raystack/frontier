@@ -4,8 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/odpf/shield/internal/schema"
-
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
@@ -42,8 +40,10 @@ func (h Handler) ListProjects(
 	request *shieldv1beta1.ListProjectsRequest,
 ) (*shieldv1beta1.ListProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var projects []*shieldv1beta1.Project
 
+	//TODO(kushsharma): apply admin level authz
+
+	var projects []*shieldv1beta1.Project
 	projectList, err := h.projectService.List(ctx, project.Filter{
 		State: project.State(request.GetState()),
 		OrgID: request.GetOrgId(),
@@ -209,7 +209,7 @@ func (h Handler) ListProjectAdmins(
 ) (*shieldv1beta1.ListProjectAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	users, err := h.projectService.ListUsers(ctx, request.GetId(), schema.DeletePermission)
+	users, err := h.projectService.ListUsers(ctx, request.GetId(), project.AdminPermission)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -240,7 +240,7 @@ func (h Handler) ListProjectUsers(
 ) (*shieldv1beta1.ListProjectUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	permissionFilter := schema.ViewPermission
+	permissionFilter := project.MemberPermission
 	if len(request.GetPermissionFilter()) > 0 {
 		permissionFilter = request.GetPermissionFilter()
 	}

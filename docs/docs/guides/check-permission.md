@@ -10,7 +10,7 @@ There are two ways to check a user permission on a resource in shield,
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/check'
+    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/check'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --header 'X-Shield-Email: doe.john@odpf.io'

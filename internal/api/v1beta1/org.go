@@ -39,9 +39,12 @@ type OrganizationService interface {
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
+	if h.DisableOrgsListing {
+		return nil, grpcOperationUnsupported
+	}
+
 	logger := grpczap.Extract(ctx)
 	var orgs []*shieldv1beta1.Organization
-
 	orgList, err := h.orgService.List(ctx, organization.Filter{
 		State:  organization.State(request.GetState()),
 		UserID: request.GetUserId(),
@@ -62,6 +65,36 @@ func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.L
 	}
 
 	return &shieldv1beta1.ListOrganizationsResponse{
+		Organizations: orgs,
+	}, nil
+}
+
+func (h Handler) ListAllOrganizations(ctx context.Context, request *shieldv1beta1.ListAllOrganizationsRequest) (*shieldv1beta1.ListAllOrganizationsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	// TODO(kushsharma): apply admin level authz
+
+	var orgs []*shieldv1beta1.Organization
+	orgList, err := h.orgService.List(ctx, organization.Filter{
+		State:  organization.State(request.GetState()),
+		UserID: request.GetUserId(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, v := range orgList {
+		orgPB, err := transformOrgToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+
+		orgs = append(orgs, &orgPB)
+	}
+
+	return &shieldv1beta1.ListAllOrganizationsResponse{
 		Organizations: orgs,
 	}, nil
 }

@@ -51,7 +51,7 @@ type RegistrationService struct {
 	config      Config
 }
 
-func NewRegistrationService(logger log.Logger, flowRepo FlowRepository, userService UserService, config Config) *RegistrationService {
+func NewRegistrationService(logger log.Logger, config Config, flowRepo FlowRepository, userService UserService) *RegistrationService {
 	return &RegistrationService{
 		log:         logger,
 		cron:        cron.New(),

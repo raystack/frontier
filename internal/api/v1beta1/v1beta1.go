@@ -1,8 +1,6 @@
 package v1beta1
 
 import (
-	"context"
-
 	"github.com/odpf/shield/internal/api"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc"
@@ -10,6 +8,10 @@ import (
 
 type Handler struct {
 	shieldv1beta1.UnimplementedShieldServiceServer
+	shieldv1beta1.UnimplementedAdminServiceServer
+
+	DisableOrgsListing  bool
+	DisableUsersListing bool
 	orgService          OrganizationService
 	projectService      ProjectService
 	groupService        GroupService
@@ -26,26 +28,26 @@ type Handler struct {
 	deleterService      CascadeDeleter
 }
 
-func Register(ctx context.Context, s *grpc.Server, deps api.Deps) error {
-	s.RegisterService(
-		&shieldv1beta1.ShieldService_ServiceDesc,
-		&Handler{
-			orgService:          deps.OrgService,
-			projectService:      deps.ProjectService,
-			groupService:        deps.GroupService,
-			roleService:         deps.RoleService,
-			policyService:       deps.PolicyService,
-			userService:         deps.UserService,
-			namespaceService:    deps.NamespaceService,
-			actionService:       deps.ActionService,
-			relationService:     deps.RelationService,
-			resourceService:     deps.ResourceService,
-			ruleService:         deps.RuleService,
-			sessionService:      deps.SessionService,
-			registrationService: deps.RegistrationService,
-			deleterService:      deps.DeleterService,
-		},
-	)
-
+func Register(s *grpc.Server, deps api.Deps) error {
+	handler := &Handler{
+		DisableOrgsListing:  deps.DisableOrgsListing,
+		DisableUsersListing: deps.DisableUsersListing,
+		orgService:          deps.OrgService,
+		projectService:      deps.ProjectService,
+		groupService:        deps.GroupService,
+		roleService:         deps.RoleService,
+		policyService:       deps.PolicyService,
+		userService:         deps.UserService,
+		namespaceService:    deps.NamespaceService,
+		actionService:       deps.ActionService,
+		relationService:     deps.RelationService,
+		resourceService:     deps.ResourceService,
+		ruleService:         deps.RuleService,
+		sessionService:      deps.SessionService,
+		registrationService: deps.RegistrationService,
+		deleterService:      deps.DeleterService,
+	}
+	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
+	s.RegisterService(&shieldv1beta1.AdminService_ServiceDesc, handler)
 	return nil
 }

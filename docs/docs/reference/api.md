@@ -1,6 +1,7 @@
-# Shield API
+# Shield Administration API
+## Version: 0.2.0
 
-## Version: 0.1.0
+## default
 
 ### /v1beta1/actions
 
@@ -71,6 +72,1056 @@ Update Action by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1UpdateActionResponse](#v1beta1updateactionresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## default
+
+### /v1beta1/admin/groups
+
+#### GET
+##### Summary
+
+Get all groups
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| userId | query |  | No | string |
+| orgId | query |  | No | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListGroupsResponse](#v1beta1listgroupsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{body.orgId}/groups
+
+#### POST
+##### Summary
+
+Create Group
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body.orgId | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateGroupResponse](#v1beta1creategroupresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{body.orgId}/groups/{id}
+
+#### PUT
+##### Summary
+
+Update Group by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body.orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateGroupResponse](#v1beta1updategroupresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{orgId}/groups
+
+#### POST
+##### Summary
+
+Create Group
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| body | body |  | Yes | { **"userId"**: string, **"state"**: string } |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationGroupsResponse](#v1beta1listorganizationgroupsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{orgId}/groups/{id}
+
+#### GET
+##### Summary
+
+Get Group by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetGroupResponse](#v1beta1getgroupresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete a Group permanently forever and all of its relations
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteGroupResponse](#v1beta1deletegroupresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{orgId}/groups/{id}/disable
+
+#### POST
+##### Summary
+
+Disable a Group
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DisableGroupResponse](#v1beta1disablegroupresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{orgId}/groups/{id}/enable
+
+#### POST
+##### Summary
+
+Enable a Group
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1EnableGroupResponse](#v1beta1enablegroupresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{orgId}/groups/{id}/relations
+
+#### GET
+##### Summary
+
+Get all relations for a group
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| subjectType | query |  | No | string |
+| role | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListGroupRelationsResponse](#v1beta1listgrouprelationsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## default
+
+### /v1beta1/admin/organizations
+
+#### GET
+##### Summary
+
+Get all organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| userId | query |  | No | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListAllOrganizationsResponse](#v1beta1listallorganizationsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations
+
+#### GET
+##### Summary
+
+Get all organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| userId | query |  | No | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationsResponse](#v1beta1listorganizationsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateOrganizationResponse](#v1beta1createorganizationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}
+
+#### GET
+##### Summary
+
+Get Organization by ID or slug
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetOrganizationResponse](#v1beta1getorganizationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete an Organization permanently forever and all of its relations
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteOrganizationResponse](#v1beta1deleteorganizationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update Organization by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateOrganizationResponse](#v1beta1updateorganizationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/admins
+
+#### GET
+##### Summary
+
+Get all Admins of an Organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationAdminsResponse](#v1beta1listorganizationadminsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/disable
+
+#### POST
+##### Summary
+
+Disable an Organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DisableOrganizationResponse](#v1beta1disableorganizationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/enable
+
+#### POST
+##### Summary
+
+Enable an Organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1EnableOrganizationResponse](#v1beta1enableorganizationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/projects
+
+#### GET
+##### Summary
+
+Get all projects that belong to an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationProjectsResponse](#v1beta1listorganizationprojectsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/users
+
+#### GET
+##### Summary
+
+List Organization users
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| permissionFilter | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationUsersResponse](#v1beta1listorganizationusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## default
+
+### /v1beta1/admin/projects
+
+#### GET
+##### Summary
+
+Get all project
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | query |  | No | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListProjectsResponse](#v1beta1listprojectsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects
+
+#### POST
+##### Summary
+
+Create Project
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateProjectResponse](#v1beta1createprojectresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}
+
+#### GET
+##### Summary
+
+Get Project by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetProjectResponse](#v1beta1getprojectresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete a Project permanently forever and all of its relations
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteProjectResponse](#v1beta1deleteprojectresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update Project by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateProjectResponse](#v1beta1updateprojectresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/admins
+
+#### GET
+##### Summary
+
+Get all Admins of a Project
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListProjectAdminsResponse](#v1beta1listprojectadminsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/disable
+
+#### POST
+##### Summary
+
+Disable a Project
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DisableProjectResponse](#v1beta1disableprojectresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/enable
+
+#### POST
+##### Summary
+
+Enable a Project
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1EnableProjectResponse](#v1beta1enableprojectresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/users
+
+#### GET
+##### Summary
+
+Get all users of a Project
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| permissionFilter | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListProjectUsersResponse](#v1beta1listprojectusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## default
+
+### /v1beta1/admin/relations
+
+#### GET
+##### Summary
+
+Get all relations
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListRelationsResponse](#v1beta1listrelationsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/object/{objectId}/subject/{subjectId}/role/{role}
+
+#### DELETE
+##### Summary
+
+Remove a subject having a role from an object
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| objectId | path |  | Yes | string |
+| subjectId | path |  | Yes | string |
+| role | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteRelationResponse](#v1beta1deleterelationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/relations
+
+#### POST
+##### Summary
+
+Create Relation
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1RelationRequestBody](#v1beta1relationrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateRelationResponse](#v1beta1createrelationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/relations/{id}
+
+#### GET
+##### Summary
+
+Get Relation by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetRelationResponse](#v1beta1getrelationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## default
+
+### /v1beta1/admin/resources
+
+#### GET
+##### Summary
+
+Get all resources
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| groupId | query |  | No | string |
+| projectId | query |  | No | string |
+| organizationId | query |  | No | string |
+| namespaceId | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListResourcesResponse](#v1beta1listresourcesresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{body.projectId}/resources
+
+#### POST
+##### Summary
+
+Create Resource
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body.projectId | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateResourceResponse](#v1beta1createresourceresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{body.projectId}/resources/{id}
+
+#### PUT
+##### Summary
+
+Update Resource by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body.projectId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateResourceResponse](#v1beta1updateresourceresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{projectId}/resources
+
+#### GET
+##### Summary
+
+Get all resources
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| namespaceId | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListProjectResourcesResponse](#v1beta1listprojectresourcesresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{projectId}/resources/{id}
+
+#### GET
+##### Summary
+
+Get Resource by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetResourceResponse](#v1beta1getresourceresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete a resource permanently forever
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteResourceResponse](#v1beta1deleteresourceresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## default
+
+### /v1beta1/admin/users
+
+#### GET
+##### Summary
+
+Get all users
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| pageSize | query |  | No | integer |
+| pageNum | query |  | No | integer |
+| keyword | query |  | No | string |
+| orgId | query |  | No | string |
+| groupId | query |  | No | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListAllUsersResponse](#v1beta1listallusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users
+
+#### GET
+##### Summary
+
+Get all public users
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| pageSize | query |  | No | integer |
+| pageNum | query |  | No | integer |
+| keyword | query |  | No | string |
+| orgId | query |  | No | string |
+| groupId | query |  | No | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListUsersResponse](#v1beta1listusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create user
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateUserResponse](#v1beta1createuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/self
+
+#### GET
+##### Summary
+
+Get current user
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetCurrentUserResponse](#v1beta1getcurrentuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update current User
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateCurrentUserResponse](#v1beta1updatecurrentuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}
+
+#### GET
+##### Summary
+
+Get a user by id
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetUserResponse](#v1beta1getuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete an user permanently forever and all of its relations
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteUserResponse](#v1beta1deleteuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update User by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateUserResponse](#v1beta1updateuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/disable
+
+#### POST
+##### Summary
+
+Disable a user
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DisableUserResponse](#v1beta1disableuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/enable
+
+#### POST
+##### Summary
+
+Enable a user
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1EnableUserResponse](#v1beta1enableuserresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/groups
+
+#### GET
+##### Summary
+
+List Groups of a User
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| role | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListUserGroupsResponse](#v1beta1listusergroupsresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/organizations
+
+#### GET
+##### Summary
+
+Get all organizations a user belongs to
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetOrganizationsByUserResponse](#v1beta1getorganizationsbyuserresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ## ShieldService
@@ -189,130 +1240,6 @@ check permission for action on a resource by an user
 
 ## default
 
-### /v1beta1/groups
-
-#### GET
-##### Summary
-
-Get all Groups
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| userId | query |  | No | string |
-| orgId | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListGroupsResponse](#v1beta1listgroupsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create Group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateGroupResponse](#v1beta1creategroupresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/groups/{id}
-
-#### GET
-##### Summary
-
-Get Group by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetGroupResponse](#v1beta1getgroupresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Group by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateGroupResponse](#v1beta1updategroupresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/groups/{id}/relations
-
-#### GET
-##### Summary
-
-Get all relations for a group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| subjectType | query |  | No | string |
-| role | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListGroupRelationsResponse](#v1beta1listgrouprelationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/metadatakey
-
-#### POST
-##### Summary
-
-Create Metadata Key
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1MetadataKeyRequestBody](#v1beta1metadatakeyrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateMetadataKeyResponse](#v1beta1createmetadatakeyresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
 ### /v1beta1/namespaces
 
 #### GET
@@ -382,175 +1309,6 @@ Update Namespace by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1UpdateNamespaceResponse](#v1beta1updatenamespaceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/object/{objectId}/subject/{subjectId}/role/{role}
-
-#### DELETE
-##### Summary
-
-Remove a subject having a role from an object
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| objectId | path |  | Yes | string |
-| subjectId | path |  | Yes | string |
-| role | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteRelationResponse](#v1beta1deleterelationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/relations
-
-#### GET
-##### Summary
-
-Get all Relations
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListRelationsResponse](#v1beta1listrelationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create Relation
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1RelationRequestBody](#v1beta1relationrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateRelationResponse](#v1beta1createrelationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/relations/{id}
-
-#### GET
-##### Summary
-
-Get Relation by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetRelationResponse](#v1beta1getrelationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/organizations
-
-#### GET
-##### Summary
-
-Get all Organization
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListOrganizationsResponse](#v1beta1listorganizationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create Organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateOrganizationResponse](#v1beta1createorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}
-
-#### GET
-##### Summary
-
-Get Organization by ID or slug
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetOrganizationResponse](#v1beta1getorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Organization by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateOrganizationResponse](#v1beta1updateorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/admins
-
-#### GET
-##### Summary
-
-Get all Admins of an Organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListOrganizationAdminsResponse](#v1beta1listorganizationadminsresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ## default
@@ -628,181 +1386,6 @@ Update Policy by ID
 
 ## default
 
-### /v1beta1/projects
-
-#### GET
-##### Summary
-
-Get all Project
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListProjectsResponse](#v1beta1listprojectsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create Project
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateProjectResponse](#v1beta1createprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}
-
-#### GET
-##### Summary
-
-Get Project by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetProjectResponse](#v1beta1getprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Project by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateProjectResponse](#v1beta1updateprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}/admins
-
-#### GET
-##### Summary
-
-Get all Admins of a Project
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListProjectAdminsResponse](#v1beta1listprojectadminsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/resources
-
-#### GET
-##### Summary
-
-Get all Resources
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| groupId | query |  | No | string |
-| projectId | query |  | No | string |
-| organizationId | query |  | No | string |
-| namespaceId | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListResourcesResponse](#v1beta1listresourcesresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create Resource
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateResourceResponse](#v1beta1createresourceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/resources/{id}
-
-#### GET
-##### Summary
-
-Get Resource by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetResourceResponse](#v1beta1getresourceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Resource by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateResourceResponse](#v1beta1updateresourceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
 ### /v1beta1/roles
 
 #### GET
@@ -872,160 +1455,6 @@ Update Role by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1UpdateRoleResponse](#v1beta1updateroleresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/users
-
-#### GET
-##### Summary
-
-Get All Users
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| pageSize | query |  | No | integer |
-| pageNum | query |  | No | integer |
-| keyword | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListUsersResponse](#v1beta1listusersresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create User
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateUserResponse](#v1beta1createuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/self
-
-#### GET
-##### Summary
-
-Get current user
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetCurrentUserResponse](#v1beta1getcurrentuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update current User
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateCurrentUserResponse](#v1beta1updatecurrentuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}
-
-#### GET
-##### Summary
-
-Get a User by id
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetUserResponse](#v1beta1getuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update User by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateUserResponse](#v1beta1updateuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}/groups
-
-#### GET
-##### Summary
-
-List Groups of a User
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| role | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListUserGroupsResponse](#v1beta1listusergroupsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}/organizations
-
-#### GET
-##### Summary
-
-Get all organizations a user belongs to
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetOrganizationsByUserResponse](#v1beta1getorganizationsbyuserresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### Models
@@ -1127,12 +1556,6 @@ Get all organizations a user belongs to
 | ---- | ---- | ----------- | -------- |
 | group | [v1beta1Group](#v1beta1group) |  | No |
 
-#### v1beta1CreateMetadataKeyResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| metadatakey | [v1beta1MetadataKey](#v1beta1metadatakey) |  | No |
-
 #### v1beta1CreateNamespaceResponse
 
 | Name | Type | Description | Required |
@@ -1181,11 +1604,89 @@ Get all organizations a user belongs to
 | ---- | ---- | ----------- | -------- |
 | user | [v1beta1User](#v1beta1user) |  | No |
 
+#### v1beta1DeleteGroupResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteGroupResponse | object |  |  |
+
+#### v1beta1DeleteOrganizationResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteOrganizationResponse | object |  |  |
+
+#### v1beta1DeleteProjectResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteProjectResponse | object |  |  |
+
 #### v1beta1DeleteRelationResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | message | string |  | No |
+
+#### v1beta1DeleteResourceResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteResourceResponse | object |  |  |
+
+#### v1beta1DeleteUserResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteUserResponse | object |  |  |
+
+#### v1beta1DisableGroupResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DisableGroupResponse | object |  |  |
+
+#### v1beta1DisableOrganizationResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DisableOrganizationResponse | object |  |  |
+
+#### v1beta1DisableProjectResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DisableProjectResponse | object |  |  |
+
+#### v1beta1DisableUserResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DisableUserResponse | object |  |  |
+
+#### v1beta1EnableGroupResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1EnableGroupResponse | object |  |  |
+
+#### v1beta1EnableOrganizationResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1EnableOrganizationResponse | object |  |  |
+
+#### v1beta1EnableProjectResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1EnableProjectResponse | object |  |  |
+
+#### v1beta1EnableUserResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1EnableUserResponse | object |  |  |
 
 #### v1beta1GetActionResponse
 
@@ -1295,6 +1796,19 @@ Get all organizations a user belongs to
 | ---- | ---- | ----------- | -------- |
 | actions | [ [v1beta1Action](#v1beta1action) ] |  | No |
 
+#### v1beta1ListAllOrganizationsResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| organizations | [ [v1beta1Organization](#v1beta1organization) ] |  | No |
+
+#### v1beta1ListAllUsersResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| count | integer |  | No |
+| users | [ [v1beta1User](#v1beta1user) ] |  | No |
+
 #### v1beta1ListAuthStrategiesResponse
 
 | Name | Type | Description | Required |
@@ -1325,6 +1839,24 @@ Get all organizations a user belongs to
 | ---- | ---- | ----------- | -------- |
 | users | [ [v1beta1User](#v1beta1user) ] |  | No |
 
+#### v1beta1ListOrganizationGroupsResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| groups | [ [v1beta1Group](#v1beta1group) ] |  | No |
+
+#### v1beta1ListOrganizationProjectsResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| projects | [ [v1beta1Project](#v1beta1project) ] |  | No |
+
+#### v1beta1ListOrganizationUsersResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| users | [ [v1beta1User](#v1beta1user) ] |  | No |
+
 #### v1beta1ListOrganizationsResponse
 
 | Name | Type | Description | Required |
@@ -1338,6 +1870,18 @@ Get all organizations a user belongs to
 | policies | [ [v1beta1Policy](#v1beta1policy) ] |  | No |
 
 #### v1beta1ListProjectAdminsResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| users | [ [v1beta1User](#v1beta1user) ] |  | No |
+
+#### v1beta1ListProjectResourcesResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| resources | [ [v1beta1Resource](#v1beta1resource) ] |  | No |
+
+#### v1beta1ListProjectUsersResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
@@ -1379,20 +1923,6 @@ Get all organizations a user belongs to
 | ---- | ---- | ----------- | -------- |
 | count | integer |  | No |
 | users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
-#### v1beta1MetadataKey
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| key | string |  | No |
-| description | string |  | No |
-
-#### v1beta1MetadataKeyRequestBody
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| key | string |  | No |
-| description | string |  | No |
 
 #### v1beta1Namespace
 
@@ -1515,6 +2045,7 @@ Get all organizations a user belongs to
 | projectId | string |  | No |
 | namespaceId | string |  | No |
 | relations | [ [v1beta1Relation](#v1beta1relation) ] |  | No |
+| orgId | string |  | No |
 
 #### v1beta1Role
 

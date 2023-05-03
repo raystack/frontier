@@ -30,7 +30,7 @@ A organization in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/organizations'
+    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/organizations'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
@@ -51,12 +51,12 @@ A organization in Shield looks like
   </TabItem>
 </Tabs>
 
-### List Organizations
+### List All Organizations
 
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/organizations'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/admin/organizations'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -69,12 +69,12 @@ A organization in Shield looks like
   </TabItem>
 </Tabs>
 
-### Get Organizations
+### Get Organization
 
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -87,12 +87,12 @@ A organization in Shield looks like
   </TabItem>
 </Tabs>
 
-### Update Organizations
+### Update Organization
 
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request PUT 'http://localhost:8000/admin/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8'
+    {`$ curl --location --request PUT 'http://localhost:8000/v1beta1/organizations/4eb3c3b4-962b-4b45-b55b-4c07d3810ca8'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{

@@ -31,7 +31,7 @@ A project in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/projects'
+    {`$ curl --location --request POST 'http://localhost:8000/v1beta1/projects'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
@@ -58,7 +58,7 @@ A project in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/projects'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/admin/projects'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -76,7 +76,7 @@ A project in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/admin/v1beta1/projects/457944c2-2a4c-4e6f-b1f7-3e1e109fe94c'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/projects/457944c2-2a4c-4e6f-b1f7-3e1e109fe94c'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -94,7 +94,7 @@ A project in Shield looks like
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request PUT 'http://localhost:8000/admin/v1beta1/projects/457944c2-2a4c-4e6f-b1f7-3e1e109fe94c'
+    {`$ curl --location --request PUT 'http://localhost:8000/v1beta1/projects/457944c2-2a4c-4e6f-b1f7-3e1e109fe94c'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{

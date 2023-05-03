@@ -42,9 +42,9 @@ var (
 
 func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
+	// TODO(kushsharma): apply admin level authz
 
 	var groups []*shieldv1beta1.Group
-
 	groupList, err := h.groupService.List(ctx, group.Filter{
 		OrganizationID: request.GetOrgId(),
 		State:          group.State(request.GetState()),
@@ -65,6 +65,32 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 	}
 
 	return &shieldv1beta1.ListGroupsResponse{Groups: groups}, nil
+}
+
+func (h Handler) ListOrganizationGroups(ctx context.Context, request *shieldv1beta1.ListOrganizationGroupsRequest) (*shieldv1beta1.ListOrganizationGroupsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	var groups []*shieldv1beta1.Group
+	groupList, err := h.groupService.List(ctx, group.Filter{
+		OrganizationID: request.GetOrgId(),
+		State:          group.State(request.GetState()),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, v := range groupList {
+		groupPB, err := transformGroupToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+
+		groups = append(groups, &groupPB)
+	}
+
+	return &shieldv1beta1.ListOrganizationGroupsResponse{Groups: groups}, nil
 }
 
 func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroupRequest) (*shieldv1beta1.CreateGroupResponse, error) {

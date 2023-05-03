@@ -40,8 +40,8 @@ app:
       # generate key file via "./shield server keygen"
       rsa_path: ./temp/rsa
       iss: "http://localhost.shield"
-    # external host used for oidc redirect uri, e.g. http://localhost:8000/admin/v1beta1/auth/callback
-    # oidc_callback_host: http://localhost:8000/admin/v1beta1/auth/callback
+    # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
+    # oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
     oidc_callback_host: http://localhost:8888/callback
     oidc_config:
       google:
