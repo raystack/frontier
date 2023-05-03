@@ -184,14 +184,14 @@
         "parameters": [
           {
             "name": "strategyName",
-            "description": "strategy_name will not be set for oidc but can be utilized for methods like email magic links.",
+            "description": "strategy_name will not be set for oidc but can be utilized for methods like email magic links",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "state",
-            "description": "for oidc.",
+            "description": "for oidc",
             "in": "query",
             "required": false,
             "type": "string"
@@ -223,6 +223,28 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "strategyName",
+            "description": "strategy_name will not be set for oidc but can be utilized for methods like email magic links",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "description": "for oidc",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "ShieldService"
         ]
@@ -296,14 +318,14 @@
           },
           {
             "name": "redirect",
-            "description": "by default, location header for redirect if applicable\nwill be skipped unless this is set to true, useful in browser.",
+            "description": "by default, location header for redirect if applicable\nwill be skipped unless this is set to true, useful in browser",
             "in": "query",
             "required": false,
             "type": "boolean"
           },
           {
             "name": "returnTo",
-            "description": "be default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication.",
+            "description": "be default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication",
             "in": "query",
             "required": false,
             "type": "string"
@@ -334,6 +356,20 @@
             "name": "strategyName",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "redirect",
+            "description": "by default, location header for redirect if applicable\nwill be skipped unless this is set to true, useful in browser",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "returnTo",
+            "description": "be default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -2418,6 +2454,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -2555,6 +2592,7 @@
         "policies": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Policy"
           }
         }
@@ -2690,6 +2728,7 @@
         "organizations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Organization"
           }
         }
@@ -2811,6 +2850,7 @@
         "actions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Action"
           }
         }
@@ -2822,6 +2862,7 @@
         "strategies": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1AuthStrategy"
           }
         }
@@ -2833,6 +2874,7 @@
         "relations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1GroupRelation"
           }
         }
@@ -2844,6 +2886,7 @@
         "groups": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Group"
           }
         }
@@ -2855,6 +2898,7 @@
         "namespaces": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Namespace"
           }
         }
@@ -2866,6 +2910,7 @@
         "users": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1User"
           }
         }
@@ -2877,6 +2922,7 @@
         "projects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Project"
           }
         }
@@ -2888,6 +2934,7 @@
         "users": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1User"
           }
         }
@@ -2899,6 +2946,7 @@
         "organizations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Organization"
           }
         }
@@ -2910,6 +2958,7 @@
         "policies": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Policy"
           }
         }
@@ -2921,6 +2970,7 @@
         "users": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1User"
           }
         }
@@ -2932,6 +2982,7 @@
         "users": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1User"
           }
         }
@@ -2943,6 +2994,7 @@
         "projects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Project"
           }
         }
@@ -2954,6 +3006,7 @@
         "relations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Relation"
           }
         }
@@ -2965,6 +3018,7 @@
         "resources": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Resource"
           }
         }
@@ -2976,6 +3030,7 @@
         "roles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Role"
           }
         }
@@ -2987,6 +3042,7 @@
         "groups": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Group"
           }
         }
@@ -3002,6 +3058,7 @@
         "users": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1User"
           }
         }
@@ -3285,6 +3342,7 @@
         "relations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Relation"
           }
         }
@@ -3393,6 +3451,7 @@
         "policies": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1beta1Policy"
           }
         }
@@ -3440,7 +3499,8 @@
           "type": "string"
         },
         "slug": {
-          "type": "string"
+          "type": "string",
+          "title": "can either be empty or must start with a character"
         },
         "email": {
           "type": "string"
