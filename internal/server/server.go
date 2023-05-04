@@ -86,7 +86,13 @@ func Serve(
 	}
 
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
-	httpMux.Handle("/", grpcGateway)
+
+	var rootHandler http.Handler
+	if rootHandler = grpcGateway; cfg.AllowCors == true {
+		rootHandler = interceptors.AllowCORS(rootHandler, cfg.CorsOrigin)
+	}
+
+	httpMux.Handle("/", rootHandler)
 	if err := shieldv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
@@ -105,7 +111,7 @@ func Serve(
 	if err != nil {
 		logger.Warn("failed to load spa", "err", err)
 	} else {
-		httpMux.Handle("/", http.StripPrefix("/", spaHandler))
+		httpMux.Handle("/console/", http.StripPrefix("/console/", spaHandler))
 	}
 
 	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))

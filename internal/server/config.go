@@ -23,7 +23,7 @@ type Config struct {
 	// GRPC Config
 	GRPC GRPCConfig `mapstructure:"grpc"`
 
-	//metrics port
+	// metrics port
 	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
 
 	// the network interface to listen on
@@ -52,4 +52,9 @@ type Config struct {
 	DisableOrgsListing bool `yaml:"disable_orgs_listing" mapstructure:"disable_orgs_listing"`
 	// DisableUsersListing if set to true will disallow non-admin APIs to list all users
 	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing"`
+
+	// AllowCORS if set to true will allow cors from cors_origin
+	AllowCors bool `yaml:"allow_cors" mapstructure:"allow_cors"`
+	// CorsOrigin is origin value from where we want to allow cors
+	CorsOrigin string `yaml:"cors_origin" mapstructure:"cors_origin"`
 }
