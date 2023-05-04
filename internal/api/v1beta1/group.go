@@ -106,6 +106,11 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcBadBodyError
 	}
 
+	if err := validateMetadataSchema(metaDataMap, groupMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
 	grp := group.Group{
 		Name:           request.GetBody().GetName(),
 		Slug:           request.GetBody().GetSlug(),
@@ -184,6 +189,11 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	if err := validateMetadataSchema(metaDataMap, groupMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	var updatedGroup group.Group

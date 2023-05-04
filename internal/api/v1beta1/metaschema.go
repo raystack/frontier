@@ -2,16 +2,27 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
+
+	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/metaschema"
+	"github.com/odpf/shield/pkg/metadata"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/xeipuuv/gojsonschema"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var grpcMetaSchemaNotFoundErr = status.Errorf(codes.NotFound, "metaschema doesn't exist")
+var (
+	userMetaSchema  = "user"
+	groupMetaSchema = "group"
+	orgMetaSchema   = "organization"
+	roleMetaSchema  = "role"
+
+	MetaSchemaCache           = make(map[string]string)
+	grpcMetaSchemaNotFoundErr = status.Errorf(codes.NotFound, "metaschema doesn't exist")
+)
 
 type MetaSchemaService interface {
 	Get(ctx context.Context, name string) (metaschema.MetaSchema, error)
@@ -65,7 +76,7 @@ func (h Handler) CreateMetaSchema(ctx context.Context, request *shieldv1beta1.Cr
 	}
 
 	metaschemaPB := transformMetaSchemaToPB(newMetaSchema)
-
+	MetaSchemaCache[newMetaSchema.Name] = newMetaSchema.Schema
 	return &shieldv1beta1.CreateMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
 }
 
@@ -77,7 +88,7 @@ func (h Handler) GetMetaSchema(ctx context.Context, request *shieldv1beta1.GetMe
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, metaschema.ErrNotExist), errors.Is(err, metaschema.ErrInvalidName):
-			return nil, grpcRoleNotFoundErr
+			return nil, grpcMetaSchemaNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -121,6 +132,7 @@ func (h Handler) UpdateMetaSchema(ctx context.Context, request *shieldv1beta1.Up
 		}
 	}
 
+	MetaSchemaCache[updateMetaSchema.Name] = updateMetaSchema.Schema
 	metaschemaPB := transformMetaSchemaToPB(updateMetaSchema)
 	return &shieldv1beta1.UpdateMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
 }
@@ -139,7 +151,7 @@ func (h Handler) DeleteMetaSchema(ctx context.Context, request *shieldv1beta1.De
 			return nil, grpcInternalServerError
 		}
 	}
-
+	delete(MetaSchemaCache, request.GetName())
 	return &shieldv1beta1.DeleteMetaSchemaResponse{}, nil
 }
 
@@ -148,4 +160,22 @@ func transformMetaSchemaToPB(from metaschema.MetaSchema) shieldv1beta1.MetaSchem
 		Name:   from.Name,
 		Schema: from.Schema,
 	}
+}
+
+// validates the metadata against the json-schema. In case metaschema doesn't exists in the cache, it will return nil (no validation)
+func validateMetadataSchema(mdata metadata.Metadata, schemaName string) error {
+	if MetaSchemaCache[schemaName] == "" {
+		return nil
+	}
+	metadataSchema := gojsonschema.NewStringLoader(MetaSchemaCache[schemaName])
+	providedSchema := gojsonschema.NewGoLoader(mdata)
+	results, err := gojsonschema.Validate(metadataSchema, providedSchema)
+	if err != nil {
+		return errors.Wrap(err, "failed to validate metadata")
+	}
+
+	if !results.Valid() {
+		return errors.New("metadata doesn't match the json-schema")
+	}
+	return nil
 }

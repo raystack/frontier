@@ -58,6 +58,11 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 		return nil, grpcBadBodyError
 	}
 
+	if err := validateMetadataSchema(metaDataMap, roleMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
 	newRole, err := h.roleService.Create(ctx, role.Role{
 		ID:          request.GetBody().GetId(),
 		Name:        request.GetBody().GetName(),
@@ -119,6 +124,11 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	if err := validateMetadataSchema(metaDataMap, roleMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	updatedRole, err := h.roleService.Update(ctx, role.Role{

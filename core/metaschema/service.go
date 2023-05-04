@@ -42,7 +42,7 @@ func (s Service) Delete(ctx context.Context, name string) error {
 	return s.repository.Delete(ctx, name)
 }
 
-func (s Service) InitMetaSchemas(ctx context.Context) error {
+func (s Service) InitMetaSchemas(ctx context.Context) (map[string]string, error) {
 	return s.repository.InitMetaSchemas(ctx)
 }
 

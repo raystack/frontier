@@ -13,7 +13,6 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 var (
@@ -41,8 +40,6 @@ var defaultMetaSchemas = map[string]string{
 	orgMetaSchemaName:   string(defaultOrg),
 	rolesMetaSchemaName: string(defaultRole),
 }
-
-var metaSchemaCache = make(map[string]string)
 
 type MetaSchemaRepository struct {
 	dbc *db.Client
@@ -84,7 +81,12 @@ func (m MetaSchemaRepository) Get(ctx context.Context, name string) (metaschema.
 		return m.dbc.QueryRowxContext(ctx, query, params...).StructScan(&fetchedMetaSchema)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return metaschema.MetaSchema{}, metaschema.ErrNotExist
+		default:
+			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, err)
+		}
 	}
 
 	return fetchedMetaSchema.tranformtoMetadataSchema(), nil
@@ -132,7 +134,6 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 		}
 	}
 
-	metaSchemaCache[mschema.Name] = mschema.Schema
 	return schemaName, nil
 }
 
@@ -207,7 +208,6 @@ func (m MetaSchemaRepository) Delete(ctx context.Context, name string) error {
 		}
 
 		if count, _ := result.RowsAffected(); count > 0 {
-			delete(metaSchemaCache, name)
 			return nil
 		}
 
@@ -243,25 +243,30 @@ func (m MetaSchemaRepository) Update(ctx context.Context, name string, mschema m
 		return m.dbc.QueryRowxContext(ctx, query, params...).Scan(&schemaName)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return "", fmt.Errorf("%w: %s", dbErr, err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return "", fmt.Errorf("%w: %s", dbErr, metaschema.ErrNotExist)
+		default:
+			return "", fmt.Errorf("%w: %s", dbErr, err)
+		}
 	}
 
-	metaSchemaCache[mschema.Name] = mschema.Schema
 	return schemaName, nil
 }
 
-// load schemas in memory from the db when server starts
-func (m MetaSchemaRepository) InitMetaSchemas(ctx context.Context) error {
+// load schemas from db when server starts and return the list as a map
+func (m MetaSchemaRepository) InitMetaSchemas(ctx context.Context) (map[string]string, error) {
 	schemas, err := m.List(ctx)
 	if err != nil {
-		return errors.Wrap(err, "error in initialising metadata json-schemas")
+		return nil, errors.Wrap(err, "error in initialising metadata json-schemas")
 	}
 
+	mp := make(map[string]string)
 	for _, s := range schemas {
-		metaSchemaCache[s.Name] = s.Schema
+		mp[s.Name] = s.Schema
 	}
 
-	return nil
+	return mp, nil
 }
 
 // add default schemas to db once during database migration
@@ -277,24 +282,6 @@ func (m MetaSchemaRepository) CreateDefaultInDB(ctx context.Context) error {
 			}
 			return errors.Wrap(err, "error in adding default schemas to db")
 		}
-	}
-	return nil
-}
-
-// validates the metadata against the json-schema. In case metaschema doesn't exists in the db, it will return nil (no validation)
-func validateMetadataSchema(marshaledMetadata []byte, schemaName string) error {
-	if metaSchemaCache[schemaName] == "" {
-		return nil
-	}
-	metadataSchema := gojsonschema.NewStringLoader(metaSchemaCache[schemaName])
-	providedSchema := gojsonschema.NewBytesLoader(marshaledMetadata)
-	results, err := gojsonschema.Validate(metadataSchema, providedSchema)
-	if err != nil {
-		return errors.Wrap(err, "failed to validate metadata")
-	}
-
-	if !results.Valid() {
-		return errors.New("metadata doesn't match the json-schema")
 	}
 	return nil
 }

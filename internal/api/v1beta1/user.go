@@ -146,6 +146,11 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcBadBodyError
 	}
 
+	if err := validateMetadataSchema(metaDataMap, userMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
 	// TODO might need to check the valid email form
 	newUser, err := h.userService.Create(ctx, user.User{
 		Name:     name,
@@ -262,6 +267,11 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
+	if err := validateMetadataSchema(metaDataMap, userMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
 	id := request.GetId()
 	// upsert by email
 	if isValidEmail(id) {
@@ -335,6 +345,11 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	if err := validateMetadataSchema(metaDataMap, userMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	// if email in request body is different from the email in the header

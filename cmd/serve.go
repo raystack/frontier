@@ -33,6 +33,7 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api"
+	"github.com/odpf/shield/internal/api/v1beta1"
 	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/blob"
@@ -115,7 +116,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 	// load metadata schema in memory from db
-	if err := deps.MetaSchemaService.InitMetaSchemas(context.Background()); err != nil {
+	if v1beta1.MetaSchemaCache, err = deps.MetaSchemaService.InitMetaSchemas(context.Background()); err != nil {
 		logger.Warn("metaschemas initialization failed", "err", err)
 	}
 

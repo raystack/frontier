@@ -11,7 +11,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/db"
@@ -96,10 +95,6 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	if err = validateMetadataSchema(marshaledMetadata, rolesMetaSchemaName); err != nil {
-		return "", fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
 	}
 
 	//TODO we have to go with this manually populating data since goqu does not support insert array string
@@ -199,10 +194,6 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	if err = validateMetadataSchema(marshaledMetadata, rolesMetaSchemaName); err != nil {
-		return "", fmt.Errorf("%w: %s", metaschema.ErrInvalidMetaSchema, err)
 	}
 
 	//TODO we have to go with this manually populating data since goqu does not support insert array string
