@@ -1286,7 +1286,7 @@
       }
     },
     "/v1beta1/organizations/{orgId}/groups": {
-      "post": {
+      "get": {
         "summary": "Create Group",
         "operationId": "ShieldService_ListOrganizationGroups",
         "responses": {
@@ -1311,20 +1311,16 @@
             "type": "string"
           },
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "type": "string"
-                },
-                "state": {
-                  "type": "string"
-                }
-              }
-            }
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

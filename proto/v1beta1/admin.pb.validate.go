@@ -311,16 +311,7 @@ func (m *ListGroupsRequest) validate(all bool) error {
 
 	// no validation rules for UserId
 
-	if !_ListGroupsRequest_OrgId_Pattern.MatchString(m.GetOrgId()) {
-		err := ListGroupsRequestValidationError{
-			field:  "OrgId",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for OrgId
 
 	// no validation rules for State
 
@@ -403,8 +394,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListGroupsRequestValidationError{}
-
-var _ListGroupsRequest_OrgId_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
 
 // Validate checks the field values on ListGroupsResponse with the rules
 // defined in the proto definition for this message. If any rules are
