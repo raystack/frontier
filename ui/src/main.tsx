@@ -25,7 +25,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <BrowserRouter>
       <ApsaraThemeProvider>
         <Routes>
-          <Route path="/" element={<App />}>
+          <Route path="/console" element={<App />}>
             <Route index element={<Home />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="organisations" element={<Organisations />}>

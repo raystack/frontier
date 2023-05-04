@@ -27,7 +27,7 @@ export const userColumns: ColumnDef<User, any>[] = [
 export default function ProjectDetails() {
   const { project } = useProject();
   const { data: usersData } = useSWR(
-    `/admin/v1beta1/organizations/${project?.id}/users`,
+    `/v1beta1/organizations/${project?.id}/users`,
     fetcher
   );
   const { users = [] } = usersData || { users: [] };

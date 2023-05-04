@@ -46,7 +46,7 @@ export const OrganizationsHeader = () => {
 
           <Button
             css={styles.button}
-            onClick={() => navigate("/organisations/create")}
+            onClick={() => navigate("/console/organisations/create")}
           >
             <Flex align="center" css={{ paddingRight: "$2" }}>
               <PlusIcon />

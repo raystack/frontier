@@ -33,39 +33,39 @@ export default function SidebarContent() {
     {
       name: "Dashboard",
       icon: "dashboard",
-      to: `/dashboard`,
+      to: `/console/dashboard`,
     },
     {
       name: "Organisations",
       icon: "organisations",
-      to: `/organisations`,
+      to: `/console/organisations`,
     },
     {
       name: "Projects",
       icon: "projects",
-      to: `/projects`,
+      to: `/console/projects`,
     },
     {
       name: "Users",
       icon: "users",
-      to: `/users`,
+      to: `/console/users`,
     },
     {
       name: "Groups",
       icon: "groups",
-      to: `/groups`,
+      to: `/console/groups`,
     },
     {
       name: "Roles",
       icon: "groups",
-      to: `/roles`,
+      to: `/console/roles`,
     },
   ];
   return (
     <Box css={sidebarNavigationContainerStyle}>
       {navigationItems.map(({ active, name, icon, to }) => (
         <NavItem key={name} className={`${active && "active"} `} to={to || ""}>
-          <img src={`/${icon}.svg`} />
+          <img src={`/console/${icon}.svg`} />
           <Text size={2} css={{ fontWeight: "500", marginLeft: "8px" }}>
             {name}
           </Text>

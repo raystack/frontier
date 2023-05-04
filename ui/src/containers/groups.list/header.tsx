@@ -46,7 +46,7 @@ export const GroupsHeader = () => {
 
           <Button
             css={styles.button}
-            onClick={() => navigate("/groups/create")}
+            onClick={() => navigate("/console/groups/create")}
           >
             <Flex align="center" css={{ paddingRight: "$2" }}>
               <PlusIcon />

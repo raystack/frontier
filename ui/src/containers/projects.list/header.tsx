@@ -46,7 +46,7 @@ export const ProjectsHeader = () => {
 
           <Button
             css={styles.button}
-            onClick={() => navigate("/projects/create")}
+            onClick={() => navigate("/console/projects/create")}
           >
             <Flex align="center" css={{ paddingRight: "$2" }}>
               <PlusIcon />

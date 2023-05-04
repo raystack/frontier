@@ -38,8 +38,8 @@ export type GroupForm = z.infer<typeof GroupSchema>;
 
 export default function NewGroup() {
   const navigate = useNavigate();
-  const { data, error } = useSWR("/admin/v1beta1/organizations", fetcher);
-  const { trigger } = useSWRMutation("/admin/v1beta1/groups", update, {});
+  const { data, error } = useSWR("/v1beta1/admin/organizations", fetcher);
+  const { trigger } = useSWRMutation("/v1beta1/groups", update, {});
   const { organizations = [] } = data || { organizations: [] };
 
   const methods = useForm<GroupForm>({
@@ -48,12 +48,12 @@ export default function NewGroup() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/groups");
+    navigate("/console/groups");
   }, []);
 
   const onSubmit = async (data: any) => {
     await trigger(data);
-    navigate("/groups");
+    navigate("/console/groups");
   };
 
   return (

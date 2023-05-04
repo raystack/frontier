@@ -38,8 +38,8 @@ export type ProjectForm = z.infer<typeof ProjectSchema>;
 
 export default function NewProject() {
   const navigate = useNavigate();
-  const { data, error } = useSWR("/admin/v1beta1/organizations", fetcher);
-  const { trigger } = useSWRMutation("/admin/v1beta1/projects", update, {});
+  const { data, error } = useSWR("/v1beta1/admin/organizations", fetcher);
+  const { trigger } = useSWRMutation("/v1beta1/projects", update, {});
   const { organizations = [] } = data || { organizations: [] };
 
   const methods = useForm<ProjectForm>({
@@ -48,12 +48,12 @@ export default function NewProject() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/projects");
+    navigate("/console/projects");
   }, []);
 
   const onSubmit = async (data: any) => {
     await trigger(data);
-    navigate("/projects");
+    navigate("/console/projects");
   };
 
   return (

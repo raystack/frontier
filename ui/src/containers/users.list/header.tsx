@@ -44,7 +44,10 @@ export const UsersHeader = () => {
             placeholder="Search all users"
           />
 
-          <Button css={styles.button} onClick={() => navigate("/users/create")}>
+          <Button
+            css={styles.button}
+            onClick={() => navigate("/console/users/create")}
+          >
             <Flex align="center" css={{ paddingRight: "$2" }}>
               <PlusIcon />
             </Flex>

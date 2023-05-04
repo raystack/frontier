@@ -9,7 +9,7 @@ import { UsersHeader } from "./header";
 
 type ContextType = { user: User | null };
 export default function UserList() {
-  const { data } = useSWR("/admin/v1beta1/users", fetcher);
+  const { data } = useSWR("/v1beta1/admin/users", fetcher);
   const { users = [] } = data || { users: [] };
   let { userId } = useParams();
 

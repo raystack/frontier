@@ -9,7 +9,7 @@ import { GroupsHeader } from "./header";
 
 type ContextType = { group: Group | null };
 export default function GroupList() {
-  const { data, error } = useSWR("/admin/v1beta1/groups", fetcher);
+  const { data, error } = useSWR("/v1beta1/admin/groups", fetcher);
   const { groups = [] } = data || { groups: [] };
   const groupMapByName = reduceByKey(groups ?? [], "id");
   let { groupId } = useParams();
