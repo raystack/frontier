@@ -2,26 +2,30 @@ package policy
 
 import (
 	"context"
+	"time"
+
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Policy, error)
-	List(ctx context.Context) ([]Policy, error)
-	Create(ctx context.Context, pol Policy) (string, error)
-	Update(ctx context.Context, pol Policy) (string, error)
-}
-
-type AuthzRepository interface {
-	Add(ctx context.Context, policies []Policy) error
+	List(ctx context.Context, f Filter) ([]Policy, error)
+	Upsert(ctx context.Context, pol Policy) (string, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type Policy struct {
 	ID          string
 	RoleID      string
+	ResourceID  string
 	NamespaceID string
-	ActionID    string
+	UserID      string
+	Metadata    metadata.Metadata
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Filters struct {
-	NamespaceID string
+	UserID string
 }

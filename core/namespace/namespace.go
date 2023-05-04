@@ -4,22 +4,23 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Namespace, error)
-	Create(ctx context.Context, ns Namespace) (Namespace, error)
+	Upsert(ctx context.Context, ns Namespace) (Namespace, error)
 	List(ctx context.Context) ([]Namespace, error)
 	Update(ctx context.Context, ns Namespace) (Namespace, error)
 }
 
 type Namespace struct {
-	ID           string
-	Name         string
-	Backend      string
-	ResourceType string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID        string
+	Name      string
+	Metadata  metadata.Metadata
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func strListHas(list []string, a string) bool {

@@ -417,6 +417,59 @@ func (_c *UserService_GetByIDs_Call) RunAndReturn(run func(context.Context, []st
 	return _c
 }
 
+// IsSudo provides a mock function with given fields: ctx, id
+func (_m *UserService) IsSudo(ctx context.Context, id string) (bool, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_IsSudo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsSudo'
+type UserService_IsSudo_Call struct {
+	*mock.Call
+}
+
+// IsSudo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *UserService_Expecter) IsSudo(ctx interface{}, id interface{}) *UserService_IsSudo_Call {
+	return &UserService_IsSudo_Call{Call: _e.mock.On("IsSudo", ctx, id)}
+}
+
+func (_c *UserService_IsSudo_Call) Run(run func(ctx context.Context, id string)) *UserService_IsSudo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_IsSudo_Call) Return(_a0 bool, _a1 error) *UserService_IsSudo_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_IsSudo_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *UserService_IsSudo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, flt
 func (_m *UserService) List(ctx context.Context, flt user.Filter) ([]user.User, error) {
 	ret := _m.Called(ctx, flt)
@@ -528,6 +581,59 @@ func (_c *UserService_ListByOrg_Call) RunAndReturn(run func(context.Context, str
 	return _c
 }
 
+// Update provides a mock function with given fields: ctx, toUpdate
+func (_m *UserService) Update(ctx context.Context, toUpdate user.User) (user.User, error) {
+	ret := _m.Called(ctx, toUpdate)
+
+	var r0 user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, user.User) (user.User, error)); ok {
+		return rf(ctx, toUpdate)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, user.User) user.User); ok {
+		r0 = rf(ctx, toUpdate)
+	} else {
+		r0 = ret.Get(0).(user.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, user.User) error); ok {
+		r1 = rf(ctx, toUpdate)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type UserService_Update_Call struct {
+	*mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ctx context.Context
+//   - toUpdate user.User
+func (_e *UserService_Expecter) Update(ctx interface{}, toUpdate interface{}) *UserService_Update_Call {
+	return &UserService_Update_Call{Call: _e.mock.On("Update", ctx, toUpdate)}
+}
+
+func (_c *UserService_Update_Call) Run(run func(ctx context.Context, toUpdate user.User)) *UserService_Update_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(user.User))
+	})
+	return _c
+}
+
+func (_c *UserService_Update_Call) Return(_a0 user.User, _a1 error) *UserService_Update_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_Update_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *UserService_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateByEmail provides a mock function with given fields: ctx, toUpdate
 func (_m *UserService) UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error) {
 	ret := _m.Called(ctx, toUpdate)
@@ -577,59 +683,6 @@ func (_c *UserService_UpdateByEmail_Call) Return(_a0 user.User, _a1 error) *User
 }
 
 func (_c *UserService_UpdateByEmail_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *UserService_UpdateByEmail_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateByID provides a mock function with given fields: ctx, toUpdate
-func (_m *UserService) UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error) {
-	ret := _m.Called(ctx, toUpdate)
-
-	var r0 user.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, user.User) (user.User, error)); ok {
-		return rf(ctx, toUpdate)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, user.User) user.User); ok {
-		r0 = rf(ctx, toUpdate)
-	} else {
-		r0 = ret.Get(0).(user.User)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, user.User) error); ok {
-		r1 = rf(ctx, toUpdate)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserService_UpdateByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateByID'
-type UserService_UpdateByID_Call struct {
-	*mock.Call
-}
-
-// UpdateByID is a helper method to define mock.On call
-//   - ctx context.Context
-//   - toUpdate user.User
-func (_e *UserService_Expecter) UpdateByID(ctx interface{}, toUpdate interface{}) *UserService_UpdateByID_Call {
-	return &UserService_UpdateByID_Call{Call: _e.mock.On("UpdateByID", ctx, toUpdate)}
-}
-
-func (_c *UserService_UpdateByID_Call) Run(run func(ctx context.Context, toUpdate user.User)) *UserService_UpdateByID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(user.User))
-	})
-	return _c
-}
-
-func (_c *UserService_UpdateByID_Call) Return(_a0 user.User, _a1 error) *UserService_UpdateByID_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *UserService_UpdateByID_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *UserService_UpdateByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

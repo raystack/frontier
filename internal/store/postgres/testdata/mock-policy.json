@@ -1,17 +1,11 @@
 [
     {
-        "roleId": "ns1:role1",
-        "actionId": "action1",
         "namespaceId": "ns1"
     },
     {
-        "roleId": "ns2:role2",
-        "actionId": "action2",
         "namespaceId": "ns2"
     },
     {
-        "roleId": "ns1:role2",
-        "actionId": "action3",
         "namespaceId": "ns1"
     }
 ]

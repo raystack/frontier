@@ -43,7 +43,7 @@ func (_m *ResourceService) Create(ctx context.Context, _a1 resource.Resource) (r
 	return r0, r1
 }
 
-// ResourceService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+// ResourceService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
 type ResourceService_Create_Call struct {
 	*mock.Call
 }
@@ -52,7 +52,7 @@ type ResourceService_Create_Call struct {
 //  - ctx context.Context
 //  - _a1 resource.Resource
 func (_e *ResourceService_Expecter) Create(ctx interface{}, _a1 interface{}) *ResourceService_Create_Call {
-	return &ResourceService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
+	return &ResourceService_Create_Call{Call: _e.mock.On("Upsert", ctx, _a1)}
 }
 
 func (_c *ResourceService_Create_Call) Run(run func(ctx context.Context, _a1 resource.Resource)) *ResourceService_Create_Call {

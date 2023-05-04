@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -69,7 +70,7 @@ func (s *ResourceRepositoryTestSuite) SetupSuite() {
 
 func (s *ResourceRepositoryTestSuite) SetupTest() {
 	var err error
-	s.resources, err = bootstrapResource(s.client, s.projects, s.orgs, s.namespaces, s.users)
+	s.resources, err = bootstrapResource(s.client, s.projects, s.namespaces, s.users)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -108,13 +109,12 @@ func (s *ResourceRepositoryTestSuite) TestGetByID() {
 			Description: "should get a resource",
 			SelectedID:  s.resources[0].ID,
 			ExpectedResource: resource.Resource{
-				ID:             s.resources[0].ID,
-				URN:            s.resources[0].URN,
-				Name:           s.resources[0].Name,
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
+				ID:          s.resources[0].ID,
+				URN:         s.resources[0].URN,
+				Name:        s.resources[0].Name,
+				ProjectID:   s.resources[0].ProjectID,
+				NamespaceID: s.resources[0].NamespaceID,
+				UserID:      s.resources[0].UserID,
 			},
 		},
 		{
@@ -163,13 +163,12 @@ func (s *ResourceRepositoryTestSuite) TestGetByURN() {
 			Description: "should get a resource",
 			SelectedURN: s.resources[0].URN,
 			ExpectedResource: resource.Resource{
-				ID:             s.resources[0].ID,
-				URN:            s.resources[0].URN,
-				Name:           s.resources[0].Name,
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
+				ID:          s.resources[0].ID,
+				URN:         s.resources[0].URN,
+				Name:        s.resources[0].Name,
+				ProjectID:   s.resources[0].ProjectID,
+				NamespaceID: s.resources[0].NamespaceID,
+				UserID:      s.resources[0].UserID,
 			},
 		},
 		{
@@ -205,124 +204,71 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 		Description      string
 		ResourceToCreate resource.Resource
 		ExpectedResource resource.Resource
-		ErrString        string
+		ErrString        error
 	}
 
 	var testCases = []testCase{
 		{
 			Description: "should create a resource",
 			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-4",
-				Name:           "resource4",
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
+				URN:         "new-urn-4",
+				Name:        "resource4",
+				ProjectID:   s.resources[0].ProjectID,
+				NamespaceID: s.resources[0].NamespaceID,
+				UserID:      s.resources[0].UserID,
 			},
 			ExpectedResource: resource.Resource{
-				URN:            "new-urn-4",
-				Name:           "resource4",
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
+				URN:         "new-urn-4",
+				Name:        "resource4",
+				ProjectID:   s.resources[0].ProjectID,
+				NamespaceID: s.resources[0].NamespaceID,
+				UserID:      s.resources[0].UserID,
 			},
 		},
 		{
 			Description: "should return error if namespace id does not exist",
 			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-notexist",
-				Name:           "resource4",
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    "some-ns",
-				UserID:         s.resources[0].UserID,
+				URN:         "new-urn-notexist",
+				Name:        "resource4",
+				ProjectID:   s.resources[0].ProjectID,
+				NamespaceID: "some-ns",
+				UserID:      s.resources[0].UserID,
 			},
-			ErrString: resource.ErrInvalidDetail.Error(),
+			ErrString: resource.ErrInvalidDetail,
 		},
-		{
-			Description: "should return error if org id does not exist",
-			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-notexist",
-				Name:           "resource4",
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: uuid.NewString(),
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
-			},
-			ErrString: resource.ErrInvalidDetail.Error(),
-		},
-		{
-			Description: "should return error if org id is not uuid",
-			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-notexist",
-				Name:           "resource4",
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: "some-str",
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
-			},
-			ErrString: resource.ErrInvalidUUID.Error(),
-		},
-		//{
-		//	Description: "should return error if group id does not exist",
-		//	ResourceToCreate: resource.Resource{
-		//		URN:            "new-urn-notexist",
-		//		Name:           "resource4",
-		//		ProjectID:      s.resources[0].ProjectID,
-		//		OrganizationID: s.resources[0].OrganizationID,
-		//		Namespace:    s.resources[0].Namespace,
-		//		UserID:         s.resources[0].UserID,
-		//	},
-		//	ErrString: resource.ErrInvalidDetail.Error(),
-		//},
-		//{
-		//	Description: "should return error if group id is not uuid",
-		//	ResourceToCreate: resource.Resource{
-		//		URN:            "new-urn-notexist",
-		//		Name:           "resource4",
-		//		ProjectID:      s.resources[0].ProjectID,
-		//		OrganizationID: s.resources[0].OrganizationID,
-		//		Namespace:    s.resources[0].Namespace,
-		//		UserID:         s.resources[0].UserID,
-		//	},
-		//	ErrString: resource.ErrInvalidUUID.Error(),
-		//},
 		{
 			Description: "should return error if project id does not exist",
 			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-notexist",
-				Name:           "resource4",
-				ProjectID:      uuid.NewString(),
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
+				URN:         "new-urn-notexist",
+				Name:        "resource4",
+				ProjectID:   uuid.NewString(),
+				NamespaceID: s.resources[0].NamespaceID,
+				UserID:      s.resources[0].UserID,
 			},
-			ErrString: resource.ErrInvalidDetail.Error(),
+			ErrString: resource.ErrInvalidDetail,
 		},
 		{
 			Description: "should return error if project id is not uuid",
 			ResourceToCreate: resource.Resource{
-				URN:            "new-urn-notexist",
-				Name:           "resource4",
-				ProjectID:      "some-id",
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
+				URN:         "new-urn-notexist",
+				Name:        "resource4",
+				ProjectID:   "some-id",
+				NamespaceID: s.resources[0].NamespaceID,
+				UserID:      s.resources[0].UserID,
 			},
-			ErrString: resource.ErrInvalidUUID.Error(),
+			ErrString: resource.ErrInvalidUUID,
 		},
 		{
 			Description: "should return error if resource urn is empty",
-			ErrString:   resource.ErrInvalidURN.Error(),
+			ErrString:   resource.ErrInvalidURN,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Create(s.ctx, tc.ResourceToCreate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
+			if tc.ErrString != nil {
+				if !errors.Is(err, tc.ErrString) {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
@@ -352,19 +298,16 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 		{
 			Description: "should get filtered resources",
 			Filter: resource.Filter{
-				ProjectID:      s.projects[1].ID,
-				OrganizationID: s.orgs[1].ID,
-				NamespaceID:    s.namespaces[1].ID,
+				ProjectID: s.projects[1].ID,
 			},
 			ExpectedResources: []resource.Resource{
 				{
-					ID:             s.resources[1].ID,
-					URN:            s.resources[1].URN,
-					Name:           s.resources[1].Name,
-					ProjectID:      s.resources[1].ProjectID,
-					OrganizationID: s.resources[1].OrganizationID,
-					NamespaceID:    s.resources[1].NamespaceID,
-					UserID:         s.resources[1].UserID,
+					ID:          s.resources[1].ID,
+					URN:         s.resources[1].URN,
+					Name:        s.resources[1].Name,
+					ProjectID:   s.resources[1].ProjectID,
+					NamespaceID: s.resources[1].NamespaceID,
+					UserID:      s.resources[1].UserID,
 				},
 			},
 		},
@@ -401,143 +344,20 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 			Description: "should update a resource",
 			ResourceID:  s.resources[0].ID,
 			ResourceToUpdate: resource.Resource{
-				Name:           "resource-1",
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
+				Name:        "resource-1",
+				ProjectID:   s.resources[0].ProjectID,
+				NamespaceID: s.resources[0].NamespaceID,
 			},
 			ExpectedResource: resource.Resource{
-				ID:             s.resources[0].ID,
-				URN:            "resource-1-urn",
-				Name:           "resource-1",
-				ProjectID:      s.resources[0].ProjectID,
-				OrganizationID: s.resources[0].OrganizationID,
-				NamespaceID:    s.resources[0].NamespaceID,
-				UserID:         s.resources[0].UserID,
+				ID:          s.resources[0].ID,
+				URN:         "resource-1-urn",
+				Name:        "resource-1",
+				ProjectID:   s.resources[0].ProjectID,
+				NamespaceID: s.resources[0].NamespaceID,
+				UserID:      s.resources[0].UserID,
 			},
 			ErrString: "",
 		},
-		// {
-		// 	Description: "should return error if namespace id does not exist",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            "new-urn-notexist",
-		// 		Name:           "resource4",
-		// 		ProjectID:      s.resources[0].ProjectID,
-		// 		GroupID:        s.resources[0].GroupID,
-		// 		OrganizationID: s.resources[0].OrganizationID,
-		// 		Namespace:    "some-ns",
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrNotExist.Error(),
-		// },
-		// {
-		// 	Description: "should return error if org id does not exist",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            "new-urn-notexist",
-		// 		Name:           "resource4",
-		// 		ProjectID:      s.resources[0].ProjectID,
-		// 		GroupID:        s.resources[0].GroupID,
-		// 		OrganizationID: uuid.NewString(),
-		// 		Namespace:    s.resources[0].Namespace,
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrNotExist.Error(),
-		// },
-		// {
-		// 	Description: "should return error if org id is not uuid",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            "new-urn-notexist",
-		// 		Name:           "resource4",
-		// 		ProjectID:      s.resources[0].ProjectID,
-		// 		GroupID:        s.resources[0].GroupID,
-		// 		OrganizationID: "some-str",
-		// 		Namespace:    s.resources[0].Namespace,
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrInvalidUUID.Error(),
-		// },
-		// {
-		// 	Description: "should return error if group id does not exist",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            "new-urn-notexist",
-		// 		Name:           "resource4",
-		// 		ProjectID:      s.resources[0].ProjectID,
-		// 		GroupID:        uuid.NewString(),
-		// 		OrganizationID: s.resources[0].OrganizationID,
-		// 		Namespace:    s.resources[0].Namespace,
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrNotExist.Error(),
-		// },
-		// {
-		// 	Description: "should return error if group id is not uuid",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            "new-urn-notexist",
-		// 		Name:           "resource4",
-		// 		ProjectID:      s.resources[0].ProjectID,
-		// 		GroupID:        "some-group",
-		// 		OrganizationID: s.resources[0].OrganizationID,
-		// 		Namespace:    s.resources[0].Namespace,
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrInvalidUUID.Error(),
-		// },
-		// {
-		// 	Description: "should return error if project id does not exist",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            "new-urn-notexist",
-		// 		Name:           "resource4",
-		// 		ProjectID:      uuid.NewString(),
-		// 		GroupID:        s.resources[0].GroupID,
-		// 		OrganizationID: s.resources[0].OrganizationID,
-		// 		Namespace:    s.resources[0].Namespace,
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrNotExist.Error(),
-		// },
-		// {
-		// 	Description: "should return error if project id is not uuid",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            "new-urn-notexist",
-		// 		Name:           "resource4",
-		// 		ProjectID:      "some-id",
-		// 		GroupID:        s.resources[0].GroupID,
-		// 		OrganizationID: s.resources[0].OrganizationID,
-		// 		Namespace:    s.resources[0].Namespace,
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrInvalidUUID.Error(),
-		// },
-		// {
-		// 	Description: "should return error if urn already exist",
-		// 	ResourceID:  s.resources[0].ID,
-		// 	ResourceToUpdate: resource.Resource{
-		// 		URN:            s.resources[2].URN,
-		// 		Name:           "resource4",
-		// 		ProjectID:      s.resources[0].ProjectID,
-		// 		GroupID:        s.resources[0].GroupID,
-		// 		OrganizationID: s.resources[0].OrganizationID,
-		// 		Namespace:    s.resources[0].Namespace,
-		// 		UserID:         s.resources[0].UserID,
-		// 	},
-		// 	ErrString: resource.ErrConflict.Error(),
-		// },
-		// {
-		// 	Description: "should return error if resource id is empty",
-		// 	ErrString:   resource.ErrInvalidID.Error(),
-		// },
-		// {
-		// 	Description: "should return error if resource urn is empty",
-		// 	ResourceID:  uuid.NewString(),
-		// 	ErrString:   resource.ErrInvalidURN.Error(),
-		// },
 	}
 
 	for _, tc := range testCases {

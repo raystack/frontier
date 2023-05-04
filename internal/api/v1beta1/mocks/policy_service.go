@@ -23,20 +23,18 @@ func (_m *PolicyService) EXPECT() *PolicyService_Expecter {
 }
 
 // Create provides a mock function with given fields: ctx, pol
-func (_m *PolicyService) Create(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+func (_m *PolicyService) Create(ctx context.Context, pol policy.Policy) (policy.Policy, error) {
 	ret := _m.Called(ctx, pol)
 
-	var r0 []policy.Policy
+	var r0 policy.Policy
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) ([]policy.Policy, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) (policy.Policy, error)); ok {
 		return rf(ctx, pol)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) []policy.Policy); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) policy.Policy); ok {
 		r0 = rf(ctx, pol)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]policy.Policy)
-		}
+		r0 = ret.Get(0).(policy.Policy)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, policy.Policy) error); ok {
@@ -67,12 +65,55 @@ func (_c *PolicyService_Create_Call) Run(run func(ctx context.Context, pol polic
 	return _c
 }
 
-func (_c *PolicyService_Create_Call) Return(_a0 []policy.Policy, _a1 error) *PolicyService_Create_Call {
+func (_c *PolicyService_Create_Call) Return(_a0 policy.Policy, _a1 error) *PolicyService_Create_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *PolicyService_Create_Call) RunAndReturn(run func(context.Context, policy.Policy) ([]policy.Policy, error)) *PolicyService_Create_Call {
+func (_c *PolicyService_Create_Call) RunAndReturn(run func(context.Context, policy.Policy) (policy.Policy, error)) *PolicyService_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Delete provides a mock function with given fields: ctx, id
+func (_m *PolicyService) Delete(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PolicyService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type PolicyService_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *PolicyService_Expecter) Delete(ctx interface{}, id interface{}) *PolicyService_Delete_Call {
+	return &PolicyService_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+}
+
+func (_c *PolicyService_Delete_Call) Run(run func(ctx context.Context, id string)) *PolicyService_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *PolicyService_Delete_Call) Return(_a0 error) *PolicyService_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *PolicyService_Delete_Call) RunAndReturn(run func(context.Context, string) error) *PolicyService_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -130,25 +171,25 @@ func (_c *PolicyService_Get_Call) RunAndReturn(run func(context.Context, string)
 	return _c
 }
 
-// List provides a mock function with given fields: ctx
-func (_m *PolicyService) List(ctx context.Context) ([]policy.Policy, error) {
-	ret := _m.Called(ctx)
+// List provides a mock function with given fields: ctx, f
+func (_m *PolicyService) List(ctx context.Context, f policy.Filter) ([]policy.Policy, error) {
+	ret := _m.Called(ctx, f)
 
 	var r0 []policy.Policy
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]policy.Policy, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Filter) ([]policy.Policy, error)); ok {
+		return rf(ctx, f)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []policy.Policy); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Filter) []policy.Policy); ok {
+		r0 = rf(ctx, f)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]policy.Policy)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, policy.Filter) error); ok {
+		r1 = rf(ctx, f)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -163,13 +204,14 @@ type PolicyService_List_Call struct {
 
 // List is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *PolicyService_Expecter) List(ctx interface{}) *PolicyService_List_Call {
-	return &PolicyService_List_Call{Call: _e.mock.On("List", ctx)}
+//   - f policy.Filter
+func (_e *PolicyService_Expecter) List(ctx interface{}, f interface{}) *PolicyService_List_Call {
+	return &PolicyService_List_Call{Call: _e.mock.On("List", ctx, f)}
 }
 
-func (_c *PolicyService_List_Call) Run(run func(ctx context.Context)) *PolicyService_List_Call {
+func (_c *PolicyService_List_Call) Run(run func(ctx context.Context, f policy.Filter)) *PolicyService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		run(args[0].(context.Context), args[1].(policy.Filter))
 	})
 	return _c
 }
@@ -179,62 +221,7 @@ func (_c *PolicyService_List_Call) Return(_a0 []policy.Policy, _a1 error) *Polic
 	return _c
 }
 
-func (_c *PolicyService_List_Call) RunAndReturn(run func(context.Context) ([]policy.Policy, error)) *PolicyService_List_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// Update provides a mock function with given fields: ctx, pol
-func (_m *PolicyService) Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
-	ret := _m.Called(ctx, pol)
-
-	var r0 []policy.Policy
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) ([]policy.Policy, error)); ok {
-		return rf(ctx, pol)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) []policy.Policy); ok {
-		r0 = rf(ctx, pol)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]policy.Policy)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, policy.Policy) error); ok {
-		r1 = rf(ctx, pol)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// PolicyService_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type PolicyService_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-//   - pol policy.Policy
-func (_e *PolicyService_Expecter) Update(ctx interface{}, pol interface{}) *PolicyService_Update_Call {
-	return &PolicyService_Update_Call{Call: _e.mock.On("Update", ctx, pol)}
-}
-
-func (_c *PolicyService_Update_Call) Run(run func(ctx context.Context, pol policy.Policy)) *PolicyService_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(policy.Policy))
-	})
-	return _c
-}
-
-func (_c *PolicyService_Update_Call) Return(_a0 []policy.Policy, _a1 error) *PolicyService_Update_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *PolicyService_Update_Call) RunAndReturn(run func(context.Context, policy.Policy) ([]policy.Policy, error)) *PolicyService_Update_Call {
+func (_c *PolicyService_List_Call) RunAndReturn(run func(context.Context, policy.Filter) ([]policy.Policy, error)) *PolicyService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

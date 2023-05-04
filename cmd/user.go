@@ -48,7 +48,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "Create an user",
+		Short: "Upsert an user",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield user create --file=<user-body>

@@ -1,6 +1,6 @@
 rules:
   - backends:
-      - name: entropy
+      - name: potato
         target: "http://{{.host}}:{{.port}}"
         prefix: "/api"
         frontends:
@@ -23,8 +23,8 @@ rules:
                       key: X-Shield-Project
                       type: header
                       source: request
-                    organization:
-                      key: X-Shield-Org
+                    user:
+                      key: X-Shield-User
                       type: header
                       source: request
                     resource_type:

@@ -65,7 +65,6 @@ func (s *UserRepositoryTestSuite) TearDownTest() {
 
 func (s *UserRepositoryTestSuite) cleanup() error {
 	queries := []string{
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
@@ -364,8 +363,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 				}
 			}
 
+			// TODO(kushsharma): remove metadata field from ignore once metadata is refactored
 			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
-				"ID", "CreatedAt", "UpdatedAt")) {
+				"ID", "CreatedAt", "UpdatedAt", "Metadata")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
 			}
 		})
@@ -447,8 +447,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
 				}
 			}
+			// TODO(kushsharma): remove metadata field from ignore once metadata is refactored
 			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
-				"ID", "CreatedAt", "UpdatedAt")) {
+				"ID", "CreatedAt", "UpdatedAt", "Metadata")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
 			}
 		})

@@ -47,7 +47,7 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "Create a role",
+		Short: "Upsert a role",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield role create --file=<role-body> --header=<key>:<value>
@@ -77,7 +77,7 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 
 			ctx := setCtxHeader(cmd.Context(), header)
 
-			res, err := client.CreateRole(ctx, &shieldv1beta1.CreateRoleRequest{
+			res, err := client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -132,7 +132,7 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			roleID := args[0]
-			_, err = client.UpdateRole(cmd.Context(), &shieldv1beta1.UpdateRoleRequest{
+			_, err = client.UpdateOrganizationRole(cmd.Context(), &shieldv1beta1.UpdateOrganizationRoleRequest{
 				Id:   roleID,
 				Body: &reqBody,
 			})
@@ -176,7 +176,7 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			roleID := args[0]
-			res, err := client.GetRole(cmd.Context(), &shieldv1beta1.GetRoleRequest{
+			res, err := client.GetOrganizationRole(cmd.Context(), &shieldv1beta1.GetOrganizationRoleRequest{
 				Id: roleID,
 			})
 			if err != nil {
@@ -189,12 +189,12 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
-			report = append(report, []string{"ID", "NAME", "TYPE(S)", "NAMESPACE"})
+			report = append(report, []string{"ID", "NAME", "PERMISSION(S)", "ORGID"})
 			report = append(report, []string{
 				role.GetId(),
 				role.GetName(),
-				strings.Join(role.GetTypes(), ", "),
-				role.GetNamespace().GetId(),
+				strings.Join(role.GetPermissions(), ", "),
+				role.GetOrgId(),
 			})
 			printer.Table(os.Stdout, report)
 
@@ -262,13 +262,13 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 
 			fmt.Printf(" \nShowing %d roles\n \n", len(roles))
 
-			report = append(report, []string{"ID", "NAME", "TYPE(S)", "NAMESPACE"})
+			report = append(report, []string{"ID", "NAME", "PERMISSION(S)", "ORGID"})
 			for _, r := range roles {
 				report = append(report, []string{
 					r.GetId(),
 					r.GetName(),
-					strings.Join(r.GetTypes(), ", "),
-					r.GetNamespace().GetId(),
+					strings.Join(r.GetPermissions(), ", "),
+					r.GetOrgId(),
 				})
 			}
 			printer.Table(os.Stdout, report)

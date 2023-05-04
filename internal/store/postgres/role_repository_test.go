@@ -2,13 +2,15 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
+
+	"github.com/google/uuid"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
@@ -25,6 +27,7 @@ type RoleRepositoryTestSuite struct {
 	resource   *dockertest.Resource
 	repository *postgres.RoleRepository
 	roleIDs    []string
+	orgID      string
 }
 
 func (s *RoleRepositoryTestSuite) SetupSuite() {
@@ -44,15 +47,16 @@ func (s *RoleRepositoryTestSuite) SetupSuite() {
 		s.T().Fatal(err)
 	}
 
-	s.roleIDs, err = bootstrapRole(s.client)
+	orgs, err := bootstrapOrganization(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
+	s.orgID = orgs[0].ID
 }
 
 func (s *RoleRepositoryTestSuite) SetupTest() {
 	var err error
-	_, err = bootstrapRole(s.client)
+	s.roleIDs, err = bootstrapRole(s.client, s.orgID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -89,15 +93,15 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 	var testCases = []testCase{
 		{
 			Description: "should get a role",
-			SelectedID:  "ns1:role1",
+			SelectedID:  s.roleIDs[3],
 			ExpectedRole: role.Role{
-				ID:   "ns1:role1",
-				Name: "role member",
-				Types: []string{
-					"member",
+				ID:   s.roleIDs[3],
+				Name: "editor",
+				Permissions: []string{
 					"user",
+					"group",
 				},
-				NamespaceID: "ns1",
+				OrgID: s.orgID,
 			},
 		},
 		{
@@ -106,7 +110,7 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 		},
 		{
 			Description: "should return error no exist if can't found role",
-			SelectedID:  "10000",
+			SelectedID:  uuid.NewString(),
 			ErrString:   role.ErrNotExist.Error(),
 		},
 	}
@@ -118,6 +122,9 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
+			}
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
 			}
 			if !cmp.Equal(got, tc.ExpectedRole, cmpopts.IgnoreFields(role.Role{}, "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRole)
@@ -131,49 +138,50 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 		Description  string
 		RoleToCreate role.Role
 		ExpectedID   string
-		ErrString    string
+		ErrString    error
 	}
-
+	roleID1 := uuid.New().String()
+	roleID2 := uuid.New().String()
 	var testCases = []testCase{
 		{
 			Description: "should create a role",
 			RoleToCreate: role.Role{
-				ID:   "role3",
+				ID:   roleID1,
 				Name: "role other",
-				Types: []string{
+				Permissions: []string{
 					"some-type1",
 					"some-type2",
 				},
-				NamespaceID: "ns1",
-				Metadata:    metadata.Metadata{},
+				OrgID:    s.orgID,
+				Metadata: metadata.Metadata{},
 			},
-			ExpectedID: "role3",
+			ExpectedID: roleID1,
 		},
 		{
-			Description: "should return error if namespace id does not exist",
+			Description: "should return error if org id does not exist",
 			RoleToCreate: role.Role{
-				ID:   "role-new",
+				ID:   roleID2,
 				Name: "role other new",
-				Types: []string{
+				Permissions: []string{
 					"some-type1",
 					"some-type2",
 				},
-				NamespaceID: "random-ns",
-				Metadata:    metadata.Metadata{},
+				OrgID:    "random-ns",
+				Metadata: metadata.Metadata{},
 			},
-			ErrString: role.ErrInvalidDetail.Error(),
+			ErrString: postgres.ErrInvalidTextRepresentation,
 		},
 		{
-			Description: "should return error if role id is empty",
-			ErrString:   role.ErrInvalidID.Error(),
+			Description: "should return error if org id is empty",
+			ErrString:   role.ErrInvalidDetail,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.RoleToCreate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
+			got, err := s.repository.Upsert(s.ctx, tc.RoleToCreate)
+			if tc.ErrString != nil {
+				if !errors.Is(err, tc.ErrString) {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
@@ -186,101 +194,28 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 
 func (s *RoleRepositoryTestSuite) TestList() {
 	type testCase struct {
-		Description   string
-		ExpectedRoles []role.Role
-		ErrString     string
+		Description      string
+		ExpectedRolesLen int
+		ErrString        string
 	}
 
 	var testCases = []testCase{
 		{
-			Description: "should get all roles",
-			ExpectedRoles: []role.Role{
-				{
-					ID:          "ns1:role1",
-					NamespaceID: "ns1",
-					Name:        "role member",
-				},
-				{
-					ID:          "ns1:role2",
-					NamespaceID: "ns1",
-					Name:        "role member",
-				},
-				{
-					ID:          "ns2:role2",
-					NamespaceID: "ns2",
-					Name:        "role admin",
-				},
-				{
-					ID:          "ns1:ns2",
-					NamespaceID: "ns1",
-					Name:        "namespace",
-				},
-				{
-					ID:          "shield/organization:owner",
-					NamespaceID: "shield/organization",
-					Name:        "owner",
-				},
-				{
-					ID:          "shield/organization:editor",
-					NamespaceID: "shield/organization",
-					Name:        "editor",
-				},
-				{
-					ID:          "shield/organization:viewer",
-					NamespaceID: "shield/organization",
-					Name:        "viewer",
-				},
-				{
-					ID:          "shield/project:owner",
-					NamespaceID: "shield/project",
-					Name:        "owner",
-				},
-				{
-					ID:          "shield/project:editor",
-					NamespaceID: "shield/project",
-					Name:        "editor",
-				},
-				{
-					ID:          "shield/project:viewer",
-					NamespaceID: "shield/project",
-					Name:        "viewer",
-				},
-				{
-					ID:          "shield/project:organization",
-					NamespaceID: "shield/project",
-					Name:        "organization",
-				},
-				{
-					ID:          "shield/group:member",
-					NamespaceID: "shield/group",
-					Name:        "member",
-				},
-				{
-					ID:          "shield/group:manager",
-					NamespaceID: "shield/group",
-					Name:        "manager",
-				},
-				{
-					ID:          "shield/group:organization",
-					NamespaceID: "shield/group",
-					Name:        "organization",
-				},
-			},
+			Description:      "should get all roles",
+			ExpectedRolesLen: 8,
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx)
+			got, err := s.repository.List(s.ctx, role.Filter{})
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			//TODO figure out how to compare metadata map[string]any
-			if !cmp.Equal(got, tc.ExpectedRoles, cmpopts.IgnoreFields(role.Role{},
-				"ID", "Types", "CreatedAt", "UpdatedAt", "Metadata")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoles)
+			if len(got) != tc.ExpectedRolesLen {
+				s.T().Fatalf("got result %+v, expected was %+v", len(got), tc.ExpectedRolesLen)
 			}
 		})
 	}
@@ -300,32 +235,20 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 			RoleToUpdate: role.Role{
 				ID:          s.roleIDs[0],
 				Name:        "role members",
-				NamespaceID: "ns1",
+				OrgID:       s.orgID,
 				Metadata:    metadata.Metadata{},
-				Types:       []string{"member", "user"},
+				Permissions: []string{"member", "user"},
 			},
 			ExpectedRoleID: s.roleIDs[0],
 		},
 		{
-			Description: "should return error if namespace id does not exist",
-			RoleToUpdate: role.Role{
-				ID:          s.roleIDs[0],
-				Name:        "role member",
-				NamespaceID: "ns-random",
-				Metadata:    metadata.Metadata{},
-				Types:       []string{"member", "user"},
-			},
-			ExpectedRoleID: "",
-			ErrString:      namespace.ErrNotExist.Error(),
-		},
-		{
 			Description: "should return error if role not found",
 			RoleToUpdate: role.Role{
-				ID:          "ns:random",
+				ID:          uuid.NewString(),
 				Name:        "role member",
-				NamespaceID: "ns1",
+				OrgID:       "ns1",
 				Metadata:    metadata.Metadata{},
-				Types:       []string{"member", "user"},
+				Permissions: []string{"member", "user"},
 			},
 			ExpectedRoleID: "",
 			ErrString:      role.ErrNotExist.Error(),
@@ -335,9 +258,9 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 			RoleToUpdate: role.Role{
 				ID:          "",
 				Name:        "role member",
-				NamespaceID: "ns1",
+				OrgID:       "ns1",
 				Metadata:    metadata.Metadata{},
-				Types:       []string{"member", "user"},
+				Permissions: []string{"member", "user"},
 			},
 			ExpectedRoleID: "",
 			ErrString:      role.ErrInvalidID.Error(),
@@ -351,6 +274,9 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
+			}
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
 			}
 			if !cmp.Equal(got, tc.ExpectedRoleID) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoleID)

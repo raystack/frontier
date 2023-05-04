@@ -10,10 +10,8 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -68,7 +66,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return project.Project{}, project.ErrInvalidUUID
 		default:
 			return project.Project{}, err
@@ -114,7 +112,7 @@ func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string) ([]projec
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, project.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return nil, project.ErrInvalidUUID
 		default:
 			return nil, err
@@ -162,7 +160,7 @@ func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return project.Project{}, project.ErrInvalidUUID
 		default:
 			return project.Project{}, err
@@ -208,7 +206,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_PROJECTS,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -217,11 +215,11 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return project.Project{}, project.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return project.Project{}, organization.ErrInvalidUUID
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return project.Project{}, project.ErrConflict
 		default:
 			return project.Project{}, err
@@ -324,7 +322,7 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_PROJECTS,
-				Operation:  "UpdateByID",
+				Operation:  "Update",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -336,11 +334,11 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return project.Project{}, project.ErrInvalidUUID
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return project.Project{}, project.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return project.Project{}, organization.ErrNotExist
 		default:
 			return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -401,11 +399,11 @@ func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return project.Project{}, project.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return project.Project{}, project.ErrInvalidUUID
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return project.Project{}, project.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return project.Project{}, organization.ErrNotExist
 		default:
 			return project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -418,62 +416,6 @@ func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project
 	}
 
 	return prj, nil
-}
-
-func (r ProjectRepository) ListAdmins(ctx context.Context, projectID string) ([]user.User, error) {
-	var fetchedUsers []User
-
-	query, params, err := dialect.Select(
-		goqu.I("u.id").As("id"),
-		goqu.I("u.name").As("name"),
-		goqu.I("u.email").As("email"),
-		goqu.I("u.created_at").As("created_at"),
-		goqu.I("u.updated_at").As("updated_at"),
-	).
-		From(goqu.T(TABLE_RELATIONS).As("r")).Join(
-		goqu.T(TABLE_USERS).As("u"), goqu.On(
-			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
-		)).Where(goqu.Ex{
-		"r.object_id":            projectID,
-		"r.role_id":              role.DefinitionProjectAdmin.ID,
-		"r.subject_namespace_id": namespace.DefinitionUser.ID,
-		"r.object_namespace_id":  namespace.DefinitionProject.ID,
-	}).ToSQL()
-	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "ListAdmins",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
-	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return []user.User{}, nil
-		}
-		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedUsers []user.User
-	for _, u := range fetchedUsers {
-		transformedUser, err := u.transformToUser()
-		if err != nil {
-			return []user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-
-		transformedUsers = append(transformedUsers, transformedUser)
-	}
-
-	return transformedUsers, nil
 }
 
 func (r ProjectRepository) SetState(ctx context.Context, id string, state project.State) error {

@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 
+	"google.golang.org/protobuf/types/known/structpb"
+
+	"github.com/odpf/shield/pkg/metadata"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,9 +21,9 @@ import (
 //go:generate mockery --name=PolicyService -r --case underscore --with-expecter --structname PolicyService --filename policy_service.go --output=./mocks
 type PolicyService interface {
 	Get(ctx context.Context, id string) (policy.Policy, error)
-	List(ctx context.Context) ([]policy.Policy, error)
-	Create(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
-	Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
+	List(ctx context.Context, f policy.Filter) ([]policy.Policy, error)
+	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
+	Delete(ctx context.Context, id string) error
 }
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
@@ -27,7 +32,12 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	policyList, err := h.policyService.List(ctx)
+	policyList, err := h.policyService.List(ctx, policy.Filter{
+		OrgID:     request.GetOrgId(),
+		UserID:    request.GetUserId(),
+		ProjectID: request.GetProjectId(),
+		RoleID:    request.GetRoleId(),
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -40,7 +50,7 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 			return nil, grpcInternalServerError
 		}
 
-		policies = append(policies, &policyPB)
+		policies = append(policies, policyPB)
 	}
 
 	return &shieldv1beta1.ListPoliciesResponse{Policies: policies}, nil
@@ -48,12 +58,25 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 
 func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.CreatePolicyRequest) (*shieldv1beta1.CreatePolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var policies []*shieldv1beta1.Policy
 
-	newPolicies, err := h.policyService.Create(ctx, policy.Policy{
+	var metaDataMap metadata.Metadata
+	var err error
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
+	}
+
+	// TODO(kushsharma): while creating policy, we should support
+	// for non-uuid role ids, like app_project_manager
+	newPolicy, err := h.policyService.Create(ctx, policy.Policy{
 		RoleID:      request.GetBody().GetRoleId(),
+		ResourceID:  request.GetBody().GetResourceId(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
-		ActionID:    request.GetBody().GetActionId(),
+		UserID:      request.GetBody().GetUserId(),
+		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -65,22 +88,13 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		}
 	}
 
-	for _, p := range newPolicies {
-		policyPB, err := transformPolicyToPB(p)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
-		}
-
-		policies = append(policies, &policyPB)
-	}
-
+	policyPB, err := transformPolicyToPB(newPolicy)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.CreatePolicyResponse{Policies: policies}, nil
+	return &shieldv1beta1.CreatePolicyResponse{Policy: policyPB}, nil
 }
 
 func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicyRequest) (*shieldv1beta1.GetPolicyResponse, error) {
@@ -105,19 +119,17 @@ func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicy
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetPolicyResponse{Policy: &policyPB}, nil
+	return &shieldv1beta1.GetPolicyResponse{Policy: policyPB}, nil
 }
 
 func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.UpdatePolicyRequest) (*shieldv1beta1.UpdatePolicyResponse, error) {
-	logger := grpczap.Extract(ctx)
-	var policies []*shieldv1beta1.Policy
+	// not implemented
+	return &shieldv1beta1.UpdatePolicyResponse{}, status.Errorf(codes.Unimplemented, "unsupported at the moment")
+}
 
-	updatedPolices, err := h.policyService.Update(ctx, policy.Policy{
-		ID:          request.GetId(),
-		RoleID:      request.GetBody().GetRoleId(),
-		NamespaceID: request.GetBody().GetNamespaceId(),
-		ActionID:    request.GetBody().GetActionId(),
-	})
+func (h Handler) DeletePolicy(ctx context.Context, request *shieldv1beta1.DeletePolicyRequest) (*shieldv1beta1.DeletePolicyResponse, error) {
+	logger := grpczap.Extract(ctx)
+	err := h.policyService.Delete(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -135,27 +147,32 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 		}
 	}
 
-	for _, p := range updatedPolices {
-		policyPB, err := transformPolicyToPB(p)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
-		}
-		policies = append(policies, &policyPB)
-	}
-
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-	return &shieldv1beta1.UpdatePolicyResponse{Policies: policies}, nil
+	return &shieldv1beta1.DeletePolicyResponse{}, nil
 }
 
-func transformPolicyToPB(policy policy.Policy) (shieldv1beta1.Policy, error) {
-	return shieldv1beta1.Policy{
+func transformPolicyToPB(policy policy.Policy) (*shieldv1beta1.Policy, error) {
+	var metadata *structpb.Struct
+	var err error
+	if len(policy.Metadata) > 0 {
+		metadata, err = structpb.NewStruct(policy.Metadata)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	pbPol := &shieldv1beta1.Policy{
 		Id:          policy.ID,
-		RoleId:      policy.RoleID,
-		ActionId:    policy.ActionID,
 		NamespaceId: policy.NamespaceID,
-	}, nil
+		RoleId:      policy.RoleID,
+		ResourceId:  policy.ResourceID,
+		UserId:      policy.UserID,
+		Metadata:    metadata,
+	}
+	if !policy.CreatedAt.IsZero() {
+		pbPol.CreatedAt = timestamppb.New(policy.CreatedAt)
+	}
+	if !policy.UpdatedAt.IsZero() {
+		pbPol.UpdatedAt = timestamppb.New(policy.UpdatedAt)
+	}
+	return pbPol, nil
 }

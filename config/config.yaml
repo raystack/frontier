@@ -51,7 +51,14 @@ app:
         client_id: "xxxxx.apps.googleusercontent.com"
         client_secret: "xxxxx"
         issuer_url: "https://accounts.google.com"
-
+  # platform level administration
+  admin:
+    # Email list of users which needs to be converted as superusers
+    # if the user is already present in the system, it is promoted to su
+    # if not, a new account is created with provided email id and promoted to su.
+    # UUIDs/slugs of existing users can also be provided instead of email ids
+    # but in that case a new user will not be created.
+    users: []
 db:
   driver: postgres
   url: postgres://shield:@localhost:5432/shield?sslmode=disable

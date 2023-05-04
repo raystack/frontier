@@ -5,23 +5,19 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
 	shielduuid "github.com/odpf/shield/pkg/uuid"
-
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
 )
 
 type Service struct {
 	repository      Repository
 	authzRepository AuthzRepository
-	roleService     RoleService
 }
 
-func NewService(repository Repository, authzRepository AuthzRepository, roleService RoleService) *Service {
+func NewService(repository Repository, authzRepository AuthzRepository) *Service {
 	return &Service{
 		repository:      repository,
 		authzRepository: authzRepository,
-		roleService:     roleService,
 	}
 }
 
@@ -30,16 +26,16 @@ func (s Service) Get(ctx context.Context, id string) (RelationV2, error) {
 }
 
 func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error) {
-	if !shielduuid.IsValid(rel.Object.ID) || !shielduuid.IsValid(rel.Subject.ID) {
-		return RelationV2{}, errors.New("subject/object id should be a valid uuid")
+	if !isValidID(rel.Object.ID) || !isValidID(rel.Subject.ID) {
+		return RelationV2{}, errors.New("subject/object id should be a valid uuid or a wildcard *")
 	}
 
-	createdRelation, err := s.repository.Create(ctx, rel)
+	createdRelation, err := s.repository.Upsert(ctx, rel)
 	if err != nil {
 		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInStore, err.Error())
 	}
 
-	err = s.authzRepository.AddV2(ctx, createdRelation)
+	err = s.authzRepository.Add(ctx, createdRelation)
 	if err != nil {
 		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
 	}
@@ -51,62 +47,32 @@ func (s Service) List(ctx context.Context) ([]RelationV2, error) {
 	return s.repository.List(ctx)
 }
 
-// TODO: Update & Delete planned for v0.6
-func (s Service) Update(ctx context.Context, toUpdate Relation) (Relation, error) {
-	//oldRelation, err := s.repository.Get(ctx, toUpdate.ID)
-	//if err != nil {
-	//	return Relation{}, err
-	//}
-	//
-	//newRelation, err := s.repository.Update(ctx, toUpdate)
-	//if err != nil {
-	//	return Relation{}, err
-	//}
-	//
-	//if err = s.authzRepository.Delete(ctx, oldRelation); err != nil {
-	//	return Relation{}, err
-	//}
-	//
-	//if err = s.authzRepository.Add(ctx, newRelation); err != nil {
-	//	return Relation{}, err
-	//}
-	//
-	//return newRelation, nil
-	return Relation{}, nil
-}
-
-func (s Service) GetRelationByFields(ctx context.Context, rel RelationV2) (RelationV2, error) {
-	fetchedRel, err := s.repository.GetByFields(ctx, rel)
-	if err != nil {
-		return RelationV2{}, err
-	}
-
-	return fetchedRel, nil
+func (s Service) GetRelationsByFields(ctx context.Context, rel RelationV2) ([]RelationV2, error) {
+	return s.repository.GetByFields(ctx, rel)
 }
 
 func (s Service) Delete(ctx context.Context, rel RelationV2) error {
-	fetchedRel, err := s.repository.GetByFields(ctx, rel)
+	fetchedRels, err := s.GetRelationsByFields(ctx, rel)
 	if err != nil {
 		return err
 	}
-	if err := s.authzRepository.DeleteV2(ctx, fetchedRel); err != nil {
-		return err
+
+	for _, fetchedRel := range fetchedRels {
+		if err = s.authzRepository.Delete(ctx, fetchedRel); err != nil {
+			return err
+		}
+		if err = s.repository.DeleteByID(ctx, fetchedRel.ID); err != nil {
+			return err
+		}
 	}
-
-	return s.repository.DeleteByID(ctx, fetchedRel.ID)
+	return nil
 }
 
-func (s Service) CheckPermission(ctx context.Context, userID string, resourceNS namespace.Namespace, resourceIdx string, action action.Action) (bool, error) {
-	return s.authzRepository.Check(ctx, Relation{
-		ObjectNamespace:  resourceNS,
-		ObjectID:         resourceIdx,
-		SubjectID:        userID,
-		SubjectNamespace: namespace.DefinitionUser,
-	}, action)
-}
-
-func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
-	return s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
+func (s Service) CheckPermission(ctx context.Context, subject Subject, object Object, permissionName string) (bool, error) {
+	return s.authzRepository.Check(ctx, RelationV2{
+		Object:  object,
+		Subject: subject,
+	}, permissionName)
 }
 
 // LookupSubjects returns all the subjects of a given type that have access whether
@@ -124,4 +90,15 @@ func (s Service) LookupResources(ctx context.Context, rel RelationV2) ([]string,
 // ListRelations lists a set of the relationships matching filter
 func (s Service) ListRelations(ctx context.Context, rel RelationV2) ([]RelationV2, error) {
 	return s.authzRepository.ListRelations(ctx, rel)
+}
+
+func isValidID(id string) bool {
+	if id == "*" || id == schema.PlatformID {
+		// check either wildcard or global id
+		return true
+	}
+	if shielduuid.IsValid(id) {
+		return true
+	}
+	return false
 }

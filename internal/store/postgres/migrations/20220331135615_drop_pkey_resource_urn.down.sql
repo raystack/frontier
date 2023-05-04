@@ -1,1 +1,0 @@
-ALTER Table resources ADD PRIMARY KEY(urn);

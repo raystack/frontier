@@ -20,18 +20,6 @@ func TestClientPolicy(t *testing.T) {
 			err         error
 		}{
 			{
-				name:        "`policy` list only should throw error host not found",
-				want:        "",
-				subCommands: []string{"list"},
-				err:         cmd.ErrClientConfigHostNotFound,
-			},
-			{
-				name:        "`policy` list with host flag should pass",
-				want:        "",
-				subCommands: []string{"list", "-h", "test"},
-				err:         context.DeadlineExceeded,
-			},
-			{
 				name:        "`policy` create only should throw error host not found",
 				want:        "",
 				subCommands: []string{"create"},

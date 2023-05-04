@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
@@ -30,7 +29,7 @@ type GroupService interface {
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error)
-	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []group.Group, map[string][]string, map[string][]string, error)
+	ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error
@@ -42,7 +41,6 @@ var (
 
 func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	// TODO(kushsharma): apply admin level authz
 
 	var groups []*shieldv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
@@ -236,16 +234,16 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	return &shieldv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
 }
 
-func (h Handler) ListGroupRelations(ctx context.Context, request *shieldv1beta1.ListGroupRelationsRequest) (*shieldv1beta1.ListGroupRelationsResponse, error) {
+func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.ListGroupUsersRequest) (*shieldv1beta1.ListGroupUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
-	groupRelations := []*shieldv1beta1.GroupRelation{}
 
-	users, groups, userIDRoleMap, groupIDRoleMap, err := h.groupService.ListGroupRelations(ctx, request.Id, request.SubjectType, request.Role)
+	users, err := h.groupService.ListGroupUsers(ctx, request.Id)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
+	userPBs := []*shieldv1beta1.User{}
 	for _, user := range users {
 		userPb, err := transformUserToPB(user)
 		if err != nil {
@@ -253,43 +251,10 @@ func (h Handler) ListGroupRelations(ctx context.Context, request *shieldv1beta1.
 			return nil, grpcInternalServerError
 		}
 
-		for _, r := range userIDRoleMap[userPb.Id] {
-			role := strings.Split(r, ":")
-
-			grprel := &shieldv1beta1.GroupRelation{
-				SubjectType: schema.UserPrincipal,
-				Role:        role[1],
-				Subject: &shieldv1beta1.GroupRelation_User{
-					User: &userPb,
-				},
-			}
-			groupRelations = append(groupRelations, grprel)
-		}
+		userPBs = append(userPBs, &userPb)
 	}
-
-	for _, group := range groups {
-		groupPb, err := transformGroupToPB(group)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
-		}
-
-		for _, r := range groupIDRoleMap[groupPb.Id] {
-			role := strings.Split(r, ":")
-
-			grprel := &shieldv1beta1.GroupRelation{
-				SubjectType: schema.GroupPrincipal,
-				Role:        role[1],
-				Subject: &shieldv1beta1.GroupRelation_Group{
-					Group: &groupPb,
-				},
-			}
-			groupRelations = append(groupRelations, grprel)
-		}
-	}
-
-	return &shieldv1beta1.ListGroupRelationsResponse{
-		Relations: groupRelations,
+	return &shieldv1beta1.ListGroupUsersResponse{
+		Users: userPBs,
 	}, nil
 }
 

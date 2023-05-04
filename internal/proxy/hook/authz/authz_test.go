@@ -37,10 +37,12 @@ var expectedResources = []resource.Resource{
 		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name:        "resc1",
 		NamespaceID: "ns1/kind",
+		UserID:      "user1@odpf.com",
 	}, {
 		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name:        "resc2",
 		NamespaceID: "ns1/kind",
+		UserID:      "user1@odpf.com",
 	},
 }
 
@@ -106,7 +108,7 @@ func TestServeHook(t *testing.T) {
 	mockResourceService := mocks.ResourceService{}
 
 	logger := shieldlogger.InitLogger(shieldlogger.Config{
-		Level:  "info",
+		Level:  "fatal",
 		Format: "json",
 	})
 
@@ -292,6 +294,10 @@ func TestServeHook(t *testing.T) {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["resource_type"].(string),
 							},
+							"user": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["user"].(string),
+							},
 						},
 					},
 				},
@@ -310,18 +316,18 @@ func TestServeHook(t *testing.T) {
 			Name:        testPermissionAttributesMap["resource"].([]string)[0],
 			ProjectID:   testPermissionAttributesMap["project"].(string),
 			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			UserID:      testPermissionAttributesMap["user"].(string),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:             uuid.NewString(),
-			URN:            "new-resource-urn",
-			ProjectID:      rsc.ProjectID,
-			OrganizationID: rsc.OrganizationID,
-			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@odpf.io",
-			Name:           rsc.Name,
-			CreatedAt:      time.Time{},
-			UpdatedAt:      time.Time{},
+			ID:          uuid.NewString(),
+			URN:         "new-resource-urn",
+			ProjectID:   rsc.ProjectID,
+			NamespaceID: rsc.NamespaceID,
+			UserID:      "user@odpf.io",
+			Name:        rsc.Name,
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		}, nil)
 
 		resp, err := a.ServeHook(response, nil)
@@ -401,18 +407,18 @@ func TestServeHook(t *testing.T) {
 			Name:        "bar",
 			ProjectID:   testPermissionAttributesMap["project"].(string),
 			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			UserID:      testPermissionAttributesMap["user"].(string),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:             uuid.NewString(),
-			URN:            "new-resource-urn",
-			ProjectID:      rsc.ProjectID,
-			OrganizationID: rsc.OrganizationID,
-			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@odpf.io",
-			Name:           "bar",
-			CreatedAt:      time.Time{},
-			UpdatedAt:      time.Time{},
+			ID:          uuid.NewString(),
+			URN:         "new-resource-urn",
+			ProjectID:   rsc.ProjectID,
+			NamespaceID: rsc.NamespaceID,
+			UserID:      "user@odpf.io",
+			Name:        "bar",
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		}, nil)
 
 		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
@@ -496,22 +502,20 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
 
 		rsc := resource.Resource{
-			Name:           "bar",
-			OrganizationID: testPermissionAttributesMap["organization"].(string),
-			ProjectID:      testPermissionAttributesMap["project"].(string),
-			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			Name:        "bar",
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:             uuid.NewString(),
-			URN:            "new-resource-urn",
-			ProjectID:      rsc.ProjectID,
-			OrganizationID: rsc.OrganizationID,
-			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@odpf.io",
-			Name:           "bar",
-			CreatedAt:      time.Time{},
-			UpdatedAt:      time.Time{},
+			ID:          uuid.NewString(),
+			URN:         "new-resource-urn",
+			ProjectID:   rsc.ProjectID,
+			NamespaceID: rsc.NamespaceID,
+			UserID:      "user@odpf.io",
+			Name:        "bar",
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		}, nil)
 
 		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
@@ -596,22 +600,20 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:           "bar",
-			OrganizationID: testPermissionAttributesMap["organization"].(string),
-			ProjectID:      testPermissionAttributesMap["project"].(string),
-			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			Name:        "bar",
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:             uuid.NewString(),
-			URN:            "new-resource-urn",
-			ProjectID:      rsc.ProjectID,
-			OrganizationID: rsc.OrganizationID,
-			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@odpf.io",
-			Name:           "bar",
-			CreatedAt:      time.Time{},
-			UpdatedAt:      time.Time{},
+			ID:          uuid.NewString(),
+			URN:         "new-resource-urn",
+			ProjectID:   rsc.ProjectID,
+			NamespaceID: rsc.NamespaceID,
+			UserID:      "user@odpf.io",
+			Name:        "bar",
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		}, nil)
 
 		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
@@ -695,22 +697,20 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:           "bar",
-			OrganizationID: testPermissionAttributesMap["organization"].(string),
-			ProjectID:      testPermissionAttributesMap["project"].(string),
-			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
+			Name:        "bar",
+			ProjectID:   testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:             uuid.NewString(),
-			URN:            "new-resource-urn",
-			ProjectID:      rsc.ProjectID,
-			OrganizationID: rsc.OrganizationID,
-			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@odpf.io",
-			Name:           "bar",
-			CreatedAt:      time.Time{},
-			UpdatedAt:      time.Time{},
+			ID:          uuid.NewString(),
+			URN:         "new-resource-urn",
+			ProjectID:   rsc.ProjectID,
+			NamespaceID: rsc.NamespaceID,
+			UserID:      "user@odpf.io",
+			Name:        "bar",
+			CreatedAt:   time.Time{},
+			UpdatedAt:   time.Time{},
 		}, nil)
 
 		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(

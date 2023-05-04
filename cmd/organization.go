@@ -47,7 +47,7 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "Create an organization",
+		Short: "Upsert an organization",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield organization create --file=<organization-body> --header=<key>:<value>

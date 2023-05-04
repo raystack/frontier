@@ -1,4 +1,0 @@
-entropy:
-  type: resource_group
-  resource_types:
-    - name: firehose

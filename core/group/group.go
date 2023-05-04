@@ -4,9 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
-
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/pkg/metadata"
 )
@@ -45,12 +42,4 @@ type Group struct {
 	State          State
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-}
-
-func BuildUserGroupAdminSubject(user user.User) relation.Subject {
-	return relation.Subject{
-		ID:        user.ID,
-		Namespace: schema.UserPrincipal,
-		RoleID:    schema.ManagerRole,
-	}
 }

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/resource"
@@ -22,32 +21,22 @@ import (
 var (
 	testResourceID = uuid.NewString()
 	testResource   = resource.Resource{
-		ID:             testResourceID,
-		URN:            "res-urn",
-		Name:           "a resource name",
-		ProjectID:      testProjectID,
-		OrganizationID: testOrgID,
-		NamespaceID:    testNSID,
-		UserID:         testUserID,
+		ID:          testResourceID,
+		URN:         "res-urn",
+		Name:        "a resource name",
+		ProjectID:   testProjectID,
+		NamespaceID: testNSID,
+		UserID:      testUserID,
 	}
 	testResourcePB = &shieldv1beta1.Resource{
-		Id:   testResource.ID,
-		Name: testResource.Name,
-		Urn:  testResource.URN,
-		Project: &shieldv1beta1.Project{
-			Id: testProjectID,
-		},
-		Organization: &shieldv1beta1.Organization{
-			Id: testOrgID,
-		},
-		Namespace: &shieldv1beta1.Namespace{
-			Id: testNSID,
-		},
-		User: &shieldv1beta1.User{
-			Id: testUserID,
-		},
-		CreatedAt: timestamppb.New(time.Time{}),
-		UpdatedAt: timestamppb.New(time.Time{}),
+		Id:          testResource.ID,
+		Name:        testResource.Name,
+		Urn:         testResource.URN,
+		ProjectId:   testProjectID,
+		NamespaceId: testNSID,
+		UserId:      testUserID,
+		CreatedAt:   timestamppb.New(time.Time{}),
+		UpdatedAt:   timestamppb.New(time.Time{}),
 	}
 )
 
@@ -108,37 +97,13 @@ func TestHandler_CreateResource(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return unauthenticated error if auth email in context is empty and org service return invalid user email",
-			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					NamespaceID: testResource.NamespaceID,
-				}).Return(resource.Resource{}, user.ErrInvalidEmail)
-				return ctx
-			},
-			request: &shieldv1beta1.CreateResourceRequest{
-				Body: &shieldv1beta1.ResourceRequestBody{
-					Name:        testResource.Name,
-					ProjectId:   testResource.ProjectID,
-					NamespaceId: testResource.NamespaceID,
-					Relations: []*shieldv1beta1.Relation{
-						{
-							RoleName: "owner",
-							Subject:  "user:" + testResource.UserID,
-						},
-					},
-				}},
-			want:    nil,
-			wantErr: grpcUnauthenticated,
-		},
-		{
 			name: "should return internal error if resource service return some error",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:        testResource.Name,
 					ProjectID:   testResource.ProjectID,
 					NamespaceID: testResource.NamespaceID,
+					UserID:      testUserID,
 				}).Return(resource.Resource{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -147,12 +112,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
-					Relations: []*shieldv1beta1.Relation{
-						{
-							RoleName: "owner",
-							Subject:  "user:" + testUserID,
-						},
-					},
+					UserId:      testUserID,
 				}},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -164,6 +124,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectID:   testResource.ProjectID,
 					NamespaceID: testResource.NamespaceID,
+					UserID:      testUserID,
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -172,12 +133,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
-					Relations: []*shieldv1beta1.Relation{
-						{
-							RoleName: "owner",
-							Subject:  "user:" + testUserID,
-						},
-					},
+					UserId:      testUserID,
 				},
 			},
 			want:    nil,
@@ -192,9 +148,9 @@ func TestHandler_CreateResource(t *testing.T) {
 						Namespace: testResource.NamespaceID,
 					},
 					Subject: relation.Subject{
-						RoleID:    "owner",
-						Namespace: "user",
-						ID:        testUserID,
+						SubRelationName: "owner",
+						Namespace:       "user",
+						ID:              testUserID,
 					},
 				}).Return(relation.RelationV2{}, nil)
 
@@ -202,6 +158,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectID:   testResource.ProjectID,
 					NamespaceID: testResource.NamespaceID,
+					UserID:      testUserID,
 				}).Return(testResource, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -210,12 +167,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
-					Relations: []*shieldv1beta1.Relation{
-						{
-							RoleName: "owner",
-							Subject:  "user:" + testUserID,
-						},
-					},
+					UserId:      testUserID,
 				},
 			},
 			want: &shieldv1beta1.CreateResourceResponse{
@@ -328,36 +280,17 @@ func TestHandler_UpdateResource(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return internal error if project service return some error",
-			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
-			},
-			request: &shieldv1beta1.UpdateResourceRequest{
-				Id: testResourceID,
-				Body: &shieldv1beta1.ResourceRequestBody{
-					Name:        testResource.Name,
-					ProjectId:   testResource.ProjectID,
-					NamespaceId: testResource.NamespaceID,
-				},
-			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
-		},
-		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					UserID:      testResource.UserID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
@@ -366,6 +299,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
+					UserId:      testUserID,
 				},
 			},
 			want:    nil,
@@ -376,16 +310,13 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "", resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					NamespaceID:    testResource.NamespaceID,
-					OrganizationID: testResource.OrganizationID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					NamespaceID: testResource.NamespaceID,
+					UserID:      testResource.UserID,
 				}).Return(resource.Resource{}, resource.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
@@ -393,6 +324,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
+					UserId:      testUserID,
 				},
 			},
 			want:    nil,
@@ -403,16 +335,13 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					UserID:      testResource.UserID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
@@ -421,6 +350,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
+					UserId:      testUserID,
 				},
 			},
 			want:    nil,
@@ -431,16 +361,13 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some-id", resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					UserID:      testResource.UserID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, resource.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
@@ -449,6 +376,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
+					UserId:      testUserID,
 				},
 			},
 			want:    nil,
@@ -459,16 +387,13 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					UserID:      testResource.UserID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
@@ -477,6 +402,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
+					UserId:      testUserID,
 				},
 			},
 			want:    nil,
@@ -487,16 +413,13 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					OrganizationID: testResource.OrganizationID,
-					NamespaceID:    testResource.NamespaceID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					UserID:      testResource.UserID,
+					NamespaceID: testResource.NamespaceID,
 				}).Return(resource.Resource{}, resource.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
@@ -505,6 +428,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
+					UserId:      testUserID,
 				},
 			},
 			want:    nil,
@@ -515,16 +439,13 @@ func TestHandler_UpdateResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
-					Organization: organization.Organization{
-						ID: testResource.OrganizationID,
-					},
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
-					Name:           testResource.Name,
-					ProjectID:      testResource.ProjectID,
-					NamespaceID:    testResource.NamespaceID,
-					OrganizationID: testResource.OrganizationID,
+					Name:        testResource.Name,
+					ProjectID:   testResource.ProjectID,
+					NamespaceID: testResource.NamespaceID,
+					UserID:      testResource.UserID,
 				}).Return(testResource, nil)
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
@@ -533,6 +454,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 					Name:        testResource.Name,
 					ProjectId:   testResource.ProjectID,
 					NamespaceId: testResource.NamespaceID,
+					UserId:      testUserID,
 				},
 			},
 			want: &shieldv1beta1.UpdateResourceResponse{

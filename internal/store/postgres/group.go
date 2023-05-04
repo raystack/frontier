@@ -22,8 +22,10 @@ type Group struct {
 
 func (from Group) transformToGroup() (group.Group, error) {
 	var unmarshalledMetadata map[string]any
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return group.Group{}, err
+	if len(from.Metadata) > 0 {
+		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+			return group.Group{}, err
+		}
 	}
 
 	return group.Group{

@@ -41,8 +41,6 @@ func (h Handler) ListProjects(
 ) (*shieldv1beta1.ListProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	//TODO(kushsharma): apply admin level authz
-
 	var projects []*shieldv1beta1.Project
 	projectList, err := h.projectService.List(ctx, project.Filter{
 		State: project.State(request.GetState()),

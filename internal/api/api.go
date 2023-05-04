@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/authenticate"
 	"github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/core/deleter"
@@ -9,6 +8,7 @@ import (
 	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/permission"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
@@ -16,6 +16,7 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/rule"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/internal/bootstrap"
 )
 
 type Deps struct {
@@ -28,7 +29,7 @@ type Deps struct {
 	PolicyService       *policy.Service
 	UserService         *user.Service
 	NamespaceService    *namespace.Service
-	ActionService       *action.Service
+	PermissionService   *permission.Service
 	RelationService     *relation.Service
 	ResourceService     *resource.Service
 	RuleService         *rule.Service
@@ -36,4 +37,5 @@ type Deps struct {
 	RegistrationService *authenticate.RegistrationService
 	DeleterService      *deleter.Service
 	MetaSchemaService   *metaschema.Service
+	BootstrapService    *bootstrap.Service
 }

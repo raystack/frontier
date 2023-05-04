@@ -22,59 +22,6 @@ func (_m *NamespaceService) EXPECT() *NamespaceService_Expecter {
 	return &NamespaceService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, ns
-func (_m *NamespaceService) Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-	ret := _m.Called(ctx, ns)
-
-	var r0 namespace.Namespace
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, namespace.Namespace) (namespace.Namespace, error)); ok {
-		return rf(ctx, ns)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, namespace.Namespace) namespace.Namespace); ok {
-		r0 = rf(ctx, ns)
-	} else {
-		r0 = ret.Get(0).(namespace.Namespace)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, namespace.Namespace) error); ok {
-		r1 = rf(ctx, ns)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// NamespaceService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
-type NamespaceService_Create_Call struct {
-	*mock.Call
-}
-
-// Create is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ns namespace.Namespace
-func (_e *NamespaceService_Expecter) Create(ctx interface{}, ns interface{}) *NamespaceService_Create_Call {
-	return &NamespaceService_Create_Call{Call: _e.mock.On("Create", ctx, ns)}
-}
-
-func (_c *NamespaceService_Create_Call) Run(run func(ctx context.Context, ns namespace.Namespace)) *NamespaceService_Create_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(namespace.Namespace))
-	})
-	return _c
-}
-
-func (_c *NamespaceService_Create_Call) Return(_a0 namespace.Namespace, _a1 error) *NamespaceService_Create_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *NamespaceService_Create_Call) RunAndReturn(run func(context.Context, namespace.Namespace) (namespace.Namespace, error)) *NamespaceService_Create_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Get provides a mock function with given fields: ctx, id
 func (_m *NamespaceService) Get(ctx context.Context, id string) (namespace.Namespace, error) {
 	ret := _m.Called(ctx, id)
@@ -231,6 +178,59 @@ func (_c *NamespaceService_Update_Call) Return(_a0 namespace.Namespace, _a1 erro
 }
 
 func (_c *NamespaceService_Update_Call) RunAndReturn(run func(context.Context, namespace.Namespace) (namespace.Namespace, error)) *NamespaceService_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Upsert provides a mock function with given fields: ctx, ns
+func (_m *NamespaceService) Upsert(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+	ret := _m.Called(ctx, ns)
+
+	var r0 namespace.Namespace
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, namespace.Namespace) (namespace.Namespace, error)); ok {
+		return rf(ctx, ns)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, namespace.Namespace) namespace.Namespace); ok {
+		r0 = rf(ctx, ns)
+	} else {
+		r0 = ret.Get(0).(namespace.Namespace)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, namespace.Namespace) error); ok {
+		r1 = rf(ctx, ns)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// NamespaceService_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
+type NamespaceService_Upsert_Call struct {
+	*mock.Call
+}
+
+// Upsert is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ns namespace.Namespace
+func (_e *NamespaceService_Expecter) Upsert(ctx interface{}, ns interface{}) *NamespaceService_Upsert_Call {
+	return &NamespaceService_Upsert_Call{Call: _e.mock.On("Upsert", ctx, ns)}
+}
+
+func (_c *NamespaceService_Upsert_Call) Run(run func(ctx context.Context, ns namespace.Namespace)) *NamespaceService_Upsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(namespace.Namespace))
+	})
+	return _c
+}
+
+func (_c *NamespaceService_Upsert_Call) Return(_a0 namespace.Namespace, _a1 error) *NamespaceService_Upsert_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *NamespaceService_Upsert_Call) RunAndReturn(run func(context.Context, namespace.Namespace) (namespace.Namespace, error)) *NamespaceService_Upsert_Call {
 	_c.Call.Return(run)
 	return _c
 }

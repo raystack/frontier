@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/odpf/shield/core/namespace"
+	"github.com/odpf/shield/pkg/metadata"
 )
 
 const NON_RESOURCE_ID = "*"
@@ -25,15 +26,16 @@ type ConfigRepository interface {
 }
 
 type Resource struct {
-	ID             string
-	URN            string
-	Name           string
-	ProjectID      string
-	OrganizationID string
-	NamespaceID    string
-	UserID         string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID          string `json:"id"`
+	URN         string
+	Name        string
+	ProjectID   string `json:"project_id"`
+	NamespaceID string `json:"namespace_id"`
+	UserID      string `json:"user_id"`
+	Metadata    metadata.Metadata
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (res Resource) CreateURN() string {

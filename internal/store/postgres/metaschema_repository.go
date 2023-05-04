@@ -131,7 +131,7 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.As(err, &errDuplicateKey):
+		case errors.As(err, &ErrDuplicateKey):
 			return metaschema.MetaSchema{}, metaschema.ErrConflict
 		default:
 			return metaschema.MetaSchema{}, err

@@ -1,10 +1,8 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
-NAME=github.com/odpf/shield
-TAG := "$(shell git rev-list --tags --max-count=1)"
-VERSION := "$(shell git describe --tags ${TAG})"
+
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "99aa2b37aa3ade1ab99a9da101c1db38b559afe5"
+PROTON_COMMIT := "3716dbf642261a4c15f48d08a53069a741da9df3"
 
 ui:
 	@echo " > generating ui build"
@@ -16,7 +14,7 @@ install:
 	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
 build:
-	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/cmd.Version=${VERSION}" -o shield .
+	CGO_ENABLED=0 go build -o shield .
 
 generate: ## run all go generate in the code base (including generating mock files)
 	go generate ./...
@@ -31,7 +29,7 @@ lint-fix:
 test: ## Run tests
 	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
 
-test-all: test e2e-smoke-test e2e-regression-test integration-test lint ## Run all tests
+test-all: test e2e-smoke-test e2e-regression-test integration-test ## Run all tests
 
 e2e-test: ## Run all e2e tests
 	## run `docker network prune` if docker fails to find non-overlapping ipv4 address pool

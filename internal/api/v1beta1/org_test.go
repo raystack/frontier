@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
@@ -609,7 +609,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.EditPermission).Return([]user.User{}, errors.New("some error"))
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return([]user.User{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
@@ -620,7 +620,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		{
 			name: "should return empty list of users if org id is not exist",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.EditPermission).Return([]user.User{}, nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return([]user.User{}, nil)
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
@@ -635,7 +635,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.EditPermission).Return(testUserList, nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return(testUserList, nil)
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,

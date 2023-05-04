@@ -68,7 +68,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return organization.Organization{}, organization.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
 		default:
 			return organization.Organization{}, err
@@ -116,7 +116,7 @@ func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]o
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, organization.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return nil, organization.ErrInvalidUUID
 		default:
 			return nil, err
@@ -164,7 +164,7 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return organization.Organization{}, organization.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
 		default:
 			return organization.Organization{}, err
@@ -209,7 +209,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -218,7 +218,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return organization.Organization{}, organization.ErrConflict
 		default:
 			return organization.Organization{}, err
@@ -313,7 +313,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "UpdateByID",
+				Operation:  "Update",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -324,9 +324,9 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return organization.Organization{}, organization.ErrNotExist
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return organization.Organization{}, organization.ErrConflict
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
 		default:
 			return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
@@ -387,7 +387,7 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return organization.Organization{}, organization.ErrNotExist
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return organization.Organization{}, organization.ErrConflict
 		default:
 			return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)

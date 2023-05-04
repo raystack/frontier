@@ -249,10 +249,10 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 					Namespace: newResource.NamespaceID,
 				},
 				Subject: relation.Subject{
-					RoleID:    rel.Role,
 					Namespace: rel.SubjectPrincipal,
 					ID:        subjectId[0],
 				},
+				RelationName: rel.Role,
 			})
 			if err != nil {
 				a.log.Error(err.Error())
@@ -267,7 +267,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 				return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 			}
 
-			a.log.Info(fmt.Sprintf("created relation: %s for %s %s", newRelation.Subject.RoleID, newRelation.Subject.ID, newRelation.Subject.Namespace))
+			a.log.Info(fmt.Sprintf("created relation: %s for %s %s", newRelation.Subject.SubRelationName, newRelation.Subject.ID, newRelation.Subject.Namespace))
 		}
 	}
 
@@ -281,10 +281,10 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 		return nil, err
 	}
 
-	//orgs, err := getAttributesValues(permissionAttributes["organization"])
-	//if err != nil {
-	//	return nil, err
-	//}
+	userIDs, err := getAttributesValues(permissionAttributes["user"])
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO(krtkvrm): this will be decided on type of principal
 	//teams, err := getAttributesValues(permissionAttributes["team"])
@@ -310,6 +310,10 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 	if len(projects) < 1 || len(resourceList) < 1 || (backendNamespace[0] == "") || (resourceType[0] == "") {
 		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
+	userID := ""
+	if len(userIDs) > 0 {
+		userID = userIDs[0]
+	}
 
 	// TODO(krtkvrm): needs revision
 	for _, project := range projects {
@@ -318,6 +322,7 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 				Name:        res,
 				ProjectID:   project,
 				NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
+				UserID:      userID,
 			})
 		}
 	}

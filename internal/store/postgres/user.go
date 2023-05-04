@@ -23,7 +23,7 @@ type User struct {
 
 func (from User) transformToUser() (user.User, error) {
 	var unmarshalledMetadata map[string]any
-	if from.Metadata != nil {
+	if len(from.Metadata) > 0 {
 		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
 			return user.User{}, err
 		}

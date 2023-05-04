@@ -1,0 +1,17 @@
+roles:
+  - name: potato_order_manager
+    permissions:
+      - potato_order_delete
+      - potato_order_update
+      - potato_order_get
+      - potato_order_create
+  - name: potato_order_viewer
+    permissions:
+      - potato_order_get
+  - name: potato_order_owner
+    permissions:
+      - potato_order_delete
+      - potato_order_update
+      - potato_order_get
+      - potato_order_create
+

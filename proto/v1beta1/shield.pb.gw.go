@@ -223,6 +223,24 @@ func local_request_ShieldService_ListUserGroups_0(ctx context.Context, marshaler
 
 }
 
+func request_ShieldService_ListCurrentUserGroups_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListCurrentUserGroupsRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.ListCurrentUserGroups(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_ListCurrentUserGroups_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListCurrentUserGroupsRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.ListCurrentUserGroups(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_ShieldService_GetCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetCurrentUserRequest
 	var metadata runtime.ServerMetadata
@@ -583,6 +601,24 @@ func local_request_ShieldService_GetOrganizationsByUser_0(ctx context.Context, m
 
 }
 
+func request_ShieldService_GetOrganizationsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetOrganizationsByCurrentUserRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.GetOrganizationsByCurrentUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_GetOrganizationsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetOrganizationsByCurrentUserRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.GetOrganizationsByCurrentUser(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 var (
 	filter_ShieldService_ListOrganizationGroups_0 = &utilities.DoubleArray{Encoding: map[string]int{"org_id": 0, "orgId": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
 )
@@ -881,12 +917,8 @@ func local_request_ShieldService_UpdateGroup_0(ctx context.Context, marshaler ru
 
 }
 
-var (
-	filter_ShieldService_ListGroupRelations_0 = &utilities.DoubleArray{Encoding: map[string]int{"org_id": 0, "orgId": 1, "id": 2}, Base: []int{1, 1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 2, 3, 4, 4}}
-)
-
-func request_ShieldService_ListGroupRelations_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListGroupRelationsRequest
+func request_ShieldService_ListGroupUsers_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListGroupUsersRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -916,20 +948,13 @@ func request_ShieldService_ListGroupRelations_0(ctx context.Context, marshaler r
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ShieldService_ListGroupRelations_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	msg, err := client.ListGroupRelations(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ListGroupUsers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_ShieldService_ListGroupRelations_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListGroupRelationsRequest
+func local_request_ShieldService_ListGroupUsers_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListGroupUsersRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -959,14 +984,7 @@ func local_request_ShieldService_ListGroupRelations_0(ctx context.Context, marsh
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ShieldService_ListGroupRelations_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	msg, err := server.ListGroupRelations(ctx, &protoReq)
+	msg, err := server.ListGroupUsers(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -1237,42 +1255,8 @@ func local_request_ShieldService_ListRoles_0(ctx context.Context, marshaler runt
 
 }
 
-func request_ShieldService_CreateRole_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateRoleRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	msg, err := client.CreateRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-func local_request_ShieldService_CreateRole_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateRoleRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	msg, err := server.CreateRole(ctx, &protoReq)
-	return msg, metadata, err
-
-}
-
-func request_ShieldService_GetRole_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetRoleRequest
+func request_ShieldService_ListOrganizationRoles_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListOrganizationRolesRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -1282,23 +1266,23 @@ func request_ShieldService_GetRole_0(ctx context.Context, marshaler runtime.Mars
 		_   = err
 	)
 
-	val, ok = pathParams["id"]
+	val, ok = pathParams["org_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "org_id")
 	}
 
-	protoReq.Id, err = runtime.String(val)
+	protoReq.OrgId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
 	}
 
-	msg, err := client.GetRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ListOrganizationRoles(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_ShieldService_GetRole_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetRoleRequest
+func local_request_ShieldService_ListOrganizationRoles_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListOrganizationRolesRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -1308,23 +1292,23 @@ func local_request_ShieldService_GetRole_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["id"]
+	val, ok = pathParams["org_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "org_id")
 	}
 
-	protoReq.Id, err = runtime.String(val)
+	protoReq.OrgId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
 	}
 
-	msg, err := server.GetRole(ctx, &protoReq)
+	msg, err := server.ListOrganizationRoles(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_ShieldService_UpdateRole_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UpdateRoleRequest
+func request_ShieldService_CreateOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateOrganizationRoleRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1342,23 +1326,23 @@ func request_ShieldService_UpdateRole_0(ctx context.Context, marshaler runtime.M
 		_   = err
 	)
 
-	val, ok = pathParams["id"]
+	val, ok = pathParams["body.org_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "body.org_id")
 	}
 
-	protoReq.Id, err = runtime.String(val)
+	err = runtime.PopulateFieldFromPath(&protoReq, "body.org_id", val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "body.org_id", err)
 	}
 
-	msg, err := client.UpdateRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.CreateOrganizationRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_ShieldService_UpdateRole_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UpdateRoleRequest
+func local_request_ShieldService_CreateOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateOrganizationRoleRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1376,6 +1360,42 @@ func local_request_ShieldService_UpdateRole_0(ctx context.Context, marshaler run
 		_   = err
 	)
 
+	val, ok = pathParams["body.org_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "body.org_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "body.org_id", val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "body.org_id", err)
+	}
+
+	msg, err := server.CreateOrganizationRole(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_ShieldService_GetOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetOrganizationRoleRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["org_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "org_id")
+	}
+
+	protoReq.OrgId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
+	}
+
 	val, ok = pathParams["id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
@@ -1386,7 +1406,203 @@ func local_request_ShieldService_UpdateRole_0(ctx context.Context, marshaler run
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.UpdateRole(ctx, &protoReq)
+	msg, err := client.GetOrganizationRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_GetOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetOrganizationRoleRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["org_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "org_id")
+	}
+
+	protoReq.OrgId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
+	}
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.GetOrganizationRole(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_ShieldService_UpdateOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateOrganizationRoleRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["body.org_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "body.org_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "body.org_id", val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "body.org_id", err)
+	}
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.UpdateOrganizationRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_UpdateOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateOrganizationRoleRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["body.org_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "body.org_id")
+	}
+
+	err = runtime.PopulateFieldFromPath(&protoReq, "body.org_id", val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "body.org_id", err)
+	}
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.UpdateOrganizationRole(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_ShieldService_DeleteOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteOrganizationRoleRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["org_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "org_id")
+	}
+
+	protoReq.OrgId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
+	}
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.DeleteOrganizationRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_DeleteOrganizationRole_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteOrganizationRoleRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["org_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "org_id")
+	}
+
+	protoReq.OrgId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
+	}
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.DeleteOrganizationRole(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -2425,43 +2641,26 @@ func local_request_ShieldService_DeleteProject_0(ctx context.Context, marshaler 
 
 }
 
-func request_ShieldService_ListActions_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListActionsRequest
+func request_ShieldService_ListPermissions_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListPermissionsRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := client.ListActions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ListPermissions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_ShieldService_ListActions_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListActionsRequest
+func local_request_ShieldService_ListPermissions_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListPermissionsRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := server.ListActions(ctx, &protoReq)
+	msg, err := server.ListPermissions(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_ShieldService_CreateAction_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateActionRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	msg, err := client.CreateAction(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-func local_request_ShieldService_CreateAction_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateActionRequest
+func request_ShieldService_CreatePermission_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreatePermissionRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -2472,13 +2671,30 @@ func local_request_ShieldService_CreateAction_0(ctx context.Context, marshaler r
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.CreateAction(ctx, &protoReq)
+	msg, err := client.CreatePermission(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func request_ShieldService_GetAction_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetActionRequest
+func local_request_ShieldService_CreatePermission_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreatePermissionRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.CreatePermission(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_ShieldService_GetPermission_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetPermissionRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -2498,13 +2714,13 @@ func request_ShieldService_GetAction_0(ctx context.Context, marshaler runtime.Ma
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.GetAction(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetPermission(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_ShieldService_GetAction_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetActionRequest
+func local_request_ShieldService_GetPermission_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetPermissionRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -2524,47 +2740,13 @@ func local_request_ShieldService_GetAction_0(ctx context.Context, marshaler runt
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.GetAction(ctx, &protoReq)
+	msg, err := server.GetPermission(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_ShieldService_UpdateAction_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UpdateActionRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
-	}
-
-	protoReq.Id, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
-	}
-
-	msg, err := client.UpdateAction(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-func local_request_ShieldService_UpdateAction_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UpdateActionRequest
+func request_ShieldService_UpdatePermission_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdatePermissionRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -2592,7 +2774,93 @@ func local_request_ShieldService_UpdateAction_0(ctx context.Context, marshaler r
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.UpdateAction(ctx, &protoReq)
+	msg, err := client.UpdatePermission(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_UpdatePermission_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdatePermissionRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Body); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.UpdatePermission(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_ShieldService_DeletePermission_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeletePermissionRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.DeletePermission(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_DeletePermission_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeletePermissionRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.DeletePermission(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -2769,24 +3037,6 @@ func local_request_ShieldService_UpdateNamespace_0(ctx context.Context, marshale
 
 }
 
-func request_ShieldService_ListPolicies_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListPoliciesRequest
-	var metadata runtime.ServerMetadata
-
-	msg, err := client.ListPolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-func local_request_ShieldService_ListPolicies_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListPoliciesRequest
-	var metadata runtime.ServerMetadata
-
-	msg, err := server.ListPolicies(ctx, &protoReq)
-	return msg, metadata, err
-
-}
-
 func request_ShieldService_CreatePolicy_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreatePolicyRequest
 	var metadata runtime.ServerMetadata
@@ -2941,6 +3191,58 @@ func local_request_ShieldService_UpdatePolicy_0(ctx context.Context, marshaler r
 
 }
 
+func request_ShieldService_DeletePolicy_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeletePolicyRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.DeletePolicy(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ShieldService_DeletePolicy_0(ctx context.Context, marshaler runtime.Marshaler, server ShieldServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeletePolicyRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.DeletePolicy(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_ShieldService_CreateRelation_0(ctx context.Context, marshaler runtime.Marshaler, client ShieldServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateRelationRequest
 	var metadata runtime.ServerMetadata
@@ -3038,6 +3340,16 @@ func request_ShieldService_DeleteRelation_0(ctx context.Context, marshaler runti
 		_   = err
 	)
 
+	val, ok = pathParams["object_namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "object_namespace")
+	}
+
+	protoReq.ObjectNamespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "object_namespace", err)
+	}
+
 	val, ok = pathParams["object_id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "object_id")
@@ -3046,6 +3358,16 @@ func request_ShieldService_DeleteRelation_0(ctx context.Context, marshaler runti
 	protoReq.ObjectId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "object_id", err)
+	}
+
+	val, ok = pathParams["subject_namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "subject_namespace")
+	}
+
+	protoReq.SubjectNamespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "subject_namespace", err)
 	}
 
 	val, ok = pathParams["subject_id"]
@@ -3058,14 +3380,14 @@ func request_ShieldService_DeleteRelation_0(ctx context.Context, marshaler runti
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "subject_id", err)
 	}
 
-	val, ok = pathParams["role"]
+	val, ok = pathParams["relation"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "role")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relation")
 	}
 
-	protoReq.Role, err = runtime.String(val)
+	protoReq.Relation, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "role", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relation", err)
 	}
 
 	msg, err := client.DeleteRelation(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -3084,6 +3406,16 @@ func local_request_ShieldService_DeleteRelation_0(ctx context.Context, marshaler
 		_   = err
 	)
 
+	val, ok = pathParams["object_namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "object_namespace")
+	}
+
+	protoReq.ObjectNamespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "object_namespace", err)
+	}
+
 	val, ok = pathParams["object_id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "object_id")
@@ -3092,6 +3424,16 @@ func local_request_ShieldService_DeleteRelation_0(ctx context.Context, marshaler
 	protoReq.ObjectId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "object_id", err)
+	}
+
+	val, ok = pathParams["subject_namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "subject_namespace")
+	}
+
+	protoReq.SubjectNamespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "subject_namespace", err)
 	}
 
 	val, ok = pathParams["subject_id"]
@@ -3104,14 +3446,14 @@ func local_request_ShieldService_DeleteRelation_0(ctx context.Context, marshaler
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "subject_id", err)
 	}
 
-	val, ok = pathParams["role"]
+	val, ok = pathParams["relation"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "role")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "relation")
 	}
 
-	protoReq.Role, err = runtime.String(val)
+	protoReq.Relation, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "role", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "relation", err)
 	}
 
 	msg, err := server.DeleteRelation(ctx, &protoReq)
@@ -4119,6 +4461,31 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 
 	})
 
+	mux.Handle("GET", pattern_ShieldService_ListCurrentUserGroups_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListCurrentUserGroups", runtime.WithHTTPPathPattern("/v1beta1/users/self/groups"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ShieldService_ListCurrentUserGroups_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_ListCurrentUserGroups_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ShieldService_GetCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -4294,6 +4661,31 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 
 	})
 
+	mux.Handle("GET", pattern_ShieldService_GetOrganizationsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/organizations"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ShieldService_GetOrganizationsByCurrentUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_GetOrganizationsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ShieldService_ListOrganizationGroups_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -4394,7 +4786,7 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_ListGroupRelations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_ListGroupUsers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -4402,12 +4794,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/groups/{id}/relations"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupUsers", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/groups/{id}/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_ListGroupRelations_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_ListGroupUsers_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -4415,7 +4807,7 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_ListGroupRelations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_ListGroupUsers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -4519,7 +4911,7 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("POST", pattern_ShieldService_CreateRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_ListOrganizationRoles_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -4527,12 +4919,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreateRole", runtime.WithHTTPPathPattern("/v1beta1/roles"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListOrganizationRoles", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_CreateRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_ListOrganizationRoles_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -4540,11 +4932,11 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_CreateRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_ListOrganizationRoles_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_GetRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_ShieldService_CreateOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -4552,12 +4944,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetRole", runtime.WithHTTPPathPattern("/v1beta1/roles/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreateOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{body.org_id}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_GetRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_CreateOrganizationRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -4565,11 +4957,11 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_GetRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_CreateOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_ShieldService_UpdateRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_GetOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -4577,12 +4969,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdateRole", runtime.WithHTTPPathPattern("/v1beta1/roles/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_UpdateRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_GetOrganizationRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -4590,7 +4982,57 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_UpdateRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_GetOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("PUT", pattern_ShieldService_UpdateOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdateOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{body.org_id}/roles/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ShieldService_UpdateOrganizationRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_UpdateOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("DELETE", pattern_ShieldService_DeleteOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeleteOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/roles/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ShieldService_DeleteOrganizationRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_DeleteOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -5044,7 +5486,7 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_ListActions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_ListPermissions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -5052,12 +5494,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListActions", runtime.WithHTTPPathPattern("/v1beta1/actions"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListPermissions", runtime.WithHTTPPathPattern("/v1beta1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_ListActions_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_ListPermissions_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -5065,11 +5507,11 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_ListActions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_ListPermissions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_ShieldService_CreateAction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_ShieldService_CreatePermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -5077,12 +5519,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreateAction", runtime.WithHTTPPathPattern("/v1beta1/actions"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreatePermission", runtime.WithHTTPPathPattern("/v1beta1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_CreateAction_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_CreatePermission_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -5090,11 +5532,11 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_CreateAction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_CreatePermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_GetAction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_GetPermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -5102,12 +5544,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetAction", runtime.WithHTTPPathPattern("/v1beta1/actions/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetPermission", runtime.WithHTTPPathPattern("/v1beta1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_GetAction_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_GetPermission_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -5115,11 +5557,11 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_GetAction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_GetPermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_ShieldService_UpdateAction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_ShieldService_UpdatePermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -5127,12 +5569,12 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdateAction", runtime.WithHTTPPathPattern("/v1beta1/actions/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdatePermission", runtime.WithHTTPPathPattern("/v1beta1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_ShieldService_UpdateAction_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_ShieldService_UpdatePermission_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -5140,7 +5582,32 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_ShieldService_UpdateAction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_UpdatePermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("DELETE", pattern_ShieldService_DeletePermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeletePermission", runtime.WithHTTPPathPattern("/v1beta1/permissions/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ShieldService_DeletePermission_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_DeletePermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -5244,31 +5711,6 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_ListPolicies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListPolicies", runtime.WithHTTPPathPattern("/v1beta1/policies"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_ShieldService_ListPolicies_0(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-
-		forward_ShieldService_ListPolicies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
-	})
-
 	mux.Handle("POST", pattern_ShieldService_CreatePolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -5344,6 +5786,31 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 
 	})
 
+	mux.Handle("DELETE", pattern_ShieldService_DeletePolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeletePolicy", runtime.WithHTTPPathPattern("/v1beta1/policies/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ShieldService_DeletePolicy_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_DeletePolicy_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_ShieldService_CreateRelation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -5402,7 +5869,7 @@ func RegisterShieldServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeleteRelation", runtime.WithHTTPPathPattern("/v1beta1/object/{object_id}/subject/{subject_id}/role/{role}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeleteRelation", runtime.WithHTTPPathPattern("/v1beta1/object/{object_namespace}/{object_id}/subject/{subject_namespace}/{subject_id}/relation/{relation}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5998,6 +6465,28 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 
 	})
 
+	mux.Handle("GET", pattern_ShieldService_ListCurrentUserGroups_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListCurrentUserGroups", runtime.WithHTTPPathPattern("/v1beta1/users/self/groups"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ShieldService_ListCurrentUserGroups_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_ListCurrentUserGroups_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ShieldService_GetCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -6152,6 +6641,28 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 
 	})
 
+	mux.Handle("GET", pattern_ShieldService_GetOrganizationsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/organizations"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ShieldService_GetOrganizationsByCurrentUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_GetOrganizationsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ShieldService_ListOrganizationGroups_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -6240,25 +6751,25 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_ListGroupRelations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_ListGroupUsers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/groups/{id}/relations"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListGroupUsers", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/groups/{id}/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_ListGroupRelations_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_ListGroupUsers_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_ListGroupRelations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_ListGroupUsers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -6350,69 +6861,113 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("POST", pattern_ShieldService_CreateRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_ListOrganizationRoles_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreateRole", runtime.WithHTTPPathPattern("/v1beta1/roles"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListOrganizationRoles", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_CreateRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_ListOrganizationRoles_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_CreateRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_ListOrganizationRoles_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_GetRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_ShieldService_CreateOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetRole", runtime.WithHTTPPathPattern("/v1beta1/roles/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreateOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{body.org_id}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_GetRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_CreateOrganizationRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_GetRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_CreateOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_ShieldService_UpdateRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_GetOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdateRole", runtime.WithHTTPPathPattern("/v1beta1/roles/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_UpdateRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_GetOrganizationRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_UpdateRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_GetOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("PUT", pattern_ShieldService_UpdateOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdateOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{body.org_id}/roles/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ShieldService_UpdateOrganizationRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_UpdateOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("DELETE", pattern_ShieldService_DeleteOrganizationRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeleteOrganizationRole", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/roles/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ShieldService_DeleteOrganizationRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_DeleteOrganizationRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -6812,91 +7367,113 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_ListActions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_ListPermissions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListActions", runtime.WithHTTPPathPattern("/v1beta1/actions"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListPermissions", runtime.WithHTTPPathPattern("/v1beta1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_ListActions_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_ListPermissions_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_ListActions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_ListPermissions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_ShieldService_CreateAction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_ShieldService_CreatePermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreateAction", runtime.WithHTTPPathPattern("/v1beta1/actions"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/CreatePermission", runtime.WithHTTPPathPattern("/v1beta1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_CreateAction_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_CreatePermission_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_CreateAction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_CreatePermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_GetAction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ShieldService_GetPermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetAction", runtime.WithHTTPPathPattern("/v1beta1/actions/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/GetPermission", runtime.WithHTTPPathPattern("/v1beta1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_GetAction_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_GetPermission_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_GetAction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_GetPermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_ShieldService_UpdateAction_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_ShieldService_UpdatePermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdateAction", runtime.WithHTTPPathPattern("/v1beta1/actions/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/UpdatePermission", runtime.WithHTTPPathPattern("/v1beta1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_ShieldService_UpdateAction_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_ShieldService_UpdatePermission_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_ShieldService_UpdateAction_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_ShieldService_UpdatePermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("DELETE", pattern_ShieldService_DeletePermission_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeletePermission", runtime.WithHTTPPathPattern("/v1beta1/permissions/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ShieldService_DeletePermission_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_DeletePermission_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -6988,28 +7565,6 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 
 	})
 
-	mux.Handle("GET", pattern_ShieldService_ListPolicies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/ListPolicies", runtime.WithHTTPPathPattern("/v1beta1/policies"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_ShieldService_ListPolicies_0(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-
-		forward_ShieldService_ListPolicies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
-	})
-
 	mux.Handle("POST", pattern_ShieldService_CreatePolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -7076,6 +7631,28 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 
 	})
 
+	mux.Handle("DELETE", pattern_ShieldService_DeletePolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeletePolicy", runtime.WithHTTPPathPattern("/v1beta1/policies/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ShieldService_DeletePolicy_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ShieldService_DeletePolicy_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_ShieldService_CreateRelation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -7126,7 +7703,7 @@ func RegisterShieldServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeleteRelation", runtime.WithHTTPPathPattern("/v1beta1/object/{object_id}/subject/{subject_id}/role/{role}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/odpf.shield.v1beta1.ShieldService/DeleteRelation", runtime.WithHTTPPathPattern("/v1beta1/object/{object_namespace}/{object_id}/subject/{subject_namespace}/{subject_id}/relation/{relation}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -7550,6 +8127,8 @@ var (
 
 	pattern_ShieldService_ListUserGroups_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "groups"}, ""))
 
+	pattern_ShieldService_ListCurrentUserGroups_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1beta1", "users", "self", "groups"}, ""))
+
 	pattern_ShieldService_GetCurrentUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "users", "self"}, ""))
 
 	pattern_ShieldService_UpdateUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "users", "id"}, ""))
@@ -7564,6 +8143,8 @@ var (
 
 	pattern_ShieldService_GetOrganizationsByUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "organizations"}, ""))
 
+	pattern_ShieldService_GetOrganizationsByCurrentUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1beta1", "users", "self", "organizations"}, ""))
+
 	pattern_ShieldService_ListOrganizationGroups_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "org_id", "groups"}, ""))
 
 	pattern_ShieldService_CreateGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "body.org_id", "groups"}, ""))
@@ -7572,7 +8153,7 @@ var (
 
 	pattern_ShieldService_UpdateGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "organizations", "body.org_id", "groups", "id"}, ""))
 
-	pattern_ShieldService_ListGroupRelations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1beta1", "organizations", "org_id", "groups", "id", "relations"}, ""))
+	pattern_ShieldService_ListGroupUsers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1beta1", "organizations", "org_id", "groups", "id", "users"}, ""))
 
 	pattern_ShieldService_EnableGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1beta1", "organizations", "org_id", "groups", "id", "enable"}, ""))
 
@@ -7582,11 +8163,15 @@ var (
 
 	pattern_ShieldService_ListRoles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "roles"}, ""))
 
-	pattern_ShieldService_CreateRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "roles"}, ""))
+	pattern_ShieldService_ListOrganizationRoles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "org_id", "roles"}, ""))
 
-	pattern_ShieldService_GetRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "roles", "id"}, ""))
+	pattern_ShieldService_CreateOrganizationRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "body.org_id", "roles"}, ""))
 
-	pattern_ShieldService_UpdateRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "roles", "id"}, ""))
+	pattern_ShieldService_GetOrganizationRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "organizations", "org_id", "roles", "id"}, ""))
+
+	pattern_ShieldService_UpdateOrganizationRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "organizations", "body.org_id", "roles", "id"}, ""))
+
+	pattern_ShieldService_DeleteOrganizationRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "organizations", "org_id", "roles", "id"}, ""))
 
 	pattern_ShieldService_ListOrganizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "organizations"}, ""))
 
@@ -7624,13 +8209,15 @@ var (
 
 	pattern_ShieldService_DeleteProject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "projects", "id"}, ""))
 
-	pattern_ShieldService_ListActions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "actions"}, ""))
+	pattern_ShieldService_ListPermissions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "permissions"}, ""))
 
-	pattern_ShieldService_CreateAction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "actions"}, ""))
+	pattern_ShieldService_CreatePermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "permissions"}, ""))
 
-	pattern_ShieldService_GetAction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "actions", "id"}, ""))
+	pattern_ShieldService_GetPermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "permissions", "id"}, ""))
 
-	pattern_ShieldService_UpdateAction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "actions", "id"}, ""))
+	pattern_ShieldService_UpdatePermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "permissions", "id"}, ""))
+
+	pattern_ShieldService_DeletePermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "permissions", "id"}, ""))
 
 	pattern_ShieldService_ListNamespaces_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "namespaces"}, ""))
 
@@ -7640,19 +8227,19 @@ var (
 
 	pattern_ShieldService_UpdateNamespace_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "namespaces", "id"}, ""))
 
-	pattern_ShieldService_ListPolicies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "policies"}, ""))
-
 	pattern_ShieldService_CreatePolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "policies"}, ""))
 
 	pattern_ShieldService_GetPolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "policies", "id"}, ""))
 
 	pattern_ShieldService_UpdatePolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "policies", "id"}, ""))
 
+	pattern_ShieldService_DeletePolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "policies", "id"}, ""))
+
 	pattern_ShieldService_CreateRelation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "relations"}, ""))
 
 	pattern_ShieldService_GetRelation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "relations", "id"}, ""))
 
-	pattern_ShieldService_DeleteRelation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 5}, []string{"v1beta1", "object", "object_id", "subject", "subject_id", "role"}, ""))
+	pattern_ShieldService_DeleteRelation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 1, 0, 4, 1, 5, 6, 2, 7, 1, 0, 4, 1, 5, 7}, []string{"v1beta1", "object", "object_namespace", "object_id", "subject", "subject_namespace", "subject_id", "relation"}, ""))
 
 	pattern_ShieldService_ListProjectResources_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "projects", "project_id", "resources"}, ""))
 
@@ -7700,6 +8287,8 @@ var (
 
 	forward_ShieldService_ListUserGroups_0 = runtime.ForwardResponseMessage
 
+	forward_ShieldService_ListCurrentUserGroups_0 = runtime.ForwardResponseMessage
+
 	forward_ShieldService_GetCurrentUser_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_UpdateUser_0 = runtime.ForwardResponseMessage
@@ -7714,6 +8303,8 @@ var (
 
 	forward_ShieldService_GetOrganizationsByUser_0 = runtime.ForwardResponseMessage
 
+	forward_ShieldService_GetOrganizationsByCurrentUser_0 = runtime.ForwardResponseMessage
+
 	forward_ShieldService_ListOrganizationGroups_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_CreateGroup_0 = runtime.ForwardResponseMessage
@@ -7722,7 +8313,7 @@ var (
 
 	forward_ShieldService_UpdateGroup_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_ListGroupRelations_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_ListGroupUsers_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_EnableGroup_0 = runtime.ForwardResponseMessage
 
@@ -7732,11 +8323,15 @@ var (
 
 	forward_ShieldService_ListRoles_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_CreateRole_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_ListOrganizationRoles_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_GetRole_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_CreateOrganizationRole_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_UpdateRole_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_GetOrganizationRole_0 = runtime.ForwardResponseMessage
+
+	forward_ShieldService_UpdateOrganizationRole_0 = runtime.ForwardResponseMessage
+
+	forward_ShieldService_DeleteOrganizationRole_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_ListOrganizations_0 = runtime.ForwardResponseMessage
 
@@ -7774,13 +8369,15 @@ var (
 
 	forward_ShieldService_DeleteProject_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_ListActions_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_ListPermissions_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_CreateAction_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_CreatePermission_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_GetAction_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_GetPermission_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_UpdateAction_0 = runtime.ForwardResponseMessage
+	forward_ShieldService_UpdatePermission_0 = runtime.ForwardResponseMessage
+
+	forward_ShieldService_DeletePermission_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_ListNamespaces_0 = runtime.ForwardResponseMessage
 
@@ -7790,13 +8387,13 @@ var (
 
 	forward_ShieldService_UpdateNamespace_0 = runtime.ForwardResponseMessage
 
-	forward_ShieldService_ListPolicies_0 = runtime.ForwardResponseMessage
-
 	forward_ShieldService_CreatePolicy_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_GetPolicy_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_UpdatePolicy_0 = runtime.ForwardResponseMessage
+
+	forward_ShieldService_DeletePolicy_0 = runtime.ForwardResponseMessage
 
 	forward_ShieldService_CreateRelation_0 = runtime.ForwardResponseMessage
 

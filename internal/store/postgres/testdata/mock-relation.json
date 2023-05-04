@@ -2,23 +2,23 @@
     {
         "subject": {
             "id": "uuid1",
-            "namespace": "ns1",
-            "roleId": "role1"
+            "namespace": "ns1"
         },
         "object": {
             "id": "uuid2",
             "namespace": "ns1"
-        }
+        },
+        "relation_name": "relation1"
     },
     {
         "subject": {
             "id": "uuid3",
-            "namespace": "ns2",
-            "roleId": "role2"
+            "namespace": "ns2"
         },
         "object": {
             "id": "uuid4",
             "namespace": "ns2"
-        }
+        },
+        "relation_name": "relation2"
     }
 ]

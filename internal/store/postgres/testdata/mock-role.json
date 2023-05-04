@@ -1,103 +1,105 @@
 [
   {
-    "id": "ns1:role1",
+    "org_id": "",
     "name": "role member",
-    "types": ["member", "user"],
-    "namespaceId": "ns1",
+    "permissions": [
+      "member",
+      "user"
+    ],
     "metadata": {}
   },
   {
-    "id": "ns1:role2",
-    "name": "role member",
-    "types": ["member", "user"],
-    "namespaceId": "ns1",
-    "metadata": {}
-  },
-  {
-    "id": "ns2:role2",
+    "org_id": "",
     "name": "role admin",
-    "types": ["admin", "user"],
-    "namespaceId": "ns2",
+    "permissions": [
+      "admin",
+      "user"
+    ],
     "metadata": {
-      "label": {},
-      "description": "description"
+      "key-string": "value-string",
+      "key-integer": 123,
+      "key-json": {
+        "k1": "v1",
+        "k2": "v2"
+      }
     }
   },
   {
-    "id": "ns1:ns2",
-    "name": "namespace",
-    "types": ["InhertiedNamespace"],
-    "namespaceId": "ns1",
-    "metadata": {}
-  },
-  {
-    "id": "shield/organization:owner",
+    "org_id": "",
     "name": "owner",
-    "types": ["user", "group"],
-    "metadata": {},
-    "namespaceId": "shield/organization"
+    "permissions": [
+      "user",
+      "group"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/organization:editor",
+    "org_id": "",
     "name": "editor",
-    "types": ["user", "group"],
-    "metadata": {},
-    "namespaceId": "shield/organization"
+    "permissions": [
+      "user",
+      "group"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/organization:viewer",
+    "org_id": "",
     "name": "viewer",
-    "types": ["user", "group"],
-    "metadata": {},
-    "namespaceId": "shield/organization"
+    "permissions": [
+      "user",
+      "group"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/project:owner",
+    "org_id": "",
     "name": "owner",
-    "types": ["user", "group"],
-    "metadata": {},
-    "namespaceId": "shield/project"
+    "permissions": [
+      "user",
+      "group"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/project:editor",
+    "org_id": "",
     "name": "editor",
-    "types": ["user", "group"],
-    "metadata": {},
-    "namespaceId": "shield/project"
+    "permissions": [
+      "user",
+      "group"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/project:viewer",
+    "org_id": "",
     "name": "viewer",
-    "types": ["user", "group"],
-    "metadata": {},
-    "namespaceId": "shield/project"
+    "permissions": [
+      "user",
+      "group"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/project:organization",
+    "org_id": "",
     "name": "organization",
-    "types": ["InheritedNamespace"],
-    "metadata": {},
-    "namespaceId": "shield/project"
+    "permissions": [
+      "InheritedNamespace"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/group:member",
+    "org_id": "",
     "name": "member",
-    "types": ["user"],
-    "metadata": {},
-    "namespaceId": "shield/group"
+    "permissions": [
+      "user"
+    ],
+    "metadata": null
   },
   {
-    "id": "shield/group:manager",
+    "org_id": "",
     "name": "manager",
-    "types": ["user"],
-    "metadata": {},
-    "namespaceId": "shield/group"
-  },
-  {
-    "id": "shield/group:organization",
-    "name": "organization",
-    "types": ["InheritedNamespace"],
-    "metadata": {},
-    "namespaceId": "shield/group"
+    "permissions": [
+      "user"
+    ],
+    "metadata": null
   }
 ]

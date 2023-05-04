@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
+	"github.com/odpf/shield/core/permission"
+
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/cmd"
-	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
@@ -158,21 +158,21 @@ func execQueries(ctx context.Context, client *db.Client, queries []string) error
 	return nil
 }
 
-func bootstrapAction(client *db.Client) ([]action.Action, error) {
-	actionRepository := postgres.NewActionRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-action.json")
+func bootstrapPermissions(client *db.Client) ([]permission.Permission, error) {
+	actionRepository := postgres.NewPermissionRepository(client)
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-permission.json")
 	if err != nil {
 		return nil, err
 	}
 
-	var data []action.Action
+	var data []permission.Permission
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return nil, err
 	}
 
-	var insertedData []action.Action
+	var insertedData []permission.Permission
 	for _, d := range data {
-		act, err := actionRepository.Create(context.Background(), d)
+		act, err := actionRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +185,7 @@ func bootstrapAction(client *db.Client) ([]action.Action, error) {
 
 func bootstrapNamespace(client *db.Client) ([]namespace.Namespace, error) {
 	namespaceRepository := postgres.NewNamespaceRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-namespace.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-namespace.json")
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func bootstrapNamespace(client *db.Client) ([]namespace.Namespace, error) {
 
 	var insertedData []namespace.Namespace
 	for _, d := range data {
-		domain, err := namespaceRepository.Create(context.Background(), d)
+		domain, err := namespaceRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +210,7 @@ func bootstrapNamespace(client *db.Client) ([]namespace.Namespace, error) {
 
 func bootstrapUser(client *db.Client) ([]user.User, error) {
 	userRepository := postgres.NewUserRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-user.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-user.json")
 	if err != nil {
 		return nil, err
 	}
@@ -233,9 +233,9 @@ func bootstrapUser(client *db.Client) ([]user.User, error) {
 	return insertedData, nil
 }
 
-func bootstrapRole(client *db.Client) ([]string, error) {
+func bootstrapRole(client *db.Client, orgID string) ([]string, error) {
 	roleRepository := postgres.NewRoleRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-role.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-role.json")
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,8 @@ func bootstrapRole(client *db.Client) ([]string, error) {
 
 	var insertedData []string
 	for _, d := range data {
-		domain, err := roleRepository.Create(context.Background(), d)
+		d.OrgID = orgID
+		domain, err := roleRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -258,9 +259,9 @@ func bootstrapRole(client *db.Client) ([]string, error) {
 	return insertedData, nil
 }
 
-func bootstrapPolicy(client *db.Client) ([]string, error) {
+func bootstrapPolicy(client *db.Client, orgID, roleID, userID string) ([]string, error) {
 	policyRepository := postgres.NewPolicyRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-policy.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-policy.json")
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +273,10 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 
 	var insertedData []string
 	for _, d := range data {
-		domain, err := policyRepository.Create(context.Background(), d)
+		d.UserID = userID
+		d.ResourceID = orgID
+		d.RoleID = roleID
+		domain, err := policyRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -285,7 +289,7 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 
 func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
 	relationRepository := postgres.NewRelationRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-relation.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-relation.json")
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +301,7 @@ func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
 
 	var insertedData []relation.RelationV2
 	for _, d := range data {
-		domain, err := relationRepository.Create(context.Background(), d)
+		domain, err := relationRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -310,7 +314,7 @@ func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
 
 func bootstrapOrganization(client *db.Client) ([]organization.Organization, error) {
 	orgRepository := postgres.NewOrganizationRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-organization.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-organization.json")
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +339,7 @@ func bootstrapOrganization(client *db.Client) ([]organization.Organization, erro
 
 func bootstrapProject(client *db.Client, orgs []organization.Organization) ([]project.Project, error) {
 	projectRepository := postgres.NewProjectRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-project.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-project.json")
 	if err != nil {
 		return nil, err
 	}
@@ -395,11 +399,10 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 func bootstrapResource(
 	client *db.Client,
 	projects []project.Project,
-	orgs []organization.Organization,
 	namespaces []namespace.Namespace,
 	users []user.User) ([]resource.Resource, error) {
 	resRepository := postgres.NewResourceRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-resource.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-resource.json")
 	if err != nil {
 		return nil, err
 	}
@@ -410,18 +413,15 @@ func bootstrapResource(
 	}
 
 	data[0].ProjectID = projects[0].ID
-	data[0].OrganizationID = orgs[0].ID
-	data[0].NamespaceID = namespaces[0].ID
+	data[0].NamespaceID = namespaces[0].Name
 	data[0].UserID = users[0].ID
 
 	data[1].ProjectID = projects[1].ID
-	data[1].OrganizationID = orgs[1].ID
-	data[1].NamespaceID = namespaces[1].ID
+	data[1].NamespaceID = namespaces[1].Name
 	data[1].UserID = users[1].ID
 
 	data[2].ProjectID = projects[2].ID
-	data[2].OrganizationID = orgs[1].ID
-	data[2].NamespaceID = namespaces[1].ID
+	data[2].NamespaceID = namespaces[1].Name
 	data[2].UserID = users[1].ID
 
 	var insertedData []resource.Resource

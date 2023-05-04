@@ -3,8 +3,8 @@ package postgres
 import "errors"
 
 var (
-	errDuplicateKey             = errors.New("duplicate key")
-	errCheckViolation           = errors.New("check constraint violation")
-	errForeignKeyViolation      = errors.New("foreign key violation")
-	errInvalidTexRepresentation = errors.New("invalid input syntax type")
+	ErrDuplicateKey              = errors.New("duplicate key")
+	ErrCheckViolation            = errors.New("check constraint violation")
+	ErrForeignKeyViolation       = errors.New("foreign key violation")
+	ErrInvalidTextRepresentation = errors.New("invalid input syntax type")
 )

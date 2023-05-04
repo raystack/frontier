@@ -1,34 +1,5 @@
 # CLI
 
-## `shield action`
-
-Manage actions
-
-### `shield action create [flags]`
-
-Create an action
-
-```
--f, --file string     Path to the action body file
--H, --header string   Header <key>:<value>
-````
-
-### `shield action edit [flags]`
-
-Edit an action
-
-```
--f, --file string   Path to the action body file
-````
-
-### `shield action list`
-
-List all actions
-
-### `shield action view`
-
-View an action
-
 ## `shield auth`
 
 Auth configs that need to be used with shield
@@ -59,7 +30,7 @@ Manage groups
 
 ### `shield group create [flags]`
 
-Create a group
+Upsert a group
 
 ```
 -f, --file string     Path to the group body file
@@ -92,7 +63,7 @@ Manage namespaces
 
 ### `shield namespace create [flags]`
 
-Create a namespace
+Upsert a namespace
 
 ```
 -f, --file string   Path to the namespace body file
@@ -124,7 +95,7 @@ list admins of an organization
 
 ### `shield organization create [flags]`
 
-Create an organization
+Upsert an organization
 
 ```
 -f, --file string     Path to the organization body file
@@ -151,13 +122,42 @@ View an organization
 -m, --metadata   Set this flag to see metadata
 ````
 
+## `shield permission`
+
+Manage permissions
+
+### `shield permission create [flags]`
+
+Upsert a permission
+
+```
+-f, --file string     Path to the permission body file
+-H, --header string   Header <key>:<value>
+````
+
+### `shield permission edit [flags]`
+
+Edit a permission
+
+```
+-f, --file string   Path to the permission body file
+````
+
+### `shield permission list`
+
+List all permissions
+
+### `shield permission view`
+
+View a permission
+
 ## `shield policy`
 
 Manage policies
 
 ### `shield policy create [flags]`
 
-Create a policy
+Upsert a policy
 
 ```
 -f, --file string     Path to the policy body file
@@ -172,10 +172,6 @@ Edit a policy
 -f, --file string   Path to the policy body file
 ````
 
-### `shield policy list`
-
-List all policies
-
 ### `shield policy view`
 
 View a policy
@@ -186,7 +182,7 @@ Manage projects
 
 ### `shield project create [flags]`
 
-Create a project
+Upsert a project
 
 ```
 -f, --file string     Path to the project body file
@@ -219,7 +215,7 @@ Manage roles
 
 ### `shield role create [flags]`
 
-Create a role
+Upsert a role
 
 ```
 -f, --file string     Path to the role body file
@@ -286,7 +282,7 @@ Run DB Schema Migrations
 -c, --config string   config file path
 ````
 
-### `shield server migration-rollback [flags]`
+### `shield server migrate-rollback [flags]`
 
 Run DB Schema Migrations Rollback to last state
 
@@ -308,7 +304,7 @@ Manage users
 
 ### `shield user create [flags]`
 
-Create an user
+Upsert an user
 
 ```
 -f, --file string     Path to the user body file
@@ -334,4 +330,8 @@ View an user
 ```
 -m, --metadata   Set this flag to see metadata
 ````
+
+## `shield version`
+
+Print version information
 

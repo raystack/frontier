@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -33,22 +34,26 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
+	marshaledMetadata, err := json.Marshal(res.Metadata)
+	if err != nil {
+		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
+	}
 
 	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
 		goqu.Record{
-			"urn":          res.URN,
-			"name":         res.Name,
-			"project_id":   res.ProjectID,
-			"org_id":       res.OrganizationID,
-			"namespace_id": res.NamespaceID,
-			"user_id":      userID,
+			"urn":            res.URN,
+			"name":           res.Name,
+			"project_id":     res.ProjectID,
+			"namespace_name": res.NamespaceID,
+			"user_id":        userID,
+			"metadata":       marshaledMetadata,
 		}).OnConflict(
-		goqu.DoUpdate("ON CONSTRAINT resources_urn_unique", goqu.Record{
-			"name":         res.Name,
-			"project_id":   res.ProjectID,
-			"org_id":       res.OrganizationID,
-			"namespace_id": res.NamespaceID,
-			"user_id":      userID,
+		goqu.DoUpdate("urn", goqu.Record{
+			"name":           res.Name,
+			"project_id":     res.ProjectID,
+			"namespace_name": res.NamespaceID,
+			"user_id":        userID,
+			"metadata":       marshaledMetadata,
 		})).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -61,7 +66,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_RESOURCES,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -71,16 +76,16 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errForeignKeyViolation):
-			return resource.Resource{}, resource.ErrInvalidDetail
-		case errors.Is(err, errInvalidTexRepresentation):
-			return resource.Resource{}, resource.ErrInvalidUUID
+		case errors.Is(err, ErrForeignKeyViolation):
+			return resource.Resource{}, fmt.Errorf("%s: %w", err.Error(), resource.ErrInvalidDetail)
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return resource.Resource{}, fmt.Errorf("%s: %w", err.Error(), resource.ErrInvalidUUID)
 		default:
 			return resource.Resource{}, err
 		}
 	}
 
-	return resourceModel.transformToResource(), nil
+	return resourceModel.transformToResource()
 }
 
 func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
@@ -90,11 +95,11 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
-	if flt.OrganizationID != "" {
-		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
+	if flt.UserID != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"user_id": flt.UserID})
 	}
 	if flt.NamespaceID != "" {
-		sqlStatement = sqlStatement.Where(goqu.Ex{"namespace_id": flt.NamespaceID})
+		sqlStatement = sqlStatement.Where(goqu.Ex{"namespace_name": flt.NamespaceID})
 	}
 	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
@@ -119,7 +124,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 		if errors.Is(err, sql.ErrNoRows) {
 			return []resource.Resource{}, nil
 		}
-		if errors.Is(err, errInvalidTexRepresentation) {
+		if errors.Is(err, ErrInvalidTextRepresentation) {
 			return []resource.Resource{}, nil
 		}
 		return []resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -127,7 +132,11 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 
 	var transformedResources []resource.Resource
 	for _, r := range fetchedResources {
-		transformedResources = append(transformedResources, r.transformToResource())
+		res, err := r.transformToResource()
+		if err != nil {
+			return nil, fmt.Errorf("failed to transform resource from db: %w", err)
+		}
+		transformedResources = append(transformedResources, res)
 	}
 
 	return transformedResources, nil
@@ -164,14 +173,14 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return resource.Resource{}, resource.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return resource.Resource{}, resource.ErrInvalidUUID
 		default:
 			return resource.Resource{}, err
 		}
 	}
 
-	return resourceModel.transformToResource(), nil
+	return resourceModel.transformToResource()
 }
 
 func (r ResourceRepository) Update(ctx context.Context, id string, res resource.Resource) (resource.Resource, error) {
@@ -182,13 +191,16 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 	if !uuid.IsValid(id) {
 		return resource.Resource{}, resource.ErrInvalidUUID
 	}
-
+	marshaledMetadata, err := json.Marshal(res.Metadata)
+	if err != nil {
+		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
+	}
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
-			"name":         res.Name,
-			"project_id":   res.ProjectID,
-			"org_id":       res.OrganizationID,
-			"namespace_id": res.NamespaceID,
+			"name":           res.Name,
+			"project_id":     res.ProjectID,
+			"namespace_name": res.NamespaceID,
+			"metadata":       marshaledMetadata,
 		},
 	).Where(goqu.Ex{
 		"id": id,
@@ -216,18 +228,18 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return resource.Resource{}, resource.ErrNotExist
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return resource.Resource{}, resource.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return resource.Resource{}, resource.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return resource.Resource{}, resource.ErrInvalidDetail
 		default:
 			return resource.Resource{}, err
 		}
 	}
 
-	return resourceModel.transformToResource(), nil
+	return resourceModel.transformToResource()
 }
 
 func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.Resource, error) {
@@ -264,13 +276,13 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 		return resource.Resource{}, err
 	}
 
-	return resourceModel.transformToResource(), nil
+	return resourceModel.transformToResource()
 }
 
 func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, namespace string) (string, interface{}, error) {
 	getResourcesByURNQuery, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
-		"name":         name,
-		"namespace_id": namespace,
+		"name":           name,
+		"namespace_name": namespace,
 	}).ToSQL()
 
 	return getResourcesByURNQuery, params, err
@@ -307,7 +319,7 @@ func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns 
 		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return fetchedResource.transformToResource(), nil
+	return fetchedResource.transformToResource()
 }
 
 func (r ResourceRepository) Delete(ctx context.Context, id string) error {

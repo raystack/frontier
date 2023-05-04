@@ -46,7 +46,7 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "Create a group",
+		Short: "Upsert a group",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield group create --file=<group-body> --header=<key>:<value>

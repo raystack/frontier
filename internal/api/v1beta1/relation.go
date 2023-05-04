@@ -4,20 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
 	shielduuid "github.com/odpf/shield/pkg/uuid"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
-
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/relation"
-	errpkg "github.com/odpf/shield/pkg/errors"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,7 +22,6 @@ type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	List(ctx context.Context) ([]relation.RelationV2, error)
 	Delete(ctx context.Context, rel relation.RelationV2) error
-	GetRelationByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 }
 
 var (
@@ -39,8 +31,6 @@ var (
 
 func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListRelationsRequest) (*shieldv1beta1.ListRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	//TODO(kushsharma): apply admin level authz
-
 	var relations []*shieldv1beta1.Relation
 	relationsList, err := h.relationService.List(ctx)
 	if err != nil {
@@ -69,28 +59,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	subjectNamespace, subjectID, err := extractSubjectFromPrincipal(request.GetBody().GetSubject())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
-	}
-
-	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		Name:        request.GetBody().GetObjectId(),
-		NamespaceID: request.GetBody().ObjectNamespace,
-	}, action.Action{ID: schema.EditPermission})
-	if err != nil {
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		default:
-			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-			logger.Error(formattedErr.Error())
-			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
-		}
-	}
-	if !result {
-		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
-	}
+	subjectNamespace, subjectID := request.GetBody().GetSubjectNamespace(), request.GetBody().GetSubjectId()
 
 	// If Principal is a user, then we will get ID for that user as Subject.ID
 	if subjectNamespace == schema.UserPrincipal || subjectNamespace == "user" {
@@ -111,10 +80,11 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 			Namespace: request.GetBody().GetObjectNamespace(),
 		},
 		Subject: relation.Subject{
-			ID:        subjectID,
-			Namespace: subjectNamespace,
-			RoleID:    request.GetBody().GetRoleName(),
+			ID:              subjectID,
+			Namespace:       subjectNamespace,
+			SubRelationName: request.GetBody().GetSubjectSubRelation(),
 		},
+		RelationName: request.GetBody().GetRelationName(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -169,35 +139,10 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.DeleteRelationRequest) (*shieldv1beta1.DeleteRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	subjectNamespace, subjectID, err := extractSubjectFromPrincipal(request.GetSubjectId())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
-	}
-	objectNamespace, objectID, err := extractSubjectFromPrincipal(request.GetObjectId())
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
-	}
+	subjectNamespace, subjectID := request.GetSubjectNamespace(), request.GetSubjectId()
+	objectNamespace, objectID := request.GetObjectNamespace(), request.GetObjectId()
 
-	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		Name:        objectID,
-		NamespaceID: objectNamespace,
-	}, action.Action{ID: schema.EditPermission})
-	if err != nil {
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		default:
-			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-			logger.Error(formattedErr.Error())
-			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
-		}
-	}
-
-	if !result {
-		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
-	}
-
-	err = h.relationService.Delete(ctx, relation.RelationV2{
+	err := h.relationService.Delete(ctx, relation.RelationV2{
 		Object: relation.Object{
 			Namespace: objectNamespace,
 			ID:        objectID,
@@ -205,8 +150,8 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 		Subject: relation.Subject{
 			Namespace: subjectNamespace,
 			ID:        subjectID,
-			RoleID:    request.GetRole(),
 		},
+		RelationName: request.GetRelation(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -227,11 +172,13 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 
 func transformRelationV2ToPB(relation relation.RelationV2) (*shieldv1beta1.Relation, error) {
 	rel := &shieldv1beta1.Relation{
-		Id:              relation.ID,
-		ObjectId:        relation.Object.ID,
-		ObjectNamespace: relation.Object.Namespace,
-		Subject:         GenerateSubject(relation.Subject.Namespace, relation.Subject.ID),
-		RoleName:        relation.Subject.RoleID,
+		Id:                     relation.ID,
+		ObjectId:               relation.Object.ID,
+		ObjectNamespace:        relation.Object.Namespace,
+		SubjectNamespace:       relation.Subject.Namespace,
+		SubjectId:              relation.Subject.ID,
+		SubjectSubRelationName: relation.Subject.SubRelationName,
+		RelationName:           relation.RelationName,
 	}
 	if !relation.CreatedAt.IsZero() {
 		rel.CreatedAt = timestamppb.New(relation.CreatedAt)
@@ -240,16 +187,4 @@ func transformRelationV2ToPB(relation relation.RelationV2) (*shieldv1beta1.Relat
 		rel.UpdatedAt = timestamppb.New(relation.UpdatedAt)
 	}
 	return rel, nil
-}
-
-func extractSubjectFromPrincipal(principal string) (string, string, error) {
-	splits := strings.Split(principal, ":")
-	if len(splits) < 2 {
-		return "", "", ErrSubjectSplitNotation
-	}
-	return splits[0], splits[1], nil
-}
-
-func GenerateSubject(principal, Id string) string {
-	return fmt.Sprintf("%s:%s", principal, Id)
 }

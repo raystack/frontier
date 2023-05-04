@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 
+	"github.com/odpf/shield/internal/bootstrap"
+
 	"github.com/odpf/shield/core/authenticate"
 
 	"github.com/odpf/shield/pkg/telemetry"
@@ -31,7 +33,7 @@ type Config struct {
 
 	// TODO might not suitable here because it is also being used by proxy
 	// Headers which will have user's email id
-	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:"X-Shield-Email"`
+	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:""`
 
 	// Header which will have user_id
 	UserIDHeader string `yaml:"user_id_header" mapstructure:"user_id_header" default:"X-Shield-User-Id"`
@@ -54,4 +56,6 @@ type Config struct {
 	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing"`
 	// CorsOrigin is origin value from where we want to allow cors
 	CorsOrigin string `yaml:"cors_origin" mapstructure:"cors_origin"`
+
+	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
 }

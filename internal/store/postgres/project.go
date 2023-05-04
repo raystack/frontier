@@ -24,8 +24,10 @@ type Project struct {
 
 func (from Project) transformToProject() (project.Project, error) {
 	var unmarshalledMetadata map[string]any
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return project.Project{}, err
+	if len(from.Metadata) > 0 {
+		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+			return project.Project{}, err
+		}
 	}
 
 	return project.Project{

@@ -1,5 +1,7 @@
 package namespace
 
+// TODO(kushsharma): cleanup?
+
 var systemIdsDefinition = []string{DefinitionTeam.ID, DefinitionUser.ID, DefinitionOrg.ID, DefinitionProject.ID}
 
 var DefinitionOrg = Namespace{

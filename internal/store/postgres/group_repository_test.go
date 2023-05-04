@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -13,7 +15,6 @@ import (
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/metadata"
@@ -75,27 +76,27 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapAction(s.client)
+	_, err = bootstrapPermissions(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapRole(s.client)
+	_, err = bootstrapRole(s.client, s.orgs[0].ID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
 	for _, group := range s.groups {
-		_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		_, err = s.relationRepository.Upsert(context.Background(), relation.RelationV2{
 			Subject: relation.Subject{
 				ID:        s.users[0].ID,
 				Namespace: schema.UserPrincipal,
-				RoleID:    schema.MemberRole,
 			},
 			Object: relation.Object{
 				ID:        group.ID,
 				Namespace: schema.GroupNamespace,
 			},
+			RelationName: schema.MemberRole,
 		})
 		if err != nil {
 			s.T().Fatal(err)
@@ -103,16 +104,16 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 	}
 
 	for _, user := range s.users {
-		_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+		_, err = s.relationRepository.Upsert(context.Background(), relation.RelationV2{
 			Subject: relation.Subject{
 				ID:        user.ID,
 				Namespace: schema.UserPrincipal,
-				RoleID:    schema.MemberRole,
 			},
 			Object: relation.Object{
 				ID:        s.groups[0].ID,
 				Namespace: schema.GroupNamespace,
 			},
+			RelationName: schema.MemberRole,
 		})
 		if err != nil {
 			s.T().Fatal(err)
@@ -731,9 +732,9 @@ func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
 						Namespace: schema.GroupNamespace,
 					},
 					Subject: relation.Subject{
-						ID:        s.users[0].ID,
-						Namespace: schema.UserPrincipal,
-						RoleID:    "shield/group:member",
+						ID:              s.users[0].ID,
+						Namespace:       schema.UserPrincipal,
+						SubRelationName: "shield/group:member",
 					},
 				},
 				{
@@ -742,9 +743,9 @@ func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
 						Namespace: schema.GroupNamespace,
 					},
 					Subject: relation.Subject{
-						ID:        s.users[1].ID,
-						Namespace: schema.UserPrincipal,
-						RoleID:    "shield/group:member",
+						ID:              s.users[1].ID,
+						Namespace:       schema.UserPrincipal,
+						SubRelationName: "shield/group:member",
 					},
 				},
 			},

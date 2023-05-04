@@ -10,6 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/core/permission"
+	"github.com/odpf/shield/internal/bootstrap"
+
 	"github.com/odpf/shield/core/deleter"
 
 	"github.com/odpf/shield/core/authenticate/session"
@@ -22,7 +25,6 @@ import (
 	"github.com/odpf/shield/core/authenticate"
 
 	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
@@ -33,7 +35,6 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/blob"
 	"github.com/odpf/shield/internal/store/postgres"
@@ -86,29 +87,15 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		defer resourceBlobRepository.Close()
 	}()
 
-	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
-	if err != nil {
-		return err
-	}
-
 	nrApp, err := setupNewRelic(cfg.NewRelic, logger)
 	if err != nil {
 		return err
 	}
 
-	//
-	actionRepository := postgres.NewActionRepository(dbClient)
-	actionService := action.NewService(actionRepository)
-
-	roleRepository := postgres.NewRoleRepository(dbClient)
-	roleService := role.NewService(roleRepository)
-
-	policyPGRepository := postgres.NewPolicyRepository(dbClient)
-	policySpiceRepository := spicedb.NewPolicyRepository(logger, spiceDBClient)
-	policyService := policy.NewService(policyPGRepository)
-
-	namespaceRepository := postgres.NewNamespaceRepository(dbClient)
-	namespaceService := namespace.NewService(namespaceRepository)
+	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
+	if err != nil {
+		return err
+	}
 
 	deps, err := buildAPIDependencies(logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
@@ -119,6 +106,17 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		logger.Warn("metaschemas initialization failed", "err", err)
 	} else {
 		logger.Info("metaschemas loaded", "count", len(schemas))
+	}
+
+	// apply schema
+	if err = deps.BootstrapService.MigrateSchema(ctx); err != nil {
+		return err
+	}
+
+	// apply roles over nil org id
+	// nil org is the default org of platform
+	if err = deps.BootstrapService.MigrateRoles(ctx); err != nil {
+		return err
 	}
 
 	// session service initialization and cleanup
@@ -136,20 +134,6 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	defer func() {
 		deps.RegistrationService.Close()
 	}()
-
-	s := schema.NewSchemaMigrationService(
-		blob.NewSchemaConfigRepository(resourceBlobFS),
-		namespaceService,
-		roleService,
-		actionService,
-		policyService,
-		policySpiceRepository,
-	)
-
-	err = s.RunMigrations(ctx)
-	if err != nil {
-		return err
-	}
 
 	// serving proxies
 	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
@@ -188,20 +172,25 @@ func buildAPIDependencies(
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
-	actionRepository := postgres.NewActionRepository(dbc)
-	actionService := action.NewService(actionRepository)
+	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
 
-	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
-
-	roleRepository := postgres.NewRoleRepository(dbc)
-	roleService := role.NewService(roleRepository)
+	authzSchemaRepository := spicedb.NewSchemaRepository(logger, sdb)
+	authzRelationRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent)
 
 	relationPGRepository := postgres.NewRelationRepository(dbc)
-	relationSpiceRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent)
-	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, roleService)
+	relationService := relation.NewService(relationPGRepository, authzRelationRepository)
+
+	permissionRepository := postgres.NewPermissionRepository(dbc)
+	permissionService := permission.NewService(permissionRepository)
+
+	policyPGRepository := postgres.NewPolicyRepository(dbc)
+	policyService := policy.NewService(policyPGRepository, relationService)
+
+	roleRepository := postgres.NewRoleRepository(dbc)
+	roleService := role.NewService(roleRepository, relationService, permissionService)
 
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository, sessionService, relationService)
@@ -209,14 +198,22 @@ func buildAPIDependencies(
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, userService)
 
+	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
+	bootstrapService := bootstrap.NewBootstrapService(
+		cfg.App.Admin,
+		resourceSchemaRepository,
+		namespaceService,
+		roleService,
+		permissionService,
+		userService,
+		authzSchemaRepository,
+	)
+
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(organizationRepository, relationService, userService)
 
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService)
-
-	policyPGRepository := postgres.NewPolicyRepository(dbc)
-	policyService := policy.NewService(policyPGRepository)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
@@ -227,11 +224,11 @@ func buildAPIDependencies(
 		resourceBlobRepository,
 		relationService,
 		userService,
-		projectService)
+	)
 
 	registrationService := authenticate.NewRegistrationService(logger, cfg.App.Authentication, postgres.NewFlowRepository(logger, dbc), userService)
 
-	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService, groupService)
+	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService, groupService, policyService, roleService)
 
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,
@@ -243,13 +240,14 @@ func buildAPIDependencies(
 		PolicyService:       policyService,
 		UserService:         userService,
 		NamespaceService:    namespaceService,
-		ActionService:       actionService,
+		PermissionService:   permissionService,
 		RelationService:     relationService,
 		ResourceService:     resourceService,
 		SessionService:      sessionService,
 		RegistrationService: registrationService,
 		DeleterService:      cascadeDeleter,
 		MetaSchemaService:   metaschemaService,
+		BootstrapService:    bootstrapService,
 	}
 	return dependencies, nil
 }

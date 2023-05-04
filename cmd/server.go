@@ -168,9 +168,9 @@ func serverMigrateRollbackCommand() *cobra.Command {
 	var configFile string
 
 	c := &cli.Command{
-		Use:     "migration-rollback",
+		Use:     "migrate-rollback",
 		Short:   "Run DB Schema Migrations Rollback to last state",
-		Example: "shield migration-rollback",
+		Example: "shield migrate-rollback",
 		RunE: func(c *cli.Command, args []string) error {
 			appConfig, err := config.Load(configFile)
 			if err != nil {

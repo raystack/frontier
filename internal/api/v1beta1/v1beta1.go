@@ -19,7 +19,7 @@ type Handler struct {
 	policyService       PolicyService
 	userService         UserService
 	namespaceService    NamespaceService
-	actionService       ActionService
+	permissionService   PermissionService
 	relationService     RelationService
 	resourceService     ResourceService
 	ruleService         RuleService
@@ -40,7 +40,7 @@ func Register(s *grpc.Server, deps api.Deps) error {
 		policyService:       deps.PolicyService,
 		userService:         deps.UserService,
 		namespaceService:    deps.NamespaceService,
-		actionService:       deps.ActionService,
+		permissionService:   deps.PermissionService,
 		relationService:     deps.RelationService,
 		resourceService:     deps.ResourceService,
 		ruleService:         deps.RuleService,
