@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/cmd"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
@@ -20,7 +21,6 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/internal/store/postgres/migrations"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
@@ -144,7 +144,7 @@ func setup(ctx context.Context, logger log.Logger, client *db.Client, cfg db.Con
 		return
 	}
 
-	err = db.RunMigrations(cfg, migrations.MigrationFs, migrations.ResourcePath)
+	err = cmd.RunMigrations(cfg)
 	return
 }
 

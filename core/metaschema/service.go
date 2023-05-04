@@ -45,3 +45,7 @@ func (s Service) Delete(ctx context.Context, name string) error {
 func (s Service) InitMetaSchemas(ctx context.Context) error {
 	return s.repository.InitMetaSchemas(ctx)
 }
+
+func (s Service) MigrateDefault(ctx context.Context) error {
+	return s.repository.CreateDefaultInDB(ctx)
+}

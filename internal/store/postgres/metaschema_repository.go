@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
@@ -22,17 +23,24 @@ var (
 	rolesMetaSchemaName = "role"
 )
 
-//go:embed metaschemas/defaultUserSchema.json
+//go:embed metaschemas/user.json
 var defaultUser []byte
 
-//go:embed metaschemas/defaultGroupSchema.json
+//go:embed metaschemas/group.json
 var defaultGroup []byte
 
-//go:embed metaschemas/defaultOrgSchema.json
+//go:embed metaschemas/org.json
 var defaultOrg []byte
 
-//go:embed metaschemas/defaultRoleSchema.json
+//go:embed metaschemas/role.json
 var defaultRole []byte
+
+var defaultMetaSchemas = map[string]string{
+	userMetaSchemaName:  string(defaultUser),
+	groupMetaSchemaName: string(defaultGroup),
+	orgMetaSchemaName:   string(defaultOrg),
+	rolesMetaSchemaName: string(defaultRole),
+}
 
 var metaSchemaCache = make(map[string]string)
 
@@ -95,7 +103,7 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 		goqu.Record{
 			"name":   mschema.Name,
 			"schema": mschema.Schema,
-		}).Returning("name").ToSQL()
+		}).OnConflict(goqu.DoNothing()).Returning("name").ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -242,58 +250,47 @@ func (m MetaSchemaRepository) Update(ctx context.Context, name string, mschema m
 	return schemaName, nil
 }
 
+// load schemas in memory from the db when server starts
 func (m MetaSchemaRepository) InitMetaSchemas(ctx context.Context) error {
-	// load schemas in memory from the db
 	schemas, err := m.List(ctx)
 	if err != nil {
-		return errors.New("error in initialising metadata json-schemas")
+		return errors.Wrap(err, "error in initialising metadata json-schemas")
 	}
 
 	for _, s := range schemas {
 		metaSchemaCache[s.Name] = s.Schema
 	}
 
-	// if default metaschemas doesnt exists add to the db
-	if metaSchemaCache[userMetaSchemaName] == "" {
-		m.Create(ctx, metaschema.MetaSchema{
-			Name:   userMetaSchemaName,
-			Schema: string(defaultUser),
-		})
-	}
-
-	if metaSchemaCache[groupMetaSchemaName] == "" {
-		m.Create(ctx, metaschema.MetaSchema{
-			Name:   groupMetaSchemaName,
-			Schema: string(defaultGroup),
-		})
-	}
-
-	if metaSchemaCache[orgMetaSchemaName] == "" {
-		m.Create(ctx, metaschema.MetaSchema{
-			Name:   orgMetaSchemaName,
-			Schema: string(defaultOrg),
-		})
-	}
-
-	if metaSchemaCache[rolesMetaSchemaName] == "" {
-		m.Create(ctx, metaschema.MetaSchema{
-			Name:   rolesMetaSchemaName,
-			Schema: string(defaultRole),
-		})
-	}
-
 	return nil
 }
 
+// add default schemas to db once during database migration
+func (m MetaSchemaRepository) CreateDefaultInDB(ctx context.Context) error {
+	for name, schema := range defaultMetaSchemas {
+		if _, err := m.Create(ctx, metaschema.MetaSchema{
+			Name:   name,
+			Schema: schema,
+		}); err != nil {
+			err = checkPostgresError(err)
+			if errors.Is(metaschema.ErrConflict, err) || errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+			return errors.Wrap(err, "error in adding default schemas to db")
+		}
+	}
+	return nil
+}
+
+// validates the metadata against the json-schema. In case metaschema doesn't exists in the db, it will return nil (no validation)
 func validateMetadataSchema(marshaledMetadata []byte, schemaName string) error {
 	if metaSchemaCache[schemaName] == "" {
-		return fmt.Errorf("%s metaschema doesn't exists", schemaName)
+		return nil
 	}
 	metadataSchema := gojsonschema.NewStringLoader(metaSchemaCache[schemaName])
 	providedSchema := gojsonschema.NewBytesLoader(marshaledMetadata)
 	results, err := gojsonschema.Validate(metadataSchema, providedSchema)
 	if err != nil {
-		return errors.New("failed to validate metadata")
+		return errors.Wrap(err, "failed to validate metadata")
 	}
 
 	if !results.Valid() {

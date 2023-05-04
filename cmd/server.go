@@ -14,11 +14,15 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/store/postgres/migrations"
-	"github.com/odpf/shield/pkg/db"
 	shieldlogger "github.com/odpf/shield/pkg/logger"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
+)
+
+// Version of the current build. overridden by the build system.
+// see "Makefile" for more information
+var (
+	Version string
 )
 
 func ServerCommand() *cobra.Command {
@@ -142,10 +146,17 @@ func serverMigrateCommand() *cobra.Command {
 				panic(err)
 			}
 
-			return db.RunMigrations(db.Config{
-				Driver: appConfig.DB.Driver,
-				URL:    appConfig.DB.URL,
-			}, migrations.MigrationFs, migrations.ResourcePath)
+			logger := shieldlogger.InitLogger(appConfig.Log)
+			fmt.Println("Preparing migrations...")
+			logger.Info("shield is migrating", "version", Version)
+
+			if err = RunMigrations(appConfig.DB); err != nil {
+				logger.Error("error running migrations", "error", err)
+				return err
+			}
+
+			logger.Info("shield migration completed")
+			return nil
 		},
 	}
 
@@ -165,11 +176,17 @@ func serverMigrateRollbackCommand() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
+			logger := shieldlogger.InitLogger(appConfig.Log)
+			fmt.Println("Preparing migrations rollback...")
+			logger.Info("shield is migrating", "version", Version)
 
-			return db.RunRollback(db.Config{
-				Driver: appConfig.DB.Driver,
-				URL:    appConfig.DB.URL,
-			}, migrations.MigrationFs, migrations.ResourcePath)
+			if err = RunRollback(appConfig.DB); err != nil {
+				logger.Error("error running migrations rollback", "error", err)
+				return err
+			}
+
+			logger.Info("shield migration rollback completed")
+			return nil
 		},
 	}
 

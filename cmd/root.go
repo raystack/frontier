@@ -49,6 +49,7 @@ func New(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(ActionCommand(cliConfig))
 	cmd.AddCommand(PolicyCommand(cliConfig))
 	cmd.AddCommand(configCommand())
+	cmd.AddCommand(versionCommand())
 
 	// Help topics
 	cmdx.SetHelp(cmd)

@@ -1,5 +1,7 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
-
+NAME=github.com/odpf/shield
+TAG := "$(shell git rev-list --tags --max-count=1)"
+VERSION := "$(shell git describe --tags ${TAG})"
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
 PROTON_COMMIT := "99aa2b37aa3ade1ab99a9da101c1db38b559afe5"
@@ -14,7 +16,7 @@ install:
 	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
 build:
-	CGO_ENABLED=0 go build -o shield .
+	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/cmd.Version=${VERSION}" -o shield .
 
 generate: ## run all go generate in the code base (including generating mock files)
 	go generate ./...

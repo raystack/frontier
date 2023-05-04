@@ -8,6 +8,7 @@ type Repository interface {
 	Update(ctx context.Context, name string, metaschema MetaSchema) (string, error)
 	List(ctx context.Context) ([]MetaSchema, error)
 	Delete(ctx context.Context, name string) error
+	CreateDefaultInDB(ctx context.Context) error
 	InitMetaSchemas(ctx context.Context) error
 }
 
