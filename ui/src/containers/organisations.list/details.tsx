@@ -40,10 +40,10 @@ export const projectColumns: ColumnDef<User, any>[] = [
 export default function OrganisationDetails() {
   const { organisation } = useOrganisation();
   const { data: usersData } = useSWR(
-    `/admin/v1beta1/organizations/${organisation?.id}/users`,
+    `/v1beta1/organizations/${organisation?.id}/users`,
     fetcher
   );
-  const { data: projectsData } = useSWR("/admin/v1beta1/projects", fetcher);
+  const { data: projectsData } = useSWR("/v1beta1/admin/projects", fetcher);
   const { users = [] } = usersData || { users: [] };
   const { projects = [] } = projectsData || { projects: [] };
 

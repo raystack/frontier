@@ -9,7 +9,7 @@ import { OrganizationsHeader } from "./header";
 
 type ContextType = { organisation: Organisation | null };
 export default function OrganisationList() {
-  const { data, error } = useSWR("/admin/v1beta1/organizations", fetcher);
+  const { data, error } = useSWR("/v1beta1/admin/organizations", fetcher);
   const { organizations = [] } = data || { organizations: [] };
   let { organisationId } = useParams();
 

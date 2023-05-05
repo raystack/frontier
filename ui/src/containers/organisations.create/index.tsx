@@ -36,7 +36,7 @@ export type OrganizationForm = z.infer<typeof OrganizationSchema>;
 export default function NewOrganisation() {
   const navigate = useNavigate();
   const { trigger } = useSWRMutation(
-    "/admin/v1beta1/organizations",
+    "/v1beta1/organizations",
     updateOrganisation,
     {}
   );
@@ -47,12 +47,12 @@ export default function NewOrganisation() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/organisations");
+    navigate("/console/organisations");
   }, []);
 
   const onSubmit = async (data: any) => {
     await trigger(data);
-    navigate("/organisations");
+    navigate("/console/organisations");
   };
 
   return (

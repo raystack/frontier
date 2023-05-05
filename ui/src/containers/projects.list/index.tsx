@@ -9,7 +9,7 @@ import { ProjectsHeader } from "./header";
 
 type ContextType = { project: Project | null };
 export default function ProjectList() {
-  const { data, error } = useSWR("/admin/v1beta1/projects", fetcher);
+  const { data, error } = useSWR("/v1beta1/admin/projects", fetcher);
 
   const { projects = [] } = data || { projects: [] };
   let { projectId } = useParams();

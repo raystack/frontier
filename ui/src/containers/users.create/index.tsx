@@ -30,7 +30,7 @@ export type UserForm = z.infer<typeof UserSchema>;
 
 export default function NewUser() {
   const navigate = useNavigate();
-  const { trigger } = useSWRMutation("/admin/v1beta1/users", update, {});
+  const { trigger } = useSWRMutation("/v1beta1/users", update, {});
 
   const methods = useForm<UserForm>({
     resolver: zodResolver(UserSchema),
@@ -38,12 +38,12 @@ export default function NewUser() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/users");
+    navigate("/console/users");
   }, []);
 
   const onSubmit = async (data: any) => {
     await trigger(data);
-    navigate("/users");
+    navigate("/console/users");
   };
 
   return (

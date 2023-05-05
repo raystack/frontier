@@ -9,7 +9,7 @@ import { RolesHeader } from "./header";
 
 type ContextType = { role: Role | null };
 export default function RoleList() {
-  const { data } = useSWR("/admin/v1beta1/roles", fetcher);
+  const { data } = useSWR("/v1beta1/roles", fetcher);
   const { roles = [] } = data || { roles: [] };
   let { roleId } = useParams();
 

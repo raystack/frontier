@@ -6,6 +6,7 @@ dotenv.config();
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/console",
   build: {
     outDir: "dist/ui",
   },
