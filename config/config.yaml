@@ -28,6 +28,8 @@ app:
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
   # configuration to allow authentication in shield
+  # cors_origin is origin value from where we want to allow cors
+  cors_origin: http://localhost:3000
   authentication:
     # to use shield as session store
     session:

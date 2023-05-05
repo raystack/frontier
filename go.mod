@@ -55,7 +55,10 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-require github.com/oklog/run v1.1.0 // indirect
+require (
+	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/oklog/run v1.1.0 // indirect
+)
 
 require (
 	cloud.google.com/go v0.108.0 // indirect
@@ -106,6 +109,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/gorilla/handlers v1.5.1
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

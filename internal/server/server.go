@@ -88,8 +88,8 @@ func Serve(
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 
 	var rootHandler http.Handler
-	if rootHandler = grpcGateway; cfg.AllowCors == true {
-		rootHandler = interceptors.AllowCORS(rootHandler, cfg.CorsOrigin)
+	if rootHandler = grpcGateway; cfg.CorsOrigin != "" {
+		rootHandler = interceptors.WithCors(rootHandler, cfg.CorsOrigin)
 	}
 
 	httpMux.Handle("/", rootHandler)
