@@ -12,7 +12,7 @@ A project in Shield looks like
         {
             "id": "598688c6-8c6d-487f-b324-ef3f4af120bb",
             "name": "John Doe",
-            "slug": "",
+            "slug": "john_doe_odpf_io",
             "email": "john.doe@odpf.io",
             "metadata": {
                 "role": "\"user-1\""

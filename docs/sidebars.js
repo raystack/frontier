@@ -39,7 +39,7 @@ module.exports = {
         "guides/managing-resource",
         "guides/managing-relation",
         "guides/managing-user",
-        "guides/adding-metadata-key",
+        "guides/managing-metaschemas",
       ],
     },
     {
