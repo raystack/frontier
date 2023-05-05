@@ -23,6 +23,8 @@ A organization in Shield looks like
 }
 ```
 
+**Note:** organization metadata values are validated using MetaSchemas in Shield [Read More](./managing-metaschemas.md)
+
 ## API Interface
 
 ### Create Organizations

@@ -24,7 +24,7 @@ A project in Shield looks like
 }
 ```
 
-One thing to note here is that Shield only allow to have metadata key from a specific set of keys. This constraint is only for users. We can add metadata key using this [metadata key API](./adding-metadata-key)
+**Note:** user metadata values are validated using MetaSchemas in Shield [Read More](./managing-metaschemas.md)
 
 ## API Interface
 

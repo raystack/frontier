@@ -22,6 +22,8 @@ A relation in Shield looks like
 }
 ```
 
+**Note:** relation metadata values are validated using MetaSchemas in Shield  [Read More](./managing-metaschemas.md)
+
 ## API Interface
 
 ### Create Relations
