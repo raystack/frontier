@@ -3,7 +3,7 @@ package metaschema
 import "errors"
 
 var (
-	ErrInvalidName       = errors.New("metaschema name is invalid")
+	ErrInvalidID         = errors.New("metaschema id is invalid")
 	ErrNotExist          = errors.New("metaschema doesn't exist")
 	ErrConflict          = errors.New("metaschema already exist")
 	ErrInvalidDetail     = errors.New("invalid metadata detail")

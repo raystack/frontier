@@ -2,6 +2,8 @@ package metaschema
 
 import (
 	"context"
+
+	shielduuid "github.com/odpf/shield/pkg/uuid"
 )
 
 type Service struct {
@@ -15,31 +17,33 @@ func NewService(repository Repository) *Service {
 }
 
 func (s Service) Create(ctx context.Context, toCreate MetaSchema) (MetaSchema, error) {
-	name, err := s.repository.Create(ctx, toCreate)
-	if err != nil {
-		return MetaSchema{}, err
-	}
-	return s.repository.Get(ctx, name)
+	return s.repository.Create(ctx, toCreate)
 }
 
-func (s Service) Get(ctx context.Context, name string) (MetaSchema, error) {
-	return s.repository.Get(ctx, name)
+func (s Service) Get(ctx context.Context, id string) (MetaSchema, error) {
+	if shielduuid.IsValid(id) {
+		return s.repository.Get(ctx, id)
+	}
+	return MetaSchema{}, ErrInvalidID
 }
 
 func (s Service) List(ctx context.Context) ([]MetaSchema, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) Update(ctx context.Context, name string, toUpdate MetaSchema) (MetaSchema, error) {
-	name, err := s.repository.Update(ctx, name, toUpdate)
-	if err != nil {
-		return MetaSchema{}, err
+func (s Service) Update(ctx context.Context, id string, toUpdate MetaSchema) (MetaSchema, error) {
+	if shielduuid.IsValid(id) {
+		return s.repository.Update(ctx, id, toUpdate)
 	}
-	return s.repository.Get(ctx, name)
+	return MetaSchema{}, ErrInvalidID
 }
 
-func (s Service) Delete(ctx context.Context, name string) error {
-	return s.repository.Delete(ctx, name)
+func (s Service) Delete(ctx context.Context, id string) (string, error) {
+	mschema, err := s.repository.Get(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	return mschema.Name, s.repository.Delete(ctx, id)
 }
 
 func (s Service) InitMetaSchemas(ctx context.Context) (map[string]string, error) {

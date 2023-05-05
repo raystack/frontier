@@ -51,14 +51,14 @@ func NewMetaSchemaRepository(dbc *db.Client) *MetaSchemaRepository {
 	}
 }
 
-func (m MetaSchemaRepository) Get(ctx context.Context, name string) (metaschema.MetaSchema, error) {
-	if strings.TrimSpace(name) == "" {
-		return metaschema.MetaSchema{}, metaschema.ErrInvalidName
+func (m MetaSchemaRepository) Get(ctx context.Context, id string) (metaschema.MetaSchema, error) {
+	if strings.TrimSpace(id) == "" {
+		return metaschema.MetaSchema{}, metaschema.ErrInvalidID
 	}
 
 	query, params, err := dialect.From(TABLE_METASCHEMA).Where(
 		goqu.Ex{
-			"name": name,
+			"id": id,
 		},
 	).ToSQL()
 	if err != nil {
@@ -92,25 +92,25 @@ func (m MetaSchemaRepository) Get(ctx context.Context, name string) (metaschema.
 	return fetchedMetaSchema.tranformtoMetadataSchema(), nil
 }
 
-func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.MetaSchema) (string, error) {
+func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.MetaSchema) (metaschema.MetaSchema, error) {
 	if strings.TrimSpace(mschema.Name) == "" {
-		return "", metaschema.ErrInvalidName
+		return metaschema.MetaSchema{}, metaschema.ErrInvalidID
 	}
 
 	if strings.TrimSpace(mschema.Schema) == "" {
-		return "", metaschema.ErrInvalidDetail
+		return metaschema.MetaSchema{}, metaschema.ErrInvalidDetail
 	}
 
 	createQuery, params, err := dialect.Insert(TABLE_METASCHEMA).Rows(
 		goqu.Record{
 			"name":   mschema.Name,
 			"schema": mschema.Schema,
-		}).OnConflict(goqu.DoNothing()).Returning("name").ToSQL()
+		}).OnConflict(goqu.DoNothing()).Returning(&MetaSchema{}).ToSQL()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", queryErr, err)
+		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var schemaName string
+	var schemaModel MetaSchema
 	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -123,18 +123,18 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 			defer nr.End()
 		}
 
-		return m.dbc.QueryRowxContext(ctx, createQuery, params...).Scan(&schemaName)
+		return m.dbc.QueryRowxContext(ctx, createQuery, params...).StructScan(&schemaModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, errDuplicateKey):
-			return "", metaschema.ErrConflict
+			return metaschema.MetaSchema{}, metaschema.ErrConflict
 		default:
-			return "", err
+			return metaschema.MetaSchema{}, err
 		}
 	}
 
-	return schemaName, nil
+	return schemaModel.tranformtoMetadataSchema(), nil
 }
 
 func (m MetaSchemaRepository) List(ctx context.Context) ([]metaschema.MetaSchema, error) {
@@ -173,11 +173,11 @@ func (m MetaSchemaRepository) List(ctx context.Context) ([]metaschema.MetaSchema
 	return transformedSchemas, nil
 }
 
-func (m MetaSchemaRepository) Delete(ctx context.Context, name string) error {
+func (m MetaSchemaRepository) Delete(ctx context.Context, id string) error {
 	query, params, err := dialect.Delete(TABLE_METASCHEMA).
 		Where(
 			goqu.Ex{
-				"name": name,
+				"id": id,
 			},
 		).ToSQL()
 	if err != nil {
@@ -215,19 +215,20 @@ func (m MetaSchemaRepository) Delete(ctx context.Context, name string) error {
 	})
 }
 
-func (m MetaSchemaRepository) Update(ctx context.Context, name string, mschema metaschema.MetaSchema) (string, error) {
+func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema metaschema.MetaSchema) (metaschema.MetaSchema, error) {
 	query, params, err := dialect.Update(TABLE_METASCHEMA).Set(
 		goqu.Record{
-			"schema": mschema.Schema,
+			"schema":     mschema.Schema,
+			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
-		"name": name,
-	}).Returning("name").ToSQL()
+		"id": id,
+	}).Returning(&MetaSchema{}).ToSQL()
 
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", queryErr, err)
+		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var schemaName string
+	var schemaModel MetaSchema
 	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -240,18 +241,18 @@ func (m MetaSchemaRepository) Update(ctx context.Context, name string, mschema m
 			defer nr.End()
 		}
 
-		return m.dbc.QueryRowxContext(ctx, query, params...).Scan(&schemaName)
+		return m.dbc.QueryRowxContext(ctx, query, params...).StructScan(&schemaModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return "", fmt.Errorf("%w: %s", dbErr, metaschema.ErrNotExist)
+			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, metaschema.ErrNotExist)
 		default:
-			return "", fmt.Errorf("%w: %s", dbErr, err)
+			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
 	}
 
-	return schemaName, nil
+	return schemaModel.tranformtoMetadataSchema(), nil
 }
 
 // load schemas from db when server starts and return the list as a map

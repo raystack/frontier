@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -25,14 +27,14 @@ var (
 )
 
 type MetaSchemaService interface {
-	Get(ctx context.Context, name string) (metaschema.MetaSchema, error)
+	Get(ctx context.Context, id string) (metaschema.MetaSchema, error)
 	Create(ctx context.Context, toCreate metaschema.MetaSchema) (metaschema.MetaSchema, error)
 	List(ctx context.Context) ([]metaschema.MetaSchema, error)
-	Update(ctx context.Context, name string, toUpdate metaschema.MetaSchema) (metaschema.MetaSchema, error)
-	Delete(ctx context.Context, name string) error
+	Update(ctx context.Context, id string, toUpdate metaschema.MetaSchema) (metaschema.MetaSchema, error)
+	Delete(ctx context.Context, id string) (string, error)
 }
 
-func (h Handler) ListMetaSchema(ctx context.Context, request *shieldv1beta1.ListMetaSchemaRequest) (*shieldv1beta1.ListMetaSchemaResponse, error) {
+func (h Handler) ListMetaSchemas(ctx context.Context, request *shieldv1beta1.ListMetaSchemasRequest) (*shieldv1beta1.ListMetaSchemasResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var metaschemas []*shieldv1beta1.MetaSchema
 
@@ -47,7 +49,7 @@ func (h Handler) ListMetaSchema(ctx context.Context, request *shieldv1beta1.List
 		metaschemas = append(metaschemas, &metaschemaPB)
 	}
 
-	return &shieldv1beta1.ListMetaSchemaResponse{Metaschema: metaschemas}, nil
+	return &shieldv1beta1.ListMetaSchemasResponse{Metaschemas: metaschemas}, nil
 }
 
 func (h Handler) CreateMetaSchema(ctx context.Context, request *shieldv1beta1.CreateMetaSchemaRequest) (*shieldv1beta1.CreateMetaSchemaResponse, error) {
@@ -65,7 +67,7 @@ func (h Handler) CreateMetaSchema(ctx context.Context, request *shieldv1beta1.Cr
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, metaschema.ErrNotExist),
-			errors.Is(err, metaschema.ErrInvalidName),
+			errors.Is(err, metaschema.ErrInvalidID),
 			errors.Is(err, metaschema.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		case errors.Is(err, metaschema.ErrConflict):
@@ -83,11 +85,16 @@ func (h Handler) CreateMetaSchema(ctx context.Context, request *shieldv1beta1.Cr
 func (h Handler) GetMetaSchema(ctx context.Context, request *shieldv1beta1.GetMetaSchemaRequest) (*shieldv1beta1.GetMetaSchemaResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedMetaSchema, err := h.metaSchemaService.Get(ctx, request.GetName())
+	id := request.GetId()
+	if strings.TrimSpace(id) == "" {
+		return nil, grpcMetaSchemaNotFoundErr
+	}
+
+	fetchedMetaSchema, err := h.metaSchemaService.Get(ctx, id)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, metaschema.ErrNotExist), errors.Is(err, metaschema.ErrInvalidName):
+		case errors.Is(err, metaschema.ErrNotExist), errors.Is(err, metaschema.ErrInvalidID):
 			return nil, grpcMetaSchemaNotFoundErr
 		default:
 			return nil, grpcInternalServerError
@@ -102,18 +109,15 @@ func (h Handler) GetMetaSchema(ctx context.Context, request *shieldv1beta1.GetMe
 func (h Handler) UpdateMetaSchema(ctx context.Context, request *shieldv1beta1.UpdateMetaSchemaRequest) (*shieldv1beta1.UpdateMetaSchemaResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	// todo  validate name in proto
-	name := request.GetName()
-
+	id := request.GetId()
+	if strings.TrimSpace(id) == "" {
+		return nil, grpcMetaSchemaNotFoundErr
+	}
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	if name != request.GetBody().GetName() {
-		return nil, status.Errorf(codes.InvalidArgument, ErrBadRequest.Error())
-	}
-
-	updateMetaSchema, err := h.metaSchemaService.Update(ctx, name, metaschema.MetaSchema{
+	updateMetaSchema, err := h.metaSchemaService.Update(ctx, id, metaschema.MetaSchema{
 		Name:   request.GetBody().GetName(),
 		Schema: request.GetBody().GetSchema()})
 
@@ -122,7 +126,7 @@ func (h Handler) UpdateMetaSchema(ctx context.Context, request *shieldv1beta1.Up
 		switch {
 		case errors.Is(err, metaschema.ErrInvalidDetail):
 			return nil, grpcBadBodyError
-		case errors.Is(err, metaschema.ErrInvalidName),
+		case errors.Is(err, metaschema.ErrInvalidID),
 			errors.Is(err, metaschema.ErrNotExist):
 			return nil, grpcMetaSchemaNotFoundErr
 		case errors.Is(err, metaschema.ErrConflict):
@@ -140,25 +144,34 @@ func (h Handler) UpdateMetaSchema(ctx context.Context, request *shieldv1beta1.Up
 func (h Handler) DeleteMetaSchema(ctx context.Context, request *shieldv1beta1.DeleteMetaSchemaRequest) (*shieldv1beta1.DeleteMetaSchemaResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	err := h.metaSchemaService.Delete(ctx, request.GetName())
+	id := request.GetId()
+	if strings.TrimSpace(id) == "" {
+		return nil, grpcMetaSchemaNotFoundErr
+	}
+
+	name, err := h.metaSchemaService.Delete(ctx, id)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, metaschema.ErrInvalidName),
+		case errors.Is(err, metaschema.ErrInvalidID),
 			errors.Is(err, metaschema.ErrNotExist):
 			return nil, grpcMetaSchemaNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
 	}
-	delete(MetaSchemaCache, request.GetName())
+
+	delete(MetaSchemaCache, name)
 	return &shieldv1beta1.DeleteMetaSchemaResponse{}, nil
 }
 
 func transformMetaSchemaToPB(from metaschema.MetaSchema) shieldv1beta1.MetaSchema {
 	return shieldv1beta1.MetaSchema{
-		Name:   from.Name,
-		Schema: from.Schema,
+		Id:        from.ID,
+		Name:      from.Name,
+		Schema:    from.Schema,
+		CreatedAt: timestamppb.New(from.CreatedAt),
+		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}
 }
 
