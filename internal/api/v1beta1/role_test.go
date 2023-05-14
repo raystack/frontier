@@ -96,14 +96,15 @@ func TestHandler_ListRoles(t *testing.T) {
 func TestHandler_CreateRole(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(rs *mocks.RoleService)
+		setup   func(rs *mocks.RoleService, ms *mocks.MetaSchemaService)
 		request *shieldv1beta1.CreateRoleRequest
 		want    *shieldv1beta1.CreateRoleResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if role service return some error",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -130,7 +131,8 @@ func TestHandler_CreateRole(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if namespace id not exist",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -157,7 +159,8 @@ func TestHandler_CreateRole(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if name empty",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Types:       testRoleMap[testRoleID].Types,
@@ -182,7 +185,8 @@ func TestHandler_CreateRole(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if id empty",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -206,7 +210,8 @@ func TestHandler_CreateRole(t *testing.T) {
 		},
 		{
 			name: "should return success if role service return nil error",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -248,10 +253,11 @@ func TestHandler_CreateRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRoleSrv := new(mocks.RoleService)
+			mockMetaSchemaSvc := new(mocks.MetaSchemaService)
 			if tt.setup != nil {
-				tt.setup(mockRoleSrv)
+				tt.setup(mockRoleSrv, mockMetaSchemaSvc)
 			}
-			mockDep := Handler{roleService: mockRoleSrv}
+			mockDep := Handler{roleService: mockRoleSrv, metaSchemaService: mockMetaSchemaSvc}
 			resp, err := mockDep.CreateRole(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
@@ -340,14 +346,15 @@ func TestHandler_GetRole(t *testing.T) {
 func TestHandler_UpdateRole(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(rs *mocks.RoleService)
+		setup   func(rs *mocks.RoleService, ms *mocks.MetaSchemaService)
 		request *shieldv1beta1.UpdateRoleRequest
 		want    *shieldv1beta1.UpdateRoleResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if role service return some error",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -374,7 +381,8 @@ func TestHandler_UpdateRole(t *testing.T) {
 		},
 		{
 			name: "should return not found error if id not exist",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -401,7 +409,8 @@ func TestHandler_UpdateRole(t *testing.T) {
 		},
 		{
 			name: "should return not found error if id is empty",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -428,7 +437,8 @@ func TestHandler_UpdateRole(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if name is empty",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Types:       testRoleMap[testRoleID].Types,
@@ -453,7 +463,8 @@ func TestHandler_UpdateRole(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if namespace id not exist",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -480,7 +491,8 @@ func TestHandler_UpdateRole(t *testing.T) {
 		},
 		{
 			name: "should return already exist error if role service return err conflict",
-			setup: func(rs *mocks.RoleService) {
+			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
@@ -509,10 +521,11 @@ func TestHandler_UpdateRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRoleSrv := new(mocks.RoleService)
+			mockMetaSchemaSvc := new(mocks.MetaSchemaService)
 			if tt.setup != nil {
-				tt.setup(mockRoleSrv)
+				tt.setup(mockRoleSrv, mockMetaSchemaSvc)
 			}
-			mockDep := Handler{roleService: mockRoleSrv}
+			mockDep := Handler{roleService: mockRoleSrv, metaSchemaService: mockMetaSchemaSvc}
 			resp, err := mockDep.UpdateRole(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)

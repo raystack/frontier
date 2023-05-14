@@ -24,6 +24,7 @@ var (
 	grpcMetaSchemaNotFoundErr = status.Errorf(codes.NotFound, "metaschema doesn't exist")
 )
 
+//go:generate mockery --name=MetaSchemaService -r --case underscore --with-expecter --structname MetaSchemaService --filename metaschema_service.go --output=./mocks
 type MetaSchemaService interface {
 	Get(ctx context.Context, id string) (metaschema.MetaSchema, error)
 	Create(ctx context.Context, toCreate metaschema.MetaSchema) (metaschema.MetaSchema, error)

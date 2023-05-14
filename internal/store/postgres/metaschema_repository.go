@@ -253,9 +253,9 @@ func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema met
 
 // add default schemas to db once during database migration
 func (m MetaSchemaRepository) MigrateDefaults(ctx context.Context) error {
-	for schemaModel, schema := range defaultMetaSchemas {
+	for name, schema := range defaultMetaSchemas {
 		if _, err := m.Create(ctx, metaschema.MetaSchema{
-			Name:   schemaModel,
+			Name:   name,
 			Schema: schema,
 		}); err != nil {
 			err = checkPostgresError(err)

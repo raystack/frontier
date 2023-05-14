@@ -224,14 +224,15 @@ func TestHandler_CreateGroup(t *testing.T) {
 	someGroupID := uuid.NewString()
 	tests := []struct {
 		name    string
-		setup   func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context
+		setup   func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
 		request *shieldv1beta1.CreateGroupRequest
 		want    *shieldv1beta1.CreateGroupResponse
 		wantErr error
 	}{
 		{
 			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -239,6 +240,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, user.ErrInvalidEmail)
+
 				return ctx
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
@@ -251,7 +253,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return internal error if group service return some error",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -271,7 +274,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return already exist error if group service return error conflict",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -292,7 +296,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if name empty",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Slug: "some-group",
 
@@ -311,7 +316,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id is not uuid",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name:           "some group",
 					Slug:           "some-group",
@@ -331,7 +337,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id not exist",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -358,7 +365,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return success if group service return nil",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -400,13 +408,15 @@ func TestHandler_CreateGroup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGroupSvc := new(mocks.GroupService)
 			mockUserSvc := new(mocks.UserService)
+			mockMetaSchemaSvc := new(mocks.MetaSchemaService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockGroupSvc, mockUserSvc)
+				ctx = tt.setup(ctx, mockGroupSvc, mockUserSvc, mockMetaSchemaSvc)
 			}
 			h := Handler{
-				userService:  mockUserSvc,
-				groupService: mockGroupSvc,
+				userService:       mockUserSvc,
+				groupService:      mockGroupSvc,
+				metaSchemaService: mockMetaSchemaSvc,
 			}
 			got, err := h.CreateGroup(ctx, tt.request)
 			assert.EqualValues(t, got, tt.want)
@@ -496,7 +506,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 	someOrgID := uuid.NewString()
 	tests := []struct {
 		name    string
-		setup   func(gs *mocks.GroupService)
+		setup   func(gs *mocks.GroupService, ms *mocks.MetaSchemaService)
 		request *shieldv1beta1.UpdateGroupRequest
 		want    *shieldv1beta1.UpdateGroupResponse
 		wantErr error
@@ -504,7 +514,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 
 		{
 			name: "should return internal error if group service return some error",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
@@ -536,7 +547,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return not found error if group id is not uuid (slug) and does not exist",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name:           "new group",
 					Slug:           "some-id",
@@ -558,7 +570,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return not found error if group id is uuid and does not exist",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
@@ -581,7 +594,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return not found error if group id is empty",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name:           "new group",
 					Slug:           "", // consider it by slug and make the slug empty
@@ -602,7 +616,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return already exist error if group service return error conflict",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
@@ -625,7 +640,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id does not exist",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
@@ -648,7 +664,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id is not uuid",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
@@ -671,7 +688,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if name is empty",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Slug:           "new-group",
@@ -692,7 +710,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if slug is empty",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
@@ -713,7 +732,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return success if updated by id and group service return nil error",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
@@ -755,7 +775,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return success if updated by slug and group service return nil error",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					Name:           "new group",
 					Slug:           "some-slug",
@@ -798,11 +819,13 @@ func TestHandler_UpdateGroup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGroupSvc := new(mocks.GroupService)
+			mockMetaSchemaSvc := new(mocks.MetaSchemaService)
 			if tt.setup != nil {
-				tt.setup(mockGroupSvc)
+				tt.setup(mockGroupSvc, mockMetaSchemaSvc)
 			}
 			h := Handler{
-				groupService: mockGroupSvc,
+				groupService:      mockGroupSvc,
+				metaSchemaService: mockMetaSchemaSvc,
 			}
 			got, err := h.UpdateGroup(context.Background(), tt.request)
 			assert.EqualValues(t, got, tt.want)
