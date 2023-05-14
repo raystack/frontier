@@ -10,9 +10,8 @@ type Repository interface {
 	Get(ctx context.Context, id string) (MetaSchema, error)
 	Update(ctx context.Context, id string, metaschema MetaSchema) (MetaSchema, error)
 	List(ctx context.Context) ([]MetaSchema, error)
-	Delete(ctx context.Context, id string) error
-	CreateDefaultInDB(ctx context.Context) error
-	InitMetaSchemas(ctx context.Context) (map[string]string, error)
+	Delete(ctx context.Context, id string) (string, error)
+	MigrateDefaults(ctx context.Context) error
 }
 
 // MetaSchema represents metadata schema to be validated for users/ groups/ organisations / roles

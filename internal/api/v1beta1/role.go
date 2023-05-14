@@ -58,7 +58,7 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 		return nil, grpcBadBodyError
 	}
 
-	if err := validateMetadataSchema(metaDataMap, roleMetaSchema); err != nil {
+	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
@@ -126,7 +126,7 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 		return nil, grpcBadBodyError
 	}
 
-	if err := validateMetadataSchema(metaDataMap, roleMetaSchema); err != nil {
+	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}

@@ -146,7 +146,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcBadBodyError
 	}
 
-	if err := validateMetadataSchema(metaDataMap, userMetaSchema); err != nil {
+	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
@@ -267,7 +267,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
-	if err := validateMetadataSchema(metaDataMap, userMetaSchema); err != nil {
+	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
@@ -347,7 +347,7 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		return nil, grpcBadBodyError
 	}
 
-	if err := validateMetadataSchema(metaDataMap, userMetaSchema); err != nil {
+	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}

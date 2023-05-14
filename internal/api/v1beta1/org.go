@@ -114,7 +114,7 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcBadBodyError
 	}
 
-	if err := validateMetadataSchema(metaDataMap, orgMetaSchema); err != nil {
+	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
@@ -201,7 +201,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcBadBodyError
 	}
 
-	if err := validateMetadataSchema(metaDataMap, orgMetaSchema); err != nil {
+	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}

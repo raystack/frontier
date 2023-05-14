@@ -173,18 +173,19 @@ func (m MetaSchemaRepository) List(ctx context.Context) ([]metaschema.MetaSchema
 	return transformedSchemas, nil
 }
 
-func (m MetaSchemaRepository) Delete(ctx context.Context, id string) error {
+func (m MetaSchemaRepository) Delete(ctx context.Context, id string) (string, error) {
 	query, params, err := dialect.Delete(TABLE_METASCHEMA).
 		Where(
 			goqu.Ex{
 				"id": id,
 			},
-		).ToSQL()
+		).Returning("name").ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return "", fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+	var name string
+	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
@@ -196,23 +197,18 @@ func (m MetaSchemaRepository) Delete(ctx context.Context, id string) error {
 			defer nr.End()
 		}
 
-		result, err := m.dbc.ExecContext(ctx, query, params...)
-		if err != nil {
-			err = checkPostgresError(err)
-			switch {
-			case errors.Is(err, sql.ErrNoRows):
-				return fmt.Errorf("%w: %s", dbErr, metaschema.ErrNotExist)
-			default:
-				return fmt.Errorf("%w: %s", dbErr, err)
-			}
+		return m.dbc.QueryRowxContext(ctx, query, params...).Scan(&name)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return "", metaschema.ErrNotExist
+		default:
+			return "", fmt.Errorf("%w: %s", dbErr, err)
 		}
+	}
 
-		if count, _ := result.RowsAffected(); count > 0 {
-			return nil
-		}
-
-		return metaschema.ErrNotExist
-	})
+	return name, nil
 }
 
 func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema metaschema.MetaSchema) (metaschema.MetaSchema, error) {
@@ -246,7 +242,7 @@ func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema met
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, metaschema.ErrNotExist)
+			return metaschema.MetaSchema{}, metaschema.ErrNotExist
 		default:
 			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
@@ -255,26 +251,11 @@ func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema met
 	return schemaModel.tranformtoMetadataSchema(), nil
 }
 
-// load schemas from db when server starts and return the list as a map
-func (m MetaSchemaRepository) InitMetaSchemas(ctx context.Context) (map[string]string, error) {
-	schemas, err := m.List(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "error in initialising metadata json-schemas")
-	}
-
-	mp := make(map[string]string)
-	for _, s := range schemas {
-		mp[s.Name] = s.Schema
-	}
-
-	return mp, nil
-}
-
 // add default schemas to db once during database migration
-func (m MetaSchemaRepository) CreateDefaultInDB(ctx context.Context) error {
-	for name, schema := range defaultMetaSchemas {
+func (m MetaSchemaRepository) MigrateDefaults(ctx context.Context) error {
+	for schemaModel, schema := range defaultMetaSchemas {
 		if _, err := m.Create(ctx, metaschema.MetaSchema{
-			Name:   name,
+			Name:   schemaModel,
 			Schema: schema,
 		}); err != nil {
 			err = checkPostgresError(err)
