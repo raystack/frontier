@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -29,28 +30,34 @@ func NewFlowRepository(logger log.Logger, dbc *db.Client) *FlowRepository {
 	}
 }
 
-func (s *FlowRepository) Set(ctx context.Context, session *authenticate.Flow) error {
+func (s *FlowRepository) Set(ctx context.Context, flow *authenticate.Flow) error {
+	marshaledMetadata, err := json.Marshal(flow.Metadata)
+	if err != nil {
+		return fmt.Errorf("%w: %s", parseErr, err)
+	}
+
 	query, params, err := dialect.Insert(TABLE_FLOWS).Rows(
 		goqu.Record{
-			"id":         session.ID,
-			"method":     session.Method,
-			"start_url":  session.StartURL,
-			"finish_url": session.FinishURL,
-			"nonce":      session.Nonce,
-			"created_at": session.CreatedAt,
+			"id":         flow.ID,
+			"method":     flow.Method,
+			"start_url":  flow.StartURL,
+			"finish_url": flow.FinishURL,
+			"nonce":      flow.Nonce,
+			"metadata":   marshaledMetadata,
+			"created_at": flow.CreatedAt,
 		}).Returning(&Flow{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var flowModel Flow
-	if err = s.dbc.WithTimeout(context.TODO(), func(ctx context.Context) error {
+	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_FLOWS,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -95,7 +102,7 @@ func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.F
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return flowModel.transformToFlow(), nil
+	return flowModel.transformToFlow()
 }
 
 func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {

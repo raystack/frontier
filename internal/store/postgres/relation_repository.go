@@ -11,7 +11,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/db"
 )
 
@@ -25,17 +24,18 @@ func NewRelationRepository(dbc *db.Client) *RelationRepository {
 	}
 }
 
-func (r RelationRepository) Create(ctx context.Context, relationToCreate relation.RelationV2) (relation.RelationV2, error) {
+func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relation.RelationV2) (relation.RelationV2, error) {
 	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(
 		goqu.Record{
-			"subject_namespace_id": relationToCreate.Subject.Namespace,
-			"subject_id":           relationToCreate.Subject.ID,
-			"object_namespace_id":  relationToCreate.Object.Namespace,
-			"object_id":            relationToCreate.Object.ID,
-			"role_id":              schema.GetRoleID(relationToCreate.Object.Namespace, relationToCreate.Subject.RoleID),
+			"subject_namespace_name":   relationToCreate.Subject.Namespace,
+			"subject_id":               relationToCreate.Subject.ID,
+			"subject_subrelation_name": relationToCreate.Subject.SubRelationName,
+			"object_namespace_name":    relationToCreate.Object.Namespace,
+			"object_id":                relationToCreate.Object.ID,
+			"relation_name":            relationToCreate.RelationName,
 		}).OnConflict(
-		goqu.DoUpdate("subject_namespace_id, subject_id, object_namespace_id,  object_id, role_id", goqu.Record{
-			"subject_namespace_id": relationToCreate.Subject.Namespace,
+		goqu.DoUpdate("subject_namespace_name, subject_id, object_namespace_name, object_id, relation_name", goqu.Record{
+			"subject_namespace_name": relationToCreate.Subject.Namespace,
 		})).Returning(&relationCols{}).ToSQL()
 	if err != nil {
 		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -48,7 +48,7 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_RELATIONS,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -58,7 +58,7 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return relation.RelationV2{}, fmt.Errorf("%w: %s", relation.ErrInvalidDetail, err)
 		default:
 			return relation.RelationV2{}, err
@@ -136,7 +136,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return relation.RelationV2{}, relation.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return relation.RelationV2{}, relation.ErrInvalidUUID
 		default:
 			return relation.RelationV2{}, err
@@ -173,7 +173,7 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 		if err != nil {
 			err = checkPostgresError(err)
 			switch {
-			case errors.Is(err, errInvalidTexRepresentation):
+			case errors.Is(err, ErrInvalidTextRepresentation):
 				return relation.ErrInvalidUUID
 			default:
 				return err
@@ -194,22 +194,38 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 	})
 }
 
-// Update TO_DEPRECIATE
-func (r RelationRepository) Update(ctx context.Context, rel relation.Relation) (relation.Relation, error) {
-	return relation.Relation{}, nil
-}
+func (r RelationRepository) GetByFields(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error) {
+	var fetchedRelations []Relation
+	stmt := dialect.Select(&relationCols{}).From(TABLE_RELATIONS)
+	if rel.Object.ID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"object_id": rel.Object.ID,
+		})
+	}
+	if rel.Object.Namespace != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"object_namespace_name": rel.Object.Namespace,
+		})
+	}
+	if rel.Subject.ID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"subject_id": rel.Subject.ID,
+		})
+	}
+	if rel.Subject.Namespace != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"subject_namespace_name": rel.Subject.Namespace,
+		})
+	}
+	if rel.RelationName != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"relation_name": rel.RelationName,
+		})
+	}
 
-func (r RelationRepository) GetByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error) {
-	var fetchedRelation Relation
-	like := "%:" + rel.Subject.RoleID
-
-	query, _, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(goqu.Ex{
-		"subject_id": rel.Subject.ID,
-		"object_id":  rel.Object.ID,
-		"role_id":    goqu.Op{"like": like},
-	}).ToSQL()
+	query, _, err := stmt.ToSQL()
 	if err != nil {
-		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -223,30 +239,34 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 			defer nr.End()
 		}
 
-		return r.dbc.GetContext(ctx, &fetchedRelation, query)
+		return r.dbc.SelectContext(ctx, &fetchedRelations, query)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return relation.RelationV2{}, relation.ErrNotExist
+			return nil, relation.ErrNotExist
 		default:
-			return relation.RelationV2{}, err
+			return nil, err
 		}
 	}
 
-	return fetchedRelation.transformToRelationV2(), nil
+	var rels []relation.RelationV2
+	for _, dbRel := range fetchedRelations {
+		rels = append(rels, dbRel.transformToRelationV2())
+	}
+	return rels, nil
 }
 
 func (r RelationRepository) ListByFields(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error) {
 	var fetchedRelation []Relation
-	like := "%:" + rel.Subject.RoleID
+	like := "%:" + rel.Subject.SubRelationName
 
 	var exprs []goqu.Expression
 	if len(rel.Subject.ID) != 0 {
 		exprs = append(exprs, goqu.Ex{"subject_id": rel.Subject.ID})
 	}
-	if len(rel.Subject.RoleID) != 0 {
-		exprs = append(exprs, goqu.Ex{"role_id": goqu.Op{"like": like}})
+	if len(rel.RelationName) != 0 {
+		exprs = append(exprs, goqu.Ex{"relation_name": goqu.Op{"like": like}})
 	}
 	if len(rel.Object.ID) != 0 {
 		exprs = append(exprs, goqu.Ex{"object_id": rel.Object.ID})

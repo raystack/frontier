@@ -501,7 +501,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return internal error if user service return some error",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -528,7 +528,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return not found error if id is invalid",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					Name:  "abc user",
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
@@ -553,7 +553,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return already exist error if user service return error conflict",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -580,7 +580,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return bad request error if email in request empty",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:   someID,
 					Name: "abc user",
 					Metadata: metadata.Metadata{
@@ -612,7 +612,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return success if user service return nil error",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -660,7 +660,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return success even though name is empty",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{

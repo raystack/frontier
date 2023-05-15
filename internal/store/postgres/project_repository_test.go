@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -13,7 +15,6 @@ import (
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
@@ -74,21 +75,16 @@ func (s *ProjectRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapAction(s.client)
+	_, err = bootstrapPermissions(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapRole(s.client)
-	if err != nil {
-		s.T().Fatal(err)
-	}
-
-	_, err = s.relationRepository.Create(context.Background(), relation.RelationV2{
+	_, err = s.relationRepository.Upsert(context.Background(), relation.RelationV2{
 		Subject: relation.Subject{
-			ID:        s.users[0].ID,
-			Namespace: schema.UserPrincipal,
-			RoleID:    schema.OwnerRole,
+			ID:              s.users[0].ID,
+			Namespace:       schema.UserPrincipal,
+			SubRelationName: schema.OwnerRole,
 		},
 		Object: relation.Object{
 			ID:        s.projects[0].ID,

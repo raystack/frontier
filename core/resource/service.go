@@ -2,28 +2,22 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 )
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	CheckPermission(ctx context.Context, userID string, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	CheckPermission(ctx context.Context, subject relation.Subject, object relation.Object, permName string) (bool, error)
+	Delete(ctx context.Context, rel relation.RelationV2) error
 }
 
 type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
-}
-
-type ProjectService interface {
-	Get(ctx context.Context, id string) (project.Project, error)
 }
 
 type Service struct {
@@ -31,16 +25,14 @@ type Service struct {
 	configRepository ConfigRepository
 	relationService  RelationService
 	userService      UserService
-	projectService   ProjectService
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService) *Service {
+func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService) *Service {
 	return &Service{
 		repository:       repository,
 		configRepository: configRepository,
 		relationService:  relationService,
 		userService:      userService,
-		projectService:   projectService,
 	}
 }
 
@@ -54,37 +46,35 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	fetchedProject, err := s.projectService.Get(ctx, res.ProjectID)
-	if err != nil {
-		return Resource{}, err
-	}
-
 	userId := res.UserID
 	if strings.TrimSpace(userId) == "" {
 		userId = currentUser.ID
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{
-		URN:            res.CreateURN(),
-		Name:           res.Name,
-		OrganizationID: fetchedProject.Organization.ID,
-		ProjectID:      res.ProjectID,
-		NamespaceID:    res.NamespaceID,
-		UserID:         userId,
+		URN:         res.CreateURN(),
+		Name:        res.Name,
+		ProjectID:   res.ProjectID,
+		NamespaceID: res.NamespaceID,
+		UserID:      userId,
 	})
 	if err != nil {
 		return Resource{}, err
 	}
 
-	if err = s.relationService.DeleteSubjectRelations(ctx, newResource.NamespaceID, newResource.ID); err != nil {
+	if err = s.relationService.Delete(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        newResource.ID,
+			Namespace: newResource.NamespaceID,
+		},
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return Resource{}, err
 	}
 
 	if err = s.AddProjectToResource(ctx, newResource.ProjectID, newResource); err != nil {
 		return Resource{}, err
 	}
-
-	if err = s.AddOrgToResource(ctx, newResource.OrganizationID, newResource); err != nil {
+	if err = s.AddResourceOwner(ctx, newResource); err != nil {
 		return Resource{}, err
 	}
 
@@ -107,10 +97,10 @@ func (s Service) AddProjectToResource(ctx context.Context, projectID string, res
 			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
-			RoleID:    schema.ProjectRelationName,
 			ID:        projectID,
 			Namespace: schema.ProjectNamespace,
 		},
+		RelationName: schema.ProjectRelationName,
 	}
 
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
@@ -119,20 +109,18 @@ func (s Service) AddProjectToResource(ctx context.Context, projectID string, res
 	return nil
 }
 
-func (s Service) AddOrgToResource(ctx context.Context, orgID string, res Resource) error {
-	rel := relation.RelationV2{
+func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
+	if _, err := s.relationService.Create(ctx, relation.RelationV2{
 		Object: relation.Object{
 			ID:        res.ID,
 			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
-			RoleID:    schema.OrganizationRelationName,
-			ID:        orgID,
-			Namespace: schema.OrganizationNamespace,
+			ID:        res.UserID,
+			Namespace: schema.UserPrincipal,
 		},
-	}
-
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
+		RelationName: schema.OwnerRelation,
+	}); err != nil {
 		return err
 	}
 	return nil
@@ -142,31 +130,29 @@ func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
 	return s.configRepository.GetAll(ctx)
 }
 
-// TODO(krkvrm): Separate Authz for Resources & System Namespaces
-func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action) (bool, error) {
+func (s Service) CheckAuthz(ctx context.Context, res Resource, permissionName string) (bool, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return false, err
 	}
 
-	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
-	fetchedResource := res
-
-	if isSystemNS {
-		fetchedResource.ID = res.Name
-	} else {
-		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
-		if err != nil {
-			return false, ErrNotExist
-		}
-	}
-
-	fetchedResourceNS := namespace.Namespace{ID: fetchedResource.NamespaceID}
-	return s.relationService.CheckPermission(ctx, currentUser.ID, fetchedResourceNS, fetchedResource.ID, act)
+	return s.relationService.CheckPermission(ctx, relation.Subject{
+		ID: currentUser.ID,
+		// TODO(kushsharma): refactor this to also support app/serviceuser
+		Namespace: schema.UserPrincipal,
+	}, relation.Object{
+		ID:        res.ID,
+		Namespace: res.NamespaceID,
+	}, permissionName)
 }
 
 func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
-	if err := s.relationService.DeleteSubjectRelations(ctx, namespaceID, id); err != nil {
+	if err := s.relationService.Delete(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        id,
+			Namespace: namespaceID,
+		},
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}
 	return s.repository.Delete(ctx, id)

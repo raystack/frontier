@@ -20,7 +20,7 @@ var (
 )
 
 const (
-	TABLE_ACTIONS       = "actions"
+	TABLE_PERMISSIONS   = "permissions"
 	TABLE_GROUPS        = "groups"
 	TABLE_NAMESPACES    = "namespaces"
 	TABLE_ORGANIZATIONS = "organizations"
@@ -41,13 +41,13 @@ func checkPostgresError(err error) error {
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
 		case pgerrcode.UniqueViolation:
-			return fmt.Errorf("%w [%s]", errDuplicateKey, pgErr.Detail)
+			return fmt.Errorf("%w [%s]", ErrDuplicateKey, pgErr.Detail)
 		case pgerrcode.CheckViolation:
-			return fmt.Errorf("%w [%s]", errCheckViolation, pgErr.Detail)
+			return fmt.Errorf("%w [%s]", ErrCheckViolation, pgErr.Detail)
 		case pgerrcode.ForeignKeyViolation:
-			return fmt.Errorf("%w [%s]", errForeignKeyViolation, pgErr.Detail)
+			return fmt.Errorf("%w [%s]", ErrForeignKeyViolation, pgErr.Detail)
 		case pgerrcode.InvalidTextRepresentation:
-			return fmt.Errorf("%w [%s]", errInvalidTexRepresentation, pgErr.Detail)
+			return fmt.Errorf("%w: [%s %s]", ErrInvalidTextRepresentation, pgErr.Detail, pgErr.Message)
 		}
 	}
 	return err

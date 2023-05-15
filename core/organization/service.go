@@ -6,14 +6,14 @@ import (
 
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 	"github.com/odpf/shield/pkg/uuid"
 )
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error)
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	Delete(ctx context.Context, rel relation.RelationV2) error
 }
 
 type UserService interface {
@@ -27,7 +27,8 @@ type Service struct {
 	userService     UserService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, relationService RelationService,
+	userService UserService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
@@ -57,11 +58,51 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	// attach user as admin
-	if err = s.CreateRelation(ctx, newOrg, BuildUserOrgAdminSubject(currentUser)); err != nil {
-		return Organization{}, err
+	// attach user as owner
+	if err = s.AddOwner(ctx, newOrg, currentUser); err != nil {
+		return newOrg, err
 	}
+
+	// attach org to central platform
+	if err = s.AttachToPlatform(ctx, newOrg.ID); err != nil {
+		return newOrg, err
+	}
+
 	return newOrg, nil
+}
+
+func (s Service) AddOwner(ctx context.Context, newOrg Organization, currentUser user.User) error {
+	if _, err := s.relationService.Create(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        newOrg.ID,
+			Namespace: schema.OrganizationNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        currentUser.ID,
+			Namespace: schema.UserPrincipal,
+		},
+		RelationName: schema.OwnerRelation,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Service) AttachToPlatform(ctx context.Context, orgID string) error {
+	if _, err := s.relationService.Create(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        orgID,
+			Namespace: schema.OrganizationNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        schema.PlatformID,
+			Namespace: schema.PlatformNamespace,
+		},
+		RelationName: schema.PlatformRelationName,
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s Service) List(ctx context.Context, f Filter) ([]Organization, error) {
@@ -80,20 +121,6 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 	return s.repository.UpdateBySlug(ctx, org)
 }
 
-func (s Service) CreateRelation(ctx context.Context, org Organization, subject relation.Subject) error {
-	rel := relation.RelationV2{
-		Object: relation.Object{
-			ID:        org.ID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: subject,
-	}
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization, error) {
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.RelationV2{
 		Object: relation.Object{
@@ -102,8 +129,8 @@ func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization,
 		Subject: relation.Subject{
 			ID:        userID,
 			Namespace: schema.UserPrincipal,
-			RoleID:    schema.MembershipPermission,
 		},
+		RelationName: schema.MembershipPermission,
 	})
 	if err != nil {
 		return nil, err
@@ -125,7 +152,10 @@ func (s Service) Disable(ctx context.Context, id string) error {
 
 // DeleteModel doesn't delete the nested resource, only itself
 func (s Service) DeleteModel(ctx context.Context, id string) error {
-	if err := s.relationService.DeleteSubjectRelations(ctx, schema.OrganizationNamespace, id); err != nil {
+	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+		ID:        id,
+		Namespace: schema.OrganizationNamespace,
+	}}); err != nil {
 		return err
 	}
 	return s.repository.Delete(ctx, id)

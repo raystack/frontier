@@ -1,2 +1,0 @@
-ALTER TABLE resources
-DROP CONSTRAINT resources_urn_unique;

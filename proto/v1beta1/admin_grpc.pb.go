@@ -25,6 +25,9 @@ const (
 	AdminService_ListProjects_FullMethodName         = "/odpf.shield.v1beta1.AdminService/ListProjects"
 	AdminService_ListRelations_FullMethodName        = "/odpf.shield.v1beta1.AdminService/ListRelations"
 	AdminService_ListResources_FullMethodName        = "/odpf.shield.v1beta1.AdminService/ListResources"
+	AdminService_ListPolicies_FullMethodName         = "/odpf.shield.v1beta1.AdminService/ListPolicies"
+	AdminService_CreateRole_FullMethodName           = "/odpf.shield.v1beta1.AdminService/CreateRole"
+	AdminService_DeleteRole_FullMethodName           = "/odpf.shield.v1beta1.AdminService/DeleteRole"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -43,6 +46,11 @@ type AdminServiceClient interface {
 	ListRelations(ctx context.Context, in *ListRelationsRequest, opts ...grpc.CallOption) (*ListRelationsResponse, error)
 	// Resources
 	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
+	// Policies
+	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
+	// Roles
+	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
+	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error)
 }
 
 type adminServiceClient struct {
@@ -107,6 +115,33 @@ func (c *adminServiceClient) ListResources(ctx context.Context, in *ListResource
 	return out, nil
 }
 
+func (c *adminServiceClient) ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error) {
+	out := new(ListPoliciesResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListPolicies_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error) {
+	out := new(CreateRoleResponse)
+	err := c.cc.Invoke(ctx, AdminService_CreateRole_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error) {
+	out := new(DeleteRoleResponse)
+	err := c.cc.Invoke(ctx, AdminService_DeleteRole_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -123,6 +158,11 @@ type AdminServiceServer interface {
 	ListRelations(context.Context, *ListRelationsRequest) (*ListRelationsResponse, error)
 	// Resources
 	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
+	// Policies
+	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
+	// Roles
+	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
+	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -147,6 +187,15 @@ func (UnimplementedAdminServiceServer) ListRelations(context.Context, *ListRelat
 }
 func (UnimplementedAdminServiceServer) ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListResources not implemented")
+}
+func (UnimplementedAdminServiceServer) ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPolicies not implemented")
+}
+func (UnimplementedAdminServiceServer) CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRole not implemented")
+}
+func (UnimplementedAdminServiceServer) DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRole not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -269,6 +318,60 @@ func _AdminService_ListResources_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ListPolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPoliciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListPolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListPolicies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListPolicies(ctx, req.(*ListPoliciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_CreateRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CreateRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CreateRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CreateRole(ctx, req.(*CreateRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_DeleteRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DeleteRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DeleteRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DeleteRole(ctx, req.(*DeleteRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -299,6 +402,18 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListResources",
 			Handler:    _AdminService_ListResources_Handler,
+		},
+		{
+			MethodName: "ListPolicies",
+			Handler:    _AdminService_ListPolicies_Handler,
+		},
+		{
+			MethodName: "CreateRole",
+			Handler:    _AdminService_CreateRole_Handler,
+		},
+		{
+			MethodName: "DeleteRole",
+			Handler:    _AdminService_DeleteRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

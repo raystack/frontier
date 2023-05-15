@@ -22,8 +22,10 @@ type Organization struct {
 
 func (from Organization) transformToOrg() (organization.Organization, error) {
 	var unmarshalledMetadata map[string]any
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return organization.Organization{}, err
+	if len(from.Metadata) > 0 {
+		if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
+			return organization.Organization{}, err
+		}
 	}
 
 	return organization.Organization{

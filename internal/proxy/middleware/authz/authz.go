@@ -10,7 +10,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
 
-	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/proxy/middleware"
@@ -18,7 +17,7 @@ import (
 )
 
 type ResourceService interface {
-	CheckAuthz(ctx context.Context, resource resource.Resource, act action.Action) (bool, error)
+	CheckAuthz(ctx context.Context, resource resource.Resource, permissionName string) (bool, error)
 }
 
 type UserService interface {
@@ -206,13 +205,11 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	isAuthorized := false
-	for _, permission := range config.Permissions {
+	for _, perm := range config.Permissions {
 		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), resource.Resource{
-			Name:        permissionAttributes[permission.Attribute].(string),
-			NamespaceID: permission.Namespace,
-		}, action.Action{
-			ID: permission.Name,
-		})
+			Name:        permissionAttributes[perm.Attribute].(string),
+			NamespaceID: perm.Namespace,
+		}, perm.Name)
 		if err != nil {
 			c.log.Error("error while performing authz permission check", "err", err)
 			c.notAllowed(rw, err)

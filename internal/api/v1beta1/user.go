@@ -32,19 +32,16 @@ type UserService interface {
 	Create(ctx context.Context, user user.User) (user.User, error)
 	List(ctx context.Context, flt user.Filter) ([]user.User, error)
 	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
-	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
+	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error
+	IsSudo(ctx context.Context, id string) (bool, error)
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
-	if h.DisableOrgsListing {
-		return nil, grpcOperationUnsupported
-	}
-
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
 	usersList, err := h.userService.List(ctx, user.Filter{
@@ -77,9 +74,6 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 
 func (h Handler) ListAllUsers(ctx context.Context, request *shieldv1beta1.ListAllUsersRequest) (*shieldv1beta1.ListAllUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	//TODO(kushsharma): apply admin level authz
-
 	var users []*shieldv1beta1.User
 	usersList, err := h.userService.List(ctx, user.Filter{
 		Limit:   request.GetPageSize(),
@@ -290,7 +284,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		}
 	}
 
-	updatedUser, err = h.userService.UpdateByID(ctx, user.User{
+	updatedUser, err = h.userService.Update(ctx, user.User{
 		ID:       request.GetId(),
 		Name:     request.GetBody().GetName(),
 		Email:    request.GetBody().GetEmail(),
@@ -407,7 +401,6 @@ func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.List
 func (h Handler) GetOrganizationsByUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByUserRequest) (*shieldv1beta1.GetOrganizationsByUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	// valid uuid
 	orgList, err := h.orgService.ListByUser(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
@@ -451,6 +444,35 @@ func (h Handler) DeleteUser(ctx context.Context, request *shieldv1beta1.DeleteUs
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &shieldv1beta1.DeleteUserResponse{}, nil
+}
+
+func (h Handler) ListCurrentUserGroups(ctx context.Context, request *shieldv1beta1.ListCurrentUserGroupsRequest) (*shieldv1beta1.ListCurrentUserGroupsResponse, error) {
+	// TODO
+	return &shieldv1beta1.ListCurrentUserGroupsResponse{}, grpcOperationUnsupported
+}
+
+func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByCurrentUserRequest) (*shieldv1beta1.GetOrganizationsByCurrentUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	currentUser, err := h.getLoggedInUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orgList, err := h.orgService.ListByUser(ctx, currentUser.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var orgs []*shieldv1beta1.Organization
+	for _, v := range orgList {
+		orgPB, err := transformOrgToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		orgs = append(orgs, &orgPB)
+	}
+	return &shieldv1beta1.GetOrganizationsByCurrentUserResponse{Organizations: orgs}, nil
 }
 
 func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {

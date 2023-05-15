@@ -18,8 +18,8 @@ func (s Service) Get(ctx context.Context, id string) (Namespace, error) {
 	return s.repository.Get(ctx, id)
 }
 
-func (s Service) Create(ctx context.Context, ns Namespace) (Namespace, error) {
-	return s.repository.Create(ctx, ns)
+func (s Service) Upsert(ctx context.Context, ns Namespace) (Namespace, error) {
+	return s.repository.Upsert(ctx, ns)
 }
 
 func (s Service) List(ctx context.Context) ([]Namespace, error) {

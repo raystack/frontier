@@ -3,9 +3,13 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/google/uuid"
+	shielduuid "github.com/odpf/shield/pkg/uuid"
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
@@ -28,9 +32,17 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 
-	query, params, err := dialect.Select(&Namespace{}).From(TABLE_NAMESPACES).Where(goqu.Ex{
-		"id": id,
-	}).ToSQL()
+	stmt := dialect.Select(&Namespace{}).From(TABLE_NAMESPACES)
+	if shielduuid.IsValid(id) {
+		stmt = stmt.Where(goqu.Ex{
+			"id": id,
+		})
+	} else {
+		stmt = stmt.Where(goqu.Ex{
+			"name": id,
+		})
+	}
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -45,31 +57,30 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return fetchedNamespace.transformToNamespace(), nil
+	return fetchedNamespace.transformToNamespace()
 }
 
-// TODO this is actually an upsert
-func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
-	if strings.TrimSpace(ns.ID) == "" {
-		return namespace.Namespace{}, namespace.ErrInvalidID
-	}
-
+// Upsert inserts a new namespace if it doesn't exist. If it does, update the details and return no error
+func (r NamespaceRepository) Upsert(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
 	if strings.TrimSpace(ns.Name) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidDetail
 	}
-
+	if ns.ID == "" {
+		ns.ID = uuid.New().String()
+	}
+	marshaledMetadata, err := json.Marshal(ns.Metadata)
+	if err != nil {
+		return namespace.Namespace{}, fmt.Errorf("namespace metadata: %w: %s", parseErr, err)
+	}
 	query, params, err := dialect.Insert(TABLE_NAMESPACES).Rows(
 		goqu.Record{
-			"id":            ns.ID,
-			"name":          ns.Name,
-			"backend":       ns.Backend,
-			"resource_type": ns.ResourceType,
+			"id":       ns.ID,
+			"name":     ns.Name,
+			"metadata": marshaledMetadata,
 		}).OnConflict(
-		goqu.DoUpdate("id", goqu.Record{
-			"name":          ns.Name,
-			"updated_at":    goqu.L("now()"),
-			"backend":       ns.Backend,
-			"resource_type": ns.ResourceType,
+		goqu.DoUpdate("name", goqu.Record{
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
 		})).Returning(&Namespace{}).ToSQL()
 	if err != nil {
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -82,7 +93,7 @@ func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace)
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_NAMESPACES,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -92,14 +103,14 @@ func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return namespace.Namespace{}, namespace.ErrConflict
 		default:
 			return namespace.Namespace{}, err
 		}
 	}
 
-	return nsModel.transformToNamespace(), nil
+	return nsModel.transformToNamespace()
 }
 
 func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, error) {
@@ -131,7 +142,11 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 
 	var transformedNamespaces []namespace.Namespace
 	for _, o := range fetchedNamespaces {
-		transformedNamespaces = append(transformedNamespaces, o.transformToNamespace())
+		res, err := o.transformToNamespace()
+		if err != nil {
+			return nil, fmt.Errorf("failed to transform namespace: %w", err)
+		}
+		transformedNamespaces = append(transformedNamespaces, res)
 	}
 
 	return transformedNamespaces, nil
@@ -142,17 +157,15 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
 
-	if strings.TrimSpace(ns.Name) == "" {
-		return namespace.Namespace{}, namespace.ErrInvalidDetail
+	marshaledMetadata, err := json.Marshal(ns.Metadata)
+	if err != nil {
+		return namespace.Namespace{}, fmt.Errorf("namespace metadata: %w: %s", parseErr, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_NAMESPACES).Set(
 		goqu.Record{
-			"id":            ns.ID,
-			"name":          ns.Name,
-			"updated_at":    goqu.L("now()"),
-			"backend":       ns.Backend,
-			"resource_type": ns.ResourceType,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
 		}).Where(
 		goqu.Ex{
 			"id": ns.ID,
@@ -181,12 +194,12 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return namespace.Namespace{}, namespace.ErrNotExist
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return namespace.Namespace{}, namespace.ErrConflict
 		default:
 			return namespace.Namespace{}, err
 		}
 	}
 
-	return nsModel.transformToNamespace(), nil
+	return nsModel.transformToNamespace()
 }

@@ -2,17 +2,19 @@ package project
 
 import (
 	"context"
+	"errors"
+
+	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/uuid"
 )
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	Delete(ctx context.Context, rel relation.RelationV2) error
 }
 
 type UserService interface {
@@ -81,8 +83,8 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 			Namespace: schema.ProjectNamespace,
 		},
 		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-			RoleID:    permissionFilter,
+			Namespace:       schema.UserPrincipal,
+			SubRelationName: permissionFilter,
 		},
 	})
 	if err != nil {
@@ -95,11 +97,6 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 	return s.userService.GetByIDs(ctx, userIDs)
 }
 
-func (s Service) RemoveAdmin(ctx context.Context, idOrSlug string, userId string) ([]user.User, error) {
-	// TODO(discussion): can be done with delete relations
-	return []user.User{}, nil
-}
-
 func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
@@ -109,8 +106,8 @@ func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string)
 		Subject: relation.Subject{
 			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
-			RoleID:    schema.OrganizationRelationName,
 		},
+		RelationName: schema.OrganizationRelationName,
 	}
 
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
@@ -129,7 +126,12 @@ func (s Service) Disable(ctx context.Context, id string) error {
 
 // DeleteModel doesn't delete the nested resource, only itself
 func (s Service) DeleteModel(ctx context.Context, id string) error {
-	if err := s.relationService.DeleteSubjectRelations(ctx, schema.ProjectNamespace, id); err != nil {
+	// delete all relations where resource is an object
+	// all relations where project is an subject should already been deleted by now
+	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+		ID:        id,
+		Namespace: schema.ProjectNamespace,
+	}}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}
 	return s.repository.Delete(ctx, id)

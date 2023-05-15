@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/uuid"
 )
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 	ListRelations(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error)
+	Delete(ctx context.Context, rel relation.RelationV2) error
 }
 
 type UserService interface {
@@ -48,22 +49,21 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	// add relationship between group to org
-	if err = s.CreateRelation(ctx, newGroup, relation.Subject{
-		ID:        newGroup.OrganizationID,
-		Namespace: schema.OrganizationNamespace,
-		RoleID:    schema.OrganizationRelationName,
-	}); err != nil {
-		return Group{}, err
-	}
-
 	// attach group to org
-	if err = s.addGroupAsMember(ctx, newGroup); err != nil {
+	if err = s.addAsOrgMember(ctx, newGroup); err != nil {
 		return Group{}, err
 	}
 
-	// attach current user to group as admin
-	if err = s.CreateRelation(ctx, newGroup, BuildUserGroupAdminSubject(currentUser)); err != nil {
+	// attach current user to group as owner
+	if err = s.addGroupMember(ctx, newGroup, relation.Subject{
+		ID:        currentUser.ID,
+		Namespace: schema.UserPrincipal,
+	}, schema.OwnerRole); err != nil {
+		return Group{}, err
+	}
+
+	// add relationship between group to org
+	if err = s.addOrgToGroup(ctx, newGroup); err != nil {
 		return Group{}, err
 	}
 
@@ -96,57 +96,41 @@ func (s Service) ListUserGroups(ctx context.Context, userId string, roleId strin
 	return s.repository.ListUserGroups(ctx, userId, roleId)
 }
 
-func (s Service) ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []Group, map[string][]string, map[string][]string, error) {
-	relationList, err := s.repository.ListGroupRelations(ctx, objectId, subjectType, role)
+func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error) {
+	relations, err := s.relationService.ListRelations(ctx, relation.RelationV2{
+		Object: relation.Object{
+			Namespace: schema.GroupNamespace,
+			ID:        groupID,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.UserPrincipal,
+		},
+		RelationName: schema.MemberRelationName,
+	})
 	if err != nil {
-		return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrListingGroupRelations, err.Error())
+		return nil, err
 	}
 
-	userIDs := []string{}
-	groupIDs := []string{}
-	userIDRoleMap := map[string][]string{}
-	groupIDRoleMap := map[string][]string{}
-	users := []user.User{}
-	groups := []Group{}
-
-	for _, relation := range relationList {
-		if relation.Subject.Namespace == schema.UserPrincipal {
-			userIDs = append(userIDs, relation.Subject.ID)
-			userIDRoleMap[relation.Subject.ID] = append(userIDRoleMap[relation.Subject.ID], relation.Subject.RoleID)
-		} else if relation.Subject.Namespace == schema.GroupPrincipal {
-			groupIDs = append(groupIDs, relation.Subject.ID)
-			groupIDRoleMap[relation.Subject.ID] = append(groupIDRoleMap[relation.Subject.ID], relation.Subject.RoleID)
-		}
+	var userIDs []string
+	for _, rel := range relations {
+		userIDs = append(userIDs, rel.Subject.ID)
 	}
-
-	if len(userIDs) > 0 {
-		userList, err := s.userService.GetByIDs(ctx, userIDs)
-		if err != nil {
-			return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrFetchingUsers, err.Error())
-		}
-
-		users = append(users, userList...)
+	if len(userIDs) == 0 {
+		// no users
+		return nil, nil
 	}
-
-	if len(groupIDs) > 0 {
-		groupList, err := s.repository.GetByIDs(ctx, groupIDs)
-		if err != nil {
-			return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrFetchingGroups, err.Error())
-		}
-
-		groups = append(groups, groupList...)
-	}
-
-	return users, groups, userIDRoleMap, groupIDRoleMap, nil
+	return s.userService.GetByIDs(ctx, userIDs)
 }
 
-func (s Service) CreateRelation(ctx context.Context, team Group, subject relation.Subject) error {
+// addGroupMember adds a subject(user) to group as member
+func (s Service) addGroupMember(ctx context.Context, team Group, subject relation.Subject, relationName string) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
 			ID:        team.ID,
 			Namespace: schema.GroupNamespace,
 		},
-		Subject: subject,
+		Subject:      subject,
+		RelationName: relationName,
 	}
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
 		return err
@@ -154,17 +138,41 @@ func (s Service) CreateRelation(ctx context.Context, team Group, subject relatio
 	return nil
 }
 
-func (s Service) addGroupAsMember(ctx context.Context, team Group) error {
+// addOrgToGroup creates an inverse relation that connects group to org
+func (s Service) addOrgToGroup(ctx context.Context, team Group) error {
+	rel := relation.RelationV2{
+		Object: relation.Object{
+			ID:        team.ID,
+			Namespace: schema.GroupNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        team.OrganizationID,
+			Namespace: schema.OrganizationNamespace,
+		},
+		RelationName: schema.OrganizationRelationName,
+	}
+
+	_, err := s.relationService.Create(ctx, rel)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// addAsOrgMember connects group as a member to org
+func (s Service) addAsOrgMember(ctx context.Context, team Group) error {
 	rel := relation.RelationV2{
 		Object: relation.Object{
 			ID:        team.OrganizationID,
 			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        team.ID,
-			Namespace: schema.GroupNamespace,
-			RoleID:    schema.MemberRole,
+			ID:              team.ID,
+			Namespace:       schema.GroupNamespace,
+			SubRelationName: schema.MemberRelationName,
 		},
+		RelationName: schema.MemberRole,
 	}
 
 	_, err := s.relationService.Create(ctx, rel)
@@ -183,9 +191,9 @@ func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, er
 			Namespace: schema.GroupNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        id,
-			Namespace: schema.OrganizationNamespace,
-			RoleID:    schema.OrganizationRelationName,
+			ID:              id,
+			Namespace:       schema.OrganizationNamespace,
+			SubRelationName: schema.OrganizationRelationName,
 		},
 	})
 	if err != nil {
@@ -212,8 +220,12 @@ func (s Service) Disable(ctx context.Context, id string) error {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.DeleteSubjectRelations(ctx, schema.GroupPrincipal, id); err != nil {
+	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+		ID:        id,
+		Namespace: schema.GroupPrincipal,
+	}}); err != nil {
 		return err
 	}
+
 	return s.repository.Delete(ctx, id)
 }

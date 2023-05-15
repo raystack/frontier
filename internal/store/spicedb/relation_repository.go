@@ -5,13 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
-
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	newrelic "github.com/newrelic/go-agent"
+	"github.com/odpf/shield/core/relation"
 )
 
 type RelationRepository struct {
@@ -31,48 +27,19 @@ func NewRelationRepository(spiceDB *SpiceDB, fullyConsistent bool) *RelationRepo
 	}
 }
 
-func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) error {
-	relationship, err := schema_generator.TransformRelation(rel)
-	if err != nil {
-		return err
-	}
-	request := &authzedpb.WriteRelationshipsRequest{
-		Updates: []*authzedpb.RelationshipUpdate{
-			{
-				Operation:    authzedpb.RelationshipUpdate_OPERATION_TOUCH,
-				Relationship: relationship,
-			},
-		},
-	}
-
-	if _, err = r.spiceDB.client.WriteRelationships(ctx, request); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func getRelation(a string) string {
-	if a == schema.GroupPrincipal {
-		return "membership"
-	}
-
-	return ""
-}
-
-func (r RelationRepository) AddV2(ctx context.Context, rel relation.RelationV2) error {
+func (r RelationRepository) Add(ctx context.Context, rel relation.RelationV2) error {
 	relationship := &authzedpb.Relationship{
 		Resource: &authzedpb.ObjectReference{
 			ObjectType: rel.Object.Namespace,
 			ObjectId:   rel.Object.ID,
 		},
-		Relation: schema.GetRoleName(rel.Subject.RoleID),
+		Relation: rel.RelationName,
 		Subject: &authzedpb.SubjectReference{
 			Object: &authzedpb.ObjectReference{
 				ObjectType: rel.Subject.Namespace,
 				ObjectId:   rel.Subject.ID,
 			},
-			OptionalRelation: getRelation(rel.Subject.Namespace),
+			OptionalRelation: rel.Subject.SubRelationName,
 		},
 	}
 	request := &authzedpb.WriteRelationshipsRequest{
@@ -89,7 +56,7 @@ func (r RelationRepository) AddV2(ctx context.Context, rel relation.RelationV2) 
 		nr := newrelic.DatastoreSegment{
 			Product: nrProductName,
 			QueryParameters: map[string]interface{}{
-				"relation":          rel.Subject.RoleID,
+				"relation":          rel.Subject.SubRelationName,
 				"subject_namespace": rel.Subject.Namespace,
 				"object_namespace":  rel.Object.Namespace,
 			},
@@ -106,17 +73,21 @@ func (r RelationRepository) AddV2(ctx context.Context, rel relation.RelationV2) 
 	return nil
 }
 
-func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, act action.Action) (bool, error) {
-	relationship, err := schema_generator.TransformCheckRelation(rel)
-	if err != nil {
-		return false, err
-	}
-
+func (r RelationRepository) Check(ctx context.Context, rel relation.RelationV2, permissionName string) (bool, error) {
 	request := &authzedpb.CheckPermissionRequest{
 		Consistency: r.getConsistency(),
-		Resource:    relationship.Resource,
-		Subject:     relationship.Subject,
-		Permission:  act.ID,
+		Resource: &authzedpb.ObjectReference{
+			ObjectId:   rel.Object.ID,
+			ObjectType: rel.Object.Namespace,
+		},
+		Subject: &authzedpb.SubjectReference{
+			Object: &authzedpb.ObjectReference{
+				ObjectId:   rel.Subject.ID,
+				ObjectType: rel.Subject.Namespace,
+			},
+			OptionalRelation: rel.Subject.SubRelationName,
+		},
+		Permission: permissionName,
 	}
 
 	nrCtx := newrelic.FromContext(ctx)
@@ -138,19 +109,18 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, ac
 	return response.Permissionship == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
 }
 
-func (r RelationRepository) DeleteV2(ctx context.Context, rel relation.RelationV2) error {
-	relationship, err := schema_generator.TransformRelationV2(rel)
-	if err != nil {
-		return err
-	}
+func (r RelationRepository) Delete(ctx context.Context, rel relation.RelationV2) error {
 	request := &authzedpb.DeleteRelationshipsRequest{
 		RelationshipFilter: &authzedpb.RelationshipFilter{
-			ResourceType:       relationship.Resource.ObjectType,
-			OptionalResourceId: relationship.Resource.ObjectId,
-			OptionalRelation:   relationship.Relation,
+			ResourceType:       rel.Object.Namespace,
+			OptionalResourceId: rel.Object.ID,
+			OptionalRelation:   rel.RelationName,
 			OptionalSubjectFilter: &authzedpb.SubjectFilter{
-				SubjectType:       relationship.Subject.Object.ObjectType,
-				OptionalSubjectId: relationship.Subject.Object.ObjectId,
+				SubjectType:       rel.Subject.Namespace,
+				OptionalSubjectId: rel.Subject.ID,
+				OptionalRelation: &authzedpb.SubjectFilter_RelationFilter{
+					Relation: rel.Subject.SubRelationName,
+				},
 			},
 		},
 	}
@@ -160,7 +130,7 @@ func (r RelationRepository) DeleteV2(ctx context.Context, rel relation.RelationV
 		nr := newrelic.DatastoreSegment{
 			Product: nrProductName,
 			QueryParameters: map[string]interface{}{
-				"relation":          rel.Subject.RoleID,
+				"relation":          rel.Subject.SubRelationName,
 				"subject_namespace": rel.Subject.Namespace,
 				"object_namespace":  rel.Object.Namespace,
 			},
@@ -169,37 +139,8 @@ func (r RelationRepository) DeleteV2(ctx context.Context, rel relation.RelationV
 		}
 		defer nr.End()
 	}
-	_, err = r.spiceDB.client.DeleteRelationships(ctx, request)
+	_, err := r.spiceDB.client.DeleteRelationships(ctx, request)
 	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
-	request := &authzedpb.DeleteRelationshipsRequest{
-		RelationshipFilter: &authzedpb.RelationshipFilter{
-			ResourceType:       resourceType,
-			OptionalResourceId: optionalResourceID,
-		},
-	}
-
-	nrCtx := newrelic.FromContext(ctx)
-	if nrCtx != nil {
-		nr := newrelic.DatastoreSegment{
-			Product: nrProductName,
-			QueryParameters: map[string]interface{}{
-				"object_namespace": resourceType,
-				"object_id":        optionalResourceID,
-			},
-			Operation: "Delete_Subject_Relations",
-			StartTime: nrCtx.StartSegmentNow(),
-		}
-		defer nr.End()
-	}
-
-	if _, err := r.spiceDB.client.DeleteRelationships(ctx, request); err != nil {
 		return err
 	}
 
@@ -213,7 +154,7 @@ func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.Rel
 			ObjectType: rel.Object.Namespace,
 			ObjectId:   rel.Object.ID,
 		},
-		Permission:        rel.Subject.RoleID,
+		Permission:        rel.RelationName,
 		SubjectObjectType: rel.Subject.Namespace,
 	})
 	if err != nil {
@@ -237,12 +178,13 @@ func (r RelationRepository) LookupResources(ctx context.Context, rel relation.Re
 	resp, err := r.spiceDB.client.LookupResources(ctx, &authzedpb.LookupResourcesRequest{
 		Consistency:        r.getConsistency(),
 		ResourceObjectType: rel.Object.Namespace,
-		Permission:         rel.Subject.RoleID,
+		Permission:         rel.RelationName,
 		Subject: &authzedpb.SubjectReference{
 			Object: &authzedpb.ObjectReference{
 				ObjectType: rel.Subject.Namespace,
 				ObjectId:   rel.Subject.ID,
 			},
+			OptionalRelation: rel.Subject.SubRelationName,
 		},
 	})
 	if err != nil {
@@ -269,7 +211,7 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 		RelationshipFilter: &authzedpb.RelationshipFilter{
 			ResourceType:       rel.Object.Namespace,
 			OptionalResourceId: rel.Object.ID,
-			OptionalRelation:   rel.Subject.RoleID,
+			OptionalRelation:   rel.RelationName,
 			OptionalSubjectFilter: &authzedpb.SubjectFilter{
 				SubjectType:       rel.Subject.Namespace,
 				OptionalSubjectId: rel.Subject.ID,
@@ -296,9 +238,9 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 				Namespace: pbRel.Resource.ObjectType,
 			},
 			Subject: relation.Subject{
-				ID:        pbRel.Subject.Object.ObjectId,
-				Namespace: pbRel.Subject.Object.ObjectType,
-				RoleID:    pbRel.Relation,
+				ID:              pbRel.Subject.Object.ObjectId,
+				Namespace:       pbRel.Subject.Object.ObjectType,
+				SubRelationName: pbRel.Relation,
 			},
 		})
 	}

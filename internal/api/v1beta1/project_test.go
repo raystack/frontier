@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"

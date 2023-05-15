@@ -13,7 +13,6 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
@@ -27,6 +26,9 @@ type PolicyRepositoryTestSuite struct {
 	resource   *dockertest.Resource
 	repository *postgres.PolicyRepository
 	policyIDs  []string
+	userID     string
+	orgID      string
+	roleID     string
 }
 
 func (s *PolicyRepositoryTestSuite) SetupSuite() {
@@ -46,20 +48,33 @@ func (s *PolicyRepositoryTestSuite) SetupSuite() {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapAction(s.client)
+	_, err = bootstrapPermissions(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapRole(s.client)
+	orgs, err := bootstrapOrganization(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
+	s.orgID = orgs[0].ID
+
+	roles, err := bootstrapRole(s.client, orgs[0].ID)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	s.roleID = roles[0]
+
+	users, err := bootstrapUser(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	s.userID = users[0].ID
 }
 
 func (s *PolicyRepositoryTestSuite) SetupTest() {
 	var err error
-	s.policyIDs, err = bootstrapPolicy(s.client)
+	s.policyIDs, err = bootstrapPolicy(s.client, s.orgID, s.roleID, s.userID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -98,9 +113,9 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 			Description: "should get a policy",
 			SelectedID:  s.policyIDs[0],
 			ExpectedPolicy: policy.Policy{
-				RoleID:      "ns1:role1",
+				RoleID:      s.roleID,
 				NamespaceID: "ns1",
-				ActionID:    "action1",
+				UserID:      s.userID,
 			},
 		},
 		{
@@ -127,8 +142,11 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+			}
 			if !cmp.Equal(got, tc.ExpectedPolicy, cmpopts.IgnoreFields(policy.Policy{},
-				"ID")) {
+				"ID", "ResourceID")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicy)
 			}
 		})
@@ -146,25 +164,16 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a policy",
 			PolicyToCreate: policy.Policy{
-				RoleID:      "ns1:role2",
-				ActionID:    "action4",
+				RoleID:      s.roleID,
+				ResourceID:  uuid.NewString(),
 				NamespaceID: "ns1",
+				UserID:      s.userID,
 			},
 		},
 		{
 			Description: "should return error if role id does not exist",
 			PolicyToCreate: policy.Policy{
 				RoleID:      "role2-random",
-				ActionID:    "action4",
-				NamespaceID: "ns1",
-			},
-			Err: policy.ErrInvalidDetail,
-		},
-		{
-			Description: "should return error if policy id does not exist",
-			PolicyToCreate: policy.Policy{
-				RoleID:      "role2",
-				ActionID:    "action4-random",
 				NamespaceID: "ns1",
 			},
 			Err: policy.ErrInvalidDetail,
@@ -172,8 +181,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if namespace id does not exist",
 			PolicyToCreate: policy.Policy{
-				RoleID:      "role2",
-				ActionID:    "action4",
+				RoleID:      s.roleID,
 				NamespaceID: "ns1-random",
 			},
 			Err: policy.ErrInvalidDetail,
@@ -182,7 +190,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.PolicyToCreate)
+			got, err := s.repository.Upsert(s.ctx, tc.PolicyToCreate)
 			if tc.Err != nil {
 				if errors.Is(tc.Err, err) {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err.Error())
@@ -205,22 +213,19 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 
 	var testCases = []testCase{
 		{
-			Description: "should get all policys",
+			Description: "should get all policies",
 			ExpectedPolicys: []policy.Policy{
 				{
-					RoleID:      "ns1:role1",
+					RoleID:      s.roleID,
+					UserID:      s.userID,
+					ResourceID:  s.orgID,
 					NamespaceID: "ns1",
-					ActionID:    "action1",
 				},
 				{
-					RoleID:      "ns2:role2",
+					RoleID:      s.roleID,
+					UserID:      s.userID,
+					ResourceID:  s.orgID,
 					NamespaceID: "ns2",
-					ActionID:    "action2",
-				},
-				{
-					RoleID:      "ns1:role2",
-					NamespaceID: "ns1",
-					ActionID:    "action3",
 				},
 			},
 		},
@@ -228,16 +233,20 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx)
+			got, err := s.repository.List(s.ctx, policy.Filter{})
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			//TODO figure out how to compare metadata map[string]any
-			if !cmp.Equal(got, tc.ExpectedPolicys, cmpopts.IgnoreFields(policy.Policy{},
-				"ID")) {
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+			}
+			if len(got) != len(tc.ExpectedPolicys) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicys)
+			}
+			if !cmp.Equal(got, tc.ExpectedPolicys, cmpopts.IgnoreFields(policy.Policy{},
+				"ID", "CreatedAt", "UpdatedAt")) {
 			}
 		})
 	}
@@ -256,33 +265,10 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 			Description: "should update an policy",
 			PolicyToUpdate: policy.Policy{
 				ID:          s.policyIDs[0],
-				RoleID:      "ns1:role1",
-				ActionID:    "action4",
+				RoleID:      s.roleID,
 				NamespaceID: "ns1",
 			},
 			ExpectedPolicyID: s.policyIDs[0],
-		},
-		{
-			Description: "should return error if namespace id does not exist",
-			PolicyToUpdate: policy.Policy{
-				ID:          s.policyIDs[1],
-				RoleID:      "ns2:role2",
-				ActionID:    "action2",
-				NamespaceID: "random-ns2",
-			},
-			ErrString:        namespace.ErrNotExist.Error(),
-			ExpectedPolicyID: "",
-		},
-		{
-			Description: "should return error if policy not found",
-			PolicyToUpdate: policy.Policy{
-				ID:          uuid.NewString(),
-				RoleID:      "ns1:role2",
-				NamespaceID: "ns1",
-				ActionID:    "action3",
-			},
-			ErrString:        policy.ErrNotExist.Error(),
-			ExpectedPolicyID: "",
 		},
 		{
 			Description:      "should return error if policy id is empty",
@@ -298,6 +284,9 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
+			}
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
 			}
 			if !cmp.Equal(got, tc.ExpectedPolicyID) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicyID)

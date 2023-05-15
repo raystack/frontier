@@ -23,7 +23,6 @@ func PolicyCommand(cliConfig *Config) *cli.Command {
 			$ shield policy create
 			$ shield policy edit
 			$ shield policy view
-			$ shield policy list
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -34,7 +33,6 @@ func PolicyCommand(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(createPolicyCommand(cliConfig))
 	cmd.AddCommand(editPolicyCommand(cliConfig))
 	cmd.AddCommand(viewPolicyCommand(cliConfig))
-	cmd.AddCommand(listPolicyCommand(cliConfig))
 
 	bindFlagsFromClientConfig(cmd)
 
@@ -46,7 +44,7 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "Create a policy",
+		Short: "Upsert a policy",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield policy create --file=<policy-body> --header=<key>:<value>
@@ -185,67 +183,14 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
-			report = append(report, []string{"ID", "ACTION", "NAMESPACE"})
+			report = append(report, []string{"ID", "RESOURCE", "NAMESPACE", "USERID", "ROLEID"})
 			report = append(report, []string{
 				policy.GetId(),
-				policy.GetActionId(),
+				policy.GetResourceId(),
 				policy.GetNamespaceId(),
+				policy.GetUserId(),
+				policy.GetRoleId(),
 			})
-			printer.Table(os.Stdout, report)
-
-			return nil
-		},
-	}
-
-	return cmd
-}
-
-func listPolicyCommand(cliConfig *Config) *cli.Command {
-	cmd := &cli.Command{
-		Use:   "list",
-		Short: "List all policies",
-		Args:  cli.NoArgs,
-		Example: heredoc.Doc(`
-			$ shield policy list
-		`),
-		Annotations: map[string]string{
-			"policy:core": "true",
-		},
-		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			res, err := client.ListPolicies(cmd.Context(), &shieldv1beta1.ListPoliciesRequest{})
-			if err != nil {
-				return err
-			}
-
-			report := [][]string{}
-			policies := res.GetPolicies()
-
-			spinner.Stop()
-
-			if len(policies) == 0 {
-				fmt.Printf("No policies found.\n")
-				return nil
-			}
-
-			fmt.Printf(" \nShowing %d policies\n \n", len(policies))
-
-			report = append(report, []string{"ID", "ACTION", "NAMESPACE"})
-			for _, p := range policies {
-				report = append(report, []string{
-					p.GetId(),
-					p.GetActionId(),
-					p.GetNamespaceId(),
-				})
-			}
 			printer.Table(os.Stdout, report)
 
 			return nil

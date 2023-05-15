@@ -5,11 +5,11 @@ import (
 	"net/mail"
 	"strings"
 
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/schema"
-
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
+	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 	"github.com/odpf/shield/pkg/errors"
+	"github.com/odpf/shield/pkg/str"
 	shielduuid "github.com/odpf/shield/pkg/uuid"
 )
 
@@ -18,7 +18,9 @@ type SessionService interface {
 }
 
 type RelationRepository interface {
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
+	CheckPermission(ctx context.Context, subject relation.Subject, object relation.Object, permName string) (bool, error)
+	Delete(ctx context.Context, rel relation.RelationV2) error
 	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
 	LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error)
 }
@@ -83,10 +85,10 @@ func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 }
 
 // Update by user uuid, email or slug
-func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
+func (s Service) Update(ctx context.Context, toUpdate User) (User, error) {
 	id := toUpdate.ID
 	if isValidEmail(id) {
-		return s.repository.UpdateByEmail(ctx, toUpdate)
+		return s.UpdateByEmail(ctx, toUpdate)
 	}
 	if shielduuid.IsValid(id) {
 		return s.repository.UpdateByID(ctx, toUpdate)
@@ -111,6 +113,9 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 		}
 		return currentUser, nil
 	}
+	if err != nil && !errors.Is(err, shieldsession.ErrNoSession) {
+		return User{}, err
+	}
 
 	// check if header with user email is set
 	if val, ok := GetEmailFromContext(ctx); ok && len(val) > 0 {
@@ -132,7 +137,10 @@ func (s Service) Disable(ctx context.Context, id string) error {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.DeleteSubjectRelations(ctx, schema.ProjectNamespace, id); err != nil {
+	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+		ID:        id,
+		Namespace: schema.ProjectNamespace,
+	}}); err != nil {
 		return err
 	}
 	return s.repository.Delete(ctx, id)
@@ -146,8 +154,8 @@ func (s Service) ListByOrg(ctx context.Context, orgID string, permissionFilter s
 		},
 		Subject: relation.Subject{
 			Namespace: schema.UserPrincipal,
-			RoleID:    permissionFilter,
 		},
+		RelationName: permissionFilter,
 	})
 	if err != nil {
 		return nil, err
@@ -167,8 +175,8 @@ func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilt
 		},
 		Subject: relation.Subject{
 			Namespace: schema.UserPrincipal,
-			RoleID:    permissionFilter,
 		},
+		RelationName: permissionFilter,
 	})
 	if err != nil {
 		return nil, err
@@ -178,6 +186,63 @@ func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilt
 		return []User{}, nil
 	}
 	return s.repository.GetByIDs(ctx, userIDs)
+}
+
+func (s Service) Sudo(ctx context.Context, id string) error {
+	currentUser, err := s.GetByID(ctx, id)
+	if errors.Is(err, ErrNotExist) {
+		if isValidEmail(id) {
+			// create a new user
+			currentUser, err = s.Create(ctx, User{
+				Email: id,
+				Slug:  str.GenerateUserSlug(id),
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			// skip
+			return nil
+		}
+	}
+	if err != nil {
+		return err
+	}
+
+	// check if already su
+	if ok, err := s.IsSudo(ctx, currentUser.ID); err != nil {
+		return err
+	} else if ok {
+		return nil
+	}
+
+	// mark su
+	_, err = s.relationService.Create(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        schema.PlatformID,
+			Namespace: schema.PlatformNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        currentUser.ID,
+			Namespace: schema.UserPrincipal,
+		},
+		RelationName: schema.AdminRelationName,
+	})
+	return err
+}
+
+func (s Service) IsSudo(ctx context.Context, id string) (bool, error) {
+	status, err := s.relationService.CheckPermission(ctx, relation.Subject{
+		ID:        id,
+		Namespace: schema.UserPrincipal,
+	}, relation.Object{
+		ID:        schema.PlatformID,
+		Namespace: schema.PlatformNamespace,
+	}, schema.SudoPermission)
+	if err != nil {
+		return false, err
+	}
+	return status, nil
 }
 
 func isValidEmail(str string) bool {

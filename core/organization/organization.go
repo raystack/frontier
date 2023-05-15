@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
-
 	"github.com/odpf/shield/pkg/metadata"
 )
 
@@ -21,7 +21,7 @@ const (
 	Enabled  State = "enabled"
 	Disabled State = "disabled"
 
-	AdminPermission = schema.EditPermission
+	AdminPermission = schema.UpdatePermission
 	AdminRole       = schema.OwnerRole
 )
 
@@ -51,6 +51,5 @@ func BuildUserOrgAdminSubject(user user.User) relation.Subject {
 	return relation.Subject{
 		ID:        user.ID,
 		Namespace: schema.UserPrincipal,
-		RoleID:    schema.OwnerRole,
 	}
 }

@@ -3,51 +3,36 @@ package relation
 import (
 	"context"
 	"time"
-
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/role"
 )
 
 type Repository interface {
 	Get(ctx context.Context, id string) (RelationV2, error)
-	Create(ctx context.Context, relation RelationV2) (RelationV2, error)
+	Upsert(ctx context.Context, relation RelationV2) (RelationV2, error)
 	List(ctx context.Context) ([]RelationV2, error)
-	Update(ctx context.Context, toUpdate Relation) (Relation, error)
 	DeleteByID(ctx context.Context, id string) error
-	GetByFields(ctx context.Context, rel RelationV2) (RelationV2, error)
+	GetByFields(ctx context.Context, rel RelationV2) ([]RelationV2, error)
 }
 
 type AuthzRepository interface {
-	Add(ctx context.Context, rel Relation) error
-	Check(ctx context.Context, rel Relation, act action.Action) (bool, error)
-	DeleteV2(ctx context.Context, rel RelationV2) error
-	AddV2(ctx context.Context, rel RelationV2) error
-	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	Check(ctx context.Context, rel RelationV2, permissionName string) (bool, error)
+	Delete(ctx context.Context, rel RelationV2) error
+	Add(ctx context.Context, rel RelationV2) error
 	LookupSubjects(ctx context.Context, rel RelationV2) ([]string, error)
 	LookupResources(ctx context.Context, rel RelationV2) ([]string, error)
 	ListRelations(ctx context.Context, rel RelationV2) ([]RelationV2, error)
 }
 
-type RoleService interface {
-	Get(ctx context.Context, id string) (role.Role, error)
-}
-
-type Relation struct {
-	ID                 string
-	SubjectNamespace   namespace.Namespace
-	SubjectNamespaceID string `json:"subject_namespace_id"`
-	SubjectID          string `json:"subject_id"`
-	SubjectRoleID      string `json:"subject_role_id"`
-	ObjectNamespace    namespace.Namespace
-	ObjectNamespaceID  string `json:"object_namespace_id"`
-	ObjectID           string `json:"object_id"`
-	Role               role.Role
-	RoleID             string       `json:"role_id"`
-	RelationType       RelationType `json:"role_type"`
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-}
+//type Relation struct {
+//	ID                  string
+//	SubjectNamespaceID  string `json:"subject_namespace_id"`
+//	SubjectID           string `json:"subject_id"`
+//	SubjectRelationName string `json:"subject_relation_name"`
+//	ObjectNamespaceID   string `json:"object_namespace_id"`
+//	ObjectID            string `json:"object_id"`
+//	RelationName        string `json:"relation_name"`
+//	CreatedAt           time.Time
+//	UpdatedAt           time.Time
+//}
 
 type Object struct {
 	ID        string
@@ -55,25 +40,17 @@ type Object struct {
 }
 
 type Subject struct {
-	ID        string
-	Namespace string
-	RoleID    string
+	ID              string
+	Namespace       string
+	SubRelationName string `json:"sub_relation_name"`
 }
 
 type RelationV2 struct {
-	ID        string
-	Object    Object
-	Subject   Subject
+	ID           string
+	Object       Object
+	Subject      Subject
+	RelationName string `json:"relation_name"`
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
-}
-
-type RelationType string
-
-var RelationTypes = struct {
-	Role      RelationType
-	Namespace RelationType
-}{
-	Role:      "role",
-	Namespace: "namespace",
 }

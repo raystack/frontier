@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/odpf/shield/core/user"
 
 	"github.com/doug-martin/goqu/v9"
@@ -16,7 +18,6 @@ import (
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/odpf/shield/pkg/db"
 )
 
@@ -71,7 +72,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return group.Group{}, group.ErrInvalidUUID
 		default:
 			return group.Group{}, err
@@ -168,7 +169,7 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]gro
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return []group.Group{}, group.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return []group.Group{}, group.ErrInvalidUUID
 		default:
 			return []group.Group{}, err
@@ -219,7 +220,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_GROUPS,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -229,11 +230,11 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return group.Group{}, organization.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return group.Group{}, organization.ErrInvalidUUID
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return group.Group{}, group.ErrConflict
 		default:
 			return group.Group{}, err
@@ -283,7 +284,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return []group.Group{}, nil
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return []group.Group{}, nil
 		default:
 			return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -337,7 +338,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_GROUPS,
-				Operation:  "UpdateByID",
+				Operation:  "Update",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -349,11 +350,11 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return group.Group{}, group.ErrInvalidUUID
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return group.Group{}, group.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return group.Group{}, organization.ErrNotExist
 		default:
 			return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -414,11 +415,11 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return group.Group{}, group.ErrNotExist
-		case errors.Is(err, errInvalidTexRepresentation):
+		case errors.Is(err, ErrInvalidTextRepresentation):
 			return group.Group{}, organization.ErrInvalidUUID
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return group.Group{}, group.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return group.Group{}, organization.ErrNotExist
 		default:
 			return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -449,13 +450,13 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 	).
 		From(goqu.T(TABLE_RELATIONS).As("r")).
 		Join(goqu.T(TABLE_GROUPS).As("g"), goqu.On(
-			goqu.I("g.id").Cast("VARCHAR").
+			goqu.I("g.id").Cast("text").
 				Eq(goqu.I("r.object_id")),
 		)).
 		Where(goqu.Ex{
-			"r.object_namespace_id": namespace.DefinitionTeam.ID,
-			"subject_namespace_id":  namespace.DefinitionUser.ID,
-			"subject_id":            userID,
+			"r.object_namespace_name": namespace.DefinitionTeam.ID,
+			"subject_namespace_name":  namespace.DefinitionUser.ID,
+			"subject_id":              userID,
 		}).Where(notDisabledGroupExp)
 
 	if strings.TrimSpace(roleID) != "" {
@@ -502,16 +503,17 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 	return transformedGroups, nil
 }
 
+// TODO(kushsharma): no longer in use, delete if needed
 func (r GroupRepository) ListGroupRelations(ctx context.Context, objectId string, subject_type string, role string) ([]relation.RelationV2, error) {
 	whereClauseExp := goqu.Ex{}
 	whereClauseExp["object_id"] = objectId
-	whereClauseExp["object_namespace_id"] = schema.GroupNamespace
+	whereClauseExp["object_namespace_name"] = schema.GroupNamespace
 
 	if subject_type != "" {
 		if subject_type == "user" {
-			whereClauseExp["subject_namespace_id"] = schema.UserPrincipal
+			whereClauseExp["subject_namespace_name"] = schema.UserPrincipal
 		} else if subject_type == "group" {
-			whereClauseExp["subject_namespace_id"] = schema.GroupPrincipal
+			whereClauseExp["subject_namespace_name"] = schema.GroupPrincipal
 		}
 	}
 

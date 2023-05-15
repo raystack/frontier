@@ -3,14 +3,13 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
+
+	"google.golang.org/protobuf/types/known/structpb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
+	"github.com/odpf/shield/pkg/metadata"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,20 +22,17 @@ type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
-	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
+	CheckAuthz(ctx context.Context, resource resource.Resource, permissionName string) (bool, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
 
 func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListResourcesRequest) (*shieldv1beta1.ListResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	//TODO(kushsharma): apply admin level authz
-
 	var resources []*shieldv1beta1.Resource
 	filters := resource.Filter{
-		NamespaceID:    request.GetNamespaceId(),
-		OrganizationID: request.GetOrganizationId(),
-		ProjectID:      request.GetProjectId(),
+		NamespaceID: request.GetNamespaceId(),
+		ProjectID:   request.GetProjectId(),
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
@@ -50,7 +46,7 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-		resources = append(resources, &resourcePB)
+		resources = append(resources, resourcePB)
 	}
 
 	return &shieldv1beta1.ListResourcesResponse{
@@ -78,7 +74,7 @@ func (h Handler) ListProjectResources(ctx context.Context, request *shieldv1beta
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-		resources = append(resources, &resourcePB)
+		resources = append(resources, resourcePB)
 	}
 
 	return &shieldv1beta1.ListProjectResourcesResponse{
@@ -92,10 +88,22 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
+	var metaDataMap metadata.Metadata
+	var err error
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
+	}
+
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
+		Name:        request.GetBody().GetName(),
 		ProjectID:   request.GetBody().GetProjectId(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
-		Name:        request.GetBody().GetName(),
+		UserID:      request.GetBody().GetUserId(),
+		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -110,32 +118,6 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		}
 	}
 
-	relations := request.GetBody().GetRelations()
-	for _, r := range relations {
-		subject := strings.Split(r.Subject, ":")
-		if len(subject) != 2 {
-			logger.Error(fmt.Sprintf("inadequate subject format: %s", r.Subject))
-			continue
-		}
-
-		_, err := h.relationService.Create(ctx, relation.RelationV2{
-			Object: relation.Object{
-				ID:        newResource.ID,
-				Namespace: newResource.NamespaceID,
-			},
-			Subject: relation.Subject{
-				RoleID:    r.RoleName,
-				ID:        subject[1],
-				Namespace: subject[0],
-			},
-		})
-		if err != nil {
-			logger.Error(fmt.Sprintf("error creating relation: %s for %s %s", r.RoleName, subject[1], subject[0]))
-		} else {
-			logger.Info(fmt.Sprintf("created relation: %s for %s %s", r.RoleName, subject[1], subject[0]))
-		}
-	}
-
 	resourcePB, err := transformResourceToPB(newResource)
 	if err != nil {
 		logger.Error(err.Error())
@@ -143,7 +125,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	return &shieldv1beta1.CreateResourceResponse{
-		Resource: &resourcePB,
+		Resource: resourcePB,
 	}, nil
 }
 
@@ -170,7 +152,7 @@ func (h Handler) GetResource(ctx context.Context, request *shieldv1beta1.GetReso
 	}
 
 	return &shieldv1beta1.GetResourceResponse{
-		Resource: &resourcePB,
+		Resource: resourcePB,
 	}, nil
 }
 
@@ -181,24 +163,11 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 		return nil, grpcBadBodyError
 	}
 
-	projId := request.GetBody().GetProjectId()
-	project, err := h.projectService.Get(ctx, projId)
-	if err != nil {
-		logger.Error(err.Error())
-
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
 	updatedResource, err := h.resourceService.Update(ctx, request.GetId(), resource.Resource{
-		OrganizationID: project.Organization.ID,
-		ProjectID:      request.GetBody().GetProjectId(),
-		NamespaceID:    request.GetBody().GetNamespaceId(),
-		Name:           request.GetBody().GetName(),
+		ProjectID:   request.GetBody().GetProjectId(),
+		NamespaceID: request.GetBody().GetNamespaceId(),
+		Name:        request.GetBody().GetName(),
+		UserID:      request.GetBody().GetUserId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -224,29 +193,29 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	}
 
 	return &shieldv1beta1.UpdateResourceResponse{
-		Resource: &resourcePB,
+		Resource: resourcePB,
 	}, nil
 }
 
-func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
-	// TODO(krtkvrm): will be replaced with IDs
-	return shieldv1beta1.Resource{
-		Id:   from.ID,
-		Urn:  from.URN,
-		Name: from.Name,
-		Project: &shieldv1beta1.Project{
-			Id: from.ProjectID,
-		},
-		Organization: &shieldv1beta1.Organization{
-			Id: from.OrganizationID,
-		},
-		Namespace: &shieldv1beta1.Namespace{
-			Id: from.NamespaceID,
-		},
-		User: &shieldv1beta1.User{
-			Id: from.UserID,
-		},
-		CreatedAt: timestamppb.New(from.CreatedAt),
-		UpdatedAt: timestamppb.New(from.UpdatedAt),
+func transformResourceToPB(from resource.Resource) (*shieldv1beta1.Resource, error) {
+	var metadata *structpb.Struct
+	var err error
+	if len(from.Metadata) > 0 {
+		metadata, err = structpb.NewStruct(from.Metadata)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &shieldv1beta1.Resource{
+		Id:          from.ID,
+		Urn:         from.URN,
+		Name:        from.Name,
+		ProjectId:   from.ProjectID,
+		NamespaceId: from.NamespaceID,
+		UserId:      from.UserID,
+		Metadata:    metadata,
+		CreatedAt:   timestamppb.New(from.CreatedAt),
+		UpdatedAt:   timestamppb.New(from.UpdatedAt),
 	}, nil
 }

@@ -46,7 +46,7 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "Create a project",
+		Short: "Upsert a project",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield project create --file=<project-body> --header=<key>:<value>

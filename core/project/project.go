@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/pkg/metadata"
@@ -22,7 +22,7 @@ const (
 )
 
 var AdminPermission = schema.DeletePermission
-var MemberPermission = schema.ViewPermission
+var MemberPermission = schema.GetPermission
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Project, error)
@@ -43,6 +43,7 @@ type Project struct {
 	Organization organization.Organization
 	State        State
 	Metadata     metadata.Metadata
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

@@ -43,7 +43,7 @@ func (_m *RelationService) Create(ctx context.Context, _a1 relation.RelationV2) 
 	return r0, r1
 }
 
-// RelationService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+// RelationService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
 type RelationService_Create_Call struct {
 	*mock.Call
 }
@@ -52,7 +52,7 @@ type RelationService_Create_Call struct {
 //  - ctx context.Context
 //  - _a1 relation.RelationV2
 func (_e *RelationService_Expecter) Create(ctx interface{}, _a1 interface{}) *RelationService_Create_Call {
-	return &RelationService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
+	return &RelationService_Create_Call{Call: _e.mock.On("Upsert", ctx, _a1)}
 }
 
 func (_c *RelationService_Create_Call) Run(run func(ctx context.Context, _a1 relation.RelationV2)) *RelationService_Create_Call {

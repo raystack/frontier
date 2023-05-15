@@ -182,5 +182,6 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 			grpc_ctxtags.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
 			grpc_validator.UnaryServerInterceptor(),
+			interceptors.UnaryAuthorizationCheck(cfg.IdentityProxyHeader),
 		))
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
@@ -101,14 +103,17 @@ func (s *NamespaceRepositoryTestSuite) TestGet() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+			}
+			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "ID", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespace)
 			}
 		})
 	}
 }
 
-func (s *NamespaceRepositoryTestSuite) TestCreate() {
+func (s *NamespaceRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description       string
 		NamespaceToCreate namespace.Namespace
@@ -118,39 +123,28 @@ func (s *NamespaceRepositoryTestSuite) TestCreate() {
 
 	var testCases = []testCase{
 		{
-			Description: "should create an namespace",
+			Description: "should create a namespace",
 			NamespaceToCreate: namespace.Namespace{
-				ID:   "ns3",
 				Name: "ns3",
 			},
 			ExpectedNamespace: namespace.Namespace{
-				ID:   "ns3",
 				Name: "ns3",
 			},
-		},
-		{
-			Description: "should return error if namespace name already exist",
-			NamespaceToCreate: namespace.Namespace{
-				ID:   "ns-new",
-				Name: "ns2",
-			},
-			ErrString: namespace.ErrConflict.Error(),
-		},
-		{
-			Description: "should return error if namespace id is empty",
-			ErrString:   "namespace id is invalid",
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.NamespaceToCreate)
+			got, err := s.repository.Upsert(s.ctx, tc.NamespaceToCreate)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+			}
+			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "ID", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespace)
 			}
 		})
@@ -177,38 +171,32 @@ func (s *NamespaceRepositoryTestSuite) TestList() {
 					Name: "ns2",
 				},
 				{
-					ID:           "back1_r1",
-					Name:         "Back1 R1",
-					Backend:      "back1",
-					ResourceType: "r1",
+					ID:   "back1_r1",
+					Name: "Back1 R1",
 				},
 				{
-					ID:           "back1_r2",
-					Name:         "Back1 R2",
-					Backend:      "back1",
-					ResourceType: "r2",
+					ID:   "back1_r2",
+					Name: "Back1 R2",
 				},
 				{
-					ID:           "back2_r1",
-					Name:         "Back2 R1",
-					Backend:      "back2",
-					ResourceType: "r1",
+					ID:   "back2_r1",
+					Name: "Back2 R1",
 				},
 				{
-					ID:   "shield/group",
-					Name: "shield/group",
+					ID:   "app/group",
+					Name: "app/group",
 				},
 				{
-					ID:   "shield/project",
-					Name: "shield/project",
+					ID:   "app/project",
+					Name: "app/project",
 				},
 				{
-					ID:   "shield/organization",
-					Name: "shield/organization",
+					ID:   "app/organization",
+					Name: "app/organization",
 				},
 				{
-					ID:   "shield/user",
-					Name: "shield/user",
+					ID:   "app/user",
+					Name: "app/user",
 				},
 			},
 		},
@@ -222,7 +210,10 @@ func (s *NamespaceRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedNamespaces, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+			}
+			if !cmp.Equal(got, tc.ExpectedNamespaces, cmpopts.IgnoreFields(namespace.Namespace{}, "ID", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespaces)
 			}
 		})
@@ -239,28 +230,9 @@ func (s *NamespaceRepositoryTestSuite) TestUpdate() {
 
 	var testCases = []testCase{
 		{
-			Description: "should update a namespace",
-			NamespaceToUpdate: namespace.Namespace{
-				ID:   "ns1",
-				Name: "ns1-update",
-			},
-			ExpectedNamespace: namespace.Namespace{
-				ID:   "ns1",
-				Name: "ns1-update",
-			},
-		},
-		{
-			Description: "should return error if namespace name already exist",
-			NamespaceToUpdate: namespace.Namespace{
-				ID:   "ns2",
-				Name: "ns1-update",
-			},
-			ErrString: namespace.ErrConflict.Error(),
-		},
-		{
 			Description: "should return error if namespace not found",
 			NamespaceToUpdate: namespace.Namespace{
-				ID:   "123131",
+				ID:   uuid.New().String(),
 				Name: "not-exist",
 			},
 			ErrString: "namespace doesn't exist",
@@ -279,7 +251,10 @@ func (s *NamespaceRepositoryTestSuite) TestUpdate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "CreatedAt", "UpdatedAt")) {
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+			}
+			if !cmp.Equal(got, tc.ExpectedNamespace, cmpopts.IgnoreFields(namespace.Namespace{}, "ID", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedNamespace)
 			}
 		})

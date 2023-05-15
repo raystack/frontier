@@ -5,10 +5,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/odpf/shield/core/action"
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/internal/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -27,14 +27,14 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			name: "should return internal error if relation service's CheckAuthz function returns some error",
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testRelationV2.Object.ID,
+					ID:          testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
-				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
+				}, schema.UpdatePermission).Return(false, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
 				ObjectNamespace: testRelationV2.Object.Namespace,
-				Permission:      schema.EditPermission,
+				Permission:      schema.UpdatePermission,
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -43,14 +43,14 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			name: "should return true when CheckAuthz function returns true bool",
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testRelationV2.Object.ID,
+					ID:          testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
-				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
+				}, schema.UpdatePermission).Return(true, nil)
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
 				ObjectNamespace: testRelationV2.Object.Namespace,
-				Permission:      schema.EditPermission,
+				Permission:      schema.UpdatePermission,
 			},
 			want: &shieldv1beta1.CheckResourcePermissionResponse{
 				Status: true,
@@ -61,14 +61,14 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			name: "should return false when CheckAuthz function returns false bool",
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testRelationV2.Object.ID,
+					ID:          testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
-				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
+				}, schema.UpdatePermission).Return(false, nil)
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
 				ObjectNamespace: testRelationV2.Object.Namespace,
-				Permission:      schema.EditPermission,
+				Permission:      schema.UpdatePermission,
 			},
 			want: &shieldv1beta1.CheckResourcePermissionResponse{
 				Status: false,

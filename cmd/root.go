@@ -46,7 +46,7 @@ func New(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(GroupCommand(cliConfig))
 	cmd.AddCommand(ProjectCommand(cliConfig))
 	cmd.AddCommand(RoleCommand(cliConfig))
-	cmd.AddCommand(ActionCommand(cliConfig))
+	cmd.AddCommand(PermissionCommand(cliConfig))
 	cmd.AddCommand(PolicyCommand(cliConfig))
 	cmd.AddCommand(configCommand())
 	cmd.AddCommand(versionCommand())

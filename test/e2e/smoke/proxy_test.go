@@ -40,6 +40,7 @@ type ProxySmokeTestSuite struct {
 	proxyPort int
 	orgID     string
 	projID    string
+	userID    string
 	close     func() error
 }
 
@@ -113,7 +114,7 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	pool, err := dockertest.NewPool("")
 	s.Assert().NoError(err)
 
-	// Create a bridge network for docker containers to communicate
+	// Upsert a bridge network for docker containers to communicate
 	network, err := pool.Client.CreateNetwork(docker.CreateNetworkOptions{
 		Name:    fmt.Sprintf("bridge-%s", uuid.New().String()),
 		Context: ctx,
@@ -184,6 +185,10 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	s.Assert().NoError(err)
 	s.Assert().NotEqual(0, len(projResp.Projects))
 	s.projID = projResp.Projects[0].GetId()
+
+	listUsers, err := sClient.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
+	s.Assert().NoError(err)
+	s.userID = listUsers.Users[0].Id
 }
 
 func (s *ProxySmokeTestSuite) TearDownSuite() {
@@ -219,9 +224,9 @@ func (s *ProxySmokeTestSuite) TestProxyToEchoServer() {
 
 		req.Header.Set(testbench.IdentityHeader, testbench.OrgAdminEmail)
 		req.Header.Set("X-Shield-Project", s.projID)
-		req.Header.Set("X-Shield-Org", s.orgID)
+		req.Header.Set("X-Shield-User", s.userID)
 		req.Header.Set("X-Shield-Name", "test-resource")
-		req.Header.Set("X-Shield-Resource-Type", "firehose")
+		req.Header.Set("X-Shield-Resource-Type", "cart")
 
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)

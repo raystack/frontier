@@ -1,0 +1,9 @@
+name: potato
+resources:
+  - name: order
+    permissions:
+      - name: delete
+      - name: update
+      - name: get
+      - name: list
+      - name: create

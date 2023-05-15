@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -37,6 +38,12 @@ func (s *SessionRepository) Set(ctx context.Context, session *shieldsession.Sess
 	if err != nil {
 		return fmt.Errorf("error parsing user id: %w", err)
 	}
+
+	marshaledMetadata, err := json.Marshal(session.Metadata)
+	if err != nil {
+		return fmt.Errorf("%w: %s", parseErr, err)
+	}
+
 	query, params, err := dialect.Insert(TABLE_SESSIONS).Rows(
 		goqu.Record{
 			"id":               session.ID,
@@ -44,6 +51,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *shieldsession.Sess
 			"authenticated_at": session.CreatedAt,
 			"expires_at":       session.ExpiresAt,
 			"created_at":       session.CreatedAt,
+			"metadata":         marshaledMetadata,
 		}).Returning(&Session{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
@@ -56,7 +64,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *shieldsession.Sess
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_SESSIONS,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -98,13 +106,13 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*shieldsessi
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, fmt.Errorf("%w: %s", dbErr, shieldsession.ErrNoSession)
+			return nil, fmt.Errorf("%s: %w", dbErr.Error(), shieldsession.ErrNoSession)
 		default:
-			return nil, fmt.Errorf("%w: %s", dbErr, err)
+			return nil, fmt.Errorf("%s: %w", dbErr.Error(), err)
 		}
 	}
 
-	return session.transformToSession(), nil
+	return session.transformToSession()
 }
 
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
@@ -203,7 +211,7 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_SESSIONS,
-				Operation:  "UpdateByID",
+				Operation:  "Update",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()

@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/internal/schema"
+	"github.com/odpf/shield/core/project"
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
@@ -39,10 +39,6 @@ type OrganizationService interface {
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
-	if h.DisableOrgsListing {
-		return nil, grpcOperationUnsupported
-	}
-
 	logger := grpczap.Extract(ctx)
 	var orgs []*shieldv1beta1.Organization
 	orgList, err := h.orgService.List(ctx, organization.Filter{
@@ -71,8 +67,6 @@ func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.L
 
 func (h Handler) ListAllOrganizations(ctx context.Context, request *shieldv1beta1.ListAllOrganizationsRequest) (*shieldv1beta1.ListAllOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	// TODO(kushsharma): apply admin level authz
 
 	var orgs []*shieldv1beta1.Organization
 	orgList, err := h.orgService.List(ctx, organization.Filter{

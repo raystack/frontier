@@ -48,7 +48,7 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 		return nil, err
 	}
 
-	// Create a bridge network for testing.
+	// Upsert a bridge network for testing.
 	// run `docker network prune` on local machine if failed to create a new network
 	te.Network, err = te.Pool.Client.CreateNetwork(docker.CreateNetworkOptions{
 		Name: fmt.Sprintf("bridge-%s", uuid.New().String()),

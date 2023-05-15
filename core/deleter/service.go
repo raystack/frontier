@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/odpf/shield/core/policy"
+	"github.com/odpf/shield/core/role"
+
 	"github.com/odpf/shield/core/group"
 
 	"github.com/odpf/shield/core/organization"
@@ -21,6 +24,16 @@ type OrganizationService interface {
 	DeleteModel(ctx context.Context, id string) error
 }
 
+type RoleService interface {
+	List(ctx context.Context, flt role.Filter) ([]role.Role, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type PolicyService interface {
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Delete(ctx context.Context, namespaceID, id string) error
@@ -32,19 +45,24 @@ type GroupService interface {
 }
 
 type Service struct {
-	projService  ProjectService
-	orgService   OrganizationService
-	resService   ResourceService
-	groupService GroupService
+	projService   ProjectService
+	orgService    OrganizationService
+	resService    ResourceService
+	groupService  GroupService
+	policyService PolicyService
+	roleService   RoleService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
-	resService ResourceService, groupService GroupService) *Service {
+	resService ResourceService, groupService GroupService,
+	policyService PolicyService, roleService RoleService) *Service {
 	return &Service{
-		projService:  projService,
-		orgService:   orgService,
-		resService:   resService,
-		groupService: groupService,
+		projService:   projService,
+		orgService:    orgService,
+		resService:    resService,
+		groupService:  groupService,
+		policyService: policyService,
+		roleService:   roleService,
 	}
 }
 
@@ -66,6 +84,19 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 }
 
 func (d Service) DeleteOrganization(ctx context.Context, id string) error {
+	// delete all policies
+	policies, err := d.policyService.List(ctx, policy.Filter{
+		OrgID: id,
+	})
+	if err != nil {
+		return err
+	}
+	for _, p := range policies {
+		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a policy[%s]: %w", p.ID, err)
+		}
+	}
+
 	// delete all related projects first
 	projects, err := d.projService.List(ctx, project.Filter{
 		OrgID: id,
@@ -89,5 +120,19 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Slug, err)
 		}
 	}
+
+	// delete all roles
+	roles, err := d.roleService.List(ctx, role.Filter{
+		OrgID: id,
+	})
+	if err != nil {
+		return err
+	}
+	for _, p := range roles {
+		if err = d.roleService.Delete(ctx, p.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a role[%s]: %w", p.Name, err)
+		}
+	}
+
 	return d.orgService.DeleteModel(ctx, id)
 }

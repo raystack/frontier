@@ -2,15 +2,25 @@ package policy
 
 import (
 	"context"
+
+	"github.com/odpf/shield/core/relation"
+	"github.com/odpf/shield/internal/bootstrap/schema"
 )
 
-type Service struct {
-	repository Repository
+type RelationService interface {
+	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
+	Delete(ctx context.Context, rel relation.RelationV2) error
 }
 
-func NewService(repository Repository) *Service {
+type Service struct {
+	repository      Repository
+	relationService RelationService
+}
+
+func NewService(repository Repository, relationService RelationService) *Service {
 	return &Service{
-		repository: repository,
+		repository:      repository,
+		relationService: relationService,
 	}
 }
 
@@ -18,31 +28,81 @@ func (s Service) Get(ctx context.Context, id string) (Policy, error) {
 	return s.repository.Get(ctx, id)
 }
 
-func (s Service) List(ctx context.Context) ([]Policy, error) {
-	return s.repository.List(ctx)
+func (s Service) List(ctx context.Context, f Filter) ([]Policy, error) {
+	return s.repository.List(ctx, f)
 }
 
-func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
-	if _, err := s.repository.Create(ctx, policy); err != nil {
-		return []Policy{}, err
-	}
-	policies, err := s.repository.List(ctx)
+func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
+	pol, err := s.repository.Upsert(ctx, policy)
 	if err != nil {
-		return []Policy{}, err
+		return Policy{}, err
 	}
+	policy.ID = pol
 
-	return policies, err
+	if err = s.AssignRole(ctx, policy); err != nil {
+		return policy, err
+	}
+	return policy, err
 }
 
-func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
-	if _, err := s.repository.Update(ctx, pol); err != nil {
-		return []Policy{}, err
+func (s Service) Delete(ctx context.Context, id string) error {
+	if err := s.relationService.Delete(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        id,
+			Namespace: schema.RoleBindingNamespace,
+		},
+	}); err != nil {
+		return err
 	}
+	return s.repository.Delete(ctx, id)
+}
 
-	policies, err := s.repository.List(ctx)
+// AssignRole Note: ideally this should be in a single transaction
+func (s Service) AssignRole(ctx context.Context, pol Policy) error {
+	// bind role with user
+	_, err := s.relationService.Create(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        pol.ID,
+			Namespace: schema.RoleBindingNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        pol.UserID,
+			Namespace: schema.UserPrincipal,
+		},
+		RelationName: schema.RoleBearerRelationName,
+	})
 	if err != nil {
-		return []Policy{}, err
+		return err
+	}
+	_, err = s.relationService.Create(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        pol.ID,
+			Namespace: schema.RoleBindingNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        pol.RoleID,
+			Namespace: schema.RoleNamespace,
+		},
+		RelationName: schema.RoleRelationName,
+	})
+	if err != nil {
+		return err
 	}
 
-	return policies, err
+	// bind policy to resource
+	_, err = s.relationService.Create(ctx, relation.RelationV2{
+		Object: relation.Object{
+			ID:        pol.ResourceID,
+			Namespace: pol.NamespaceID,
+		},
+		Subject: relation.Subject{
+			ID:        pol.ID,
+			Namespace: schema.RoleBindingNamespace,
+		},
+		RelationName: schema.RoleGrantRelationName,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+	"github.com/odpf/shield/core/user"
+
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
@@ -29,15 +32,13 @@ func NewRoleRepository(dbc *db.Client) *RoleRepository {
 func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.SelectDataset {
 	roleSelectStatement := dialect.Select(
 		goqu.I("r.id"),
+		goqu.I("r.org_id"),
 		goqu.I("r.name"),
-		goqu.I("r.types"),
-		goqu.I("r.namespace_id"),
+		goqu.I("r.permissions"),
+		goqu.I("r.state"),
 		goqu.I("r.metadata"),
-		goqu.I("namespaces.id").As(goqu.C("namespace.id")),
-		goqu.I("namespaces.name").As(goqu.C("namespace.name")),
 	).From(goqu.T(TABLE_ROLES).As("r"))
-	return roleSelectStatement.Join(goqu.T(TABLE_NAMESPACES), goqu.On(
-		goqu.I("namespaces.id").Eq(goqu.I("r.namespace_id"))))
+	return roleSelectStatement
 }
 
 func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
@@ -74,20 +75,53 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	transformedRole, err := roleModel.transformToRole()
-	if err != nil {
-		return role.Role{}, err
-	}
-
-	return transformedRole, nil
+	return roleModel.transformToRole()
 }
 
-// TODO this is actually an upsert
-func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error) {
-	if strings.TrimSpace(rl.ID) == "" {
-		return "", role.ErrInvalidID
+func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role.Role, error) {
+	if strings.TrimSpace(name) == "" {
+		return role.Role{}, role.ErrInvalidDetail
+	}
+	if len(orgID) == 0 {
+		orgID = uuid.Nil.String()
+	}
+	query, params, err := r.buildListQuery(dialect).
+		Where(
+			goqu.Ex{"r.name": name},
+			goqu.Ex{"r.org_id": orgID},
+		).ToSQL()
+	if err != nil {
+		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var roleModel Role
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ROLES,
+				Operation:  "GetByName",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.GetContext(ctx, &roleModel, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return role.Role{}, role.ErrNotExist
+		}
+		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	return roleModel.transformToRole()
+}
+
+func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error) {
+	if strings.TrimSpace(rl.ID) == "" {
+		rl.ID = uuid.New().String()
+	}
 	if strings.TrimSpace(rl.Name) == "" {
 		return "", role.ErrInvalidDetail
 	}
@@ -97,25 +131,27 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		return "", fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	//TODO we have to go with this manually populating data since goqu does not support insert array string
+	marshaledPermissions, err := json.Marshal(rl.Permissions)
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", parseErr, err)
+	}
+
 	query, _, err := dialect.Insert(TABLE_ROLES).Rows(
 		goqu.Record{
-			"id":           goqu.L("$1"),
-			"name":         goqu.L("$2"),
-			"types":        goqu.L("$3"),
-			"namespace_id": goqu.L("$4"),
-			"metadata":     goqu.L("$5"),
-		}).OnConflict(
-		goqu.DoUpdate("id", goqu.Record{
-			"name": goqu.L("$2"),
-		},
-		)).Returning("id").ToSQL()
+			"id":          goqu.L("$1"),
+			"org_id":      goqu.L("$2"),
+			"name":        goqu.L("$3"),
+			"permissions": goqu.L("$4"),
+			"state":       goqu.L("$5"),
+			"metadata":    goqu.L("$6"),
+		}).OnConflict(goqu.DoUpdate("org_id, name", goqu.Record{
+		"permissions": goqu.L("$4"),
+		"state":       goqu.L("$5"),
+		"metadata":    goqu.L("$6"),
+	})).Returning("id").ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", queryErr, err)
 	}
-
-	types := strings.Join(rl.Types, ",")
-	types = fmt.Sprintf("{%s}", types)
 
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -124,19 +160,19 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ROLES,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
 		}
 
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return "", role.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return "", role.ErrInvalidDetail
 		default:
 			return "", err
@@ -146,8 +182,15 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 	return roleID, nil
 }
 
-func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
-	query, params, err := r.buildListQuery(dialect).ToSQL()
+func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role, error) {
+	stmt := r.buildListQuery(dialect)
+	if flt.OrgID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"org_id": flt.OrgID,
+		})
+	}
+
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -186,7 +229,6 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 	if strings.TrimSpace(rl.ID) == "" {
 		return "", role.ErrInvalidID
 	}
-
 	if strings.TrimSpace(rl.Name) == "" {
 		return "", role.ErrInvalidDetail
 	}
@@ -195,15 +237,18 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", parseErr, err)
 	}
+	marshaledPermissions, err := json.Marshal(rl.Permissions)
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", parseErr, err)
+	}
 
-	//TODO we have to go with this manually populating data since goqu does not support insert array string
 	query, _, err := dialect.Update(TABLE_ROLES).Set(
 		goqu.Record{
-			"name":         goqu.L("$2"),
-			"types":        goqu.L("$3"),
-			"namespace_id": goqu.L("$4"),
-			"metadata":     goqu.L("$5"),
-			"updated_at":   goqu.L("now()"),
+			"name":        goqu.L("$2"),
+			"permissions": goqu.L("$3"),
+			"state":       goqu.L("$4"),
+			"metadata":    goqu.L("$5"),
+			"updated_at":  goqu.L("now()"),
 		}).Where(
 		goqu.Ex{"id": goqu.L("$1")},
 	).Returning("id").ToSQL()
@@ -224,15 +269,15 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 			defer nr.End()
 		}
 
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, rl.Types, rl.NamespaceID, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return "", role.ErrNotExist
-		case errors.Is(err, errForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation):
 			return "", namespace.ErrNotExist
-		case errors.Is(err, errDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey):
 			return "", role.ErrConflict
 		default:
 			return "", err
@@ -240,4 +285,42 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 	}
 
 	return roleID, nil
+}
+
+func (r RoleRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := dialect.Delete(TABLE_ROLES).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_ROLES,
+				Operation:  "Delete",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return user.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
 }

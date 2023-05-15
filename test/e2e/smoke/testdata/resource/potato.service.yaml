@@ -1,0 +1,7 @@
+name: potato
+resources:
+  - name: cart
+    permissions:
+      - name: delete
+      - name: update
+      - name: get

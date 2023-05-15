@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
@@ -23,11 +25,11 @@ var (
 		testRoleID: {
 			ID:   testRoleID,
 			Name: "a new role",
-			Types: []string{
+			Permissions: []string{
 				"member",
 				"user",
 			},
-			NamespaceID: "ns-1",
+			OrgID: uuid.New().String(),
 			Metadata: metadata.Metadata{
 				"foo": "bar",
 			},
@@ -35,18 +37,18 @@ var (
 	}
 )
 
-func TestHandler_ListRoles(t *testing.T) {
+func TestHandler_ListOrganizationRoles(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService)
-		request *shieldv1beta1.ListRolesRequest
-		want    *shieldv1beta1.ListRolesResponse
+		request *shieldv1beta1.ListOrganizationRolesRequest
+		want    *shieldv1beta1.ListOrganizationRolesResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]role.Role{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), role.Filter{}).Return([]role.Role{}, errors.New("some error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -58,14 +60,15 @@ func TestHandler_ListRoles(t *testing.T) {
 				for _, rl := range testRoleMap {
 					testRolesList = append(testRolesList, rl)
 				}
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(testRolesList, nil)
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), role.Filter{}).Return(testRolesList, nil)
 			},
-			want: &shieldv1beta1.ListRolesResponse{
+			want: &shieldv1beta1.ListOrganizationRolesResponse{
 				Roles: []*shieldv1beta1.Role{
 					{
-						Id:    testRoleMap[testRoleID].ID,
-						Name:  testRoleMap[testRoleID].Name,
-						Types: testRoleMap[testRoleID].Types,
+						Id:          testRoleMap[testRoleID].ID,
+						Name:        testRoleMap[testRoleID].Name,
+						Permissions: testRoleMap[testRoleID].Permissions,
+						OrgId:       testRoleMap[testRoleID].OrgID,
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{
 								"foo": structpb.NewStringValue("bar"),
@@ -86,39 +89,39 @@ func TestHandler_ListRoles(t *testing.T) {
 				tt.setup(mockRoleSrv)
 			}
 			mockDep := Handler{roleService: mockRoleSrv}
-			resp, err := mockDep.ListRoles(context.Background(), tt.request)
+			resp, err := mockDep.ListOrganizationRoles(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_CreateRole(t *testing.T) {
+func TestHandler_CreateOrganizationRole(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService, ms *mocks.MetaSchemaService)
-		request *shieldv1beta1.CreateRoleRequest
-		want    *shieldv1beta1.CreateRoleResponse
+		request *shieldv1beta1.CreateOrganizationRoleRequest
+		want    *shieldv1beta1.CreateOrganizationRoleResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.CreateRoleRequest{
+			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
 					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -133,20 +136,20 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, namespace.ErrNotExist)
 			},
-			request: &shieldv1beta1.CreateRoleRequest{
+			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
 					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -161,18 +164,18 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return bad request error if name empty",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.CreateRoleRequest{
+			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
 					Id:          testRoleMap[testRoleID].ID,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -187,17 +190,17 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return bad request error if id empty",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidID)
-			}, request: &shieldv1beta1.CreateRoleRequest{
+			}, request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -212,20 +215,20 @@ func TestHandler_CreateRole(t *testing.T) {
 			name: "should return success if role service return nil error",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(testRoleMap[testRoleID], nil)
 			},
-			request: &shieldv1beta1.CreateRoleRequest{
+			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
 					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -233,11 +236,12 @@ func TestHandler_CreateRole(t *testing.T) {
 					},
 				},
 			},
-			want: &shieldv1beta1.CreateRoleResponse{
+			want: &shieldv1beta1.CreateOrganizationRoleResponse{
 				Role: &shieldv1beta1.Role{
-					Id:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
+					Id:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -258,19 +262,22 @@ func TestHandler_CreateRole(t *testing.T) {
 				tt.setup(mockRoleSrv, mockMetaSchemaSvc)
 			}
 			mockDep := Handler{roleService: mockRoleSrv, metaSchemaService: mockMetaSchemaSvc}
-			resp, err := mockDep.CreateRole(context.Background(), tt.request)
+			resp, err := mockDep.CreateOrganizationRole(context.Background(), tt.request)
+			if tt.wantErr == nil {
+				assert.NoError(t, err)
+			}
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_GetRole(t *testing.T) {
+func TestHandler_GetOrganizationRole(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService)
-		request *shieldv1beta1.GetRoleRequest
-		want    *shieldv1beta1.GetRoleResponse
+		request *shieldv1beta1.GetOrganizationRoleRequest
+		want    *shieldv1beta1.GetOrganizationRoleResponse
 		wantErr error
 	}{
 		{
@@ -278,7 +285,7 @@ func TestHandler_GetRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetRoleRequest{
+			request: &shieldv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
 			},
 			want:    nil,
@@ -289,7 +296,7 @@ func TestHandler_GetRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, role.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetRoleRequest{
+			request: &shieldv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
 			},
 			want:    nil,
@@ -300,7 +307,7 @@ func TestHandler_GetRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(role.Role{}, role.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetRoleRequest{},
+			request: &shieldv1beta1.GetOrganizationRoleRequest{},
 			want:    nil,
 			wantErr: grpcRoleNotFoundErr,
 		},
@@ -309,14 +316,15 @@ func TestHandler_GetRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(testRoleMap[testRoleID], nil)
 			},
-			request: &shieldv1beta1.GetRoleRequest{
+			request: &shieldv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
 			},
-			want: &shieldv1beta1.GetRoleResponse{
+			want: &shieldv1beta1.GetOrganizationRoleResponse{
 				Role: &shieldv1beta1.Role{
-					Id:    testRoleMap[testRoleID].ID,
-					Name:  testRoleMap[testRoleID].Name,
-					Types: testRoleMap[testRoleID].Types,
+					Id:          testRoleMap[testRoleID].ID,
+					Name:        testRoleMap[testRoleID].Name,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -336,19 +344,19 @@ func TestHandler_GetRole(t *testing.T) {
 				tt.setup(mockRoleSrv)
 			}
 			mockDep := Handler{roleService: mockRoleSrv}
-			resp, err := mockDep.GetRole(context.Background(), tt.request)
+			resp, err := mockDep.GetOrganizationRole(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_UpdateRole(t *testing.T) {
+func TestHandler_UpdateOrganizationRole(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService, ms *mocks.MetaSchemaService)
-		request *shieldv1beta1.UpdateRoleRequest
-		want    *shieldv1beta1.UpdateRoleResponse
+		request *shieldv1beta1.UpdateOrganizationRoleRequest
+		want    *shieldv1beta1.UpdateOrganizationRoleResponse
 		wantErr error
 	}{
 		{
@@ -358,17 +366,17 @@ func TestHandler_UpdateRole(t *testing.T) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.UpdateRoleRequest{
+			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -386,17 +394,17 @@ func TestHandler_UpdateRole(t *testing.T) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateRoleRequest{
+			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -414,17 +422,17 @@ func TestHandler_UpdateRole(t *testing.T) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidID)
 			},
-			request: &shieldv1beta1.UpdateRoleRequest{
+			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -441,16 +449,16 @@ func TestHandler_UpdateRole(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateRoleRequest{
+			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
 				Body: &shieldv1beta1.RoleRequestBody{
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -468,17 +476,17 @@ func TestHandler_UpdateRole(t *testing.T) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateRoleRequest{
+			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -496,17 +504,17 @@ func TestHandler_UpdateRole(t *testing.T) {
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceID: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrConflict)
 			},
-			request: &shieldv1beta1.UpdateRoleRequest{
+			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
-					Types:       testRoleMap[testRoleID].Types,
-					NamespaceId: testRoleMap[testRoleID].NamespaceID,
+					Permissions: testRoleMap[testRoleID].Permissions,
+					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -526,7 +534,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 				tt.setup(mockRoleSrv, mockMetaSchemaSvc)
 			}
 			mockDep := Handler{roleService: mockRoleSrv, metaSchemaService: mockMetaSchemaSvc}
-			resp, err := mockDep.UpdateRole(context.Background(), tt.request)
+			resp, err := mockDep.UpdateOrganizationRole(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

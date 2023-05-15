@@ -16,7 +16,7 @@ import (
 type NamespaceService interface {
 	Get(ctx context.Context, id string) (namespace.Namespace, error)
 	List(ctx context.Context) ([]namespace.Namespace, error)
-	Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
+	Upsert(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 	Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
@@ -48,7 +48,7 @@ func (h Handler) ListNamespaces(ctx context.Context, request *shieldv1beta1.List
 func (h Handler) CreateNamespace(ctx context.Context, request *shieldv1beta1.CreateNamespaceRequest) (*shieldv1beta1.CreateNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	newNS, err := h.namespaceService.Create(ctx, namespace.Namespace{
+	newNS, err := h.namespaceService.Upsert(ctx, namespace.Namespace{
 		ID:   request.GetBody().GetId(),
 		Name: request.GetBody().GetName(),
 	})

@@ -25,6 +25,7 @@ type RelationRepositoryTestSuite struct {
 	resource   *dockertest.Resource
 	repository *postgres.RelationRepository
 	relations  []relation.RelationV2
+	orgID      string
 }
 
 func (s *RelationRepositoryTestSuite) SetupSuite() {
@@ -44,7 +45,13 @@ func (s *RelationRepositoryTestSuite) SetupSuite() {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapRole(s.client)
+	orgs, err := bootstrapOrganization(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+	s.orgID = orgs[0].ID
+
+	_, err = bootstrapRole(s.client, s.orgID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -116,14 +123,14 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.Relation{}, "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.RelationV2{}, "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelation)
 			}
 		})
 	}
 }
 
-func (s *RelationRepositoryTestSuite) TestCreate() {
+func (s *RelationRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description      string
 		RelationToCreate relation.RelationV2
@@ -138,23 +145,23 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1",
-					RoleID:    "role1",
 				},
 				Object: relation.Object{
 					ID:        "uuid2",
 					Namespace: "ns1",
 				},
+				RelationName: "relation1",
 			},
 			ExpectedRelation: relation.RelationV2{
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1",
-					RoleID:    "ns1:role1",
 				},
 				Object: relation.Object{
 					ID:        "uuid2",
 					Namespace: "ns1",
 				},
+				RelationName: "relation1",
 			},
 		},
 		{
@@ -163,27 +170,12 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1-random",
-					RoleID:    "role1",
 				},
 				Object: relation.Object{
 					ID:        "uuid2",
 					Namespace: "ns1",
 				},
-			},
-			Err: relation.ErrInvalidDetail,
-		},
-		{
-			Description: "should return error if role id does not exist",
-			RelationToCreate: relation.RelationV2{
-				Subject: relation.Subject{
-					ID:        "uuid1",
-					Namespace: "ns1",
-					RoleID:    "role1-random",
-				},
-				Object: relation.Object{
-					ID:        "uuid2",
-					Namespace: "ns1",
-				},
+				RelationName: "relation1",
 			},
 			Err: relation.ErrInvalidDetail,
 		},
@@ -193,12 +185,12 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1",
-					RoleID:    "role1",
 				},
 				Object: relation.Object{
 					ID:        "uuid2",
 					Namespace: "ns10",
 				},
+				RelationName: "relation1",
 			},
 			Err: relation.ErrInvalidDetail,
 		},
@@ -206,7 +198,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.RelationToCreate)
+			got, err := s.repository.Upsert(s.ctx, tc.RelationToCreate)
 			if tc.Err != nil {
 				if errors.Is(tc.Err, err) {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err.Error())
@@ -237,23 +229,23 @@ func (s *RelationRepositoryTestSuite) TestList() {
 					Subject: relation.Subject{
 						ID:        "uuid1",
 						Namespace: "ns1",
-						RoleID:    "ns1:role1",
 					},
 					Object: relation.Object{
 						ID:        "uuid2",
 						Namespace: "ns1",
 					},
+					RelationName: "relation1",
 				},
 				{
 					Subject: relation.Subject{
 						ID:        "uuid3",
 						Namespace: "ns2",
-						RoleID:    "ns2:role2",
 					},
 					Object: relation.Object{
 						ID:        "uuid4",
 						Namespace: "ns2",
 					},
+					RelationName: "relation2",
 				},
 			},
 		},

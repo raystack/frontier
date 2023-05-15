@@ -2,38 +2,37 @@ package role
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
-	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/pkg/metadata"
+)
+
+type State string
+
+func (s State) String() string {
+	return string(s)
+}
+
+const (
+	Enabled  State = "enabled"
+	Disabled State = "disabled"
 )
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Role, error)
-	List(ctx context.Context) ([]Role, error)
-	Create(ctx context.Context, role Role) (string, error)
+	List(ctx context.Context, f Filter) ([]Role, error)
+	Upsert(ctx context.Context, role Role) (string, error)
 	Update(ctx context.Context, toUpdate Role) (string, error)
+	Delete(ctx context.Context, roleID string) error
 }
 
 type Role struct {
 	ID          string
+	OrgID       string
 	Name        string
-	Types       []string
-	NamespaceID string
+	Permissions []string
+	State       State
 	Metadata    metadata.Metadata
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-}
-
-func GetOwnerRole(ns namespace.Namespace) Role {
-	id := fmt.Sprintf("%s_%s", ns.ID, "owner")
-	name := fmt.Sprintf("%s_%s", strings.Title(ns.ID), "Owner")
-	return Role{
-		ID:          id,
-		Name:        name,
-		Types:       []string{UserType},
-		NamespaceID: ns.ID,
-	}
 }

@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,10 +15,16 @@ type Flow struct {
 	StartURL  string    `db:"start_url"`
 	FinishURL string    `db:"finish_url"`
 	Nonce     string    `db:"nonce"`
+	Metadata  []byte    `db:"metadata"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
-func (f *Flow) transformToFlow() *authenticate.Flow {
+func (f *Flow) transformToFlow() (*authenticate.Flow, error) {
+	var unmarshalledMetadata map[string]any
+	if err := json.Unmarshal(f.Metadata, &unmarshalledMetadata); err != nil {
+		return nil, fmt.Errorf("failed to parse metadata of flow: %w", err)
+	}
+
 	return &authenticate.Flow{
 		ID:        f.ID,
 		Method:    f.Method,
@@ -24,5 +32,6 @@ func (f *Flow) transformToFlow() *authenticate.Flow {
 		FinishURL: f.FinishURL,
 		Nonce:     f.Nonce,
 		CreatedAt: f.CreatedAt,
-	}
+		Metadata:  unmarshalledMetadata,
+	}, nil
 }

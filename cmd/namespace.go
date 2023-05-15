@@ -46,7 +46,7 @@ func createNamespaceCommand(cliConfig *Config) *cli.Command {
 
 	cmd := &cli.Command{
 		Use:   "create",
-		Short: "Create a namespace",
+		Short: "Upsert a namespace",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ shield namespace create --file=<namespace-body>

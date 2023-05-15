@@ -3,6 +3,8 @@ package session
 import (
 	"time"
 
+	"github.com/odpf/shield/pkg/metadata"
+
 	"github.com/google/uuid"
 )
 
@@ -19,6 +21,8 @@ type Session struct {
 	// ExpiresAt is ideally now() + lifespan of session, e.g. 7 days
 	ExpiresAt time.Time
 	CreatedAt time.Time
+
+	Metadata metadata.Metadata
 }
 
 func (s Session) IsValid() bool {

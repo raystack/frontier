@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
@@ -17,16 +16,10 @@ import (
 
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
-	//if err := req.ValidateAll(); err != nil {
-	//	formattedErr := getValidationErrorMessage(err)
-	//	logger.Error(formattedErr.Error())
-	//	return nil, status.Errorf(codes.NotFound, formattedErr.Error())
-	//}
-
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		Name:        req.GetObjectId(),
+		ID:          req.GetObjectId(),
 		NamespaceID: req.GetObjectNamespace(),
-	}, action.Action{ID: req.GetPermission()})
+	}, req.GetPermission())
 	if err != nil {
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
@@ -43,4 +36,43 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	}
 
 	return &shieldv1beta1.CheckResourcePermissionResponse{Status: true}, nil
+}
+
+func (h Handler) IsAuthorized(ctx context.Context, objectNamespace, objectID, permission string) error {
+	logger := grpczap.Extract(ctx)
+	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
+		ID:          objectID,
+		NamespaceID: objectNamespace,
+	}, permission)
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
+			return grpcUnauthenticated
+		default:
+			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
+			logger.Error(formattedErr.Error())
+			return status.Errorf(codes.Internal, ErrInternalServer.Error())
+		}
+	}
+
+	if !result {
+		return grpcPermissionDenied
+	}
+	return nil
+}
+
+func (h Handler) IsSuperUser(ctx context.Context) error {
+	logger := grpczap.Extract(ctx)
+	currentUser, err := h.getLoggedInUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	if ok, err := h.userService.IsSudo(ctx, currentUser.ID); err != nil {
+		return err
+	} else if ok {
+		return nil
+	}
+	return grpcPermissionDenied
 }

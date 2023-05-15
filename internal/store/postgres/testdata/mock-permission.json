@@ -1,0 +1,22 @@
+[
+    {
+        "name": "permission-post",
+        "namespaceId": "ns1",
+        "slug": "ns1_resource_post"
+    },
+    {
+        "name": "permission-get",
+        "namespaceId": "ns1",
+        "slug": "ns1_resource_get"
+    },
+    {
+        "name": "permission-put",
+        "namespaceId": "ns2",
+        "slug": "ns2_resource_put"
+    },
+    {
+        "name": "permission-delete",
+        "namespaceId": "ns2",
+        "slug": "ns2_resource_delete"
+    }
+]

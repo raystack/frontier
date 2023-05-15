@@ -12,3 +12,8 @@ func IsValid(key string) bool {
 	_, err := uuid.Parse(key)
 	return err == nil
 }
+
+func IsNull(key string) bool {
+	k, err := uuid.Parse(key)
+	return err != nil || k == uuid.Nil
+}

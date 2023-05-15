@@ -3,6 +3,8 @@ package authenticate
 import (
 	"time"
 
+	"github.com/odpf/shield/pkg/metadata"
+
 	"github.com/google/uuid"
 )
 
@@ -30,6 +32,8 @@ type Flow struct {
 
 	// Nonce is a once time use random string
 	Nonce string
+
+	Metadata metadata.Metadata
 
 	// CreatedAt will be used to clean-up dead auth flows
 	CreatedAt time.Time

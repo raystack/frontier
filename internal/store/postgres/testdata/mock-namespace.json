@@ -1,44 +1,35 @@
 [
     {
-        "id": "ns1",
         "name": "ns1"
     },
     {
-        "id": "ns2",
         "name": "ns2"
     },
     {
-        "id": "back1_r1",
         "name": "Back1 R1",
         "backend": "back1",
         "resourceType": "r1"
     },
     {
-        "id": "back1_r2",
         "name": "Back1 R2",
         "backend": "back1",
         "resourceType": "r2"
     },
     {
-        "id": "back2_r1",
         "name": "Back2 R1",
         "backend": "back2",
         "resourceType": "r1"
     },
     {
-        "id": "shield/group",
-        "name": "shield/group"
+        "name": "app/group"
     },
     {
-        "id": "shield/project",
-        "name": "shield/project"
+        "name": "app/project"
     },
     {
-        "id": "shield/organization",
-        "name": "shield/organization"
+        "name": "app/organization"
     },
     {
-        "id": "shield/user",
-        "name": "shield/user"
+        "name": "app/user"
     }
 ]

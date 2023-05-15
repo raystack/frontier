@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -108,6 +110,7 @@ func TestListNamespaces(t *testing.T) {
 }
 
 func TestCreateNamespace(t *testing.T) {
+	nsid := uuid.New().String()
 	table := []struct {
 		title string
 		setup func(ns *mocks.NamespaceService)
@@ -118,13 +121,11 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
-					ID:   "team",
+				ns.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
 					Name: "Team",
 				}).Return(namespace.Namespace{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
-				Id:   "team",
 				Name: "Team",
 			}},
 			want: nil,
@@ -133,13 +134,11 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return already exist error if namespace service return err conflict",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
-					ID:   "team",
+				ns.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
 					Name: "Team",
 				}).Return(namespace.Namespace{}, namespace.ErrConflict)
 			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
-				Id:   "team",
 				Name: "Team",
 			}},
 			want: nil,
@@ -148,7 +147,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return bad request error if id is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
 					Name: "Team",
 				}).Return(namespace.Namespace{}, namespace.ErrInvalidID)
 			},
@@ -161,31 +160,26 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return bad request error if name is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
-					ID: "team",
-				}).Return(namespace.Namespace{}, namespace.ErrInvalidDetail)
+				ns.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{}).Return(namespace.Namespace{}, namespace.ErrInvalidDetail)
 			},
-			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
-				Id: "team",
-			}},
+			req:  &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{}},
 			want: nil,
 			err:  grpcBadBodyError,
 		},
 		{
 			title: "should return success if namespace service return nil error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.Anything, mock.Anything).Return(
+				ns.EXPECT().Upsert(mock.Anything, mock.Anything).Return(
 					namespace.Namespace{
-						ID:   "team",
+						ID:   nsid,
 						Name: "Team",
 					}, nil)
 			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
-				Id:   "team",
 				Name: "Team",
 			}},
 			want: &shieldv1beta1.CreateNamespaceResponse{Namespace: &shieldv1beta1.Namespace{
-				Id:        "team",
+				Id:        nsid,
 				Name:      "Team",
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),
