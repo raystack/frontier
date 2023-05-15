@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/salt/log"
+
 	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
@@ -42,11 +44,13 @@ var defaultMetaSchemas = map[string]string{
 }
 
 type MetaSchemaRepository struct {
+	log log.Logger
 	dbc *db.Client
 }
 
-func NewMetaSchemaRepository(dbc *db.Client) *MetaSchemaRepository {
+func NewMetaSchemaRepository(logger log.Logger, dbc *db.Client) *MetaSchemaRepository {
 	return &MetaSchemaRepository{
+		log: logger,
 		dbc: dbc,
 	}
 }
@@ -127,7 +131,7 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, errDuplicateKey):
+		case errors.As(err, &errDuplicateKey):
 			return metaschema.MetaSchema{}, metaschema.ErrConflict
 		default:
 			return metaschema.MetaSchema{}, err
@@ -259,7 +263,8 @@ func (m MetaSchemaRepository) MigrateDefaults(ctx context.Context) error {
 			Schema: schema,
 		}); err != nil {
 			err = checkPostgresError(err)
-			if errors.Is(metaschema.ErrConflict, err) || errors.Is(err, sql.ErrNoRows) {
+			if errors.Is(metaschema.ErrConflict, err) {
+				m.log.Debug("schema already exists", "name", name)
 				continue
 			}
 			return errors.Wrap(err, "error in adding default schemas to db")

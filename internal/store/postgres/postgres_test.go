@@ -144,7 +144,7 @@ func setup(ctx context.Context, logger log.Logger, client *db.Client, cfg db.Con
 		return
 	}
 
-	err = cmd.RunMigrations(cfg)
+	err = cmd.RunMigrations(logger, cfg)
 	return
 }
 

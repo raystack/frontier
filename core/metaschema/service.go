@@ -31,8 +31,8 @@ func (s Service) Create(ctx context.Context, toCreate MetaSchema) (MetaSchema, e
 }
 
 func (s Service) Get(ctx context.Context, idOrName string) (MetaSchema, error) {
-	if s.metaSchemaCache[idOrName] != (MetaSchema{}) {
-		return s.metaSchemaCache[idOrName], nil
+	if schema, ok := s.metaSchemaCache[idOrName]; ok {
+		return schema, nil
 	}
 
 	if shielduuid.IsValid(idOrName) {
@@ -96,10 +96,13 @@ func (s Service) MigrateDefault(ctx context.Context) error {
 
 // validates the metadata against the json-schema. In case metaschema doesn't exists in the cache, it will return nil (no validation)
 func (s Service) Validate(mdata metadata.Metadata, name string) error {
-	if s.metaSchemaCache[name] == (MetaSchema{}) {
+	var mschema MetaSchema
+	var ok bool
+	if mschema, ok = s.metaSchemaCache[name]; !ok {
 		return nil
 	}
-	metadataSchema := gojsonschema.NewStringLoader(s.metaSchemaCache[name].Schema)
+
+	metadataSchema := gojsonschema.NewStringLoader(mschema.Schema)
 	providedSchema := gojsonschema.NewGoLoader(mdata)
 	results, err := gojsonschema.Validate(metadataSchema, providedSchema)
 	if err != nil {

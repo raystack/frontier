@@ -6,8 +6,8 @@ import (
 	"github.com/odpf/shield/config"
 )
 
-func MigrateShield(appConfig *config.Shield) error {
-	return cmd.RunMigrations(appConfig.DB)
+func MigrateShield(logger *log.Zap, appConfig *config.Shield) error {
+	return cmd.RunMigrations(logger, appConfig.DB)
 }
 
 func StartShield(logger *log.Zap, appConfig *config.Shield) {

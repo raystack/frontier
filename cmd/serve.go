@@ -218,7 +218,7 @@ func buildAPIDependencies(
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
 	policyService := policy.NewService(policyPGRepository)
 
-	metaschemaRepository := postgres.NewMetaSchemaRepository(dbc)
+	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)

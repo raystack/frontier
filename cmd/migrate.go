@@ -10,6 +10,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/internal/store/postgres/migrations"
@@ -17,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func RunMigrations(config db.Config) error {
+func RunMigrations(logger log.Logger, config db.Config) error {
 	m, err := getMigrationInstance(config)
 	if err != nil {
 		return err
@@ -32,7 +33,8 @@ func RunMigrations(config db.Config) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to db")
 	}
-	metaschemaRepository := postgres.NewMetaSchemaRepository(dbc)
+	logger.Info("adding default metadata schemas to db")
+	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
 	if err = metaschemaService.MigrateDefault(context.Background()); err != nil {
 		return errors.Wrap(err, "failed to add default schemas to db")

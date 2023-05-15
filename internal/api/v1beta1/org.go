@@ -8,7 +8,6 @@ import (
 
 	"github.com/odpf/shield/internal/schema"
 
-	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
@@ -139,8 +138,6 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 			return nil, grpcBadBodyError
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
-		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
-			return nil, grpcBadBodyMetaSchemaError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -228,8 +225,6 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
-		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
-			return nil, grpcBadBodyMetaSchemaError
 		default:
 			return nil, grpcInternalServerError
 		}

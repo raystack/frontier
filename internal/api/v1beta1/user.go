@@ -15,7 +15,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
@@ -171,8 +170,6 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 			stats.Record(ctx, telemetry.MMissingMetadataKeys.M(1))
 
 			return nil, grpcBadBodyError
-		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
-			return nil, grpcBadBodyMetaSchemaError
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -368,8 +365,6 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, grpcUserNotFoundError
-		case errors.Is(errors.Unwrap(err), metaschema.ErrInvalidMetaSchema):
-			return nil, grpcBadBodyMetaSchemaError
 		default:
 			return nil, grpcInternalServerError
 		}

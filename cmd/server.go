@@ -150,7 +150,7 @@ func serverMigrateCommand() *cobra.Command {
 			fmt.Println("Preparing migrations...")
 			logger.Info("shield is migrating", "version", Version)
 
-			if err = RunMigrations(appConfig.DB); err != nil {
+			if err = RunMigrations(logger, appConfig.DB); err != nil {
 				logger.Error("error running migrations", "error", err)
 				return err
 			}
