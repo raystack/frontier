@@ -3,7 +3,7 @@
         "name": "project1",
         "slug": "project-1",
         "metadata": {
-            "label": "label",
+            "label": {},
             "description": "description"
         }
     },

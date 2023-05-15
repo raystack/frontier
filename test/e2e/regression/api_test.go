@@ -88,7 +88,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 				Slug: "org-acme-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -109,7 +109,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 				Slug: "org-acme-2",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -242,7 +242,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 				OrgId: myOrg.GetId(),
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -496,7 +496,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -528,7 +528,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 				Slug:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -546,7 +546,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 					// TODO(kushsharma) add back foo fields once metadata jsonschema
 					// is implemented
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -563,7 +563,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 					// TODO(kushsharma) add back foo fields once metadata jsonschema
 					// is implemented
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -583,7 +583,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 					// TODO(kushsharma) add back foo fields once metadata jsonschema
 					// is implemented
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -606,7 +606,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 					// TODO(kushsharma) add back foo fields once metadata jsonschema
 					// is implemented
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},
@@ -623,7 +623,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 					// TODO(kushsharma) add back foo fields once metadata jsonschema
 					// is implemented
 					Fields: map[string]*structpb.Value{
-						"label": structpb.NewStringValue("Label"),
+						"description": structpb.NewStringValue("Description"),
 					},
 				},
 			},

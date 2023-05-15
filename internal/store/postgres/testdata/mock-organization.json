@@ -8,7 +8,7 @@
         "name": "org2",
         "slug": "org-2",
         "metadata": {
-            "label": "label",
+            "label": {},
             "description": "description"
         }
     }

@@ -8,7 +8,7 @@
         "name": "project2",
         "slug": "project-2",
         "metadata": {
-            "label": "label",
+            "label": {},
             "description": "description"
         }
     },

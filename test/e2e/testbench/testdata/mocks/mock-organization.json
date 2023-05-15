@@ -3,7 +3,7 @@
         "name": "org1",
         "slug": "org-1",
         "metadata": {
-            "label": "label",
+            "label": {},
             "description": "description"
         }
     },

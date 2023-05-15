@@ -10,7 +10,9 @@
         "email": "jane.dee@odpf.io",
         "slug": "john_dee_slug",
         "metadata": {
-            "label": "label",
+            "label": {
+                "key": "value"
+            },
             "description": "description"
         }
     }

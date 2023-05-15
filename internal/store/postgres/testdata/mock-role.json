@@ -19,7 +19,7 @@
     "types": ["admin", "user"],
     "namespaceId": "ns2",
     "metadata": {
-      "label": "label",
+      "label": {},
       "description": "description"
     }
   },
