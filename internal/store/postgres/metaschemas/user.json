@@ -1,0 +1,18 @@
+{
+  "title": "user metadata",
+  "description": "JSON-schema for validating user metadata",
+  "type": "object",
+  "properties": {
+    "label": {
+      "title": "Label",
+      "description": "Additional context about the user",
+      "type": "object"
+    },
+    "description": {
+      "title": "Description",
+      "description": "Some additional information for the user",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

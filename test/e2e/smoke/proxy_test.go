@@ -131,7 +131,7 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	appConfig.DB.URL = connStringExternal
 
 	// run migrations
-	err = testbench.MigrateShield(appConfig)
+	err = testbench.MigrateShield(logger, appConfig)
 	s.Assert().NoError(err)
 
 	// echo server for proxy

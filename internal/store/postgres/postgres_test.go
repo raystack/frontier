@@ -3,13 +3,13 @@ package postgres_test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
 
 	"github.com/odpf/salt/log"
+	"github.com/odpf/shield/cmd"
 	"github.com/odpf/shield/core/action"
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/namespace"
@@ -21,7 +21,6 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/internal/store/postgres/migrations"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
@@ -145,7 +144,7 @@ func setup(ctx context.Context, logger log.Logger, client *db.Client, cfg db.Con
 		return
 	}
 
-	err = db.RunMigrations(cfg, migrations.MigrationFs, migrations.ResourcePath)
+	err = cmd.RunMigrations(logger, cfg)
 	return
 }
 
@@ -225,31 +224,6 @@ func bootstrapUser(client *db.Client) ([]user.User, error) {
 	for _, d := range data {
 		domain, err := userRepository.Create(context.Background(), d)
 		if err != nil {
-			return nil, err
-		}
-
-		insertedData = append(insertedData, domain)
-	}
-
-	return insertedData, nil
-}
-
-func bootstrapMetadataKeys(client *db.Client) ([]user.UserMetadataKey, error) {
-	userRepository := postgres.NewUserRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-metadata-keys.json")
-	if err != nil {
-		return nil, err
-	}
-
-	var data []user.UserMetadataKey
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-		return nil, err
-	}
-
-	var insertedData []user.UserMetadataKey
-	for _, d := range data {
-		domain, err := userRepository.CreateMetadataKey(context.Background(), d)
-		if err != nil && !errors.Is(err, user.ErrKeyAlreadyExists) {
 			return nil, err
 		}
 

@@ -121,7 +121,7 @@ func TestCreateUser(t *testing.T) {
 	email := "user@odpf.io"
 	table := []struct {
 		title string
-		setup func(ctx context.Context, us *mocks.UserService) context.Context
+		setup func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
 		req   *shieldv1beta1.CreateUserRequest
 		want  *shieldv1beta1.CreateUserResponse
 		err   error
@@ -138,7 +138,8 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if metadata is not parsable",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
@@ -155,7 +156,8 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if email is empty",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name: "some user",
 				}).Return(user.User{}, user.ErrInvalidEmail)
@@ -176,7 +178,8 @@ func TestCreateUser(t *testing.T) {
 
 		{
 			title: "should return already exist error if user service return error conflict",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:     "some user",
 					Email:    "abc@test.com",
@@ -196,7 +199,8 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return success if user email contain whitespace but still valid service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:     "some user",
 					Email:    "abc@test.com",
@@ -239,7 +243,8 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return success if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:     "some user",
 					Email:    "abc@test.com",
@@ -289,10 +294,11 @@ func TestCreateUser(t *testing.T) {
 
 			ctx := context.Background()
 			mockUserSrv := new(mocks.UserService)
+			mockMetaSrv := new(mocks.MetaSchemaService)
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv)
+				ctx = tt.setup(ctx, mockUserSrv, mockMetaSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{userService: mockUserSrv, metaSchemaService: mockMetaSrv}
 			resp, err = mockDep.CreateUser(ctx, tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -485,7 +491,7 @@ func TestUpdateUser(t *testing.T) {
 	someID := uuid.NewString()
 	table := []struct {
 		title  string
-		setup  func(us *mocks.UserService)
+		setup  func(us *mocks.UserService, ms *mocks.MetaSchemaService)
 		req    *shieldv1beta1.UpdateUserRequest
 		header string
 		want   *shieldv1beta1.UpdateUserResponse
@@ -493,7 +499,8 @@ func TestUpdateUser(t *testing.T) {
 	}{
 		{
 			title: "should return internal error if user service return some error",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
@@ -519,7 +526,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if id is invalid",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -543,7 +551,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return already exist error if user service return error conflict",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
@@ -569,7 +578,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if email in request empty",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:   someID,
 					Name: "abc user",
@@ -600,7 +610,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return success if user service return nil error",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
@@ -647,7 +658,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return success even though name is empty",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
 					Email: "user@odpf.io",
@@ -693,11 +705,12 @@ func TestUpdateUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockMetaSrv := new(mocks.MetaSchemaService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				tt.setup(mockUserSrv)
+				tt.setup(mockUserSrv, mockMetaSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{userService: mockUserSrv, metaSchemaService: mockMetaSrv}
 			resp, err := mockDep.UpdateUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, tt.err, err)
@@ -709,7 +722,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 	email := "user@odpf.io"
 	table := []struct {
 		title  string
-		setup  func(ctx context.Context, us *mocks.UserService) context.Context
+		setup  func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
 		req    *shieldv1beta1.UpdateCurrentUserRequest
 		header string
 		want   *shieldv1beta1.UpdateCurrentUserResponse
@@ -731,7 +744,8 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return internal error if user service return some error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -755,7 +769,8 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if user service return err not exist",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:  "abc user",
 					Email: "user@odpf.io",
@@ -779,7 +794,8 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if diff emails in header and body",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
@@ -796,7 +812,8 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if empty request body",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req:  &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
@@ -805,7 +822,8 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return success if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByEmail(mock.Anything, mock.Anything).Return(
 					user.User{
 						ID:    "user-id-1",
@@ -847,11 +865,12 @@ func TestUpdateCurrentUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockMetaSrv := new(mocks.MetaSchemaService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv)
+				ctx = tt.setup(ctx, mockUserSrv, mockMetaSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{userService: mockUserSrv, metaSchemaService: mockMetaSrv}
 			resp, err := mockDep.UpdateCurrentUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)

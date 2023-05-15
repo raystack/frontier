@@ -34,7 +34,6 @@ type UserService interface {
 	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
-	CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
@@ -144,6 +143,11 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
+	}
+
+	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	// TODO might need to check the valid email form
@@ -256,7 +260,13 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
+		logger.Error(err.Error())
 		return nil, grpcBadBodyError
+	}
+
+	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	id := request.GetId()
@@ -332,6 +342,11 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	// if email in request body is different from the email in the header

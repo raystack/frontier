@@ -9,10 +9,10 @@ import (
 	"github.com/odpf/shield/internal/schema"
 
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	suuid "github.com/odpf/shield/pkg/uuid"
+	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -113,6 +113,11 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcBadBodyError
 	}
 
+	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
 	org := organization.Organization{
 		Name:     request.GetBody().GetName(),
 		Slug:     request.GetBody().GetSlug(),
@@ -133,8 +138,9 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 			return nil, grpcBadBodyError
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
 		}
-		return nil, grpcInternalServerError
 	}
 
 	metaData, err := newOrg.Metadata.ToStructPB()
@@ -190,6 +196,11 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	var updatedOrg organization.Organization

@@ -110,7 +110,7 @@ Create Group
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.orgId | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
+| body | body |  | Yes | { **"name"**: string, **"slug"**: string, **"metadata"**: object } |
 
 ##### Responses
 
@@ -132,7 +132,7 @@ Update Group by ID
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.orgId | path |  | Yes | string |
 | id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
+| body | body |  | Yes | { **"name"**: string, **"slug"**: string, **"metadata"**: object } |
 
 ##### Responses
 
@@ -143,7 +143,7 @@ Update Group by ID
 
 ### /v1beta1/organizations/{orgId}/groups
 
-#### POST
+#### GET
 ##### Summary
 
 Create Group
@@ -153,7 +153,8 @@ Create Group
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | orgId | path |  | Yes | string |
-| body | body |  | Yes | { **"userId"**: string, **"state"**: string } |
+| userId | query |  | No | string |
+| state | query |  | No | string |
 
 ##### Responses
 
@@ -790,7 +791,7 @@ Create Resource
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.projectId | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
+| body | body |  | Yes | { **"name"**: string, **"namespaceId"**: string, **"relations"**: [ [v1beta1Relation](#v1beta1relation) ], **"orgId"**: string } |
 
 ##### Responses
 
@@ -812,7 +813,7 @@ Update Resource by ID
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.projectId | path |  | Yes | string |
 | id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
+| body | body |  | Yes | { **"name"**: string, **"namespaceId"**: string, **"relations"**: [ [v1beta1Relation](#v1beta1relation) ], **"orgId"**: string } |
 
 ##### Responses
 
@@ -1147,8 +1148,8 @@ Authn
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
-| strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links. | No | string |
-| state | query | for oidc. | No | string |
+| strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
+| state | query | for oidc | No | string |
 | code | query |  | No | string |
 
 ##### Responses
@@ -1159,6 +1160,14 @@ Authn
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### POST
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
+| state | query | for oidc | No | string |
+| code | query |  | No | string |
+
 ##### Responses
 
 | Code | Description | Schema |
@@ -1192,8 +1201,8 @@ Authn
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | strategyName | path |  | Yes | string |
-| redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser. | No | boolean |
-| returnTo | query | be default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication. | No | string |
+| redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser | No | boolean |
+| returnTo | query | be default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication | No | string |
 
 ##### Responses
 
@@ -1208,6 +1217,8 @@ Authn
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | strategyName | path |  | Yes | string |
+| redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser | No | boolean |
+| returnTo | query | be default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication | No | string |
 
 ##### Responses
 
@@ -1236,6 +1247,97 @@ check permission for action on a resource by an user
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1CheckResourcePermissionResponse](#v1beta1checkresourcepermissionresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## default
+
+### /v1beta1/meta/schemas
+
+#### GET
+##### Summary
+
+Get all Metadata Schemas
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListMetaSchemasResponse](#v1beta1listmetaschemasresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create Metadata Schema
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1MetaSchemaRequestBody](#v1beta1metaschemarequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateMetaSchemaResponse](#v1beta1createmetaschemaresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/meta/schemas/{id}
+
+#### GET
+##### Summary
+
+Get MetaSchema by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetMetaSchemaResponse](#v1beta1getmetaschemaresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete a MetaSchema permanently
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteMetaSchemaResponse](#v1beta1deletemetaschemaresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update MetaSchema by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1MetaSchemaRequestBody](#v1beta1metaschemarequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateMetaSchemaResponse](#v1beta1updatemetaschemaresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ## default
@@ -1556,6 +1658,12 @@ Update Role by ID
 | ---- | ---- | ----------- | -------- |
 | group | [v1beta1Group](#v1beta1group) |  | No |
 
+#### v1beta1CreateMetaSchemaResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| metaschema | [v1beta1MetaSchema](#v1beta1metaschema) |  | No |
+
 #### v1beta1CreateNamespaceResponse
 
 | Name | Type | Description | Required |
@@ -1609,6 +1717,12 @@ Update Role by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | v1beta1DeleteGroupResponse | object |  |  |
+
+#### v1beta1DeleteMetaSchemaResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteMetaSchemaResponse | object |  |  |
 
 #### v1beta1DeleteOrganizationResponse
 
@@ -1705,6 +1819,12 @@ Update Role by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | group | [v1beta1Group](#v1beta1group) |  | No |
+
+#### v1beta1GetMetaSchemaResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| metaschema | [v1beta1MetaSchema](#v1beta1metaschema) |  | No |
 
 #### v1beta1GetNamespaceResponse
 
@@ -1827,6 +1947,12 @@ Update Role by ID
 | ---- | ---- | ----------- | -------- |
 | groups | [ [v1beta1Group](#v1beta1group) ] |  | No |
 
+#### v1beta1ListMetaSchemasResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| metaschemas | [ [v1beta1MetaSchema](#v1beta1metaschema) ] |  | No |
+
 #### v1beta1ListNamespacesResponse
 
 | Name | Type | Description | Required |
@@ -1923,6 +2049,23 @@ Update Role by ID
 | ---- | ---- | ----------- | -------- |
 | count | integer |  | No |
 | users | [ [v1beta1User](#v1beta1user) ] |  | No |
+
+#### v1beta1MetaSchema
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| id | string |  | No |
+| name | string |  | No |
+| schema | string |  | No |
+| createdAt | dateTime |  | No |
+| updatedAt | dateTime |  | No |
+
+#### v1beta1MetaSchemaRequestBody
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| name | string |  | No |
+| schema | string |  | No |
 
 #### v1beta1Namespace
 
@@ -2087,6 +2230,12 @@ Update Role by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | group | [v1beta1Group](#v1beta1group) |  | No |
+
+#### v1beta1UpdateMetaSchemaResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| metaschema | [v1beta1MetaSchema](#v1beta1metaschema) |  | No |
 
 #### v1beta1UpdateNamespaceResponse
 

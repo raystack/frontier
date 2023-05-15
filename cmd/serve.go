@@ -13,6 +13,7 @@ import (
 	"github.com/odpf/shield/core/deleter"
 
 	"github.com/odpf/shield/core/authenticate/session"
+	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/internal/server/consts"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
@@ -49,6 +50,7 @@ var (
 )
 
 func StartServer(logger *log.Zap, cfg *config.Shield) error {
+	logger.Info("shield starting", "version", Version)
 	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}
@@ -108,23 +110,15 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	namespaceRepository := postgres.NewNamespaceRepository(dbClient)
 	namespaceService := namespace.NewService(namespaceRepository)
 
-	s := schema.NewSchemaMigrationService(
-		blob.NewSchemaConfigRepository(resourceBlobFS),
-		namespaceService,
-		roleService,
-		actionService,
-		policyService,
-		policySpiceRepository,
-	)
-
-	err = s.RunMigrations(ctx)
-	if err != nil {
-		return err
-	}
-
 	deps, err := buildAPIDependencies(logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
+	}
+	// load metadata schema in memory from db
+	if schemas, err := deps.MetaSchemaService.List(context.Background()); err != nil {
+		logger.Warn("metaschemas initialization failed", "err", err)
+	} else {
+		logger.Info("metaschemas loaded", "count", len(schemas))
 	}
 
 	// session service initialization and cleanup
@@ -142,6 +136,20 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	defer func() {
 		deps.RegistrationService.Close()
 	}()
+
+	s := schema.NewSchemaMigrationService(
+		blob.NewSchemaConfigRepository(resourceBlobFS),
+		namespaceService,
+		roleService,
+		actionService,
+		policyService,
+		policySpiceRepository,
+	)
+
+	err = s.RunMigrations(ctx)
+	if err != nil {
+		return err
+	}
 
 	// serving proxies
 	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
@@ -210,6 +218,9 @@ func buildAPIDependencies(
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
 	policyService := policy.NewService(policyPGRepository)
 
+	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
+	metaschemaService := metaschema.NewService(metaschemaRepository)
+
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
 		resourcePGRepository,
@@ -238,6 +249,7 @@ func buildAPIDependencies(
 		SessionService:      sessionService,
 		RegistrationService: registrationService,
 		DeleterService:      cascadeDeleter,
+		MetaSchemaService:   metaschemaService,
 	}
 	return dependencies, nil
 }

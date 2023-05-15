@@ -666,6 +666,157 @@
         ]
       }
     },
+    "/v1beta1/meta/schemas": {
+      "get": {
+        "summary": "Get all Metadata Schemas",
+        "operationId": "ShieldService_ListMetaSchemas",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListMetaSchemasResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "MetaSchema"
+        ]
+      },
+      "post": {
+        "summary": "Create Metadata Schema",
+        "operationId": "ShieldService_CreateMetaSchema",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateMetaSchemaResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1MetaSchemaRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "MetaSchema"
+        ]
+      }
+    },
+    "/v1beta1/meta/schemas/{id}": {
+      "get": {
+        "summary": "Get MetaSchema by ID",
+        "operationId": "ShieldService_GetMetaSchema",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1GetMetaSchemaResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MetaSchema"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a MetaSchema permanently",
+        "operationId": "ShieldService_DeleteMetaSchema",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteMetaSchemaResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MetaSchema"
+        ]
+      },
+      "put": {
+        "summary": "Update MetaSchema by ID",
+        "operationId": "ShieldService_UpdateMetaSchema",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1UpdateMetaSchemaResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1MetaSchemaRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "MetaSchema"
+        ]
+      }
+    },
     "/v1beta1/namespaces": {
       "get": {
         "summary": "Get all Namespaces",
@@ -2883,6 +3034,14 @@
         }
       }
     },
+    "v1beta1CreateMetaSchemaResponse": {
+      "type": "object",
+      "properties": {
+        "metaschema": {
+          "$ref": "#/definitions/v1beta1MetaSchema"
+        }
+      }
+    },
     "v1beta1CreateNamespaceResponse": {
       "type": "object",
       "properties": {
@@ -2954,6 +3113,9 @@
     "v1beta1DeleteGroupResponse": {
       "type": "object"
     },
+    "v1beta1DeleteMetaSchemaResponse": {
+      "type": "object"
+    },
     "v1beta1DeleteOrganizationResponse": {
       "type": "object"
     },
@@ -3019,6 +3181,14 @@
       "properties": {
         "group": {
           "$ref": "#/definitions/v1beta1Group"
+        }
+      }
+    },
+    "v1beta1GetMetaSchemaResponse": {
+      "type": "object",
+      "properties": {
+        "metaschema": {
+          "$ref": "#/definitions/v1beta1MetaSchema"
         }
       }
     },
@@ -3236,6 +3406,18 @@
         }
       }
     },
+    "v1beta1ListMetaSchemasResponse": {
+      "type": "object",
+      "properties": {
+        "metaschemas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1MetaSchema"
+          }
+        }
+      }
+    },
     "v1beta1ListNamespacesResponse": {
       "type": "object",
       "properties": {
@@ -3429,6 +3611,39 @@
             "type": "object",
             "$ref": "#/definitions/v1beta1User"
           }
+        }
+      }
+    },
+    "v1beta1MetaSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "v1beta1MetaSchemaRequestBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
         }
       }
     },
@@ -3775,6 +3990,14 @@
       "properties": {
         "group": {
           "$ref": "#/definitions/v1beta1Group"
+        }
+      }
+    },
+    "v1beta1UpdateMetaSchemaResponse": {
+      "type": "object",
+      "properties": {
+        "metaschema": {
+          "$ref": "#/definitions/v1beta1MetaSchema"
         }
       }
     },

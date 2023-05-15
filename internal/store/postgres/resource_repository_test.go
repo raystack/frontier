@@ -56,10 +56,6 @@ func (s *ResourceRepositoryTestSuite) SetupSuite() {
 		s.T().Fatal(err)
 	}
 
-	_, err = bootstrapMetadataKeys(s.client)
-	if err != nil {
-		s.T().Fatal(err)
-	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)

@@ -983,6 +983,85 @@ func (x *Resource) GetUrn() string {
 	return ""
 }
 
+type MetaSchema struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name      string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Schema    string                 `protobuf:"bytes,3,opt,name=schema,proto3" json:"schema,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+}
+
+func (x *MetaSchema) Reset() {
+	*x = MetaSchema{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_odpf_shield_v1beta1_models_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MetaSchema) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetaSchema) ProtoMessage() {}
+
+func (x *MetaSchema) ProtoReflect() protoreflect.Message {
+	mi := &file_odpf_shield_v1beta1_models_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetaSchema.ProtoReflect.Descriptor instead.
+func (*MetaSchema) Descriptor() ([]byte, []int) {
+	return file_odpf_shield_v1beta1_models_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *MetaSchema) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *MetaSchema) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetaSchema) GetSchema() string {
+	if x != nil {
+		return x.Schema
+	}
+	return ""
+}
+
+func (x *MetaSchema) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *MetaSchema) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
 var File_odpf_shield_v1beta1_models_proto protoreflect.FileDescriptor
 
 var file_odpf_shield_v1beta1_models_proto_rawDesc = []byte{
@@ -1190,14 +1269,27 @@ var file_odpf_shield_v1beta1_models_proto_rawDesc = []byte{
 	0x65, 0x72, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x6f, 0x64, 0x70, 0x66, 0x2e,
 	0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x55,
 	0x73, 0x65, 0x72, 0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6e,
-	0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6e, 0x42, 0x5c, 0x0a, 0x1d, 0x69,
-	0x6f, 0x2e, 0x6f, 0x64, 0x70, 0x66, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x2e, 0x73, 0x68,
-	0x69, 0x65, 0x6c, 0x64, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x42, 0x06, 0x53, 0x68,
-	0x69, 0x65, 0x6c, 0x64, 0x5a, 0x33, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x6f, 0x64, 0x70, 0x66, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x2f, 0x73, 0x68, 0x69,
-	0x65, 0x6c, 0x64, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x3b, 0x73, 0x68, 0x69, 0x65,
-	0x6c, 0x64, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6e, 0x22, 0xd8, 0x01, 0x0a, 0x0a,
+	0x4d, 0x65, 0x74, 0x61, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x2c, 0x0a, 0x04, 0x6e, 0x61,
+	0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xfa, 0x42, 0x15, 0x72, 0x13, 0x32,
+	0x11, 0x5e, 0x5b, 0x41, 0x2d, 0x5a, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x2d, 0x5f, 0x20, 0x5d,
+	0x2b, 0x24, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x63, 0x68, 0x65,
+	0x6d, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x12, 0x39, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
+	0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x39, 0x0a, 0x0a, 0x75,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x75, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x42, 0x5c, 0x0a, 0x1d, 0x69, 0x6f, 0x2e, 0x6f, 0x64, 0x70,
+	0x66, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x2e, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x42, 0x06, 0x53, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x5a,
+	0x33, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6f, 0x64, 0x70, 0x66,
+	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x2f, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2f, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x3b, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1212,7 +1304,7 @@ func file_odpf_shield_v1beta1_models_proto_rawDescGZIP() []byte {
 	return file_odpf_shield_v1beta1_models_proto_rawDescData
 }
 
-var file_odpf_shield_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_odpf_shield_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_odpf_shield_v1beta1_models_proto_goTypes = []interface{}{
 	(*User)(nil),                  // 0: odpf.shield.v1beta1.User
 	(*Group)(nil),                 // 1: odpf.shield.v1beta1.Group
@@ -1224,49 +1316,52 @@ var file_odpf_shield_v1beta1_models_proto_goTypes = []interface{}{
 	(*Policy)(nil),                // 7: odpf.shield.v1beta1.Policy
 	(*Relation)(nil),              // 8: odpf.shield.v1beta1.Relation
 	(*Resource)(nil),              // 9: odpf.shield.v1beta1.Resource
-	(*structpb.Struct)(nil),       // 10: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
+	(*MetaSchema)(nil),            // 10: odpf.shield.v1beta1.MetaSchema
+	(*structpb.Struct)(nil),       // 11: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
 }
 var file_odpf_shield_v1beta1_models_proto_depIdxs = []int32{
-	10, // 0: odpf.shield.v1beta1.User.metadata:type_name -> google.protobuf.Struct
-	11, // 1: odpf.shield.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
-	11, // 2: odpf.shield.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
-	10, // 3: odpf.shield.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
-	11, // 4: odpf.shield.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
-	11, // 5: odpf.shield.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 0: odpf.shield.v1beta1.User.metadata:type_name -> google.protobuf.Struct
+	12, // 1: odpf.shield.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
+	12, // 2: odpf.shield.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 3: odpf.shield.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
+	12, // 4: odpf.shield.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
+	12, // 5: odpf.shield.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
 	6,  // 6: odpf.shield.v1beta1.Role.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	10, // 7: odpf.shield.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
-	11, // 8: odpf.shield.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
-	11, // 9: odpf.shield.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
-	10, // 10: odpf.shield.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
-	11, // 11: odpf.shield.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
-	11, // 12: odpf.shield.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
-	10, // 13: odpf.shield.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
-	11, // 14: odpf.shield.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
-	11, // 15: odpf.shield.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 7: odpf.shield.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
+	12, // 8: odpf.shield.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
+	12, // 9: odpf.shield.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 10: odpf.shield.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
+	12, // 11: odpf.shield.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
+	12, // 12: odpf.shield.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 13: odpf.shield.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
+	12, // 14: odpf.shield.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
+	12, // 15: odpf.shield.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
 	6,  // 16: odpf.shield.v1beta1.Action.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	11, // 17: odpf.shield.v1beta1.Action.created_at:type_name -> google.protobuf.Timestamp
-	11, // 18: odpf.shield.v1beta1.Action.updated_at:type_name -> google.protobuf.Timestamp
-	11, // 19: odpf.shield.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
-	11, // 20: odpf.shield.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 17: odpf.shield.v1beta1.Action.created_at:type_name -> google.protobuf.Timestamp
+	12, // 18: odpf.shield.v1beta1.Action.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 19: odpf.shield.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
+	12, // 20: odpf.shield.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
 	2,  // 21: odpf.shield.v1beta1.Policy.role:type_name -> odpf.shield.v1beta1.Role
 	5,  // 22: odpf.shield.v1beta1.Policy.action:type_name -> odpf.shield.v1beta1.Action
 	6,  // 23: odpf.shield.v1beta1.Policy.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	11, // 24: odpf.shield.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
-	11, // 25: odpf.shield.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
-	11, // 26: odpf.shield.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
-	11, // 27: odpf.shield.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 24: odpf.shield.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
+	12, // 25: odpf.shield.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 26: odpf.shield.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
+	12, // 27: odpf.shield.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 28: odpf.shield.v1beta1.Resource.project:type_name -> odpf.shield.v1beta1.Project
 	3,  // 29: odpf.shield.v1beta1.Resource.organization:type_name -> odpf.shield.v1beta1.Organization
 	6,  // 30: odpf.shield.v1beta1.Resource.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	11, // 31: odpf.shield.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
-	11, // 32: odpf.shield.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 31: odpf.shield.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
+	12, // 32: odpf.shield.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 33: odpf.shield.v1beta1.Resource.user:type_name -> odpf.shield.v1beta1.User
-	34, // [34:34] is the sub-list for method output_type
-	34, // [34:34] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	12, // 34: odpf.shield.v1beta1.MetaSchema.created_at:type_name -> google.protobuf.Timestamp
+	12, // 35: odpf.shield.v1beta1.MetaSchema.updated_at:type_name -> google.protobuf.Timestamp
+	36, // [36:36] is the sub-list for method output_type
+	36, // [36:36] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_odpf_shield_v1beta1_models_proto_init() }
@@ -1395,6 +1490,18 @@ func file_odpf_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
+		file_odpf_shield_v1beta1_models_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MetaSchema); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1402,7 +1509,7 @@ func file_odpf_shield_v1beta1_models_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_odpf_shield_v1beta1_models_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

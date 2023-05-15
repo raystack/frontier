@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
@@ -1143,48 +1144,6 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	transformedUser.Metadata = data
 
 	return transformedUser, nil
-}
-
-func (r UserRepository) CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error) {
-	if key.Key == "" {
-		return user.UserMetadataKey{}, user.ErrEmptyKey
-	}
-
-	createQuery, params, err := dialect.Insert(TABLE_METADATA_KEYS).Rows(
-		goqu.Record{
-			"key":         key.Key,
-			"description": key.Description,
-		}).Returning("key", "description", "created_at", "updated_at").ToSQL()
-	if err != nil {
-		return user.UserMetadataKey{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var metadataKey UserMetadataKey
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METADATA_KEYS,
-				Operation:  "Create",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		return r.dbc.QueryRowxContext(ctx, createQuery, params...).
-			StructScan(&metadataKey)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errDuplicateKey):
-			return user.UserMetadataKey{}, user.ErrKeyAlreadyExists
-		default:
-			return user.UserMetadataKey{}, err
-		}
-	}
-
-	return metadataKey.tranformUserMetadataKey(), nil
 }
 
 func (r UserRepository) SetState(ctx context.Context, id string, state user.State) error {

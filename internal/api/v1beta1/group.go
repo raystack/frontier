@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
 	"github.com/odpf/shield/pkg/str"
 	"github.com/odpf/shield/pkg/uuid"
+	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -105,6 +105,11 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcBadBodyError
 	}
 
+	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
 	grp := group.Group{
 		Name:           request.GetBody().GetName(),
 		Slug:           request.GetBody().GetSlug(),
@@ -181,6 +186,11 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
 	}
 
 	var updatedGroup group.Group

@@ -102,14 +102,15 @@ func TestCreateOrganization(t *testing.T) {
 	email := "user@odpf.io"
 	table := []struct {
 		title string
-		setup func(ctx context.Context, os *mocks.OrganizationService) context.Context
+		setup func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context
 		req   *shieldv1beta1.CreateOrganizationRequest
 		want  *shieldv1beta1.CreateOrganizationResponse
 		err   error
 	}{
 		{
 			title: "should return forbidden error if auth email in context is empty and org service return invalid user email",
-			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					Name:     "some org",
 					Slug:     "some-org",
@@ -126,7 +127,8 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "should return internal error if org service return some error",
-			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Name:     "some org",
 					Slug:     "abc",
@@ -144,7 +146,8 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if name is empty",
-			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Slug:     "abc",
 					Metadata: metadata.Metadata{},
@@ -160,7 +163,8 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "should return already exist error if org service return error conflict",
-			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Slug:     "abc",
 					Metadata: metadata.Metadata{},
@@ -190,7 +194,8 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "should return success if org service return nil error",
-			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
+			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Name: "some org",
 					Slug: "some-org",
@@ -233,11 +238,12 @@ func TestCreateOrganization(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockOrgSrv := new(mocks.OrganizationService)
+			mockMetaSchemaSvc := new(mocks.MetaSchemaService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockOrgSrv)
+				ctx = tt.setup(ctx, mockOrgSrv, mockMetaSchemaSvc)
 			}
-			mockDep := Handler{orgService: mockOrgSrv}
+			mockDep := Handler{orgService: mockOrgSrv, metaSchemaService: mockMetaSchemaSvc}
 			resp, err := mockDep.CreateOrganization(ctx, tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -332,14 +338,15 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 	someOrgID := uuid.NewString()
 	tests := []struct {
 		name    string
-		setup   func(os *mocks.OrganizationService)
+		setup   func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService)
 		request *shieldv1beta1.UpdateOrganizationRequest
 		want    *shieldv1beta1.UpdateOrganizationResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService) {
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
@@ -370,7 +377,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		},
 		{
 			name: "should return not found error if org id is not uuid (slug) and not exist",
-			setup: func(os *mocks.OrganizationService) {
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
@@ -401,7 +409,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		},
 		{
 			name: "should return not found error if org id is empty",
-			setup: func(os *mocks.OrganizationService) {
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					Name: "new org",
 					Slug: "", // consider it by slug and assign empty to slug
@@ -430,7 +439,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		},
 		{
 			name: "should return already exist error if org service return err conflict",
-			setup: func(os *mocks.OrganizationService) {
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
@@ -461,7 +471,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		},
 		{
 			name: "should return success if org service is updated by id and return nil error",
-			setup: func(os *mocks.OrganizationService) {
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
@@ -516,7 +527,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		},
 		{
 			name: "should return success if org service is updated by slug and return nil error",
-			setup: func(os *mocks.OrganizationService) {
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
 					Name: "new org",
 					Slug: "some-slug",
@@ -572,11 +584,12 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockOrgSrv := new(mocks.OrganizationService)
+			mockMetaSchemaSvc := new(mocks.MetaSchemaService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				tt.setup(mockOrgSrv)
+				tt.setup(mockOrgSrv, mockMetaSchemaSvc)
 			}
-			mockDep := Handler{orgService: mockOrgSrv}
+			mockDep := Handler{orgService: mockOrgSrv, metaSchemaService: mockMetaSchemaSvc}
 			got, err := mockDep.UpdateOrganization(ctx, tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)

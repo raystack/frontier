@@ -44,10 +44,6 @@ func (s *UserRepositoryTestSuite) SetupSuite() {
 func (s *UserRepositoryTestSuite) SetupTest() {
 	var err error
 
-	_, err = bootstrapMetadataKeys(s.client)
-	if err != nil {
-		s.T().Fatal(err)
-	}
 	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)
@@ -71,7 +67,6 @@ func (s *UserRepositoryTestSuite) cleanup() error {
 	queries := []string{
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
-		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA_KEYS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }
@@ -189,18 +184,20 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a user",
 			UserToCreate: user.User{
-				Name:  "new user",
-				Email: "new.user@odpf.io",
-				Slug:  "test_user_slug",
+				Name:     "new user",
+				Email:    "new.user@odpf.io",
+				Slug:     "test_user_slug",
+				Metadata: metadata.Metadata{},
 			},
 			ExpectedEmail: "new.user@odpf.io",
 		},
 		{
 			Description: "should return error if user already exist",
 			UserToCreate: user.User{
-				Name:  "new user",
-				Email: "new.user@odpf.io",
-				Slug:  "test_user_slug",
+				Name:     "new user",
+				Email:    "new.user@odpf.io",
+				Slug:     "test_user_slug",
+				Metadata: metadata.Metadata{},
 			},
 			ErrString: user.ErrConflict.Error(),
 		},
@@ -327,7 +324,8 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 				Email: s.users[0].Email,
 				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
-					"k1": "v1",
+					"label":       "Label",
+					"description": "Description",
 				},
 			},
 			ExpectedUser: user.User{
@@ -335,7 +333,8 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 				Email: s.users[0].Email,
 				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
-					"k1": "v1",
+					"label":       "Label",
+					"description": "Description",
 				},
 				State: user.Enabled,
 			},
@@ -390,7 +389,8 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				Email: s.users[0].Email,
 				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
-					"k2": "v2",
+					"label":       "Label",
+					"description": "Description",
 				},
 			},
 			ExpectedUser: user.User{
@@ -399,7 +399,8 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				Email: s.users[0].Email,
 				Slug:  s.users[0].Slug,
 				Metadata: metadata.Metadata{
-					"k2": "v2",
+					"label":       "Label",
+					"description": "Description",
 				},
 				State: user.Enabled,
 			},
@@ -417,17 +418,19 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		{
 			Description: "should not update the user email",
 			UserToUpdate: user.User{
-				ID:    s.users[0].ID,
-				Name:  "Doe John",
-				Email: s.users[1].Email,
-				Slug:  s.users[0].Slug,
+				ID:       s.users[0].ID,
+				Name:     "Doe John",
+				Email:    s.users[1].Email,
+				Slug:     s.users[0].Slug,
+				Metadata: s.users[0].Metadata,
 			},
 			ExpectedUser: user.User{
-				ID:    s.users[0].ID,
-				Name:  "Doe John",
-				Email: s.users[0].Email,
-				Slug:  s.users[0].Slug,
-				State: user.Enabled,
+				ID:       s.users[0].ID,
+				Name:     "Doe John",
+				Email:    s.users[0].Email,
+				Slug:     s.users[0].Slug,
+				Metadata: s.users[0].Metadata,
+				State:    user.Enabled,
 			},
 		},
 		{

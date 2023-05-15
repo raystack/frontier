@@ -82,7 +82,7 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 		FullyConsistent: true,
 	}
 
-	if err = MigrateShield(appConfig); err != nil {
+	if err = MigrateShield(logger, appConfig); err != nil {
 		return nil, err
 	}
 
