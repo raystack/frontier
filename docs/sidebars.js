@@ -2,6 +2,7 @@ module.exports = {
   docsSidebar: [
     'introduction',
     'installation',
+    'configurations',
     {
       type: "category",
       label: "Concepts",
@@ -51,5 +52,12 @@ module.exports = {
         "reference/cli"
       ],
     },
+    {
+      type: "category",
+      label: "Contribute",
+      items: [
+        "contribution/contribute",
+      ],
+    }
   ],
 };

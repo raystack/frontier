@@ -31,32 +31,32 @@ Here are the steps to work with Shield.
 
 3. Making Shield proxy request: User can now hit at the shield server followed by the url path.
 
-## Features
+## Key Features
 
-- **Organization and Project Management**
+- **Organization and Project Management**: Shield provides API to create and manage organizations/projects. Admins can create projects and groups within organizations.
 
-  Shield provides API to create and manage organizations/projects.
-  Admins can create projects and groups within organizations.
+- **Group Management**: In group management, group admins can manage groups, add-remove members to the groups, and assign roles to the members.
 
-- **Group Management**
+- **Policy Management**: Users can create policies to define which roles can perform what action on the resources.
 
-  In group management, group admins can manage groups, add-remove members to the groups, and assign roles to the members.
-
-- **Policy Management**
-
-  Users can create policies to define which roles can perform what action on the resources.
-
-- **Reverse Proxy**
-
-  Shield can also restrict access to the proxy api to the users as per attributes and policies.
-
-- **GRPC/REST based APIs**
+- **Reverse Proxy**: Shield can also restrict access to the proxy api to the users as per attributes and policies.
 
 ## Using Shield
+
 You can manage organizations, projects, group, users and resources in any of the following ways:
 
 ### Shield Command Line Interface
+
 You can use the Shield command line interface to issue commands and to perform the entire Shield features. Using the command line can be faster and more convenient than using API. For more information on using the Shield CLI, see the CLI Reference page.
 
 ### HTTPS API
+
 You can manage relation creation, checking authorization on a resource and much more by using the Shield HTTPS API, which lets you issue HTTPS requests directly to the service. For more information, see the API Reference page.
+
+## Where to go from here
+
+See the [installation](./installation) page to install the Shield CLI. Next, we recommend completing the guides. The tour provides an overview of most of the existing functionality of Shield and takes approximately 30 minutes to complete.
+
+After completing the tour, check out the remainder of the documentation in the reference and concepts sections for your specific areas of interest. We've aimed to provide as much documentation as we can for the various components of Shield to give you a full understanding of Shield's surface area.
+
+Finally, follow the project on [GitHub](https://github.com/odpf/shield), and contact us if you'd like to get involved.

@@ -1,18 +1,13 @@
-# Configurations
+#  Configuartions
+## Server Configurations
 
-Shield can be configured with config.yaml file. An example of such is:
+<details>
+<summary> Sample Config </summary>
 
 ```yaml title=config.yaml
-version: 1
-
-# logging configuration
-log:
-  # debug, info, warning, error, fatal - default 'info'
-  level: debug
-
 app:
   port: 8000
-  grpc: 
+  grpc:
     port: 8001
   metrics_port: 9000
   host: 127.0.0.1
@@ -29,25 +24,42 @@ app:
   # secret string "val://user:password"
   # optional
   resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
+  # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
+  disable_orgs_listing: false
+  # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
+  disable_users_listing: false
+  # cors_origin is origin value from where we want to allow cors
+  cors_origin: http://localhost:3000
+  # configuration to allow authentication in shield
   authentication:
+    # to use shield as session store
     session:
       # both of them should be 32 chars long
       # hash helps identify if the value is tempered with
       hash_secret_key: "hash-secret-should-be-32-chars--"
       # block helps in encryption
       block_secret_key: "block-secret-should-be-32-chars-"
+    # once authenticated, server responds with a jwt with user context
     token:
       # generate key file via "./shield server keygen"
       rsa_path: ./temp/rsa
       iss: "http://localhost.shield"
     # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
-    # oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
-    oidc_callback_host: http://localhost:8888/callback
+    oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
+    # oidc auth server configs
     oidc_config:
       google:
         client_id: "xxxxx.apps.googleusercontent.com"
         client_secret: "xxxxx"
         issuer_url: "https://accounts.google.com"
+  # platform level administration
+  admin:
+    # Email list of users which needs to be converted as superusers
+    # if the user is already present in the system, it is promoted to su
+    # if not, a new account is created with provided email id and promoted to su.
+    # UUIDs/slugs of existing users can also be provided instead of email ids
+    # but in that case a new user will not be created.
+    users: []
 
 db:
   driver: postgres
@@ -61,6 +73,9 @@ spicedb:
   host: localhost
   pre_shared_key: random_key
   port: 50051
+  # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
+  # suggested to keep it false for performance
+  fully_consistent: false
 
 # proxy configuration
 proxy:
@@ -82,3 +97,75 @@ proxy:
       # optional
       ruleset_secret: env://TEST_RULESET_SECRET
 ```
+
+</details>
+
+This page contains reference for all the application configurations for Shield.
+
+### Version
+
+| **Field**   | **Type** |**Description**                                  | **Required** |
+| ----------- | -------- |------------------------------------------------ | ------------ |
+| **version** | `int`    |Version number of the Shield configuration file. | No           |
+
+### Loggin Configuration
+
+| **Field**     | **Type** | **Description**                                                                            | **Required** |
+| ------------- | -------- | ------------------------------------------------------------------------------------------ | ------------ |
+| **log.level** | `string` | Logging level for Shield. Possible values **`debug`, `info`, `warning`, `error`, `fatal`** | No           |
+
+### App Configuration
+
+| **Field**                            | **Description**                                                                  | **Example** | **Required** |
+| ------------------------------------ | -------------------------------------------------------------------------------- | ----------- | ------------ |
+| **app.port**                         | Port number for HTTP communication.                                              | 8000        | Yes          |
+| **app.grpc_port**                    | Port number for gRPC communication.                                              | 8001        | Yes          |
+| **app.metrics_port**                 | Port number for metrics reporting.                                               | 9000        | Yes          |
+| **app.host**                         | Host address for the Shield application.                                         | 127.0.0.1   | Yes          |
+| **app.identity_proxy_header**        | Header key used for identity proxy.                                              |             |              |
+| **app.resources_config_path**        | Full path prefixed with the scheme where resources config YAML files are stored. |             | Yes          |
+| **app.resources_config_path_secret** | Secret required to access resources config.                                      |             |              |
+| **app.disable_orgs_listing**         | If set to true, disallows non-admin APIs to list all organizations.              |             |              |
+| **app.disable_users_listing**        | If set to true, disallows non-admin APIs to list all users.                      |             |              |
+| **app.cors_origin**                  | Origin value from where CORS is allowed.                                         |             |              |
+
+### Authentication Configurations
+
+Configuration to allow authentication in Shield.
+
+| **Field**                                               | **Description**                                    | **Example** | **Required**                                  |
+| --------------------------------------------------------| -------------------------------------------------- | ----------- | --------------------------------------------- |
+| **app.authentication.session.hash_secret_key**          | Secret key for session hashing.                    | Required    | "hash-secret-should-be-32-chars--"            |
+| **app.authentication.session.block_secret_key**         | Secret key for session encryption.                 | Required    | "block-secret-should-be-32-chars-"            |
+| **app.authentication.token.rsa_path**                   | Path to the RSA key file for token authentication. | Required    | "./temp/rsa"                                  |
+| **app.authentication.token.iss**                        | Issuer URL for token authentication.               | Required    | "http://localhost.shield"                     |
+| **app.authentication.oidc_callback_host**               | External host used for OIDC redirect URI.          | Required    | "http://localhost:8000/v1beta1/auth/callback" |
+| **app.authentication.oidc_config.google.client_id**     | Google client ID for OIDC authentication.          | Required    | "xxxxx.apps.googleusercontent.com"            |
+| **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.      | Required    | "xxxxx"                                       |
+| **app.authentication.oidc_config.google.issuer_url**    | Google issuer URL for OIDC authentication.         | Required    | "https://accounts.google.com"                 |
+
+### Admin Configurations
+
+| **Field**       | **Description**  | **Example** | **Required** |
+| --------------- | ------------------------------------| ----- | ----- |
+| **app.admin.users** | Email list of users to be converted as superusers. <br/> If the user is already present, they will be promoted to superuser.<br/> If the user does not exist, a new account will be created. |             | Optional     |
+
+### Database Configurations
+
+| **Field**                 | **Description**                               | **Example**   | **Required** |
+| ------------------------- | --------------------------------------------- | -----------   | -------------|
+| **db.driver**             | Database driver. Currently supports postgres. | `postgres`    | Required     |
+| **db.url**                | Database connection URL.                      | `postgres://username:password@localhost:5432/databaseName?sslmode=disable` | Required     |
+| **db.max_idle_conns**     | Maximum number of idle database connections.  | `10`          | Optional     |
+| **db.max_open_conns**     | Maximum number of open database connections.  | `10`          | Optional     |
+| **db.conn_max_life_time** | Maximum connection lifetime.                  | `10ms`        | Optional     |
+| **db.max_query_timeout**  | Maximum query execution timeout.              | `500ms`       | Optional     |
+
+### SpiceDB Configurations
+
+| **Field**                   | **Type** | **Description**                                                     | **Example** | **Required** |
+| ----------------------------| -------- | ------------------------------------------------------------------- | ----------- | ------------ |
+| **spicedb.host**            | `string` | Hostname or IP address of the SpiceDB service                       | localhost   | Yes          |
+| **spicedb.pre_shared_key**  | `string` | Random key for authentication and secure communication with SpiceDB | random_key  | Yes          |
+| **spicedb.port**            | `uint`    | Port number on which the SpiceDB service is listening              | 50051       | Yes          |
+| **spicedb.fully_consistent**| `boolean`| Enable consistent API responses (slower but most consistent)        | false       | No           |
