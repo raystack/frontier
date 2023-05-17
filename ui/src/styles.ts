@@ -9,9 +9,3 @@ export const tableStyle = {
   },
 };
 
-export const styles = {
-  button: {
-    fontSize: "11px",
-    height: "24px",
-  },
-};
