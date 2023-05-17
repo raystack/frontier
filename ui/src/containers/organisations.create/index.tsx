@@ -53,6 +53,7 @@ export default function NewOrganisation() {
   const onSubmit = async (data: any) => {
     await trigger(data);
     navigate("/console/organisations");
+    navigate(0);
   };
 
   return (

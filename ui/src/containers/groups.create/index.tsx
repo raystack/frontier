@@ -13,7 +13,7 @@ import {
 } from "@radix-ui/react-form";
 import * as z from "zod";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { FormProvider, useForm, UseFormRegister } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { update } from "~/api";
@@ -37,9 +37,14 @@ const GroupSchema = z.object({
 export type GroupForm = z.infer<typeof GroupSchema>;
 
 export default function NewGroup() {
+  const [organisation, setOrganisation] = useState();
   const navigate = useNavigate();
   const { data, error } = useSWR("/v1beta1/admin/organizations", fetcher);
-  const { trigger } = useSWRMutation("/v1beta1/groups", update, {});
+  const { trigger } = useSWRMutation(
+    `/v1beta1/organizations/${organisation}/groups`,
+    update,
+    {}
+  );
   const { organizations = [] } = data || { organizations: [] };
 
   const methods = useForm<GroupForm>({
@@ -54,6 +59,11 @@ export default function NewGroup() {
   const onSubmit = async (data: any) => {
     await trigger(data);
     navigate("/console/groups");
+    navigate(0);
+  };
+
+  const onChange = (e: any) => {
+    setOrganisation(e.target.value);
   };
 
   return (
@@ -96,7 +106,11 @@ export default function NewGroup() {
                   </FormLabel>
                 </Flex>
                 <FormControl asChild>
-                  <select {...methods.register("orgId")} style={styles.select}>
+                  <select
+                    {...methods.register("orgId")}
+                    style={styles.select}
+                    onChange={onChange}
+                  >
                     {organizations.map((org: Organisation) => (
                       <option value={org.id} key={org.id}>
                         {org.name}

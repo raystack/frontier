@@ -54,6 +54,7 @@ export default function NewProject() {
   const onSubmit = async (data: any) => {
     await trigger(data);
     navigate("/console/projects");
+    navigate(0);
   };
 
   return (

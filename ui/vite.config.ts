@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/admin": {
+      "/v1beta1": {
         target: process.env.SHILD_API_URL,
         changeOrigin: true,
       },
