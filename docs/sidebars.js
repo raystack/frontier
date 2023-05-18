@@ -1,8 +1,15 @@
 module.exports = {
   docsSidebar: [
     'introduction',
-    'installation',
-    'configurations',
+    {
+      type: "category",
+      label: "Getting Started",
+      collapsed: true,
+      items: [
+        'installation',
+        'configurations',
+      ],
+    },
     {
       type: "category",
       label: "Concepts",
@@ -18,7 +25,6 @@ module.exports = {
       items: [
         "tour/intro",
         "tour/setup-server",
-        "tour/what-is-in-shield",
         "tour/creating-organization",
         "tour/creating-project",
         "tour/creating-group",

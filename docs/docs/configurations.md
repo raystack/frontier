@@ -22,21 +22,21 @@ There are several approaches to setup Shield Server
 Create a config file with the following command
 
 ```bash
-shield server init
+$ shield server init
 ```
 
-alternatively you can [use `--config` flag](#using---config-flag) to customize to config file location.
-
-You can also [use environment variables](#using-environment-variable) to provide the server configuration.
+Alternatively you can [use `--config` flag](#using---config-flag) to customize to config file location.You can also [use environment variables](#using-environment-variable) to provide the server configuration.
 
 Setup up the Postgres database, and SpiceDB instance and provide the details as shown in the example below.
 
 > If you're new to YAML and want to learn more, see [Learn YAML in Y minutes.](https://learnxinyminutes.com/docs/yaml/)
 
-See [configuration reference](./reference/configurations.md) for the list of all the configuration keys.
 Following is a sample server configuration yaml:
 
-```yaml title="config.yaml"
+<details>
+<summary> config.yaml </summary>
+
+```yaml
 version: 1
 
 log:
@@ -88,14 +88,17 @@ proxy:
       ruleset: file:///tmp/rules
       ruleset_secret: env://TEST_RULESET_SECRET
 ```
+</details>
 
-### Using environment variable
+See [configuration reference](./reference/configurations.md) for more details.
+### Using environment variables
 
 All the server configurations can be passed as environment variables using underscore \_ as the delimiter between nested keys.
 
-See [configuration reference](./reference/configurations.md) for the list of all the configuration keys.
+<details>
+<summary> .env </summary>
 
-```bash title=".env"
+```bash
 LOG_LEVEL=debug
 APP_PORT=8000
 APP_GRPC_PORT=8001
@@ -114,6 +117,7 @@ PROXY_SERVICES_0_PORT=5556
 PROXY_SERVICES_0_RULESET=file:///tmp/rules
 PROXY_SERVICES_0_RULESET_SECRET=env://TEST_RULESET_SECRET
 ```
+</details>
 
 Set the env variable using export
 
