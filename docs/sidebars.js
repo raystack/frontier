@@ -15,6 +15,7 @@ module.exports = {
       label: "Concepts",
       items: [
         "concepts/architecture",
+        "concepts/org",
         "concepts/glossary",
       ],
     },
@@ -24,7 +25,8 @@ module.exports = {
       collapsed: true,
       items: [
         "tour/intro",
-        "tour/setup-server",
+        "tour/setup-idp-oidc",
+        "tour/creating-user",
         "tour/creating-organization",
         "tour/creating-project",
         "tour/creating-group",
