@@ -80,7 +80,7 @@ func (s *ProjectRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Upsert(context.Background(), relation.RelationV2{
+	_, err = s.relationRepository.Upsert(context.Background(), relation.Relation{
 		Subject: relation.Subject{
 			ID:              s.users[0].ID,
 			Namespace:       schema.UserPrincipal,
@@ -132,8 +132,7 @@ func (s *ProjectRepositoryTestSuite) TestGetByID() {
 			Description: "should get a project",
 			SelectedID:  s.projects[0].ID,
 			ExpectedProject: project.Project{
-				Name: "project1",
-				Slug: "project-1",
+				Name: "project-1",
 				Organization: organization.Organization{
 					ID: s.projects[0].ID,
 				},
@@ -176,7 +175,7 @@ func (s *ProjectRepositoryTestSuite) TestGetByID() {
 	}
 }
 
-func (s *ProjectRepositoryTestSuite) TestGetBySlug() {
+func (s *ProjectRepositoryTestSuite) TestGetByName() {
 	type testCase struct {
 		Description     string
 		SelectedSlug    string
@@ -189,8 +188,7 @@ func (s *ProjectRepositoryTestSuite) TestGetBySlug() {
 			Description:  "should get a project",
 			SelectedSlug: "project-1",
 			ExpectedProject: project.Project{
-				Name:  "project1",
-				Slug:  "project-1",
+				Name:  "project-1",
 				State: project.Enabled,
 			},
 		},
@@ -207,7 +205,7 @@ func (s *ProjectRepositoryTestSuite) TestGetBySlug() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.GetBySlug(s.ctx, tc.SelectedSlug)
+			got, err := s.repository.GetByName(s.ctx, tc.SelectedSlug)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -233,22 +231,19 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 			Description: "should create a project",
 			ProjectToCreate: project.Project{
 				Name: "new-project",
-				Slug: "new-project-slug",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
 			},
 			ExpectedProject: project.Project{
 				Name:  "new-project",
-				Slug:  "new-project-slug",
 				State: project.Enabled,
 			},
 		},
 		{
 			Description: "should return error if project slug already exist",
 			ProjectToCreate: project.Project{
-				Name: "newslug",
-				Slug: "project-2",
+				Name: "project-2",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
@@ -258,8 +253,7 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if org id not an uuid",
 			ProjectToCreate: project.Project{
-				Name: "newslug",
-				Slug: "projectnewslug",
+				Name: "project-2",
 				Organization: organization.Organization{
 					ID: "someid",
 				},
@@ -269,8 +263,7 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if org id does not exist",
 			ProjectToCreate: project.Project{
-				Name: "newslug",
-				Slug: "projectnewslug",
+				Name: "project-x",
 				Organization: organization.Organization{
 					ID: uuid.NewString(),
 				},
@@ -286,6 +279,8 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
+			} else {
+				s.Assert().NoError(err)
 			}
 			if !cmp.Equal(got, tc.ExpectedProject, cmpopts.IgnoreFields(project.Project{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedProject)
@@ -306,18 +301,15 @@ func (s *ProjectRepositoryTestSuite) TestList() {
 			Description: "should get all projects",
 			ExpectedProjects: []project.Project{
 				{
-					Name:  "project1",
-					Slug:  "project-1",
+					Name:  "project-1",
 					State: project.Enabled,
 				},
 				{
-					Name:  "project2",
-					Slug:  "project-2",
+					Name:  "project-2",
 					State: project.Enabled,
 				},
 				{
-					Name:  "project3",
-					Slug:  "project-3",
+					Name:  "project-3",
 					State: project.Enabled,
 				},
 			},
@@ -351,37 +343,27 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 		{
 			Description: "should update a project",
 			ProjectToUpdate: project.Project{
-				ID:   s.projects[0].ID,
-				Name: "new project update",
-				Slug: "new-project-update",
+				ID:    s.projects[0].ID,
+				Title: "new-project-2",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
 			},
 			ExpectedProject: project.Project{
-				Name:  "new project update",
-				Slug:  "new-project-update",
+				ID:    s.projects[0].ID,
+				Name:  s.projects[0].Name,
+				Title: "new-project-2",
 				State: project.Enabled,
-			},
-		},
-		{
-			Description: "should return error if project slug already exist",
-			ProjectToUpdate: project.Project{
-				ID:   s.projects[0].ID,
-				Name: "new-project-2",
-				Slug: "project-2",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
 			},
-			ErrString: project.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if project not found",
 			ProjectToUpdate: project.Project{
 				ID:   uuid.NewString(),
-				Name: "not-exist",
-				Slug: "some-slug",
+				Name: "some-slug",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
@@ -392,8 +374,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			Description: "should return error if project id is not uuid",
 			ProjectToUpdate: project.Project{
 				ID:   "12345",
-				Name: "not-exist",
-				Slug: "some-slug",
+				Name: "some-slug",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
@@ -404,7 +385,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			Description: "should return error if org id is not uuid",
 			ProjectToUpdate: project.Project{
 				ID:   s.projects[0].ID,
-				Slug: "new-prj",
 				Name: "not-exist",
 				Organization: organization.Organization{
 					ID: "not-uuid",
@@ -416,7 +396,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			Description: "should return error if org id not exist",
 			ProjectToUpdate: project.Project{
 				ID:   s.projects[0].ID,
-				Slug: "new-prj",
 				Name: "not-exist",
 				Organization: organization.Organization{
 					ID: uuid.NewString(),
@@ -445,7 +424,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 	}
 }
 
-func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
+func (s *ProjectRepositoryTestSuite) TestUpdateByName() {
 	type testCase struct {
 		Description     string
 		ProjectToUpdate project.Project
@@ -457,22 +436,19 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 		{
 			Description: "should update a project",
 			ProjectToUpdate: project.Project{
-				Name: "new project update",
-				Slug: "project-1",
+				Name: "project-1",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
 				},
 			},
 			ExpectedProject: project.Project{
-				Name:  "new project update",
-				Slug:  "project-1",
+				Name:  "project-1",
 				State: project.Enabled,
 			},
 		},
 		{
 			Description: "should return error if project not found",
 			ProjectToUpdate: project.Project{
-				Slug: "slug",
 				Name: "not-exist",
 				Organization: organization.Organization{
 					ID: s.orgs[0].ID,
@@ -483,7 +459,6 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 		{
 			Description: "should return error if org id is not uuid",
 			ProjectToUpdate: project.Project{
-				Slug: "project-1",
 				Name: "not-exist",
 				Organization: organization.Organization{
 					ID: "not-uuid",
@@ -494,13 +469,12 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 		{
 			Description: "should return error if org id not exist",
 			ProjectToUpdate: project.Project{
-				Slug: "project-1",
 				Name: "not-exist",
 				Organization: organization.Organization{
 					ID: uuid.NewString(),
 				},
 			},
-			ErrString: organization.ErrNotExist.Error(),
+			ErrString: project.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if project slug is empty",
@@ -510,7 +484,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.UpdateBySlug(s.ctx, tc.ProjectToUpdate)
+			got, err := s.repository.UpdateByName(s.ctx, tc.ProjectToUpdate)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)

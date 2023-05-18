@@ -183,14 +183,11 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 	return resourceModel.transformToResource()
 }
 
-func (r ResourceRepository) Update(ctx context.Context, id string, res resource.Resource) (resource.Resource, error) {
-	if strings.TrimSpace(id) == "" {
+func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (resource.Resource, error) {
+	if strings.TrimSpace(res.ID) == "" || !uuid.IsValid(res.ID) {
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
-	if !uuid.IsValid(id) {
-		return resource.Resource{}, resource.ErrInvalidUUID
-	}
 	marshaledMetadata, err := json.Marshal(res.Metadata)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
@@ -202,9 +199,7 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 			"namespace_name": res.NamespaceID,
 			"metadata":       marshaledMetadata,
 		},
-	).Where(goqu.Ex{
-		"id": id,
-	}).Returning(&ResourceCols{}).ToSQL()
+	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

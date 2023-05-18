@@ -1,25 +1,21 @@
 [
     {
-        "name": "group1",
-        "slug": "group-1",
+        "name": "group-1",
         "metadata":{}
     },
     {
-        "name": "group2",
-        "slug": "group-2",
+        "name": "group-2",
         "metadata":{}
     },
     {
-        "name": "group3",
-        "slug": "group-3",
+        "name": "group-3",
         "metadata": {
             "label": "label",
             "description": "description"
         }
     },
     {
-        "name": "group4",
-        "slug": "group-4",
+        "name": "group-4",
         "metadata": {},
         "state": "disabled"
     }

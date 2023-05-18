@@ -12,7 +12,7 @@ import (
 type Organization struct {
 	ID        string         `db:"id"`
 	Name      string         `db:"name"`
-	Slug      string         `db:"slug"`
+	Title     sql.NullString `db:"title"`
 	Metadata  []byte         `db:"metadata"`
 	State     sql.NullString `db:"state"`
 	CreatedAt time.Time      `db:"created_at"`
@@ -31,7 +31,7 @@ func (from Organization) transformToOrg() (organization.Organization, error) {
 	return organization.Organization{
 		ID:        from.ID,
 		Name:      from.Name,
-		Slug:      from.Slug,
+		Title:     from.Title.String,
 		Metadata:  unmarshalledMetadata,
 		State:     organization.State(from.State.String),
 		CreatedAt: from.CreatedAt,

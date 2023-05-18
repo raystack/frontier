@@ -12,9 +12,9 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 type UserService interface {
@@ -36,11 +36,11 @@ func NewService(repository Repository, relationService RelationService, userServ
 	}
 }
 
-func (s Service) Get(ctx context.Context, idOrSlug string) (Project, error) {
-	if uuid.IsValid(idOrSlug) {
-		return s.repository.GetByID(ctx, idOrSlug)
+func (s Service) Get(ctx context.Context, idOrName string) (Project, error) {
+	if uuid.IsValid(idOrName) {
+		return s.repository.GetByID(ctx, idOrName)
 	}
-	return s.repository.GetBySlug(ctx, idOrSlug)
+	return s.repository.GetByName(ctx, idOrName)
 }
 
 func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Project, error) {
@@ -65,10 +65,10 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
-	if prj.ID != "" {
+	if uuid.IsValid(prj.ID) {
 		return s.repository.UpdateByID(ctx, prj)
 	}
-	return s.repository.UpdateBySlug(ctx, prj)
+	return s.repository.UpdateByName(ctx, prj)
 }
 
 func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
@@ -77,7 +77,7 @@ func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []strin
 }
 
 func (s Service) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        id,
 			Namespace: schema.ProjectNamespace,
@@ -98,7 +98,7 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 }
 
 func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string) error {
-	rel := relation.RelationV2{
+	rel := relation.Relation{
 		Object: relation.Object{
 			ID:        prj.ID,
 			Namespace: schema.ProjectNamespace,
@@ -128,7 +128,7 @@ func (s Service) Disable(ctx context.Context, id string) error {
 func (s Service) DeleteModel(ctx context.Context, id string) error {
 	// delete all relations where resource is an object
 	// all relations where project is an subject should already been deleted by now
-	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.ProjectNamespace,
 	}}); err != nil && !errors.Is(err, relation.ErrNotExist) {

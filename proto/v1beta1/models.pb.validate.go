@@ -61,7 +61,7 @@ func (m *User) validate(all bool) error {
 	if !_User_Name_Pattern.MatchString(m.GetName()) {
 		err := UserValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+			reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$\"",
 		}
 		if !all {
 			return err
@@ -69,10 +69,10 @@ func (m *User) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_User_Slug_Pattern.MatchString(m.GetSlug()) {
+	if !_User_Title_Pattern.MatchString(m.GetTitle()) {
 		err := UserValidationError{
-			field:  "Slug",
-			reason: "value does not match regex pattern \"^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$\"",
+			field:  "Title",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
 		}
 		if !all {
 			return err
@@ -306,9 +306,9 @@ var _ interface {
 	ErrorName() string
 } = UserValidationError{}
 
-var _User_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+var _User_Name_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$")
 
-var _User_Slug_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$")
+var _User_Title_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on Group with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -333,10 +333,10 @@ func (m *Group) validate(all bool) error {
 
 	// no validation rules for Id
 
-	if !_Group_Name_Pattern.MatchString(m.GetName()) {
+	if utf8.RuneCountInString(m.GetName()) < 2 {
 		err := GroupValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+			reason: "value length must be at least 2 runes",
 		}
 		if !all {
 			return err
@@ -344,7 +344,18 @@ func (m *Group) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Slug
+	if !_Group_Name_Pattern.MatchString(m.GetName()) {
+		err := GroupValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Title
 
 	// no validation rules for OrgId
 
@@ -512,7 +523,7 @@ var _ interface {
 	ErrorName() string
 } = GroupValidationError{}
 
-var _Group_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+var _Group_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
 
 // Validate checks the field values on Role with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
@@ -537,6 +548,17 @@ func (m *Role) validate(all bool) error {
 
 	// no validation rules for Id
 
+	if utf8.RuneCountInString(m.GetName()) < 2 {
+		err := RoleValidationError{
+			field:  "Name",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if !_Role_Name_Pattern.MatchString(m.GetName()) {
 		err := RoleValidationError{
 			field:  "Name",
@@ -547,6 +569,8 @@ func (m *Role) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for Title
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -742,10 +766,10 @@ func (m *Organization) validate(all bool) error {
 
 	// no validation rules for Id
 
-	if !_Organization_Name_Pattern.MatchString(m.GetName()) {
+	if utf8.RuneCountInString(m.GetName()) < 2 {
 		err := OrganizationValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+			reason: "value length must be at least 2 runes",
 		}
 		if !all {
 			return err
@@ -753,7 +777,18 @@ func (m *Organization) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Slug
+	if !_Organization_Name_Pattern.MatchString(m.GetName()) {
+		err := OrganizationValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Title
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -919,7 +954,7 @@ var _ interface {
 	ErrorName() string
 } = OrganizationValidationError{}
 
-var _Organization_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+var _Organization_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
 
 // Validate checks the field values on Project with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -944,10 +979,10 @@ func (m *Project) validate(all bool) error {
 
 	// no validation rules for Id
 
-	if !_Project_Name_Pattern.MatchString(m.GetName()) {
+	if utf8.RuneCountInString(m.GetName()) < 2 {
 		err := ProjectValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+			reason: "value length must be at least 2 runes",
 		}
 		if !all {
 			return err
@@ -955,7 +990,18 @@ func (m *Project) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Slug
+	if !_Project_Name_Pattern.MatchString(m.GetName()) {
+		err := ProjectValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Title
 
 	// no validation rules for OrgId
 
@@ -1123,7 +1169,369 @@ var _ interface {
 	ErrorName() string
 } = ProjectValidationError{}
 
-var _Project_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+var _Project_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+// Validate checks the field values on Policy with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Policy) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Policy with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in PolicyMultiError, or nil if none found.
+func (m *Policy) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Policy) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for RoleId
+
+	// no validation rules for Resource
+
+	// no validation rules for Principal
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PolicyValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PolicyMultiError(errors)
+	}
+
+	return nil
+}
+
+// PolicyMultiError is an error wrapping multiple validation errors returned by
+// Policy.ValidateAll() if the designated constraints aren't met.
+type PolicyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PolicyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PolicyMultiError) AllErrors() []error { return m }
+
+// PolicyValidationError is the validation error returned by Policy.Validate if
+// the designated constraints aren't met.
+type PolicyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PolicyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PolicyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PolicyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PolicyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PolicyValidationError) ErrorName() string { return "PolicyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PolicyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPolicy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PolicyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PolicyValidationError{}
+
+// Validate checks the field values on Relation with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Relation) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Relation with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RelationMultiError, or nil
+// if none found.
+func (m *Relation) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Relation) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RelationValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RelationValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RelationValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RelationValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RelationValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RelationValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for SubjectSubRelation
+
+	// no validation rules for Relation
+
+	// no validation rules for Object
+
+	// no validation rules for Subject
+
+	if len(errors) > 0 {
+		return RelationMultiError(errors)
+	}
+
+	return nil
+}
+
+// RelationMultiError is an error wrapping multiple validation errors returned
+// by Relation.ValidateAll() if the designated constraints aren't met.
+type RelationMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RelationMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RelationMultiError) AllErrors() []error { return m }
+
+// RelationValidationError is the validation error returned by
+// Relation.Validate if the designated constraints aren't met.
+type RelationValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RelationValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RelationValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RelationValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RelationValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RelationValidationError) ErrorName() string { return "RelationValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RelationValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRelation.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RelationValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RelationValidationError{}
 
 // Validate checks the field values on Permission with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -1149,16 +1557,29 @@ func (m *Permission) validate(all bool) error {
 
 	// no validation rules for Id
 
-	if !_Permission_Name_Pattern.MatchString(m.GetName()) {
+	if utf8.RuneCountInString(m.GetName()) < 2 {
 		err := PermissionValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+			reason: "value length must be at least 2 runes",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
 	}
+
+	if !_Permission_Name_Pattern.MatchString(m.GetName()) {
+		err := PermissionValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Title
 
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
@@ -1218,7 +1639,7 @@ func (m *Permission) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for NamespaceId
+	// no validation rules for Namespace
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -1248,8 +1669,6 @@ func (m *Permission) validate(all bool) error {
 			}
 		}
 	}
-
-	// no validation rules for Slug
 
 	if len(errors) > 0 {
 		return PermissionMultiError(errors)
@@ -1328,7 +1747,7 @@ var _ interface {
 	ErrorName() string
 } = PermissionValidationError{}
 
-var _Permission_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+var _Permission_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9]+$")
 
 // Validate checks the field values on Namespace with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -1357,7 +1776,7 @@ func (m *Namespace) validate(all bool) error {
 	if !_Namespace_Name_Pattern.MatchString(m.GetName()) {
 		err := NamespaceValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9/]+$\"",
 		}
 		if !all {
 			return err
@@ -1529,373 +1948,7 @@ var _ interface {
 	ErrorName() string
 } = NamespaceValidationError{}
 
-var _Namespace_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
-
-// Validate checks the field values on Policy with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *Policy) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on Policy with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in PolicyMultiError, or nil if none found.
-func (m *Policy) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *Policy) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Id
-
-	if all {
-		switch v := interface{}(m.GetCreatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PolicyValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, PolicyValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return PolicyValidationError{
-				field:  "CreatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
-		switch v := interface{}(m.GetUpdatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PolicyValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, PolicyValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return PolicyValidationError{
-				field:  "UpdatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	// no validation rules for NamespaceId
-
-	// no validation rules for RoleId
-
-	// no validation rules for ResourceId
-
-	// no validation rules for UserId
-
-	if all {
-		switch v := interface{}(m.GetMetadata()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PolicyValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, PolicyValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return PolicyValidationError{
-				field:  "Metadata",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return PolicyMultiError(errors)
-	}
-
-	return nil
-}
-
-// PolicyMultiError is an error wrapping multiple validation errors returned by
-// Policy.ValidateAll() if the designated constraints aren't met.
-type PolicyMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m PolicyMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m PolicyMultiError) AllErrors() []error { return m }
-
-// PolicyValidationError is the validation error returned by Policy.Validate if
-// the designated constraints aren't met.
-type PolicyValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e PolicyValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e PolicyValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e PolicyValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e PolicyValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e PolicyValidationError) ErrorName() string { return "PolicyValidationError" }
-
-// Error satisfies the builtin error interface
-func (e PolicyValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sPolicy.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = PolicyValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = PolicyValidationError{}
-
-// Validate checks the field values on Relation with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *Relation) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on Relation with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in RelationMultiError, or nil
-// if none found.
-func (m *Relation) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *Relation) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Id
-
-	// no validation rules for ObjectId
-
-	// no validation rules for ObjectNamespace
-
-	// no validation rules for SubjectId
-
-	if all {
-		switch v := interface{}(m.GetCreatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RelationValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RelationValidationError{
-					field:  "CreatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RelationValidationError{
-				field:  "CreatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
-		switch v := interface{}(m.GetUpdatedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RelationValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RelationValidationError{
-					field:  "UpdatedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RelationValidationError{
-				field:  "UpdatedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	// no validation rules for SubjectNamespace
-
-	// no validation rules for SubjectSubRelationName
-
-	// no validation rules for RelationName
-
-	if len(errors) > 0 {
-		return RelationMultiError(errors)
-	}
-
-	return nil
-}
-
-// RelationMultiError is an error wrapping multiple validation errors returned
-// by Relation.ValidateAll() if the designated constraints aren't met.
-type RelationMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m RelationMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m RelationMultiError) AllErrors() []error { return m }
-
-// RelationValidationError is the validation error returned by
-// Relation.Validate if the designated constraints aren't met.
-type RelationValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e RelationValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e RelationValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e RelationValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e RelationValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e RelationValidationError) ErrorName() string { return "RelationValidationError" }
-
-// Error satisfies the builtin error interface
-func (e RelationValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sRelation.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = RelationValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = RelationValidationError{}
+var _Namespace_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9/]+$")
 
 // Validate checks the field values on Resource with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -1985,7 +2038,7 @@ func (m *Resource) validate(all bool) error {
 
 	// no validation rules for ProjectId
 
-	// no validation rules for NamespaceId
+	// no validation rules for Namespace
 
 	// no validation rules for UserId
 
@@ -2118,6 +2171,17 @@ func (m *MetaSchema) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for Id
+
+	if utf8.RuneCountInString(m.GetName()) < 2 {
+		err := MetaSchemaValidationError{
+			field:  "Name",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if !_MetaSchema_Name_Pattern.MatchString(m.GetName()) {
 		err := MetaSchemaValidationError{
@@ -2293,6 +2357,17 @@ func (m *RoleRequestBody) validate(all bool) error {
 
 	// no validation rules for Id
 
+	if utf8.RuneCountInString(m.GetName()) < 2 {
+		err := RoleRequestBodyValidationError{
+			field:  "Name",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if !_RoleRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := RoleRequestBodyValidationError{
 			field:  "Name",
@@ -2345,6 +2420,8 @@ func (m *RoleRequestBody) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for Title
 
 	if len(errors) > 0 {
 		return RoleRequestBodyMultiError(errors)

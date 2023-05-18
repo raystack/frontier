@@ -18,11 +18,11 @@ type SessionService interface {
 }
 
 type RelationRepository interface {
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	CheckPermission(ctx context.Context, subject relation.Subject, object relation.Object, permName string) (bool, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
-	LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error)
-	LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error)
+	Delete(ctx context.Context, rel relation.Relation) error
+	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
+	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 }
 
 type Service struct {
@@ -47,7 +47,7 @@ func (s Service) GetByID(ctx context.Context, id string) (User, error) {
 	if shielduuid.IsValid(id) {
 		return s.repository.GetByID(ctx, id)
 	}
-	return s.repository.GetBySlug(ctx, id)
+	return s.repository.GetByName(ctx, id)
 }
 
 func (s Service) GetByIDs(ctx context.Context, userIDs []string) ([]User, error) {
@@ -62,7 +62,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	newUser, err := s.repository.Create(ctx, User{
 		Name:     user.Name,
 		Email:    user.Email,
-		Slug:     user.Slug,
+		Title:    user.Title,
 		Metadata: user.Metadata,
 	})
 	if err != nil {
@@ -93,7 +93,7 @@ func (s Service) Update(ctx context.Context, toUpdate User) (User, error) {
 	if shielduuid.IsValid(id) {
 		return s.repository.UpdateByID(ctx, toUpdate)
 	}
-	return s.repository.UpdateBySlug(ctx, toUpdate)
+	return s.repository.UpdateByName(ctx, toUpdate)
 }
 
 func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error) {
@@ -137,7 +137,7 @@ func (s Service) Disable(ctx context.Context, id string) error {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.ProjectNamespace,
 	}}); err != nil {
@@ -147,7 +147,7 @@ func (s Service) Delete(ctx context.Context, id string) error {
 }
 
 func (s Service) ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]User, error) {
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
@@ -168,7 +168,7 @@ func (s Service) ListByOrg(ctx context.Context, orgID string, permissionFilter s
 }
 
 func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilter string) ([]User, error) {
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.RelationV2{
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        groupID,
 			Namespace: schema.GroupPrincipal,
@@ -195,7 +195,7 @@ func (s Service) Sudo(ctx context.Context, id string) error {
 			// create a new user
 			currentUser, err = s.Create(ctx, User{
 				Email: id,
-				Slug:  str.GenerateUserSlug(id),
+				Name:  str.GenerateUserSlug(id),
 			})
 			if err != nil {
 				return err
@@ -217,7 +217,7 @@ func (s Service) Sudo(ctx context.Context, id string) error {
 	}
 
 	// mark su
-	_, err = s.relationService.Create(ctx, relation.RelationV2{
+	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        schema.PlatformID,
 			Namespace: schema.PlatformNamespace,

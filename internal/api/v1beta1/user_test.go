@@ -32,7 +32,8 @@ var (
 	testUserMap = map[string]user.User{
 		"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 			ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-			Name:  "User 1",
+			Title: "User 1",
+			Name:  "user1",
 			Email: "test@test.com",
 			Metadata: metadata.Metadata{
 				"foo":    "bar",
@@ -84,7 +85,8 @@ func TestListUsers(t *testing.T) {
 				Users: []*shieldv1beta1.User{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-						Name:  "User 1",
+						Title: "User 1",
+						Name:  "user1",
 						Email: "test@test.com",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{
@@ -129,7 +131,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			title: "should return unauthenticated error if no auth email header in context",
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:     "some user",
+				Title:    "some user",
 				Email:    "abc@test.com",
 				Metadata: &structpb.Struct{},
 			}},
@@ -143,7 +145,7 @@ func TestCreateUser(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "some user",
+				Title: "some user",
 				Email: "abc@test.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -159,12 +161,12 @@ func TestCreateUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
-					Name: "some user",
+					Title: "some user",
 				}).Return(user.User{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "some user",
+				Title: "some user",
 				Email: "",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -181,17 +183,17 @@ func TestCreateUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
-					Name:     "some user",
+					Title:    "some user",
 					Email:    "abc@test.com",
-					Slug:     "user-slug",
+					Name:     "user-slug",
 					Metadata: metadata.Metadata{},
 				}).Return(user.User{}, user.ErrConflict)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:     "some user",
+				Title:    "some user",
 				Email:    "abc@test.com",
-				Slug:     "user-slug",
+				Name:     "user-slug",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
@@ -202,24 +204,24 @@ func TestCreateUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
-					Name:     "some user",
+					Title:    "some user",
 					Email:    "abc@test.com",
-					Slug:     "user-slug",
+					Name:     "user-slug",
 					Metadata: metadata.Metadata{"foo": "bar"},
 				}).Return(
 					user.User{
 						ID:       "new-abc",
-						Name:     "some user",
+						Title:    "some user",
 						Email:    "abc@test.com",
-						Slug:     "user-slug",
+						Name:     "user-slug",
 						Metadata: metadata.Metadata{"foo": "bar"},
 					}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "some user",
+				Title: "some user",
 				Email: "  abc@test.com  ",
-				Slug:  "user-slug",
+				Name:  "user-slug",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -228,9 +230,9 @@ func TestCreateUser(t *testing.T) {
 			}},
 			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
 				Id:    "new-abc",
-				Name:  "some user",
+				Title: "some user",
 				Email: "abc@test.com",
-				Slug:  "user-slug",
+				Name:  "user-slug",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -246,24 +248,24 @@ func TestCreateUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
-					Name:     "some user",
+					Title:    "some user",
 					Email:    "abc@test.com",
-					Slug:     "user-slug",
+					Name:     "user-slug",
 					Metadata: metadata.Metadata{"foo": "bar"},
 				}).Return(
 					user.User{
 						ID:       "new-abc",
-						Name:     "some user",
+						Title:    "some user",
 						Email:    "abc@test.com",
-						Slug:     "user-slug",
+						Name:     "user-slug",
 						Metadata: metadata.Metadata{"foo": "bar"},
 					}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "some user",
+				Title: "some user",
 				Email: "abc@test.com",
-				Slug:  "user-slug",
+				Name:  "user-slug",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -272,9 +274,9 @@ func TestCreateUser(t *testing.T) {
 			}},
 			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
 				Id:    "new-abc",
-				Name:  "some user",
+				Title: "some user",
 				Email: "abc@test.com",
-				Slug:  "user-slug",
+				Name:  "user-slug",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -352,7 +354,7 @@ func TestGetUser(t *testing.T) {
 				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(
 					user.User{
 						ID:    randomID,
-						Name:  "some user",
+						Title: "some user",
 						Email: "someuser@test.com",
 						Metadata: metadata.Metadata{
 							"foo": "bar",
@@ -366,7 +368,7 @@ func TestGetUser(t *testing.T) {
 			},
 			want: &shieldv1beta1.GetUserResponse{User: &shieldv1beta1.User{
 				Id:    randomID,
-				Name:  "some user",
+				Title: "some user",
 				Email: "someuser@test.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -436,7 +438,7 @@ func TestGetCurrentUser(t *testing.T) {
 				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(
 					user.User{
 						ID:    "user-id-1",
-						Name:  "some user",
+						Title: "some user",
 						Email: "someuser@test.com",
 						Metadata: metadata.Metadata{
 							"foo": "bar",
@@ -448,7 +450,7 @@ func TestGetCurrentUser(t *testing.T) {
 			},
 			want: &shieldv1beta1.GetCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
-				Name:  "some user",
+				Title: "some user",
 				Email: "someuser@test.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -503,7 +505,7 @@ func TestUpdateUser(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
@@ -513,7 +515,7 @@ func TestUpdateUser(t *testing.T) {
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -529,7 +531,7 @@ func TestUpdateUser(t *testing.T) {
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
@@ -538,7 +540,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
 				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -555,7 +557,7 @@ func TestUpdateUser(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
@@ -565,7 +567,7 @@ func TestUpdateUser(t *testing.T) {
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -581,8 +583,8 @@ func TestUpdateUser(t *testing.T) {
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
-					ID:   someID,
-					Name: "abc user",
+					ID:    someID,
+					Title: "abc user",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
@@ -591,7 +593,7 @@ func TestUpdateUser(t *testing.T) {
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
-					Name: "abc user",
+					Title: "abc user",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -614,7 +616,7 @@ func TestUpdateUser(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
 					ID:    someID,
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
@@ -622,7 +624,7 @@ func TestUpdateUser(t *testing.T) {
 				}).Return(
 					user.User{
 						ID:    someID,
-						Name:  "abc user",
+						Title: "abc user",
 						Email: "user@odpf.io",
 						Metadata: metadata.Metadata{
 							"foo": "bar",
@@ -634,7 +636,7 @@ func TestUpdateUser(t *testing.T) {
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
 				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -644,7 +646,7 @@ func TestUpdateUser(t *testing.T) {
 				}},
 			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
 				Id:    someID,
-				Name:  "abc user",
+				Title: "abc user",
 				Email: "user@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -731,7 +733,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 		{
 			title: "should return unauthenticated error if auth email header not exist",
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "abc user",
+				Title: "abc user",
 				Email: "abcuser123@test.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -747,7 +749,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
@@ -756,7 +758,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "abc user",
+				Title: "abc user",
 				Email: "user@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -772,7 +774,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
-					Name:  "abc user",
+					Title: "abc user",
 					Email: "user@odpf.io",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
@@ -781,7 +783,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "abc user",
+				Title: "abc user",
 				Email: "user@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -799,7 +801,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "abc user",
+				Title: "abc user",
 				Email: "abcuser123@test.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -827,7 +829,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				us.EXPECT().UpdateByEmail(mock.Anything, mock.Anything).Return(
 					user.User{
 						ID:    "user-id-1",
-						Name:  "abc user",
+						Title: "abc user",
 						Email: "user@odpf.io",
 						Metadata: metadata.Metadata{
 							"foo": "bar",
@@ -838,7 +840,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "abc user",
+				Title: "abc user",
 				Email: "user@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -848,7 +850,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			}},
 			want: &shieldv1beta1.UpdateCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
-				Name:  "abc user",
+				Title: "abc user",
 				Email: "user@odpf.io",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -914,7 +916,6 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		},
 		// if user id empty, it would not go to this handler
 		{
-
 			name: "should return groups if group service return not nil",
 			setup: func(gs *mocks.GroupService) {
 				var testGroupList []group.Group
@@ -931,8 +932,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				Groups: []*shieldv1beta1.Group{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-						Name:  "Group 1",
-						Slug:  "group-1",
+						Name:  "group-1",
 						OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{

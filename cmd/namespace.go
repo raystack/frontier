@@ -6,7 +6,6 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/pkg/file"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
@@ -20,10 +19,8 @@ func NamespaceCommand(cliConfig *Config) *cli.Command {
 			Work with namespaces.
 		`),
 		Example: heredoc.Doc(`
-			$ shield namespace create
-			$ shield namespace edit
-			$ shield namespace view
 			$ shield namespace list
+			$ shield namespace view
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -31,118 +28,10 @@ func NamespaceCommand(cliConfig *Config) *cli.Command {
 		},
 	}
 
-	cmd.AddCommand(createNamespaceCommand(cliConfig))
-	cmd.AddCommand(editNamespaceCommand(cliConfig))
-	cmd.AddCommand(viewNamespaceCommand(cliConfig))
 	cmd.AddCommand(listNamespaceCommand(cliConfig))
+	cmd.AddCommand(viewNamespaceCommand(cliConfig))
 
 	bindFlagsFromClientConfig(cmd)
-
-	return cmd
-}
-
-func createNamespaceCommand(cliConfig *Config) *cli.Command {
-	var filePath string
-
-	cmd := &cli.Command{
-		Use:   "create",
-		Short: "Upsert a namespace",
-		Args:  cli.NoArgs,
-		Example: heredoc.Doc(`
-			$ shield namespace create --file=<namespace-body>
-		`),
-		Annotations: map[string]string{
-			"group": "core",
-		},
-		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
-			var reqBody shieldv1beta1.NamespaceRequestBody
-			if err := file.Parse(filePath, &reqBody); err != nil {
-				return err
-			}
-
-			err := reqBody.ValidateAll()
-			if err != nil {
-				return err
-			}
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			res, err := client.CreateNamespace(cmd.Context(), &shieldv1beta1.CreateNamespaceRequest{
-				Body: &reqBody,
-			})
-			if err != nil {
-				return err
-			}
-
-			spinner.Stop()
-			fmt.Printf("successfully created namespace %s with id %s\n", res.GetNamespace().GetName(), res.GetNamespace().GetId())
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the namespace body file")
-	cmd.MarkFlagRequired("file")
-
-	return cmd
-}
-
-func editNamespaceCommand(cliConfig *Config) *cli.Command {
-	var filePath string
-
-	cmd := &cli.Command{
-		Use:   "edit",
-		Short: "Edit a namespace",
-		Args:  cli.ExactArgs(1),
-		Example: heredoc.Doc(`
-			$ shield namespace edit <namespace-id> --file=<namespace-body>
-		`),
-		Annotations: map[string]string{
-			"group": "core",
-		},
-		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
-			var reqBody shieldv1beta1.NamespaceRequestBody
-			if err := file.Parse(filePath, &reqBody); err != nil {
-				return err
-			}
-
-			err := reqBody.ValidateAll()
-			if err != nil {
-				return err
-			}
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			namespaceID := args[0]
-			res, err := client.UpdateNamespace(cmd.Context(), &shieldv1beta1.UpdateNamespaceRequest{
-				Id:   namespaceID,
-				Body: &reqBody,
-			})
-			if err != nil {
-				return err
-			}
-
-			spinner.Stop()
-			fmt.Printf("successfully edited namespace with id %s to id %s and name %s\n", namespaceID, res.GetNamespace().GetId(), res.GetNamespace().GetName())
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the namespace body file")
-	cmd.MarkFlagRequired("file")
 
 	return cmd
 }

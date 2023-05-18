@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
+
 	"github.com/google/uuid"
 
 	"github.com/odpf/shield/core/namespace"
@@ -21,6 +23,7 @@ type NamespaceService interface {
 }
 
 type PermissionService interface {
+	List(ctx context.Context, flt permission.Filter) ([]permission.Permission, error)
 	Upsert(ctx context.Context, action permission.Permission) (permission.Permission, error)
 }
 
@@ -33,8 +36,7 @@ type UserService interface {
 }
 
 type FileService interface {
-	GetSchemas(ctx context.Context) ([]schema.ServiceDefinition, error)
-	GetRoles(ctx context.Context) ([]schema.DefinitionRoles, error)
+	GetDefinition(ctx context.Context) (*schema.ServiceDefinition, error)
 }
 
 type AuthzEngine interface {
@@ -78,47 +80,75 @@ func NewBootstrapService(
 }
 
 func (s Service) MigrateSchema(ctx context.Context) error {
-	customServiceDefinitions, err := s.schemaConfig.GetSchemas(ctx)
+	customServiceDefinition, err := s.schemaConfig.GetDefinition(ctx)
 	if err != nil {
 		return err
 	}
+
+	return s.AppendSchema(ctx, *customServiceDefinition)
+}
+
+func (s Service) AppendSchema(ctx context.Context, customServiceDefinition schema.ServiceDefinition) error {
+	// get existing permissions and append to the new definition
+	// this is required to avoid overriding existing permissions in authzed engine
+	var existingServiceDefinition schema.ServiceDefinition
+
+	existingPermissions, err := s.permissionService.List(ctx, permission.Filter{})
+	if err != nil {
+		return nil
+	}
+	for _, existingPermission := range existingPermissions {
+		description := ""
+		if existingPermission.Metadata != nil {
+			if v, ok := existingPermission.Metadata["description"]; !ok {
+				description = v.(string)
+			}
+		}
+		existingServiceDefinition.Permissions = append(existingServiceDefinition.Permissions, schema.ResourcePermission{
+			Name:        existingPermission.Name,
+			Namespace:   existingPermission.NamespaceID,
+			Description: description,
+		})
+	}
+
+	return s.applySchema(ctx, schema.MergeServiceDefinitions(customServiceDefinition, existingServiceDefinition))
+}
+
+// applySchema builds and apply schema over az engine and db
+// schema is composed of inbuilt definitions and custom user defined services
+// this is idempotent operation and overrides existing schema
+func (s Service) applySchema(ctx context.Context, customServiceDefinition *schema.ServiceDefinition) error {
+	var err error
+
+	// filter out default app namespace permissions
+	customServiceDefinition.Permissions = filterDefaultAppNamespacePermissions(customServiceDefinition.Permissions)
 
 	// build az schema with user defined services
 	authzedDefinitions := GetBaseAZSchema()
-	for _, serviceDef := range customServiceDefinitions {
-		authzedDefinitions, err = ApplyServiceDefinitionOverAZSchema(serviceDef, authzedDefinitions)
-		if err != nil {
-			return fmt.Errorf("MigrateSchema: error applying schema over base: %w", err)
-		}
-
-		if err := s.migrateServiceDefinitionToDB(ctx, serviceDef); err != nil {
-			return err
-		}
+	authzedDefinitions, err = ApplyServiceDefinitionOverAZSchema(customServiceDefinition, authzedDefinitions)
+	if err != nil {
+		return fmt.Errorf("MigrateSchema: error applying schema over base: %w", err)
 	}
 
 	// validate prepared az schema
-	authzedSchemaSource, err := PrepareSchemaAsSource(authzedDefinitions)
+	authzedSchemaSource, err := PrepareSchemaAsAZSource(authzedDefinitions)
 	if err != nil {
-		return err
+		return fmt.Errorf("PrepareSchemaAsAZSource: %w", err)
 	}
 	if err = ValidatePreparedAZSchema(ctx, authzedSchemaSource); err != nil {
-		return err
+		return fmt.Errorf("ValidatePreparedAZSchema: %w", err)
 	}
 
-	// apply base app to db
-	appServiceDefinition, err := BuildServiceDefinitionFromAZSchema("app", authzedDefinitions)
+	// apply app to db
+	appServiceDefinition, err := BuildServiceDefinitionFromAZSchema(authzedDefinitions)
 	if err != nil {
-		return err
+		return fmt.Errorf("BuildServiceDefinitionFromAZSchema : %w", err)
 	}
-	if err := s.migrateServiceDefinitionToDB(ctx, appServiceDefinition); err != nil {
-		return err
+	if err = s.migrateAZDefinitionsToDB(ctx, authzedDefinitions); err != nil {
+		return fmt.Errorf("migrateAZDefinitionsToDB : %w", err)
 	}
-
-	// apply custom service defs to db
-	for _, serviceDef := range customServiceDefinitions {
-		if err := s.migrateServiceDefinitionToDB(ctx, serviceDef); err != nil {
-			return err
-		}
+	if err = s.migrateServiceDefinitionToDB(ctx, appServiceDefinition); err != nil {
+		return fmt.Errorf("migrateServiceDefinitionToDB : %w", err)
 	}
 
 	// apply azSchema to engine
@@ -126,12 +156,17 @@ func (s Service) MigrateSchema(ctx context.Context) error {
 		return fmt.Errorf("%w: %s", schema.ErrMigration, err.Error())
 	}
 
-	// promote normal users to superusers
-	if err = s.MakeSuperUsers(ctx); err != nil {
-		return err
-	}
-
 	return nil
+}
+
+func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermission) []schema.ResourcePermission {
+	var filteredPermissions []schema.ResourcePermission
+	for _, permission := range permissions {
+		if ns, _ := schema.SplitNamespaceResource(permission.Namespace); ns != schema.DefaultNamespace {
+			filteredPermissions = append(filteredPermissions, permission)
+		}
+	}
+	return filteredPermissions
 }
 
 // MakeSuperUsers promote ordinary users to superuser
@@ -153,12 +188,13 @@ func (s Service) MigrateRoles(ctx context.Context) error {
 			return err
 		}
 	}
+
 	// migrate user defined roles to org
-	definitionRoles, err := s.schemaConfig.GetRoles(ctx)
+	serviceDefinition, err := s.schemaConfig.GetDefinition(ctx)
 	if err != nil {
 		return err
 	}
-	for _, defRole := range definitionRoles {
+	for _, defRole := range serviceDefinition.Roles {
 		if err = s.createRole(ctx, defaultOrgID, defRole); err != nil {
 			return err
 		}
@@ -166,7 +202,7 @@ func (s Service) MigrateRoles(ctx context.Context) error {
 	return nil
 }
 
-func (s Service) createRole(ctx context.Context, orgID string, defRole schema.DefinitionRoles) error {
+func (s Service) createRole(ctx context.Context, orgID string, defRole schema.RoleDefinition) error {
 	_, err := s.roleService.Upsert(ctx, role.Role{
 		Name:        defRole.Name,
 		OrgID:       orgID,
@@ -184,29 +220,33 @@ func (s Service) createRole(ctx context.Context, orgID string, defRole schema.De
 
 func (s Service) migrateServiceDefinitionToDB(ctx context.Context, appServiceDefinition schema.ServiceDefinition) error {
 	// iterate over definition resources
-	for _, resource := range appServiceDefinition.Resources {
-		namespaceName := GetNamespaceName(appServiceDefinition.Name, resource.Name)
+	for _, perm := range appServiceDefinition.Permissions {
+		// create permissions if needed
+		_, err := s.permissionService.Upsert(ctx, permission.Permission{
+			Name:        perm.Name,
+			NamespaceID: perm.Namespace,
+			Metadata: map[string]any{
+				"description": perm.Description,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("permissionService.Upsert: %s: %w", err.Error(), schema.ErrMigration)
+		}
+	}
+	return nil
+}
 
-		// create namespace
-		ns, err := s.namespaceService.Upsert(ctx, namespace.Namespace{
-			Name: namespaceName,
+// migrateAZDefinitionsToDB will ensure wll the namespaces are already created in database which will be used
+// throughout the application
+func (s Service) migrateAZDefinitionsToDB(ctx context.Context, azDefinitions []*azcore.NamespaceDefinition) error {
+	// iterate over all az definitions and convert shield namespace
+	for _, azDef := range azDefinitions {
+		// create namespace if needed
+		_, err := s.namespaceService.Upsert(ctx, namespace.Namespace{
+			Name: azDef.GetName(),
 		})
 		if err != nil {
 			return fmt.Errorf("namespaceService.Upsert: %w: %s", schema.ErrMigration, err.Error())
-		}
-
-		// create permissions
-		for _, perm := range resource.Permissions {
-			_, err := s.permissionService.Upsert(ctx, permission.Permission{
-				Name:        perm.Name,
-				NamespaceID: ns.Name,
-				Metadata: map[string]any{
-					"description": perm.Description,
-				},
-			})
-			if err != nil {
-				return fmt.Errorf("permissionService.Upsert: %w: %s", schema.ErrMigration, err.Error())
-			}
 		}
 	}
 	return nil

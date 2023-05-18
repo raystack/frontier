@@ -421,8 +421,8 @@ func TestServeHook(t *testing.T) {
 			UpdatedAt:   time.Time{},
 		}, nil)
 
-		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
-			relation.RelationV2{}, nil)
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.Relation")).Return(
+			relation.Relation{}, nil)
 
 		resp, err := a.ServeHook(response, nil)
 
@@ -518,8 +518,8 @@ func TestServeHook(t *testing.T) {
 			UpdatedAt:   time.Time{},
 		}, nil)
 
-		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
-			relation.RelationV2{}, nil)
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.Relation")).Return(
+			relation.Relation{}, nil)
 
 		resp, err := a.ServeHook(response, nil)
 
@@ -616,8 +616,8 @@ func TestServeHook(t *testing.T) {
 			UpdatedAt:   time.Time{},
 		}, nil)
 
-		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
-			relation.RelationV2{}, nil)
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.Relation")).Return(
+			relation.Relation{}, nil)
 
 		resp, err := a.ServeHook(response, nil)
 
@@ -713,8 +713,8 @@ func TestServeHook(t *testing.T) {
 			UpdatedAt:   time.Time{},
 		}, nil)
 
-		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(
-			relation.RelationV2{}, nil)
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.Relation")).Return(
+			relation.Relation{}, nil)
 
 		resp, err := a.ServeHook(response, nil)
 

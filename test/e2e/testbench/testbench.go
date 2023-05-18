@@ -30,11 +30,12 @@ var (
 )
 
 type TestBench struct {
-	Pool      *dockertest.Pool
-	Network   *docker.Network
-	Resources []*dockertest.Resource
-	Client    shieldv1beta1.ShieldServiceClient
-	close     func() error
+	Pool        *dockertest.Pool
+	Network     *docker.Network
+	Resources   []*dockertest.Resource
+	Client      shieldv1beta1.ShieldServiceClient
+	AdminClient shieldv1beta1.AdminServiceClient
+	close       func() error
 }
 
 func Init(appConfig *config.Shield) (*TestBench, error) {
@@ -101,16 +102,22 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 	}
 	te.Client = sClient
 
+	adClient, adClose, err := CreateAdminClient(context.Background(), net.JoinHostPort(appConfig.App.Host, strconv.Itoa(appConfig.App.GRPC.Port)))
+	if err != nil {
+		return nil, err
+	}
+	te.AdminClient = adClient
+
 	te.close = func() error {
 		err1 := pgResource.Close()
 		err2 := spiceDBClose()
 		err3 := sClose()
-		return errors.Join(err1, err2, err3)
+		err4 := adClose()
+		return errors.Join(err1, err2, err3, err4)
 	}
 
 	// let shield start
 	time.Sleep(time.Second * 2)
-
 	return te, nil
 }
 

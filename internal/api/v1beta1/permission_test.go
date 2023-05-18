@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/google/uuid"
 
 	"github.com/odpf/shield/core/permission"
@@ -58,7 +60,7 @@ func TestListPermissions(t *testing.T) {
 		{
 			title: "should return internal error if action service return some error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().List(mock.Anything).Return([]permission.Permission{}, errors.New("some error"))
+				as.EXPECT().List(mock.Anything, permission.Filter{}).Return([]permission.Permission{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
@@ -70,23 +72,23 @@ func TestListPermissions(t *testing.T) {
 				for _, act := range testPermissions {
 					testPermissionList = append(testPermissionList, act)
 				}
-				as.EXPECT().List(mock.Anything).Return(testPermissionList, nil)
+				as.EXPECT().List(mock.Anything, permission.Filter{}).Return(testPermissionList, nil)
 			},
 			want: &shieldv1beta1.ListPermissionsResponse{Permissions: []*shieldv1beta1.Permission{
 				{
-					Id:          testPermissions[0].ID,
-					Name:        testPermissions[0].Name,
-					NamespaceId: testPermissions[0].NamespaceID,
+					Id:        testPermissions[0].ID,
+					Name:      testPermissions[0].Name,
+					Namespace: testPermissions[0].NamespaceID,
 				},
 				{
-					Id:          testPermissions[1].ID,
-					Name:        testPermissions[1].Name,
-					NamespaceId: testPermissions[1].NamespaceID,
+					Id:        testPermissions[1].ID,
+					Name:      testPermissions[1].Name,
+					Namespace: testPermissions[1].NamespaceID,
 				},
 				{
-					Id:          testPermissions[2].ID,
-					Name:        testPermissions[2].Name,
-					NamespaceId: testPermissions[2].NamespaceID,
+					Id:        testPermissions[2].ID,
+					Name:      testPermissions[2].Name,
+					Namespace: testPermissions[2].NamespaceID,
 				},
 			}},
 			err: nil,
@@ -111,101 +113,118 @@ func TestListPermissions(t *testing.T) {
 func TestCreatePermission(t *testing.T) {
 	table := []struct {
 		title string
-		setup func(as *mocks.PermissionService)
+		setup func(as *mocks.PermissionService, bs *mocks.BootstrapService)
 		req   *shieldv1beta1.CreatePermissionRequest
 		want  *shieldv1beta1.CreatePermissionResponse
 		err   error
 	}{
 		{
 			title: "should return internal error if permission service return some error",
-			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
-					ID:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
-				}).Return(permission.Permission{}, errors.New("some error"))
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
+				bs.EXPECT().AppendSchema(mock.AnythingOfType("*context.emptyCtx"), schema.ServiceDefinition{
+					Permissions: []schema.ResourcePermission{
+						{
+							Name:        testPermissions[testPermissionIdx].Name,
+							Namespace:   testPermissions[testPermissionIdx].NamespaceID,
+							Description: "",
+						},
+					},
+				}).Return(errors.New("some error"))
 			},
 			req: &shieldv1beta1.CreatePermissionRequest{
-				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
-				}},
+				Bodies: []*shieldv1beta1.PermissionRequestBody{
+					{
+						Name:      testPermissions[testPermissionIdx].Name,
+						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					},
+				},
+			},
 			want: nil,
 			err:  grpcInternalServerError,
 		},
 		{
-			title: "should return bad request error if namespace id is wrong",
-			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
-					ID:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
-				}).Return(permission.Permission{}, namespace.ErrNotExist)
-			},
+			title: "should return bad request error if namespace id is empty",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
 			req: &shieldv1beta1.CreatePermissionRequest{
-				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
-				}},
-			want: nil,
-			err:  grpcBadBodyError,
-		},
-		{
-			title: "should return bad request error if if id is empty",
-			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
-				}).Return(permission.Permission{}, permission.ErrInvalidID)
+				Bodies: []*shieldv1beta1.PermissionRequestBody{
+					{
+						Name: testPermissions[testPermissionIdx].Name,
+					},
+				},
 			},
-			req: &shieldv1beta1.CreatePermissionRequest{
-				Body: &shieldv1beta1.PermissionRequestBody{
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
-				}},
 			want: nil,
 			err:  grpcBadBodyError,
 		},
 		{
 			title: "should return bad request error if if name is empty",
-			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
-					ID:          testPermissions[testPermissionIdx].ID,
-					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
-				}).Return(permission.Permission{}, permission.ErrInvalidDetail)
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
 			},
 			req: &shieldv1beta1.CreatePermissionRequest{
-				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
-				}},
+				Bodies: []*shieldv1beta1.PermissionRequestBody{
+					{
+						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					},
+				},
+			},
 			want: nil,
 			err:  grpcBadBodyError,
 		},
 		{
 			title: "should return success if permission service return nil error",
-			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
-					ID:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
-				}).Return(permission.Permission{
-					ID:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
+				bs.EXPECT().AppendSchema(mock.AnythingOfType("*context.emptyCtx"), schema.ServiceDefinition{
+					Permissions: []schema.ResourcePermission{
+						{
+							Name:      testPermissions[testPermissionIdx].Name + "0",
+							Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						},
+						{
+							Name:      testPermissions[testPermissionIdx].Name + "1",
+							Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						},
+					},
+				}).Return(nil)
+				as.EXPECT().List(mock.Anything, permission.Filter{
+					Slugs: []string{
+						schema.FQPermissionNameFromNamespace(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+						schema.FQPermissionNameFromNamespace(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"1"),
+					},
+				}).Return([]permission.Permission{
+					{
+						ID:          testPermissions[testPermissionIdx].ID,
+						Name:        testPermissions[testPermissionIdx].Name + "0",
+						NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
+					},
+					{
+						ID:          testPermissions[testPermissionIdx].ID,
+						Name:        testPermissions[testPermissionIdx].Name + "1",
+						NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
+					},
 				}, nil)
 			},
-			req: &shieldv1beta1.CreatePermissionRequest{Body: &shieldv1beta1.PermissionRequestBody{
-				Id:          testPermissions[testPermissionIdx].ID,
-				Name:        testPermissions[testPermissionIdx].Name,
-				NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
-			}},
-			want: &shieldv1beta1.CreatePermissionResponse{Permission: &shieldv1beta1.Permission{
-				Id:          testPermissions[testPermissionIdx].ID,
-				Name:        testPermissions[testPermissionIdx].Name,
-				NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+			req: &shieldv1beta1.CreatePermissionRequest{
+				Bodies: []*shieldv1beta1.PermissionRequestBody{
+					{
+						Name:      testPermissions[testPermissionIdx].Name + "0",
+						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					},
+					{
+						Name:      testPermissions[testPermissionIdx].Name + "1",
+						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					},
+				},
+			},
+			want: &shieldv1beta1.CreatePermissionResponse{Permissions: []*shieldv1beta1.Permission{
+				{
+					Id:        testPermissions[testPermissionIdx].ID,
+					Name:      testPermissions[testPermissionIdx].Name + "0",
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+				},
+				{
+					Id:        testPermissions[testPermissionIdx].ID,
+					Name:      testPermissions[testPermissionIdx].Name + "1",
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+				},
 			}},
 			err: nil,
 		},
@@ -214,10 +233,11 @@ func TestCreatePermission(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockPermissionSrv := new(mocks.PermissionService)
+			mockBootstrapSrv := new(mocks.BootstrapService)
 			if tt.setup != nil {
-				tt.setup(mockPermissionSrv)
+				tt.setup(mockPermissionSrv, mockBootstrapSrv)
 			}
-			mockDep := Handler{permissionService: mockPermissionSrv}
+			mockDep := Handler{permissionService: mockPermissionSrv, bootstrapService: mockBootstrapSrv}
 			resp, err := mockDep.CreatePermission(context.Background(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -267,16 +287,17 @@ func TestHandler_GetPermission(t *testing.T) {
 		{
 			name: "should return success if permission service return nil error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPermissions[testPermissionIdx].ID).Return(testPermissions[testPermissionIdx], nil)
+				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"),
+					testPermissions[testPermissionIdx].ID).Return(testPermissions[testPermissionIdx], nil)
 			},
 			request: &shieldv1beta1.GetPermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 			},
 			want: &shieldv1beta1.GetPermissionResponse{
 				Permission: &shieldv1beta1.Permission{
-					Id:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Id:        testPermissions[testPermissionIdx].ID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			wantErr: nil,
@@ -316,8 +337,8 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: &shieldv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &shieldv1beta1.PermissionRequestBody{
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			want:    nil,
@@ -334,9 +355,8 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: &shieldv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			want:    nil,
@@ -351,9 +371,8 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			},
 			request: &shieldv1beta1.UpdatePermissionRequest{
 				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID, // id in body is being ignored
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			want:    nil,
@@ -370,9 +389,8 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: &shieldv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			want:    nil,
@@ -388,8 +406,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: &shieldv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			want:    nil,
@@ -407,16 +424,15 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: &shieldv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &shieldv1beta1.PermissionRequestBody{
-					Id:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			want: &shieldv1beta1.UpdatePermissionResponse{
 				Permission: &shieldv1beta1.Permission{
-					Id:          testPermissions[testPermissionIdx].ID,
-					Name:        testPermissions[testPermissionIdx].Name,
-					NamespaceId: testPermissions[testPermissionIdx].NamespaceID,
+					Id:        testPermissions[testPermissionIdx].ID,
+					Name:      testPermissions[testPermissionIdx].Name,
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
 			wantErr: nil,

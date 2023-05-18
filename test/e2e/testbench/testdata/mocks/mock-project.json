@@ -1,14 +1,13 @@
 [
     {
-        "name": "project1",
-        "slug": "project-1",
+        "name": "project-1",
+        "title": "project 1",
         "metadata": {
             "label": {},
             "description": "description"
         }
     },
     {
-        "name": "proj2",
-        "slug": "proj-2"
+        "name": "proj-2"
     }
 ]

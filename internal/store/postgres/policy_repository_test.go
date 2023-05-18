@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -113,9 +115,10 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 			Description: "should get a policy",
 			SelectedID:  s.policyIDs[0],
 			ExpectedPolicy: policy.Policy{
-				RoleID:      s.roleID,
-				NamespaceID: "ns1",
-				UserID:      s.userID,
+				RoleID:        s.roleID,
+				ResourceType:  "ns1",
+				PrincipalID:   s.userID,
+				PrincipalType: schema.UserPrincipal,
 			},
 		},
 		{
@@ -164,25 +167,26 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a policy",
 			PolicyToCreate: policy.Policy{
-				RoleID:      s.roleID,
-				ResourceID:  uuid.NewString(),
-				NamespaceID: "ns1",
-				UserID:      s.userID,
+				RoleID:        s.roleID,
+				ResourceID:    uuid.NewString(),
+				ResourceType:  "ns1",
+				PrincipalID:   s.userID,
+				PrincipalType: schema.UserPrincipal,
 			},
 		},
 		{
 			Description: "should return error if role id does not exist",
 			PolicyToCreate: policy.Policy{
-				RoleID:      "role2-random",
-				NamespaceID: "ns1",
+				RoleID:       "role2-random",
+				ResourceType: "ns1",
 			},
 			Err: policy.ErrInvalidDetail,
 		},
 		{
 			Description: "should return error if namespace id does not exist",
 			PolicyToCreate: policy.Policy{
-				RoleID:      s.roleID,
-				NamespaceID: "ns1-random",
+				RoleID:       s.roleID,
+				ResourceType: "ns1-random",
 			},
 			Err: policy.ErrInvalidDetail,
 		},
@@ -196,6 +200,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err.Error())
 				}
 			} else {
+				s.Assert().NoError(err)
 				if len(got) != len(uuid.NewString()) {
 					s.T().Fatalf("got result %s, expected was a uuid", got)
 				}
@@ -216,16 +221,16 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			Description: "should get all policies",
 			ExpectedPolicys: []policy.Policy{
 				{
-					RoleID:      s.roleID,
-					UserID:      s.userID,
-					ResourceID:  s.orgID,
-					NamespaceID: "ns1",
+					RoleID:       s.roleID,
+					PrincipalID:  s.userID,
+					ResourceID:   s.orgID,
+					ResourceType: "ns1",
 				},
 				{
-					RoleID:      s.roleID,
-					UserID:      s.userID,
-					ResourceID:  s.orgID,
-					NamespaceID: "ns2",
+					RoleID:       s.roleID,
+					PrincipalID:  s.userID,
+					ResourceID:   s.orgID,
+					ResourceType: "ns2",
 				},
 			},
 		},
@@ -264,9 +269,9 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 		{
 			Description: "should update an policy",
 			PolicyToUpdate: policy.Policy{
-				ID:          s.policyIDs[0],
-				RoleID:      s.roleID,
-				NamespaceID: "ns1",
+				ID:           s.policyIDs[0],
+				RoleID:       s.roleID,
+				ResourceType: "ns1",
 			},
 			ExpectedPolicyID: s.policyIDs[0],
 		},

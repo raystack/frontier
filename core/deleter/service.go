@@ -106,7 +106,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, p := range projects {
 		if err = d.DeleteProject(ctx, p.ID); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a project[%s]: %w", p.Slug, err)
+			return fmt.Errorf("failed to delete org while deleting a project[%s]: %w", p.Name, err)
 		}
 	}
 
@@ -117,7 +117,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, g := range groups {
 		if err = d.groupService.Delete(ctx, g.ID); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Slug, err)
+			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Name, err)
 		}
 	}
 

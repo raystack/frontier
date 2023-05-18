@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/odpf/shield/pkg/metadata"
@@ -33,10 +35,10 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 	var policies []*shieldv1beta1.Policy
 
 	policyList, err := h.policyService.List(ctx, policy.Filter{
-		OrgID:     request.GetOrgId(),
-		UserID:    request.GetUserId(),
-		ProjectID: request.GetProjectId(),
-		RoleID:    request.GetRoleId(),
+		OrgID:       request.GetOrgId(),
+		PrincipalID: request.GetUserId(),
+		ProjectID:   request.GetProjectId(),
+		RoleID:      request.GetRoleId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -69,14 +71,24 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		}
 	}
 
+	resourceType, resourceID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetResource())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+	principalType, principalID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetPrincipal())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+
 	// TODO(kushsharma): while creating policy, we should support
 	// for non-uuid role ids, like app_project_manager
 	newPolicy, err := h.policyService.Create(ctx, policy.Policy{
-		RoleID:      request.GetBody().GetRoleId(),
-		ResourceID:  request.GetBody().GetResourceId(),
-		NamespaceID: request.GetBody().GetNamespaceId(),
-		UserID:      request.GetBody().GetUserId(),
-		Metadata:    metaDataMap,
+		RoleID:        request.GetBody().GetRoleId(),
+		ResourceID:    resourceID,
+		ResourceType:  resourceType,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		Metadata:      metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -161,12 +173,11 @@ func transformPolicyToPB(policy policy.Policy) (*shieldv1beta1.Policy, error) {
 	}
 
 	pbPol := &shieldv1beta1.Policy{
-		Id:          policy.ID,
-		NamespaceId: policy.NamespaceID,
-		RoleId:      policy.RoleID,
-		ResourceId:  policy.ResourceID,
-		UserId:      policy.UserID,
-		Metadata:    metadata,
+		Id:        policy.ID,
+		RoleId:    policy.RoleID,
+		Resource:  schema.JoinNamespaceAndResourceID(policy.ResourceType, policy.ResourceID),
+		Principal: schema.JoinNamespaceAndResourceID(policy.PrincipalType, policy.PrincipalID),
+		Metadata:  metadata,
 	}
 	if !policy.CreatedAt.IsZero() {
 		pbPol.CreatedAt = timestamppb.New(policy.CreatedAt)

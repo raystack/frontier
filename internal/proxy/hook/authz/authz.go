@@ -27,7 +27,7 @@ type ResourceService interface {
 }
 
 type RelationService interface {
-	Create(ctx context.Context, relation relation.RelationV2) (relation.RelationV2, error)
+	Create(ctx context.Context, relation relation.Relation) (relation.Relation, error)
 }
 
 type Authz struct {
@@ -243,7 +243,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 				continue
 			}
 
-			newRelation, err := a.relationService.Create(res.Request.Context(), relation.RelationV2{
+			newRelation, err := a.relationService.Create(res.Request.Context(), relation.Relation{
 				Object: relation.Object{
 					ID:        newResource.ID,
 					Namespace: newResource.NamespaceID,

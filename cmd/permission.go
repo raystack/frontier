@@ -68,7 +68,7 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, cancel, err := createAdminClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
@@ -76,14 +76,14 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 
 			ctx := setCtxHeader(cmd.Context(), header)
 			res, err := client.CreatePermission(ctx, &shieldv1beta1.CreatePermissionRequest{
-				Body: &reqBody,
+				Bodies: []*shieldv1beta1.PermissionRequestBody{&reqBody},
 			})
 			if err != nil {
 				return err
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully created permission %s with id %s\n", res.GetPermission().GetName(), res.GetPermission().GetId())
+			fmt.Printf("successfully created permissions %d\n", len(res.GetPermissions()))
 			return nil
 		},
 	}
@@ -123,7 +123,7 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
+			client, cancel, err := createAdminClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
 			}
@@ -189,7 +189,7 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 			report = append(report, []string{
 				action.GetId(),
 				action.GetName(),
-				action.GetNamespaceId(),
+				action.GetNamespace(),
 			})
 			printer.Table(os.Stdout, report)
 
@@ -243,7 +243,7 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 				report = append(report, []string{
 					a.GetId(),
 					a.GetName(),
-					a.GetNamespaceId(),
+					a.GetNamespace(),
 				})
 			}
 			printer.Table(os.Stdout, report)

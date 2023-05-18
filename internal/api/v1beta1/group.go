@@ -2,11 +2,10 @@ package v1beta1
 
 import (
 	"context"
-	"strings"
+
+	"github.com/odpf/shield/pkg/str"
 
 	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/str"
-	"github.com/odpf/shield/pkg/uuid"
 	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -108,17 +107,16 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
+	if request.GetBody().GetName() == "" && request.GetBody().GetTitle() != "" {
+		request.GetBody().Name = str.GenerateSlug(request.GetBody().GetTitle())
+	}
+
 	grp := group.Group{
 		Name:           request.GetBody().GetName(),
-		Slug:           request.GetBody().GetSlug(),
+		Title:          request.GetBody().GetTitle(),
 		OrganizationID: request.GetBody().GetOrgId(),
 		Metadata:       metaDataMap,
 	}
-
-	if strings.TrimSpace(grp.Slug) == "" {
-		grp.Slug = str.GenerateSlug(grp.Name)
-	}
-
 	newGroup, err := h.groupService.Create(ctx, grp)
 	if err != nil {
 		logger.Error(err.Error())
@@ -143,7 +141,6 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	return &shieldv1beta1.CreateGroupResponse{Group: &shieldv1beta1.Group{
 		Id:        newGroup.ID,
 		Name:      newGroup.Name,
-		Slug:      newGroup.Slug,
 		OrgId:     newGroup.OrganizationID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(newGroup.CreatedAt),
@@ -191,23 +188,13 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
-	var updatedGroup group.Group
-	if uuid.IsValid(request.GetId()) {
-		updatedGroup, err = h.groupService.Update(ctx, group.Group{
-			ID:             request.GetId(),
-			Name:           request.GetBody().GetName(),
-			Slug:           request.GetBody().GetSlug(),
-			OrganizationID: request.GetBody().GetOrgId(),
-			Metadata:       metaDataMap,
-		})
-	} else {
-		updatedGroup, err = h.groupService.Update(ctx, group.Group{
-			Name:           request.GetBody().GetName(),
-			Slug:           request.GetId(),
-			OrganizationID: request.GetBody().GetOrgId(),
-			Metadata:       metaDataMap,
-		})
-	}
+	updatedGroup, err := h.groupService.Update(ctx, group.Group{
+		ID:             request.GetId(),
+		Name:           request.GetBody().GetName(),
+		Title:          request.GetBody().GetTitle(),
+		OrganizationID: request.GetBody().GetOrgId(),
+		Metadata:       metaDataMap,
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -243,7 +230,7 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.List
 		return nil, grpcInternalServerError
 	}
 
-	userPBs := []*shieldv1beta1.User{}
+	var userPBs []*shieldv1beta1.User
 	for _, user := range users {
 		userPb, err := transformUserToPB(user)
 		if err != nil {
@@ -251,7 +238,7 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.List
 			return nil, grpcInternalServerError
 		}
 
-		userPBs = append(userPBs, &userPb)
+		userPBs = append(userPBs, userPb)
 	}
 	return &shieldv1beta1.ListGroupUsersResponse{
 		Users: userPBs,
@@ -294,7 +281,6 @@ func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
 	return shieldv1beta1.Group{
 		Id:        grp.ID,
 		Name:      grp.Name,
-		Slug:      grp.Slug,
 		OrgId:     grp.OrganizationID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(grp.CreatedAt),

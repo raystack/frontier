@@ -11,7 +11,7 @@ import (
 type Group struct {
 	ID        string         `db:"id"`
 	Name      string         `db:"name"`
-	Slug      string         `db:"slug"`
+	Title     sql.NullString `db:"title"`
 	OrgID     string         `db:"org_id"`
 	Metadata  []byte         `db:"metadata"`
 	State     sql.NullString `db:"state"`
@@ -31,7 +31,7 @@ func (from Group) transformToGroup() (group.Group, error) {
 	return group.Group{
 		ID:             from.ID,
 		Name:           from.Name,
-		Slug:           from.Slug,
+		Title:          from.Title.String,
 		OrganizationID: from.OrgID,
 		Metadata:       unmarshalledMetadata,
 		State:          group.State(from.State.String),

@@ -32,7 +32,8 @@ func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
 		"p.id",
 		"p.resource_type",
 		"p.resource_id",
-		"p.user_id",
+		"p.principal_id",
+		"p.principal_type",
 		"p.role_id",
 	).From(goqu.T(TABLE_POLICIES).As("p"))
 }
@@ -99,9 +100,14 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 			"resource_id": flt.ProjectID,
 		})
 	}
-	if flt.UserID != "" {
+	if flt.PrincipalID != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"user_id": flt.UserID,
+			"principal_id": flt.PrincipalID,
+		})
+	}
+	if flt.PrincipalType != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"principal_type": flt.PrincipalType,
 		})
 	}
 	if flt.RoleID != "" {
@@ -157,12 +163,13 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (string
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
 		goqu.Record{
-			"resource_type": pol.NamespaceID,
-			"role_id":       pol.RoleID,
-			"resource_id":   pol.ResourceID,
-			"user_id":       pol.UserID,
-			"metadata":      marshaledMetadata,
-		}).OnConflict(goqu.DoUpdate("role_id, resource_id, resource_type, user_id", goqu.Record{
+			"role_id":        pol.RoleID,
+			"resource_type":  pol.ResourceType,
+			"resource_id":    pol.ResourceID,
+			"principal_id":   pol.PrincipalID,
+			"principal_type": pol.PrincipalType,
+			"metadata":       marshaledMetadata,
+		}).OnConflict(goqu.DoUpdate("role_id, resource_id, resource_type, principal_id, principal_type", goqu.Record{
 		"metadata": marshaledMetadata,
 	})).Returning("id").ToSQL()
 	if err != nil {

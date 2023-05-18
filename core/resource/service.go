@@ -11,9 +11,9 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	CheckPermission(ctx context.Context, subject relation.Subject, object relation.Object, permName string) (bool, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 type UserService interface {
@@ -62,7 +62,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.relationService.Delete(ctx, relation.RelationV2{
+	if err = s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        newResource.ID,
 			Namespace: newResource.NamespaceID,
@@ -85,13 +85,13 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
 	return s.repository.List(ctx, flt)
 }
 
-func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
+func (s Service) Update(ctx context.Context, resource Resource) (Resource, error) {
 	// TODO there should be an update logic like create here
-	return s.repository.Update(ctx, id, resource)
+	return s.repository.Update(ctx, resource)
 }
 
 func (s Service) AddProjectToResource(ctx context.Context, projectID string, res Resource) error {
-	rel := relation.RelationV2{
+	rel := relation.Relation{
 		Object: relation.Object{
 			ID:        res.ID,
 			Namespace: res.NamespaceID,
@@ -110,7 +110,7 @@ func (s Service) AddProjectToResource(ctx context.Context, projectID string, res
 }
 
 func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
-	if _, err := s.relationService.Create(ctx, relation.RelationV2{
+	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        res.ID,
 			Namespace: res.NamespaceID,
@@ -147,7 +147,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, permissionName st
 }
 
 func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
-	if err := s.relationService.Delete(ctx, relation.RelationV2{
+	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        id,
 			Namespace: namespaceID,

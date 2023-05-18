@@ -61,6 +61,15 @@ func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 	return client, conn.Close, nil
 }
 
+func CreateAdminClient(ctx context.Context, host string) (shieldv1beta1.AdminServiceClient, func() error, error) {
+	conn, err := createConnection(ctx, host)
+	if err != nil {
+		return nil, nil, err
+	}
+	client := shieldv1beta1.NewAdminServiceClient(conn)
+	return client, conn.Close, nil
+}
+
 func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
 	var data []*shieldv1beta1.UserRequestBody
 	if err := json.Unmarshal(mockUserFixture, &data); err != nil {

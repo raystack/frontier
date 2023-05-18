@@ -182,7 +182,7 @@
         },
         "parameters": [
           {
-            "name": "groupId",
+            "name": "userId",
             "in": "query",
             "required": false,
             "type": "string"
@@ -200,7 +200,7 @@
             "type": "string"
           },
           {
-            "name": "namespaceId",
+            "name": "namespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -716,42 +716,11 @@
         "tags": [
           "Namespace"
         ]
-      },
-      "post": {
-        "summary": "Create Namespace",
-        "operationId": "ShieldService_CreateNamespace",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1CreateNamespaceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1NamespaceRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Namespace"
-        ]
       }
     },
     "/v1beta1/namespaces/{id}": {
       "get": {
-        "summary": "Get Namespace by ID",
+        "summary": "Get a Namespaces",
         "operationId": "ShieldService_GetNamespace",
         "responses": {
           "200": {
@@ -777,98 +746,6 @@
         ],
         "tags": [
           "Namespace"
-        ]
-      },
-      "put": {
-        "summary": "Update Namespace by ID",
-        "operationId": "ShieldService_UpdateNamespace",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateNamespaceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1NamespaceRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Namespace"
-        ]
-      }
-    },
-    "/v1beta1/object/{objectNamespace}/{objectId}/subject/{subjectNamespace}/{subjectId}/relation/{relation}": {
-      "delete": {
-        "summary": "Remove a subject having a relation from an object",
-        "operationId": "ShieldService_DeleteRelation",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1DeleteRelationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "objectNamespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "objectId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "subjectNamespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "subjectId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "relation",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Relation"
         ]
       }
     },
@@ -975,7 +852,7 @@
                 "name": {
                   "type": "string"
                 },
-                "slug": {
+                "title": {
                   "type": "string"
                 },
                 "metadata": {
@@ -1031,7 +908,7 @@
                 "name": {
                   "type": "string"
                 },
-                "slug": {
+                "title": {
                   "type": "string"
                 },
                 "metadata": {
@@ -1092,6 +969,9 @@
                 },
                 "metadata": {
                   "type": "object"
+                },
+                "title": {
+                  "type": "string"
                 }
               }
             }
@@ -1154,6 +1034,9 @@
                 },
                 "metadata": {
                   "type": "object"
+                },
+                "title": {
+                  "type": "string"
                 }
               }
             }
@@ -1166,7 +1049,7 @@
     },
     "/v1beta1/organizations/{id}": {
       "get": {
-        "summary": "Get Organization by ID or slug",
+        "summary": "Get organization by ID or slug",
         "operationId": "ShieldService_GetOrganization",
         "responses": {
           "200": {
@@ -1224,7 +1107,7 @@
         ]
       },
       "put": {
-        "summary": "Update Organization by ID",
+        "summary": "Update organization by ID",
         "operationId": "ShieldService_UpdateOrganization",
         "responses": {
           "200": {
@@ -1263,7 +1146,7 @@
     },
     "/v1beta1/organizations/{id}/admins": {
       "get": {
-        "summary": "Get all Admins of an Organization",
+        "summary": "Get all admins of an organization",
         "operationId": "ShieldService_ListOrganizationAdmins",
         "responses": {
           "200": {
@@ -1409,7 +1292,7 @@
     },
     "/v1beta1/organizations/{id}/users": {
       "get": {
-        "summary": "List Organization users",
+        "summary": "List organization users",
         "operationId": "ShieldService_ListOrganizationUsers",
         "responses": {
           "200": {
@@ -1710,6 +1593,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1812,8 +1701,8 @@
         ]
       },
       "post": {
-        "summary": "Create Permission",
-        "operationId": "ShieldService_CreatePermission",
+        "summary": "Create permission",
+        "operationId": "AdminService_CreatePermission",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -1834,7 +1723,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1beta1PermissionRequestBody"
+              "$ref": "#/definitions/v1beta1CreatePermissionRequest"
             }
           }
         ],
@@ -1845,7 +1734,7 @@
     },
     "/v1beta1/permissions/{id}": {
       "get": {
-        "summary": "Get Permission by ID",
+        "summary": "Get permission by ID",
         "operationId": "ShieldService_GetPermission",
         "responses": {
           "200": {
@@ -1874,8 +1763,8 @@
         ]
       },
       "delete": {
-        "summary": "Delete Permission by ID",
-        "operationId": "ShieldService_DeletePermission",
+        "summary": "Delete permission by ID",
+        "operationId": "AdminService_DeletePermission",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -1903,8 +1792,8 @@
         ]
       },
       "put": {
-        "summary": "Update Permission by ID",
-        "operationId": "ShieldService_UpdatePermission",
+        "summary": "Update permission by ID",
+        "operationId": "AdminService_UpdatePermission",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -1982,6 +1871,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "groupId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1989,7 +1884,7 @@
         ]
       },
       "post": {
-        "summary": "Create Policy",
+        "summary": "Create policy",
         "operationId": "ShieldService_CreatePolicy",
         "responses": {
           "200": {
@@ -2022,7 +1917,7 @@
     },
     "/v1beta1/policies/{id}": {
       "get": {
-        "summary": "Get Policy by ID",
+        "summary": "Get policy by ID",
         "operationId": "ShieldService_GetPolicy",
         "responses": {
           "200": {
@@ -2080,7 +1975,7 @@
         ]
       },
       "put": {
-        "summary": "Update Policy by ID",
+        "summary": "Update policy by ID",
         "operationId": "ShieldService_UpdatePolicy",
         "responses": {
           "200": {
@@ -2119,7 +2014,7 @@
     },
     "/v1beta1/projects": {
       "post": {
-        "summary": "Create Project",
+        "summary": "Create oroject",
         "operationId": "ShieldService_CreateProject",
         "responses": {
           "200": {
@@ -2153,12 +2048,12 @@
     "/v1beta1/projects/{body.projectId}/resources": {
       "post": {
         "summary": "Create Resource",
-        "operationId": "ShieldService_CreateResource",
+        "operationId": "ShieldService_CreateProjectResource",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1beta1CreateResourceResponse"
+              "$ref": "#/definitions/v1beta1CreateProjectResourceResponse"
             }
           },
           "default": {
@@ -2185,15 +2080,8 @@
                 "name": {
                   "type": "string"
                 },
-                "namespaceId": {
+                "namespace": {
                   "type": "string"
-                },
-                "relations": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/v1beta1Relation"
-                  }
                 },
                 "userId": {
                   "type": "string"
@@ -2213,12 +2101,12 @@
     "/v1beta1/projects/{body.projectId}/resources/{id}": {
       "put": {
         "summary": "Update Resource by ID",
-        "operationId": "ShieldService_UpdateResource",
+        "operationId": "ShieldService_UpdateProjectResource",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1beta1UpdateResourceResponse"
+              "$ref": "#/definitions/v1beta1UpdateProjectResourceResponse"
             }
           },
           "default": {
@@ -2251,15 +2139,8 @@
                 "name": {
                   "type": "string"
                 },
-                "namespaceId": {
+                "namespace": {
                   "type": "string"
-                },
-                "relations": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/v1beta1Relation"
-                  }
                 },
                 "userId": {
                   "type": "string"
@@ -2278,7 +2159,7 @@
     },
     "/v1beta1/projects/{id}": {
       "get": {
-        "summary": "Get Project by ID",
+        "summary": "Get oroject by ID",
         "operationId": "ShieldService_GetProject",
         "responses": {
           "200": {
@@ -2307,7 +2188,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete a Project permanently forever and all of its relations",
+        "summary": "Delete a oroject permanently forever and all of its relations",
         "operationId": "ShieldService_DeleteProject",
         "responses": {
           "200": {
@@ -2336,7 +2217,7 @@
         ]
       },
       "put": {
-        "summary": "Update Project by ID",
+        "summary": "Update oroject by ID",
         "operationId": "ShieldService_UpdateProject",
         "responses": {
           "200": {
@@ -2375,7 +2256,7 @@
     },
     "/v1beta1/projects/{id}/admins": {
       "get": {
-        "summary": "Get all Admins of a Project",
+        "summary": "Get all Admins of a oroject",
         "operationId": "ShieldService_ListProjectAdmins",
         "responses": {
           "200": {
@@ -2406,7 +2287,7 @@
     },
     "/v1beta1/projects/{id}/disable": {
       "post": {
-        "summary": "Disable a Project",
+        "summary": "Disable a oroject",
         "operationId": "ShieldService_DisableProject",
         "responses": {
           "200": {
@@ -2445,7 +2326,7 @@
     },
     "/v1beta1/projects/{id}/enable": {
       "post": {
-        "summary": "Enable a Project",
+        "summary": "Enable a oroject",
         "operationId": "ShieldService_EnableProject",
         "responses": {
           "200": {
@@ -2484,7 +2365,7 @@
     },
     "/v1beta1/projects/{id}/users": {
       "get": {
-        "summary": "Get all users of a Project",
+        "summary": "Get all users of a oroject",
         "operationId": "ShieldService_ListProjectUsers",
         "responses": {
           "200": {
@@ -2545,7 +2426,7 @@
             "type": "string"
           },
           {
-            "name": "namespaceId",
+            "name": "namespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -2559,12 +2440,12 @@
     "/v1beta1/projects/{projectId}/resources/{id}": {
       "get": {
         "summary": "Get Resource by ID",
-        "operationId": "ShieldService_GetResource",
+        "operationId": "ShieldService_GetProjectResource",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1beta1GetResourceResponse"
+              "$ref": "#/definitions/v1beta1GetProjectResourceResponse"
             }
           },
           "default": {
@@ -2594,12 +2475,12 @@
       },
       "delete": {
         "summary": "Delete a resource permanently forever",
-        "operationId": "ShieldService_DeleteResource",
+        "operationId": "ShieldService_DeleteProjectResource",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1beta1DeleteResourceResponse"
+              "$ref": "#/definitions/v1beta1DeleteProjectResourceResponse"
             }
           },
           "default": {
@@ -2692,6 +2573,51 @@
         ]
       }
     },
+    "/v1beta1/relations/{relation}/object/{object}/subject/{subject}": {
+      "delete": {
+        "summary": "Remove a subject having a relation from an object",
+        "operationId": "ShieldService_DeleteRelation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteRelationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "relation",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "object",
+            "description": "objectnamespace:uuid",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "description": "subjectnamespace:uuid",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Relation"
+        ]
+      }
+    },
     "/v1beta1/roles": {
       "get": {
         "summary": "List all pre-defined roles",
@@ -2710,6 +2636,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Role"
         ]
@@ -3315,14 +3249,6 @@
         }
       }
     },
-    "v1beta1CreateNamespaceResponse": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "$ref": "#/definitions/v1beta1Namespace"
-        }
-      }
-    },
     "v1beta1CreateOrganizationResponse": {
       "type": "object",
       "properties": {
@@ -3339,11 +3265,27 @@
         }
       }
     },
+    "v1beta1CreatePermissionRequest": {
+      "type": "object",
+      "properties": {
+        "bodies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1PermissionRequestBody"
+          }
+        }
+      }
+    },
     "v1beta1CreatePermissionResponse": {
       "type": "object",
       "properties": {
-        "permission": {
-          "$ref": "#/definitions/v1beta1Permission"
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1Permission"
+          }
         }
       }
     },
@@ -3352,6 +3294,14 @@
       "properties": {
         "policy": {
           "$ref": "#/definitions/v1beta1Policy"
+        }
+      }
+    },
+    "v1beta1CreateProjectResourceResponse": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "$ref": "#/definitions/v1beta1Resource"
         }
       }
     },
@@ -3368,14 +3318,6 @@
       "properties": {
         "relation": {
           "$ref": "#/definitions/v1beta1Relation"
-        }
-      }
-    },
-    "v1beta1CreateResourceResponse": {
-      "type": "object",
-      "properties": {
-        "resource": {
-          "$ref": "#/definitions/v1beta1Resource"
         }
       }
     },
@@ -3413,18 +3355,13 @@
     "v1beta1DeletePolicyResponse": {
       "type": "object"
     },
+    "v1beta1DeleteProjectResourceResponse": {
+      "type": "object"
+    },
     "v1beta1DeleteProjectResponse": {
       "type": "object"
     },
     "v1beta1DeleteRelationResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "v1beta1DeleteResourceResponse": {
       "type": "object"
     },
     "v1beta1DeleteRoleResponse": {
@@ -3545,6 +3482,14 @@
         }
       }
     },
+    "v1beta1GetProjectResourceResponse": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "$ref": "#/definitions/v1beta1Resource"
+        }
+      }
+    },
     "v1beta1GetProjectResponse": {
       "type": "object",
       "properties": {
@@ -3558,14 +3503,6 @@
       "properties": {
         "relation": {
           "$ref": "#/definitions/v1beta1Relation"
-        }
-      }
-    },
-    "v1beta1GetResourceResponse": {
-      "type": "object",
-      "properties": {
-        "resource": {
-          "$ref": "#/definitions/v1beta1Resource"
         }
       }
     },
@@ -3586,7 +3523,7 @@
         "name": {
           "type": "string"
         },
-        "slug": {
+        "title": {
           "type": "string"
         },
         "orgId": {
@@ -3611,7 +3548,7 @@
         "name": {
           "type": "string"
         },
-        "slug": {
+        "title": {
           "type": "string"
         },
         "metadata": {
@@ -3970,7 +3907,8 @@
           "type": "string"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "name could be in a format like: app/organization"
         },
         "metadata": {
           "type": "object"
@@ -3985,17 +3923,6 @@
         }
       }
     },
-    "v1beta1NamespaceRequestBody": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        }
-      }
-    },
     "v1beta1Organization": {
       "type": "object",
       "properties": {
@@ -4005,7 +3932,7 @@
         "name": {
           "type": "string"
         },
-        "slug": {
+        "title": {
           "type": "string"
         },
         "metadata": {
@@ -4027,7 +3954,7 @@
         "name": {
           "type": "string"
         },
-        "slug": {
+        "title": {
           "type": "string"
         },
         "metadata": {
@@ -4044,6 +3971,9 @@
         "name": {
           "type": "string"
         },
+        "title": {
+          "type": "string"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -4052,35 +3982,29 @@
           "type": "string",
           "format": "date-time"
         },
-        "namespaceId": {
+        "namespace": {
           "type": "string"
         },
         "metadata": {
           "type": "object"
-        },
-        "slug": {
-          "type": "string"
         }
       }
     },
     "v1beta1PermissionRequestBody": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
-        },
         "name": {
           "type": "string"
         },
-        "namespaceId": {
-          "type": "string"
+        "namespace": {
+          "type": "string",
+          "title": "namespace should be in service/resource format"
         },
         "metadata": {
           "type": "object"
         },
-        "slug": {
-          "type": "string",
-          "title": "slug is optional and will be autogenerated with name and namespace_id"
+        "title": {
+          "type": "string"
         }
       }
     },
@@ -4090,6 +4014,9 @@
         "id": {
           "type": "string"
         },
+        "title": {
+          "type": "string"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -4098,17 +4025,16 @@
           "type": "string",
           "format": "date-time"
         },
-        "namespaceId": {
-          "type": "string"
-        },
         "roleId": {
           "type": "string"
         },
-        "resourceId": {
-          "type": "string"
+        "resource": {
+          "type": "string",
+          "title": "namespace:uuid"
         },
-        "userId": {
-          "type": "string"
+        "principal": {
+          "type": "string",
+          "title": "namespace:uuid"
         },
         "metadata": {
           "type": "object"
@@ -4121,14 +4047,16 @@
         "roleId": {
           "type": "string"
         },
-        "resourceId": {
+        "title": {
           "type": "string"
         },
-        "namespaceId": {
-          "type": "string"
+        "resource": {
+          "type": "string",
+          "title": "namespace:uuid"
         },
-        "userId": {
-          "type": "string"
+        "principal": {
+          "type": "string",
+          "title": "namespace:uuid"
         },
         "metadata": {
           "type": "object"
@@ -4144,7 +4072,7 @@
         "name": {
           "type": "string"
         },
-        "slug": {
+        "title": {
           "type": "string"
         },
         "orgId": {
@@ -4169,7 +4097,7 @@
         "name": {
           "type": "string"
         },
-        "slug": {
+        "title": {
           "type": "string"
         },
         "metadata": {
@@ -4186,15 +4114,6 @@
         "id": {
           "type": "string"
         },
-        "objectId": {
-          "type": "string"
-        },
-        "objectNamespace": {
-          "type": "string"
-        },
-        "subjectId": {
-          "type": "string"
-        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -4203,33 +4122,34 @@
           "type": "string",
           "format": "date-time"
         },
-        "subjectNamespace": {
+        "subjectSubRelation": {
           "type": "string"
         },
-        "subjectSubRelationName": {
+        "relation": {
           "type": "string"
         },
-        "relationName": {
-          "type": "string"
+        "object": {
+          "type": "string",
+          "title": "objectnamespace:id"
+        },
+        "subject": {
+          "type": "string",
+          "title": "subjectnamespace:id"
         }
       }
     },
     "v1beta1RelationRequestBody": {
       "type": "object",
       "properties": {
-        "objectId": {
-          "type": "string"
+        "object": {
+          "type": "string",
+          "title": "objectnamespace:uuid"
         },
-        "objectNamespace": {
-          "type": "string"
+        "subject": {
+          "type": "string",
+          "title": "subjectnamespace:uuid"
         },
-        "subjectId": {
-          "type": "string"
-        },
-        "relationName": {
-          "type": "string"
-        },
-        "subjectNamespace": {
+        "relation": {
           "type": "string"
         },
         "subjectSubRelation": {
@@ -4260,7 +4180,7 @@
         "projectId": {
           "type": "string"
         },
-        "namespaceId": {
+        "namespace": {
           "type": "string"
         },
         "userId": {
@@ -4280,15 +4200,8 @@
         "projectId": {
           "type": "string"
         },
-        "namespaceId": {
+        "namespace": {
           "type": "string"
-        },
-        "relations": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1beta1Relation"
-          }
         },
         "userId": {
           "type": "string"
@@ -4312,6 +4225,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "title": {
+          "type": "string"
         },
         "metadata": {
           "type": "object"
@@ -4352,6 +4268,9 @@
         },
         "metadata": {
           "type": "object"
+        },
+        "title": {
+          "type": "string"
         }
       }
     },
@@ -4376,14 +4295,6 @@
       "properties": {
         "metaschema": {
           "$ref": "#/definitions/v1beta1MetaSchema"
-        }
-      }
-    },
-    "v1beta1UpdateNamespaceResponse": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "$ref": "#/definitions/v1beta1Namespace"
         }
       }
     },
@@ -4423,19 +4334,19 @@
         }
       }
     },
+    "v1beta1UpdateProjectResourceResponse": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "$ref": "#/definitions/v1beta1Resource"
+        }
+      }
+    },
     "v1beta1UpdateProjectResponse": {
       "type": "object",
       "properties": {
         "project": {
           "$ref": "#/definitions/v1beta1Project"
-        }
-      }
-    },
-    "v1beta1UpdateResourceResponse": {
-      "type": "object",
-      "properties": {
-        "resource": {
-          "$ref": "#/definitions/v1beta1Resource"
         }
       }
     },
@@ -4454,11 +4365,11 @@
           "type": "string"
         },
         "name": {
-          "type": "string"
-        },
-        "slug": {
           "type": "string",
           "title": "can either be empty or must start with a character"
+        },
+        "title": {
+          "type": "string"
         },
         "email": {
           "type": "string"
@@ -4488,7 +4399,7 @@
         "metadata": {
           "type": "object"
         },
-        "slug": {
+        "title": {
           "type": "string"
         }
       }

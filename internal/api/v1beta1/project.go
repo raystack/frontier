@@ -2,15 +2,11 @@ package v1beta1
 
 import (
 	"context"
-	"strings"
 
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/str"
-	"github.com/odpf/shield/pkg/uuid"
-
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
@@ -26,7 +22,7 @@ var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exis
 
 //go:generate mockery --name=ProjectService -r --case underscore --with-expecter --structname ProjectService --filename project_service.go --output=./mocks
 type ProjectService interface {
-	Get(ctx context.Context, idOrSlugd string) (project.Project, error)
+	Get(ctx context.Context, idOrName string) (project.Project, error)
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
 	List(ctx context.Context, f project.Filter) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
@@ -58,7 +54,7 @@ func (h Handler) ListProjects(
 			return nil, grpcInternalServerError
 		}
 
-		projects = append(projects, &projectPB)
+		projects = append(projects, projectPB)
 	}
 
 	return &shieldv1beta1.ListProjectsResponse{Projects: projects}, nil
@@ -70,23 +66,22 @@ func (h Handler) CreateProject(
 ) (*shieldv1beta1.CreateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
+	metaDataMap := map[string]any{}
+	var err error
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
 	}
 
 	prj := project.Project{
 		Name:         request.GetBody().GetName(),
-		Slug:         request.GetBody().GetSlug(),
+		Title:        request.GetBody().GetTitle(),
 		Metadata:     metaDataMap,
 		Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
 	}
-
-	if strings.TrimSpace(prj.Slug) == "" {
-		prj.Slug = str.GenerateSlug(prj.Name)
-	}
-
 	newProject, err := h.projectService.Create(ctx, prj)
 	if err != nil {
 		logger.Error(err.Error())
@@ -102,20 +97,12 @@ func (h Handler) CreateProject(
 		}
 	}
 
-	metaData, err := newProject.Metadata.ToStructPB()
+	projectPB, err := transformProjectToPB(newProject)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-
-	return &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
-		Id:        newProject.ID,
-		Name:      newProject.Name,
-		Slug:      newProject.Slug,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(newProject.CreatedAt),
-		UpdatedAt: timestamppb.New(newProject.UpdatedAt),
-	}}, nil
+	return &shieldv1beta1.CreateProjectResponse{Project: projectPB}, nil
 }
 
 func (h Handler) GetProject(
@@ -141,7 +128,7 @@ func (h Handler) GetProject(
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetProjectResponse{Project: &projectPB}, nil
+	return &shieldv1beta1.GetProjectResponse{Project: projectPB}, nil
 }
 
 func (h Handler) UpdateProject(
@@ -158,23 +145,12 @@ func (h Handler) UpdateProject(
 		return nil, grpcBadBodyError
 	}
 
-	var updatedProject project.Project
-	if uuid.IsValid(request.GetId()) {
-		updatedProject, err = h.projectService.Update(ctx, project.Project{
-			ID:           request.GetId(),
-			Name:         request.GetBody().GetName(),
-			Slug:         request.GetBody().GetSlug(),
-			Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
-			Metadata:     metaDataMap,
-		})
-	} else {
-		updatedProject, err = h.projectService.Update(ctx, project.Project{
-			Name:         request.GetBody().GetName(),
-			Slug:         request.GetId(),
-			Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
-			Metadata:     metaDataMap,
-		})
-	}
+	updatedProject, err := h.projectService.Update(ctx, project.Project{
+		ID:           request.GetId(),
+		Name:         request.GetBody().GetName(),
+		Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
+		Metadata:     metaDataMap,
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -198,7 +174,7 @@ func (h Handler) UpdateProject(
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.UpdateProjectResponse{Project: &projectPB}, nil
+	return &shieldv1beta1.UpdateProjectResponse{Project: projectPB}, nil
 }
 
 func (h Handler) ListProjectAdmins(
@@ -226,7 +202,7 @@ func (h Handler) ListProjectAdmins(
 			return nil, ErrInternalServer
 		}
 
-		transformedAdmins = append(transformedAdmins, &u)
+		transformedAdmins = append(transformedAdmins, u)
 	}
 
 	return &shieldv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
@@ -262,7 +238,7 @@ func (h Handler) ListProjectUsers(
 			return nil, ErrInternalServer
 		}
 
-		transformedUsers = append(transformedUsers, &u)
+		transformedUsers = append(transformedUsers, u)
 	}
 
 	return &shieldv1beta1.ListProjectUsersResponse{Users: transformedUsers}, nil
@@ -286,16 +262,16 @@ func (h Handler) DisableProject(ctx context.Context, request *shieldv1beta1.Disa
 	return &shieldv1beta1.DisableProjectResponse{}, nil
 }
 
-func transformProjectToPB(prj project.Project) (shieldv1beta1.Project, error) {
+func transformProjectToPB(prj project.Project) (*shieldv1beta1.Project, error) {
 	metaData, err := prj.Metadata.ToStructPB()
 	if err != nil {
-		return shieldv1beta1.Project{}, err
+		return nil, err
 	}
 
-	return shieldv1beta1.Project{
+	return &shieldv1beta1.Project{
 		Id:        prj.ID,
 		Name:      prj.Name,
-		Slug:      prj.Slug,
+		Title:     prj.Title,
 		OrgId:     prj.Organization.ID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(prj.CreatedAt),

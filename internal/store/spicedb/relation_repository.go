@@ -27,7 +27,7 @@ func NewRelationRepository(spiceDB *SpiceDB, fullyConsistent bool) *RelationRepo
 	}
 }
 
-func (r RelationRepository) Add(ctx context.Context, rel relation.RelationV2) error {
+func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) error {
 	relationship := &authzedpb.Relationship{
 		Resource: &authzedpb.ObjectReference{
 			ObjectType: rel.Object.Namespace,
@@ -73,7 +73,7 @@ func (r RelationRepository) Add(ctx context.Context, rel relation.RelationV2) er
 	return nil
 }
 
-func (r RelationRepository) Check(ctx context.Context, rel relation.RelationV2, permissionName string) (bool, error) {
+func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, permissionName string) (bool, error) {
 	request := &authzedpb.CheckPermissionRequest{
 		Consistency: r.getConsistency(),
 		Resource: &authzedpb.ObjectReference{
@@ -109,7 +109,7 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.RelationV2, 
 	return response.Permissionship == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
 }
 
-func (r RelationRepository) Delete(ctx context.Context, rel relation.RelationV2) error {
+func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
 	request := &authzedpb.DeleteRelationshipsRequest{
 		RelationshipFilter: &authzedpb.RelationshipFilter{
 			ResourceType:       rel.Object.Namespace,
@@ -147,7 +147,7 @@ func (r RelationRepository) Delete(ctx context.Context, rel relation.RelationV2)
 	return nil
 }
 
-func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.RelationV2) ([]string, error) {
+func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error) {
 	resp, err := r.spiceDB.client.LookupSubjects(ctx, &authzedpb.LookupSubjectsRequest{
 		Consistency: r.getConsistency(),
 		Resource: &authzedpb.ObjectReference{
@@ -174,7 +174,7 @@ func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.Rel
 	return subjects, nil
 }
 
-func (r RelationRepository) LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error) {
+func (r RelationRepository) LookupResources(ctx context.Context, rel relation.Relation) ([]string, error) {
 	resp, err := r.spiceDB.client.LookupResources(ctx, &authzedpb.LookupResourcesRequest{
 		Consistency:        r.getConsistency(),
 		ResourceObjectType: rel.Object.Namespace,
@@ -205,7 +205,7 @@ func (r RelationRepository) LookupResources(ctx context.Context, rel relation.Re
 }
 
 // ListRelations shouldn't be used in high TPS flows as consistency requirements are set high
-func (r RelationRepository) ListRelations(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error) {
+func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
 	resp, err := r.spiceDB.client.ReadRelationships(ctx, &authzedpb.ReadRelationshipsRequest{
 		Consistency: r.getConsistency(),
 		RelationshipFilter: &authzedpb.RelationshipFilter{
@@ -222,7 +222,7 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 	if err != nil {
 		return nil, err
 	}
-	var rels []relation.RelationV2
+	var rels []relation.Relation
 	for {
 		item, err := resp.Recv()
 		if err == io.EOF {
@@ -232,7 +232,7 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 			return nil, err
 		}
 		pbRel := item.GetRelationship()
-		rels = append(rels, relation.RelationV2{
+		rels = append(rels, relation.Relation{
 			Object: relation.Object{
 				ID:        pbRel.Resource.ObjectId,
 				Namespace: pbRel.Resource.ObjectType,

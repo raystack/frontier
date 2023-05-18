@@ -1,0 +1,13 @@
+permissions:
+  - name: delete
+    namespace: compute/order
+  - name: update
+    namespace: compute/order
+  - name: get
+    namespace: compute/order
+  - name: create
+    namespace: compute/order
+  - name: get
+    namespace: compute/receipt
+  - name: update
+    namespace: compute/receipt

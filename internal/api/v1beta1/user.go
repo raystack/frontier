@@ -63,7 +63,7 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-		users = append(users, &userPB)
+		users = append(users, userPB)
 	}
 
 	return &shieldv1beta1.ListUsersResponse{
@@ -94,7 +94,7 @@ func (h Handler) ListAllUsers(ctx context.Context, request *shieldv1beta1.ListAl
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-		users = append(users, &userPB)
+		users = append(users, userPB)
 	}
 
 	return &shieldv1beta1.ListAllUsersResponse{
@@ -127,10 +127,10 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		email = currentUserEmail
 	}
 
-	name := request.GetBody().GetName()
-	slug := strings.TrimSpace(request.GetBody().GetSlug())
-	if slug == "" {
-		slug = str.GenerateUserSlug(email)
+	title := request.GetBody().GetTitle()
+	name := strings.TrimSpace(request.GetBody().GetName())
+	if name == "" {
+		name = str.GenerateUserSlug(email)
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -146,9 +146,9 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 
 	// TODO might need to check the valid email form
 	newUser, err := h.userService.Create(ctx, user.User{
-		Name:     name,
+		Title:    title,
 		Email:    email,
-		Slug:     slug,
+		Name:     name,
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -169,21 +169,12 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		}
 	}
 
-	metaData, err := newUser.Metadata.ToStructPB()
+	transformedUser, err := transformUserToPB(newUser)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-
-	return &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
-		Id:        newUser.ID,
-		Name:      newUser.Name,
-		Email:     newUser.Email,
-		Slug:      newUser.Slug,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(newUser.CreatedAt),
-		UpdatedAt: timestamppb.New(newUser.UpdatedAt),
-	}}, nil
+	return &shieldv1beta1.CreateUserResponse{User: transformedUser}, nil
 }
 
 func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest) (*shieldv1beta1.GetUserResponse, error) {
@@ -207,7 +198,7 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 	}
 
 	return &shieldv1beta1.GetUserResponse{
-		User: &userPB,
+		User: userPB,
 	}, nil
 }
 
@@ -231,7 +222,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		return nil, grpcInternalServerError
 	}
 	return &shieldv1beta1.GetCurrentUserResponse{
-		User: &userPB,
+		User: userPB,
 	}, nil
 }
 
@@ -286,9 +277,9 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 
 	updatedUser, err = h.userService.Update(ctx, user.User{
 		ID:       request.GetId(),
-		Name:     request.GetBody().GetName(),
+		Title:    request.GetBody().GetTitle(),
 		Email:    request.GetBody().GetEmail(),
-		Slug:     request.GetBody().GetSlug(),
+		Name:     request.GetBody().GetName(),
 		Metadata: metaDataMap,
 	})
 
@@ -312,7 +303,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, ErrInternalServer
 	}
 
-	return &shieldv1beta1.UpdateUserResponse{User: &userPB}, nil
+	return &shieldv1beta1.UpdateUserResponse{User: userPB}, nil
 }
 
 func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.UpdateCurrentUserRequest) (*shieldv1beta1.UpdateCurrentUserResponse, error) {
@@ -349,9 +340,9 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 	}
 
 	updatedUser, err := h.userService.UpdateByEmail(ctx, user.User{
-		Name:     request.GetBody().GetName(),
+		Title:    request.GetBody().GetTitle(),
 		Email:    email,
-		Slug:     request.GetBody().GetSlug(),
+		Name:     request.GetBody().GetName(),
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -370,7 +361,7 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.UpdateCurrentUserResponse{User: &userPB}, nil
+	return &shieldv1beta1.UpdateCurrentUserResponse{User: userPB}, nil
 }
 
 func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.ListUserGroupsRequest) (*shieldv1beta1.ListUserGroupsResponse, error) {
@@ -414,7 +405,7 @@ func (h Handler) GetOrganizationsByUser(ctx context.Context, request *shieldv1be
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-		orgs = append(orgs, &orgPB)
+		orgs = append(orgs, orgPB)
 	}
 	return &shieldv1beta1.GetOrganizationsByUserResponse{Organizations: orgs}, nil
 }
@@ -470,22 +461,22 @@ func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *shi
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-		orgs = append(orgs, &orgPB)
+		orgs = append(orgs, orgPB)
 	}
 	return &shieldv1beta1.GetOrganizationsByCurrentUserResponse{Organizations: orgs}, nil
 }
 
-func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {
+func transformUserToPB(usr user.User) (*shieldv1beta1.User, error) {
 	metaData, err := usr.Metadata.ToStructPB()
 	if err != nil {
-		return shieldv1beta1.User{}, err
+		return nil, err
 	}
 
-	return shieldv1beta1.User{
+	return &shieldv1beta1.User{
 		Id:        usr.ID,
-		Name:      usr.Name,
+		Title:     usr.Title,
 		Email:     usr.Email,
-		Slug:      usr.Slug,
+		Name:      usr.Name,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(usr.CreatedAt),
 		UpdatedAt: timestamppb.New(usr.UpdatedAt),

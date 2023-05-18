@@ -1,166 +1,171 @@
 
 
-definition app/user {}
+definition app/group {
+	permission delete = org->group_delete + granted->app_group_delete + owner
+	permission get = org->group_get + granted->app_group_get + owner
+	relation granted: app/rolebinding
+	relation member: app/user
 
-definition app/serviceuser {}
+	// permissions
+	permission membership = member + owner
+
+	// relations
+	relation org: app/organization
+	relation owner: app/user
+	permission update = org->group_update + granted->app_group_update + owner
+}
+
+definition app/organization {
+	permission compute_order_create = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_create
+	permission compute_order_delete = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_delete
+	permission compute_order_get = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_get
+	permission compute_order_update = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_update
+	permission compute_receipt_get = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_get
+	permission compute_receipt_update = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_update
+	permission delete = platform->superuser + granted->app_organization_administer + granted->app_organization_delete + owner
+	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + owner
+	relation granted: app/rolebinding
+
+	// synthetic permissions - group
+	permission group_delete = platform->superuser + granted->app_organization_administer + granted->app_group_delete + owner
+	permission group_get = platform->superuser + granted->app_organization_administer + granted->app_group_get + owner
+	permission group_update = platform->superuser + granted->app_organization_administer + granted->app_group_update + owner
+	permission groupcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_groupcreate + owner
+	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist + owner
+	relation member: app/user | app/group#member | app/serviceuser
+
+	// permissions
+	// org
+	permission membership = member + owner
+	relation owner: app/user
+
+	// relations
+	relation platform: app/platform
+	permission policymanage = platform->superuser + granted->app_organization_administer + granted->app_organization_policymanage + owner
+
+	// synthetic permissions - project
+	permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + owner
+	permission project_get = platform->superuser + granted->app_organization_administer + granted->app_project_get + owner
+	permission project_policymanage = platform->superuser + granted->app_organization_administer + granted->app_project_policymanage + owner
+	permission project_resourcelist = platform->superuser + granted->app_organization_administer + granted->app_project_resourcelist + owner
+	permission project_update = platform->superuser + granted->app_organization_administer + granted->app_project_update + owner
+	permission projectcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_projectcreate + owner
+	permission projectlist = platform->superuser + granted->app_organization_administer + granted->app_organization_projectlist + owner
+	permission rolemanage = platform->superuser + granted->app_organization_administer + granted->app_organization_rolemanage + owner
+	permission update = platform->superuser + granted->app_organization_administer + granted->app_organization_update + owner
+}
 
 definition app/platform {
 	relation admin: app/user | app/serviceuser
 	permission superuser = admin
 }
 
-definition app/organization {
-	// relations
-	relation platform: app/platform
-	relation granted: app/rolebinding
-	relation member: app/user | app/group#member | app/serviceuser
-	relation owner: app/user
-
-	// permissions
-	// org
-	permission membership = member + owner
-	permission delete = platform->superuser + granted->app_organization_administer + granted->app_organization_delete + owner
-	permission update = platform->superuser + granted->app_organization_administer + granted->app_organization_update + owner
-	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + owner
-	permission rolemanage = platform->superuser + granted->app_organization_administer + granted->app_organization_rolemanage + owner
-	permission policymanage = platform->superuser + granted->app_organization_administer + granted->app_organization_policymanage + owner
-	permission projectlist = platform->superuser + granted->app_organization_administer + granted->app_organization_projectlist + owner
-	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist + owner
-	permission projectcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_projectcreate + owner
-	permission groupcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_groupcreate + owner
-
-	// synthetic permissions - project
-	permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + owner
-	permission project_update = platform->superuser + granted->app_organization_administer + granted->app_project_update + owner
-	permission project_get = platform->superuser + granted->app_organization_administer + granted->app_project_get + owner
-	permission project_policymanage = platform->superuser + granted->app_organization_administer + granted->app_project_policymanage + owner
-	permission project_resourcelist = platform->superuser + granted->app_organization_administer + granted->app_project_resourcelist + owner
-
-	// synthetic permissions - group
-	permission group_delete = platform->superuser + granted->app_organization_administer + granted->app_group_delete + owner
-	permission group_update = platform->superuser + granted->app_organization_administer + granted->app_group_update + owner
-	permission group_get = platform->superuser + granted->app_organization_administer + granted->app_group_get + owner
-
-	// auto-generated for potato
-	permission potato_order_delete = owner + platform->superuser + granted->app_organization_administer + granted->potato_order_delete
-	permission potato_order_update = owner + platform->superuser + granted->app_organization_administer + granted->potato_order_update
-	permission potato_order_get = owner + platform->superuser + granted->app_organization_administer + granted->potato_order_get
-	permission potato_order_list = owner + platform->superuser + granted->app_organization_administer + granted->potato_order_list
-	permission potato_order_create = owner + platform->superuser + granted->app_organization_administer + granted->potato_order_create
-}
-
-definition app/group {
-	// relations
-	relation org: app/organization
-	relation granted: app/rolebinding
-	relation member: app/user
-	relation owner: app/user
-
-	// permissions
-	permission membership = member + owner
-	permission delete = org->group_delete + granted->app_group_delete + owner
-	permission update = org->group_update + granted->app_group_update + owner
-	permission get = org->group_get + granted->app_group_get + owner
-}
-
 definition app/project {
-	// relations
-	relation org: app/organization
-	relation granted: app/rolebinding
+	permission compute_order_create = org->compute_order_create + granted->app_project_administer + granted->compute_order_create
+	permission compute_order_delete = org->compute_order_delete + granted->app_project_administer + granted->compute_order_delete
+	permission compute_order_get = org->compute_order_get + granted->app_project_administer + granted->compute_order_get
+	permission compute_order_update = org->compute_order_update + granted->app_project_administer + granted->compute_order_update
+	permission compute_receipt_get = org->compute_receipt_get + granted->app_project_administer + granted->compute_receipt_get
+	permission compute_receipt_update = org->compute_receipt_update + granted->app_project_administer + granted->compute_receipt_update
 
 	// permissions
 	permission delete = org->project_delete + granted->app_project_administer + granted->app_project_delete
-	permission update = org->project_update + granted->app_project_administer + granted->app_project_update
 	permission get = org->project_get + granted->app_project_administer + granted->app_project_get
+	relation granted: app/rolebinding
+
+	// relations
+	relation org: app/organization
 	permission policymanage = org->project_policymanage + granted->app_project_administer + granted->app_project_policymanage
 	permission resourcelist = org->project_resourcelist + granted->app_project_administer + granted->app_project_resourcelist
-
-	// auto-generated for potato
-	permission potato_order_delete = org->potato_order_delete + granted->app_project_administer + granted->potato_order_delete
-	permission potato_order_update = org->potato_order_update + granted->app_project_administer + granted->potato_order_update
-	permission potato_order_get = org->potato_order_get + granted->app_project_administer + granted->potato_order_get
-	permission potato_order_list = org->potato_order_list + granted->app_project_administer + granted->potato_order_list
-	permission potato_order_create = org->potato_order_create + granted->app_project_administer + granted->potato_order_create
-}
-
-definition app/rolebinding {
-	relation bearer: app/user | app/group#member | app/serviceuser
-	relation role: app/role
-
-	// org
-	permission app_organization_administer = bearer & role->app_organization_administer
-	permission app_organization_delete = bearer & role->app_organization_delete
-	permission app_organization_update = bearer & role->app_organization_update
-	permission app_organization_get = bearer & role->app_organization_get
-	permission app_organization_rolemanage = bearer & role->app_organization_rolemanage
-	permission app_organization_policymanage = bearer & role->app_organization_policymanage
-	permission app_organization_projectlist = bearer & role->app_organization_projectlist
-	permission app_organization_grouplist = bearer & role->app_organization_grouplist
-	permission app_organization_projectcreate = bearer & role->app_organization_projectcreate
-	permission app_organization_groupcreate = bearer & role->app_organization_groupcreate
-
-	// project
-	permission app_project_administer = bearer & role->app_project_administer
-	permission app_project_delete = bearer & role->app_project_delete
-	permission app_project_update = bearer & role->app_project_update
-	permission app_project_get = bearer & role->app_project_get
-	permission app_project_policymanage = bearer & role->app_project_policymanage
-	permission app_project_resourcelist = bearer & role->app_project_resourcelist
-
-	// group
-	permission app_group_delete = bearer & role->app_group_delete
-	permission app_group_update = bearer & role->app_group_update
-	permission app_group_get = bearer & role->app_group_get
-
-	// auto-generated for potato
-	permission potato_order_delete = bearer & role->potato_order_delete
-	permission potato_order_update = bearer & role->potato_order_update
-	permission potato_order_get = bearer & role->potato_order_get
-	permission potato_order_list = bearer & role->potato_order_list
-	permission potato_order_create = bearer & role->potato_order_create
+	permission update = org->project_update + granted->app_project_administer + granted->app_project_update
 }
 
 definition app/role {
+	// group
+	relation app_group_delete: app/user:* | app/serviceuser:*
+	relation app_group_get: app/user:* | app/serviceuser:*
+	relation app_group_update: app/user:* | app/serviceuser:*
+
 	// org
 	relation app_organization_administer: app/user:* | app/serviceuser:*
 	relation app_organization_delete: app/user:* | app/serviceuser:*
-	relation app_organization_update: app/user:* | app/serviceuser:*
 	relation app_organization_get: app/user:* | app/serviceuser:*
-	relation app_organization_rolemanage: app/user:* | app/serviceuser:*
-	relation app_organization_policymanage: app/user:* | app/serviceuser:*
 	relation app_organization_groupcreate: app/user:* | app/serviceuser:*
+	relation app_organization_grouplist: app/user:* | app/serviceuser:*
+	relation app_organization_policymanage: app/user:* | app/serviceuser:*
 	relation app_organization_projectcreate: app/user:* | app/serviceuser:*
 	relation app_organization_projectlist: app/user:* | app/serviceuser:*
-	relation app_organization_grouplist: app/user:* | app/serviceuser:*
+	relation app_organization_rolemanage: app/user:* | app/serviceuser:*
+	relation app_organization_update: app/user:* | app/serviceuser:*
 
 	// project
 	relation app_project_administer: app/user:* | app/serviceuser:*
 	relation app_project_delete: app/user:* | app/serviceuser:*
-	relation app_project_update: app/user:* | app/serviceuser:*
 	relation app_project_get: app/user:* | app/serviceuser:*
 	relation app_project_policymanage: app/user:* | app/serviceuser:*
 	relation app_project_resourcelist: app/user:* | app/serviceuser:*
-
-	// group
-	relation app_group_delete: app/user:* | app/serviceuser:*
-	relation app_group_update: app/user:* | app/serviceuser:*
-	relation app_group_get: app/user:* | app/serviceuser:*
-
-	// auto-generated for potato
-	relation potato_order_delete: app/user:* | app/serviceuser:*
-	relation potato_order_update: app/user:* | app/serviceuser:*
-	relation potato_order_get: app/user:* | app/serviceuser:*
-	relation potato_order_list: app/user:* | app/serviceuser:*
-	relation potato_order_create: app/user:* | app/serviceuser:*
+	relation app_project_update: app/user:* | app/serviceuser:*
+	relation compute_order_create: app/user:* | app/serviceuser:*
+	relation compute_order_delete: app/user:* | app/serviceuser:*
+	relation compute_order_get: app/user:* | app/serviceuser:*
+	relation compute_order_update: app/user:* | app/serviceuser:*
+	relation compute_receipt_get: app/user:* | app/serviceuser:*
+	relation compute_receipt_update: app/user:* | app/serviceuser:*
 }
 
-definition potato/order {
-	permission delete = owner + project->app_project_administer + project->potato_order_delete + granted->potato_order_delete
-	permission update = owner + project->app_project_administer + project->potato_order_update + granted->potato_order_update
-	permission get = owner + project->app_project_administer + project->potato_order_get + granted->potato_order_get
-	permission list = owner + project->app_project_administer + project->potato_order_list + granted->potato_order_list
-	permission create = owner + project->app_project_administer + project->potato_order_create + granted->potato_order_create
+definition app/rolebinding {
+	// group
+	permission app_group_delete = bearer & role->app_group_delete
+	permission app_group_get = bearer & role->app_group_get
+	permission app_group_update = bearer & role->app_group_update
+
+	// org
+	permission app_organization_administer = bearer & role->app_organization_administer
+	permission app_organization_delete = bearer & role->app_organization_delete
+	permission app_organization_get = bearer & role->app_organization_get
+	permission app_organization_groupcreate = bearer & role->app_organization_groupcreate
+	permission app_organization_grouplist = bearer & role->app_organization_grouplist
+	permission app_organization_policymanage = bearer & role->app_organization_policymanage
+	permission app_organization_projectcreate = bearer & role->app_organization_projectcreate
+	permission app_organization_projectlist = bearer & role->app_organization_projectlist
+	permission app_organization_rolemanage = bearer & role->app_organization_rolemanage
+	permission app_organization_update = bearer & role->app_organization_update
+
+	// project
+	permission app_project_administer = bearer & role->app_project_administer
+	permission app_project_delete = bearer & role->app_project_delete
+	permission app_project_get = bearer & role->app_project_get
+	permission app_project_policymanage = bearer & role->app_project_policymanage
+	permission app_project_resourcelist = bearer & role->app_project_resourcelist
+	permission app_project_update = bearer & role->app_project_update
+	relation bearer: app/user | app/group#member | app/serviceuser
+	permission compute_order_create = bearer & role->compute_order_create
+	permission compute_order_delete = bearer & role->compute_order_delete
+	permission compute_order_get = bearer & role->compute_order_get
+	permission compute_order_update = bearer & role->compute_order_update
+	permission compute_receipt_get = bearer & role->compute_receipt_get
+	permission compute_receipt_update = bearer & role->compute_receipt_update
+	relation role: app/role
+}
+
+definition app/serviceuser {}
+
+definition app/user {}
+
+definition compute/order {
+	permission create = owner + project->app_project_administer + project->compute_order_create + granted->compute_order_create
+	permission delete = owner + project->app_project_administer + project->compute_order_delete + granted->compute_order_delete
+	permission get = owner + project->app_project_administer + project->compute_order_get + granted->compute_order_get
+	relation granted: app/rolebinding
 	relation owner: app/user
 	relation project: app/project
+	permission update = owner + project->app_project_administer + project->compute_order_update + granted->compute_order_update
+}
+
+definition compute/receipt {
+	permission get = owner + project->app_project_administer + project->compute_receipt_get + granted->compute_receipt_get
 	relation granted: app/rolebinding
+	relation owner: app/user
+	relation project: app/project
+	permission update = owner + project->app_project_administer + project->compute_receipt_update + granted->compute_receipt_update
 }

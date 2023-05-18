@@ -130,13 +130,13 @@ func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string) ([]projec
 	return transformedProjects, nil
 }
 
-func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.Project, error) {
-	if strings.TrimSpace(slug) == "" {
+func (r ProjectRepository) GetByName(ctx context.Context, name string) (project.Project, error) {
+	if strings.TrimSpace(name) == "" {
 		return project.Project{}, project.ErrInvalidID
 	}
 
 	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
-		"slug": slug,
+		"name": name,
 	}).Where(notDisabledProjectExp).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -149,7 +149,7 @@ func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_PROJECTS,
-				Operation:  "GetBySlug",
+				Operation:  "GetByName",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -176,7 +176,7 @@ func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.
 }
 
 func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (project.Project, error) {
-	if strings.TrimSpace(prj.Name) == "" || strings.TrimSpace(prj.Slug) == "" {
+	if strings.TrimSpace(prj.Name) == "" {
 		return project.Project{}, project.ErrInvalidDetail
 	}
 
@@ -187,7 +187,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 
 	insertRow := goqu.Record{
 		"name":     prj.Name,
-		"slug":     prj.Slug,
+		"title":    prj.Title,
 		"org_id":   prj.Organization.ID,
 		"metadata": marshaledMetadata,
 	}
@@ -292,10 +292,6 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 		return project.Project{}, project.ErrInvalidID
 	}
 
-	if strings.TrimSpace(prj.Name) == "" || strings.TrimSpace(prj.Slug) == "" {
-		return project.Project{}, project.ErrInvalidDetail
-	}
-
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -303,14 +299,11 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 
 	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
 		goqu.Record{
-			"name":       prj.Name,
-			"slug":       prj.Slug,
+			"title":      prj.Title,
 			"org_id":     prj.Organization.ID,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"id": prj.ID,
-	}).Returning(&Project{}).ToSQL()
+		}).Where(goqu.Ex{"id": prj.ID}).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -353,13 +346,9 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 	return prj, nil
 }
 
-func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project) (project.Project, error) {
-	if strings.TrimSpace(prj.Slug) == "" {
-		return project.Project{}, project.ErrInvalidID
-	}
-
+func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project) (project.Project, error) {
 	if strings.TrimSpace(prj.Name) == "" {
-		return project.Project{}, project.ErrInvalidDetail
+		return project.Project{}, project.ErrInvalidID
 	}
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
@@ -369,14 +358,11 @@ func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project
 
 	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
 		goqu.Record{
-			"name":       prj.Name,
-			"slug":       prj.Slug,
+			"title":      prj.Title,
 			"org_id":     prj.Organization.ID,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"slug": prj.Slug,
-	}).Returning(&Project{}).ToSQL()
+		}).Where(goqu.Ex{"name": prj.Name}).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -388,7 +374,7 @@ func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_PROJECTS,
-				Operation:  "UpdateBySlug",
+				Operation:  "UpdateByName",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()

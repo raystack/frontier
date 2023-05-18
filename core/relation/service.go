@@ -21,37 +21,37 @@ func NewService(repository Repository, authzRepository AuthzRepository) *Service
 	}
 }
 
-func (s Service) Get(ctx context.Context, id string) (RelationV2, error) {
+func (s Service) Get(ctx context.Context, id string) (Relation, error) {
 	return s.repository.Get(ctx, id)
 }
 
-func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error) {
+func (s Service) Create(ctx context.Context, rel Relation) (Relation, error) {
 	if !isValidID(rel.Object.ID) || !isValidID(rel.Subject.ID) {
-		return RelationV2{}, errors.New("subject/object id should be a valid uuid or a wildcard *")
+		return Relation{}, errors.New("subject/object id should be a valid uuid or a wildcard *")
 	}
 
 	createdRelation, err := s.repository.Upsert(ctx, rel)
 	if err != nil {
-		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInStore, err.Error())
+		return Relation{}, fmt.Errorf("%w: %s", ErrCreatingRelationInStore, err.Error())
 	}
 
 	err = s.authzRepository.Add(ctx, createdRelation)
 	if err != nil {
-		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
+		return Relation{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
 	}
 
 	return createdRelation, nil
 }
 
-func (s Service) List(ctx context.Context) ([]RelationV2, error) {
+func (s Service) List(ctx context.Context) ([]Relation, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) GetRelationsByFields(ctx context.Context, rel RelationV2) ([]RelationV2, error) {
+func (s Service) GetRelationsByFields(ctx context.Context, rel Relation) ([]Relation, error) {
 	return s.repository.GetByFields(ctx, rel)
 }
 
-func (s Service) Delete(ctx context.Context, rel RelationV2) error {
+func (s Service) Delete(ctx context.Context, rel Relation) error {
 	fetchedRels, err := s.GetRelationsByFields(ctx, rel)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (s Service) Delete(ctx context.Context, rel RelationV2) error {
 }
 
 func (s Service) CheckPermission(ctx context.Context, subject Subject, object Object, permissionName string) (bool, error) {
-	return s.authzRepository.Check(ctx, RelationV2{
+	return s.authzRepository.Check(ctx, Relation{
 		Object:  object,
 		Subject: subject,
 	}, permissionName)
@@ -77,18 +77,18 @@ func (s Service) CheckPermission(ctx context.Context, subject Subject, object Ob
 
 // LookupSubjects returns all the subjects of a given type that have access whether
 // via a computed permission or relation membership.
-func (s Service) LookupSubjects(ctx context.Context, rel RelationV2) ([]string, error) {
+func (s Service) LookupSubjects(ctx context.Context, rel Relation) ([]string, error) {
 	return s.authzRepository.LookupSubjects(ctx, rel)
 }
 
 // LookupResources returns all the resources of a given type that a subject can access whether
 // via a computed permission or relation membership.
-func (s Service) LookupResources(ctx context.Context, rel RelationV2) ([]string, error) {
+func (s Service) LookupResources(ctx context.Context, rel Relation) ([]string, error) {
 	return s.authzRepository.LookupResources(ctx, rel)
 }
 
 // ListRelations lists a set of the relationships matching filter
-func (s Service) ListRelations(ctx context.Context, rel RelationV2) ([]RelationV2, error) {
+func (s Service) ListRelations(ctx context.Context, rel Relation) ([]Relation, error) {
 	return s.authzRepository.ListRelations(ctx, rel)
 }
 

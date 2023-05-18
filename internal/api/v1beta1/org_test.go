@@ -28,8 +28,7 @@ var (
 	testOrgMap = map[string]organization.Organization{
 		"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 			ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-			Name: "Org 1",
-			Slug: "org-1",
+			Name: "org-1",
 			Metadata: metadata.Metadata{
 				"email":  "org1@org1.com",
 				"age":    21,
@@ -67,8 +66,7 @@ func TestListOrganizations(t *testing.T) {
 			want: &shieldv1beta1.ListOrganizationsResponse{Organizations: []*shieldv1beta1.Organization{
 				{
 					Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-					Name: "Org 1",
-					Slug: "org-1",
+					Name: "org-1",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email":  structpb.NewStringValue("org1@org1.com"),
@@ -112,14 +110,13 @@ func TestCreateOrganization(t *testing.T) {
 			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
-					Name:     "some org",
-					Slug:     "some-org",
+					Name:     "some-org",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, user.ErrInvalidEmail)
 				return ctx
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
-				Name:     "some org",
+				Name:     "some-org",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
@@ -130,15 +127,13 @@ func TestCreateOrganization(t *testing.T) {
 			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
-					Name:     "some org",
-					Slug:     "abc",
+					Name:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
-				Name:     "some org",
-				Slug:     "abc",
+				Name:     "abc",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
@@ -149,13 +144,13 @@ func TestCreateOrganization(t *testing.T) {
 			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
-					Slug:     "abc",
+					Name:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, organization.ErrInvalidDetail)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
-				Slug:     "abc",
+				Name:     "abc",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
@@ -166,13 +161,13 @@ func TestCreateOrganization(t *testing.T) {
 			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
-					Slug:     "abc",
+					Name:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, organization.ErrConflict)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
-				Slug:     "abc",
+				Name:     "abc",
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
@@ -181,8 +176,8 @@ func TestCreateOrganization(t *testing.T) {
 		{
 			title: "should return bad request error if metadata is not parsable",
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
-				Name: "some org",
-				Slug: "abc",
+				Title: "some-org",
+				Name:  "abc",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"count": structpb.NewNullValue(),
@@ -197,15 +192,13 @@ func TestCreateOrganization(t *testing.T) {
 			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
-					Name: "some org",
-					Slug: "some-org",
+					Name: "some-org",
 					Metadata: metadata.Metadata{
 						"email": "a",
 					},
 				}).Return(organization.Organization{
 					ID:   "new-abc",
-					Name: "some org",
-					Slug: "some-org",
+					Name: "some-org",
 					Metadata: metadata.Metadata{
 						"email": "a",
 					},
@@ -213,7 +206,7 @@ func TestCreateOrganization(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
-				Name: "some org",
+				Name: "some-org",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"email": structpb.NewStringValue("a"),
@@ -222,8 +215,7 @@ func TestCreateOrganization(t *testing.T) {
 			}},
 			want: &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
 				Id:   "new-abc",
-				Name: "some org",
-				Slug: "some-org",
+				Name: "some-org",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"email": structpb.NewStringValue("a"),
@@ -303,8 +295,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 			want: &shieldv1beta1.GetOrganizationResponse{
 				Organization: &shieldv1beta1.Organization{
 					Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-					Name: "Org 1",
-					Slug: "org-1",
+					Name: "org-1",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email":  structpb.NewStringValue("org1@org1.com"),
@@ -348,21 +339,19 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
-					ID:   someOrgID,
-					Name: "new org",
+					ID: someOrgID,
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
 						"valid": true,
 					},
-					Slug: "new-org",
+					Name: "new-org",
 				}).Return(organization.Organization{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
 				Body: &shieldv1beta1.OrganizationRequestBody{
-					Name: "new org",
-					Slug: "new-org",
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -380,21 +369,19 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
-					ID:   someOrgID,
-					Name: "new org",
+					ID: someOrgID,
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
 						"valid": true,
 					},
-					Slug: "new-org",
+					Name: "new-org",
 				}).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
 				Body: &shieldv1beta1.OrganizationRequestBody{
-					Name: "new org",
-					Slug: "new-org",
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -412,8 +399,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
-					Name: "new org",
-					Slug: "", // consider it by slug and assign empty to slug
+					Name: "new-org",
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
@@ -423,8 +409,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			},
 			request: &shieldv1beta1.UpdateOrganizationRequest{
 				Body: &shieldv1beta1.OrganizationRequestBody{
-					Name: "new org",
-					Slug: "new-org",
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -442,21 +427,19 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
-					ID:   someOrgID,
-					Name: "new org",
+					ID: someOrgID,
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
 						"valid": true,
 					},
-					Slug: "new-org",
+					Name: "new-org",
 				}).Return(organization.Organization{}, organization.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
 				Body: &shieldv1beta1.OrganizationRequestBody{
-					Name: "new org",
-					Slug: "new-org",
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -474,30 +457,27 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
-					ID:   someOrgID,
-					Name: "new org",
+					ID: someOrgID,
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
 						"valid": true,
 					},
-					Slug: "new-org",
+					Name: "new-org",
 				}).Return(organization.Organization{
-					ID:   someOrgID,
-					Name: "new org",
+					ID: someOrgID,
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
 						"valid": true,
 					},
-					Slug: "new-org",
+					Name: "new-org",
 				}, nil)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
 				Body: &shieldv1beta1.OrganizationRequestBody{
-					Name: "new org",
-					Slug: "new-org",
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -510,8 +490,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			want: &shieldv1beta1.UpdateOrganizationResponse{
 				Organization: &shieldv1beta1.Organization{
 					Id:   someOrgID,
-					Name: "new org",
-					Slug: "new-org",
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -526,12 +505,11 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "should return success if org service is updated by slug and return nil error",
+			name: "should return success if org service is updated by name and return nil error",
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
-					Name: "new org",
-					Slug: "some-slug",
+					Name: "new-org",
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
@@ -539,8 +517,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					},
 				}).Return(organization.Organization{
 					ID:   someOrgID,
-					Name: "new org",
-					Slug: "some-slug",
+					Name: "new-org",
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 						"age":   float64(21),
@@ -549,10 +526,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				}, nil)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRequest{
-				Id: "some-slug",
 				Body: &shieldv1beta1.OrganizationRequestBody{
-					Name: "new org",
-					Slug: "new-org", // would be ignored
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -565,8 +540,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			want: &shieldv1beta1.UpdateOrganizationResponse{
 				Organization: &shieldv1beta1.Organization{
 					Id:   someOrgID,
-					Name: "new org",
-					Slug: "some-slug",
+					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -644,7 +618,8 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				Users: []*shieldv1beta1.User{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-						Name:  "User 1",
+						Title: "User 1",
+						Name:  "user1",
 						Email: "test@test.com",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{

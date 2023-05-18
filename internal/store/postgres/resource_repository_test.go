@@ -344,6 +344,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 			Description: "should update a resource",
 			ResourceID:  s.resources[0].ID,
 			ResourceToUpdate: resource.Resource{
+				ID:          s.resources[0].ID,
 				Name:        "resource-1",
 				ProjectID:   s.resources[0].ProjectID,
 				NamespaceID: s.resources[0].NamespaceID,
@@ -362,7 +363,7 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Update(s.ctx, tc.ResourceID, tc.ResourceToUpdate)
+			got, err := s.repository.Update(s.ctx, tc.ResourceToUpdate)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)

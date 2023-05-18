@@ -1,11 +1,14 @@
 [
     {
-        "namespaceId": "ns1"
+        "resource_type": "ns1",
+        "principal_type": "app/user"
     },
     {
-        "namespaceId": "ns2"
+        "resource_type": "ns2",
+        "principal_type": "app/user"
     },
     {
-        "namespaceId": "ns1"
+        "resource_type": "ns1",
+        "principal_type": "app/user"
     }
 ]

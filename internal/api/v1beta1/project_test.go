@@ -27,8 +27,7 @@ var (
 	testProjectMap    = map[string]project.Project{
 		"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
 			ID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-			Name: "Prj 1",
-			Slug: "prj-1",
+			Name: "prj-1",
 			Metadata: metadata.Metadata{
 				"email": "org1@org1.com",
 			},
@@ -40,8 +39,7 @@ var (
 		},
 		"c7772c63-fca4-4c7c-bf93-c8f85115de4b": {
 			ID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-			Name: "Prj 2",
-			Slug: "prj-2",
+			Name: "prj-2",
 			Metadata: metadata.Metadata{
 				"email": "org1@org2.com",
 			},
@@ -67,8 +65,7 @@ func TestCreateProject(t *testing.T) {
 			title: "should return forbidden error if auth email in context is empty and project service return invalid user email",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "odpf-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -76,7 +73,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
+				Name: "odpf-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -89,8 +86,7 @@ func TestCreateProject(t *testing.T) {
 			title: "should return internal error if project service return some error",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "odpf-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -98,7 +94,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
+				Name: "odpf-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -111,8 +107,7 @@ func TestCreateProject(t *testing.T) {
 			title: "should return bad request error if org id is not uuid",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "odpf-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -120,8 +115,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
-				Slug: "odpf-1",
+				Name: "odpf-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -134,8 +128,7 @@ func TestCreateProject(t *testing.T) {
 			title: "should return bad request error if org id is not uuid",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "odpf-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -143,8 +136,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
-				Slug: "odpf-1",
+				Name: "odpf-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -157,8 +149,7 @@ func TestCreateProject(t *testing.T) {
 			title: "should return already exist error if project service return error conflict",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Name: "odpf 1",
-					Slug: "odpf-1",
+					Name: "odpf-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -166,8 +157,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Name: "odpf 1",
-				Slug: "odpf-1",
+				Name: "odpf-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -180,7 +170,7 @@ func TestCreateProject(t *testing.T) {
 			title: "should return bad request error if name is empty",
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
-					Slug: "odpf-1",
+					Name: "odpf-1",
 					Metadata: metadata.Metadata{
 						"team": "Platforms",
 					},
@@ -188,7 +178,7 @@ func TestCreateProject(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
-				Slug: "odpf-1",
+				Name: "odpf-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"team": structpb.NewStringValue("Platforms"),
@@ -201,7 +191,6 @@ func TestCreateProject(t *testing.T) {
 			title: "should return success if project service return nil",
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: testProjectMap[testProjectID].Name,
-				Slug: testProjectMap[testProjectID].Slug,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"email": structpb.NewStringValue("org1@org1.com"),
@@ -211,14 +200,12 @@ func TestCreateProject(t *testing.T) {
 			setup: func(ctx context.Context, ps *mocks.ProjectService) context.Context {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), project.Project{
 					Name: testProjectMap[testProjectID].Name,
-					Slug: testProjectMap[testProjectID].Slug,
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 					},
 				}).Return(project.Project{
 					ID:   testProjectMap[testProjectID].ID,
 					Name: testProjectMap[testProjectID].Name,
-					Slug: testProjectMap[testProjectID].Slug,
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
 					},
@@ -228,7 +215,6 @@ func TestCreateProject(t *testing.T) {
 			want: &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
 				Id:   testProjectMap[testProjectID].ID,
 				Name: testProjectMap[testProjectID].Name,
-				Slug: testProjectMap[testProjectID].Slug,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"email": structpb.NewStringValue("org1@org1.com"),
@@ -288,8 +274,7 @@ func TestListProjects(t *testing.T) {
 			want: &shieldv1beta1.ListProjectsResponse{Projects: []*shieldv1beta1.Project{
 				{
 					Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-					Name: "Prj 1",
-					Slug: "prj-1",
+					Name: "prj-1",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org1.com"),
@@ -301,8 +286,7 @@ func TestListProjects(t *testing.T) {
 				},
 				{
 					Id:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-					Name: "Prj 2",
-					Slug: "prj-2",
+					Name: "prj-2",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"email": structpb.NewStringValue("org1@org2.com"),
@@ -391,7 +375,6 @@ func TestGetProject(t *testing.T) {
 			want: &shieldv1beta1.GetProjectResponse{Project: &shieldv1beta1.Project{
 				Id:    testProjectMap[testProjectID].ID,
 				Name:  testProjectMap[testProjectID].Name,
-				Slug:  testProjectMap[testProjectID].Slug,
 				OrgId: testProjectMap[testProjectID].Organization.ID,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -436,7 +419,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Id: testProjectID,
 				Body: &shieldv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -457,7 +439,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Id: testProjectID,
 				Body: &shieldv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -478,7 +459,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Id: testProjectID,
 				Body: &shieldv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -499,7 +479,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Id: testProjectID,
 				Body: &shieldv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -520,7 +499,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Id: testProjectID,
 				Body: &shieldv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -537,7 +515,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
 					ID:           testProjectID,
-					Slug:         testProjectMap[testProjectID].Slug,
 					Organization: testProjectMap[testProjectID].Organization,
 					Metadata:     testProjectMap[testProjectID].Metadata,
 				}).Return(project.Project{}, project.ErrInvalidDetail)
@@ -545,7 +522,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
 				Body: &shieldv1beta1.ProjectRequestBody{
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -587,7 +563,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
 					Name:         testProjectMap[testProjectID].Name,
-					Slug:         "", // consider it to update by slug and assigned empty to slug
 					Organization: testProjectMap[testProjectID].Organization,
 					Metadata:     testProjectMap[testProjectID].Metadata,
 				}).Return(project.Project{}, project.ErrInvalidID)
@@ -595,7 +570,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Body: &shieldv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -616,7 +590,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Id: testProjectID,
 				Body: &shieldv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -629,7 +602,6 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Project: &shieldv1beta1.Project{
 					Id:    testProjectMap[testProjectID].ID,
 					Name:  testProjectMap[testProjectID].Name,
-					Slug:  testProjectMap[testProjectID].Slug,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -703,7 +675,8 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 				Users: []*shieldv1beta1.User{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-						Name:  "User 1",
+						Title: "User 1",
+						Name:  "user1",
 						Email: "test@test.com",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{

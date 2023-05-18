@@ -1,0 +1,7 @@
+permissions:
+  - name: delete
+    namespace: database/order
+  - name: update
+    namespace: database/order
+  - name: get
+    namespace: database/order

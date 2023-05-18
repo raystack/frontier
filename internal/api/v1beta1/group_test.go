@@ -25,8 +25,7 @@ var (
 	testGroupMap = map[string]group.Group{
 		"9f256f86-31a3-11ec-8d3d-0242ac130003": {
 			ID:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
-			Name: "Group 1",
-			Slug: "group-1",
+			Name: "group-1",
 			Metadata: metadata.Metadata{
 				"foo": "bar",
 			},
@@ -90,8 +89,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				Groups: []*shieldv1beta1.Group{
 					{
 						Id:    testGroupID,
-						Name:  "Group 1",
-						Slug:  "group-1",
+						Name:  "group-1",
 						OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{
@@ -123,8 +121,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				Groups: []*shieldv1beta1.Group{
 					{
 						Id:    testGroupID,
-						Name:  "Group 1",
-						Slug:  "group-1",
+						Name:  "group-1",
 						OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Metadata: &structpb.Struct{
 							Fields: map[string]*structpb.Value{
@@ -171,9 +168,6 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), group.Group{
-					Name: "some group",
-					Slug: "some-group",
-
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, user.ErrInvalidEmail)
@@ -181,7 +175,6 @@ func TestHandler_CreateGroup(t *testing.T) {
 				return ctx
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -193,16 +186,14 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
-					Name: "some group",
-					Slug: "some-group",
-
+					Name:           "some-group",
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some group",
+				Name:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -214,8 +205,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
-					Name: "some group",
-					Slug: "some-group",
+					Name: "some-group",
 
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
@@ -223,8 +213,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some group",
-				Slug:     "some-group",
+				Name:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -236,15 +225,14 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
-					Slug: "some-group",
-
+					Name:           "some-group",
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Slug:     "some-group",
+				Name:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -256,16 +244,14 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
-					Name:           "some group",
-					Slug:           "some-group",
+					Name:           "some-group",
 					OrganizationID: "some-org-id",
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some group",
-				Slug:     "some-group",
+				Name:     "some-group",
 				OrgId:    "some-org-id",
 				Metadata: &structpb.Struct{},
 			}},
@@ -277,8 +263,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
-					Name: "some group",
-					Slug: "some-group",
+					Name: "some-group",
 
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
@@ -286,8 +271,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some group",
-				Slug:     "some-group",
+				Name:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
@@ -305,31 +289,26 @@ func TestHandler_CreateGroup(t *testing.T) {
 			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
-					Name: "some group",
-					Slug: "some-group",
-
+					Name:           "some-group",
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{
-					ID:   someGroupID,
-					Name: "some group",
-					Slug: "some-group",
-
+					ID:             someGroupID,
+					Name:           "some-group",
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some group",
+				Name:     "some-group",
 				OrgId:    someOrgID,
 				Metadata: &structpb.Struct{},
 			}},
 			want: &shieldv1beta1.CreateGroupResponse{
 				Group: &shieldv1beta1.Group{
 					Id:    someGroupID,
-					Name:  "some group",
-					Slug:  "some-group",
+					Name:  "some-group",
 					OrgId: someOrgID,
 					Metadata: &structpb.Struct{
 						Fields: make(map[string]*structpb.Value),
@@ -407,8 +386,7 @@ func TestHandler_GetGroup(t *testing.T) {
 			want: &shieldv1beta1.GetGroupResponse{
 				Group: &shieldv1beta1.Group{
 					Id:    testGroupID,
-					Name:  "Group 1",
-					Slug:  "group-1",
+					Name:  "group-1",
 					OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -455,8 +433,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
@@ -465,8 +442,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
@@ -487,18 +463,16 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
-					Name:           "new group",
-					Slug:           "some-id",
+					ID:             "some-id",
+					Name:           "some-id",
 					OrganizationID: someOrgID,
-
-					Metadata: metadata.Metadata{},
+					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: "some-id",
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "some-id",
 					OrgId: someOrgID,
 				},
 			},
@@ -511,8 +485,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
@@ -521,8 +494,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
@@ -534,17 +506,14 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
-					Name:           "new group",
-					Slug:           "", // consider it by slug and make the slug empty
+					Name:           "new-group",
 					OrganizationID: someOrgID,
-
-					Metadata: metadata.Metadata{},
+					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
@@ -557,8 +526,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
@@ -567,8 +535,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
@@ -581,8 +548,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
@@ -591,8 +557,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
@@ -605,8 +570,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
@@ -615,8 +579,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
@@ -629,7 +592,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
@@ -638,7 +601,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
@@ -650,9 +613,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
-					ID:             someGroupID,
-					Name:           "new group",
-					OrganizationID: someOrgID,
+					ID:   someGroupID,
+					Name: someOrgID,
 
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
@@ -660,8 +622,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					OrgId: someOrgID,
+					Name: someOrgID,
 				},
 			},
 			want:    nil,
@@ -673,15 +634,13 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
 					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{
 					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "new-group",
+					Name:           "new-group",
 					OrganizationID: someOrgID,
 
 					Metadata: metadata.Metadata{},
@@ -690,58 +649,14 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group",
+					Name:  "new-group",
 					OrgId: someOrgID,
 				},
 			},
 			want: &shieldv1beta1.UpdateGroupResponse{
 				Group: &shieldv1beta1.Group{
 					Id:    someGroupID,
-					Name:  "new group",
-					Slug:  "new-group",
-					OrgId: someOrgID,
-					Metadata: &structpb.Struct{
-						Fields: make(map[string]*structpb.Value),
-					},
-					CreatedAt: timestamppb.New(time.Time{}),
-					UpdatedAt: timestamppb.New(time.Time{}),
-				},
-			},
-			wantErr: nil,
-		},
-		{
-			name: "should return success if updated by slug and group service return nil error",
-			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
-					Name:           "new group",
-					Slug:           "some-slug",
-					OrganizationID: someOrgID,
-
-					Metadata: metadata.Metadata{},
-				}).Return(group.Group{
-					ID:             someGroupID,
-					Name:           "new group",
-					Slug:           "some-slug",
-					OrganizationID: someOrgID,
-
-					Metadata: metadata.Metadata{},
-				}, nil)
-			},
-			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: "some-slug",
-				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new group",
-					Slug:  "new-group", // will be ignored
-					OrgId: someOrgID,
-				},
-			},
-			want: &shieldv1beta1.UpdateGroupResponse{
-				Group: &shieldv1beta1.Group{
-					Id:    someGroupID,
-					Name:  "new group",
-					Slug:  "some-slug",
+					Name:  "new-group",
 					OrgId: someOrgID,
 					Metadata: &structpb.Struct{
 						Fields: make(map[string]*structpb.Value),

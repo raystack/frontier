@@ -134,13 +134,13 @@ func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]o
 	return transformedOrgs, nil
 }
 
-func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (organization.Organization, error) {
-	if strings.TrimSpace(slug) == "" {
+func (r OrganizationRepository) GetByName(ctx context.Context, name string) (organization.Organization, error) {
+	if strings.TrimSpace(name) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
-		"slug": slug,
+		"name": name,
 	}).Where(notDisabledOrgExp).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -153,7 +153,7 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "GetBySlug",
+				Operation:  "GetByName",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -180,7 +180,7 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 }
 
 func (r OrganizationRepository) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if strings.TrimSpace(org.Name) == "" || strings.TrimSpace(org.Slug) == "" {
+	if strings.TrimSpace(org.Name) == "" {
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
@@ -191,7 +191,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 
 	insertRow := goqu.Record{
 		"name":     org.Name,
-		"slug":     org.Slug,
+		"title":    org.Title,
 		"metadata": marshaledMetadata,
 	}
 	if org.State != "" {
@@ -284,7 +284,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	if strings.TrimSpace(org.Name) == "" || strings.TrimSpace(org.Slug) == "" {
+	if strings.TrimSpace(org.Name) == "" {
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
@@ -295,8 +295,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
-			"name":       org.Name,
-			"slug":       org.Slug,
+			"title":      org.Title,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
@@ -341,13 +340,9 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	return org, nil
 }
 
-func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if strings.TrimSpace(org.Slug) == "" {
-		return organization.Organization{}, organization.ErrInvalidID
-	}
-
+func (r OrganizationRepository) UpdateByName(ctx context.Context, org organization.Organization) (organization.Organization, error) {
 	if strings.TrimSpace(org.Name) == "" {
-		return organization.Organization{}, organization.ErrInvalidDetail
+		return organization.Organization{}, organization.ErrInvalidID
 	}
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
@@ -357,13 +352,12 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
-			"name":       org.Name,
-			"slug":       org.Slug,
+			"title":      org.Title,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(
 		goqu.Ex{
-			"slug": org.Slug,
+			"name": org.Name,
 		}).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -376,7 +370,7 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "UpdateBySlug",
+				Operation:  "UpdateByName",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()

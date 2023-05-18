@@ -75,25 +75,25 @@ func (_c *PermissionService_Get_Call) RunAndReturn(run func(context.Context, str
 	return _c
 }
 
-// List provides a mock function with given fields: ctx
-func (_m *PermissionService) List(ctx context.Context) ([]permission.Permission, error) {
-	ret := _m.Called(ctx)
+// List provides a mock function with given fields: ctx, filter
+func (_m *PermissionService) List(ctx context.Context, filter permission.Filter) ([]permission.Permission, error) {
+	ret := _m.Called(ctx, filter)
 
 	var r0 []permission.Permission
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]permission.Permission, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, permission.Filter) ([]permission.Permission, error)); ok {
+		return rf(ctx, filter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []permission.Permission); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, permission.Filter) []permission.Permission); ok {
+		r0 = rf(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]permission.Permission)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, permission.Filter) error); ok {
+		r1 = rf(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -108,13 +108,14 @@ type PermissionService_List_Call struct {
 
 // List is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *PermissionService_Expecter) List(ctx interface{}) *PermissionService_List_Call {
-	return &PermissionService_List_Call{Call: _e.mock.On("List", ctx)}
+//   - filter permission.Filter
+func (_e *PermissionService_Expecter) List(ctx interface{}, filter interface{}) *PermissionService_List_Call {
+	return &PermissionService_List_Call{Call: _e.mock.On("List", ctx, filter)}
 }
 
-func (_c *PermissionService_List_Call) Run(run func(ctx context.Context)) *PermissionService_List_Call {
+func (_c *PermissionService_List_Call) Run(run func(ctx context.Context, filter permission.Filter)) *PermissionService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		run(args[0].(context.Context), args[1].(permission.Filter))
 	})
 	return _c
 }
@@ -124,7 +125,7 @@ func (_c *PermissionService_List_Call) Return(_a0 []permission.Permission, _a1 e
 	return _c
 }
 
-func (_c *PermissionService_List_Call) RunAndReturn(run func(context.Context) ([]permission.Permission, error)) *PermissionService_List_Call {
+func (_c *PermissionService_List_Call) RunAndReturn(run func(context.Context, permission.Filter) ([]permission.Permission, error)) *PermissionService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

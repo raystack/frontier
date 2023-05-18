@@ -35,6 +35,22 @@ func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 	return client, cancel, nil
 }
 
+func createAdminClient(ctx context.Context, host string) (shieldv1beta1.AdminServiceClient, func(), error) {
+	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
+	conn, err := createConnection(dialTimeoutCtx, host)
+	if err != nil {
+		dialCancel()
+		return nil, nil, err
+	}
+	cancel := func() {
+		dialCancel()
+		conn.Close()
+	}
+
+	client := shieldv1beta1.NewAdminServiceClient(conn)
+	return client, cancel, nil
+}
+
 func isClientCLI(cmd *cobra.Command) bool {
 	for c := cmd; c.Parent() != nil; c = c.Parent() {
 		if c.Annotations != nil && c.Annotations["client"] == "true" {

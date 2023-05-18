@@ -27,6 +27,7 @@ type Handler struct {
 	registrationService RegistrationService
 	deleterService      CascadeDeleter
 	metaSchemaService   MetaSchemaService
+	bootstrapService    BootstrapService
 }
 
 func Register(s *grpc.Server, deps api.Deps) error {
@@ -48,6 +49,7 @@ func Register(s *grpc.Server, deps api.Deps) error {
 		registrationService: deps.RegistrationService,
 		deleterService:      deps.DeleterService,
 		metaSchemaService:   deps.MetaSchemaService,
+		bootstrapService:    deps.BootstrapService,
 	}
 	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
 	s.RegisterService(&shieldv1beta1.AdminService_ServiceDesc, handler)

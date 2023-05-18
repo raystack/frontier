@@ -188,11 +188,10 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
-			report = append(report, []string{"ID", "NAME", "SLUG"})
+			report = append(report, []string{"ID", "NAME"})
 			report = append(report, []string{
 				organization.GetId(),
 				organization.GetName(),
-				organization.GetSlug(),
 			})
 			printer.Table(os.Stdout, report)
 
@@ -260,12 +259,11 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 
 			fmt.Printf(" \nShowing %d organizations\n \n", len(organizations))
 
-			report = append(report, []string{"ID", "NAME", "SLUG"})
+			report = append(report, []string{"ID", "NAME"})
 			for _, o := range organizations {
 				report = append(report, []string{
 					o.GetId(),
 					o.GetName(),
-					o.GetSlug(),
 				})
 			}
 			printer.Table(os.Stdout, report)

@@ -193,7 +193,7 @@ func (s *PermissionRepositoryTestSuite) TestList() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx)
+			got, err := s.repository.List(s.ctx, permission.Filter{})
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)

@@ -87,51 +87,6 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 	return transformedGroup, nil
 }
 
-func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Group, error) {
-	if strings.TrimSpace(slug) == "" {
-		return group.Group{}, group.ErrInvalidID
-	}
-
-	query, params, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
-		"slug": slug,
-	}).Where(notDisabledGroupExp).ToSQL()
-
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var groupModel Group
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_GROUPS,
-				Operation:  "GetBySlug",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		return r.dbc.GetContext(ctx, &groupModel, query, params...)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return group.Group{}, group.ErrNotExist
-		default:
-			return group.Group{}, err
-		}
-	}
-
-	transformedGroup, err := groupModel.transformToGroup()
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	return transformedGroup, nil
-}
-
 func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]group.Group, error) {
 	var fetchedGroups []Group
 
@@ -190,7 +145,7 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]gro
 }
 
 func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Group, error) {
-	if strings.TrimSpace(grp.Name) == "" || strings.TrimSpace(grp.Slug) == "" {
+	if strings.TrimSpace(grp.Name) == "" {
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
@@ -201,7 +156,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 
 	insertRow := goqu.Record{
 		"name":     grp.Name,
-		"slug":     grp.Slug,
+		"title":    grp.Title,
 		"org_id":   grp.OrganizationID,
 		"metadata": marshaledMetadata,
 	}
@@ -308,7 +263,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		return group.Group{}, group.ErrInvalidID
 	}
 
-	if strings.TrimSpace(grp.Name) == "" || strings.TrimSpace(grp.Slug) == "" {
+	if strings.TrimSpace(grp.Name) == "" {
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
@@ -319,8 +274,8 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 
 	query, params, err := dialect.Update(TABLE_GROUPS).Set(
 		goqu.Record{
+			"title":      grp.Title,
 			"name":       grp.Name,
-			"slug":       grp.Slug,
 			"org_id":     grp.OrganizationID,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
@@ -369,71 +324,6 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 	return updated, nil
 }
 
-func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (group.Group, error) {
-	if strings.TrimSpace(grp.Slug) == "" {
-		return group.Group{}, group.ErrInvalidID
-	}
-
-	if strings.TrimSpace(grp.Name) == "" {
-		return group.Group{}, group.ErrInvalidDetail
-	}
-
-	marshaledMetadata, err := json.Marshal(grp.Metadata)
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	query, params, err := dialect.Update(TABLE_GROUPS).Set(
-		goqu.Record{
-			"name":       grp.Name,
-			"org_id":     grp.OrganizationID,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
-		"slug": grp.Slug,
-	}).Returning(&Group{}).ToSQL()
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var groupModel Group
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_GROUPS,
-				Operation:  "GetBySlug",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return group.Group{}, group.ErrNotExist
-		case errors.Is(err, ErrInvalidTextRepresentation):
-			return group.Group{}, organization.ErrInvalidUUID
-		case errors.Is(err, ErrDuplicateKey):
-			return group.Group{}, group.ErrConflict
-		case errors.Is(err, ErrForeignKeyViolation):
-			return group.Group{}, organization.ErrNotExist
-		default:
-			return group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
-		}
-	}
-
-	updated, err := groupModel.transformToGroup()
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%s: %w", parseErr, err)
-	}
-
-	return updated, nil
-}
-
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
 	if strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID
@@ -443,7 +333,7 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 		goqu.I("g.id").As("id"),
 		goqu.I("g.metadata").As("metadata"),
 		goqu.I("g.name").As("name"),
-		goqu.I("g.slug").As("slug"),
+		goqu.I("g.title").As("title"),
 		goqu.I("g.updated_at").As("updated_at"),
 		goqu.I("g.created_at").As("created_at"),
 		goqu.I("g.org_id").As("org_id"),
@@ -504,7 +394,7 @@ func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, role
 }
 
 // TODO(kushsharma): no longer in use, delete if needed
-func (r GroupRepository) ListGroupRelations(ctx context.Context, objectId string, subject_type string, role string) ([]relation.RelationV2, error) {
+func (r GroupRepository) ListGroupRelations(ctx context.Context, objectId string, subject_type string, role string) ([]relation.Relation, error) {
 	whereClauseExp := goqu.Ex{}
 	whereClauseExp["object_id"] = objectId
 	whereClauseExp["object_namespace_name"] = schema.GroupNamespace
@@ -524,7 +414,7 @@ func (r GroupRepository) ListGroupRelations(ctx context.Context, objectId string
 
 	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(whereClauseExp).ToSQL()
 	if err != nil {
-		return []relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var fetchedRelations []Relation
@@ -544,12 +434,12 @@ func (r GroupRepository) ListGroupRelations(ctx context.Context, objectId string
 	}); err != nil {
 		// List should return empty list and no error instead
 		if errors.Is(err, sql.ErrNoRows) {
-			return []relation.RelationV2{}, nil
+			return []relation.Relation{}, nil
 		}
-		return []relation.RelationV2{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedRelations []relation.RelationV2
+	var transformedRelations []relation.Relation
 	for _, r := range fetchedRelations {
 		transformedRelations = append(transformedRelations, r.transformToRelationV2())
 	}

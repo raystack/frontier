@@ -81,8 +81,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	s.Run("1. a user should successfully create a new org and become its admin", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
 			Body: &shieldv1beta1.OrganizationRequestBody{
-				Name: "org acme 1",
-				Slug: "org-acme-1",
+				Title: "org acme 1",
+				Name:  "org-acme-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"foo": structpb.NewStringValue("bar"),
@@ -104,8 +104,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	s.Run("2. org admin should be able to create a new project", func() {
 		projResponse, err := s.testBench.Client.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
 			Body: &shieldv1beta1.ProjectRequestBody{
-				Name:  "new project",
-				Slug:  "new-project",
+				Name:  "new-project",
 				OrgId: orgID,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -118,12 +117,12 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		projectID = projResponse.Project.Id
 	})
 	s.Run("3. org admin should be able to create a new resource inside project", func() {
-		createResourceResp, err := s.testBench.Client.CreateResource(ctx, &shieldv1beta1.CreateResourceRequest{
+		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctx, &shieldv1beta1.CreateProjectResourceRequest{
 			Body: &shieldv1beta1.ResourceRequestBody{
-				Name:        "res-1",
-				ProjectId:   projectID,
-				NamespaceId: potatoOrderNamespace,
-				UserId:      adminID,
+				Name:      "res-1",
+				ProjectId: projectID,
+				Namespace: computeOrderNamespace,
+				UserId:    adminID,
 			},
 		})
 		s.Assert().NoError(err)
@@ -133,7 +132,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	s.Run("4. org admin should have access to the resource created", func() {
 		createResourceResp, err := s.testBench.Client.CheckResourcePermission(ctx, &shieldv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
-			ObjectNamespace: potatoOrderNamespace,
+			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.UpdatePermission,
 		})
 		s.Assert().NoError(err)
@@ -154,7 +153,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		listPermissionsResp, err := s.testBench.Client.ListPermissions(ctx, &shieldv1beta1.ListPermissionsRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listPermissionsResp)
-		s.Assert().Len(listPermissionsResp.GetPermissions(), 27)
+		s.Assert().Len(listPermissionsResp.GetPermissions(), 23)
 	})
 	s.Run("6. creating role with bad body should fail", func() {
 		_, err := s.testBench.Client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{
@@ -196,9 +195,9 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	s.Run("8. create a new user and create a policy to make it a project manager", func() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user for org 1",
+				Title: "new user for org 1",
 				Email: "user-1-for-org-1@odpf.io",
-				Slug:  "user_1_for_org_1_odpf_io",
+				Name:  "user_1_for_org_1_odpf_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -208,20 +207,17 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 
 		// make user member of the org
 		_, err = s.testBench.Client.CreateRelation(ctx, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
-			ObjectId:         orgID,
-			ObjectNamespace:  schema.OrganizationNamespace,
-			SubjectNamespace: schema.UserPrincipal,
-			SubjectId:        newUserID,
-			RelationName:     schema.MemberRole,
+			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, newUserID),
+			Relation: schema.MemberRole,
 		}})
 		s.Assert().NoError(err)
 
 		// assign new user as project admin
 		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
-			RoleId:      roleID,
-			ResourceId:  projectID,
-			NamespaceId: schema.ProjectNamespace,
-			UserId:      newUserID,
+			RoleId:    roleID,
+			Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID),
+			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, newUserID),
 		}})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPolicyResp)
@@ -243,7 +239,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		// resources under the project
 		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &shieldv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
-			ObjectNamespace: potatoOrderNamespace,
+			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.UpdatePermission,
 		})
 		s.Assert().NoError(err)
@@ -266,9 +262,9 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	s.Run("11. a role assigned at org level for a resource should have access across projects", func() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
-				Name:  "new user for org 1",
+				Title: "new user for org 1",
 				Email: "user-2-for-org-1@odpf.io",
-				Slug:  "user_2_for_org_1_odpf_io",
+				Name:  "user_2_for_org_1_odpf_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -276,11 +272,9 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 
 		// make user member of the org
 		_, err = s.testBench.Client.CreateRelation(ctx, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
-			ObjectId:         orgID,
-			ObjectNamespace:  schema.OrganizationNamespace,
-			SubjectNamespace: schema.UserPrincipal,
-			SubjectId:        createUserResp.User.Id,
-			RelationName:     schema.MemberRole,
+			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.User.Id),
+			Relation: schema.MemberRole,
 		}})
 		s.Assert().NoError(err)
 
@@ -289,17 +283,16 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
 		for _, r := range listRolesResp.GetRoles() {
-			if r.Name == "potato_order_viewer" {
+			if r.Name == computeViewerRoleName {
 				resourceViewerRole = r.Id
 			}
 		}
 
 		// assign new user resource role across org
 		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
-			RoleId:      resourceViewerRole,
-			ResourceId:  orgID,
-			NamespaceId: schema.OrganizationNamespace,
-			UserId:      createUserResp.User.Id,
+			RoleId:    resourceViewerRole,
+			Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.User.Id),
 		}})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPolicyResp)
@@ -311,7 +304,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 
 		checkGetResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &shieldv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
-			ObjectNamespace: potatoOrderNamespace,
+			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.GetPermission,
 		})
 		s.Assert().NoError(err)
@@ -320,7 +313,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 
 		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &shieldv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
-			ObjectNamespace: potatoOrderNamespace,
+			ObjectNamespace: computeOrderNamespace,
 			Permission:      schema.UpdatePermission,
 		})
 		s.Assert().NoError(err)

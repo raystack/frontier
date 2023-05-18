@@ -23,18 +23,18 @@ func (_m *RelationService) EXPECT() *RelationService_Expecter {
 }
 
 // Create provides a mock function with given fields: ctx, _a1
-func (_m *RelationService) Create(ctx context.Context, _a1 relation.RelationV2) (relation.RelationV2, error) {
+func (_m *RelationService) Create(ctx context.Context, _a1 relation.Relation) (relation.Relation, error) {
 	ret := _m.Called(ctx, _a1)
 
-	var r0 relation.RelationV2
-	if rf, ok := ret.Get(0).(func(context.Context, relation.RelationV2) relation.RelationV2); ok {
+	var r0 relation.Relation
+	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) relation.Relation); ok {
 		r0 = rf(ctx, _a1)
 	} else {
-		r0 = ret.Get(0).(relation.RelationV2)
+		r0 = ret.Get(0).(relation.Relation)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, relation.RelationV2) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, relation.Relation) error); ok {
 		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Error(1)
@@ -50,19 +50,19 @@ type RelationService_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //  - ctx context.Context
-//  - _a1 relation.RelationV2
+//  - _a1 relation.Relation
 func (_e *RelationService_Expecter) Create(ctx interface{}, _a1 interface{}) *RelationService_Create_Call {
 	return &RelationService_Create_Call{Call: _e.mock.On("Upsert", ctx, _a1)}
 }
 
-func (_c *RelationService_Create_Call) Run(run func(ctx context.Context, _a1 relation.RelationV2)) *RelationService_Create_Call {
+func (_c *RelationService_Create_Call) Run(run func(ctx context.Context, _a1 relation.Relation)) *RelationService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(relation.RelationV2))
+		run(args[0].(context.Context), args[1].(relation.Relation))
 	})
 	return _c
 }
 
-func (_c *RelationService_Create_Call) Return(_a0 relation.RelationV2, _a1 error) *RelationService_Create_Call {
+func (_c *RelationService_Create_Call) Return(_a0 relation.Relation, _a1 error) *RelationService_Create_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }

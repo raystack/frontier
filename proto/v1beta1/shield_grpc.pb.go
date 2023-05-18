@@ -64,15 +64,6 @@ const (
 	ShieldService_EnableProject_FullMethodName                 = "/odpf.shield.v1beta1.ShieldService/EnableProject"
 	ShieldService_DisableProject_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/DisableProject"
 	ShieldService_DeleteProject_FullMethodName                 = "/odpf.shield.v1beta1.ShieldService/DeleteProject"
-	ShieldService_ListPermissions_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/ListPermissions"
-	ShieldService_CreatePermission_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/CreatePermission"
-	ShieldService_GetPermission_FullMethodName                 = "/odpf.shield.v1beta1.ShieldService/GetPermission"
-	ShieldService_UpdatePermission_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/UpdatePermission"
-	ShieldService_DeletePermission_FullMethodName              = "/odpf.shield.v1beta1.ShieldService/DeletePermission"
-	ShieldService_ListNamespaces_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/ListNamespaces"
-	ShieldService_CreateNamespace_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/CreateNamespace"
-	ShieldService_GetNamespace_FullMethodName                  = "/odpf.shield.v1beta1.ShieldService/GetNamespace"
-	ShieldService_UpdateNamespace_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/UpdateNamespace"
 	ShieldService_CreatePolicy_FullMethodName                  = "/odpf.shield.v1beta1.ShieldService/CreatePolicy"
 	ShieldService_GetPolicy_FullMethodName                     = "/odpf.shield.v1beta1.ShieldService/GetPolicy"
 	ShieldService_UpdatePolicy_FullMethodName                  = "/odpf.shield.v1beta1.ShieldService/UpdatePolicy"
@@ -80,11 +71,15 @@ const (
 	ShieldService_CreateRelation_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/CreateRelation"
 	ShieldService_GetRelation_FullMethodName                   = "/odpf.shield.v1beta1.ShieldService/GetRelation"
 	ShieldService_DeleteRelation_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/DeleteRelation"
+	ShieldService_ListPermissions_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/ListPermissions"
+	ShieldService_GetPermission_FullMethodName                 = "/odpf.shield.v1beta1.ShieldService/GetPermission"
+	ShieldService_ListNamespaces_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/ListNamespaces"
+	ShieldService_GetNamespace_FullMethodName                  = "/odpf.shield.v1beta1.ShieldService/GetNamespace"
 	ShieldService_ListProjectResources_FullMethodName          = "/odpf.shield.v1beta1.ShieldService/ListProjectResources"
-	ShieldService_CreateResource_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/CreateResource"
-	ShieldService_GetResource_FullMethodName                   = "/odpf.shield.v1beta1.ShieldService/GetResource"
-	ShieldService_UpdateResource_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/UpdateResource"
-	ShieldService_DeleteResource_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/DeleteResource"
+	ShieldService_CreateProjectResource_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/CreateProjectResource"
+	ShieldService_GetProjectResource_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/GetProjectResource"
+	ShieldService_UpdateProjectResource_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/UpdateProjectResource"
+	ShieldService_DeleteProjectResource_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/DeleteProjectResource"
 	ShieldService_CheckResourcePermission_FullMethodName       = "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission"
 	ShieldService_ListAuthStrategies_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/ListAuthStrategies"
 	ShieldService_Authenticate_FullMethodName                  = "/odpf.shield.v1beta1.ShieldService/Authenticate"
@@ -151,17 +146,6 @@ type ShieldServiceClient interface {
 	EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error)
 	DisableProject(ctx context.Context, in *DisableProjectRequest, opts ...grpc.CallOption) (*DisableProjectResponse, error)
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
-	// Permissions
-	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
-	CreatePermission(ctx context.Context, in *CreatePermissionRequest, opts ...grpc.CallOption) (*CreatePermissionResponse, error)
-	GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*GetPermissionResponse, error)
-	UpdatePermission(ctx context.Context, in *UpdatePermissionRequest, opts ...grpc.CallOption) (*UpdatePermissionResponse, error)
-	DeletePermission(ctx context.Context, in *DeletePermissionRequest, opts ...grpc.CallOption) (*DeletePermissionResponse, error)
-	// Namespaces
-	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
-	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*CreateNamespaceResponse, error)
-	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error)
-	UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*UpdateNamespaceResponse, error)
 	// Policies
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
@@ -171,12 +155,18 @@ type ShieldServiceClient interface {
 	CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error)
 	GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error)
 	DeleteRelation(ctx context.Context, in *DeleteRelationRequest, opts ...grpc.CallOption) (*DeleteRelationResponse, error)
+	// Permissions
+	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
+	GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*GetPermissionResponse, error)
+	// Namespaces
+	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
+	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error)
 	// Resources
 	ListProjectResources(ctx context.Context, in *ListProjectResourcesRequest, opts ...grpc.CallOption) (*ListProjectResourcesResponse, error)
-	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
-	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*GetResourceResponse, error)
-	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error)
-	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
+	CreateProjectResource(ctx context.Context, in *CreateProjectResourceRequest, opts ...grpc.CallOption) (*CreateProjectResourceResponse, error)
+	GetProjectResource(ctx context.Context, in *GetProjectResourceRequest, opts ...grpc.CallOption) (*GetProjectResourceResponse, error)
+	UpdateProjectResource(ctx context.Context, in *UpdateProjectResourceRequest, opts ...grpc.CallOption) (*UpdateProjectResourceResponse, error)
+	DeleteProjectResource(ctx context.Context, in *DeleteProjectResourceRequest, opts ...grpc.CallOption) (*DeleteProjectResourceResponse, error)
 	// Authz
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
 	// Authn
@@ -605,87 +595,6 @@ func (c *shieldServiceClient) DeleteProject(ctx context.Context, in *DeleteProje
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
-	out := new(ListPermissionsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListPermissions_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) CreatePermission(ctx context.Context, in *CreatePermissionRequest, opts ...grpc.CallOption) (*CreatePermissionResponse, error) {
-	out := new(CreatePermissionResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreatePermission_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*GetPermissionResponse, error) {
-	out := new(GetPermissionResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetPermission_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) UpdatePermission(ctx context.Context, in *UpdatePermissionRequest, opts ...grpc.CallOption) (*UpdatePermissionResponse, error) {
-	out := new(UpdatePermissionResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdatePermission_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) DeletePermission(ctx context.Context, in *DeletePermissionRequest, opts ...grpc.CallOption) (*DeletePermissionResponse, error) {
-	out := new(DeletePermissionResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeletePermission_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
-	out := new(ListNamespacesResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListNamespaces_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*CreateNamespaceResponse, error) {
-	out := new(CreateNamespaceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateNamespace_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error) {
-	out := new(GetNamespaceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetNamespace_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*UpdateNamespaceResponse, error) {
-	out := new(UpdateNamespaceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateNamespace_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *shieldServiceClient) CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error) {
 	out := new(CreatePolicyResponse)
 	err := c.cc.Invoke(ctx, ShieldService_CreatePolicy_FullMethodName, in, out, opts...)
@@ -749,6 +658,42 @@ func (c *shieldServiceClient) DeleteRelation(ctx context.Context, in *DeleteRela
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
+	out := new(ListPermissionsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListPermissions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*GetPermissionResponse, error) {
+	out := new(GetPermissionResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetPermission_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
+	out := new(ListNamespacesResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListNamespaces_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error) {
+	out := new(GetNamespaceResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetNamespace_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) ListProjectResources(ctx context.Context, in *ListProjectResourcesRequest, opts ...grpc.CallOption) (*ListProjectResourcesResponse, error) {
 	out := new(ListProjectResourcesResponse)
 	err := c.cc.Invoke(ctx, ShieldService_ListProjectResources_FullMethodName, in, out, opts...)
@@ -758,36 +703,36 @@ func (c *shieldServiceClient) ListProjectResources(ctx context.Context, in *List
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error) {
-	out := new(CreateResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateResource_FullMethodName, in, out, opts...)
+func (c *shieldServiceClient) CreateProjectResource(ctx context.Context, in *CreateProjectResourceRequest, opts ...grpc.CallOption) (*CreateProjectResourceResponse, error) {
+	out := new(CreateProjectResourceResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*GetResourceResponse, error) {
-	out := new(GetResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetResource_FullMethodName, in, out, opts...)
+func (c *shieldServiceClient) GetProjectResource(ctx context.Context, in *GetProjectResourceRequest, opts ...grpc.CallOption) (*GetProjectResourceResponse, error) {
+	out := new(GetProjectResourceResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error) {
-	out := new(UpdateResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateResource_FullMethodName, in, out, opts...)
+func (c *shieldServiceClient) UpdateProjectResource(ctx context.Context, in *UpdateProjectResourceRequest, opts ...grpc.CallOption) (*UpdateProjectResourceResponse, error) {
+	out := new(UpdateProjectResourceResponse)
+	err := c.cc.Invoke(ctx, ShieldService_UpdateProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error) {
-	out := new(DeleteResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteResource_FullMethodName, in, out, opts...)
+func (c *shieldServiceClient) DeleteProjectResource(ctx context.Context, in *DeleteProjectResourceRequest, opts ...grpc.CallOption) (*DeleteProjectResourceResponse, error) {
+	out := new(DeleteProjectResourceResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -938,17 +883,6 @@ type ShieldServiceServer interface {
 	EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error)
 	DisableProject(context.Context, *DisableProjectRequest) (*DisableProjectResponse, error)
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
-	// Permissions
-	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
-	CreatePermission(context.Context, *CreatePermissionRequest) (*CreatePermissionResponse, error)
-	GetPermission(context.Context, *GetPermissionRequest) (*GetPermissionResponse, error)
-	UpdatePermission(context.Context, *UpdatePermissionRequest) (*UpdatePermissionResponse, error)
-	DeletePermission(context.Context, *DeletePermissionRequest) (*DeletePermissionResponse, error)
-	// Namespaces
-	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
-	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
-	GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error)
-	UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error)
 	// Policies
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
@@ -958,12 +892,18 @@ type ShieldServiceServer interface {
 	CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error)
 	GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error)
 	DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error)
+	// Permissions
+	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
+	GetPermission(context.Context, *GetPermissionRequest) (*GetPermissionResponse, error)
+	// Namespaces
+	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error)
 	// Resources
 	ListProjectResources(context.Context, *ListProjectResourcesRequest) (*ListProjectResourcesResponse, error)
-	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
-	GetResource(context.Context, *GetResourceRequest) (*GetResourceResponse, error)
-	UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error)
-	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
+	CreateProjectResource(context.Context, *CreateProjectResourceRequest) (*CreateProjectResourceResponse, error)
+	GetProjectResource(context.Context, *GetProjectResourceRequest) (*GetProjectResourceResponse, error)
+	UpdateProjectResource(context.Context, *UpdateProjectResourceRequest) (*UpdateProjectResourceResponse, error)
+	DeleteProjectResource(context.Context, *DeleteProjectResourceRequest) (*DeleteProjectResourceResponse, error)
 	// Authz
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
 	// Authn
@@ -1119,33 +1059,6 @@ func (UnimplementedShieldServiceServer) DisableProject(context.Context, *Disable
 func (UnimplementedShieldServiceServer) DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProject not implemented")
 }
-func (UnimplementedShieldServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListPermissions not implemented")
-}
-func (UnimplementedShieldServiceServer) CreatePermission(context.Context, *CreatePermissionRequest) (*CreatePermissionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePermission not implemented")
-}
-func (UnimplementedShieldServiceServer) GetPermission(context.Context, *GetPermissionRequest) (*GetPermissionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPermission not implemented")
-}
-func (UnimplementedShieldServiceServer) UpdatePermission(context.Context, *UpdatePermissionRequest) (*UpdatePermissionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdatePermission not implemented")
-}
-func (UnimplementedShieldServiceServer) DeletePermission(context.Context, *DeletePermissionRequest) (*DeletePermissionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePermission not implemented")
-}
-func (UnimplementedShieldServiceServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
-}
-func (UnimplementedShieldServiceServer) CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateNamespace not implemented")
-}
-func (UnimplementedShieldServiceServer) GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetNamespace not implemented")
-}
-func (UnimplementedShieldServiceServer) UpdateNamespace(context.Context, *UpdateNamespaceRequest) (*UpdateNamespaceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateNamespace not implemented")
-}
 func (UnimplementedShieldServiceServer) CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePolicy not implemented")
 }
@@ -1167,20 +1080,32 @@ func (UnimplementedShieldServiceServer) GetRelation(context.Context, *GetRelatio
 func (UnimplementedShieldServiceServer) DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRelation not implemented")
 }
+func (UnimplementedShieldServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPermissions not implemented")
+}
+func (UnimplementedShieldServiceServer) GetPermission(context.Context, *GetPermissionRequest) (*GetPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPermission not implemented")
+}
+func (UnimplementedShieldServiceServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
+}
+func (UnimplementedShieldServiceServer) GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNamespace not implemented")
+}
 func (UnimplementedShieldServiceServer) ListProjectResources(context.Context, *ListProjectResourcesRequest) (*ListProjectResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjectResources not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateResource not implemented")
+func (UnimplementedShieldServiceServer) CreateProjectResource(context.Context, *CreateProjectResourceRequest) (*CreateProjectResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProjectResource not implemented")
 }
-func (UnimplementedShieldServiceServer) GetResource(context.Context, *GetResourceRequest) (*GetResourceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetResource not implemented")
+func (UnimplementedShieldServiceServer) GetProjectResource(context.Context, *GetProjectResourceRequest) (*GetProjectResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProjectResource not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateResource not implemented")
+func (UnimplementedShieldServiceServer) UpdateProjectResource(context.Context, *UpdateProjectResourceRequest) (*UpdateProjectResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProjectResource not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteResource not implemented")
+func (UnimplementedShieldServiceServer) DeleteProjectResource(context.Context, *DeleteProjectResourceRequest) (*DeleteProjectResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteProjectResource not implemented")
 }
 func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
@@ -2035,168 +1960,6 @@ func _ShieldService_DeleteProject_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPermissionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListPermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_ListPermissions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListPermissions(ctx, req.(*ListPermissionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_CreatePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreatePermissionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreatePermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_CreatePermission_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreatePermission(ctx, req.(*CreatePermissionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_GetPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPermissionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetPermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_GetPermission_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetPermission(ctx, req.(*GetPermissionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_UpdatePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdatePermissionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdatePermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_UpdatePermission_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdatePermission(ctx, req.(*UpdatePermissionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_DeletePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeletePermissionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeletePermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_DeletePermission_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeletePermission(ctx, req.(*DeletePermissionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListNamespacesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListNamespaces(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_ListNamespaces_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListNamespaces(ctx, req.(*ListNamespacesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_CreateNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateNamespaceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateNamespace(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_CreateNamespace_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateNamespace(ctx, req.(*CreateNamespaceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_GetNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNamespaceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetNamespace(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_GetNamespace_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetNamespace(ctx, req.(*GetNamespaceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_UpdateNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateNamespaceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateNamespace(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ShieldService_UpdateNamespace_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateNamespace(ctx, req.(*UpdateNamespaceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ShieldService_CreatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreatePolicyRequest)
 	if err := dec(in); err != nil {
@@ -2323,6 +2086,78 @@ func _ShieldService_DeleteRelation_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPermissionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListPermissions(ctx, req.(*ListPermissionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetPermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetPermission(ctx, req.(*GetPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNamespacesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListNamespaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListNamespaces_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListNamespaces(ctx, req.(*ListNamespacesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNamespaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetNamespace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetNamespace_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetNamespace(ctx, req.(*GetNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_ListProjectResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProjectResourcesRequest)
 	if err := dec(in); err != nil {
@@ -2341,74 +2176,74 @@ func _ShieldService_ListProjectResources_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateResourceRequest)
+func _ShieldService_CreateProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateResource(ctx, in)
+		return srv.(ShieldServiceServer).CreateProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateResource_FullMethodName,
+		FullMethod: ShieldService_CreateProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateResource(ctx, req.(*CreateResourceRequest))
+		return srv.(ShieldServiceServer).CreateProjectResource(ctx, req.(*CreateProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetResourceRequest)
+func _ShieldService_GetProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetResource(ctx, in)
+		return srv.(ShieldServiceServer).GetProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetResource_FullMethodName,
+		FullMethod: ShieldService_GetProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetResource(ctx, req.(*GetResourceRequest))
+		return srv.(ShieldServiceServer).GetProjectResource(ctx, req.(*GetProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateResourceRequest)
+func _ShieldService_UpdateProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateResource(ctx, in)
+		return srv.(ShieldServiceServer).UpdateProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateResource_FullMethodName,
+		FullMethod: ShieldService_UpdateProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateResource(ctx, req.(*UpdateResourceRequest))
+		return srv.(ShieldServiceServer).UpdateProjectResource(ctx, req.(*UpdateProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteResourceRequest)
+func _ShieldService_DeleteProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteResource(ctx, in)
+		return srv.(ShieldServiceServer).DeleteProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteResource_FullMethodName,
+		FullMethod: ShieldService_DeleteProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteResource(ctx, req.(*DeleteResourceRequest))
+		return srv.(ShieldServiceServer).DeleteProjectResource(ctx, req.(*DeleteProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2781,42 +2616,6 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_DeleteProject_Handler,
 		},
 		{
-			MethodName: "ListPermissions",
-			Handler:    _ShieldService_ListPermissions_Handler,
-		},
-		{
-			MethodName: "CreatePermission",
-			Handler:    _ShieldService_CreatePermission_Handler,
-		},
-		{
-			MethodName: "GetPermission",
-			Handler:    _ShieldService_GetPermission_Handler,
-		},
-		{
-			MethodName: "UpdatePermission",
-			Handler:    _ShieldService_UpdatePermission_Handler,
-		},
-		{
-			MethodName: "DeletePermission",
-			Handler:    _ShieldService_DeletePermission_Handler,
-		},
-		{
-			MethodName: "ListNamespaces",
-			Handler:    _ShieldService_ListNamespaces_Handler,
-		},
-		{
-			MethodName: "CreateNamespace",
-			Handler:    _ShieldService_CreateNamespace_Handler,
-		},
-		{
-			MethodName: "GetNamespace",
-			Handler:    _ShieldService_GetNamespace_Handler,
-		},
-		{
-			MethodName: "UpdateNamespace",
-			Handler:    _ShieldService_UpdateNamespace_Handler,
-		},
-		{
 			MethodName: "CreatePolicy",
 			Handler:    _ShieldService_CreatePolicy_Handler,
 		},
@@ -2845,24 +2644,40 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_DeleteRelation_Handler,
 		},
 		{
+			MethodName: "ListPermissions",
+			Handler:    _ShieldService_ListPermissions_Handler,
+		},
+		{
+			MethodName: "GetPermission",
+			Handler:    _ShieldService_GetPermission_Handler,
+		},
+		{
+			MethodName: "ListNamespaces",
+			Handler:    _ShieldService_ListNamespaces_Handler,
+		},
+		{
+			MethodName: "GetNamespace",
+			Handler:    _ShieldService_GetNamespace_Handler,
+		},
+		{
 			MethodName: "ListProjectResources",
 			Handler:    _ShieldService_ListProjectResources_Handler,
 		},
 		{
-			MethodName: "CreateResource",
-			Handler:    _ShieldService_CreateResource_Handler,
+			MethodName: "CreateProjectResource",
+			Handler:    _ShieldService_CreateProjectResource_Handler,
 		},
 		{
-			MethodName: "GetResource",
-			Handler:    _ShieldService_GetResource_Handler,
+			MethodName: "GetProjectResource",
+			Handler:    _ShieldService_GetProjectResource_Handler,
 		},
 		{
-			MethodName: "UpdateResource",
-			Handler:    _ShieldService_UpdateResource_Handler,
+			MethodName: "UpdateProjectResource",
+			Handler:    _ShieldService_UpdateProjectResource_Handler,
 		},
 		{
-			MethodName: "DeleteResource",
-			Handler:    _ShieldService_DeleteResource_Handler,
+			MethodName: "DeleteProjectResource",
+			Handler:    _ShieldService_DeleteProjectResource_Handler,
 		},
 		{
 			MethodName: "CheckResourcePermission",

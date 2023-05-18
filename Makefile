@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "3716dbf642261a4c15f48d08a53069a741da9df3"
+PROTON_COMMIT := "bcf3528f4113348db3fe9a5ccb2a4173aed2e8ad"
 
 ui:
 	@echo " > generating ui build"
@@ -27,7 +27,7 @@ lint-fix:
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
+	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out -count 3
 
 test-all: test e2e-smoke-test e2e-regression-test integration-test ## Run all tests
 

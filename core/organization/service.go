@@ -11,9 +11,9 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	LookupResources(ctx context.Context, rel relation.RelationV2) ([]string, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 type UserService interface {
@@ -36,11 +36,11 @@ func NewService(repository Repository, relationService RelationService,
 	}
 }
 
-func (s Service) Get(ctx context.Context, idOrSlug string) (Organization, error) {
-	if uuid.IsValid(idOrSlug) {
-		return s.repository.GetByID(ctx, idOrSlug)
+func (s Service) Get(ctx context.Context, idOrName string) (Organization, error) {
+	if uuid.IsValid(idOrName) {
+		return s.repository.GetByID(ctx, idOrName)
 	}
-	return s.repository.GetBySlug(ctx, idOrSlug)
+	return s.repository.GetByName(ctx, idOrName)
 }
 
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
@@ -51,7 +51,6 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 
 	newOrg, err := s.repository.Create(ctx, Organization{
 		Name:     org.Name,
-		Slug:     org.Slug,
 		Metadata: org.Metadata,
 	})
 	if err != nil {
@@ -72,7 +71,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 }
 
 func (s Service) AddOwner(ctx context.Context, newOrg Organization, currentUser user.User) error {
-	if _, err := s.relationService.Create(ctx, relation.RelationV2{
+	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        newOrg.ID,
 			Namespace: schema.OrganizationNamespace,
@@ -89,7 +88,7 @@ func (s Service) AddOwner(ctx context.Context, newOrg Organization, currentUser 
 }
 
 func (s Service) AttachToPlatform(ctx context.Context, orgID string) error {
-	if _, err := s.relationService.Create(ctx, relation.RelationV2{
+	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
@@ -118,11 +117,11 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 	if org.ID != "" {
 		return s.repository.UpdateByID(ctx, org)
 	}
-	return s.repository.UpdateBySlug(ctx, org)
+	return s.repository.UpdateByName(ctx, org)
 }
 
 func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization, error) {
-	subjectIDs, err := s.relationService.LookupResources(ctx, relation.RelationV2{
+	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.OrganizationNamespace,
 		},
@@ -152,7 +151,7 @@ func (s Service) Disable(ctx context.Context, id string) error {
 
 // DeleteModel doesn't delete the nested resource, only itself
 func (s Service) DeleteModel(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.OrganizationNamespace,
 	}}); err != nil {

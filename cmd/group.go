@@ -188,11 +188,10 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
-			report = append(report, []string{"ID", "NAME", "SLUG", "ORG-ID"})
+			report = append(report, []string{"ID", "NAME", "ORG-ID"})
 			report = append(report, []string{
 				group.GetId(),
 				group.GetName(),
-				group.GetSlug(),
 				group.GetOrgId(),
 			})
 			printer.Table(os.Stdout, report)
@@ -263,12 +262,11 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 
 			fmt.Printf(" \nShowing %d groups\n \n", len(groups))
 
-			report = append(report, []string{"ID", "NAME", "SLUG", "ORG-ID"})
+			report = append(report, []string{"ID", "NAME", "ORG-ID"})
 			for _, g := range groups {
 				report = append(report, []string{
 					g.GetId(),
 					g.GetName(),
-					g.GetSlug(),
 					g.GetOrgId(),
 				})
 			}

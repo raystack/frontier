@@ -34,45 +34,39 @@ var testPermissionAttributesMap = map[string]any{
 var testProjectMap = map[string]project.Project{
 	"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
 		ID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		Name: "Prj 1",
-		Slug: "prj-1",
+		Name: "prj-1",
 		Metadata: map[string]any{
 			"email": "org1@org1.com",
 		},
 		Organization: organization.Organization{
 			ID:   "org1",
-			Name: "Org 1",
-			Slug: "Org Slug 1",
+			Name: "Org-1",
 		},
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
 	},
 	"85be2dfe-7b13-42aa-96f8-f040afb0bbb3": {
 		ID:   "85be2dfe-7b13-42aa-96f8-f040afb0bbb3",
-		Name: "Prj 2",
-		Slug: "prj-2",
+		Name: "prj-2",
 		Metadata: map[string]any{
 			"email": "org1@org2.com",
 		},
 		Organization: organization.Organization{
 			ID:   "39e63abd-0fb0-4f5a-ac24-92bf83e1f920",
-			Name: "Org 2",
-			Slug: "Org Slug 2",
+			Name: "Org-2",
 		},
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
 	},
 	"project-3-slug": {
 		ID:   "c3772d61-faa1-4d8d-fff3-c8fa5a1fdc4b",
-		Name: "Prj 3",
-		Slug: "project-3-slug",
+		Name: "project-3-slug",
 		Metadata: map[string]any{
 			"email": "org1@org2.com",
 		},
 		Organization: organization.Organization{
 			ID:   "org2",
-			Name: "Org 2",
-			Slug: "Org Slug 2",
+			Name: "Org-2",
 		},
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},

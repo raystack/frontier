@@ -9,13 +9,12 @@ import (
 
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/uuid"
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	ListRelations(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error)
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 type UserService interface {
@@ -70,11 +69,8 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	return newGroup, nil
 }
 
-func (s Service) Get(ctx context.Context, idOrSlug string) (Group, error) {
-	if uuid.IsValid(idOrSlug) {
-		return s.repository.GetByID(ctx, idOrSlug)
-	}
-	return s.repository.GetBySlug(ctx, idOrSlug)
+func (s Service) Get(ctx context.Context, id string) (Group, error) {
+	return s.repository.GetByID(ctx, id)
 }
 
 func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, error) {
@@ -89,7 +85,7 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	if strings.TrimSpace(grp.ID) != "" {
 		return s.repository.UpdateByID(ctx, grp)
 	}
-	return s.repository.UpdateBySlug(ctx, grp)
+	return Group{}, ErrInvalidID
 }
 
 func (s Service) ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error) {
@@ -97,7 +93,7 @@ func (s Service) ListUserGroups(ctx context.Context, userId string, roleId strin
 }
 
 func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error) {
-	relations, err := s.relationService.ListRelations(ctx, relation.RelationV2{
+	relations, err := s.relationService.ListRelations(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.GroupNamespace,
 			ID:        groupID,
@@ -124,7 +120,7 @@ func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.Use
 
 // addGroupMember adds a subject(user) to group as member
 func (s Service) addGroupMember(ctx context.Context, team Group, subject relation.Subject, relationName string) error {
-	rel := relation.RelationV2{
+	rel := relation.Relation{
 		Object: relation.Object{
 			ID:        team.ID,
 			Namespace: schema.GroupNamespace,
@@ -140,7 +136,7 @@ func (s Service) addGroupMember(ctx context.Context, team Group, subject relatio
 
 // addOrgToGroup creates an inverse relation that connects group to org
 func (s Service) addOrgToGroup(ctx context.Context, team Group) error {
-	rel := relation.RelationV2{
+	rel := relation.Relation{
 		Object: relation.Object{
 			ID:        team.ID,
 			Namespace: schema.GroupNamespace,
@@ -162,7 +158,7 @@ func (s Service) addOrgToGroup(ctx context.Context, team Group) error {
 
 // addAsOrgMember connects group as a member to org
 func (s Service) addAsOrgMember(ctx context.Context, team Group) error {
-	rel := relation.RelationV2{
+	rel := relation.Relation{
 		Object: relation.Object{
 			ID:        team.OrganizationID,
 			Namespace: schema.OrganizationNamespace,
@@ -186,7 +182,7 @@ func (s Service) addAsOrgMember(ctx context.Context, team Group) error {
 // ListByOrganization will be useful for nested groups but we don't do that at the moment
 // so it will not be directly used
 func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, error) {
-	relations, err := s.relationService.ListRelations(ctx, relation.RelationV2{
+	relations, err := s.relationService.ListRelations(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.GroupNamespace,
 		},
@@ -220,7 +216,7 @@ func (s Service) Disable(ctx context.Context, id string) error {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.GroupPrincipal,
 	}}); err != nil {
