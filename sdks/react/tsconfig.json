@@ -6,6 +6,7 @@
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "module": "esnext",
+    "target": "esnext",
     "moduleResolution": "node",
     "noEmit": true,
     "outDir": "dist",
@@ -13,8 +14,6 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es5",
-    "lib": ["es5", "es2015", "es2015.promise", "dom"],
     "typeRoots": ["node_modules/@types", "src/types"]
   },
   "exclude": ["node_modules", "dist"]

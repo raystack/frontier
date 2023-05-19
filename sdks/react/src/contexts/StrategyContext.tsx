@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-export type Strategy = { name: string; params: any };
+export type Strategy = { name: string; params: any; endpoint: string };
 export type StrategyContextProps = {
   strategies: Strategy[];
 };
