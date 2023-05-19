@@ -44,6 +44,7 @@ export default function NewUser() {
   const onSubmit = async (data: any) => {
     await trigger(data);
     navigate("/console/users");
+    navigate(0);
   };
 
   return (

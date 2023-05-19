@@ -2,7 +2,6 @@ import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
 
 import { Button, Flex, Table, Text, useTable } from "@odpf/apsara";
 import { useNavigate } from "react-router-dom";
-import { styles } from "~/styles";
 
 export const GroupsHeader = () => {
   const navigate = useNavigate();
@@ -20,7 +19,7 @@ export const GroupsHeader = () => {
         </Text>
         <Flex align="center" direction="row" css={{ columnGap: "8px" }}>
           {filterQuery.length ? (
-            <Button onClick={clearFilters} css={styles.button}>
+            <Button variant="secondary" onClick={clearFilters}>
               <Flex align="center" css={{ paddingRight: "$2" }}>
                 Clear Filters
               </Flex>
@@ -28,7 +27,7 @@ export const GroupsHeader = () => {
             </Button>
           ) : (
             <Table.ColumnFilterSelection align="end">
-              <Button css={{ ...styles.button, border: "1px dashed $gray6" }}>
+              <Button variant="secondary" outline>
                 <Flex align="center" css={{ paddingRight: "$2" }}>
                   <PlusIcon />
                 </Flex>
@@ -37,15 +36,14 @@ export const GroupsHeader = () => {
             </Table.ColumnFilterSelection>
           )}
           <Table.TableColumnsFilter>
-            <Button css={styles.button}>View</Button>
+            <Button variant="secondary">View</Button>
           </Table.TableColumnsFilter>
           <Table.TableGlobalSearch
             css={{ height: "24px" }}
             placeholder="Search all groups"
           />
-
           <Button
-            css={styles.button}
+            variant="secondary"
             onClick={() => navigate("/console/groups/create")}
           >
             <Flex align="center" css={{ paddingRight: "$2" }}>
