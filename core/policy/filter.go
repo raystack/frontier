@@ -1,8 +1,9 @@
 package policy
 
 type Filter struct {
-	OrgID     string
-	UserID    string
-	ProjectID string
-	RoleID    string
+	PrincipalType string
+	PrincipalID   string
+	OrgID         string
+	ProjectID     string
+	RoleID        string
 }

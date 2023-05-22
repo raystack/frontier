@@ -187,11 +187,10 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
-			report = append(report, []string{"ID", "NAME", "SLUG", "ORG-ID"})
+			report = append(report, []string{"ID", "NAME", "ORG-ID"})
 			report = append(report, []string{
 				project.GetId(),
 				project.GetName(),
-				project.GetSlug(),
 				project.GetOrgId(),
 			})
 			printer.Table(os.Stdout, report)
@@ -262,12 +261,11 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 
 			fmt.Printf(" \nShowing %d project(s)\n \n", len(projects))
 
-			report = append(report, []string{"ID", "NAME", "SLUG", "ORG-ID"})
+			report = append(report, []string{"ID", "NAME", "ORG-ID"})
 			for _, p := range projects {
 				report = append(report, []string{
 					p.GetId(),
 					p.GetName(),
-					p.GetSlug(),
 					p.GetOrgId(),
 				})
 			}

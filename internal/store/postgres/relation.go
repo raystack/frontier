@@ -35,8 +35,8 @@ type relationCols struct {
 	UpdatedAt            time.Time      `db:"updated_at"`
 }
 
-func (from Relation) transformToRelationV2() relation.RelationV2 {
-	return relation.RelationV2{
+func (from Relation) transformToRelationV2() relation.Relation {
+	return relation.Relation{
 		ID: from.ID,
 		Subject: relation.Subject{
 			ID:              from.SubjectID,

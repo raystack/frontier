@@ -6,33 +6,21 @@ import (
 )
 
 type Repository interface {
-	Get(ctx context.Context, id string) (RelationV2, error)
-	Upsert(ctx context.Context, relation RelationV2) (RelationV2, error)
-	List(ctx context.Context) ([]RelationV2, error)
+	Get(ctx context.Context, id string) (Relation, error)
+	Upsert(ctx context.Context, relation Relation) (Relation, error)
+	List(ctx context.Context) ([]Relation, error)
 	DeleteByID(ctx context.Context, id string) error
-	GetByFields(ctx context.Context, rel RelationV2) ([]RelationV2, error)
+	GetByFields(ctx context.Context, rel Relation) ([]Relation, error)
 }
 
 type AuthzRepository interface {
-	Check(ctx context.Context, rel RelationV2, permissionName string) (bool, error)
-	Delete(ctx context.Context, rel RelationV2) error
-	Add(ctx context.Context, rel RelationV2) error
-	LookupSubjects(ctx context.Context, rel RelationV2) ([]string, error)
-	LookupResources(ctx context.Context, rel RelationV2) ([]string, error)
-	ListRelations(ctx context.Context, rel RelationV2) ([]RelationV2, error)
+	Check(ctx context.Context, rel Relation, permissionName string) (bool, error)
+	Delete(ctx context.Context, rel Relation) error
+	Add(ctx context.Context, rel Relation) error
+	LookupSubjects(ctx context.Context, rel Relation) ([]string, error)
+	LookupResources(ctx context.Context, rel Relation) ([]string, error)
+	ListRelations(ctx context.Context, rel Relation) ([]Relation, error)
 }
-
-//type Relation struct {
-//	ID                  string
-//	SubjectNamespaceID  string `json:"subject_namespace_id"`
-//	SubjectID           string `json:"subject_id"`
-//	SubjectRelationName string `json:"subject_relation_name"`
-//	ObjectNamespaceID   string `json:"object_namespace_id"`
-//	ObjectID            string `json:"object_id"`
-//	RelationName        string `json:"relation_name"`
-//	CreatedAt           time.Time
-//	UpdatedAt           time.Time
-//}
 
 type Object struct {
 	ID        string
@@ -42,10 +30,10 @@ type Object struct {
 type Subject struct {
 	ID              string
 	Namespace       string
-	SubRelationName string `json:"sub_relation_name"`
+	SubRelationName string `json:"subject_sub_relation"`
 }
 
-type RelationV2 struct {
+type Relation struct {
 	ID           string
 	Object       Object
 	Subject      Subject

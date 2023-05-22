@@ -26,7 +26,7 @@ type joinUserMetadata struct {
 	ID        string         `db:"id"`
 	Name      string         `db:"name"`
 	Email     string         `db:"email"`
-	Slug      sql.NullString `db:"slug"`
+	Title     sql.NullString `db:"title"`
 	Key       any            `db:"key"`
 	Value     sql.NullString `db:"value"`
 	CreatedAt time.Time      `db:"created_at"`
@@ -97,15 +97,15 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	return transformedUser, nil
 }
 
-func (r UserRepository) GetBySlug(ctx context.Context, slug string) (user.User, error) {
-	if strings.TrimSpace(slug) == "" {
+func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, error) {
+	if strings.TrimSpace(name) == "" {
 		return user.User{}, user.ErrMissingSlug
 	}
 
 	var fetchedUser User
 	query, params, err := dialect.From(TABLE_USERS).
 		Where(goqu.Ex{
-			"slug": slug,
+			"name": name,
 		}).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -117,7 +117,7 @@ func (r UserRepository) GetBySlug(ctx context.Context, slug string) (user.User, 
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_USERS,
-				Operation:  "GetByUserSlug",
+				Operation:  "GetByName",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -142,7 +142,7 @@ func (r UserRepository) GetBySlug(ctx context.Context, slug string) (user.User, 
 }
 
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
-	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" {
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
 		return user.User{}, user.ErrInvalidDetails
 	}
 
@@ -154,12 +154,12 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	insertRow := goqu.Record{
 		"name":  usr.Name,
 		"email": usr.Email,
-		"slug":  usr.Slug,
+		"title": usr.Title,
 	}
 	if usr.State != "" {
 		insertRow["state"] = usr.State
 	}
-	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning("created_at", "deleted_at", "email", "id", "name", "slug", "state", "updated_at").ToSQL()
+	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning("created_at", "deleted_at", "email", "id", "name", "title", "state", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -183,7 +183,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 				&userModel.Email,
 				&userModel.ID,
 				&userModel.Name,
-				&userModel.Slug,
+				&userModel.Title,
 				&userModel.State,
 				&userModel.UpdatedAt,
 			)
@@ -225,7 +225,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	offset := (flt.Page - 1) * flt.Limit
 
 	sqlStmt := dialect.From(TABLE_USERS).
-		Select("users.id", "name", "email", "slug", "users.created_at", "users.updated_at")
+		Select("users.id", "name", "email", "title", "users.created_at", "users.updated_at")
 
 	if len(flt.Keyword) != 0 {
 		sqlStmt = sqlStmt.Where(goqu.Or(
@@ -275,7 +275,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		currentUser.ID = u.ID
 		currentUser.Email = u.Email
 		currentUser.Name = u.Name
-		currentUser.Slug = u.Slug.String
+		currentUser.Title = u.Title.String
 		currentUser.CreatedAt = u.CreatedAt
 		currentUser.UpdatedAt = u.UpdatedAt
 
@@ -307,7 +307,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
 	var fetchedUsers []User
 
-	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "slug", "state").Where(
+	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "title", "state").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
 		}).Where(notDisabledUserExp).ToSQL()
@@ -365,13 +365,13 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
-				"slug":       usr.Slug,
+				"title":      usr.Title,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"email": usr.Email,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "slug", "updated_at").ToSQL()
+		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "title", "updated_at").ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -396,7 +396,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 					&userModel.ID,
 					&userModel.Name,
 					&userModel.State,
-					&userModel.Slug,
+					&userModel.Title,
 					&userModel.UpdatedAt,
 				)
 		}); err != nil {
@@ -427,7 +427,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	if usr.ID == "" || !uuid.IsValid(usr.ID) {
 		return user.User{}, user.ErrInvalidID
 	}
-	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Slug) == "" {
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
 		return user.User{}, user.ErrInvalidDetails
 	}
 
@@ -437,13 +437,13 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
-				"slug":       usr.Slug,
+				"title":      usr.Title,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"id": usr.ID,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "slug", "updated_at").ToSQL()
+		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "title", "updated_at").ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -467,7 +467,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 				&userModel.ID,
 				&userModel.Name,
 				&userModel.State,
-				&userModel.Slug,
+				&userModel.Title,
 				&userModel.UpdatedAt,
 			)
 		}); err != nil {
@@ -498,8 +498,8 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	return transformedUser, nil
 }
 
-func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.User, error) {
-	if usr.Slug == "" {
+func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.User, error) {
+	if usr.Name == "" {
 		return user.User{}, user.ErrMissingSlug
 	}
 
@@ -512,13 +512,13 @@ func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.U
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
-				"slug":       usr.Slug,
+				"title":      usr.Name,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"slug": usr.ID,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "slug", "updated_at").ToSQL()
+		).Returning("created_at", "deleted_at", "email", "id", "name", "title", "updated_at").ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -530,7 +530,7 @@ func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.U
 				nr := newrelic.DatastoreSegment{
 					Product:    newrelic.DatastorePostgres,
 					Collection: TABLE_USERS,
-					Operation:  "UpdateBySlug",
+					Operation:  "UpdateByName",
 					StartTime:  nrCtx.StartSegmentNow(),
 				}
 				defer nr.End()
@@ -541,7 +541,7 @@ func (r UserRepository) UpdateBySlug(ctx context.Context, usr user.User) (user.U
 				&userModel.Email,
 				&userModel.ID,
 				&userModel.Name,
-				&userModel.Slug,
+				&userModel.Title,
 				&userModel.UpdatedAt)
 		}); err != nil {
 			err = checkPostgresError(err)

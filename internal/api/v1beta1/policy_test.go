@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/uuid"
@@ -16,14 +18,16 @@ import (
 )
 
 var (
-	testPolicyID  = uuid.NewString()
-	testPolicyMap = map[string]policy.Policy{
+	testPolicyID           = uuid.NewString()
+	testPolicyResourceType = "compute"
+	testPolicyMap          = map[string]policy.Policy{
 		testPolicyID: {
-			ID:          testPolicyID,
-			UserID:      testUserID,
-			ResourceID:  testResourceID,
-			NamespaceID: "policy-1",
-			RoleID:      "reader",
+			ID:            testPolicyID,
+			PrincipalType: schema.UserPrincipal,
+			PrincipalID:   testUserID,
+			ResourceID:    testResourceID,
+			ResourceType:  testPolicyResourceType,
+			RoleID:        "reader",
 		},
 	}
 )
@@ -55,11 +59,10 @@ func TestListPolicies(t *testing.T) {
 			},
 			want: &shieldv1beta1.ListPoliciesResponse{Policies: []*shieldv1beta1.Policy{
 				{
-					Id:          testPolicyID,
-					NamespaceId: "policy-1",
-					RoleId:      "reader",
-					ResourceId:  testResourceID,
-					UserId:      testUserID,
+					Id:        testPolicyID,
+					RoleId:    "reader",
+					Resource:  schema.JoinNamespaceAndResourceID(testPolicyResourceType, testResourceID),
+					Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, testUserID),
 				},
 			}},
 			err: nil,
@@ -92,13 +95,17 @@ func TestCreatePolicy(t *testing.T) {
 			title: "should return internal error if policy service return some error",
 			setup: func(ps *mocks.PolicyService) {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
-					NamespaceID: "team",
-					RoleID:      "Admin",
+					RoleID:        "Admin",
+					ResourceID:    "id",
+					ResourceType:  "ns",
+					PrincipalID:   "id",
+					PrincipalType: "ns",
 				}).Return(policy.Policy{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
-				NamespaceId: "team",
-				RoleId:      "Admin",
+				RoleId:    "Admin",
+				Resource:  "ns:id",
+				Principal: "ns:id",
 			}},
 			want: nil,
 			err:  grpcInternalServerError,
@@ -107,13 +114,17 @@ func TestCreatePolicy(t *testing.T) {
 			title: "should return bad request error if foreign reference not exist",
 			setup: func(ps *mocks.PolicyService) {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
-					NamespaceID: "team",
-					RoleID:      "Admin",
+					RoleID:        "Admin",
+					ResourceID:    "id",
+					ResourceType:  "ns",
+					PrincipalID:   "id",
+					PrincipalType: "ns",
 				}).Return(policy.Policy{}, policy.ErrInvalidDetail)
 			},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
-				NamespaceId: "team",
-				RoleId:      "Admin",
+				RoleId:    "Admin",
+				Resource:  "ns:id",
+				Principal: "ns:id",
 			}},
 			want: nil,
 			err:  grpcBadBodyError,
@@ -122,22 +133,28 @@ func TestCreatePolicy(t *testing.T) {
 			title: "should return success if policy service return nil error",
 			setup: func(ps *mocks.PolicyService) {
 				ps.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
-					NamespaceID: "policy-1",
-					RoleID:      "reader",
+					ResourceType:  testPolicyResourceType,
+					RoleID:        "reader",
+					ResourceID:    "id",
+					PrincipalID:   "id",
+					PrincipalType: testPolicyResourceType,
 				}).Return(policy.Policy{
-					ID:          "test",
-					NamespaceID: "policy-1",
-					RoleID:      "reader",
+					ID:           "test",
+					ResourceType: testPolicyResourceType,
+					ResourceID:   "id",
+					RoleID:       "reader",
 				}, nil)
 			},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
-				NamespaceId: "policy-1",
-				RoleId:      "reader",
+				RoleId:    "reader",
+				Resource:  schema.JoinNamespaceAndResourceID(testPolicyResourceType, "id"),
+				Principal: schema.JoinNamespaceAndResourceID(testPolicyResourceType, "id"),
 			}},
 			want: &shieldv1beta1.CreatePolicyResponse{Policy: &shieldv1beta1.Policy{
-				Id:          "test",
-				NamespaceId: "policy-1",
-				RoleId:      "reader",
+				Id:        "test",
+				RoleId:    "reader",
+				Resource:  schema.JoinNamespaceAndResourceID(testPolicyResourceType, "id"),
+				Principal: ":",
 			},
 			},
 			err: nil,
@@ -218,11 +235,10 @@ func TestHandler_GetPolicy(t *testing.T) {
 			},
 			want: &shieldv1beta1.GetPolicyResponse{
 				Policy: &shieldv1beta1.Policy{
-					Id:          testPolicyID,
-					NamespaceId: testPolicyMap[testPolicyID].NamespaceID,
-					RoleId:      testPolicyMap[testPolicyID].RoleID,
-					UserId:      testUserID,
-					ResourceId:  testResourceID,
+					Id:        testPolicyID,
+					RoleId:    testPolicyMap[testPolicyID].RoleID,
+					Resource:  schema.JoinNamespaceAndResourceID(testPolicyMap[testPolicyID].ResourceType, testResourceID),
+					Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, testUserID),
 				},
 			},
 			wantErr: nil,

@@ -86,7 +86,7 @@ func (s *UserRepositoryTestSuite) TestGetByID() {
 				ID:       s.users[0].ID,
 				Name:     s.users[0].Name,
 				Email:    s.users[0].Email,
-				Slug:     s.users[0].Slug,
+				Title:    s.users[0].Title,
 				Metadata: s.users[0].Metadata,
 				State:    user.Enabled,
 			},
@@ -139,7 +139,7 @@ func (s *UserRepositoryTestSuite) TestGetByEmail() {
 				ID:       s.users[0].ID,
 				Name:     s.users[0].Name,
 				Email:    s.users[0].Email,
-				Slug:     s.users[0].Slug,
+				Title:    s.users[0].Title,
 				Metadata: s.users[0].Metadata,
 				State:    user.Enabled,
 			},
@@ -183,9 +183,9 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a user",
 			UserToCreate: user.User{
-				Name:     "new user",
+				Title:    "new user",
 				Email:    "new.user@odpf.io",
-				Slug:     "test_user_slug",
+				Name:     "test_user_slug",
 				Metadata: metadata.Metadata{},
 			},
 			ExpectedEmail: "new.user@odpf.io",
@@ -193,9 +193,9 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if user already exist",
 			UserToCreate: user.User{
-				Name:     "new user",
+				Title:    "new user",
 				Email:    "new.user@odpf.io",
-				Slug:     "test_user_slug",
+				Name:     "test_user_slug",
 				Metadata: metadata.Metadata{},
 			},
 			ErrString: user.ErrConflict.Error(),
@@ -319,18 +319,18 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 		{
 			Description: "should update a user",
 			UserToUpdate: user.User{
-				Name:  "Doe John",
+				Title: "Doe John",
 				Email: s.users[0].Email,
-				Slug:  s.users[0].Slug,
+				Name:  s.users[0].Name,
 				Metadata: metadata.Metadata{
 					"label":       "Label",
 					"description": "Description",
 				},
 			},
 			ExpectedUser: user.User{
-				Name:  "Doe John",
+				Title: "Doe John",
 				Email: s.users[0].Email,
-				Slug:  s.users[0].Slug,
+				Name:  s.users[0].Name,
 				Metadata: metadata.Metadata{
 					"label":       "Label",
 					"description": "Description",
@@ -385,9 +385,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			Description: "should update a user",
 			UserToUpdate: user.User{
 				ID:    s.users[0].ID,
-				Name:  "Doe John",
+				Title: "Doe John",
 				Email: s.users[0].Email,
-				Slug:  s.users[0].Slug,
+				Name:  s.users[0].Name,
 				Metadata: metadata.Metadata{
 					"label":       "Label",
 					"description": "Description",
@@ -395,9 +395,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			},
 			ExpectedUser: user.User{
 				ID:    s.users[0].ID,
-				Name:  "Doe John",
+				Title: "Doe John",
 				Email: s.users[0].Email,
-				Slug:  s.users[0].Slug,
+				Name:  s.users[0].Name,
 				Metadata: metadata.Metadata{
 					"label":       "Label",
 					"description": "Description",
@@ -409,9 +409,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			Description: "should return error if user not found",
 			UserToUpdate: user.User{
 				ID:    uuid.NewString(),
-				Name:  "Doe John",
+				Title: "Doe John",
 				Email: s.users[0].Email,
-				Slug:  s.users[0].Slug,
+				Name:  s.users[0].Name,
 			},
 			Err: user.ErrNotExist,
 		},
@@ -419,16 +419,16 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			Description: "should not update the user email",
 			UserToUpdate: user.User{
 				ID:       s.users[0].ID,
-				Name:     "Doe John",
+				Title:    "Doe John",
 				Email:    s.users[1].Email,
-				Slug:     s.users[0].Slug,
+				Name:     s.users[0].Name,
 				Metadata: s.users[0].Metadata,
 			},
 			ExpectedUser: user.User{
 				ID:       s.users[0].ID,
-				Name:     "Doe John",
+				Title:    "Doe John",
 				Email:    s.users[0].Email,
-				Slug:     s.users[0].Slug,
+				Name:     s.users[0].Name,
 				Metadata: s.users[0].Metadata,
 				State:    user.Enabled,
 			},

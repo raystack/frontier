@@ -30,7 +30,7 @@ func ValidatePreparedAZSchema(ctx context.Context, azSchemaSource string) error 
 	return nil
 }
 
-func PrepareSchemaAsSource(authzedDefinitions []*azcore.NamespaceDefinition) (string, error) {
+func PrepareSchemaAsAZSource(authzedDefinitions []*azcore.NamespaceDefinition) (string, error) {
 	preparedSchemaString := ""
 	for _, def := range authzedDefinitions {
 		generatedDefString, _, err := generator.GenerateSource(def)
@@ -40,10 +40,6 @@ func PrepareSchemaAsSource(authzedDefinitions []*azcore.NamespaceDefinition) (st
 		preparedSchemaString = fmt.Sprintf("%s\n\n%s", preparedSchemaString, generatedDefString)
 	}
 	return preparedSchemaString, nil
-}
-
-func GetNamespaceName(serviceName, resourceName string) string {
-	return fmt.Sprintf("%s/%s", serviceName, resourceName)
 }
 
 func GetBaseAZSchema() []*azcore.NamespaceDefinition {
@@ -61,17 +57,10 @@ func GetBaseAZSchema() []*azcore.NamespaceDefinition {
 
 // BuildServiceDefinitionFromAZSchema converts authzed schema to shield service definition.
 // This conversion is lossy, and it only keeps list of permissions used in the schema per resource
-func BuildServiceDefinitionFromAZSchema(name string, azDefinitions []*azcore.NamespaceDefinition) (schema.ServiceDefinition, error) {
-	resourcePermissionMap := map[string][]string{}
+func BuildServiceDefinitionFromAZSchema(azDefinitions []*azcore.NamespaceDefinition, serviceFilter ...string) (schema.ServiceDefinition, error) {
+	resourcePermissions := []schema.ResourcePermission{}
 	// iterate over namespace to find services and permissions
 	for _, def := range azDefinitions {
-		nameParts := strings.Split(def.Name, "/")
-		if len(nameParts) != 2 || nameParts[0] != name {
-			// error if name is not in "namespace/resource" notation
-			continue
-		}
-		resourcePermissionMap[nameParts[1]] = []string{}
-
 		if def.Name == schema.RoleBindingNamespace {
 			// build permission set for all namespaces using roles to bind themselves
 			for _, rel := range def.Relation {
@@ -86,56 +75,56 @@ func BuildServiceDefinitionFromAZSchema(name string, azDefinitions []*azcore.Nam
 					case 1:
 						permission = permissionParts[0]
 					}
-					_ = service
-					resourcePermissionMap[resource] = append(resourcePermissionMap[resource], permission)
+
+					if len(serviceFilter) > 0 && !Contains(serviceFilter, service) {
+						// ignore service if filter was requested, and it doesn't match
+						continue
+					}
+					resourcePermissions = append(resourcePermissions, schema.ResourcePermission{
+						Name:      permission,
+						Namespace: schema.BuildNamespaceName(service, resource),
+					})
 				}
 			}
 		}
 	}
-
-	appService := schema.ServiceDefinition{
-		Name: name,
-	}
-	for k, v := range resourcePermissionMap {
-		defResource := schema.DefinitionResource{
-			Name:        k,
-			Permissions: nil,
-		}
-		for _, perm := range v {
-			defResource.Permissions = append(defResource.Permissions, schema.ResourcePermission{
-				Name: perm,
-			})
-		}
-		appService.Resources = append(appService.Resources, defResource)
-	}
-	return appService, nil
+	return schema.ServiceDefinition{
+		Permissions: resourcePermissions,
+	}, nil
 }
 
 // ApplyServiceDefinitionOverAZSchema applies the provided user defined service over existing schema
 // and returns the updated schema
-func ApplyServiceDefinitionOverAZSchema(serviceDef schema.ServiceDefinition, existingDefinitions []*azcore.NamespaceDefinition) ([]*azcore.NamespaceDefinition, error) {
+func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, existingDefinitions []*azcore.NamespaceDefinition) ([]*azcore.NamespaceDefinition, error) {
 	// keep relations/permissions required to be appended in existing definitions
-	// this is required to hook user roles over application authz hierarchy
+	// this is required to bind roles over application authz hierarchy
 	var relationsForOrg []*azcore.Relation
 	var relationsForProject []*azcore.Relation
 	var relationsForRole []*azcore.Relation
 	var relationsForRoleBinding []*azcore.Relation
 
-	// prepare new definition with it own relations and permissions
-	var userDefinedServices []*azcore.NamespaceDefinition
-	for _, serviceResource := range serviceDef.Resources {
+	// gather list of resources
+	namespaceNameToPermissionNameMap := map[string][]string{}
+	for _, perm := range serviceDef.Permissions {
+		namespaceNameToPermissionNameMap[perm.Namespace] = append(namespaceNameToPermissionNameMap[perm.Namespace], perm.Name)
+	}
+
+	// prepare new definition with its own relations and permissions
+	// and relations that need to be added in base definitions like org/project
+	var userDefinedAZServiceDefinitions []*azcore.NamespaceDefinition
+	for namespaceName, permissions := range namespaceNameToPermissionNameMap {
 		var relationsForResource []*azcore.Relation
-		for _, resourcePerms := range serviceResource.Permissions {
-			permName := FQPermissionName(serviceDef.Name, serviceResource.Name, resourcePerms.Name)
+		for _, permName := range permissions {
+			fqPermissionName := schema.FQPermissionNameFromNamespace(namespaceName, permName)
 
 			// create permissions
 			{
 				// for resource
-				nsRel, err := aznamespace.Relation(resourcePerms.Name, aznamespace.Union(
+				nsRel, err := aznamespace.Relation(permName, aznamespace.Union(
 					aznamespace.ComputedUserset("owner"),
 					aznamespace.TupleToUserset("project", "app_project_administer"),
-					aznamespace.TupleToUserset("project", permName),
-					aznamespace.TupleToUserset("granted", permName),
+					aznamespace.TupleToUserset("project", fqPermissionName),
+					aznamespace.TupleToUserset("granted", fqPermissionName),
 				), nil)
 				if err != nil {
 					return nil, err
@@ -144,11 +133,11 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef schema.ServiceDefinition, exi
 			}
 			{
 				// for org
-				nsRel, err := aznamespace.Relation(permName, aznamespace.Union(
+				nsRel, err := aznamespace.Relation(fqPermissionName, aznamespace.Union(
 					aznamespace.ComputedUserset("owner"),
 					aznamespace.TupleToUserset("platform", "superuser"),
 					aznamespace.TupleToUserset("granted", "app_organization_administer"),
-					aznamespace.TupleToUserset("granted", permName),
+					aznamespace.TupleToUserset("granted", fqPermissionName),
 				), nil)
 				if err != nil {
 					return nil, err
@@ -157,10 +146,10 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef schema.ServiceDefinition, exi
 			}
 			{
 				// for project
-				nsRel, err := aznamespace.Relation(permName, aznamespace.Union(
-					aznamespace.TupleToUserset("org", permName),
+				nsRel, err := aznamespace.Relation(fqPermissionName, aznamespace.Union(
+					aznamespace.TupleToUserset("org", fqPermissionName),
 					aznamespace.TupleToUserset("granted", "app_project_administer"),
-					aznamespace.TupleToUserset("granted", permName),
+					aznamespace.TupleToUserset("granted", fqPermissionName),
 				), nil)
 				if err != nil {
 					return nil, err
@@ -169,9 +158,9 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef schema.ServiceDefinition, exi
 			}
 			{
 				// for rolebinding
-				nsRel, err := aznamespace.Relation(permName, aznamespace.Intersection(
+				nsRel, err := aznamespace.Relation(fqPermissionName, aznamespace.Intersection(
 					aznamespace.ComputedUserset("bearer"),
-					aznamespace.TupleToUserset("role", permName),
+					aznamespace.TupleToUserset("role", fqPermissionName),
 				), nil)
 				if err != nil {
 					return nil, err
@@ -180,7 +169,7 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef schema.ServiceDefinition, exi
 			}
 			{
 				// for role
-				nsRel, err := aznamespace.Relation(permName, nil,
+				nsRel, err := aznamespace.Relation(fqPermissionName, nil,
 					aznamespace.AllowedPublicNamespace(schema.UserPrincipal),
 					aznamespace.AllowedPublicNamespace(schema.ServiceUserPrincipal),
 				)
@@ -200,56 +189,31 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef schema.ServiceDefinition, exi
 		// attach role binding to service
 		relationsForResource = append(relationsForResource, aznamespace.MustRelation("granted", nil, aznamespace.AllowedRelation(schema.RoleBindingNamespace, generator.Ellipsis)))
 
-		// prepare namespace
-		resourceDef := aznamespace.Namespace(fmt.Sprintf("%s/%s", serviceDef.Name, serviceResource.Name), relationsForResource...)
-		userDefinedServices = append(userDefinedServices, resourceDef)
+		// prepare a new az definition
+		resourceDef := aznamespace.Namespace(namespaceName, relationsForResource...)
+		userDefinedAZServiceDefinitions = append(userDefinedAZServiceDefinitions, resourceDef)
 	}
 
-	// append new definition to existing definitions
-	existingDefinitions = append(existingDefinitions, userDefinedServices...)
+	// append new definition to existing list of definitions
+	newSetOfDefinitions := append(existingDefinitions, userDefinedAZServiceDefinitions...)
 
 	if len(relationsForOrg) > 0 {
-		for _, baseDef := range existingDefinitions {
-			var err error
-
+		for _, baseDef := range newSetOfDefinitions {
 			switch baseDef.Name {
 			case schema.OrganizationNamespace:
 				// populate app/organization with service permissions to allow bounding service roles at org level
-
-				// add comment for the top relation
-				relationsForOrg[0].Metadata, err = aznamespace.AddComment(nil, fmt.Sprintf("// auto-generated for %s", serviceDef.Name))
-				if err != nil {
-					return nil, err
-				}
 				baseDef.Relation = append(baseDef.Relation, relationsForOrg...)
 			case schema.ProjectNamespace:
 				// populate app/project with service permissions to allow bounding service roles at project level
-				relationsForProject[0].Metadata, err = aznamespace.AddComment(relationsForProject[0].Metadata, fmt.Sprintf("// auto-generated for %s", serviceDef.Name))
-				if err != nil {
-					return nil, err
-				}
 				baseDef.Relation = append(baseDef.Relation, relationsForProject...)
 			case schema.RoleBindingNamespace:
 				// populate app/rolebinding with service relations to allow checking service roles with permissions
-				relationsForRoleBinding[0].Metadata, err = aznamespace.AddComment(relationsForRoleBinding[0].Metadata, fmt.Sprintf("// auto-generated for %s", serviceDef.Name))
-				if err != nil {
-					return nil, err
-				}
 				baseDef.Relation = append(baseDef.Relation, relationsForRoleBinding...)
 			case schema.RoleNamespace:
 				// populate app/role with service permissions to allow building service roles with permissions
-				relationsForRole[0].Metadata, err = aznamespace.AddComment(relationsForRole[0].Metadata, fmt.Sprintf("// auto-generated for %s", serviceDef.Name))
-				if err != nil {
-					return nil, err
-				}
 				baseDef.Relation = append(baseDef.Relation, relationsForRole...)
 			}
 		}
 	}
-
-	return existingDefinitions, nil
-}
-
-func FQPermissionName(service, resource, verb string) string {
-	return fmt.Sprintf("%s_%s_%s", service, resource, verb)
+	return newSetOfDefinitions, nil
 }

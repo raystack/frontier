@@ -183,12 +183,11 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
-			report = append(report, []string{"ID", "RESOURCE", "NAMESPACE", "USERID", "ROLEID"})
+			report = append(report, []string{"ID", "RESOURCE", "PRINCIPAL", "ROLEID"})
 			report = append(report, []string{
 				policy.GetId(),
-				policy.GetResourceId(),
-				policy.GetNamespaceId(),
-				policy.GetUserId(),
+				policy.GetResource(),
+				policy.GetPrincipal(),
 				policy.GetRoleId(),
 			})
 			printer.Table(os.Stdout, report)

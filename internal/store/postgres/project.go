@@ -13,7 +13,7 @@ import (
 type Project struct {
 	ID        string         `db:"id"`
 	Name      string         `db:"name"`
-	Slug      string         `db:"slug"`
+	Title     sql.NullString `db:"title"`
 	OrgID     string         `db:"org_id"`
 	Metadata  []byte         `db:"metadata"`
 	State     sql.NullString `db:"state"`
@@ -33,7 +33,7 @@ func (from Project) transformToProject() (project.Project, error) {
 	return project.Project{
 		ID:           from.ID,
 		Name:         from.Name,
-		Slug:         from.Slug,
+		Title:        from.Title.String,
 		Organization: organization.Organization{ID: from.OrgID},
 		Metadata:     unmarshalledMetadata,
 		State:        project.State(from.State.String),

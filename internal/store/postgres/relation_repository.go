@@ -24,7 +24,7 @@ func NewRelationRepository(dbc *db.Client) *RelationRepository {
 	}
 }
 
-func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relation.RelationV2) (relation.RelationV2, error) {
+func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
 	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(
 		goqu.Record{
 			"subject_namespace_name":   relationToCreate.Subject.Namespace,
@@ -38,7 +38,7 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 			"subject_namespace_name": relationToCreate.Subject.Namespace,
 		})).Returning(&relationCols{}).ToSQL()
 	if err != nil {
-		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var relationModel Relation
@@ -59,19 +59,19 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrForeignKeyViolation):
-			return relation.RelationV2{}, fmt.Errorf("%w: %s", relation.ErrInvalidDetail, err)
+			return relation.Relation{}, fmt.Errorf("%w: %s", relation.ErrInvalidDetail, err)
 		default:
-			return relation.RelationV2{}, err
+			return relation.Relation{}, err
 		}
 	}
 
 	return relationModel.transformToRelationV2(), nil
 }
 
-func (r RelationRepository) List(ctx context.Context) ([]relation.RelationV2, error) {
+func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, error) {
 	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).ToSQL()
 	if err != nil {
-		return []relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var fetchedRelations []Relation
@@ -91,12 +91,12 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.RelationV2, er
 	}); err != nil {
 		// List should return empty list and no error instead
 		if errors.Is(err, sql.ErrNoRows) {
-			return []relation.RelationV2{}, nil
+			return []relation.Relation{}, nil
 		}
-		return []relation.RelationV2{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedRelations []relation.RelationV2
+	var transformedRelations []relation.Relation
 	for _, r := range fetchedRelations {
 		transformedRelations = append(transformedRelations, r.transformToRelationV2())
 	}
@@ -104,9 +104,9 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.RelationV2, er
 	return transformedRelations, nil
 }
 
-func (r RelationRepository) Get(ctx context.Context, id string) (relation.RelationV2, error) {
+func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relation, error) {
 	if strings.TrimSpace(id) == "" {
-		return relation.RelationV2{}, relation.ErrInvalidID
+		return relation.Relation{}, relation.ErrInvalidID
 	}
 
 	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).
@@ -114,7 +114,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 			"id": id,
 		}).ToSQL()
 	if err != nil {
-		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var relationModel Relation
@@ -135,11 +135,11 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return relation.RelationV2{}, relation.ErrNotExist
+			return relation.Relation{}, relation.ErrNotExist
 		case errors.Is(err, ErrInvalidTextRepresentation):
-			return relation.RelationV2{}, relation.ErrInvalidUUID
+			return relation.Relation{}, relation.ErrInvalidUUID
 		default:
-			return relation.RelationV2{}, err
+			return relation.Relation{}, err
 		}
 	}
 
@@ -194,7 +194,7 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 	})
 }
 
-func (r RelationRepository) GetByFields(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error) {
+func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
 	var fetchedRelations []Relation
 	stmt := dialect.Select(&relationCols{}).From(TABLE_RELATIONS)
 	if rel.Object.ID != "" {
@@ -250,14 +250,14 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 		}
 	}
 
-	var rels []relation.RelationV2
+	var rels []relation.Relation
 	for _, dbRel := range fetchedRelations {
 		rels = append(rels, dbRel.transformToRelationV2())
 	}
 	return rels, nil
 }
 
-func (r RelationRepository) ListByFields(ctx context.Context, rel relation.RelationV2) ([]relation.RelationV2, error) {
+func (r RelationRepository) ListByFields(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
 	var fetchedRelation []Relation
 	like := "%:" + rel.Subject.SubRelationName
 
@@ -298,7 +298,7 @@ func (r RelationRepository) ListByFields(ctx context.Context, rel relation.Relat
 		}
 	}
 
-	var relations []relation.RelationV2
+	var relations []relation.Relation
 	for _, fr := range fetchedRelation {
 		relations = append(relations, fr.transformToRelationV2())
 	}

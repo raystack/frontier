@@ -28,6 +28,9 @@ const (
 	AdminService_ListPolicies_FullMethodName         = "/odpf.shield.v1beta1.AdminService/ListPolicies"
 	AdminService_CreateRole_FullMethodName           = "/odpf.shield.v1beta1.AdminService/CreateRole"
 	AdminService_DeleteRole_FullMethodName           = "/odpf.shield.v1beta1.AdminService/DeleteRole"
+	AdminService_CreatePermission_FullMethodName     = "/odpf.shield.v1beta1.AdminService/CreatePermission"
+	AdminService_UpdatePermission_FullMethodName     = "/odpf.shield.v1beta1.AdminService/UpdatePermission"
+	AdminService_DeletePermission_FullMethodName     = "/odpf.shield.v1beta1.AdminService/DeletePermission"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -51,6 +54,10 @@ type AdminServiceClient interface {
 	// Roles
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
 	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error)
+	// Permissions
+	CreatePermission(ctx context.Context, in *CreatePermissionRequest, opts ...grpc.CallOption) (*CreatePermissionResponse, error)
+	UpdatePermission(ctx context.Context, in *UpdatePermissionRequest, opts ...grpc.CallOption) (*UpdatePermissionResponse, error)
+	DeletePermission(ctx context.Context, in *DeletePermissionRequest, opts ...grpc.CallOption) (*DeletePermissionResponse, error)
 }
 
 type adminServiceClient struct {
@@ -142,6 +149,33 @@ func (c *adminServiceClient) DeleteRole(ctx context.Context, in *DeleteRoleReque
 	return out, nil
 }
 
+func (c *adminServiceClient) CreatePermission(ctx context.Context, in *CreatePermissionRequest, opts ...grpc.CallOption) (*CreatePermissionResponse, error) {
+	out := new(CreatePermissionResponse)
+	err := c.cc.Invoke(ctx, AdminService_CreatePermission_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) UpdatePermission(ctx context.Context, in *UpdatePermissionRequest, opts ...grpc.CallOption) (*UpdatePermissionResponse, error) {
+	out := new(UpdatePermissionResponse)
+	err := c.cc.Invoke(ctx, AdminService_UpdatePermission_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) DeletePermission(ctx context.Context, in *DeletePermissionRequest, opts ...grpc.CallOption) (*DeletePermissionResponse, error) {
+	out := new(DeletePermissionResponse)
+	err := c.cc.Invoke(ctx, AdminService_DeletePermission_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -163,6 +197,10 @@ type AdminServiceServer interface {
 	// Roles
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
+	// Permissions
+	CreatePermission(context.Context, *CreatePermissionRequest) (*CreatePermissionResponse, error)
+	UpdatePermission(context.Context, *UpdatePermissionRequest) (*UpdatePermissionResponse, error)
+	DeletePermission(context.Context, *DeletePermissionRequest) (*DeletePermissionResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -196,6 +234,15 @@ func (UnimplementedAdminServiceServer) CreateRole(context.Context, *CreateRoleRe
 }
 func (UnimplementedAdminServiceServer) DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRole not implemented")
+}
+func (UnimplementedAdminServiceServer) CreatePermission(context.Context, *CreatePermissionRequest) (*CreatePermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePermission not implemented")
+}
+func (UnimplementedAdminServiceServer) UpdatePermission(context.Context, *UpdatePermissionRequest) (*UpdatePermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePermission not implemented")
+}
+func (UnimplementedAdminServiceServer) DeletePermission(context.Context, *DeletePermissionRequest) (*DeletePermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePermission not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -372,6 +419,60 @@ func _AdminService_DeleteRole_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_CreatePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CreatePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CreatePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CreatePermission(ctx, req.(*CreatePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_UpdatePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).UpdatePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_UpdatePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).UpdatePermission(ctx, req.(*UpdatePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_DeletePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DeletePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DeletePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DeletePermission(ctx, req.(*DeletePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -414,6 +515,18 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRole",
 			Handler:    _AdminService_DeleteRole_Handler,
+		},
+		{
+			MethodName: "CreatePermission",
+			Handler:    _AdminService_CreatePermission_Handler,
+		},
+		{
+			MethodName: "UpdatePermission",
+			Handler:    _AdminService_UpdatePermission_Handler,
+		},
+		{
+			MethodName: "DeletePermission",
+			Handler:    _AdminService_DeletePermission_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

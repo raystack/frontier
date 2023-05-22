@@ -10,8 +10,8 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 type PermissionService interface {
@@ -36,9 +36,9 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 	for idx, permName := range toCreate.Permissions {
 		// verify if perm exists
 		if perm, err := s.permissionService.Get(ctx, permName); err != nil {
-			return Role{}, fmt.Errorf("%s: %w", err.Error(), permission.ErrNotExist)
+			return Role{}, fmt.Errorf("%s: %w", permName, err)
 		} else {
-			toCreate.Permissions[idx] = perm.Slug
+			toCreate.Permissions[idx] = perm.GenerateSlug()
 		}
 	}
 
@@ -53,7 +53,7 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 	// app/role:org_owner#organization_update@app/user:*
 	// this needs to be created for each type of principles
 	for _, perm := range toCreate.Permissions {
-		_, err = s.relationService.Create(ctx, relation.RelationV2{
+		_, err = s.relationService.Create(ctx, relation.Relation{
 			Object: relation.Object{
 				ID:        roleID,
 				Namespace: schema.RoleNamespace,
@@ -84,7 +84,7 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	for idx, permName := range toUpdate.Permissions {
 		// verify if perm exists
 		if perm, err := s.permissionService.Get(ctx, permName); err != nil {
-			return Role{}, fmt.Errorf("%s: %w", err.Error(), permission.ErrNotExist)
+			return Role{}, fmt.Errorf("%s: %w", permName, err)
 		} else {
 			toUpdate.Permissions[idx] = perm.Slug
 		}
@@ -98,7 +98,7 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.RelationV2{Object: relation.Object{
+	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.RoleNamespace,
 	}}); err != nil {

@@ -20,8 +20,7 @@ func (s Service) Get(ctx context.Context, id string) (Permission, error) {
 	if shielduuid.IsValid(id) {
 		return s.repository.Get(ctx, id)
 	}
-	id = convertHashPermissionToSlug(id)
-	return s.repository.GetBySlug(ctx, id)
+	return s.repository.GetBySlug(ctx, ParsePermissionName(id))
 }
 
 func (s Service) Upsert(ctx context.Context, perm Permission) (Permission, error) {
@@ -31,8 +30,8 @@ func (s Service) Upsert(ctx context.Context, perm Permission) (Permission, error
 	return s.repository.Upsert(ctx, perm)
 }
 
-func (s Service) List(ctx context.Context) ([]Permission, error) {
-	return s.repository.List(ctx)
+func (s Service) List(ctx context.Context, flt Filter) ([]Permission, error) {
+	return s.repository.List(ctx, flt)
 }
 
 func (s Service) Update(ctx context.Context, perm Permission) (Permission, error) {

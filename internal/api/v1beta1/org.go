@@ -2,7 +2,6 @@ package v1beta1
 
 import (
 	"context"
-	"strings"
 
 	"github.com/odpf/shield/internal/bootstrap/schema"
 
@@ -10,7 +9,6 @@ import (
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/str"
 	suuid "github.com/odpf/shield/pkg/uuid"
 	"github.com/pkg/errors"
 
@@ -57,7 +55,7 @@ func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.L
 			return nil, grpcInternalServerError
 		}
 
-		orgs = append(orgs, &orgPB)
+		orgs = append(orgs, orgPB)
 	}
 
 	return &shieldv1beta1.ListOrganizationsResponse{
@@ -85,7 +83,7 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *shieldv1beta
 			return nil, grpcInternalServerError
 		}
 
-		orgs = append(orgs, &orgPB)
+		orgs = append(orgs, orgPB)
 	}
 
 	return &shieldv1beta1.ListAllOrganizationsResponse{
@@ -95,11 +93,6 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *shieldv1beta
 
 func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.CreateOrganizationRequest) (*shieldv1beta1.CreateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	// TODO (@krtkvrm): Add validations using Proto
-	if request.GetBody() == nil {
-		return nil, grpcBadBodyError
-	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
@@ -114,12 +107,8 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 
 	org := organization.Organization{
 		Name:     request.GetBody().GetName(),
-		Slug:     request.GetBody().GetSlug(),
+		Title:    request.GetBody().GetTitle(),
 		Metadata: metaDataMap,
-	}
-
-	if strings.TrimSpace(org.Slug) == "" {
-		org.Slug = str.GenerateSlug(org.Name)
 	}
 
 	newOrg, err := h.orgService.Create(ctx, org)
@@ -137,20 +126,13 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		}
 	}
 
-	metaData, err := newOrg.Metadata.ToStructPB()
+	orgPB, err := transformOrgToPB(newOrg)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
-		Id:        newOrg.ID,
-		Name:      newOrg.Name,
-		Slug:      newOrg.Slug,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(newOrg.CreatedAt),
-		UpdatedAt: timestamppb.New(newOrg.UpdatedAt),
-	}}, nil
+	return &shieldv1beta1.CreateOrganizationResponse{Organization: orgPB}, nil
 }
 
 func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.GetOrganizationRequest) (*shieldv1beta1.GetOrganizationResponse, error) {
@@ -176,7 +158,7 @@ func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.Get
 	}
 
 	return &shieldv1beta1.GetOrganizationResponse{
-		Organization: &orgPB,
+		Organization: orgPB,
 	}, nil
 }
 
@@ -202,13 +184,12 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
 			ID:       request.GetId(),
 			Name:     request.GetBody().GetName(),
-			Slug:     request.GetBody().GetSlug(),
+			Title:    request.GetBody().GetTitle(),
 			Metadata: metaDataMap,
 		})
 	} else {
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
 			Name:     request.GetBody().GetName(),
-			Slug:     request.GetId(),
 			Metadata: metaDataMap,
 		})
 	}
@@ -230,7 +211,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, ErrInternalServer
 	}
 
-	return &shieldv1beta1.UpdateOrganizationResponse{Organization: &orgPB}, nil
+	return &shieldv1beta1.UpdateOrganizationResponse{Organization: orgPB}, nil
 }
 
 func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1beta1.ListOrganizationAdminsRequest) (*shieldv1beta1.ListOrganizationAdminsResponse, error) {
@@ -255,7 +236,7 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 			return nil, ErrInternalServer
 		}
 
-		adminsPB = append(adminsPB, &u)
+		adminsPB = append(adminsPB, u)
 	}
 
 	return &shieldv1beta1.ListOrganizationAdminsResponse{Users: adminsPB}, nil
@@ -288,7 +269,7 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1bet
 			return nil, ErrInternalServer
 		}
 
-		usersPB = append(usersPB, &u)
+		usersPB = append(usersPB, u)
 	}
 
 	return &shieldv1beta1.ListOrganizationUsersResponse{Users: usersPB}, nil
@@ -318,7 +299,7 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1
 			return nil, ErrInternalServer
 		}
 
-		projectPB = append(projectPB, &u)
+		projectPB = append(projectPB, u)
 	}
 
 	return &shieldv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}, nil
@@ -342,16 +323,16 @@ func (h Handler) DisableOrganization(ctx context.Context, request *shieldv1beta1
 	return &shieldv1beta1.DisableOrganizationResponse{}, nil
 }
 
-func transformOrgToPB(org organization.Organization) (shieldv1beta1.Organization, error) {
+func transformOrgToPB(org organization.Organization) (*shieldv1beta1.Organization, error) {
 	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {
-		return shieldv1beta1.Organization{}, err
+		return nil, err
 	}
 
-	return shieldv1beta1.Organization{
+	return &shieldv1beta1.Organization{
 		Id:        org.ID,
 		Name:      org.Name,
-		Slug:      org.Slug,
+		Title:     org.Title,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(org.CreatedAt),
 		UpdatedAt: timestamppb.New(org.UpdatedAt),

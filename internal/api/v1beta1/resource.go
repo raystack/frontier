@@ -21,7 +21,7 @@ type ResourceService interface {
 	Get(ctx context.Context, id string) (resource.Resource, error)
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
-	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
+	Update(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, permissionName string) (bool, error)
 }
 
@@ -31,7 +31,7 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 	logger := grpczap.Extract(ctx)
 	var resources []*shieldv1beta1.Resource
 	filters := resource.Filter{
-		NamespaceID: request.GetNamespaceId(),
+		NamespaceID: request.GetNamespace(),
 		ProjectID:   request.GetProjectId(),
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
@@ -59,7 +59,7 @@ func (h Handler) ListProjectResources(ctx context.Context, request *shieldv1beta
 
 	var resources []*shieldv1beta1.Resource
 	filters := resource.Filter{
-		NamespaceID: request.GetNamespaceId(),
+		NamespaceID: request.GetNamespace(),
 		ProjectID:   request.GetProjectId(),
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
@@ -82,7 +82,7 @@ func (h Handler) ListProjectResources(ctx context.Context, request *shieldv1beta
 	}, nil
 }
 
-func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.CreateResourceRequest) (*shieldv1beta1.CreateResourceResponse, error) {
+func (h Handler) CreateProjectResource(ctx context.Context, request *shieldv1beta1.CreateProjectResourceRequest) (*shieldv1beta1.CreateProjectResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
@@ -101,7 +101,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
 		Name:        request.GetBody().GetName(),
 		ProjectID:   request.GetBody().GetProjectId(),
-		NamespaceID: request.GetBody().GetNamespaceId(),
+		NamespaceID: request.GetBody().GetNamespace(),
 		UserID:      request.GetBody().GetUserId(),
 		Metadata:    metaDataMap,
 	})
@@ -124,12 +124,12 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.CreateResourceResponse{
+	return &shieldv1beta1.CreateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
 }
 
-func (h Handler) GetResource(ctx context.Context, request *shieldv1beta1.GetResourceRequest) (*shieldv1beta1.GetResourceResponse, error) {
+func (h Handler) GetProjectResource(ctx context.Context, request *shieldv1beta1.GetProjectResourceRequest) (*shieldv1beta1.GetProjectResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedResource, err := h.resourceService.Get(ctx, request.GetId())
@@ -151,21 +151,21 @@ func (h Handler) GetResource(ctx context.Context, request *shieldv1beta1.GetReso
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetResourceResponse{
+	return &shieldv1beta1.GetProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
 }
 
-func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.UpdateResourceRequest) (*shieldv1beta1.UpdateResourceResponse, error) {
+func (h Handler) UpdateProjectResource(ctx context.Context, request *shieldv1beta1.UpdateProjectResourceRequest) (*shieldv1beta1.UpdateProjectResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
-
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	updatedResource, err := h.resourceService.Update(ctx, request.GetId(), resource.Resource{
+	updatedResource, err := h.resourceService.Update(ctx, resource.Resource{
+		ID:          request.GetId(),
 		ProjectID:   request.GetBody().GetProjectId(),
-		NamespaceID: request.GetBody().GetNamespaceId(),
+		NamespaceID: request.GetBody().GetNamespace(),
 		Name:        request.GetBody().GetName(),
 		UserID:      request.GetBody().GetUserId(),
 	})
@@ -192,7 +192,7 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.UpdateResourceResponse{
+	return &shieldv1beta1.UpdateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
 }
@@ -208,14 +208,14 @@ func transformResourceToPB(from resource.Resource) (*shieldv1beta1.Resource, err
 	}
 
 	return &shieldv1beta1.Resource{
-		Id:          from.ID,
-		Urn:         from.URN,
-		Name:        from.Name,
-		ProjectId:   from.ProjectID,
-		NamespaceId: from.NamespaceID,
-		UserId:      from.UserID,
-		Metadata:    metadata,
-		CreatedAt:   timestamppb.New(from.CreatedAt),
-		UpdatedAt:   timestamppb.New(from.UpdatedAt),
+		Id:        from.ID,
+		Urn:       from.URN,
+		Name:      from.Name,
+		ProjectId: from.ProjectID,
+		Namespace: from.NamespaceID,
+		UserId:    from.UserID,
+		Metadata:  metadata,
+		CreatedAt: timestamppb.New(from.CreatedAt),
+		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}, nil
 }

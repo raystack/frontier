@@ -42,6 +42,7 @@ type Resource struct {
 	Actions map[string][]string
 }
 
+// TODO(kushsharma): marked for deletion
 type ResourcesRepository struct {
 	log log.Logger
 	mu  *sync.Mutex

@@ -18,15 +18,15 @@ import (
 
 //go:generate mockery --name=RelationService -r --case underscore --with-expecter --structname RelationService --filename relation_service.go --output=./mocks
 type RelationService interface {
-	Get(ctx context.Context, id string) (relation.RelationV2, error)
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	List(ctx context.Context) ([]relation.RelationV2, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
+	Get(ctx context.Context, id string) (relation.Relation, error)
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	List(ctx context.Context) ([]relation.Relation, error)
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 var (
-	grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
-	ErrSubjectSplitNotation = errors.New("subject/object should be provided as 'namespace:uuid'")
+	grpcRelationNotFoundErr   = status.Errorf(codes.NotFound, "relation doesn't exist")
+	ErrNamespaceSplitNotation = errors.New("subject/object should be provided as 'namespace:uuid'")
 )
 
 func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListRelationsRequest) (*shieldv1beta1.ListRelationsResponse, error) {
@@ -59,10 +59,17 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	subjectNamespace, subjectID := request.GetBody().GetSubjectNamespace(), request.GetBody().GetSubjectId()
+	subjectNamespace, subjectID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetSubject())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetObject())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
 
 	// If Principal is a user, then we will get ID for that user as Subject.ID
-	if subjectNamespace == schema.UserPrincipal || subjectNamespace == "user" {
+	if subjectNamespace == schema.UserPrincipal {
 		if !shielduuid.IsValid(subjectID) {
 			// could be email
 			fetchedUser, err := h.userService.GetByEmail(ctx, subjectID)
@@ -71,20 +78,19 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 			}
 			subjectID = fetchedUser.ID
 		}
-		subjectNamespace = schema.UserPrincipal
 	}
 
-	newRelation, err := h.relationService.Create(ctx, relation.RelationV2{
+	newRelation, err := h.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
-			ID:        request.GetBody().GetObjectId(),
-			Namespace: request.GetBody().GetObjectNamespace(),
+			ID:        objectID,
+			Namespace: objectNamespace,
 		},
 		Subject: relation.Subject{
 			ID:              subjectID,
 			Namespace:       subjectNamespace,
 			SubRelationName: request.GetBody().GetSubjectSubRelation(),
 		},
-		RelationName: request.GetBody().GetRelationName(),
+		RelationName: request.GetBody().GetRelation(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -139,10 +145,16 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.DeleteRelationRequest) (*shieldv1beta1.DeleteRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	subjectNamespace, subjectID := request.GetSubjectNamespace(), request.GetSubjectId()
-	objectNamespace, objectID := request.GetObjectNamespace(), request.GetObjectId()
+	subjectNamespace, subjectID, err := schema.SplitNamespaceAndResourceID(request.GetSubject())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(request.GetObject())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
 
-	err := h.relationService.Delete(ctx, relation.RelationV2{
+	err = h.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: objectNamespace,
 			ID:        objectID,
@@ -165,20 +177,16 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 		}
 	}
 
-	return &shieldv1beta1.DeleteRelationResponse{
-		Message: "relation deleted",
-	}, nil
+	return &shieldv1beta1.DeleteRelationResponse{}, nil
 }
 
-func transformRelationV2ToPB(relation relation.RelationV2) (*shieldv1beta1.Relation, error) {
+func transformRelationV2ToPB(relation relation.Relation) (*shieldv1beta1.Relation, error) {
 	rel := &shieldv1beta1.Relation{
-		Id:                     relation.ID,
-		ObjectId:               relation.Object.ID,
-		ObjectNamespace:        relation.Object.Namespace,
-		SubjectNamespace:       relation.Subject.Namespace,
-		SubjectId:              relation.Subject.ID,
-		SubjectSubRelationName: relation.Subject.SubRelationName,
-		RelationName:           relation.RelationName,
+		Id:                 relation.ID,
+		Object:             schema.JoinNamespaceAndResourceID(relation.Object.Namespace, relation.Object.ID),
+		Subject:            schema.JoinNamespaceAndResourceID(relation.Subject.Namespace, relation.Subject.ID),
+		SubjectSubRelation: relation.Subject.SubRelationName,
+		Relation:           relation.RelationName,
 	}
 	if !relation.CreatedAt.IsZero() {
 		rel.CreatedAt = timestamppb.New(relation.CreatedAt)

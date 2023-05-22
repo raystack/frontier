@@ -15,17 +15,19 @@ type Repository interface {
 }
 
 type Policy struct {
-	ID          string
-	RoleID      string
-	ResourceID  string
-	NamespaceID string
-	UserID      string
-	Metadata    metadata.Metadata
+	ID            string
+	RoleID        string
+	ResourceID    string `json:"resource_id"`
+	ResourceType  string `json:"resource_type"`
+	PrincipalID   string `json:"principal_id"`
+	PrincipalType string `json:"principal_type"`
+	Metadata      metadata.Metadata
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type Filters struct {
-	UserID string
+	UserID  string
+	GroupID string
 }

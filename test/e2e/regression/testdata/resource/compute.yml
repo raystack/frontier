@@ -1,0 +1,26 @@
+permissions:
+  - name: delete
+    namespace: compute/order
+  - name: update
+    namespace: compute/order
+  - name: get
+    namespace: compute/order
+  - name: create
+    namespace: compute/order
+roles:
+  - name: compute_order_manager
+    permissions:
+      - compute_order_delete
+      - compute_order_update
+      - compute_order_get
+      - compute_order_create
+  - name: compute_order_viewer
+    permissions:
+      - compute_order_get
+  - name: compute_order_owner
+    permissions:
+      - compute_order_delete
+      - compute_order_update
+      - compute_order_get
+      - compute_order_create
+

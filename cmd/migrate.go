@@ -19,21 +19,20 @@ import (
 )
 
 func RunMigrations(logger log.Logger, config db.Config) error {
-	m, err := getMigrationInstance(config)
+	m, err := getDatabaseMigrationInstance(config)
 	if err != nil {
 		return err
 	}
-
 	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
 		return err
 	}
 
 	// populate default metaschemas in the database
+	logger.Info("migrating default metadata schemas to db")
 	dbc, err := db.New(config)
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to db")
 	}
-	logger.Info("adding default metadata schemas to db")
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
 	if err = metaschemaService.MigrateDefault(context.Background()); err != nil {
@@ -44,19 +43,19 @@ func RunMigrations(logger log.Logger, config db.Config) error {
 }
 
 func RunRollback(config db.Config) error {
-	m, err := getMigrationInstance(config)
+	m, err := getDatabaseMigrationInstance(config)
 	if err != nil {
 		return err
 	}
 
 	err = m.Steps(-1)
-	if err == migrate.ErrNoChange || err == nil {
-		return nil
+	if err != nil && err != migrate.ErrNoChange {
+		return err
 	}
 	return err
 }
 
-func getMigrationInstance(config db.Config) (*migrate.Migrate, error) {
+func getDatabaseMigrationInstance(config db.Config) (*migrate.Migrate, error) {
 	fs := migrations.MigrationFs
 	resourcePath := migrations.ResourcePath
 	src, err := iofs.New(fs, resourcePath)

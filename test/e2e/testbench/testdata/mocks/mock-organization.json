@@ -1,34 +1,29 @@
 [
     {
-        "name": "org1",
-        "slug": "org-1",
+        "name": "org-1",
+        "title": "org 1",
         "metadata": {
             "label": {},
             "description": "description"
         }
     },
     {
-        "name": "org",
-        "slug": "org-user-1"
+        "title": "org user 1",
+        "name": "org-user-1"
     },
     {
-        "name": "org",
-        "slug": "org-user-2"
+        "name": "org-user-2"
     },
     {
-        "name": "org",
-        "slug": "org-project-1"
+        "name": "org-project-1"
     },
     {
-        "name": "org",
-        "slug": "org-relation-1"
+        "name": "org-relation-1"
     },
     {
-        "name": "org",
-        "slug": "org-relation-2"
+        "name": "org-relation-2"
     },
     {
-        "name": "org",
-        "slug": "org-relation-3"
+        "name": "org-relation-3"
     }
 ]

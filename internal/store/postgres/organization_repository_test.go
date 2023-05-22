@@ -74,7 +74,7 @@ func (s *OrganizationRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	_, err = s.relationRepository.Upsert(context.Background(), relation.RelationV2{
+	_, err = s.relationRepository.Upsert(context.Background(), relation.Relation{
 		Subject: relation.Subject{
 			ID:              s.users[0].ID,
 			Namespace:       schema.UserPrincipal,
@@ -126,8 +126,7 @@ func (s *OrganizationRepositoryTestSuite) TestGetByID() {
 			Description: "should get an organization",
 			SelectedID:  s.orgs[0].ID,
 			ExpectedOrganization: organization.Organization{
-				Name:  "org1",
-				Slug:  "org-1",
+				Name:  "org-1",
 				State: organization.Enabled,
 			},
 		},
@@ -162,7 +161,7 @@ func (s *OrganizationRepositoryTestSuite) TestGetByID() {
 	}
 }
 
-func (s *OrganizationRepositoryTestSuite) TestGetBySlug() {
+func (s *OrganizationRepositoryTestSuite) TestGetByName() {
 	type testCase struct {
 		Description          string
 		SelectedSlug         string
@@ -175,8 +174,7 @@ func (s *OrganizationRepositoryTestSuite) TestGetBySlug() {
 			Description:  "should get an organization",
 			SelectedSlug: "org-1",
 			ExpectedOrganization: organization.Organization{
-				Name:  "org1",
-				Slug:  "org-1",
+				Name:  "org-1",
 				State: organization.Enabled,
 			},
 		},
@@ -193,7 +191,7 @@ func (s *OrganizationRepositoryTestSuite) TestGetBySlug() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.GetBySlug(s.ctx, tc.SelectedSlug)
+			got, err := s.repository.GetByName(s.ctx, tc.SelectedSlug)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -219,12 +217,10 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 			Description: "should create an organization",
 			OrganizationToCreate: organization.Organization{
 				Name:     "new-org",
-				Slug:     "new-org-slug",
 				Metadata: metadata.Metadata{},
 			},
 			ExpectedOrganization: organization.Organization{
 				Name:     "new-org",
-				Slug:     "new-org-slug",
 				State:    organization.Enabled,
 				Metadata: metadata.Metadata{},
 			},
@@ -232,8 +228,7 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if organization slug already exist",
 			OrganizationToCreate: organization.Organization{
-				Name:     "newslug",
-				Slug:     "org-1",
+				Name:     "org-1",
 				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrConflict.Error(),
@@ -267,14 +262,12 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 			Description: "should get all organizations",
 			ExpectedOrganizations: []organization.Organization{
 				{
-					Name:     "org1",
-					Slug:     "org-1",
+					Name:     "org-1",
 					State:    organization.Enabled,
 					Metadata: metadata.Metadata{},
 				},
 				{
-					Name:     "org2",
-					Slug:     "org-2",
+					Name:     "org-2",
 					State:    organization.Enabled,
 					Metadata: metadata.Metadata{},
 				},
@@ -310,33 +303,22 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 			Description: "should update a organization",
 			OrganizationToUpdate: organization.Organization{
 				ID:       s.orgs[0].ID,
-				Name:     "new org update",
-				Slug:     "new-org-update",
+				Name:     "org-1",
+				Title:    "new title",
 				Metadata: metadata.Metadata{},
 			},
 			ExpectedOrganization: organization.Organization{
-				Name:     "new org update",
-				Slug:     "new-org-update",
+				Name:     "org-1",
+				Title:    "new title",
 				State:    organization.Enabled,
 				Metadata: metadata.Metadata{},
 			},
-		},
-		{
-			Description: "should return error if organization slug already exist",
-			OrganizationToUpdate: organization.Organization{
-				ID:       s.orgs[0].ID,
-				Name:     "new-org-2",
-				Slug:     "org-2",
-				Metadata: metadata.Metadata{},
-			},
-			ErrString: organization.ErrConflict.Error(),
 		},
 		{
 			Description: "should return error if organization not found",
 			OrganizationToUpdate: organization.Organization{
 				ID:       uuid.NewString(),
 				Name:     "not-exist",
-				Slug:     "some-slug",
 				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrNotExist.Error(),
@@ -346,7 +328,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 			OrganizationToUpdate: organization.Organization{
 				ID:       "12345",
 				Name:     "not-exist",
-				Slug:     "some-slug",
 				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrInvalidUUID.Error(),
@@ -384,13 +365,13 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 		{
 			Description: "should update a organization",
 			OrganizationToUpdate: organization.Organization{
-				Slug:     "org-1",
-				Name:     "new org update",
+				Name:     "org-1",
+				Title:    "org 1",
 				Metadata: metadata.Metadata{},
 			},
 			ExpectedOrganization: organization.Organization{
-				Name:     "new org update",
-				Slug:     "org-1",
+				Name:     "org-1",
+				Title:    "org 1",
 				State:    organization.Enabled,
 				Metadata: metadata.Metadata{},
 			},
@@ -398,7 +379,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 		{
 			Description: "should return error if organization not found",
 			OrganizationToUpdate: organization.Organization{
-				Slug:     "slug",
 				Name:     "not-exist",
 				Metadata: metadata.Metadata{},
 			},
@@ -412,11 +392,13 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.UpdateBySlug(s.ctx, tc.OrganizationToUpdate)
+			got, err := s.repository.UpdateByName(s.ctx, tc.OrganizationToUpdate)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
+			} else {
+				s.Assert().NoError(err)
 			}
 			if !cmp.Equal(got, tc.ExpectedOrganization, cmpopts.IgnoreFields(organization.Organization{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganization)

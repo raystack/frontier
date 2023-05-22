@@ -88,7 +88,7 @@ func (r PermissionRepository) GetBySlug(ctx context.Context, slug string) (permi
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_PERMISSIONS,
-				Operation:  "GetBySlug",
+				Operation:  "GetByName",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -160,9 +160,21 @@ func (r PermissionRepository) Upsert(ctx context.Context, perm permission.Permis
 	return actionModel.transformToPermission()
 }
 
-func (r PermissionRepository) List(ctx context.Context) ([]permission.Permission, error) {
+func (r PermissionRepository) List(ctx context.Context, flt permission.Filter) ([]permission.Permission, error) {
 	var fetchedActions []Permission
-	query, params, err := dialect.Select(&returnedColumns{}).From(TABLE_PERMISSIONS).ToSQL()
+	stmt := dialect.Select(&returnedColumns{}).From(TABLE_PERMISSIONS)
+	if flt.NamespaceID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"namespace_name": flt.NamespaceID,
+		})
+	}
+	if len(flt.Slugs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"slug": goqu.Op{"in": flt.Slugs},
+		})
+	}
+
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

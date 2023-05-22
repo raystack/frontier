@@ -243,24 +243,33 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 
 	// permissions
-	"/odpf.shield.v1beta1.ShieldService/CreatePermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return handler.IsSuperUser(ctx)
+	"/odpf.shield.v1beta1.ShieldService/ListPermissions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return nil
 	},
-	"/odpf.shield.v1beta1.ShieldService/UpdatePermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return handler.IsSuperUser(ctx)
+	"/odpf.shield.v1beta1.ShieldService/GetPermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return nil
 	},
-	"/odpf.shield.v1beta1.ShieldService/DeletePermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return handler.IsSuperUser(ctx)
+
+	// namespaces
+	"/odpf.shield.v1beta1.ShieldService/ListNamespaces": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return nil
+	},
+	"/odpf.shield.v1beta1.ShieldService/GetNamespace": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return nil
 	},
 
 	// policies
 	"/odpf.shield.v1beta1.ShieldService/CreatePolicy": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreatePolicyRequest)
-		if pbreq.GetBody().GetNamespaceId() == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetResourceId(), schema.PolicyManagePermission)
+		ns, id, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetResource())
+		if err != nil {
+			return err
 		}
 
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetBody().GetResourceId(), schema.PolicyManagePermission)
+		if ns == schema.OrganizationNamespace {
+			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
+		}
+		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
 	},
 	"/odpf.shield.v1beta1.ShieldService/GetPolicy": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return nil
@@ -274,26 +283,40 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err != nil {
 			return err
 		}
-		if policyResp.GetPolicy().GetNamespaceId() == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, policyResp.GetPolicy().GetResourceId(), schema.PolicyManagePermission)
+		ns, id, err := schema.SplitNamespaceAndResourceID(policyResp.GetPolicy().GetResource())
+		if err != nil {
+			return err
 		}
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, policyResp.GetPolicy().GetResourceId(), schema.PolicyManagePermission)
+
+		if ns == schema.OrganizationNamespace {
+			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
+		}
+		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
 	},
 
 	// relations
 	"/odpf.shield.v1beta1.ShieldService/CreateRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreateRelationRequest)
-		if pbreq.GetBody().GetObjectNamespace() == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetObjectId(), schema.UpdatePermission)
+		objNS, objID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetObject())
+		if err != nil {
+			return err
 		}
-		if pbreq.GetBody().GetSubjectNamespace() == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetSubjectId(), schema.UpdatePermission)
+		subNS, subID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetSubject())
+		if err != nil {
+			return err
 		}
-		if pbreq.GetBody().GetObjectNamespace() == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetBody().GetObjectId(), schema.UpdatePermission)
+
+		if objNS == schema.OrganizationNamespace {
+			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, objID, schema.UpdatePermission)
 		}
-		if pbreq.GetBody().GetSubjectNamespace() == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetBody().GetSubjectId(), schema.UpdatePermission)
+		if subNS == schema.OrganizationNamespace {
+			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, subID, schema.UpdatePermission)
+		}
+		if objNS == schema.ProjectNamespace {
+			return handler.IsAuthorized(ctx, schema.ProjectNamespace, objID, schema.UpdatePermission)
+		}
+		if subNS == schema.ProjectNamespace {
+			return handler.IsAuthorized(ctx, schema.ProjectNamespace, subID, schema.UpdatePermission)
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
@@ -302,17 +325,26 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/odpf.shield.v1beta1.ShieldService/DeleteRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreateRelationRequest)
-		if pbreq.GetBody().GetObjectNamespace() == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetObjectId(), schema.DeletePermission)
+		objNS, objID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetObject())
+		if err != nil {
+			return err
 		}
-		if pbreq.GetBody().GetSubjectNamespace() == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetSubjectId(), schema.DeletePermission)
+		subNS, subID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetSubject())
+		if err != nil {
+			return err
 		}
-		if pbreq.GetBody().GetObjectNamespace() == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetBody().GetObjectId(), schema.DeletePermission)
+
+		if objNS == schema.OrganizationNamespace {
+			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, objID, schema.UpdatePermission)
 		}
-		if pbreq.GetBody().GetSubjectNamespace() == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetBody().GetSubjectId(), schema.DeletePermission)
+		if subNS == schema.OrganizationNamespace {
+			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, subID, schema.UpdatePermission)
+		}
+		if objNS == schema.ProjectNamespace {
+			return handler.IsAuthorized(ctx, schema.ProjectNamespace, objID, schema.UpdatePermission)
+		}
+		if subNS == schema.ProjectNamespace {
+			return handler.IsAuthorized(ctx, schema.ProjectNamespace, subID, schema.UpdatePermission)
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
@@ -322,29 +354,29 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*shieldv1beta1.ListProjectResourcesRequest)
 		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetProjectId(), schema.ResourceListPermission)
 	},
-	"/odpf.shield.v1beta1.ShieldService/CreateResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*shieldv1beta1.CreateResourceRequest)
+	"/odpf.shield.v1beta1.ShieldService/CreateProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateProjectResourceRequest)
 		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetBody().GetProjectId(), schema.GetPermission)
 	},
-	"/odpf.shield.v1beta1.ShieldService/GetResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*shieldv1beta1.GetResourceRequest)
-		resp, err := handler.GetResource(ctx, &shieldv1beta1.GetResourceRequest{Id: pbreq.GetId()})
+	"/odpf.shield.v1beta1.ShieldService/GetProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.GetProjectResourceRequest)
+		resp, err := handler.GetProjectResource(ctx, &shieldv1beta1.GetProjectResourceRequest{Id: pbreq.GetId()})
 		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, resp.GetResource().GetNamespaceId(), resp.GetResource().GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, resp.GetResource().GetNamespace(), resp.GetResource().GetId(), schema.GetPermission)
 	},
-	"/odpf.shield.v1beta1.ShieldService/UpdateResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*shieldv1beta1.UpdateResourceRequest)
-		return handler.IsAuthorized(ctx, pbreq.GetBody().GetNamespaceId(), pbreq.GetId(), schema.UpdatePermission)
+	"/odpf.shield.v1beta1.ShieldService/UpdateProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.UpdateProjectResourceRequest)
+		return handler.IsAuthorized(ctx, pbreq.GetBody().GetNamespace(), pbreq.GetId(), schema.UpdatePermission)
 	},
-	"/odpf.shield.v1beta1.ShieldService/DeleteResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*shieldv1beta1.DeleteResourceRequest)
-		resp, err := handler.GetResource(ctx, &shieldv1beta1.GetResourceRequest{Id: pbreq.GetId()})
+	"/odpf.shield.v1beta1.ShieldService/DeleteProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.DeleteProjectResourceRequest)
+		resp, err := handler.GetProjectResource(ctx, &shieldv1beta1.GetProjectResourceRequest{Id: pbreq.GetId()})
 		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, resp.GetResource().GetNamespaceId(), resp.GetResource().GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, resp.GetResource().GetNamespace(), resp.GetResource().GetId(), schema.DeletePermission)
 	},
 
 	// admin APIs
@@ -374,5 +406,14 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/odpf.shield.v1beta1.AdminService/DeleteRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
+	},
+	"/odpf.shield.v1beta1.AdminService/CreatePermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/odpf.shield.v1beta1.AdminService/UpdatePermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/odpf.shield.v1beta1.AdminService/DeletePermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
 }

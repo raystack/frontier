@@ -273,7 +273,7 @@ func bootstrapPolicy(client *db.Client, orgID, roleID, userID string) ([]string,
 
 	var insertedData []string
 	for _, d := range data {
-		d.UserID = userID
+		d.PrincipalID = userID
 		d.ResourceID = orgID
 		d.RoleID = roleID
 		domain, err := policyRepository.Upsert(context.Background(), d)
@@ -287,19 +287,19 @@ func bootstrapPolicy(client *db.Client, orgID, roleID, userID string) ([]string,
 	return insertedData, nil
 }
 
-func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
+func bootstrapRelation(client *db.Client) ([]relation.Relation, error) {
 	relationRepository := postgres.NewRelationRepository(client)
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-relation.json")
 	if err != nil {
 		return nil, err
 	}
 
-	var data []relation.RelationV2
+	var data []relation.Relation
 	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
 		return nil, err
 	}
 
-	var insertedData []relation.RelationV2
+	var insertedData []relation.Relation
 	for _, d := range data {
 		domain, err := relationRepository.Upsert(context.Background(), d)
 		if err != nil {

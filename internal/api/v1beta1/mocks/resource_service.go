@@ -237,23 +237,23 @@ func (_c *ResourceService_List_Call) RunAndReturn(run func(context.Context, reso
 	return _c
 }
 
-// Update provides a mock function with given fields: ctx, id, _a2
-func (_m *ResourceService) Update(ctx context.Context, id string, _a2 resource.Resource) (resource.Resource, error) {
-	ret := _m.Called(ctx, id, _a2)
+// Update provides a mock function with given fields: ctx, _a1
+func (_m *ResourceService) Update(ctx context.Context, _a1 resource.Resource) (resource.Resource, error) {
+	ret := _m.Called(ctx, _a1)
 
 	var r0 resource.Resource
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, resource.Resource) (resource.Resource, error)); ok {
-		return rf(ctx, id, _a2)
+	if rf, ok := ret.Get(0).(func(context.Context, resource.Resource) (resource.Resource, error)); ok {
+		return rf(ctx, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, resource.Resource) resource.Resource); ok {
-		r0 = rf(ctx, id, _a2)
+	if rf, ok := ret.Get(0).(func(context.Context, resource.Resource) resource.Resource); ok {
+		r0 = rf(ctx, _a1)
 	} else {
 		r0 = ret.Get(0).(resource.Resource)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, resource.Resource) error); ok {
-		r1 = rf(ctx, id, _a2)
+	if rf, ok := ret.Get(1).(func(context.Context, resource.Resource) error); ok {
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -268,15 +268,14 @@ type ResourceService_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - ctx context.Context
-//   - id string
-//   - _a2 resource.Resource
-func (_e *ResourceService_Expecter) Update(ctx interface{}, id interface{}, _a2 interface{}) *ResourceService_Update_Call {
-	return &ResourceService_Update_Call{Call: _e.mock.On("Update", ctx, id, _a2)}
+//   - _a1 resource.Resource
+func (_e *ResourceService_Expecter) Update(ctx interface{}, _a1 interface{}) *ResourceService_Update_Call {
+	return &ResourceService_Update_Call{Call: _e.mock.On("Update", ctx, _a1)}
 }
 
-func (_c *ResourceService_Update_Call) Run(run func(ctx context.Context, id string, _a2 resource.Resource)) *ResourceService_Update_Call {
+func (_c *ResourceService_Update_Call) Run(run func(ctx context.Context, _a1 resource.Resource)) *ResourceService_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(resource.Resource))
+		run(args[0].(context.Context), args[1].(resource.Resource))
 	})
 	return _c
 }
@@ -286,7 +285,7 @@ func (_c *ResourceService_Update_Call) Return(_a0 resource.Resource, _a1 error) 
 	return _c
 }
 
-func (_c *ResourceService_Update_Call) RunAndReturn(run func(context.Context, string, resource.Resource) (resource.Resource, error)) *ResourceService_Update_Call {
+func (_c *ResourceService_Update_Call) RunAndReturn(run func(context.Context, resource.Resource) (resource.Resource, error)) *ResourceService_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

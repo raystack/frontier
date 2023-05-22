@@ -234,9 +234,9 @@ func (r RegistrationService) applyOIDC(ctx context.Context, request Registration
 
 	// register a new user
 	newUser, err := r.userService.Create(ctx, user.User{
-		Name:  oauthProfile.Name,
+		Title: oauthProfile.Name,
 		Email: oauthProfile.Email,
-		Slug:  str.GenerateUserSlug(oauthProfile.Email),
+		Name:  str.GenerateUserSlug(oauthProfile.Email),
 	})
 	if err != nil {
 		return nil, err
@@ -264,7 +264,7 @@ func (r RegistrationService) Token(user user.User, orgs []organization.Organizat
 
 	var orgNames []string
 	for _, o := range orgs {
-		orgNames = append(orgNames, o.Slug)
+		orgNames = append(orgNames, o.Name)
 	}
 
 	tok, err := jwt.NewBuilder().

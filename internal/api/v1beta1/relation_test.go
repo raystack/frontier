@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	testRelationV2 = relation.RelationV2{
+	testRelationV2 = relation.Relation{
 		ID: "relation-id-1",
 		Subject: relation.Subject{
 			ID:        "subject-id",
@@ -32,12 +32,10 @@ var (
 	}
 
 	testRelationPB = &shieldv1beta1.Relation{
-		Id:               "relation-id-1",
-		ObjectId:         "object-id",
-		ObjectNamespace:  "ns2",
-		SubjectId:        "subject-id",
-		SubjectNamespace: "ns1",
-		RelationName:     "relation1",
+		Id:       "relation-id-1",
+		Object:   schema.JoinNamespaceAndResourceID("ns2", "object-id"),
+		Subject:  schema.JoinNamespaceAndResourceID("ns1", "subject-id"),
+		Relation: "relation1",
 	}
 )
 
@@ -51,7 +49,7 @@ func TestHandler_ListRelations(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]relation.RelationV2{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]relation.Relation{}, errors.New("some error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -59,7 +57,7 @@ func TestHandler_ListRelations(t *testing.T) {
 		{
 			name: "should return relations if relation service return nil error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]relation.RelationV2{
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]relation.Relation{
 					testRelationV2,
 				}, nil)
 			},
@@ -96,7 +94,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
+				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
 						ID:              testRelationV2.Subject.ID,
 						Namespace:       testRelationV2.Subject.Namespace,
@@ -106,15 +104,13 @@ func TestHandler_CreateRelation(t *testing.T) {
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					},
-				}).Return(relation.RelationV2{}, errors.New("some error"))
+				}).Return(relation.Relation{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
-					ObjectId:         testRelationV2.Object.ID,
-					ObjectNamespace:  testRelationV2.Object.Namespace,
-					SubjectId:        testRelationV2.Subject.ID,
-					SubjectNamespace: testRelationV2.Subject.Namespace,
-					RelationName:     testRelationV2.Subject.SubRelationName,
+					Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+					Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+					Relation: testRelationV2.Subject.SubRelationName,
 				},
 			},
 			want:    nil,
@@ -128,7 +124,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 					NamespaceID: testRelationV2.Object.Namespace,
 				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
+				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
 						ID:              testRelationV2.Subject.ID,
 						Namespace:       testRelationV2.Subject.Namespace,
@@ -138,15 +134,13 @@ func TestHandler_CreateRelation(t *testing.T) {
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					},
-				}).Return(relation.RelationV2{}, relation.ErrInvalidDetail)
+				}).Return(relation.Relation{}, relation.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
-					ObjectId:         testRelationV2.Object.ID,
-					ObjectNamespace:  testRelationV2.Object.Namespace,
-					SubjectId:        testRelationV2.Subject.ID,
-					SubjectNamespace: testRelationV2.Subject.Namespace,
-					RelationName:     testRelationV2.Subject.SubRelationName,
+					Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+					Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+					Relation: testRelationV2.Subject.SubRelationName,
 				},
 			},
 			want:    nil,
@@ -160,7 +154,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 					NamespaceID: testRelationV2.Object.Namespace,
 				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
+				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
 						ID:              testRelationV2.Subject.ID,
 						Namespace:       testRelationV2.Subject.Namespace,
@@ -174,11 +168,9 @@ func TestHandler_CreateRelation(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateRelationRequest{
 				Body: &shieldv1beta1.RelationRequestBody{
-					ObjectId:         testRelationV2.Object.ID,
-					ObjectNamespace:  testRelationV2.Object.Namespace,
-					SubjectId:        testRelationV2.Subject.ID,
-					SubjectNamespace: testRelationV2.Subject.Namespace,
-					RelationName:     testRelationV2.Subject.SubRelationName,
+					Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+					Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+					Relation: testRelationV2.Subject.SubRelationName,
 				},
 			},
 			want: &shieldv1beta1.CreateRelationResponse{
@@ -214,7 +206,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.RelationV2{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.Relation{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
@@ -225,7 +217,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(relation.RelationV2{}, relation.ErrInvalidID)
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(relation.Relation{}, relation.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetRelationRequest{},
 			want:    nil,
@@ -234,7 +226,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return not found error if id is not uuid",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(relation.RelationV2{}, relation.ErrInvalidUUID)
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(relation.Relation{}, relation.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.GetRelationRequest{
 				Id: "some-id",
@@ -245,7 +237,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.RelationV2{}, relation.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.Relation{}, relation.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
@@ -297,7 +289,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					NamespaceID: testRelationV2.Object.Namespace,
 				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
 
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
+				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
 						Namespace:       testRelationV2.Subject.Namespace,
 						ID:              testRelationV2.Subject.ID,
@@ -310,15 +302,11 @@ func TestHandler_DeleteRelation(t *testing.T) {
 				}).Return(nil)
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
-				ObjectId:         testRelationV2.Object.ID,
-				ObjectNamespace:  testRelationV2.Object.Namespace,
-				SubjectId:        testRelationV2.Subject.ID,
-				SubjectNamespace: testRelationV2.Subject.Namespace,
-				Relation:         testRelationV2.Subject.SubRelationName,
+				Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+				Relation: testRelationV2.Subject.SubRelationName,
 			},
-			want: &shieldv1beta1.DeleteRelationResponse{
-				Message: "relation deleted",
-			},
+			want:    &shieldv1beta1.DeleteRelationResponse{},
 			wantErr: nil,
 		},
 		{
@@ -329,7 +317,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					NamespaceID: testRelationV2.Object.Namespace,
 				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
 
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.RelationV2{
+				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
 						Namespace:       testRelationV2.Subject.Namespace,
 						ID:              testRelationV2.Subject.ID,
@@ -342,15 +330,11 @@ func TestHandler_DeleteRelation(t *testing.T) {
 				}).Return(nil)
 			},
 			request: &shieldv1beta1.DeleteRelationRequest{
-				ObjectId:         testRelationV2.Object.ID,
-				ObjectNamespace:  testRelationV2.Object.Namespace,
-				SubjectId:        testRelationV2.Subject.ID,
-				SubjectNamespace: testRelationV2.Subject.Namespace,
-				Relation:         testRelationV2.Subject.SubRelationName,
+				Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+				Relation: testRelationV2.Subject.SubRelationName,
 			},
-			want: &shieldv1beta1.DeleteRelationResponse{
-				Message: "relation deleted",
-			},
+			want:    &shieldv1beta1.DeleteRelationResponse{},
 			wantErr: nil,
 		},
 	}

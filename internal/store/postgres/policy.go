@@ -8,25 +8,26 @@ import (
 )
 
 type Policy struct {
-	ID           string `db:"id"`
-	Role         Role
-	RoleID       string `db:"role_id"`
-	ResourceID   string `db:"resource_id"`
-	Namespace    Namespace
-	ResourceType string    `db:"resource_type"`
-	UserID       string    `db:"user_id"`
-	Metadata     []byte    `db:"metadata"`
-	CreatedAt    time.Time `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
+	ID            string `db:"id"`
+	Role          Role
+	RoleID        string    `db:"role_id"`
+	ResourceID    string    `db:"resource_id"`
+	ResourceType  string    `db:"resource_type"`
+	PrincipalID   string    `db:"principal_id"`
+	PrincipalType string    `db:"principal_type"`
+	Metadata      []byte    `db:"metadata"`
+	CreatedAt     time.Time `db:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at"`
 }
 
 type PolicyCols struct {
-	ID           string `db:"id"`
-	RoleID       string `db:"role_id"`
-	ResourceType string `db:"resource_type"`
-	ResourceID   string `db:"resource_id"`
-	UserID       string `db:"user_id"`
-	Metadata     []byte `db:"metadata"`
+	ID            string `db:"id"`
+	RoleID        string `db:"role_id"`
+	ResourceType  string `db:"resource_type"`
+	ResourceID    string `db:"resource_id"`
+	PrincipalID   string `db:"principal_id"`
+	PrincipalType string `db:"principal_type"`
+	Metadata      []byte `db:"metadata"`
 }
 
 func (from Policy) transformToPolicy() (policy.Policy, error) {
@@ -38,11 +39,12 @@ func (from Policy) transformToPolicy() (policy.Policy, error) {
 	}
 
 	return policy.Policy{
-		ID:          from.ID,
-		RoleID:      from.RoleID,
-		UserID:      from.UserID,
-		ResourceID:  from.ResourceID,
-		NamespaceID: from.ResourceType,
-		Metadata:    unmarshalledMetadata,
+		ID:            from.ID,
+		RoleID:        from.RoleID,
+		ResourceID:    from.ResourceID,
+		ResourceType:  from.ResourceType,
+		PrincipalID:   from.PrincipalID,
+		PrincipalType: from.PrincipalType,
+		Metadata:      unmarshalledMetadata,
 	}, nil
 }

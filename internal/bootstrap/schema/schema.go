@@ -3,10 +3,15 @@ package schema
 import (
 	_ "embed"
 	"errors"
+	"fmt"
+	"strings"
 )
 
 // SpiceDB readable format is stored in predefined_schema.txt
 const (
+	// DefaultNamespace is the default namespace for predefined entities
+	DefaultNamespace = "app"
+
 	// Global IDs
 	PlatformID = "platform"
 
@@ -65,40 +70,109 @@ const (
 var BaseSchemaZed string
 
 var (
-	ErrMigration = errors.New("error in migrating authz schema")
+	ErrMigration    = errors.New("error in migrating authz schema")
+	ErrBadNamespace = errors.New("bad namespace, format should namespace:uuid")
 )
 
-// ServiceDefinition are provided by user for a service
+// ServiceDefinition is provided by user for a service
 type ServiceDefinition struct {
-	Name      string
-	Resources []DefinitionResource
+	Roles       []RoleDefinition     `yaml:"roles"`
+	Permissions []ResourcePermission `yaml:"permissions"`
 }
 
-// DefinitionResource is an object over which authz rules will be applied
-type DefinitionResource struct {
-	Name        string
-	Permissions []ResourcePermission
+// MergeServiceDefinitions merges multiple service definitions into one
+// and deduplicate roles and permissions
+func MergeServiceDefinitions(definitions ...ServiceDefinition) *ServiceDefinition {
+	roles := make(map[string]RoleDefinition)
+	permissions := make(map[string]ResourcePermission)
+	for _, definition := range definitions {
+		for _, role := range definition.Roles {
+			roles[role.Name] = role
+		}
+		for _, permission := range definition.Permissions {
+			permissions[FQPermissionNameFromNamespace(permission.Namespace, permission.Name)] = permission
+		}
+	}
+	roleList := make([]RoleDefinition, 0, len(roles))
+	for _, role := range roles {
+		roleList = append(roleList, role)
+	}
+	permissionList := make([]ResourcePermission, 0, len(permissions))
+	for _, permission := range permissions {
+		permissionList = append(permissionList, permission)
+	}
+	return &ServiceDefinition{
+		Roles:       roleList,
+		Permissions: permissionList,
+	}
 }
 
-// ResourcePermission with which roles will be created. Whenever an action is performed
-// subject access permissions are checked with subject required permissions
-type ResourcePermission struct {
-	Name        string
-	Description string
-}
-
-// DefinitionRoles are a set of permissions which can be assigned to a user or group
-type DefinitionRoles struct {
+// RoleDefinition are a set of permissions which can be assigned to a user or group
+type RoleDefinition struct {
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
 	Permissions []string `yaml:"permissions"`
 }
 
-type RoleFile struct {
-	Roles []DefinitionRoles `yaml:"roles"`
+// ResourcePermission with which roles will be created. Whenever an action is performed
+// subject access permissions are checked with subject required permissions
+type ResourcePermission struct {
+	// simple name
+	Name string
+
+	// Namespace is an object over which authz rules will be applied
+	Namespace   string
+	Description string
 }
 
-var PredefinedRoles = []DefinitionRoles{
+func BuildNamespaceName(service, resource string) string {
+	return fmt.Sprintf("%s/%s", service, resource)
+}
+
+func SplitNamespaceResource(ns string) (string, string) {
+	ns = ParseNamespaceAliasIfRequired(ns)
+	parts := strings.Split(ns, "/")
+	if len(parts) < 2 {
+		return parts[0], "default"
+	}
+	return parts[0], parts[1]
+}
+
+func SplitNamespaceAndResourceID(namespace string) (string, string, error) {
+	namespaceParts := strings.Split(namespace, ":")
+	if len(namespaceParts) != 2 {
+		return "", "", ErrBadNamespace
+	}
+
+	namespaceName := ParseNamespaceAliasIfRequired(namespaceParts[0])
+	resourceID := namespaceParts[1]
+	return namespaceName, resourceID, nil
+}
+
+func JoinNamespaceAndResourceID(namespace, id string) string {
+	return fmt.Sprintf("%s:%s", namespace, id)
+}
+
+func ParseNamespaceAliasIfRequired(n string) string {
+	switch n {
+	case "user":
+		n = UserPrincipal
+	case "group":
+		n = GroupPrincipal
+	case "org", "organization":
+		n = OrganizationNamespace
+	case "project":
+		n = ProjectNamespace
+	}
+	return n
+}
+
+func FQPermissionNameFromNamespace(namespace, verb string) string {
+	service, resource := SplitNamespaceResource(namespace)
+	return fmt.Sprintf("%s_%s_%s", service, resource, verb)
+}
+
+var PredefinedRoles = []RoleDefinition{
 	// org
 	{
 		Name: "app_organization_owner",

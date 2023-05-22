@@ -1,12 +1,10 @@
 [
     {
-        "name": "org1",
-        "slug": "org-1",
+        "name": "org-1",
         "metadata":{}
     },
     {
-        "name": "org2",
-        "slug": "org-2",
+        "name": "org-2",
         "metadata": {
             "label": {},
             "description": "description"

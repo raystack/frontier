@@ -163,23 +163,23 @@ func (_c *ProjectService_Enable_Call) RunAndReturn(run func(context.Context, str
 	return _c
 }
 
-// Get provides a mock function with given fields: ctx, idOrSlugd
-func (_m *ProjectService) Get(ctx context.Context, idOrSlugd string) (project.Project, error) {
-	ret := _m.Called(ctx, idOrSlugd)
+// Get provides a mock function with given fields: ctx, idOrName
+func (_m *ProjectService) Get(ctx context.Context, idOrName string) (project.Project, error) {
+	ret := _m.Called(ctx, idOrName)
 
 	var r0 project.Project
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (project.Project, error)); ok {
-		return rf(ctx, idOrSlugd)
+		return rf(ctx, idOrName)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) project.Project); ok {
-		r0 = rf(ctx, idOrSlugd)
+		r0 = rf(ctx, idOrName)
 	} else {
 		r0 = ret.Get(0).(project.Project)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, idOrSlugd)
+		r1 = rf(ctx, idOrName)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -194,12 +194,12 @@ type ProjectService_Get_Call struct {
 
 // Get is a helper method to define mock.On call
 //   - ctx context.Context
-//   - idOrSlugd string
-func (_e *ProjectService_Expecter) Get(ctx interface{}, idOrSlugd interface{}) *ProjectService_Get_Call {
-	return &ProjectService_Get_Call{Call: _e.mock.On("Get", ctx, idOrSlugd)}
+//   - idOrName string
+func (_e *ProjectService_Expecter) Get(ctx interface{}, idOrName interface{}) *ProjectService_Get_Call {
+	return &ProjectService_Get_Call{Call: _e.mock.On("Get", ctx, idOrName)}
 }
 
-func (_c *ProjectService_Get_Call) Run(run func(ctx context.Context, idOrSlugd string)) *ProjectService_Get_Call {
+func (_c *ProjectService_Get_Call) Run(run func(ctx context.Context, idOrName string)) *ProjectService_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})

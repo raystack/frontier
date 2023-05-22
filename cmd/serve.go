@@ -118,6 +118,10 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	if err = deps.BootstrapService.MigrateRoles(ctx); err != nil {
 		return err
 	}
+	// promote normal users to superusers
+	if err = deps.BootstrapService.MakeSuperUsers(ctx); err != nil {
+		return err
+	}
 
 	// session service initialization and cleanup
 	if err := deps.SessionService.InitSessions(context.Background()); err != nil {

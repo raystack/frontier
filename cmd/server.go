@@ -147,7 +147,6 @@ func serverMigrateCommand() *cobra.Command {
 			}
 
 			logger := shieldlogger.InitLogger(appConfig.Log)
-			fmt.Println("Preparing migrations...")
 			logger.Info("shield is migrating", "version", Version)
 
 			if err = RunMigrations(logger, appConfig.DB); err != nil {
@@ -177,7 +176,6 @@ func serverMigrateRollbackCommand() *cobra.Command {
 				panic(err)
 			}
 			logger := shieldlogger.InitLogger(appConfig.Log)
-			fmt.Println("Preparing migrations rollback...")
 			logger.Info("shield is migrating", "version", Version)
 
 			if err = RunRollback(appConfig.DB); err != nil {

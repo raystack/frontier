@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -24,7 +25,7 @@ type RelationRepositoryTestSuite struct {
 	pool       *dockertest.Pool
 	resource   *dockertest.Resource
 	repository *postgres.RelationRepository
-	relations  []relation.RelationV2
+	relations  []relation.Relation
 	orgID      string
 }
 
@@ -89,7 +90,7 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 	type testCase struct {
 		Description      string
 		SelectedID       string
-		ExpectedRelation relation.RelationV2
+		ExpectedRelation relation.Relation
 		ErrString        string
 	}
 
@@ -123,7 +124,7 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.RelationV2{}, "CreatedAt", "UpdatedAt")) {
+			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.Relation{}, "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRelation)
 			}
 		})
@@ -133,15 +134,15 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 func (s *RelationRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description      string
-		RelationToCreate relation.RelationV2
-		ExpectedRelation relation.RelationV2
+		RelationToCreate relation.Relation
+		ExpectedRelation relation.Relation
 		Err              error
 	}
 
 	var testCases = []testCase{
 		{
 			Description: "should create a relation with type role",
-			RelationToCreate: relation.RelationV2{
+			RelationToCreate: relation.Relation{
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1",
@@ -152,7 +153,7 @@ func (s *RelationRepositoryTestSuite) TestUpsert() {
 				},
 				RelationName: "relation1",
 			},
-			ExpectedRelation: relation.RelationV2{
+			ExpectedRelation: relation.Relation{
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1",
@@ -166,7 +167,7 @@ func (s *RelationRepositoryTestSuite) TestUpsert() {
 		},
 		{
 			Description: "should return error if subject namespace id does not exist",
-			RelationToCreate: relation.RelationV2{
+			RelationToCreate: relation.Relation{
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1-random",
@@ -181,7 +182,7 @@ func (s *RelationRepositoryTestSuite) TestUpsert() {
 		},
 		{
 			Description: "should return error if object namespace id does not exist",
-			RelationToCreate: relation.RelationV2{
+			RelationToCreate: relation.Relation{
 				Subject: relation.Subject{
 					ID:        "uuid1",
 					Namespace: "ns1",
@@ -204,7 +205,7 @@ func (s *RelationRepositoryTestSuite) TestUpsert() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err.Error())
 				}
 			}
-			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.RelationV2{},
+			if !cmp.Equal(got, tc.ExpectedRelation, cmpopts.IgnoreFields(relation.Relation{},
 				"ID",
 				"CreatedAt",
 				"UpdatedAt")) {
@@ -217,14 +218,14 @@ func (s *RelationRepositoryTestSuite) TestUpsert() {
 func (s *RelationRepositoryTestSuite) TestList() {
 	type testCase struct {
 		Description       string
-		ExpectedRelations []relation.RelationV2
+		ExpectedRelations []relation.Relation
 		ErrString         string
 	}
 
 	var testCases = []testCase{
 		{
 			Description: "should get all relations",
-			ExpectedRelations: []relation.RelationV2{
+			ExpectedRelations: []relation.Relation{
 				{
 					Subject: relation.Subject{
 						ID:        "uuid1",
@@ -258,11 +259,19 @@ func (s *RelationRepositoryTestSuite) TestList() {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
+			} else {
+				s.Assert().NoError(err)
 			}
-			if !cmp.Equal(got, tc.ExpectedRelations, cmpopts.IgnoreFields(relation.RelationV2{},
+			if !cmp.Equal(got, tc.ExpectedRelations, cmpopts.IgnoreFields(relation.Relation{},
 				"ID",
 				"CreatedAt",
 				"UpdatedAt")) {
+				sort.Slice(got, func(i, j int) bool {
+					return got[i].RelationName < got[j].RelationName
+				})
+				sort.Slice(tc.ExpectedRelations, func(i, j int) bool {
+					return tc.ExpectedRelations[i].RelationName < tc.ExpectedRelations[j].RelationName
+				})
 				s.T().Fatalf(cmp.Diff(got, tc.ExpectedRelations))
 			}
 		})

@@ -1,14 +1,14 @@
 [
     {
-        "name": "John Doe",
+        "title": "John Doe",
         "email": "john.doe@odpf.io",
-        "slug": "john_doe_slug",
+        "name": "john_doe_slug",
         "metadata": {}
     },
     {
-        "name": "Jane Dee",
+        "title": "Jane Dee",
         "email": "jane.dee@odpf.io",
-        "slug": "john_dee_slug",
+        "name": "john_dee_slug",
         "metadata": {
             "label": {
                 "key": "value"

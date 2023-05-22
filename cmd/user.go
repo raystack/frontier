@@ -70,8 +70,8 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			if reqBody.Slug == "" {
-				reqBody.Slug = str.GenerateUserSlug(reqBody.Email)
+			if reqBody.Name == "" {
+				reqBody.Name = str.GenerateUserSlug(reqBody.Email)
 			}
 
 			ctx := context.Background()
@@ -202,7 +202,7 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 				user.GetId(),
 				user.GetName(),
 				user.GetEmail(),
-				user.GetSlug(),
+				user.GetTitle(),
 			})
 			printer.Table(os.Stdout, report)
 
@@ -261,13 +261,13 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 
 			fmt.Printf(" \nShowing %d users\n \n", len(users))
 
-			report = append(report, []string{"ID", "NAME", "EMAIL", "SLUG"})
+			report = append(report, []string{"ID", "NAME", "EMAIL", "TITLE"})
 			for _, u := range users {
 				report = append(report, []string{
 					u.GetId(),
 					u.GetName(),
 					u.GetEmail(),
-					u.GetSlug(),
+					u.GetTitle(),
 				})
 			}
 			printer.Table(os.Stdout, report)

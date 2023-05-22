@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
@@ -13,7 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:embed testdata/potato.service.yml
+//go:embed testdata/compute_service.yml
 var atlasSchemaYaml []byte
 
 //go:embed testdata/compiled_schema.zed
@@ -27,9 +28,9 @@ func TestCompileSchema(t *testing.T) {
 	}, &tenantName)
 	assert.NoError(t, err)
 
-	appService, err := bootstrap.BuildServiceDefinitionFromAZSchema("app", compiledSchema.ObjectDefinitions)
+	appService, err := bootstrap.BuildServiceDefinitionFromAZSchema(compiledSchema.ObjectDefinitions, "app")
 	assert.NoError(t, err)
-	assert.Len(t, appService.Resources, 8)
+	assert.Len(t, appService.Permissions, 19)
 }
 
 func TestAddServiceToSchema(t *testing.T) {
@@ -45,10 +46,20 @@ func TestAddServiceToSchema(t *testing.T) {
 	assert.NoError(t, err)
 
 	spiceDBDefinitions := existingSchema.ObjectDefinitions
-	spiceDBDefinitions, err = bootstrap.ApplyServiceDefinitionOverAZSchema(atlasServiceDefinition, spiceDBDefinitions)
+	spiceDBDefinitions, err = bootstrap.ApplyServiceDefinitionOverAZSchema(&atlasServiceDefinition, spiceDBDefinitions)
 	assert.NoError(t, err)
 
-	authzedSchemaSource, err := bootstrap.PrepareSchemaAsSource(spiceDBDefinitions)
+	// sort definitions, useful to keep it consistent
+	for idx := range spiceDBDefinitions {
+		sort.Slice(spiceDBDefinitions[idx].Relation, func(i, j int) bool {
+			return spiceDBDefinitions[idx].Relation[i].Name < spiceDBDefinitions[idx].Relation[j].Name
+		})
+	}
+	sort.Slice(spiceDBDefinitions, func(i, j int) bool {
+		return spiceDBDefinitions[i].Name < spiceDBDefinitions[j].Name
+	})
+
+	authzedSchemaSource, err := bootstrap.PrepareSchemaAsAZSource(spiceDBDefinitions)
 	assert.NoError(t, err)
 
 	// compile and validate generated schema

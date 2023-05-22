@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS namespaces(
 DROP TABLE IF EXISTS organizations CASCADE;
 CREATE TABLE IF NOT EXISTS organizations (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name text,
-    slug text UNIQUE NOT NULL,
+    name text UNIQUE NOT NULL,
+    title text,
     metadata jsonb,
     state text DEFAULT 'enabled',
     created_at timestamptz NOT NULL DEFAULT NOW(),
@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS organizations (
 DROP TABLE IF EXISTS projects CASCADE;
 CREATE TABLE IF NOT EXISTS projects (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name text,
-    slug text UNIQUE NOT NULL,
+    name text UNIQUE NOT NULL,
+    title text,
     org_id uuid NOT NULL REFERENCES organizations(id),
     metadata jsonb,
     state text DEFAULT 'enabled',
@@ -34,21 +34,21 @@ CREATE TABLE IF NOT EXISTS projects (
 DROP TABLE IF EXISTS groups CASCADE;
 CREATE TABLE IF NOT EXISTS groups (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name text,
-    slug text NOT NULL,
+    name text NOT NULL,
+    title text,
     org_id uuid NOT NULL REFERENCES organizations(id),
     metadata jsonb,
     state text DEFAULT 'enabled',
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW(),
     deleted_at timestamptz,
-    UNIQUE(org_id, slug)
+    UNIQUE(org_id, name)
     );
 DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name text,
-    slug text UNIQUE NOT NULL,
+    name text UNIQUE NOT NULL,
+    title text,
     email text UNIQUE NOT NULL,
     metadata jsonb,
     state text DEFAULT 'enabled',
@@ -119,14 +119,15 @@ DROP TABLE IF EXISTS policies CASCADE;
 CREATE TABLE IF NOT EXISTS policies (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     role_id uuid REFERENCES roles (id),
-    resource_id uuid,
+    resource_id uuid NOT NULL,
     resource_type text REFERENCES namespaces (name),
-    user_id uuid REFERENCES users(id),
+    principal_id uuid NOT NULL,
+    principal_type text REFERENCES namespaces (name),
     metadata jsonb,
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW(),
     deleted_at timestamptz,
-    UNIQUE(role_id, resource_id, resource_type, user_id)
+    UNIQUE(role_id, resource_id, resource_type, principal_id, principal_type)
     );
 DROP TABLE IF EXISTS flows CASCADE;
 CREATE TABLE IF NOT EXISTS flows(

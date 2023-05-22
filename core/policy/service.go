@@ -8,8 +8,8 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
-	Delete(ctx context.Context, rel relation.RelationV2) error
+	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
+	Delete(ctx context.Context, rel relation.Relation) error
 }
 
 type Service struct {
@@ -46,7 +46,7 @@ func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.RelationV2{
+	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        id,
 			Namespace: schema.RoleBindingNamespace,
@@ -60,21 +60,26 @@ func (s Service) Delete(ctx context.Context, id string) error {
 // AssignRole Note: ideally this should be in a single transaction
 func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	// bind role with user
-	_, err := s.relationService.Create(ctx, relation.RelationV2{
+	subjectSubRelation := ""
+	if pol.PrincipalType == schema.GroupPrincipal {
+		subjectSubRelation = schema.MemberRole
+	}
+	_, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        pol.ID,
 			Namespace: schema.RoleBindingNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        pol.UserID,
-			Namespace: schema.UserPrincipal,
+			ID:              pol.PrincipalID,
+			Namespace:       pol.PrincipalType,
+			SubRelationName: subjectSubRelation,
 		},
 		RelationName: schema.RoleBearerRelationName,
 	})
 	if err != nil {
 		return err
 	}
-	_, err = s.relationService.Create(ctx, relation.RelationV2{
+	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        pol.ID,
 			Namespace: schema.RoleBindingNamespace,
@@ -90,10 +95,10 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	}
 
 	// bind policy to resource
-	_, err = s.relationService.Create(ctx, relation.RelationV2{
+	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        pol.ResourceID,
-			Namespace: pol.NamespaceID,
+			Namespace: pol.ResourceType,
 		},
 		Subject: relation.Subject{
 			ID:        pol.ID,

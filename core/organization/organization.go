@@ -6,8 +6,6 @@ import (
 
 	"github.com/odpf/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
 )
 
@@ -28,11 +26,11 @@ const (
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Organization, error)
 	GetByIDs(ctx context.Context, ids []string) ([]Organization, error)
-	GetBySlug(ctx context.Context, slug string) (Organization, error)
+	GetByName(ctx context.Context, name string) (Organization, error)
 	Create(ctx context.Context, org Organization) (Organization, error)
 	List(ctx context.Context, flt Filter) ([]Organization, error)
 	UpdateByID(ctx context.Context, org Organization) (Organization, error)
-	UpdateBySlug(ctx context.Context, org Organization) (Organization, error)
+	UpdateByName(ctx context.Context, org Organization) (Organization, error)
 	SetState(ctx context.Context, id string, state State) error
 	Delete(ctx context.Context, id string) error
 }
@@ -40,16 +38,9 @@ type Repository interface {
 type Organization struct {
 	ID        string
 	Name      string
-	Slug      string
+	Title     string
 	Metadata  metadata.Metadata
 	State     State
 	CreatedAt time.Time
 	UpdatedAt time.Time
-}
-
-func BuildUserOrgAdminSubject(user user.User) relation.Subject {
-	return relation.Subject{
-		ID:        user.ID,
-		Namespace: schema.UserPrincipal,
-	}
 }
