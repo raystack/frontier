@@ -16,6 +16,9 @@ module.exports = {
       items: [
         "concepts/architecture",
         "concepts/org",
+        "concepts/project",
+        "concepts/policy",
+        "concepts/role",
         "concepts/glossary",
       ],
     },
@@ -56,6 +59,7 @@ module.exports = {
       label: "Reference",
       items: [
         "reference/configurations",
+        "reference/admin-api",
         "reference/api",
         "reference/cli"
       ],

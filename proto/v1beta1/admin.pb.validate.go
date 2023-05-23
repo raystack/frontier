@@ -57,9 +57,35 @@ func (m *ListAllUsersRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for PageSize
+	if m.GetPageSize() != 0 {
 
-	// no validation rules for PageNum
+		if m.GetPageSize() < 1 {
+			err := ListAllUsersRequestValidationError{
+				field:  "PageSize",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetPageNum() != 0 {
+
+		if m.GetPageNum() < 1 {
+			err := ListAllUsersRequestValidationError{
+				field:  "PageNum",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	// no validation rules for Keyword
 
@@ -1283,7 +1309,16 @@ func (m *ListResourcesRequest) validate(all bool) error {
 
 	// no validation rules for OrganizationId
 
-	// no validation rules for Namespace
+	if utf8.RuneCountInString(m.GetNamespace()) < 3 {
+		err := ListResourcesRequestValidationError{
+			field:  "Namespace",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return ListResourcesRequestMultiError(errors)

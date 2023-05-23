@@ -6,6 +6,7 @@ An Organization serves as a container for users, groups, projects and resources.
 
 An Organization slug is must be unique in the entire Shield deployment. No two organization can have same the slug. Whenever a user creates an Organization, one is assigned the role of the Organization Admin by default.
 
+Users are shared between organizations: Any user may belong to multiple organizations and will be able to use the same identity to navigate between organizations.
 ### Predefined Permissions and Roles at Organization level
 
 | **Role**                     | **Permissions**                                  | **Description**                                                                                                                     |

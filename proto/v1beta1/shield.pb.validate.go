@@ -1257,9 +1257,35 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for PageSize
+	if m.GetPageSize() != 0 {
 
-	// no validation rules for PageNum
+		if m.GetPageSize() < 1 {
+			err := ListUsersRequestValidationError{
+				field:  "PageSize",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetPageNum() != 0 {
+
+		if m.GetPageNum() < 1 {
+			err := ListUsersRequestValidationError{
+				field:  "PageNum",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	// no validation rules for Keyword
 
@@ -4131,7 +4157,16 @@ func (m *GroupRequestBody) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for OrgId
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := GroupRequestBodyValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return GroupRequestBodyMultiError(errors)
@@ -7019,7 +7054,7 @@ func (m *OrganizationRequestBody) validate(all bool) error {
 	if !_OrganizationRequestBody_Name_Pattern.MatchString(m.GetName()) {
 		err := OrganizationRequestBodyValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
 		}
 		if !all {
 			return err
@@ -7138,7 +7173,7 @@ var _ interface {
 	ErrorName() string
 } = OrganizationRequestBodyValidationError{}
 
-var _OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
+var _OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
 
 // Validate checks the field values on ListOrganizationsRequest with the rules
 // defined in the proto definition for this message. If any rules are

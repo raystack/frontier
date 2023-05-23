@@ -2,7 +2,7 @@ GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "5f5000e621edd9eaf5bc68a7c39109c385ae4625"
+PROTON_COMMIT := "fd6027f933a1cce9d6f25ef8d4ee4bba855959e4"
 
 ui:
 	@echo " > generating ui build"
@@ -61,11 +61,13 @@ proto: ## Generate the protobuf files
 	@echo " > protobuf compilation finished"
 
 update-swagger-md:
-	npx swagger-markdown -i proto/apidocs.swagger.json -o docs/docs/reference/api.md
+	@npx swagger-markdown -i proto/v1beta1/admin.swagger.json -o docs/docs/reference/admin-api.md
+	@npx swagger-markdown -i proto/v1beta1/shield.swagger.json -o docs/docs/reference/api.md
 
 clean-doc:
 	@echo "> cleaning up auto-generated docs"
 	@rm -rf ./docs/docs/reference/cli.md
+	@rm -f ./docs/docs/reference/admin-api.md
 	@rm -f ./docs/docs/reference/api.md
 
 doc: clean-doc update-swagger-md ## Generate api and cli documentation
