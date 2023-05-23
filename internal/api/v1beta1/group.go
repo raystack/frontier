@@ -29,6 +29,8 @@ type GroupService interface {
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error)
 	ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error)
+	AddUsers(ctx context.Context, groupID string, userID []string) error
+	RemoveUsers(ctx context.Context, groupID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error
@@ -243,6 +245,24 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.List
 	return &shieldv1beta1.ListGroupUsersResponse{
 		Users: userPBs,
 	}, nil
+}
+
+func (h Handler) AddGroupUsers(ctx context.Context, request *shieldv1beta1.AddGroupUsersRequest) (*shieldv1beta1.AddGroupUsersResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.groupService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.AddGroupUsersResponse{}, nil
+}
+
+func (h Handler) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.RemoveGroupUserRequest) (*shieldv1beta1.RemoveGroupUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.groupService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.RemoveGroupUserResponse{}, nil
 }
 
 func (h Handler) EnableGroup(ctx context.Context, request *shieldv1beta1.EnableGroupRequest) (*shieldv1beta1.EnableGroupResponse, error) {

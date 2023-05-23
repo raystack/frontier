@@ -1,8 +1,8 @@
 
 
 definition app/group {
-	permission delete = org->group_delete + granted->app_group_delete + owner
-	permission get = org->group_get + granted->app_group_get + owner
+	permission delete = org->group_delete + granted->app_group_administer + granted->app_group_delete + owner
+	permission get = org->group_get + granted->app_group_administer + granted->app_group_get + owner
 	relation granted: app/rolebinding
 	relation member: app/user
 
@@ -12,7 +12,7 @@ definition app/group {
 	// relations
 	relation org: app/organization
 	relation owner: app/user
-	permission update = org->group_update + granted->app_group_update + owner
+	permission update = org->group_update + granted->app_group_administer + granted->app_group_update + owner
 }
 
 definition app/organization {
@@ -82,6 +82,7 @@ definition app/project {
 
 definition app/role {
 	// group
+	relation app_group_administer: app/user:* | app/serviceuser:*
 	relation app_group_delete: app/user:* | app/serviceuser:*
 	relation app_group_get: app/user:* | app/serviceuser:*
 	relation app_group_update: app/user:* | app/serviceuser:*
@@ -115,6 +116,7 @@ definition app/role {
 
 definition app/rolebinding {
 	// group
+	permission app_group_administer = bearer & role->app_group_administer
 	permission app_group_delete = bearer & role->app_group_delete
 	permission app_group_get = bearer & role->app_group_get
 	permission app_group_update = bearer & role->app_group_update

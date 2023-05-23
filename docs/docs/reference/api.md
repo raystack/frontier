@@ -30,14 +30,14 @@ Get all groups
 #### POST
 ##### Summary
 
-Create Group
+Create group
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.orgId | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"slug"**: string, **"metadata"**: object } |
+| body | body |  | Yes | { **"name"**: string, **"title"**: string, **"metadata"**: object } |
 
 ##### Responses
 
@@ -51,7 +51,7 @@ Create Group
 #### PUT
 ##### Summary
 
-Update Group by ID
+Update group by ID
 
 ##### Parameters
 
@@ -59,7 +59,7 @@ Update Group by ID
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.orgId | path |  | Yes | string |
 | id | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"slug"**: string, **"metadata"**: object } |
+| body | body |  | Yes | { **"name"**: string, **"title"**: string, **"metadata"**: object } |
 
 ##### Responses
 
@@ -73,7 +73,7 @@ Update Group by ID
 #### GET
 ##### Summary
 
-Create Group
+Create group
 
 ##### Parameters
 
@@ -95,7 +95,7 @@ Create Group
 #### GET
 ##### Summary
 
-Get Group by ID
+Get group by ID
 
 ##### Parameters
 
@@ -114,7 +114,7 @@ Get Group by ID
 #### DELETE
 ##### Summary
 
-Delete a Group permanently forever and all of its relations
+Delete a group permanently forever and all of its relations
 
 ##### Parameters
 
@@ -135,7 +135,7 @@ Delete a Group permanently forever and all of its relations
 #### POST
 ##### Summary
 
-Disable a Group
+Disable a group
 
 ##### Parameters
 
@@ -157,7 +157,7 @@ Disable a Group
 #### POST
 ##### Summary
 
-Enable a Group
+Enable a group
 
 ##### Parameters
 
@@ -193,6 +193,48 @@ Get all users for a group
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListGroupUsersResponse](#v1beta1listgroupusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Add users to a group, existing users will be ignored
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | { **"userIds"**: [ string ] } |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AddGroupUsersResponse](#v1beta1addgroupusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{orgId}/groups/{id}/users/{userId}
+
+#### DELETE
+##### Summary
+
+Remove user from a group
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| userId | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1RemoveGroupUserResponse](#v1beta1removegroupuserresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ## default
@@ -262,7 +304,7 @@ Create organization
 #### GET
 ##### Summary
 
-Get Organization by ID or slug
+Get organization by ID or slug
 
 ##### Parameters
 
@@ -298,7 +340,7 @@ Delete an organization permanently forever and all of its relations
 #### PUT
 ##### Summary
 
-Update Organization by ID
+Update organization by ID
 
 ##### Parameters
 
@@ -319,7 +361,7 @@ Update Organization by ID
 #### GET
 ##### Summary
 
-Get all Admins of an Organization
+Get all admins of an organization
 
 ##### Parameters
 
@@ -402,7 +444,7 @@ Get all projects that belong to an organization
 #### GET
 ##### Summary
 
-List Organization users
+List organization users
 
 ##### Parameters
 
@@ -416,6 +458,46 @@ List Organization users
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListOrganizationUsersResponse](#v1beta1listorganizationusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Add a user to an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | { **"userIds"**: [ string ] } |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AddOrganizationUsersResponse](#v1beta1addorganizationusersresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/users/{userId}
+
+#### DELETE
+##### Summary
+
+Remove a user to an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| userId | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1RemoveOrganizationUserResponse](#v1beta1removeorganizationuserresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ## default
@@ -446,7 +528,7 @@ Get all project
 #### POST
 ##### Summary
 
-Create Project
+Create oroject
 
 ##### Parameters
 
@@ -466,7 +548,7 @@ Create Project
 #### GET
 ##### Summary
 
-Get Project by ID
+Get oroject by ID
 
 ##### Parameters
 
@@ -484,7 +566,7 @@ Get Project by ID
 #### DELETE
 ##### Summary
 
-Delete a Project permanently forever and all of its relations
+Delete a oroject permanently forever and all of its relations
 
 ##### Parameters
 
@@ -502,7 +584,7 @@ Delete a Project permanently forever and all of its relations
 #### PUT
 ##### Summary
 
-Update Project by ID
+Update oroject by ID
 
 ##### Parameters
 
@@ -523,7 +605,7 @@ Update Project by ID
 #### GET
 ##### Summary
 
-Get all Admins of a Project
+Get all Admins of a oroject
 
 ##### Parameters
 
@@ -543,7 +625,7 @@ Get all Admins of a Project
 #### POST
 ##### Summary
 
-Disable a Project
+Disable a oroject
 
 ##### Parameters
 
@@ -564,7 +646,7 @@ Disable a Project
 #### POST
 ##### Summary
 
-Enable a Project
+Enable a oroject
 
 ##### Parameters
 
@@ -585,7 +667,7 @@ Enable a Project
 #### GET
 ##### Summary
 
-Get all users of a Project
+Get all users of a oroject
 
 ##### Parameters
 
@@ -615,30 +697,6 @@ Get all relations
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListRelationsResponse](#v1beta1listrelationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/object/{objectNamespace}/{objectId}/subject/{subjectNamespace}/{subjectId}/relation/{relation}
-
-#### DELETE
-##### Summary
-
-Remove a subject having a relation from an object
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| objectNamespace | path |  | Yes | string |
-| objectId | path |  | Yes | string |
-| subjectNamespace | path |  | Yes | string |
-| subjectId | path |  | Yes | string |
-| relation | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteRelationResponse](#v1beta1deleterelationresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/relations
@@ -681,6 +739,28 @@ Get Relation by ID
 | 200 | A successful response. | [v1beta1GetRelationResponse](#v1beta1getrelationresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
+### /v1beta1/relations/{relation}/object/{object}/subject/{subject}
+
+#### DELETE
+##### Summary
+
+Remove a subject having a relation from an object
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| relation | path |  | Yes | string |
+| object | path | objectnamespace:uuid | Yes | string |
+| subject | path | subjectnamespace:uuid | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteRelationResponse](#v1beta1deleterelationresponse) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
 ## default
 
 ### /v1beta1/admin/resources
@@ -694,10 +774,10 @@ Get all resources
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
-| groupId | query |  | No | string |
+| userId | query |  | No | string |
 | projectId | query |  | No | string |
 | organizationId | query |  | No | string |
-| namespaceId | query |  | No | string |
+| namespace | query |  | No | string |
 
 ##### Responses
 
@@ -718,13 +798,13 @@ Create Resource
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.projectId | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"namespaceId"**: string, **"relations"**: [ [v1beta1Relation](#v1beta1relation) ], **"userId"**: string, **"metadata"**: object } |
+| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
 
 ##### Responses
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateResourceResponse](#v1beta1createresourceresponse) |
+| 200 | A successful response. | [v1beta1CreateProjectResourceResponse](#v1beta1createprojectresourceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/projects/{body.projectId}/resources/{id}
@@ -740,13 +820,13 @@ Update Resource by ID
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.projectId | path |  | Yes | string |
 | id | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"namespaceId"**: string, **"relations"**: [ [v1beta1Relation](#v1beta1relation) ], **"userId"**: string, **"metadata"**: object } |
+| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
 
 ##### Responses
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateResourceResponse](#v1beta1updateresourceresponse) |
+| 200 | A successful response. | [v1beta1UpdateProjectResourceResponse](#v1beta1updateprojectresourceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/projects/{projectId}/resources
@@ -761,7 +841,7 @@ Get all resources
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | projectId | path |  | Yes | string |
-| namespaceId | query |  | No | string |
+| namespace | query |  | No | string |
 
 ##### Responses
 
@@ -788,7 +868,7 @@ Get Resource by ID
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetResourceResponse](#v1beta1getresourceresponse) |
+| 200 | A successful response. | [v1beta1GetProjectResourceResponse](#v1beta1getprojectresourceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### DELETE
@@ -807,7 +887,7 @@ Delete a resource permanently forever
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteResourceResponse](#v1beta1deleteresourceresponse) |
+| 200 | A successful response. | [v1beta1DeleteProjectResourceResponse](#v1beta1deleteprojectresourceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ## default
@@ -1311,30 +1391,12 @@ Get all Namespaces
 | 200 | A successful response. | [v1beta1ListNamespacesResponse](#v1beta1listnamespacesresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-#### POST
-##### Summary
-
-Create Namespace
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1NamespaceRequestBody](#v1beta1namespacerequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateNamespaceResponse](#v1beta1createnamespaceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
 ### /v1beta1/namespaces/{id}
 
 #### GET
 ##### Summary
 
-Get Namespace by ID
+Get a Namespaces
 
 ##### Parameters
 
@@ -1347,25 +1409,6 @@ Get Namespace by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1GetNamespaceResponse](#v1beta1getnamespaceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Namespace by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1NamespaceRequestBody](#v1beta1namespacerequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateNamespaceResponse](#v1beta1updatenamespaceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ## default
@@ -1382,7 +1425,7 @@ Create Role
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.orgId | path |  | Yes | string |
-| body | body |  | Yes | { **"id"**: string, **"name"**: string, **"permissions"**: [ string ], **"metadata"**: object } |
+| body | body |  | Yes | { **"id"**: string, **"name"**: string, **"permissions"**: [ string ], **"metadata"**: object, **"title"**: string } |
 
 ##### Responses
 
@@ -1404,7 +1447,7 @@ Update Role by ID
 | ---- | ---------- | ----------- | -------- | ------ |
 | body.orgId | path |  | Yes | string |
 | id | path |  | Yes | string |
-| body | body |  | Yes | { **"id"**: string, **"name"**: string, **"permissions"**: [ string ], **"metadata"**: object } |
+| body | body |  | Yes | { **"id"**: string, **"name"**: string, **"permissions"**: [ string ], **"metadata"**: object, **"title"**: string } |
 
 ##### Responses
 
@@ -1425,6 +1468,7 @@ Get custom roles under an org
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | orgId | path |  | Yes | string |
+| state | query |  | No | string |
 
 ##### Responses
 
@@ -1479,6 +1523,12 @@ Delete a role permanently forever and all of its relations
 ##### Summary
 
 List all pre-defined roles
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| state | query |  | No | string |
 
 ##### Responses
 
@@ -1544,13 +1594,13 @@ Get all Permissions
 #### POST
 ##### Summary
 
-Create Permission
+Create permission
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1PermissionRequestBody](#v1beta1permissionrequestbody) |
+| body | body |  | Yes | [v1beta1CreatePermissionRequest](#v1beta1createpermissionrequest) |
 
 ##### Responses
 
@@ -1564,7 +1614,7 @@ Create Permission
 #### GET
 ##### Summary
 
-Get Permission by ID
+Get permission by ID
 
 ##### Parameters
 
@@ -1582,7 +1632,7 @@ Get Permission by ID
 #### DELETE
 ##### Summary
 
-Delete Permission by ID
+Delete permission by ID
 
 ##### Parameters
 
@@ -1600,7 +1650,7 @@ Delete Permission by ID
 #### PUT
 ##### Summary
 
-Update Permission by ID
+Update permission by ID
 
 ##### Parameters
 
@@ -1633,6 +1683,7 @@ Get all policies
 | projectId | query |  | No | string |
 | userId | query |  | No | string |
 | roleId | query |  | No | string |
+| groupId | query |  | No | string |
 
 ##### Responses
 
@@ -1644,7 +1695,7 @@ Get all policies
 #### POST
 ##### Summary
 
-Create Policy
+Create policy
 
 ##### Parameters
 
@@ -1664,7 +1715,7 @@ Create Policy
 #### GET
 ##### Summary
 
-Get Policy by ID
+Get policy by ID
 
 ##### Parameters
 
@@ -1700,7 +1751,7 @@ Delete a policy permanently forever and all of its relations
 #### PUT
 ##### Summary
 
-Update Policy by ID
+Update policy by ID
 
 ##### Parameters
 
@@ -1744,6 +1795,18 @@ Update Policy by ID
 | code | integer |  | No |
 | message | string |  | No |
 | details | [ [protobufAny](#protobufany) ] |  | No |
+
+#### v1beta1AddGroupUsersResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1AddGroupUsersResponse | object |  |  |
+
+#### v1beta1AddOrganizationUsersResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1AddOrganizationUsersResponse | object |  |  |
 
 #### v1beta1AuthCallbackResponse
 
@@ -1796,12 +1859,6 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | metaschema | [v1beta1MetaSchema](#v1beta1metaschema) |  | No |
 
-#### v1beta1CreateNamespaceResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| namespace | [v1beta1Namespace](#v1beta1namespace) |  | No |
-
 #### v1beta1CreateOrganizationResponse
 
 | Name | Type | Description | Required |
@@ -1814,17 +1871,29 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | role | [v1beta1Role](#v1beta1role) |  | No |
 
+#### v1beta1CreatePermissionRequest
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| bodies | [ [v1beta1PermissionRequestBody](#v1beta1permissionrequestbody) ] |  | No |
+
 #### v1beta1CreatePermissionResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| permission | [v1beta1Permission](#v1beta1permission) |  | No |
+| permissions | [ [v1beta1Permission](#v1beta1permission) ] |  | No |
 
 #### v1beta1CreatePolicyResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | policy | [v1beta1Policy](#v1beta1policy) |  | No |
+
+#### v1beta1CreateProjectResourceResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| resource | [v1beta1Resource](#v1beta1resource) |  | No |
 
 #### v1beta1CreateProjectResponse
 
@@ -1837,12 +1906,6 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | relation | [v1beta1Relation](#v1beta1relation) |  | No |
-
-#### v1beta1CreateResourceResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| resource | [v1beta1Resource](#v1beta1resource) |  | No |
 
 #### v1beta1CreateRoleResponse
 
@@ -1892,6 +1955,12 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | v1beta1DeletePolicyResponse | object |  |  |
 
+#### v1beta1DeleteProjectResourceResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteProjectResourceResponse | object |  |  |
+
 #### v1beta1DeleteProjectResponse
 
 | Name | Type | Description | Required |
@@ -1902,13 +1971,7 @@ Update Policy by ID
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| message | string |  | No |
-
-#### v1beta1DeleteResourceResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| v1beta1DeleteResourceResponse | object |  |  |
+| v1beta1DeleteRelationResponse | object |  |  |
 
 #### v1beta1DeleteRoleResponse
 
@@ -2030,6 +2093,12 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | policy | [v1beta1Policy](#v1beta1policy) |  | No |
 
+#### v1beta1GetProjectResourceResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| resource | [v1beta1Resource](#v1beta1resource) |  | No |
+
 #### v1beta1GetProjectResponse
 
 | Name | Type | Description | Required |
@@ -2041,12 +2110,6 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | relation | [v1beta1Relation](#v1beta1relation) |  | No |
-
-#### v1beta1GetResourceResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| resource | [v1beta1Resource](#v1beta1resource) |  | No |
 
 #### v1beta1GetUserResponse
 
@@ -2060,7 +2123,7 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | id | string |  | No |
 | name | string |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 | orgId | string |  | No |
 | metadata | object |  | No |
 | createdAt | dateTime |  | No |
@@ -2071,7 +2134,7 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | name | string |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 | metadata | object |  | No |
 | orgId | string |  | No |
 
@@ -2254,20 +2317,13 @@ Update Policy by ID
 | createdAt | dateTime |  | No |
 | updatedAt | dateTime |  | No |
 
-#### v1beta1NamespaceRequestBody
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| id | string |  | No |
-| name | string |  | No |
-
 #### v1beta1Organization
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | id | string |  | No |
 | name | string |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 | metadata | object |  | No |
 | createdAt | dateTime |  | No |
 | updatedAt | dateTime |  | No |
@@ -2277,7 +2333,7 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | name | string |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 | metadata | object |  | No |
 
 #### v1beta1Permission
@@ -2286,33 +2342,32 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | id | string |  | No |
 | name | string |  | No |
+| title | string |  | No |
 | createdAt | dateTime |  | No |
 | updatedAt | dateTime |  | No |
-| namespaceId | string |  | No |
+| namespace | string |  | No |
 | metadata | object |  | No |
-| slug | string |  | No |
 
 #### v1beta1PermissionRequestBody
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| id | string |  | No |
 | name | string |  | No |
-| namespaceId | string |  | No |
+| namespace | string |  | No |
 | metadata | object |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 
 #### v1beta1Policy
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | id | string |  | No |
+| title | string |  | No |
 | createdAt | dateTime |  | No |
 | updatedAt | dateTime |  | No |
-| namespaceId | string |  | No |
 | roleId | string |  | No |
-| resourceId | string |  | No |
-| userId | string |  | No |
+| resource | string |  | No |
+| principal | string |  | No |
 | metadata | object |  | No |
 
 #### v1beta1PolicyRequestBody
@@ -2320,9 +2375,9 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | roleId | string |  | No |
-| resourceId | string |  | No |
-| namespaceId | string |  | No |
-| userId | string |  | No |
+| title | string |  | No |
+| resource | string |  | No |
+| principal | string |  | No |
 | metadata | object |  | No |
 
 #### v1beta1Project
@@ -2331,7 +2386,7 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | id | string |  | No |
 | name | string |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 | orgId | string |  | No |
 | metadata | object |  | No |
 | createdAt | dateTime |  | No |
@@ -2342,7 +2397,7 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | name | string |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 | metadata | object |  | No |
 | orgId | string |  | No |
 
@@ -2351,25 +2406,33 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | id | string |  | No |
-| objectId | string |  | No |
-| objectNamespace | string |  | No |
-| subjectId | string |  | No |
 | createdAt | dateTime |  | No |
 | updatedAt | dateTime |  | No |
-| subjectNamespace | string |  | No |
-| subjectSubRelationName | string |  | No |
-| relationName | string |  | No |
+| subjectSubRelation | string |  | No |
+| relation | string |  | No |
+| object | string |  | No |
+| subject | string |  | No |
 
 #### v1beta1RelationRequestBody
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| objectId | string |  | No |
-| objectNamespace | string |  | No |
-| subjectId | string |  | No |
-| relationName | string |  | No |
-| subjectNamespace | string |  | No |
+| object | string |  | No |
+| subject | string |  | No |
+| relation | string |  | No |
 | subjectSubRelation | string |  | No |
+
+#### v1beta1RemoveGroupUserResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1RemoveGroupUserResponse | object |  |  |
+
+#### v1beta1RemoveOrganizationUserResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1RemoveOrganizationUserResponse | object |  |  |
 
 #### v1beta1Resource
 
@@ -2381,7 +2444,7 @@ Update Policy by ID
 | updatedAt | dateTime |  | No |
 | urn | string |  | No |
 | projectId | string |  | No |
-| namespaceId | string |  | No |
+| namespace | string |  | No |
 | userId | string |  | No |
 | metadata | object |  | No |
 
@@ -2391,8 +2454,7 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | name | string |  | No |
 | projectId | string |  | No |
-| namespaceId | string |  | No |
-| relations | [ [v1beta1Relation](#v1beta1relation) ] |  | No |
+| namespace | string |  | No |
 | userId | string |  | No |
 | metadata | object |  | No |
 
@@ -2403,6 +2465,7 @@ Update Policy by ID
 | id | string |  | No |
 | name | string |  | No |
 | permissions | [ string ] |  | No |
+| title | string |  | No |
 | metadata | object |  | No |
 | createdAt | dateTime |  | No |
 | updatedAt | dateTime |  | No |
@@ -2418,6 +2481,7 @@ Update Policy by ID
 | permissions | [ string ] |  | No |
 | orgId | string |  | No |
 | metadata | object |  | No |
+| title | string |  | No |
 
 #### v1beta1UpdateCurrentUserResponse
 
@@ -2436,12 +2500,6 @@ Update Policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | metaschema | [v1beta1MetaSchema](#v1beta1metaschema) |  | No |
-
-#### v1beta1UpdateNamespaceResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| namespace | [v1beta1Namespace](#v1beta1namespace) |  | No |
 
 #### v1beta1UpdateOrganizationResponse
 
@@ -2467,17 +2525,17 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | policies | [ [v1beta1Policy](#v1beta1policy) ] |  | No |
 
+#### v1beta1UpdateProjectResourceResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| resource | [v1beta1Resource](#v1beta1resource) |  | No |
+
 #### v1beta1UpdateProjectResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | project | [v1beta1Project](#v1beta1project) |  | No |
-
-#### v1beta1UpdateResourceResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| resource | [v1beta1Resource](#v1beta1resource) |  | No |
 
 #### v1beta1UpdateUserResponse
 
@@ -2491,7 +2549,7 @@ Update Policy by ID
 | ---- | ---- | ----------- | -------- |
 | id | string |  | No |
 | name | string |  | No |
-| slug | string |  | No |
+| title | string |  | No |
 | email | string |  | No |
 | metadata | object |  | No |
 | createdAt | dateTime |  | No |
@@ -2504,4 +2562,4 @@ Update Policy by ID
 | name | string |  | No |
 | email | string |  | No |
 | metadata | object |  | No |
-| slug | string |  | No |
+| title | string |  | No |

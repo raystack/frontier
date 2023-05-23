@@ -2,6 +2,7 @@ package organization
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/odpf/shield/core/relation"
@@ -58,7 +59,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	}
 
 	// attach user as owner
-	if err = s.AddOwner(ctx, newOrg, currentUser); err != nil {
+	if err = s.AddMember(ctx, newOrg.ID, currentUser.ID, schema.OwnerRelationName); err != nil {
 		return newOrg, err
 	}
 
@@ -70,17 +71,17 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	return newOrg, nil
 }
 
-func (s Service) AddOwner(ctx context.Context, newOrg Organization, currentUser user.User) error {
+func (s Service) AddMember(ctx context.Context, orgID, userID, relationName string) error {
 	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
-			ID:        newOrg.ID,
+			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        currentUser.ID,
+			ID:        userID,
 			Namespace: schema.UserPrincipal,
 		},
-		RelationName: schema.OwnerRelation,
+		RelationName: relationName,
 	}); err != nil {
 		return err
 	}
@@ -139,6 +140,37 @@ func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization,
 		return []Organization{}, nil
 	}
 	return s.repository.GetByIDs(ctx, subjectIDs)
+}
+
+func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) error {
+	var err error
+	for _, userID := range userIDs {
+		if currentErr := s.AddMember(ctx, orgID, userID, schema.MemberRelationName); currentErr != nil {
+			err = errors.Join(err, currentErr)
+		}
+	}
+	return err
+}
+
+// RemoveUsers removes users from an organization as members
+func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string) error {
+	var err error
+	for _, userID := range userIDs {
+		if currentErr := s.relationService.Delete(ctx, relation.Relation{
+			Object: relation.Object{
+				ID:        orgID,
+				Namespace: schema.OrganizationNamespace,
+			},
+			Subject: relation.Subject{
+				ID:        userID,
+				Namespace: schema.UserPrincipal,
+			},
+			RelationName: schema.MemberRelationName,
+		}); err != nil {
+			err = errors.Join(err, currentErr)
+		}
+	}
+	return err
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {

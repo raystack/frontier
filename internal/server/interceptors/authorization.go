@@ -136,6 +136,14 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*shieldv1beta1.ListOrganizationProjectsRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.ProjectListPermission)
 	},
+	"/odpf.shield.v1beta1.ShieldService/AddOrganizationUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.AddOrganizationUsersRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
+	},
+	"/odpf.shield.v1beta1.ShieldService/RemoveOrganizationUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.RemoveOrganizationUserRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
+	},
 	"/odpf.shield.v1beta1.ShieldService/EnableOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.EnableOrganizationRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.DeletePermission)
@@ -169,6 +177,14 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/odpf.shield.v1beta1.ShieldService/ListGroupUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.ListGroupUsersRequest)
 		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.GetPermission)
+	},
+	"/odpf.shield.v1beta1.ShieldService/AddGroupUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.AddGroupUsersRequest)
+		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.UpdatePermission)
+	},
+	"/odpf.shield.v1beta1.ShieldService/RemoveGroupUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.RemoveGroupUserRequest)
+		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.UpdatePermission)
 	},
 	"/odpf.shield.v1beta1.ShieldService/EnableGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.EnableGroupRequest)

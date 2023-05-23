@@ -2,6 +2,7 @@ package group
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error)
+	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -54,10 +56,10 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	}
 
 	// attach current user to group as owner
-	if err = s.addGroupMember(ctx, newGroup, relation.Subject{
+	if err = s.addGroupMember(ctx, newGroup.ID, relation.Subject{
 		ID:        currentUser.ID,
 		Namespace: schema.UserPrincipal,
-	}, schema.OwnerRole); err != nil {
+	}, schema.OwnerRelationName); err != nil {
 		return Group{}, err
 	}
 
@@ -93,7 +95,7 @@ func (s Service) ListUserGroups(ctx context.Context, userId string, roleId strin
 }
 
 func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error) {
-	relations, err := s.relationService.ListRelations(ctx, relation.Relation{
+	subjectIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.GroupNamespace,
 			ID:        groupID,
@@ -101,28 +103,23 @@ func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.Use
 		Subject: relation.Subject{
 			Namespace: schema.UserPrincipal,
 		},
-		RelationName: schema.MemberRelationName,
+		RelationName: schema.MembershipPermission,
 	})
 	if err != nil {
 		return nil, err
 	}
-
-	var userIDs []string
-	for _, rel := range relations {
-		userIDs = append(userIDs, rel.Subject.ID)
-	}
-	if len(userIDs) == 0 {
+	if len(subjectIDs) == 0 {
 		// no users
 		return nil, nil
 	}
-	return s.userService.GetByIDs(ctx, userIDs)
+	return s.userService.GetByIDs(ctx, subjectIDs)
 }
 
 // addGroupMember adds a subject(user) to group as member
-func (s Service) addGroupMember(ctx context.Context, team Group, subject relation.Subject, relationName string) error {
+func (s Service) addGroupMember(ctx context.Context, groupID string, subject relation.Subject, relationName string) error {
 	rel := relation.Relation{
 		Object: relation.Object{
-			ID:        team.ID,
+			ID:        groupID,
 			Namespace: schema.GroupNamespace,
 		},
 		Subject:      subject,
@@ -168,7 +165,7 @@ func (s Service) addAsOrgMember(ctx context.Context, team Group) error {
 			Namespace:       schema.GroupNamespace,
 			SubRelationName: schema.MemberRelationName,
 		},
-		RelationName: schema.MemberRole,
+		RelationName: schema.MemberRelationName,
 	}
 
 	_, err := s.relationService.Create(ctx, rel)
@@ -205,6 +202,41 @@ func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, er
 		return []Group{}, nil
 	}
 	return s.repository.GetByIDs(ctx, groupIDs)
+}
+
+func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string) error {
+	var err error
+	for _, userID := range userIDs {
+		currentErr := s.addGroupMember(ctx, groupID, relation.Subject{
+			ID:        userID,
+			Namespace: schema.UserPrincipal,
+		}, schema.MemberRelationName)
+		if currentErr != nil {
+			err = errors.Join(err, currentErr)
+		}
+	}
+	return err
+}
+
+// RemoveUsers removes users from a group as members
+func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
+	var err error
+	for _, userID := range userIDs {
+		if currentErr := s.relationService.Delete(ctx, relation.Relation{
+			Object: relation.Object{
+				ID:        groupID,
+				Namespace: schema.GroupNamespace,
+			},
+			Subject: relation.Subject{
+				ID:        userID,
+				Namespace: schema.UserPrincipal,
+			},
+			RelationName: schema.MemberRelationName,
+		}); err != nil {
+			err = errors.Join(err, currentErr)
+		}
+	}
+	return err
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {
