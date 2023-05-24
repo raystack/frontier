@@ -61,22 +61,6 @@ View a group
 
 Manage namespaces
 
-### `shield namespace create [flags]`
-
-Upsert a namespace
-
-```
--f, --file string   Path to the namespace body file
-````
-
-### `shield namespace edit [flags]`
-
-Edit a namespace
-
-```
--f, --file string   Path to the namespace body file
-````
-
 ### `shield namespace list`
 
 List all namespaces

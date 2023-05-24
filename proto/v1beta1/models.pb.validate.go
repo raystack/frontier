@@ -69,16 +69,7 @@ func (m *User) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if !_User_Title_Pattern.MatchString(m.GetTitle()) {
-		err := UserValidationError{
-			field:  "Title",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_ ]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Title
 
 	if err := m._validateEmail(m.GetEmail()); err != nil {
 		err = UserValidationError{
@@ -307,8 +298,6 @@ var _ interface {
 } = UserValidationError{}
 
 var _User_Name_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$")
-
-var _User_Title_Pattern = regexp.MustCompile("^[A-Za-z0-9-_ ]+$")
 
 // Validate checks the field values on Group with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

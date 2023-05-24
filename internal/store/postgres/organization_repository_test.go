@@ -78,7 +78,7 @@ func (s *OrganizationRepositoryTestSuite) SetupTest() {
 		Subject: relation.Subject{
 			ID:              s.users[0].ID,
 			Namespace:       schema.UserPrincipal,
-			SubRelationName: schema.OwnerRole,
+			SubRelationName: schema.OwnerRelationName,
 		},
 		Object: relation.Object{
 			ID:        s.orgs[0].ID,

@@ -119,7 +119,7 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 			ID:        res.UserID,
 			Namespace: schema.UserPrincipal,
 		},
-		RelationName: schema.OwnerRelation,
+		RelationName: schema.OwnerRelationName,
 	}); err != nil {
 		return err
 	}

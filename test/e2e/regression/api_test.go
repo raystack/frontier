@@ -126,7 +126,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrgResp.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userResp.GetUser().GetId()),
-			Relation: schema.MemberRole,
+			Relation: schema.MemberRelationName,
 		}})
 		s.Assert().NoError(err)
 
@@ -156,7 +156,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrgResp.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResponse.GetUser().GetId()),
-			Relation: schema.MemberRole,
+			Relation: schema.MemberRelationName,
 		}})
 		s.Assert().NoError(err)
 
@@ -431,6 +431,49 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().Error(err)
 		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
 	})
+
+	s.Run("8. create a group and add new member to it successfully", func() {
+		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
+			Body: &shieldv1beta1.GroupRequestBody{
+				Name:  "group-8",
+				OrgId: myOrg.GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createGroupResp.GetGroup())
+
+		listGroupUsers, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+		// only admin as member
+		s.Assert().Len(listGroupUsers.GetUsers(), 1)
+
+		// add a user
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Email: "user-for-group@odpf.io",
+				Name:  "user-for-group",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createUserResp)
+		addMemberResp, err := s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.AddGroupUsersRequest{
+			Id:      createGroupResp.GetGroup().GetId(),
+			OrgId:   createGroupResp.GetGroup().GetOrgId(),
+			UserIds: []string{createUserResp.GetUser().GetId()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(addMemberResp)
+
+		listGroupUsersAfterUser, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(listGroupUsersAfterUser.GetUsers(), 2)
+	})
 }
 
 func (s *APIRegressionTestSuite) TestUserAPI() {
@@ -594,13 +637,13 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: schema.OwnerRole,
+			Relation: schema.OwnerRelationName,
 		}})
 		s.Assert().NoError(err)
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.GroupNamespace, existingGroup.GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: schema.MemberRole,
+			Relation: schema.MemberRelationName,
 		}})
 		s.Assert().NoError(err)
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
@@ -668,7 +711,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: schema.OwnerRole,
+			Relation: schema.OwnerRelationName,
 		}})
 		s.Assert().NoError(err)
 		orgUsersRespAfterRelation, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationUsersRequest{
@@ -743,7 +786,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: schema.OwnerRole,
+			Relation: schema.OwnerRelationName,
 		}})
 		s.Assert().NoError(err)
 
@@ -880,7 +923,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: schema.OwnerRole,
+			Relation: schema.OwnerRelationName,
 		}})
 		s.Assert().NoError(err)
 
@@ -894,7 +937,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		_, err = s.testBench.Client.DeleteRelation(ctxOrgAdminAuth, &shieldv1beta1.DeleteRelationRequest{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: schema.OwnerRole,
+			Relation: schema.OwnerRelationName,
 		})
 		s.Assert().NoError(err)
 
@@ -933,7 +976,7 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrgResp.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userResp.GetUser().GetId()),
-			Relation: schema.MemberRole,
+			Relation: schema.MemberRelationName,
 		}})
 		s.Assert().NoError(err)
 

@@ -62,7 +62,7 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	// bind role with user
 	subjectSubRelation := ""
 	if pol.PrincipalType == schema.GroupPrincipal {
-		subjectSubRelation = schema.MemberRole
+		subjectSubRelation = schema.MemberRelationName
 	}
 	_, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{

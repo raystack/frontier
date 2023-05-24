@@ -23,23 +23,17 @@ const (
 	RoleBindingNamespace  = "app/rolebinding"
 	RoleNamespace         = "app/role"
 
-	// relation
+	// relations
 	PlatformRelationName     = "platform"
 	AdminRelationName        = "admin"
 	OrganizationRelationName = "org"
 	ProjectRelationName      = "project"
 	GroupRelationName        = "group"
 	MemberRelationName       = "member"
+	OwnerRelationName        = "owner"
 	RoleRelationName         = "role"
 	RoleGrantRelationName    = "granted"
 	RoleBearerRelationName   = "bearer"
-
-	// relations
-	OwnerRelation = "owner"
-
-	// Roles
-	OwnerRole  = "owner"
-	MemberRole = "member"
 
 	// permissions
 	ListPermission          = "list"
@@ -213,6 +207,13 @@ var PredefinedRoles = []RoleDefinition{
 		Name: "app_project_viewer",
 		Permissions: []string{
 			"app_project_get",
+		},
+	},
+	// group
+	{
+		Name: "app_group_owner",
+		Permissions: []string{
+			"app_group_administer",
 		},
 	},
 }

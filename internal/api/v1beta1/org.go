@@ -32,6 +32,8 @@ type OrganizationService interface {
 	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
+	AddUsers(ctx context.Context, orgID string, userID []string) error
+	RemoveUsers(ctx context.Context, orgID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -303,6 +305,24 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1
 	}
 
 	return &shieldv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}, nil
+}
+
+func (h Handler) AddOrganizationUsers(ctx context.Context, request *shieldv1beta1.AddOrganizationUsersRequest) (*shieldv1beta1.AddOrganizationUsersResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.orgService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.AddOrganizationUsersResponse{}, nil
+}
+
+func (h Handler) RemoveOrganizationUser(ctx context.Context, request *shieldv1beta1.RemoveOrganizationUserRequest) (*shieldv1beta1.RemoveOrganizationUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.orgService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return &shieldv1beta1.RemoveOrganizationUserResponse{}, nil
 }
 
 func (h Handler) EnableOrganization(ctx context.Context, request *shieldv1beta1.EnableOrganizationRequest) (*shieldv1beta1.EnableOrganizationResponse, error) {

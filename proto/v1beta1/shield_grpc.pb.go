@@ -37,6 +37,8 @@ const (
 	ShieldService_GetGroup_FullMethodName                      = "/odpf.shield.v1beta1.ShieldService/GetGroup"
 	ShieldService_UpdateGroup_FullMethodName                   = "/odpf.shield.v1beta1.ShieldService/UpdateGroup"
 	ShieldService_ListGroupUsers_FullMethodName                = "/odpf.shield.v1beta1.ShieldService/ListGroupUsers"
+	ShieldService_AddGroupUsers_FullMethodName                 = "/odpf.shield.v1beta1.ShieldService/AddGroupUsers"
+	ShieldService_RemoveGroupUser_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/RemoveGroupUser"
 	ShieldService_EnableGroup_FullMethodName                   = "/odpf.shield.v1beta1.ShieldService/EnableGroup"
 	ShieldService_DisableGroup_FullMethodName                  = "/odpf.shield.v1beta1.ShieldService/DisableGroup"
 	ShieldService_DeleteGroup_FullMethodName                   = "/odpf.shield.v1beta1.ShieldService/DeleteGroup"
@@ -50,9 +52,11 @@ const (
 	ShieldService_CreateOrganization_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/CreateOrganization"
 	ShieldService_GetOrganization_FullMethodName               = "/odpf.shield.v1beta1.ShieldService/GetOrganization"
 	ShieldService_UpdateOrganization_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/UpdateOrganization"
+	ShieldService_ListOrganizationProjects_FullMethodName      = "/odpf.shield.v1beta1.ShieldService/ListOrganizationProjects"
 	ShieldService_ListOrganizationAdmins_FullMethodName        = "/odpf.shield.v1beta1.ShieldService/ListOrganizationAdmins"
 	ShieldService_ListOrganizationUsers_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/ListOrganizationUsers"
-	ShieldService_ListOrganizationProjects_FullMethodName      = "/odpf.shield.v1beta1.ShieldService/ListOrganizationProjects"
+	ShieldService_AddOrganizationUsers_FullMethodName          = "/odpf.shield.v1beta1.ShieldService/AddOrganizationUsers"
+	ShieldService_RemoveOrganizationUser_FullMethodName        = "/odpf.shield.v1beta1.ShieldService/RemoveOrganizationUser"
 	ShieldService_EnableOrganization_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/EnableOrganization"
 	ShieldService_DisableOrganization_FullMethodName           = "/odpf.shield.v1beta1.ShieldService/DisableOrganization"
 	ShieldService_DeleteOrganization_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/DeleteOrganization"
@@ -116,6 +120,8 @@ type ShieldServiceClient interface {
 	GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupResponse, error)
 	UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error)
 	ListGroupUsers(ctx context.Context, in *ListGroupUsersRequest, opts ...grpc.CallOption) (*ListGroupUsersResponse, error)
+	AddGroupUsers(ctx context.Context, in *AddGroupUsersRequest, opts ...grpc.CallOption) (*AddGroupUsersResponse, error)
+	RemoveGroupUser(ctx context.Context, in *RemoveGroupUserRequest, opts ...grpc.CallOption) (*RemoveGroupUserResponse, error)
 	EnableGroup(ctx context.Context, in *EnableGroupRequest, opts ...grpc.CallOption) (*EnableGroupResponse, error)
 	DisableGroup(ctx context.Context, in *DisableGroupRequest, opts ...grpc.CallOption) (*DisableGroupResponse, error)
 	DeleteGroup(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*DeleteGroupResponse, error)
@@ -131,9 +137,11 @@ type ShieldServiceClient interface {
 	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
 	GetOrganization(ctx context.Context, in *GetOrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error)
 	UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*UpdateOrganizationResponse, error)
+	ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error)
 	ListOrganizationAdmins(ctx context.Context, in *ListOrganizationAdminsRequest, opts ...grpc.CallOption) (*ListOrganizationAdminsResponse, error)
 	ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
-	ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error)
+	AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error)
+	RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error)
 	EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error)
 	DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error)
 	DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error)
@@ -352,6 +360,24 @@ func (c *shieldServiceClient) ListGroupUsers(ctx context.Context, in *ListGroupU
 	return out, nil
 }
 
+func (c *shieldServiceClient) AddGroupUsers(ctx context.Context, in *AddGroupUsersRequest, opts ...grpc.CallOption) (*AddGroupUsersResponse, error) {
+	out := new(AddGroupUsersResponse)
+	err := c.cc.Invoke(ctx, ShieldService_AddGroupUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) RemoveGroupUser(ctx context.Context, in *RemoveGroupUserRequest, opts ...grpc.CallOption) (*RemoveGroupUserResponse, error) {
+	out := new(RemoveGroupUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_RemoveGroupUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) EnableGroup(ctx context.Context, in *EnableGroupRequest, opts ...grpc.CallOption) (*EnableGroupResponse, error) {
 	out := new(EnableGroupResponse)
 	err := c.cc.Invoke(ctx, ShieldService_EnableGroup_FullMethodName, in, out, opts...)
@@ -469,6 +495,15 @@ func (c *shieldServiceClient) UpdateOrganization(ctx context.Context, in *Update
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error) {
+	out := new(ListOrganizationProjectsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationProjects_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) ListOrganizationAdmins(ctx context.Context, in *ListOrganizationAdminsRequest, opts ...grpc.CallOption) (*ListOrganizationAdminsResponse, error) {
 	out := new(ListOrganizationAdminsResponse)
 	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationAdmins_FullMethodName, in, out, opts...)
@@ -487,9 +522,18 @@ func (c *shieldServiceClient) ListOrganizationUsers(ctx context.Context, in *Lis
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error) {
-	out := new(ListOrganizationProjectsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationProjects_FullMethodName, in, out, opts...)
+func (c *shieldServiceClient) AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error) {
+	out := new(AddOrganizationUsersResponse)
+	err := c.cc.Invoke(ctx, ShieldService_AddOrganizationUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error) {
+	out := new(RemoveOrganizationUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_RemoveOrganizationUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -853,6 +897,8 @@ type ShieldServiceServer interface {
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupResponse, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupResponse, error)
 	ListGroupUsers(context.Context, *ListGroupUsersRequest) (*ListGroupUsersResponse, error)
+	AddGroupUsers(context.Context, *AddGroupUsersRequest) (*AddGroupUsersResponse, error)
+	RemoveGroupUser(context.Context, *RemoveGroupUserRequest) (*RemoveGroupUserResponse, error)
 	EnableGroup(context.Context, *EnableGroupRequest) (*EnableGroupResponse, error)
 	DisableGroup(context.Context, *DisableGroupRequest) (*DisableGroupResponse, error)
 	DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupResponse, error)
@@ -868,9 +914,11 @@ type ShieldServiceServer interface {
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	GetOrganization(context.Context, *GetOrganizationRequest) (*GetOrganizationResponse, error)
 	UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error)
+	ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error)
 	ListOrganizationAdmins(context.Context, *ListOrganizationAdminsRequest) (*ListOrganizationAdminsResponse, error)
 	ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
-	ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error)
+	AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error)
+	RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error)
 	EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error)
 	DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error)
 	DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error)
@@ -978,6 +1026,12 @@ func (UnimplementedShieldServiceServer) UpdateGroup(context.Context, *UpdateGrou
 func (UnimplementedShieldServiceServer) ListGroupUsers(context.Context, *ListGroupUsersRequest) (*ListGroupUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGroupUsers not implemented")
 }
+func (UnimplementedShieldServiceServer) AddGroupUsers(context.Context, *AddGroupUsersRequest) (*AddGroupUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddGroupUsers not implemented")
+}
+func (UnimplementedShieldServiceServer) RemoveGroupUser(context.Context, *RemoveGroupUserRequest) (*RemoveGroupUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveGroupUser not implemented")
+}
 func (UnimplementedShieldServiceServer) EnableGroup(context.Context, *EnableGroupRequest) (*EnableGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableGroup not implemented")
 }
@@ -1017,14 +1071,20 @@ func (UnimplementedShieldServiceServer) GetOrganization(context.Context, *GetOrg
 func (UnimplementedShieldServiceServer) UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrganization not implemented")
 }
+func (UnimplementedShieldServiceServer) ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationProjects not implemented")
+}
 func (UnimplementedShieldServiceServer) ListOrganizationAdmins(context.Context, *ListOrganizationAdminsRequest) (*ListOrganizationAdminsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationAdmins not implemented")
 }
 func (UnimplementedShieldServiceServer) ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationProjects not implemented")
+func (UnimplementedShieldServiceServer) AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddOrganizationUsers not implemented")
+}
+func (UnimplementedShieldServiceServer) RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationUser not implemented")
 }
 func (UnimplementedShieldServiceServer) EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableOrganization not implemented")
@@ -1474,6 +1534,42 @@ func _ShieldService_ListGroupUsers_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_AddGroupUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddGroupUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).AddGroupUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_AddGroupUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).AddGroupUsers(ctx, req.(*AddGroupUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_RemoveGroupUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveGroupUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).RemoveGroupUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_RemoveGroupUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).RemoveGroupUser(ctx, req.(*RemoveGroupUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_EnableGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableGroupRequest)
 	if err := dec(in); err != nil {
@@ -1708,6 +1804,24 @@ func _ShieldService_UpdateOrganization_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListOrganizationProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationProjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListOrganizationProjects_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, req.(*ListOrganizationProjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_ListOrganizationAdmins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationAdminsRequest)
 	if err := dec(in); err != nil {
@@ -1744,20 +1858,38 @@ func _ShieldService_ListOrganizationUsers_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListOrganizationProjectsRequest)
+func _ShieldService_AddOrganizationUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrganizationUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, in)
+		return srv.(ShieldServiceServer).AddOrganizationUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationProjects_FullMethodName,
+		FullMethod: ShieldService_AddOrganizationUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, req.(*ListOrganizationProjectsRequest))
+		return srv.(ShieldServiceServer).AddOrganizationUsers(ctx, req.(*AddOrganizationUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_RemoveOrganizationUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveOrganizationUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).RemoveOrganizationUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_RemoveOrganizationUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).RemoveOrganizationUser(ctx, req.(*RemoveOrganizationUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2508,6 +2640,14 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_ListGroupUsers_Handler,
 		},
 		{
+			MethodName: "AddGroupUsers",
+			Handler:    _ShieldService_AddGroupUsers_Handler,
+		},
+		{
+			MethodName: "RemoveGroupUser",
+			Handler:    _ShieldService_RemoveGroupUser_Handler,
+		},
+		{
 			MethodName: "EnableGroup",
 			Handler:    _ShieldService_EnableGroup_Handler,
 		},
@@ -2560,6 +2700,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_UpdateOrganization_Handler,
 		},
 		{
+			MethodName: "ListOrganizationProjects",
+			Handler:    _ShieldService_ListOrganizationProjects_Handler,
+		},
+		{
 			MethodName: "ListOrganizationAdmins",
 			Handler:    _ShieldService_ListOrganizationAdmins_Handler,
 		},
@@ -2568,8 +2712,12 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_ListOrganizationUsers_Handler,
 		},
 		{
-			MethodName: "ListOrganizationProjects",
-			Handler:    _ShieldService_ListOrganizationProjects_Handler,
+			MethodName: "AddOrganizationUsers",
+			Handler:    _ShieldService_AddOrganizationUsers_Handler,
+		},
+		{
+			MethodName: "RemoveOrganizationUser",
+			Handler:    _ShieldService_RemoveOrganizationUser_Handler,
 		},
 		{
 			MethodName: "EnableOrganization",

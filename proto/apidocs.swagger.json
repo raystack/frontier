@@ -819,7 +819,7 @@
     },
     "/v1beta1/organizations/{body.orgId}/groups": {
       "post": {
-        "summary": "Create Group",
+        "summary": "Create group",
         "operationId": "ShieldService_CreateGroup",
         "responses": {
           "200": {
@@ -869,7 +869,7 @@
     },
     "/v1beta1/organizations/{body.orgId}/groups/{id}": {
       "put": {
-        "summary": "Update Group by ID",
+        "summary": "Update group by ID",
         "operationId": "ShieldService_UpdateGroup",
         "responses": {
           "200": {
@@ -1325,11 +1325,93 @@
         "tags": [
           "Organization"
         ]
+      },
+      "post": {
+        "summary": "Add a user to an organization",
+        "operationId": "ShieldService_AddOrganizationUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddOrganizationUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{id}/users/{userId}": {
+      "delete": {
+        "summary": "Remove a user to an organization",
+        "operationId": "ShieldService_RemoveOrganizationUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1RemoveOrganizationUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
       }
     },
     "/v1beta1/organizations/{orgId}/groups": {
       "get": {
-        "summary": "Create Group",
+        "summary": "Create group",
         "operationId": "ShieldService_ListOrganizationGroups",
         "responses": {
           "200": {
@@ -1372,7 +1454,7 @@
     },
     "/v1beta1/organizations/{orgId}/groups/{id}": {
       "get": {
-        "summary": "Get Group by ID",
+        "summary": "Get group by ID",
         "operationId": "ShieldService_GetGroup",
         "responses": {
           "200": {
@@ -1407,7 +1489,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete a Group permanently forever and all of its relations",
+        "summary": "Delete a group permanently forever and all of its relations",
         "operationId": "ShieldService_DeleteGroup",
         "responses": {
           "200": {
@@ -1444,7 +1526,7 @@
     },
     "/v1beta1/organizations/{orgId}/groups/{id}/disable": {
       "post": {
-        "summary": "Disable a Group",
+        "summary": "Disable a group",
         "operationId": "ShieldService_DisableGroup",
         "responses": {
           "200": {
@@ -1489,7 +1571,7 @@
     },
     "/v1beta1/organizations/{orgId}/groups/{id}/enable": {
       "post": {
-        "summary": "Enable a Group",
+        "summary": "Enable a group",
         "operationId": "ShieldService_EnableGroup",
         "responses": {
           "200": {
@@ -1559,6 +1641,100 @@
           },
           {
             "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      },
+      "post": {
+        "summary": "Add users to a group, existing users will be ignored",
+        "operationId": "ShieldService_AddGroupUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AddGroupUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/groups/{id}/users/{userId}": {
+      "delete": {
+        "summary": "Remove user from a group",
+        "operationId": "ShieldService_RemoveGroupUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1RemoveGroupUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -3186,6 +3362,12 @@
         }
       }
     },
+    "v1beta1AddGroupUsersResponse": {
+      "type": "object"
+    },
+    "v1beta1AddOrganizationUsersResponse": {
+      "type": "object"
+    },
     "v1beta1AuthCallbackResponse": {
       "type": "object"
     },
@@ -4156,6 +4338,12 @@
           "type": "string"
         }
       }
+    },
+    "v1beta1RemoveGroupUserResponse": {
+      "type": "object"
+    },
+    "v1beta1RemoveOrganizationUserResponse": {
+      "type": "object"
     },
     "v1beta1Resource": {
       "type": "object",

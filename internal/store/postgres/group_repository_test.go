@@ -96,7 +96,7 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 				ID:        group.ID,
 				Namespace: schema.GroupNamespace,
 			},
-			RelationName: schema.MemberRole,
+			RelationName: schema.MemberRelationName,
 		})
 		if err != nil {
 			s.T().Fatal(err)
@@ -113,7 +113,7 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 				ID:        s.groups[0].ID,
 				Namespace: schema.GroupNamespace,
 			},
-			RelationName: schema.MemberRole,
+			RelationName: schema.MemberRelationName,
 		})
 		if err != nil {
 			s.T().Fatal(err)

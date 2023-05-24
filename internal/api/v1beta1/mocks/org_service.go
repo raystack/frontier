@@ -22,6 +22,50 @@ func (_m *OrganizationService) EXPECT() *OrganizationService_Expecter {
 	return &OrganizationService_Expecter{mock: &_m.Mock}
 }
 
+// AddUsers provides a mock function with given fields: ctx, orgID, userID
+func (_m *OrganizationService) AddUsers(ctx context.Context, orgID string, userID []string) error {
+	ret := _m.Called(ctx, orgID, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, orgID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OrganizationService_AddUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddUsers'
+type OrganizationService_AddUsers_Call struct {
+	*mock.Call
+}
+
+// AddUsers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID []string
+func (_e *OrganizationService_Expecter) AddUsers(ctx interface{}, orgID interface{}, userID interface{}) *OrganizationService_AddUsers_Call {
+	return &OrganizationService_AddUsers_Call{Call: _e.mock.On("AddUsers", ctx, orgID, userID)}
+}
+
+func (_c *OrganizationService_AddUsers_Call) Run(run func(ctx context.Context, orgID string, userID []string)) *OrganizationService_AddUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *OrganizationService_AddUsers_Call) Return(_a0 error) *OrganizationService_AddUsers_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OrganizationService_AddUsers_Call) RunAndReturn(run func(context.Context, string, []string) error) *OrganizationService_AddUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: ctx, org
 func (_m *OrganizationService) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
 	ret := _m.Called(ctx, org)
@@ -320,6 +364,50 @@ func (_c *OrganizationService_ListByUser_Call) Return(_a0 []organization.Organiz
 }
 
 func (_c *OrganizationService_ListByUser_Call) RunAndReturn(run func(context.Context, string) ([]organization.Organization, error)) *OrganizationService_ListByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveUsers provides a mock function with given fields: ctx, orgID, userID
+func (_m *OrganizationService) RemoveUsers(ctx context.Context, orgID string, userID []string) error {
+	ret := _m.Called(ctx, orgID, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, orgID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OrganizationService_RemoveUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveUsers'
+type OrganizationService_RemoveUsers_Call struct {
+	*mock.Call
+}
+
+// RemoveUsers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID []string
+func (_e *OrganizationService_Expecter) RemoveUsers(ctx interface{}, orgID interface{}, userID interface{}) *OrganizationService_RemoveUsers_Call {
+	return &OrganizationService_RemoveUsers_Call{Call: _e.mock.On("RemoveUsers", ctx, orgID, userID)}
+}
+
+func (_c *OrganizationService_RemoveUsers_Call) Run(run func(ctx context.Context, orgID string, userID []string)) *OrganizationService_RemoveUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *OrganizationService_RemoveUsers_Call) Return(_a0 error) *OrganizationService_RemoveUsers_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OrganizationService_RemoveUsers_Call) RunAndReturn(run func(context.Context, string, []string) error) *OrganizationService_RemoveUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }

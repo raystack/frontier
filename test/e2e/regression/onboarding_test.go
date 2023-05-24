@@ -143,7 +143,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		listRolesResp, err := s.testBench.Client.ListRoles(ctx, &shieldv1beta1.ListRolesRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
-		s.Assert().Len(listRolesResp.GetRoles(), 9)
+		s.Assert().Len(listRolesResp.GetRoles(), 10)
 		for _, r := range listRolesResp.GetRoles() {
 			if r.Name == roleToLookFor {
 				roleID = r.Id
@@ -153,7 +153,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		listPermissionsResp, err := s.testBench.Client.ListPermissions(ctx, &shieldv1beta1.ListPermissionsRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listPermissionsResp)
-		s.Assert().Len(listPermissionsResp.GetPermissions(), 23)
+		s.Assert().Len(listPermissionsResp.GetPermissions(), 24)
 	})
 	s.Run("6. creating role with bad body should fail", func() {
 		_, err := s.testBench.Client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{
@@ -206,11 +206,10 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		newUserEmail = createUserResp.User.Email
 
 		// make user member of the org
-		_, err = s.testBench.Client.CreateRelation(ctx, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
-			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
-			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, newUserID),
-			Relation: schema.MemberRole,
-		}})
+		_, err = s.testBench.Client.AddOrganizationUsers(ctx, &shieldv1beta1.AddOrganizationUsersRequest{
+			Id:      orgID,
+			UserIds: []string{newUserID},
+		})
 		s.Assert().NoError(err)
 
 		// assign new user as project admin
@@ -271,11 +270,10 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NotNil(createUserResp)
 
 		// make user member of the org
-		_, err = s.testBench.Client.CreateRelation(ctx, &shieldv1beta1.CreateRelationRequest{Body: &shieldv1beta1.RelationRequestBody{
-			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
-			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.User.Id),
-			Relation: schema.MemberRole,
-		}})
+		_, err = s.testBench.Client.AddOrganizationUsers(ctx, &shieldv1beta1.AddOrganizationUsersRequest{
+			Id:      orgID,
+			UserIds: []string{createUserResp.User.Id},
+		})
 		s.Assert().NoError(err)
 
 		resourceViewerRole := ""
