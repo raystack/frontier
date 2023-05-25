@@ -413,25 +413,25 @@ func (_c *GroupService_ListGroupUsers_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
-// ListUserGroups provides a mock function with given fields: ctx, userId, roleId
-func (_m *GroupService) ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error) {
-	ret := _m.Called(ctx, userId, roleId)
+// ListUserGroups provides a mock function with given fields: ctx, userId
+func (_m *GroupService) ListUserGroups(ctx context.Context, userId string) ([]group.Group, error) {
+	ret := _m.Called(ctx, userId)
 
 	var r0 []group.Group
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]group.Group, error)); ok {
-		return rf(ctx, userId, roleId)
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]group.Group, error)); ok {
+		return rf(ctx, userId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) []group.Group); ok {
-		r0 = rf(ctx, userId, roleId)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []group.Group); ok {
+		r0 = rf(ctx, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]group.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, userId, roleId)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -447,14 +447,13 @@ type GroupService_ListUserGroups_Call struct {
 // ListUserGroups is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userId string
-//   - roleId string
-func (_e *GroupService_Expecter) ListUserGroups(ctx interface{}, userId interface{}, roleId interface{}) *GroupService_ListUserGroups_Call {
-	return &GroupService_ListUserGroups_Call{Call: _e.mock.On("ListUserGroups", ctx, userId, roleId)}
+func (_e *GroupService_Expecter) ListUserGroups(ctx interface{}, userId interface{}) *GroupService_ListUserGroups_Call {
+	return &GroupService_ListUserGroups_Call{Call: _e.mock.On("ListUserGroups", ctx, userId)}
 }
 
-func (_c *GroupService_ListUserGroups_Call) Run(run func(ctx context.Context, userId string, roleId string)) *GroupService_ListUserGroups_Call {
+func (_c *GroupService_ListUserGroups_Call) Run(run func(ctx context.Context, userId string)) *GroupService_ListUserGroups_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -464,7 +463,7 @@ func (_c *GroupService_ListUserGroups_Call) Return(_a0 []group.Group, _a1 error)
 	return _c
 }
 
-func (_c *GroupService_ListUserGroups_Call) RunAndReturn(run func(context.Context, string, string) ([]group.Group, error)) *GroupService_ListUserGroups_Call {
+func (_c *GroupService_ListUserGroups_Call) RunAndReturn(run func(context.Context, string) ([]group.Group, error)) *GroupService_ListUserGroups_Call {
 	_c.Call.Return(run)
 	return _c
 }

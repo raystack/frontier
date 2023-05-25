@@ -665,6 +665,12 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		}
 		s.Assert().True(userPartOfGroup)
 
+		listUserGroups, err := s.testBench.Client.ListUserGroups(ctxOrgAdminAuth, &shieldv1beta1.ListUserGroupsRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(listUserGroups.GetGroups()))
+
 		// delete user
 		_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, &shieldv1beta1.DeleteUserRequest{
 			Id: createUserResp.GetUser().GetId(),

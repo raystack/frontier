@@ -368,7 +368,7 @@ func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.List
 	logger := grpczap.Extract(ctx)
 	var groups []*shieldv1beta1.Group
 
-	groupsList, err := h.groupService.ListUserGroups(ctx, request.GetId(), request.GetRole())
+	groupsList, err := h.groupService.ListUserGroups(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
