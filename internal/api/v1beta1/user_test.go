@@ -882,7 +882,6 @@ func TestUpdateCurrentUser(t *testing.T) {
 
 func TestHandler_ListUserGroups(t *testing.T) {
 	someUserID := uuid.NewString()
-	someRoleID := "role-id"
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService)
@@ -893,11 +892,10 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return([]group.Group{}, errors.New("some error"))
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
-				Id:   someUserID,
-				Role: someRoleID,
+				Id: someUserID,
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -905,11 +903,10 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return empty list if user does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return([]group.Group{}, nil)
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
-				Id:   someUserID,
-				Role: someRoleID,
+				Id: someUserID,
 			},
 			want:    &shieldv1beta1.ListUserGroupsResponse{},
 			wantErr: nil,
@@ -922,11 +919,10 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				for _, g := range testGroupMap {
 					testGroupList = append(testGroupList, g)
 				}
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return(testGroupList, nil)
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return(testGroupList, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
-				Id:   someUserID,
-				Role: someRoleID,
+				Id: someUserID,
 			},
 			want: &shieldv1beta1.ListUserGroupsResponse{
 				Groups: []*shieldv1beta1.Group{

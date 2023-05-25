@@ -324,6 +324,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 	return updated, nil
 }
 
+// TODO(kushsharma): marked for deletion
 func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
 	if strings.TrimSpace(userID) == "" {
 		return nil, group.ErrInvalidID

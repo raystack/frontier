@@ -16,6 +16,7 @@ type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error)
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
+	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -90,8 +91,25 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	return Group{}, ErrInvalidID
 }
 
-func (s Service) ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error) {
-	return s.repository.ListUserGroups(ctx, userId, roleId)
+func (s Service) ListUserGroups(ctx context.Context, userId string) ([]Group, error) {
+	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
+		Object: relation.Object{
+			Namespace: schema.GroupNamespace,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.UserPrincipal,
+			ID:        userId,
+		},
+		RelationName: schema.MembershipPermission,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(subjectIDs) == 0 {
+		// no groups
+		return nil, nil
+	}
+	return s.repository.GetByIDs(ctx, subjectIDs)
 }
 
 func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error) {
