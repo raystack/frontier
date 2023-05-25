@@ -288,7 +288,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcUserNotFoundError
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidDetails):
 			return nil, grpcBadBodyError
 		case errors.Is(err, user.ErrConflict):
 			return nil, grpcConflictError
@@ -350,6 +350,8 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, grpcUserNotFoundError
+		case errors.Is(err, user.ErrInvalidDetails):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
