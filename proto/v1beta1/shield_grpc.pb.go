@@ -36,8 +36,6 @@ type ShieldServiceClient interface {
 	// Roles
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
-	GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error)
-	UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error)
 	// Organizations
 	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error)
 	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
@@ -53,8 +51,6 @@ type ShieldServiceClient interface {
 	// Actions
 	ListActions(ctx context.Context, in *ListActionsRequest, opts ...grpc.CallOption) (*ListActionsResponse, error)
 	CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*CreateActionResponse, error)
-	GetAction(ctx context.Context, in *GetActionRequest, opts ...grpc.CallOption) (*GetActionResponse, error)
-	UpdateAction(ctx context.Context, in *UpdateActionRequest, opts ...grpc.CallOption) (*UpdateActionResponse, error)
 	// Namespaces
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*CreateNamespaceResponse, error)
@@ -63,8 +59,6 @@ type ShieldServiceClient interface {
 	// Policies
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
-	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
-	UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error)
 	// Relations--------------------------------------------------------------------
 	ListRelations(ctx context.Context, in *ListRelationsRequest, opts ...grpc.CallOption) (*ListRelationsResponse, error)
 	CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error)
@@ -222,24 +216,6 @@ func (c *shieldServiceClient) CreateRole(ctx context.Context, in *CreateRoleRequ
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error) {
-	out := new(GetRoleResponse)
-	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/GetRole", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error) {
-	out := new(UpdateRoleResponse)
-	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/UpdateRole", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *shieldServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error) {
 	out := new(ListOrganizationsResponse)
 	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/ListOrganizations", in, out, opts...)
@@ -348,24 +324,6 @@ func (c *shieldServiceClient) CreateAction(ctx context.Context, in *CreateAction
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetAction(ctx context.Context, in *GetActionRequest, opts ...grpc.CallOption) (*GetActionResponse, error) {
-	out := new(GetActionResponse)
-	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/GetAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) UpdateAction(ctx context.Context, in *UpdateActionRequest, opts ...grpc.CallOption) (*UpdateActionResponse, error) {
-	out := new(UpdateActionResponse)
-	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/UpdateAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *shieldServiceClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
 	out := new(ListNamespacesResponse)
 	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/ListNamespaces", in, out, opts...)
@@ -414,24 +372,6 @@ func (c *shieldServiceClient) ListPolicies(ctx context.Context, in *ListPolicies
 func (c *shieldServiceClient) CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error) {
 	out := new(CreatePolicyResponse)
 	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/CreatePolicy", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
-	out := new(GetPolicyResponse)
-	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/GetPolicy", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *shieldServiceClient) UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error) {
-	out := new(UpdatePolicyResponse)
-	err := c.cc.Invoke(ctx, "/gotocompany.shield.v1beta1.ShieldService/UpdatePolicy", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -541,8 +481,6 @@ type ShieldServiceServer interface {
 	// Roles
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
-	GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error)
-	UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error)
 	// Organizations
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
@@ -558,8 +496,6 @@ type ShieldServiceServer interface {
 	// Actions
 	ListActions(context.Context, *ListActionsRequest) (*ListActionsResponse, error)
 	CreateAction(context.Context, *CreateActionRequest) (*CreateActionResponse, error)
-	GetAction(context.Context, *GetActionRequest) (*GetActionResponse, error)
-	UpdateAction(context.Context, *UpdateActionRequest) (*UpdateActionResponse, error)
 	// Namespaces
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*CreateNamespaceResponse, error)
@@ -568,8 +504,6 @@ type ShieldServiceServer interface {
 	// Policies
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
-	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
-	UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error)
 	// Relations--------------------------------------------------------------------
 	ListRelations(context.Context, *ListRelationsRequest) (*ListRelationsResponse, error)
 	CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error)
@@ -634,12 +568,6 @@ func (UnimplementedShieldServiceServer) ListRoles(context.Context, *ListRolesReq
 func (UnimplementedShieldServiceServer) CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRole not implemented")
 }
-func (UnimplementedShieldServiceServer) GetRole(context.Context, *GetRoleRequest) (*GetRoleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRole not implemented")
-}
-func (UnimplementedShieldServiceServer) UpdateRole(context.Context, *UpdateRoleRequest) (*UpdateRoleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateRole not implemented")
-}
 func (UnimplementedShieldServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizations not implemented")
 }
@@ -676,12 +604,6 @@ func (UnimplementedShieldServiceServer) ListActions(context.Context, *ListAction
 func (UnimplementedShieldServiceServer) CreateAction(context.Context, *CreateActionRequest) (*CreateActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAction not implemented")
 }
-func (UnimplementedShieldServiceServer) GetAction(context.Context, *GetActionRequest) (*GetActionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAction not implemented")
-}
-func (UnimplementedShieldServiceServer) UpdateAction(context.Context, *UpdateActionRequest) (*UpdateActionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateAction not implemented")
-}
 func (UnimplementedShieldServiceServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
 }
@@ -699,12 +621,6 @@ func (UnimplementedShieldServiceServer) ListPolicies(context.Context, *ListPolic
 }
 func (UnimplementedShieldServiceServer) CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePolicy not implemented")
-}
-func (UnimplementedShieldServiceServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPolicy not implemented")
-}
-func (UnimplementedShieldServiceServer) UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdatePolicy not implemented")
 }
 func (UnimplementedShieldServiceServer) ListRelations(context.Context, *ListRelationsRequest) (*ListRelationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRelations not implemented")
@@ -1016,42 +932,6 @@ func _ShieldService_CreateRole_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRoleRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetRole(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gotocompany.shield.v1beta1.ShieldService/GetRole",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetRole(ctx, req.(*GetRoleRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_UpdateRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateRoleRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateRole(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gotocompany.shield.v1beta1.ShieldService/UpdateRole",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateRole(ctx, req.(*UpdateRoleRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ShieldService_ListOrganizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationsRequest)
 	if err := dec(in); err != nil {
@@ -1268,42 +1148,6 @@ func _ShieldService_CreateAction_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gotocompany.shield.v1beta1.ShieldService/GetAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetAction(ctx, req.(*GetActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_UpdateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gotocompany.shield.v1beta1.ShieldService/UpdateAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateAction(ctx, req.(*UpdateActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ShieldService_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNamespacesRequest)
 	if err := dec(in); err != nil {
@@ -1408,42 +1252,6 @@ func _ShieldService_CreatePolicy_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreatePolicy(ctx, req.(*CreatePolicyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_GetPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPolicyRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetPolicy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gotocompany.shield.v1beta1.ShieldService/GetPolicy",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetPolicy(ctx, req.(*GetPolicyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ShieldService_UpdatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdatePolicyRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdatePolicy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gotocompany.shield.v1beta1.ShieldService/UpdatePolicy",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdatePolicy(ctx, req.(*UpdatePolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1678,14 +1486,6 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_CreateRole_Handler,
 		},
 		{
-			MethodName: "GetRole",
-			Handler:    _ShieldService_GetRole_Handler,
-		},
-		{
-			MethodName: "UpdateRole",
-			Handler:    _ShieldService_UpdateRole_Handler,
-		},
-		{
 			MethodName: "ListOrganizations",
 			Handler:    _ShieldService_ListOrganizations_Handler,
 		},
@@ -1734,14 +1534,6 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_CreateAction_Handler,
 		},
 		{
-			MethodName: "GetAction",
-			Handler:    _ShieldService_GetAction_Handler,
-		},
-		{
-			MethodName: "UpdateAction",
-			Handler:    _ShieldService_UpdateAction_Handler,
-		},
-		{
 			MethodName: "ListNamespaces",
 			Handler:    _ShieldService_ListNamespaces_Handler,
 		},
@@ -1764,14 +1556,6 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePolicy",
 			Handler:    _ShieldService_CreatePolicy_Handler,
-		},
-		{
-			MethodName: "GetPolicy",
-			Handler:    _ShieldService_GetPolicy_Handler,
-		},
-		{
-			MethodName: "UpdatePolicy",
-			Handler:    _ShieldService_UpdatePolicy_Handler,
 		},
 		{
 			MethodName: "ListRelations",

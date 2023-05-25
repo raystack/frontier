@@ -73,74 +73,6 @@
         ]
       }
     },
-    "/v1beta1/actions/{id}": {
-      "get": {
-        "summary": "Get Action by ID",
-        "operationId": "ShieldService_GetAction",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1GetActionResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Action"
-        ]
-      },
-      "put": {
-        "summary": "Update Action by ID",
-        "operationId": "ShieldService_UpdateAction",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateActionResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1ActionRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Action"
-        ]
-      }
-    },
     "/v1beta1/check": {
       "post": {
         "summary": "check permission for action on a resource by an user",
@@ -758,74 +690,6 @@
         ]
       }
     },
-    "/v1beta1/policies/{id}": {
-      "get": {
-        "summary": "Get Policy by ID",
-        "operationId": "ShieldService_GetPolicy",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1GetPolicyResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Policy"
-        ]
-      },
-      "put": {
-        "summary": "Update Policy by ID",
-        "operationId": "ShieldService_UpdatePolicy",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdatePolicyResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1PolicyRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Policy"
-        ]
-      }
-    },
     "/v1beta1/projects": {
       "get": {
         "summary": "Get all Project",
@@ -1252,74 +1116,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1beta1RoleRequestBody"
-            }
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      }
-    },
-    "/v1beta1/roles/{id}": {
-      "get": {
-        "summary": "Get Role by ID",
-        "operationId": "ShieldService_GetRole",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1GetRoleResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      },
-      "put": {
-        "summary": "Update Role by ID",
-        "operationId": "ShieldService_UpdateRole",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateRoleResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
@@ -1795,14 +1591,6 @@
         }
       }
     },
-    "v1beta1GetActionResponse": {
-      "type": "object",
-      "properties": {
-        "action": {
-          "$ref": "#/definitions/v1beta1Action"
-        }
-      }
-    },
     "v1beta1GetCurrentUserResponse": {
       "type": "object",
       "properties": {
@@ -1835,14 +1623,6 @@
         }
       }
     },
-    "v1beta1GetPolicyResponse": {
-      "type": "object",
-      "properties": {
-        "policy": {
-          "$ref": "#/definitions/v1beta1Policy"
-        }
-      }
-    },
     "v1beta1GetProjectResponse": {
       "type": "object",
       "properties": {
@@ -1864,14 +1644,6 @@
       "properties": {
         "resource": {
           "$ref": "#/definitions/v1beta1Resource"
-        }
-      }
-    },
-    "v1beta1GetRoleResponse": {
-      "type": "object",
-      "properties": {
-        "role": {
-          "$ref": "#/definitions/v1beta1Role"
         }
       }
     },
@@ -2457,14 +2229,6 @@
         }
       }
     },
-    "v1beta1UpdateActionResponse": {
-      "type": "object",
-      "properties": {
-        "action": {
-          "$ref": "#/definitions/v1beta1Action"
-        }
-      }
-    },
     "v1beta1UpdateCurrentUserResponse": {
       "type": "object",
       "properties": {
@@ -2497,17 +2261,6 @@
         }
       }
     },
-    "v1beta1UpdatePolicyResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1beta1Policy"
-          }
-        }
-      }
-    },
     "v1beta1UpdateProjectResponse": {
       "type": "object",
       "properties": {
@@ -2521,14 +2274,6 @@
       "properties": {
         "resource": {
           "$ref": "#/definitions/v1beta1Resource"
-        }
-      }
-    },
-    "v1beta1UpdateRoleResponse": {
-      "type": "object",
-      "properties": {
-        "role": {
-          "$ref": "#/definitions/v1beta1Role"
         }
       }
     },
