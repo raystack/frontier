@@ -16,6 +16,7 @@ module.exports = {
       items: [
         "concepts/architecture",
         "concepts/org",
+        "concepts/user",
         "concepts/project",
         "concepts/policy",
         "concepts/role",
