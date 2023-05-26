@@ -10,7 +10,6 @@ import CodeBlock from '@theme/CodeBlock';
 - Create a policy to attach user to a project with pre-defined roles
 - View a project users
 - List a project admins
-- Remove a project users (discuss(todo) - should we remove it by deleting the policy or add another api for the same)
 - Enable or disable a project
 
 A project in Shield looks like

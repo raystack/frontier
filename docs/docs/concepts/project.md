@@ -2,9 +2,9 @@
 
 Projects in Shield are sub-resources within an organization. They allow for logical grouping of resources and users (including groups and service users). Each project can have its own set of permissions and access controls, enabling fine-grained control over resource allocation and user management.A single organization can contain multiple projects. 
 
-Principals(user, groups, service users) can be added to a project and assigned a pre-defined or a custom role at the project level if multiple resources in a project are to share the same roles. A Shield policy can then be attached at Project level for enabling users have same roles for all the underlying resources. Say a user A has `app_project_viewer` role for both the project applications say X and Y. (todo: confirm how users are managed in project)
+Principals(user, groups, service users) can be assigned a pre-defined or a custom role at the project level if multiple resources in a project are to share the same role for a user. A Shield policy can be created for that Project namespace for enabling user to have same role for all the underlying resources. Say a user A has `app_project_viewer` role for both the applications say X and Y in a project.
 
-If fine-grained access is required, a Shield policy can be created to attach a principal to a particular resource along with the user role. This giving flexibility to manage user authorization to organization resources at minute levels. Using this the same user A can have `app_project_viewer` role for both the project applications say X and a `app_project_manager` role for application Y.
+If fine-grained access is required, a Shield policy can be created to attach a principal to a particular resource along with the user role. This giving flexibility to manage user authorization to organization resources at minute levels. Using two different policies, the same user A can have `app_project_viewer` role for resource X and a `app_project_manager` role for application Y.
 
 ### Predefined Permissions and Roles at Project level
 
