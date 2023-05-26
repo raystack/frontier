@@ -1,42 +1,720 @@
-# Shield Administration API
+# Shield General APIs
 ## Version: 0.2.0
 
-## default
+## Authn
+Authentication APIs
 
-### /v1beta1/admin/groups
+### /v1beta1/auth
 
 #### GET
 ##### Summary
 
-Get all groups
+Get all authentication strategies
+
+##### Description
+
+Returns a list of identity providers configured on an instance level in Shield. e.g Google, AzureAD, Github etc
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListAuthStrategiesResponse](#v1beta1listauthstrategiesresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/auth/callback
+
+#### GET
+##### Summary
+
+Callback from a strategy
+
+##### Description
+
+Callback from a strategy. This is the endpoint where the strategy will redirect the user after successful authentication. This endpoint will be called with the code and state query parameters. The code will be used to get the access token from the strategy and the state will be used to get the return_to url from the session and redirect the user to that url.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
+| state | query | for oidc | No | string |
+| code | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AuthCallbackResponse](#v1beta1authcallbackresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Callback from a strategy
+
+##### Description
+
+Callback from a strategy. This is the endpoint where the strategy will redirect the user after successful authentication. This endpoint will be called with the code and state query parameters. The code will be used to get the access token from the strategy and the state will be used to get the return_to url from the session and redirect the user to that url.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
+| state | query | for oidc | No | string |
+| code | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AuthCallbackResponse](#v1beta1authcallbackresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/auth/logout
+
+#### GET
+##### Summary
+
+Logout from a strategy
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AuthLogoutResponse](#v1beta1authlogoutresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Logout from a strategy
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AuthLogoutResponse](#v1beta1authlogoutresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/auth/register/{strategyName}
+
+#### GET
+##### Summary
+
+Authenticate with a strategy
+
+##### Description
+
+Authenticate a user with a strategy. By default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url in the authenticate request body that will be used for redirection after authentication. Also set redirect as true for redirecting the user request to the redirect_url after successful authentication.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| strategyName | path | Name of the strategy to use for authentication.<br/> *Example:* `google` | Yes | string |
+| redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser  If set to true, location header will be set for redirect | No | boolean |
+| returnTo | query | by default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication  URL to redirect after successful authentication.<br/> *Example:*`"https://shield.example.com"` | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AuthenticateResponse](#v1beta1authenticateresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Authenticate with a strategy
+
+##### Description
+
+Authenticate a user with a strategy. By default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url in the authenticate request body that will be used for redirection after authentication. Also set redirect as true for redirecting the user request to the redirect_url after successful authentication.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| strategyName | path | Name of the strategy to use for authentication.<br/> *Example:* `google` | Yes | string |
+| redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser  If set to true, location header will be set for redirect | No | boolean |
+| returnTo | query | by default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication  URL to redirect after successful authentication.<br/> *Example:*`"https://shield.example.com"` | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AuthenticateResponse](#v1beta1authenticateresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Authz
+Authorization APIs
+
+### /v1beta1/check
+
+#### POST
+##### Summary
+
+check permission on a resource of an user
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1CheckResourcePermissionRequest](#v1beta1checkresourcepermissionrequest) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CheckResourcePermissionResponse](#v1beta1checkresourcepermissionresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## MetaSchema
+Manage Metadata Schemas which are used to validate metadata object while creating user/org/group/role. Shield automatically generates default metaschemas with `label` and `description` fields. You can also update these metaschemas to add/edit more fields.
+
+### /v1beta1/meta/schemas
+
+#### GET
+##### Summary
+
+Get all Metadata Schemas
+
+##### Description
+
+Returns a list of all metaschemas configured on an instance level in Shield. e.g user, project, organization etc
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListMetaSchemasResponse](#v1beta1listmetaschemasresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create Metadata Schema
+
+##### Description
+
+Create a new metadata schema. The metaschema **name** must be unique within the entire Shield instance and can contain only alphanumeric characters, dashes and underscores. The metaschema **schema** must be a valid JSON schema.Please refer to <https://json-schema.org/> to know more about json schema. <br/>*Example:* `{name:"user",schema:{"type":"object","properties":{"label":{"type":"object","additionalProperties":{"type":"string"}},"description":{"type":"string"}}}}`
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1MetaSchemaRequestBody](#v1beta1metaschemarequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateMetaSchemaResponse](#v1beta1createmetaschemaresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/meta/schemas/{id}
+
+#### GET
+##### Summary
+
+Get MetaSchema by ID
+
+##### Description
+
+Get a metadata schema by ID.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetMetaSchemaResponse](#v1beta1getmetaschemaresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete a MetaSchema permanently
+
+##### Description
+
+Delete a metadata schema permanently. Once deleted the metaschema won't be used to validate the metadata. For example, if a metaschema(with `label` and `description` fields) is used to validate the metadata of a user, then deleting the metaschema will not validate the metadata of the user and metadata field can contain any key-value pair(and say another field called `foo` can be inserted in a user's metadata).
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteMetaSchemaResponse](#v1beta1deletemetaschemaresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update MetaSchema by ID
+
+##### Description
+
+Update a metadata schema. Only `schema` field of a metaschema can be updated. The metaschema `schema` must be a valid JSON schema.Please refer to <https://json-schema.org/> to know more about json schema. <br/>*Example:* `{name:"user",schema:{"type":"object","properties":{"label":{"type":"object","additionalProperties":{"type":"string"}},"description":{"type":"string"}}}}`
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1MetaSchemaRequestBody](#v1beta1metaschemarequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateMetaSchemaResponse](#v1beta1updatemetaschemaresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Namespace
+
+### /v1beta1/namespaces
+
+#### GET
+##### Summary
+
+Get all Namespaces
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListNamespacesResponse](#v1beta1listnamespacesresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/namespaces/{id}
+
+#### GET
+##### Summary
+
+Get a Namespaces
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetNamespaceResponse](#v1beta1getnamespaceresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Organization
+
+### /v1beta1/organizations
+
+#### GET
+##### Summary
+
+Get all organization
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | userId | query |  | No | string |
-| orgId | query |  | No | string |
 | state | query |  | No | string |
 
 ##### Responses
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListGroupsResponse](#v1beta1listgroupsresponse) |
+| 200 | A successful response. | [v1beta1ListOrganizationsResponse](#v1beta1listorganizationsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateOrganizationResponse](#v1beta1createorganizationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}
+
+#### GET
+##### Summary
+
+Get organization by ID or slug
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetOrganizationResponse](#v1beta1getorganizationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete an organization permanently forever and all of its relations
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteOrganizationResponse](#v1beta1deleteorganizationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update organization by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateOrganizationResponse](#v1beta1updateorganizationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/admins
+
+#### GET
+##### Summary
+
+Get all admins of an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationAdminsResponse](#v1beta1listorganizationadminsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/disable
+
+#### POST
+##### Summary
+
+Disable an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DisableOrganizationResponse](#v1beta1disableorganizationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/enable
+
+#### POST
+##### Summary
+
+Enable an Organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1EnableOrganizationResponse](#v1beta1enableorganizationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/projects
+
+#### GET
+##### Summary
+
+Get all projects that belong to an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| state | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationProjectsResponse](#v1beta1listorganizationprojectsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/users
+
+#### GET
+##### Summary
+
+List organization users
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| permissionFilter | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationUsersResponse](#v1beta1listorganizationusersresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Add a user to an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | { **"userIds"**: [ string ] } |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AddOrganizationUsersResponse](#v1beta1addorganizationusersresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{id}/users/{userId}
+
+#### DELETE
+##### Summary
+
+Remove a user to an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| userId | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1RemoveOrganizationUserResponse](#v1beta1removeorganizationuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Group
+Groups in Shield are used to manage users and their access to resources. Each group has a unique name and id that can be used to grant access to resources. When a user is added to a group, they inherit the access permissions that have been granted to the group. This allows you to manage access to resources at scale, without having to grant permissions to individual users.
 
 ### /v1beta1/organizations/{body.orgId}/groups
 
 #### POST
 ##### Summary
 
-Create group
+Create Group
+
+##### Description
+
+Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
-| body.orgId | path |  | Yes | string |
+| body.orgId | path | The organization ID to which the group belongs to. | Yes | string |
 | body | body |  | Yes | { **"name"**: string, **"title"**: string, **"metadata"**: object } |
 
 ##### Responses
@@ -44,6 +722,11 @@ Create group
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1CreateGroupResponse](#v1beta1creategroupresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{body.orgId}/groups/{id}
@@ -57,7 +740,7 @@ Update group by ID
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
-| body.orgId | path |  | Yes | string |
+| body.orgId | path | The organization ID to which the group belongs to. | Yes | string |
 | id | path |  | Yes | string |
 | body | body |  | Yes | { **"name"**: string, **"title"**: string, **"metadata"**: object } |
 
@@ -66,6 +749,11 @@ Update group by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1UpdateGroupResponse](#v1beta1updategroupresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/groups
@@ -73,7 +761,11 @@ Update group by ID
 #### GET
 ##### Summary
 
-Create group
+List Organization Groups
+
+##### Description
+
+Get all groups that belong to an organization. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.
 
 ##### Parameters
 
@@ -81,13 +773,18 @@ Create group
 | ---- | ---------- | ----------- | -------- | ------ |
 | orgId | path |  | Yes | string |
 | userId | query |  | No | string |
-| state | query |  | No | string |
+| state | query | The state to filter by. It can be enabled or disabled. | No | string |
 
 ##### Responses
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListOrganizationGroupsResponse](#v1beta1listorganizationgroupsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/groups/{id}
@@ -109,12 +806,17 @@ Get group by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1GetGroupResponse](#v1beta1getgroupresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### DELETE
 ##### Summary
 
-Delete a group permanently forever and all of its relations
+Delete a group permanently and all of its relations
 
 ##### Parameters
 
@@ -128,6 +830,11 @@ Delete a group permanently forever and all of its relations
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1DeleteGroupResponse](#v1beta1deletegroupresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/groups/{id}/disable
@@ -136,6 +843,10 @@ Delete a group permanently forever and all of its relations
 ##### Summary
 
 Disable a group
+
+##### Description
+
+Sets the state of the group as disabled. The group will not be available for access control and the existing users in the group will not be able to access any resources that are assigned to the group. No other users can be added to the group while it is disabled.
 
 ##### Parameters
 
@@ -150,6 +861,11 @@ Disable a group
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1DisableGroupResponse](#v1beta1disablegroupresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/groups/{id}/enable
@@ -157,7 +873,11 @@ Disable a group
 #### POST
 ##### Summary
 
-Enable a group
+Enable a Group
+
+##### Description
+
+Sets the state of the group as enabled. The `enabled` flag is used to determine if the group can be used for access control.
 
 ##### Parameters
 
@@ -172,6 +892,11 @@ Enable a group
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1EnableGroupResponse](#v1beta1enablegroupresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/groups/{id}/users
@@ -193,6 +918,11 @@ Get all users for a group
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListGroupUsersResponse](#v1beta1listgroupusersresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### POST
@@ -213,6 +943,11 @@ Add users to a group, existing users will be ignored
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1AddGroupUsersResponse](#v1beta1addgroupusersresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/groups/{id}/users/{userId}
@@ -235,1183 +970,14 @@ Remove user from a group
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1RemoveGroupUserResponse](#v1beta1removegroupuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-## default
-
-### /v1beta1/admin/organizations
-
-#### GET
-##### Summary
-
-Get all organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| userId | query |  | No | string |
-| state | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListAllOrganizationsResponse](#v1beta1listallorganizationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations
-
-#### GET
-##### Summary
-
-Get all organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| userId | query |  | No | string |
-| state | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListOrganizationsResponse](#v1beta1listorganizationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateOrganizationResponse](#v1beta1createorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}
-
-#### GET
-##### Summary
-
-Get organization by ID or slug
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetOrganizationResponse](#v1beta1getorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### DELETE
-##### Summary
-
-Delete an organization permanently forever and all of its relations
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteOrganizationResponse](#v1beta1deleteorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update organization by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1OrganizationRequestBody](#v1beta1organizationrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateOrganizationResponse](#v1beta1updateorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/admins
-
-#### GET
-##### Summary
-
-Get all admins of an organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListOrganizationAdminsResponse](#v1beta1listorganizationadminsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/disable
-
-#### POST
-##### Summary
-
-Disable an organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | object |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DisableOrganizationResponse](#v1beta1disableorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/enable
-
-#### POST
-##### Summary
-
-Enable an Organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | object |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1EnableOrganizationResponse](#v1beta1enableorganizationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/projects
-
-#### GET
-##### Summary
-
-Get all projects that belong to an organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| state | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListOrganizationProjectsResponse](#v1beta1listorganizationprojectsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/users
-
-#### GET
-##### Summary
-
-List organization users
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| permissionFilter | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListOrganizationUsersResponse](#v1beta1listorganizationusersresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Add a user to an organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | { **"userIds"**: [ string ] } |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AddOrganizationUsersResponse](#v1beta1addorganizationusersresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/users/{userId}
-
-#### DELETE
-##### Summary
-
-Remove a user to an organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| userId | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1RemoveOrganizationUserResponse](#v1beta1removeorganizationuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/admin/projects
-
-#### GET
-##### Summary
-
-Get all project
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| orgId | query |  | No | string |
-| state | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListProjectsResponse](#v1beta1listprojectsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects
-
-#### POST
-##### Summary
-
-Create oroject
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateProjectResponse](#v1beta1createprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}
-
-#### GET
-##### Summary
-
-Get oroject by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetProjectResponse](#v1beta1getprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### DELETE
-##### Summary
-
-Delete a oroject permanently forever and all of its relations
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteProjectResponse](#v1beta1deleteprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update oroject by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateProjectResponse](#v1beta1updateprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}/admins
-
-#### GET
-##### Summary
-
-Get all Admins of a oroject
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListProjectAdminsResponse](#v1beta1listprojectadminsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}/disable
-
-#### POST
-##### Summary
-
-Disable a oroject
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | object |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DisableProjectResponse](#v1beta1disableprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}/enable
-
-#### POST
-##### Summary
-
-Enable a oroject
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | object |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1EnableProjectResponse](#v1beta1enableprojectresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}/users
-
-#### GET
-##### Summary
-
-Get all users of a oroject
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| permissionFilter | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListProjectUsersResponse](#v1beta1listprojectusersresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/admin/relations
-
-#### GET
-##### Summary
-
-Get all relations
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListRelationsResponse](#v1beta1listrelationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/relations
-
-#### POST
-##### Summary
-
-Create Relation
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1RelationRequestBody](#v1beta1relationrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateRelationResponse](#v1beta1createrelationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/relations/{id}
-
-#### GET
-##### Summary
-
-Get Relation by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetRelationResponse](#v1beta1getrelationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/relations/{relation}/object/{object}/subject/{subject}
-
-#### DELETE
-##### Summary
-
-Remove a subject having a relation from an object
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| relation | path |  | Yes | string |
-| object | path | objectnamespace:uuid | Yes | string |
-| subject | path | subjectnamespace:uuid | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteRelationResponse](#v1beta1deleterelationresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/admin/resources
-
-#### GET
-##### Summary
-
-Get all resources
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| userId | query |  | No | string |
-| projectId | query |  | No | string |
-| organizationId | query |  | No | string |
-| namespace | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListResourcesResponse](#v1beta1listresourcesresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{body.projectId}/resources
-
-#### POST
-##### Summary
-
-Create Resource
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body.projectId | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateProjectResourceResponse](#v1beta1createprojectresourceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{body.projectId}/resources/{id}
-
-#### PUT
-##### Summary
-
-Update Resource by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body.projectId | path |  | Yes | string |
-| id | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateProjectResourceResponse](#v1beta1updateprojectresourceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{projectId}/resources
-
-#### GET
-##### Summary
-
-Get all resources
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| projectId | path |  | Yes | string |
-| namespace | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListProjectResourcesResponse](#v1beta1listprojectresourcesresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{projectId}/resources/{id}
-
-#### GET
-##### Summary
-
-Get Resource by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| projectId | path |  | Yes | string |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetProjectResourceResponse](#v1beta1getprojectresourceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### DELETE
-##### Summary
-
-Delete a resource permanently forever
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| projectId | path |  | Yes | string |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteProjectResourceResponse](#v1beta1deleteprojectresourceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/admin/users
-
-#### GET
-##### Summary
-
-Get all users
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| pageSize | query |  | No | integer |
-| pageNum | query |  | No | integer |
-| keyword | query |  | No | string |
-| orgId | query |  | No | string |
-| groupId | query |  | No | string |
-| state | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListAllUsersResponse](#v1beta1listallusersresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users
-
-#### GET
-##### Summary
-
-Get all public users
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| pageSize | query |  | No | integer |
-| pageNum | query |  | No | integer |
-| keyword | query |  | No | string |
-| orgId | query |  | No | string |
-| groupId | query |  | No | string |
-| state | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListUsersResponse](#v1beta1listusersresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create user
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateUserResponse](#v1beta1createuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/self
-
-#### GET
-##### Summary
-
-Get current user
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetCurrentUserResponse](#v1beta1getcurrentuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update current User
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateCurrentUserResponse](#v1beta1updatecurrentuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/self/groups
-
-#### GET
-##### Summary
-
-List groups of a User
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListCurrentUserGroupsResponse](#v1beta1listcurrentusergroupsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/self/organizations
-
-#### GET
-##### Summary
-
-Get all organizations a user belongs to
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetOrganizationsByCurrentUserResponse](#v1beta1getorganizationsbycurrentuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}
-
-#### GET
-##### Summary
-
-Get a user by id
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetUserResponse](#v1beta1getuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### DELETE
-##### Summary
-
-Delete an user permanently forever and all of its relations
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteUserResponse](#v1beta1deleteuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update User by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateUserResponse](#v1beta1updateuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}/disable
-
-#### POST
-##### Summary
-
-Disable a user
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | object |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DisableUserResponse](#v1beta1disableuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}/enable
-
-#### POST
-##### Summary
-
-Enable a user
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | object |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1EnableUserResponse](#v1beta1enableuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}/groups
-
-#### GET
-##### Summary
-
-List Groups of a User
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| role | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListUserGroupsResponse](#v1beta1listusergroupsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/users/{id}/organizations
-
-#### GET
-##### Summary
-
-Get all organizations a user belongs to
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetOrganizationsByUserResponse](#v1beta1getorganizationsbyuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## ShieldService
-
-### /v1beta1/auth
-
-#### GET
-##### Summary
-
-Authn
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListAuthStrategiesResponse](#v1beta1listauthstrategiesresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/auth/callback
-
-#### GET
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
-| state | query | for oidc | No | string |
-| code | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AuthCallbackResponse](#v1beta1authcallbackresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
-| state | query | for oidc | No | string |
-| code | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AuthCallbackResponse](#v1beta1authcallbackresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/auth/logout
-
-#### GET
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AuthLogoutResponse](#v1beta1authlogoutresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### DELETE
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AuthLogoutResponse](#v1beta1authlogoutresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/auth/register/{strategyName}
-
-#### GET
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| strategyName | path |  | Yes | string |
-| redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser | No | boolean |
-| returnTo | query | be default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AuthenticateResponse](#v1beta1authenticateresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| strategyName | path |  | Yes | string |
-| redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser | No | boolean |
-| returnTo | query | be default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AuthenticateResponse](#v1beta1authenticateresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/check
-
-#### POST
-##### Summary
-
-check permission on a resource of an user
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1CheckResourcePermissionRequest](#v1beta1checkresourcepermissionrequest) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CheckResourcePermissionResponse](#v1beta1checkresourcepermissionresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/meta/schemas
-
-#### GET
-##### Summary
-
-Get all Metadata Schemas
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListMetaSchemasResponse](#v1beta1listmetaschemasresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create Metadata Schema
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1MetaSchemaRequestBody](#v1beta1metaschemarequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateMetaSchemaResponse](#v1beta1createmetaschemaresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/meta/schemas/{id}
-
-#### GET
-##### Summary
-
-Get MetaSchema by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetMetaSchemaResponse](#v1beta1getmetaschemaresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### DELETE
-##### Summary
-
-Delete a MetaSchema permanently
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteMetaSchemaResponse](#v1beta1deletemetaschemaresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update MetaSchema by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1MetaSchemaRequestBody](#v1beta1metaschemarequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateMetaSchemaResponse](#v1beta1updatemetaschemaresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
-
-### /v1beta1/namespaces
-
-#### GET
-##### Summary
-
-Get all Namespaces
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListNamespacesResponse](#v1beta1listnamespacesresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/namespaces/{id}
-
-#### GET
-##### Summary
-
-Get a Namespaces
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetNamespaceResponse](#v1beta1getnamespaceresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
+## Role
 
 ### /v1beta1/organizations/{body.orgId}/roles
 
@@ -1432,6 +998,11 @@ Create Role
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1CreateOrganizationRoleResponse](#v1beta1createorganizationroleresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{body.orgId}/roles/{id}
@@ -1454,6 +1025,11 @@ Update Role by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1UpdateOrganizationRoleResponse](#v1beta1updateorganizationroleresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/roles
@@ -1475,6 +1051,11 @@ Get custom roles under an org
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListOrganizationRolesResponse](#v1beta1listorganizationrolesresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/organizations/{orgId}/roles/{id}
@@ -1496,6 +1077,11 @@ Get Role by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1GetOrganizationRoleResponse](#v1beta1getorganizationroleresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### DELETE
@@ -1515,6 +1101,11 @@ Delete a role permanently forever and all of its relations
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1DeleteOrganizationRoleResponse](#v1beta1deleteorganizationroleresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/roles
@@ -1523,6 +1114,10 @@ Delete a role permanently forever and all of its relations
 ##### Summary
 
 List all pre-defined roles
+
+##### Description
+
+Returns a collection of Shield predefined roles with their associated permissions
 
 ##### Parameters
 
@@ -1535,47 +1130,14 @@ List all pre-defined roles
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListRolesResponse](#v1beta1listrolesresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-#### POST
-##### Summary
-
-Create platform wide role
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1RoleRequestBody](#v1beta1rolerequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateRoleResponse](#v1beta1createroleresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/roles/{id}
-
-#### DELETE
-##### Summary
-
-Delete a role permanently forever and all of its relations
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeleteRoleResponse](#v1beta1deleteroleresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
+## Permission
 
 ### /v1beta1/permissions
 
@@ -1589,24 +1151,11 @@ Get all Permissions
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListPermissionsResponse](#v1beta1listpermissionsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Create permission
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body | body |  | Yes | [v1beta1CreatePermissionRequest](#v1beta1createpermissionrequest) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreatePermissionResponse](#v1beta1createpermissionresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/permissions/{id}
@@ -1627,70 +1176,16 @@ Get permission by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1GetPermissionResponse](#v1beta1getpermissionresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-#### DELETE
-##### Summary
-
-Delete permission by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1DeletePermissionResponse](#v1beta1deletepermissionresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update permission by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1PermissionRequestBody](#v1beta1permissionrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdatePermissionResponse](#v1beta1updatepermissionresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-## default
+## Policy
 
 ### /v1beta1/policies
-
-#### GET
-##### Summary
-
-Get all policies
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| orgId | query |  | No | string |
-| projectId | query |  | No | string |
-| userId | query |  | No | string |
-| roleId | query |  | No | string |
-| groupId | query |  | No | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListPoliciesResponse](#v1beta1listpoliciesresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### POST
 ##### Summary
@@ -1708,6 +1203,11 @@ Create policy
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1CreatePolicyResponse](#v1beta1createpolicyresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/policies/{id}
@@ -1728,6 +1228,11 @@ Get policy by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1GetPolicyResponse](#v1beta1getpolicyresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### DELETE
@@ -1746,6 +1251,11 @@ Delete a policy permanently forever and all of its relations
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1DeletePolicyResponse](#v1beta1deletepolicyresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### PUT
@@ -1765,6 +1275,769 @@ Update policy by ID
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1UpdatePolicyResponse](#v1beta1updatepolicyresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Project
+
+### /v1beta1/projects
+
+#### POST
+##### Summary
+
+Create oroject
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateProjectResponse](#v1beta1createprojectresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}
+
+#### GET
+##### Summary
+
+Get oroject by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetProjectResponse](#v1beta1getprojectresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete a oroject permanently forever and all of its relations
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteProjectResponse](#v1beta1deleteprojectresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update oroject by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1ProjectRequestBody](#v1beta1projectrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateProjectResponse](#v1beta1updateprojectresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/admins
+
+#### GET
+##### Summary
+
+Get all Admins of a oroject
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListProjectAdminsResponse](#v1beta1listprojectadminsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/disable
+
+#### POST
+##### Summary
+
+Disable a oroject
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DisableProjectResponse](#v1beta1disableprojectresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/enable
+
+#### POST
+##### Summary
+
+Enable a oroject
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1EnableProjectResponse](#v1beta1enableprojectresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{id}/users
+
+#### GET
+##### Summary
+
+Get all users of a oroject
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| permissionFilter | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListProjectUsersResponse](#v1beta1listprojectusersresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Resource
+
+### /v1beta1/projects/{body.projectId}/resources
+
+#### POST
+##### Summary
+
+Create Resource
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body.projectId | path |  | Yes | string |
+| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateProjectResourceResponse](#v1beta1createprojectresourceresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{body.projectId}/resources/{id}
+
+#### PUT
+##### Summary
+
+Update Resource by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body.projectId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateProjectResourceResponse](#v1beta1updateprojectresourceresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{projectId}/resources
+
+#### GET
+##### Summary
+
+Get all resources
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| namespace | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListProjectResourcesResponse](#v1beta1listprojectresourcesresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/projects/{projectId}/resources/{id}
+
+#### GET
+##### Summary
+
+Get Resource by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetProjectResourceResponse](#v1beta1getprojectresourceresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete a resource permanently forever
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteProjectResourceResponse](#v1beta1deleteprojectresourceresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Relation
+
+### /v1beta1/relations
+
+#### POST
+##### Summary
+
+Create Relation
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1RelationRequestBody](#v1beta1relationrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateRelationResponse](#v1beta1createrelationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/relations/{id}
+
+#### GET
+##### Summary
+
+Get Relation by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetRelationResponse](#v1beta1getrelationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/relations/{relation}/object/{object}/subject/{subject}
+
+#### DELETE
+##### Summary
+
+Remove a subject having a relation from an object
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| relation | path |  | Yes | string |
+| object | path | objectnamespace:uuid | Yes | string |
+| subject | path | subjectnamespace:uuid | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteRelationResponse](#v1beta1deleterelationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## User
+
+### /v1beta1/users
+
+#### GET
+##### Summary
+
+Get all public users
+
+##### Description
+
+Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| pageSize | query | The maximum number of users to return per page. The default is 50. | No | integer |
+| pageNum | query | The page number to return. The default is 1. | No | integer |
+| keyword | query | The keyword to search for in name or email. | No | string |
+| orgId | query | The organization ID to filter users by. | No | string |
+| groupId | query | The group id to filter by. | No | string |
+| state | query | The state to filter by. It can be enabled or disabled. | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListUsersResponse](#v1beta1listusersresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create user
+
+##### Description
+
+Create a user with the given details. A user is not attached to an organization or a group by default,and can be invited to the org/group. The name of the user must be unique within the entire Shield instance. If a user name is not provided, Shield automatically generates a name from the user email. The user metadata is validated against the user metaschema. By default the user metaschema contains `labels` and `descriptions` for the user. The `title` field can be optionally added for a user-friendly name. <br/><br/>*Example:*`{"email":"john.doe@odpf.io","title":"John Doe",metadata:{"label": {"key1": "value1"}, "description": "User Description"}}`
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateUserResponse](#v1beta1createuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/self
+
+#### GET
+##### Summary
+
+Get current user
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetCurrentUserResponse](#v1beta1getcurrentuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update current User
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateCurrentUserResponse](#v1beta1updatecurrentuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/self/groups
+
+#### GET
+##### Summary
+
+List groups of a User
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListCurrentUserGroupsResponse](#v1beta1listcurrentusergroupsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/self/organizations
+
+#### GET
+##### Summary
+
+Get My Organizations
+
+##### Description
+
+Get all organizations the current user belongs to
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetOrganizationsByCurrentUserResponse](#v1beta1getorganizationsbycurrentuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}
+
+#### GET
+##### Summary
+
+Get a user by id
+
+##### Description
+
+Get a user by id searched over all organizations in Shield.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetUserResponse](#v1beta1getuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete user
+
+##### Description
+
+Delete an user permanently forever and all of its relations (organizations, groups, etc)
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteUserResponse](#v1beta1deleteuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update User by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1UserRequestBody](#v1beta1userrequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateUserResponse](#v1beta1updateuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/disable
+
+#### POST
+##### Summary
+
+Disable user
+
+##### Description
+
+Sets the state of the user as diabled.The user's membership to groups and organizations will still exist along with all it's roles for access control, but the user will not be able to log in and access the Shield instance.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DisableUserResponse](#v1beta1disableuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/enable
+
+#### POST
+##### Summary
+
+Enable user
+
+##### Description
+
+Sets the state of the user as enabled. The user will be able to log in and access the Shield instance.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| body | body |  | Yes | object |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1EnableUserResponse](#v1beta1enableuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/groups
+
+#### GET
+##### Summary
+
+List Groups of a User
+
+##### Description
+
+Lists all the groups a user belongs to across all organization in Shield.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+| role | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListUserGroupsResponse](#v1beta1listusergroupsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/users/{id}/organizations
+
+#### GET
+##### Summary
+
+Get Organizations by User
+
+##### Description
+
+Get all the organizations a user belongs to.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1GetOrganizationsByUserResponse](#v1beta1getorganizationsbyuserresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### Models
@@ -1837,9 +2110,9 @@ Update policy by ID
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| objectId | string |  | No |
-| objectNamespace | string |  | No |
-| permission | string |  | No |
+| objectId | string |  | Yes |
+| objectNamespace | string |  | Yes |
+| permission | string |  | Yes |
 
 #### v1beta1CheckResourcePermissionResponse
 
@@ -1871,18 +2144,6 @@ Update policy by ID
 | ---- | ---- | ----------- | -------- |
 | role | [v1beta1Role](#v1beta1role) |  | No |
 
-#### v1beta1CreatePermissionRequest
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| bodies | [ [v1beta1PermissionRequestBody](#v1beta1permissionrequestbody) ] |  | No |
-
-#### v1beta1CreatePermissionResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| permissions | [ [v1beta1Permission](#v1beta1permission) ] |  | No |
-
 #### v1beta1CreatePolicyResponse
 
 | Name | Type | Description | Required |
@@ -1906,12 +2167,6 @@ Update policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | relation | [v1beta1Relation](#v1beta1relation) |  | No |
-
-#### v1beta1CreateRoleResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| role | [v1beta1Role](#v1beta1role) |  | No |
 
 #### v1beta1CreateUserResponse
 
@@ -1943,12 +2198,6 @@ Update policy by ID
 | ---- | ---- | ----------- | -------- |
 | v1beta1DeleteOrganizationRoleResponse | object |  |  |
 
-#### v1beta1DeletePermissionResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| v1beta1DeletePermissionResponse | object |  |  |
-
 #### v1beta1DeletePolicyResponse
 
 | Name | Type | Description | Required |
@@ -1972,12 +2221,6 @@ Update policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | v1beta1DeleteRelationResponse | object |  |  |
-
-#### v1beta1DeleteRoleResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| v1beta1DeleteRoleResponse | object |  |  |
 
 #### v1beta1DeleteUserResponse
 
@@ -2133,23 +2376,10 @@ Update policy by ID
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| title | string |  | No |
-| metadata | object |  | No |
-| orgId | string |  | No |
-
-#### v1beta1ListAllOrganizationsResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| organizations | [ [v1beta1Organization](#v1beta1organization) ] |  | No |
-
-#### v1beta1ListAllUsersResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| count | integer |  | No |
-| users | [ [v1beta1User](#v1beta1user) ] |  | No |
+| name | string | The name of the group. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores. | Yes |
+| title | string | The title can contain any UTF-8 character, used to provide a human-readable name for the group. Can also be left empty. | No |
+| metadata | object | Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields.<br/>*Example:*`{"labels": {"key": "value"}, "description": "Group description"}` | No |
+| orgId | string | The organization ID to which the group belongs to. | Yes |
 
 #### v1beta1ListAuthStrategiesResponse
 
@@ -2168,12 +2398,6 @@ Update policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
-#### v1beta1ListGroupsResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| groups | [ [v1beta1Group](#v1beta1group) ] |  | No |
 
 #### v1beta1ListMetaSchemasResponse
 
@@ -2229,12 +2453,6 @@ Update policy by ID
 | ---- | ---- | ----------- | -------- |
 | permissions | [ [v1beta1Permission](#v1beta1permission) ] |  | No |
 
-#### v1beta1ListPoliciesResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| policies | [ [v1beta1Policy](#v1beta1policy) ] |  | No |
-
 #### v1beta1ListProjectAdminsResponse
 
 | Name | Type | Description | Required |
@@ -2252,24 +2470,6 @@ Update policy by ID
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
-#### v1beta1ListProjectsResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| projects | [ [v1beta1Project](#v1beta1project) ] |  | No |
-
-#### v1beta1ListRelationsResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| relations | [ [v1beta1Relation](#v1beta1relation) ] |  | No |
-
-#### v1beta1ListResourcesResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| resources | [ [v1beta1Resource](#v1beta1resource) ] |  | No |
 
 #### v1beta1ListRolesResponse
 
@@ -2304,8 +2504,8 @@ Update policy by ID
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| schema | string |  | No |
+| name | string | The name of the metaschema. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores. | Yes |
+| schema | string | The schema of the metaschema. The schema must be a valid JSON schema.Please refer to <https://json-schema.org/> to know more about json schema. | Yes |
 
 #### v1beta1Namespace
 
@@ -2332,9 +2532,9 @@ Update policy by ID
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| title | string |  | No |
-| metadata | object |  | No |
+| name | string | The name of the organization. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"shield-org1-acme"` | Yes |
+| title | string | The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"` | No |
+| metadata | object | Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}` | No |
 
 #### v1beta1Permission
 
@@ -2347,15 +2547,6 @@ Update policy by ID
 | updatedAt | dateTime |  | No |
 | namespace | string |  | No |
 | metadata | object |  | No |
-
-#### v1beta1PermissionRequestBody
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| namespace | string |  | No |
-| metadata | object |  | No |
-| title | string |  | No |
 
 #### v1beta1Policy
 
@@ -2513,12 +2704,6 @@ Update policy by ID
 | ---- | ---- | ----------- | -------- |
 | role | [v1beta1Role](#v1beta1role) |  | No |
 
-#### v1beta1UpdatePermissionResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| permission | [v1beta1Permission](#v1beta1permission) |  | No |
-
 #### v1beta1UpdatePolicyResponse
 
 | Name | Type | Description | Required |
@@ -2559,7 +2744,7 @@ Update policy by ID
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| email | string |  | No |
-| metadata | object |  | No |
-| title | string |  | No |
+| name | string | The name of the user. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. If not provided, Shield automatically generates a name from the user email.  | No |
+| email | string | The email of the user. The email must be unique within the entire Shield instance.<br/>*Example:*`"john.doe@odpf.io"` | Yes |
+| metadata | object | Metadata object for users that can hold key value pairs pre-defined in User Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the user. Update the same to add more fields to the user metadata object. <br/>*Example:*`{"label": {"key1": "value1"}, "description": "User Description"}` | No |
+| title | string | The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"` | No |

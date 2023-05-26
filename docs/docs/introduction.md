@@ -9,17 +9,9 @@ Welcome to the introductory guide to Shield! This guide is the best place to sta
 
 ## What is Shield?
 
-Shield is a cloud-native role-based authorization-aware reverse-proxy service that helps you manage the authorization of given resources. In uses [SpiceDB](https://github.com/authzed/spicedb) authorization engine, which is an open source fine-grained permissions database inspired by [Google Zanzibar](https://authzed.com/blog/what-is-zanzibar/).
+Shield by ODPF is a role-based cloud-native user management system, identity & access proxy, and authorization server for your applications and API endpoints. It is purely API-driven and provides CLI, HTTP and GRPC APIs and an Admin Portal and for simpler developer experience. Shield is designed to be easy to use Identity and Access Management tool which handles user authentication by providing a Single-Sign-On(SSO) with any provider which adheres to the OIDC Protocol. Shield being an authorization-aware reverse-proxy service, intercepts incoming client requests and evaluate the authorization rules associated with the requested resources. It checks the client's credentials and permissions against the defined access policies before allowing or denying access to the backend services.
 
 ![Shield flow diagram](./shield-flow-diagram.png)
-
-Shield being a reverse-proxy, intercepts the request between a client and the backend. It offers configurable authorization on each url path. This is handled by **authz middleware**. This is a non-mandatory step, and can be left unprotected as well.
-
-A Resource Creation Hook comes handy when a resource needs to be created or updated in the backed. Shield keeps a record or the resource within it's database in order to check authorization later. The resource creation/updation request goes to the backend and when a successful response is received, the hook creates an instance of it in the database.
-
-We can also configure role assignments to certian user or group on this resource as well during the resource creation.
-
-We will talk more with example about the rule configuration in detail, in the guides.
 
 ## How does shield work?
 
@@ -31,32 +23,40 @@ Here are the steps to work with Shield.
 
 3. Making Shield proxy request: User can now hit at the shield server followed by the url path.
 
-## Features
+## Key Features
 
-- **Organization and Project Management**
+- **Single-Sign-On(SSO)**: Shield implements the OpenID Connect(OIDC) Protocol that extends the OAuth 2.0 framework to provide authentication and identity information, allowing users to authenticate once and access multiple applications seamlessly. It also enables applications to obtain user identity information for authorization purposes. A Single login and logout for all the underlying application and resources ensure a seamless user experience. 
 
-  Shield provides API to create and manage organizations/projects.
-  Admins can create projects and groups within organizations.
+- **Multiple sources of user identities**: Shield allows seamless integration with any identity provider that supports OIDC, enabling a wide range of options for user authentication. This flexibility empowers organizations to leverage their preferred identity providers, such as Google, Microsoft Azure AD, Github, LinkedIn or others, to authenticate and manage user identities within their organisation's ecosystem.
 
-- **Group Management**
+- **Role-Based-Access-Control(RBAC)**: Shield follows the RBAC model, which means you can assign roles to users, groups, or service accounts. This simplifies access management by providing predefined roles with specific permissions, reducing the need for manual permission assignments.
 
-  In group management, group admins can manage groups, add-remove members to the groups, and assign roles to the members.
+- **Fine-Grained-Access-Control(FGAC)**: In addition, to RBAC, Shield provides granular control over resource permissions, allowing you to define access at a very detailed level. You can grant or revoke permissions for the project, folder, or individual resources. Using both these Access Control mechanism helps to imporve the security of your organization by reducing the risk of unauthorized access to your resources.<br/><br/> One can use RBAC to assign roles to principals, that give them access to certain applications. For example, you can create a role called "Team Leader" that gives users access to the application.You could then use FGAC to give users specific permissions within those applications. For example, you could give some Team Leader A, the permission to create and edit orders, but not the permission to view customer reports. While another Team Leader B, can have permissions to read them as well.
 
-- **Policy Management**
+- **Resource Management**: Shield provides API to create and manage organizations/projects. Admins can create projects and groups within organizations. In addition, group admins can manage groups, add-remove members to the groups, and assign roles to these principals. Using Shield, admins can define policies which bind roles to the underlying resources.
 
-  Users can create policies to define which roles can perform what action on the resources.
-
-- **Reverse Proxy**
-
-  Shield can also restrict access to the proxy api to the users as per attributes and policies.
-
-- **GRPC/REST based APIs**
+- **Reverse Proxy**: Shield can also restrict access to the proxy api to the users as per attributes and policies.
 
 ## Using Shield
+
 You can manage organizations, projects, group, users and resources in any of the following ways:
 
 ### Shield Command Line Interface
+
 You can use the Shield command line interface to issue commands and to perform the entire Shield features. Using the command line can be faster and more convenient than using API. For more information on using the Shield CLI, see the CLI Reference page.
 
 ### HTTPS API
+
 You can manage relation creation, checking authorization on a resource and much more by using the Shield HTTPS API, which lets you issue HTTPS requests directly to the service. For more information, see the API Reference page.
+
+### Admin Portal
+
+Besides HTTP APIs and CLI tool, Shield provides an provides an out-of-the-box UI for admins to configure SSO for the clients and manage roles, users, groups and organisations in one place.
+
+## Where to go from here
+
+See the [installation](./installation) page to install the Shield CLI. Next, we recommend completing the guides. The tour provides an overview of most of the existing functionality of Shield and takes approximately 30 minutes to complete.
+
+After completing the tour, check out the remainder of the documentation in the reference and concepts sections for your specific areas of interest. We've aimed to provide as much documentation as we can for the various components of Shield to give you a full understanding of Shield's surface area.
+
+Finally, follow the project on [GitHub](https://github.com/odpf/shield), and contact us if you'd like to get involved.

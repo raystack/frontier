@@ -1,4 +1,13 @@
 # Architecture
+Shield is a cloud-native role-based authorization-aware reverse-proxy service that helps you manage the authorization of given resources. In uses [SpiceDB](https://github.com/authzed/spicedb) authorization engine, which is an open source fine-grained permissions database inspired by [Google Zanzibar](https://authzed.com/blog/what-is-zanzibar/).
+
+Shield can be used as a reverse-proxy, intercepting the request between a client and the backend. It offers configurable authorization on each url path. This is handled by **authz middleware**. This is a non-mandatory step, and can be left unprotected as well.
+
+A Resource Creation Hook comes handy when a resource needs to be created or updated in the backed. Shield keeps a record or the resource within it's database in order to check authorization later. The resource creation/updation request goes to the backend and when a successful response is received, the hook creates an instance of it in the database.
+
+We can also configure role assignments to certian user or group on this resource as well during the resource creation.
+
+We will talk more with example about the rule configuration in detail, in the guides.
 Shield exposes both HTTP and gRPC APIs to manage data. It also proxy APIs to other services. Shield talks to SpiceDB instance to check for authorization.
 
 ## Tools and Technologies

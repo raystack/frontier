@@ -1,12 +1,25 @@
 module.exports = {
   docsSidebar: [
     'introduction',
-    'installation',
+    {
+      type: "category",
+      label: "Getting Started",
+      collapsed: true,
+      items: [
+        'installation',
+        'configurations',
+      ],
+    },
     {
       type: "category",
       label: "Concepts",
       items: [
         "concepts/architecture",
+        "concepts/org",
+        "concepts/user",
+        "concepts/project",
+        "concepts/policy",
+        "concepts/role",
         "concepts/glossary",
       ],
     },
@@ -16,8 +29,8 @@ module.exports = {
       collapsed: true,
       items: [
         "tour/intro",
-        "tour/setup-server",
-        "tour/what-is-in-shield",
+        "tour/setup-idp-oidc",
+        "tour/creating-user",
         "tour/creating-organization",
         "tour/creating-project",
         "tour/creating-group",
@@ -47,9 +60,17 @@ module.exports = {
       label: "Reference",
       items: [
         "reference/configurations",
+        "reference/admin-api",
         "reference/api",
         "reference/cli"
       ],
     },
+    {
+      type: "category",
+      label: "Contribute",
+      items: [
+        "contribution/contribute",
+      ],
+    }
   ],
 };

@@ -85,7 +85,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 				Name:  "org-acme-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewStringValue("bar"),
+						"description": structpb.NewStringValue("User description"),
 					},
 				},
 			},
@@ -108,7 +108,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 				OrgId: orgID,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"description": structpb.NewStringValue("Project description"),
 					},
 				},
 			},
