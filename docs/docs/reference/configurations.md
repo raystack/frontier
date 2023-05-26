@@ -1,4 +1,5 @@
-#  Configuartions
+# Configurations
+
 ## Server Configurations
 
 <details>
@@ -104,9 +105,9 @@ This page contains reference for all the application configurations for Shield.
 
 ### Version
 
-| **Field**   | **Type** |**Description**                                  | **Required** |
-| ----------- | -------- |------------------------------------------------ | ------------ |
-| **version** | `int`    |Version number of the Shield configuration file. | No           |
+| **Field**   | **Type** | **Description**                                  | **Required** |
+| ----------- | -------- | ------------------------------------------------ | ------------ |
+| **version** | `int`    | Version number of the Shield configuration file. | No           |
 
 ### Loggin Configuration
 
@@ -123,49 +124,49 @@ This page contains reference for all the application configurations for Shield.
 | **app.metrics_port**                 | Port number for metrics reporting.                                               | 9000        | Yes          |
 | **app.host**                         | Host address for the Shield application.                                         | 127.0.0.1   | Yes          |
 | **app.identity_proxy_header**        | Header key used for identity proxy.                                              |             |              |
-| **app.resources_config_path**        | Full path prefixed with the scheme where resources config YAML files are stored. |             | Yes          |
-| **app.resources_config_path_secret** | Secret required to access resources config.                                      |             |              |
-| **app.disable_orgs_listing**         | If set to true, disallows non-admin APIs to list all organizations.              |             |              |
-| **app.disable_users_listing**        | If set to true, disallows non-admin APIs to list all users.                      |             |              |
-| **app.cors_origin**                  | Origin value from where CORS is allowed.                                         |             |              |
+| **app.resources_config_path**        | Full path prefixed with the scheme where resources config YAML files are stored.<br/>Either new resources can be added dynamically via the apis, or can be passed in this YAML file |             | No           |
+| **app.resources_config_path_secret** | Secret required to access resources config.                                      |             | No           |
+| **app.disable_orgs_listing**         | If set to true, disallows non-admin APIs to list all organizations.              |             | No           |
+| **app.disable_users_listing**        | If set to true, disallows non-admin APIs to list all users.                      |             | No           |
+| **app.cors_origin**                  | Origin value from where CORS is allowed.                                         |             | Yes(for Admin UI)|
 
 ### Authentication Configurations
 
 Configuration to allow authentication in Shield.
 
-| **Field**                                               | **Description**                                    | **Example** | **Required**                                  |
-| --------------------------------------------------------| -------------------------------------------------- | ----------- | --------------------------------------------- |
-| **app.authentication.session.hash_secret_key**          | Secret key for session hashing.                    | Required    | "hash-secret-should-be-32-chars--"            |
-| **app.authentication.session.block_secret_key**         | Secret key for session encryption.                 | Required    | "block-secret-should-be-32-chars-"            |
-| **app.authentication.token.rsa_path**                   | Path to the RSA key file for token authentication. | Required    | "./temp/rsa"                                  |
-| **app.authentication.token.iss**                        | Issuer URL for token authentication.               | Required    | "http://localhost.shield"                     |
-| **app.authentication.oidc_callback_host**               | External host used for OIDC redirect URI.          | Required    | "http://localhost:8000/v1beta1/auth/callback" |
-| **app.authentication.oidc_config.google.client_id**     | Google client ID for OIDC authentication.          | Required    | "xxxxx.apps.googleusercontent.com"            |
-| **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.      | Required    | "xxxxx"                                       |
-| **app.authentication.oidc_config.google.issuer_url**    | Google issuer URL for OIDC authentication.         | Required    | "https://accounts.google.com"                 |
+| **Field**                                               | **Description**                                    | **Required** | **Example**                                   |
+| ------------------------------------------------------- | -------------------------------------------------- | ------------ | --------------------------------------------- |
+| **app.authentication.session.hash_secret_key**          | Secret key for session hashing.                    | Yes          | "hash-secret-should-be-32-chars--"            |
+| **app.authentication.session.block_secret_key**         | Secret key for session encryption.                 | Yes          | "block-secret-should-be-32-chars-"            |
+| **app.authentication.token.rsa_path**                   | Path to the RSA key file for token authentication. | Yes          | "./temp/rsa"                                  |
+| **app.authentication.token.iss**                        | Issuer URL for token authentication.               | Yes          | "http://localhost.shield"                     |
+| **app.authentication.oidc_callback_host**               | External host used for OIDC redirect URI.          | Yes          | "http://localhost:8000/v1beta1/auth/callback" |
+| **app.authentication.oidc_config.google.client_id**     | Google client ID for OIDC authentication.          | No           | "xxxxx.apps.googleusercontent.com"            |
+| **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.      | No           | "xxxxx"                                       |
+| **app.authentication.oidc_config.google.issuer_url**    | Google issuer URL for OIDC authentication.         | No           | "https://accounts.google.com"                 |
 
 ### Admin Configurations
 
-| **Field**       | **Description**  | **Example** | **Required** |
-| --------------- | ------------------------------------| ----- | ----- |
-| **app.admin.users** | Email list of users to be converted as superusers. <br/> If the user is already present, they will be promoted to superuser.<br/> If the user does not exist, a new account will be created. |             | Optional     |
+| **Field**           | **Description**                                                                                                              | **Example** | **Required** |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------ |
+| **app.admin.users** | Email list of users to be converted as superusers. <br/> If the user is already present, they will be promoted to superuser. |             | Optional     |
 
 ### Database Configurations
 
-| **Field**                 | **Description**                               | **Example**   | **Required** |
-| ------------------------- | --------------------------------------------- | -----------   | -------------|
-| **db.driver**             | Database driver. Currently supports postgres. | `postgres`    | Required     |
-| **db.url**                | Database connection URL.                      | `postgres://username:password@localhost:5432/databaseName?sslmode=disable` | Required     |
-| **db.max_idle_conns**     | Maximum number of idle database connections.  | `10`          | Optional     |
-| **db.max_open_conns**     | Maximum number of open database connections.  | `10`          | Optional     |
-| **db.conn_max_life_time** | Maximum connection lifetime.                  | `10ms`        | Optional     |
-| **db.max_query_timeout**  | Maximum query execution timeout.              | `500ms`       | Optional     |
+| **Field**                 | **Description**                               | **Example**                                                                | **Required** |
+| ------------------------- | --------------------------------------------- | -------------------------------------------------------------------------- | ------------ |
+| **db.driver**             | Database driver. Currently supports postgres. | `postgres`                                                                 | Yes          |
+| **db.url**                | Database connection URL.                      | `postgres://username:password@localhost:5432/databaseName?sslmode=disable` | Yes          |
+| **db.max_idle_conns**     | Maximum number of idle database connections.  | `10`                                                                       | No           |
+| **db.max_open_conns**     | Maximum number of open database connections.  | `10`                                                                       | No           |
+| **db.conn_max_life_time** | Maximum connection lifetime.                  | `10ms`                                                                     | No           |
+| **db.max_query_timeout**  | Maximum query execution timeout.              | `500ms`                                                                    | No           |
 
 ### SpiceDB Configurations
 
-| **Field**                   | **Type** | **Description**                                                     | **Example** | **Required** |
-| ----------------------------| -------- | ------------------------------------------------------------------- | ----------- | ------------ |
-| **spicedb.host**            | `string` | Hostname or IP address of the SpiceDB service                       | localhost   | Yes          |
-| **spicedb.pre_shared_key**  | `string` | Random key for authentication and secure communication with SpiceDB | random_key  | Yes          |
-| **spicedb.port**            | `uint`    | Port number on which the SpiceDB service is listening              | 50051       | Yes          |
-| **spicedb.fully_consistent**| `boolean`| Enable consistent API responses (slower but most consistent)        | false       | No           |
+| **Field**                    | **Type**  | **Description**                                                     | **Example** | **Required** |
+| ---------------------------- | --------- | ------------------------------------------------------------------- | ----------- | ------------ |
+| **spicedb.host**             | `string`  | Hostname or IP address of the SpiceDB service                       | localhost   | Yes          |
+| **spicedb.pre_shared_key**   | `string`  | Random key for authentication and secure communication with SpiceDB | random_key  | Yes          |
+| **spicedb.port**             | `uint`    | Port number on which the SpiceDB service is listening               | 50051       | Yes          |
+| **spicedb.fully_consistent** | `boolean` | Enable consistent API responses (slower but most consistent)        | false       | No           |
