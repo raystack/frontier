@@ -4,6 +4,16 @@ import CodeBlock from '@theme/CodeBlock';
 
 # Managing Organization
 
+- Add or invite users to an organization (coming up!)
+- View an organization principals
+- Create an organization group
+- List an organization groups
+- View an organization projects
+- Create custom roles and permissions for an org
+- Assign roles to organization principals
+- Enable or disable an org
+- Remove a user from an org
+
 A organization in Shield looks like
 
 ```json
