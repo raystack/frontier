@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	"github.com/odpf/shield/internal/bootstrap/schema"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
+	"regexp"
 )
 
 type Service struct {
@@ -27,7 +25,7 @@ func (s Service) Get(ctx context.Context, id string) (Relation, error) {
 
 func (s Service) Create(ctx context.Context, rel Relation) (Relation, error) {
 	if !isValidID(rel.Object.ID) || !isValidID(rel.Subject.ID) {
-		return Relation{}, errors.New("subject/object id should be a valid uuid or a wildcard *")
+		return Relation{}, errors.New("subject/object id should be a valid string matching pattern \"^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$\"")
 	}
 
 	createdRelation, err := s.repository.Upsert(ctx, rel)
@@ -93,12 +91,6 @@ func (s Service) ListRelations(ctx context.Context, rel Relation) ([]Relation, e
 }
 
 func isValidID(id string) bool {
-	if id == "*" || id == schema.PlatformID {
-		// check either wildcard or global id
-		return true
-	}
-	if shielduuid.IsValid(id) {
-		return true
-	}
-	return false
+	idRegex := regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$")
+	return idRegex.MatchString(id)
 }

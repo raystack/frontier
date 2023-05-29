@@ -7,6 +7,15 @@ definition app/platform {
 	permission superuser = admin
 }
 
+definition app/invitation {
+	relation org: app/organization
+	relation user: app/user
+
+	permission delete = org->invitationcreate + user
+	permission accept = user
+	permission get = org->invitationlist + org->invitationcreate + user
+}
+
 definition app/organization {
 	// relations
 	relation platform: app/platform
@@ -27,6 +36,8 @@ definition app/organization {
     permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist + owner
     permission projectcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_projectcreate + owner
     permission groupcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_groupcreate + owner
+	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist + owner
+	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate + owner
 
     // synthetic permissions - project
     permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + owner
@@ -79,10 +90,12 @@ definition app/rolebinding {
     permission app_organization_get = bearer & role->app_organization_get
     permission app_organization_rolemanage = bearer & role->app_organization_rolemanage
     permission app_organization_policymanage = bearer & role->app_organization_policymanage
-    permission app_organization_projectlist = bearer & role->app_organization_projectlist
-    permission app_organization_grouplist = bearer & role->app_organization_grouplist
-    permission app_organization_projectcreate = bearer & role->app_organization_projectcreate
-    permission app_organization_groupcreate = bearer & role->app_organization_groupcreate
+	permission app_organization_projectlist = bearer & role->app_organization_projectlist
+	permission app_organization_grouplist = bearer & role->app_organization_grouplist
+	permission app_organization_invitationlist = bearer & role->app_organization_invitationlist
+	permission app_organization_projectcreate = bearer & role->app_organization_projectcreate
+	permission app_organization_groupcreate = bearer & role->app_organization_groupcreate
+	permission app_organization_invitationcreate = bearer & role->app_organization_invitationcreate
 
     // project
     permission app_project_administer = bearer & role->app_project_administer
@@ -101,16 +114,18 @@ definition app/rolebinding {
 
 definition app/role {
 	// org
-    relation app_organization_administer: app/user:* | app/serviceuser:*
-    relation app_organization_delete: app/user:* | app/serviceuser:*
-    relation app_organization_update: app/user:* | app/serviceuser:*
-    relation app_organization_get: app/user:* | app/serviceuser:*
-    relation app_organization_rolemanage: app/user:* | app/serviceuser:*
-    relation app_organization_policymanage: app/user:* | app/serviceuser:*
-    relation app_organization_groupcreate: app/user:* | app/serviceuser:*
-    relation app_organization_projectcreate: app/user:* | app/serviceuser:*
-    relation app_organization_projectlist: app/user:* | app/serviceuser:*
-    relation app_organization_grouplist: app/user:* | app/serviceuser:*
+	relation app_organization_administer: app/user:* | app/serviceuser:*
+	relation app_organization_delete: app/user:* | app/serviceuser:*
+	relation app_organization_update: app/user:* | app/serviceuser:*
+	relation app_organization_get: app/user:* | app/serviceuser:*
+	relation app_organization_rolemanage: app/user:* | app/serviceuser:*
+	relation app_organization_policymanage: app/user:* | app/serviceuser:*
+	relation app_organization_projectlist: app/user:* | app/serviceuser:*
+	relation app_organization_grouplist: app/user:* | app/serviceuser:*
+	relation app_organization_invitationlist: app/user:* | app/serviceuser:*
+	relation app_organization_projectcreate: app/user:* | app/serviceuser:*
+	relation app_organization_groupcreate: app/user:* | app/serviceuser:*
+	relation app_organization_invitationcreate: app/user:* | app/serviceuser:*
 
     // project
     relation app_project_administer: app/user:* | app/serviceuser:*

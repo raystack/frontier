@@ -51,6 +51,11 @@ app:
         client_id: "xxxxx.apps.googleusercontent.com"
         client_secret: "xxxxx"
         issuer_url: "https://accounts.google.com"
+        validity: 10m
+    mail_otp:
+      subject: "Shield - Login Link"
+      body: "Please copy/paste the otp below to login.\n\n{{.Otp}}\n\nThis code will expire in 5 minutes."
+      validity: 10m
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers
@@ -59,6 +64,15 @@ app:
     # UUIDs/slugs of existing users can also be provided instead of email ids
     # but in that case a new user will not be created.
     users: []
+  # smtp configuration for sending emails
+  mailer:
+    smtp_host: smtp.example.com
+    smtp_port: 587
+    smtp_username: "username"
+    smtp_password: "password"
+    smtp_insecure: true
+    headers:
+      from: "username@acme.org"
 db:
   driver: postgres
   url: postgres://shield:@localhost:5432/shield?sslmode=disable

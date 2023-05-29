@@ -57,6 +57,11 @@ const (
 	ShieldService_ListOrganizationUsers_FullMethodName         = "/odpf.shield.v1beta1.ShieldService/ListOrganizationUsers"
 	ShieldService_AddOrganizationUsers_FullMethodName          = "/odpf.shield.v1beta1.ShieldService/AddOrganizationUsers"
 	ShieldService_RemoveOrganizationUser_FullMethodName        = "/odpf.shield.v1beta1.ShieldService/RemoveOrganizationUser"
+	ShieldService_ListOrganizationInvitations_FullMethodName   = "/odpf.shield.v1beta1.ShieldService/ListOrganizationInvitations"
+	ShieldService_CreateOrganizationInvitation_FullMethodName  = "/odpf.shield.v1beta1.ShieldService/CreateOrganizationInvitation"
+	ShieldService_GetOrganizationInvitation_FullMethodName     = "/odpf.shield.v1beta1.ShieldService/GetOrganizationInvitation"
+	ShieldService_AcceptOrganizationInvitation_FullMethodName  = "/odpf.shield.v1beta1.ShieldService/AcceptOrganizationInvitation"
+	ShieldService_DeleteOrganizationInvitation_FullMethodName  = "/odpf.shield.v1beta1.ShieldService/DeleteOrganizationInvitation"
 	ShieldService_EnableOrganization_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/EnableOrganization"
 	ShieldService_DisableOrganization_FullMethodName           = "/odpf.shield.v1beta1.ShieldService/DisableOrganization"
 	ShieldService_DeleteOrganization_FullMethodName            = "/odpf.shield.v1beta1.ShieldService/DeleteOrganization"
@@ -142,6 +147,11 @@ type ShieldServiceClient interface {
 	ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error)
+	ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error)
+	CreateOrganizationInvitation(ctx context.Context, in *CreateOrganizationInvitationRequest, opts ...grpc.CallOption) (*CreateOrganizationInvitationResponse, error)
+	GetOrganizationInvitation(ctx context.Context, in *GetOrganizationInvitationRequest, opts ...grpc.CallOption) (*GetOrganizationInvitationResponse, error)
+	AcceptOrganizationInvitation(ctx context.Context, in *AcceptOrganizationInvitationRequest, opts ...grpc.CallOption) (*AcceptOrganizationInvitationResponse, error)
+	DeleteOrganizationInvitation(ctx context.Context, in *DeleteOrganizationInvitationRequest, opts ...grpc.CallOption) (*DeleteOrganizationInvitationResponse, error)
 	EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error)
 	DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error)
 	DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error)
@@ -540,6 +550,51 @@ func (c *shieldServiceClient) RemoveOrganizationUser(ctx context.Context, in *Re
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error) {
+	out := new(ListOrganizationInvitationsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationInvitations_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) CreateOrganizationInvitation(ctx context.Context, in *CreateOrganizationInvitationRequest, opts ...grpc.CallOption) (*CreateOrganizationInvitationResponse, error) {
+	out := new(CreateOrganizationInvitationResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateOrganizationInvitation_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetOrganizationInvitation(ctx context.Context, in *GetOrganizationInvitationRequest, opts ...grpc.CallOption) (*GetOrganizationInvitationResponse, error) {
+	out := new(GetOrganizationInvitationResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationInvitation_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) AcceptOrganizationInvitation(ctx context.Context, in *AcceptOrganizationInvitationRequest, opts ...grpc.CallOption) (*AcceptOrganizationInvitationResponse, error) {
+	out := new(AcceptOrganizationInvitationResponse)
+	err := c.cc.Invoke(ctx, ShieldService_AcceptOrganizationInvitation_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteOrganizationInvitation(ctx context.Context, in *DeleteOrganizationInvitationRequest, opts ...grpc.CallOption) (*DeleteOrganizationInvitationResponse, error) {
+	out := new(DeleteOrganizationInvitationResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteOrganizationInvitation_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error) {
 	out := new(EnableOrganizationResponse)
 	err := c.cc.Invoke(ctx, ShieldService_EnableOrganization_FullMethodName, in, out, opts...)
@@ -919,6 +974,11 @@ type ShieldServiceServer interface {
 	ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error)
+	ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error)
+	CreateOrganizationInvitation(context.Context, *CreateOrganizationInvitationRequest) (*CreateOrganizationInvitationResponse, error)
+	GetOrganizationInvitation(context.Context, *GetOrganizationInvitationRequest) (*GetOrganizationInvitationResponse, error)
+	AcceptOrganizationInvitation(context.Context, *AcceptOrganizationInvitationRequest) (*AcceptOrganizationInvitationResponse, error)
+	DeleteOrganizationInvitation(context.Context, *DeleteOrganizationInvitationRequest) (*DeleteOrganizationInvitationResponse, error)
 	EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error)
 	DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error)
 	DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error)
@@ -1085,6 +1145,21 @@ func (UnimplementedShieldServiceServer) AddOrganizationUsers(context.Context, *A
 }
 func (UnimplementedShieldServiceServer) RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationUser not implemented")
+}
+func (UnimplementedShieldServiceServer) ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationInvitations not implemented")
+}
+func (UnimplementedShieldServiceServer) CreateOrganizationInvitation(context.Context, *CreateOrganizationInvitationRequest) (*CreateOrganizationInvitationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganizationInvitation not implemented")
+}
+func (UnimplementedShieldServiceServer) GetOrganizationInvitation(context.Context, *GetOrganizationInvitationRequest) (*GetOrganizationInvitationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationInvitation not implemented")
+}
+func (UnimplementedShieldServiceServer) AcceptOrganizationInvitation(context.Context, *AcceptOrganizationInvitationRequest) (*AcceptOrganizationInvitationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AcceptOrganizationInvitation not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteOrganizationInvitation(context.Context, *DeleteOrganizationInvitationRequest) (*DeleteOrganizationInvitationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrganizationInvitation not implemented")
 }
 func (UnimplementedShieldServiceServer) EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableOrganization not implemented")
@@ -1890,6 +1965,96 @@ func _ShieldService_RemoveOrganizationUser_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).RemoveOrganizationUser(ctx, req.(*RemoveOrganizationUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListOrganizationInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationInvitationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListOrganizationInvitations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListOrganizationInvitations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListOrganizationInvitations(ctx, req.(*ListOrganizationInvitationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_CreateOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOrganizationInvitationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).CreateOrganizationInvitation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_CreateOrganizationInvitation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).CreateOrganizationInvitation(ctx, req.(*CreateOrganizationInvitationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrganizationInvitationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetOrganizationInvitation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetOrganizationInvitation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetOrganizationInvitation(ctx, req.(*GetOrganizationInvitationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_AcceptOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AcceptOrganizationInvitationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).AcceptOrganizationInvitation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_AcceptOrganizationInvitation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).AcceptOrganizationInvitation(ctx, req.(*AcceptOrganizationInvitationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOrganizationInvitationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteOrganizationInvitation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_DeleteOrganizationInvitation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteOrganizationInvitation(ctx, req.(*DeleteOrganizationInvitationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2718,6 +2883,26 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveOrganizationUser",
 			Handler:    _ShieldService_RemoveOrganizationUser_Handler,
+		},
+		{
+			MethodName: "ListOrganizationInvitations",
+			Handler:    _ShieldService_ListOrganizationInvitations_Handler,
+		},
+		{
+			MethodName: "CreateOrganizationInvitation",
+			Handler:    _ShieldService_CreateOrganizationInvitation_Handler,
+		},
+		{
+			MethodName: "GetOrganizationInvitation",
+			Handler:    _ShieldService_GetOrganizationInvitation_Handler,
+		},
+		{
+			MethodName: "AcceptOrganizationInvitation",
+			Handler:    _ShieldService_AcceptOrganizationInvitation_Handler,
+		},
+		{
+			MethodName: "DeleteOrganizationInvitation",
+			Handler:    _ShieldService_DeleteOrganizationInvitation_Handler,
 		},
 		{
 			MethodName: "EnableOrganization",

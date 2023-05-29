@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/core/group"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
@@ -37,7 +38,7 @@ var (
 )
 
 func TestHandler_ListGroups(t *testing.T) {
-	randomID := uuid.NewString()
+	randomID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService)
@@ -154,8 +155,8 @@ func TestHandler_ListGroups(t *testing.T) {
 
 func TestHandler_CreateGroup(t *testing.T) {
 	email := "user@odpf.io"
-	someOrgID := uuid.NewString()
-	someGroupID := uuid.NewString()
+	someOrgID := utils.NewString()
+	someGroupID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
@@ -342,7 +343,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 }
 
 func TestHandler_GetGroup(t *testing.T) {
-	someGroupID := uuid.NewString()
+	someGroupID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService)
@@ -417,8 +418,8 @@ func TestHandler_GetGroup(t *testing.T) {
 }
 
 func TestHandler_UpdateGroup(t *testing.T) {
-	someGroupID := uuid.NewString()
-	someOrgID := uuid.NewString()
+	someGroupID := utils.NewString()
+	someOrgID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService, ms *mocks.MetaSchemaService)

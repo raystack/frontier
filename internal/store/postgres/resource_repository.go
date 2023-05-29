@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/core/user"
 
 	"database/sql"
@@ -15,7 +17,6 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/uuid"
 )
 
 type ResourceRepository struct {
@@ -184,7 +185,7 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 }
 
 func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (resource.Resource, error) {
-	if strings.TrimSpace(res.ID) == "" || !uuid.IsValid(res.ID) {
+	if strings.TrimSpace(res.ID) == "" || !utils.IsValidUUID(res.ID) {
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 

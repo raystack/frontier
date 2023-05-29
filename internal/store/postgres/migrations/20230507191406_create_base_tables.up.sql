@@ -133,11 +133,11 @@ DROP TABLE IF EXISTS flows CASCADE;
 CREATE TABLE IF NOT EXISTS flows(
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     method text,
-    start_url text,
-    finish_url text,
+    email text,
     nonce text,
     metadata jsonb,
-    created_at timestamptz NOT NULL DEFAULT NOW()
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    expires_at timestamptz DEFAULT (NOW() + INTERVAL '7 days')
     );
 DROP TABLE IF EXISTS sessions CASCADE;
 CREATE TABLE IF NOT EXISTS sessions (
@@ -145,8 +145,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     authenticated_at timestamptz,
     metadata jsonb,
-    expires_at timestamptz DEFAULT (NOW() + INTERVAL '7 days'),
-    created_at timestamptz NOT NULL DEFAULT NOW()
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    expires_at timestamptz DEFAULT (NOW() + INTERVAL '7 days')
     );
 DROP TABLE IF EXISTS metadata_keys CASCADE;
 DROP TABLE IF EXISTS metaschema CASCADE;
@@ -157,9 +157,19 @@ CREATE TABLE IF NOT EXISTS metaschema (
     created_at timestamptz NOT NULL DEFAULT NOW(),
     updated_at timestamptz NOT NULL DEFAULT NOW()
     );
+DROP TABLE IF EXISTS invitations CASCADE;
+CREATE TABLE IF NOT EXISTS invitations (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    org_id uuid NOT NULL REFERENCES organizations(id),
+    user_id text NOT NULL,
+    metadata jsonb,
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    expires_at timestamptz DEFAULT (NOW() + INTERVAL '7 days')
+);
 -- create state index
 CREATE INDEX organizations_state_idx ON organizations(state);
 CREATE INDEX projects_state_idx ON projects(state);
 CREATE INDEX groups_state_idx ON groups(state);
 CREATE INDEX users_state_idx ON users(state);
 CREATE INDEX roles_state_idx ON roles(state);
+CREATE INDEX invitations_user_id_idx ON invitations(user_id);

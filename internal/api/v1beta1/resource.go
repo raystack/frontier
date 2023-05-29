@@ -98,9 +98,13 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *shieldv1bet
 		}
 	}
 
+	projectID := request.GetProjectId()
+	if request.GetProjectId() == "" {
+		projectID = request.GetBody().GetProjectId()
+	}
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
 		Name:        request.GetBody().GetName(),
-		ProjectID:   request.GetBody().GetProjectId(),
+		ProjectID:   projectID,
 		NamespaceID: request.GetBody().GetNamespace(),
 		UserID:      request.GetBody().GetUserId(),
 		Metadata:    metaDataMap,
@@ -162,9 +166,13 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *shieldv1bet
 		return nil, grpcBadBodyError
 	}
 
+	projectID := request.GetProjectId()
+	if request.GetProjectId() == "" {
+		projectID = request.GetBody().GetProjectId()
+	}
 	updatedResource, err := h.resourceService.Update(ctx, resource.Resource{
 		ID:          request.GetId(),
-		ProjectID:   request.GetBody().GetProjectId(),
+		ProjectID:   projectID,
 		NamespaceID: request.GetBody().GetNamespace(),
 		Name:        request.GetBody().GetName(),
 		UserID:      request.GetBody().GetUserId(),

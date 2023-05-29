@@ -3,13 +3,14 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/project"
 
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/metadata"
-	suuid "github.com/odpf/shield/pkg/uuid"
 	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -182,7 +183,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	}
 
 	var updatedOrg organization.Organization
-	if suuid.IsValid(request.GetId()) {
+	if utils.IsValidUUID(request.GetId()) {
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
 			ID:       request.GetId(),
 			Name:     request.GetBody().GetName(),

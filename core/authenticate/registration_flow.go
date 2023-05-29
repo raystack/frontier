@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/odpf/shield/internal/bootstrap"
+	"github.com/odpf/shield/pkg/mailer"
+
 	"github.com/odpf/salt/log"
 
 	"github.com/google/uuid"
@@ -22,13 +25,19 @@ import (
 
 const (
 	// TODO(kushsharma): should we expose this in config?
-	tokenValidity = time.Hour * 24 * 30
+	tokenValidity  = time.Hour * 24 * 14
+	defaultFlowExp = time.Minute * 10
+	maxOTPAttempt  = 5
+	otpAttemptKey  = "attempt"
 )
 
 var (
 	refreshTime               = "0 0 * * *" // Once a day at midnight
 	ErrMissingRSADisableToken = errors.New("rsa key missing in config, generate and pass file path")
 	ErrStrategyNotApplicable  = errors.New("strategy not applicable")
+	ErrUnsupportedMethod      = errors.New("unsupported authentication method")
+	ErrInvalidMailOTP         = errors.New("invalid mail otp")
+	ErrFlowInvalid            = errors.New("invalid flow or expired")
 )
 
 type UserService interface {
@@ -43,44 +52,52 @@ type FlowRepository interface {
 	DeleteExpiredFlows(ctx context.Context) error
 }
 
+type RegistrationStartRequest struct {
+	Method   string
+	ReturnTo string
+	Email    string
+}
+
+type RegistrationFinishRequest struct {
+	Method string
+
+	// used for OIDC & mail otp auth strategy
+	Code  string
+	State string
+}
+
+type RegistrationStartResponse struct {
+	Flow  *Flow
+	State string
+}
+
+type RegistrationFinishResponse struct {
+	User user.User
+	Flow *Flow
+}
+
 type RegistrationService struct {
 	log         log.Logger
 	cron        *cron.Cron
 	flowRepo    FlowRepository
 	userService UserService
 	config      Config
+	mailDialer  mailer.Dialer
+	Now         func() time.Time
 }
 
-func NewRegistrationService(logger log.Logger, config Config, flowRepo FlowRepository, userService UserService) *RegistrationService {
-	return &RegistrationService{
+func NewRegistrationService(logger log.Logger, config Config, flowRepo FlowRepository,
+	userService UserService, mailDialer mailer.Dialer) *RegistrationService {
+	r := &RegistrationService{
 		log:         logger,
 		cron:        cron.New(),
 		flowRepo:    flowRepo,
 		userService: userService,
 		config:      config,
+		mailDialer:  mailDialer,
+		Now:         time.Now().UTC,
 	}
-}
-
-type RegistrationStartRequest struct {
-	Method   string
-	ReturnTo string
-}
-
-type RegistrationFinishRequest struct {
-	Method string
-
-	// used for OIDC auth strategy
-	OAuthCode  string
-	OAuthState string
-}
-
-type RegistrationStartResponse struct {
-	Flow *Flow
-}
-
-type RegistrationFinishResponse struct {
-	User user.User
-	Flow *Flow
+	return r
 }
 
 func (r RegistrationService) SupportedStrategies() []string {
@@ -89,23 +106,43 @@ func (r RegistrationService) SupportedStrategies() []string {
 	for name := range r.config.OIDCConfig {
 		strategies = append(strategies, name)
 	}
+	if r.mailDialer != nil {
+		strategies = append(strategies, MailOTPAuthMethod.String())
+	}
 	return strategies
 }
 
 func (r RegistrationService) Start(ctx context.Context, request RegistrationStartRequest) (*RegistrationStartResponse, error) {
+	if !bootstrap.Contains(r.SupportedStrategies(), request.Method) {
+		return nil, ErrUnsupportedMethod
+	}
 	flow := &Flow{
 		ID:        uuid.New(),
 		Method:    request.Method,
 		FinishURL: request.ReturnTo,
-		CreatedAt: time.Now().UTC(),
+		CreatedAt: r.Now(),
+		ExpiresAt: r.Now().Add(defaultFlowExp),
 	}
 
-	if request.Method == MailAuthMethod.String() {
-		// get request.email id
-		// create a new flow
-		// use sns service to send a mail using flow id/nonce & method type
-		// TODO
-		panic("unsupported")
+	if request.Method == MailOTPAuthMethod.String() {
+		mailLinkStrat := strategy.NewMailLink(r.mailDialer, r.config.MailOTP.Subject, r.config.MailOTP.Body)
+		nonce, err := mailLinkStrat.SendMail(request.Email)
+		if err != nil {
+			return nil, err
+		}
+
+		flow.Nonce = nonce
+		if r.config.MailOTP.Validity != 0 {
+			flow.ExpiresAt = flow.CreatedAt.Add(r.config.MailOTP.Validity)
+		}
+		flow.Email = strings.ToLower(request.Email)
+		if err = r.flowRepo.Set(ctx, flow); err != nil {
+			return nil, err
+		}
+		return &RegistrationStartResponse{
+			Flow:  flow,
+			State: flow.ID.String(),
+		}, nil
 	}
 
 	// check for oidc flow
@@ -130,6 +167,9 @@ func (r RegistrationService) Start(ctx context.Context, request RegistrationStar
 
 		flow.StartURL = endpoint
 		flow.Nonce = nonce
+		if oidcConfig.Validity != 0 {
+			flow.ExpiresAt = flow.CreatedAt.Add(oidcConfig.Validity)
+		}
 		if err = r.flowRepo.Set(ctx, flow); err != nil {
 			return nil, err
 		}
@@ -138,20 +178,19 @@ func (r RegistrationService) Start(ctx context.Context, request RegistrationStar
 		}, nil
 	}
 
-	return nil, errors.New("unsupported authentication method")
+	return nil, ErrUnsupportedMethod
 }
 
 func (r RegistrationService) Finish(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
-	{
+	if request.Method == MailOTPAuthMethod.String() {
 		response, err := r.applyMail(ctx, request)
-		if err == nil {
-			return response, nil
-		}
 		if err != nil && !errors.Is(err, ErrStrategyNotApplicable) {
 			return nil, err
 		}
+		return response, nil
 	}
 
+	// check for oidc method config
 	{
 		response, err := r.applyOIDC(ctx, request)
 		if err == nil {
@@ -161,28 +200,69 @@ func (r RegistrationService) Finish(ctx context.Context, request RegistrationFin
 			return nil, err
 		}
 	}
-
-	return nil, errors.New("unsupported authentication method")
+	return nil, ErrUnsupportedMethod
 }
 
+// applyMail actions when user submitted otp from the email
+// user can be considered as verified if correct
+// create a new user if required
 func (r RegistrationService) applyMail(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
-	if request.Method == MailAuthMethod.String() {
-		// TODO(kushsharma):
-		// user clicked on nonce link from the email
-		// user can be considered as verified
-		// create a new user if required
+	if len(request.Code) == 0 {
+		return nil, ErrStrategyNotApplicable
 	}
-	return nil, ErrStrategyNotApplicable
+	flowID, err := uuid.Parse(request.State)
+	if err != nil {
+		return nil, ErrStrategyNotApplicable
+	}
+	flow, err := r.flowRepo.Get(ctx, flowID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid state for mail otp: %w", err)
+	}
+	if !flow.IsValid() {
+		return nil, ErrFlowInvalid
+	}
+	if flow.Nonce != request.Code {
+		// avoid brute forcing otp
+		attemptInt := 0
+		if attempts, ok := flow.Metadata[otpAttemptKey]; ok {
+			attemptInt, _ = attempts.(int)
+		}
+		if attemptInt < maxOTPAttempt {
+			flow.Metadata[otpAttemptKey] = attemptInt + 1
+			if err = r.flowRepo.Set(ctx, flow); err != nil {
+				return nil, fmt.Errorf("failed to process flow code missmatch")
+			}
+		} else {
+			if err = r.consumeFlow(ctx, flowID); err != nil {
+				return nil, fmt.Errorf("failed to process flow code missmatch")
+			}
+		}
+		return nil, ErrInvalidMailOTP
+	}
+
+	// consume this flow
+	if err = r.consumeFlow(ctx, flow.ID); err != nil {
+		return nil, fmt.Errorf("failed to successfully register via otp: %w", err)
+	}
+
+	newUser, err := r.getOrCreateUser(ctx, flow.Email, "")
+	if err != nil {
+		return nil, err
+	}
+	return &RegistrationFinishResponse{
+		User: newUser,
+		Flow: flow,
+	}, nil
 }
 
 func (r RegistrationService) applyOIDC(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
 	// flow id is added in state params
-	if len(request.OAuthState) == 0 {
+	if len(request.State) == 0 {
 		return nil, errors.New("invalid auth state")
 	}
 
 	// check for oidc flow via fetching oauth state, method parameter will not be set for oauth
-	flowIDFromState, err := strategy.ExtractFlowFromOIDCState(request.OAuthState)
+	flowIDFromState, err := strategy.ExtractFlowFromOIDCState(request.State)
 	if err != nil {
 		return nil, ErrStrategyNotApplicable
 	}
@@ -210,7 +290,7 @@ func (r RegistrationService) applyOIDC(ctx context.Context, request Registration
 	if err != nil {
 		return nil, err
 	}
-	authToken, err := idp.Token(ctx, request.OAuthCode, flow.Nonce)
+	authToken, err := idp.Token(ctx, request.Code, flow.Nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -219,25 +299,8 @@ func (r RegistrationService) applyOIDC(ctx context.Context, request Registration
 		return nil, err
 	}
 
-	// create a new user based on email if it doesn't exist
-	existingUser, err := r.userService.GetByEmail(ctx, oauthProfile.Email)
-	if err == nil {
-		// user is already registered
-
-		// TODO(kushsharma): should we update metadata like profile picture from outside the app
-		// for registered users every time the login?
-		return &RegistrationFinishResponse{
-			User: existingUser,
-			Flow: flow,
-		}, nil
-	}
-
 	// register a new user
-	newUser, err := r.userService.Create(ctx, user.User{
-		Title: oauthProfile.Name,
-		Email: oauthProfile.Email,
-		Name:  str.GenerateUserSlug(oauthProfile.Email),
-	})
+	newUser, err := r.getOrCreateUser(ctx, oauthProfile.Email, oauthProfile.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -294,6 +357,29 @@ func (r RegistrationService) InitFlows(ctx context.Context) error {
 	}
 	r.cron.Start()
 	return nil
+}
+
+func (r RegistrationService) consumeFlow(ctx context.Context, id uuid.UUID) error {
+	return r.flowRepo.Delete(ctx, id)
+}
+
+func (r RegistrationService) getOrCreateUser(ctx context.Context, email, title string) (user.User, error) {
+	// create a new user based on email if it doesn't exist
+	existingUser, err := r.userService.GetByEmail(ctx, email)
+	if err == nil {
+		// user is already registered
+
+		// TODO(kushsharma): should we update metadata like profile picture from social logins
+		// for registered users every time the login?
+		return existingUser, nil
+	}
+
+	// register a new user
+	return r.userService.Create(ctx, user.User{
+		Title: title,
+		Email: email,
+		Name:  str.GenerateUserSlug(email),
+	})
 }
 
 func (r RegistrationService) Close() {

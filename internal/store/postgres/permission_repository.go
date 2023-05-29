@@ -39,7 +39,7 @@ func (r PermissionRepository) Get(ctx context.Context, id string) (permission.Pe
 	}
 
 	var fetchedPermission Permission
-	query, params, err := dialect.Select(&returnedColumns{}).From(TABLE_PERMISSIONS).Where(
+	query, params, err := dialect.Select(&permReturnedColumns{}).From(TABLE_PERMISSIONS).Where(
 		goqu.Ex{
 			"id": id,
 		},
@@ -73,7 +73,7 @@ func (r PermissionRepository) Get(ctx context.Context, id string) (permission.Pe
 
 func (r PermissionRepository) GetBySlug(ctx context.Context, slug string) (permission.Permission, error) {
 	var fetchedPermission Permission
-	query, params, err := dialect.Select(&returnedColumns{}).From(TABLE_PERMISSIONS).Where(
+	query, params, err := dialect.Select(&permReturnedColumns{}).From(TABLE_PERMISSIONS).Where(
 		goqu.Ex{
 			"slug": slug,
 		},
@@ -128,7 +128,7 @@ func (r PermissionRepository) Upsert(ctx context.Context, perm permission.Permis
 			"metadata":       marshaledMetadata,
 		}).OnConflict(goqu.DoUpdate("slug", goqu.Record{
 		"metadata": marshaledMetadata,
-	})).Returning(&returnedColumns{}).ToSQL()
+	})).Returning(&permReturnedColumns{}).ToSQL()
 	if err != nil {
 		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -162,7 +162,7 @@ func (r PermissionRepository) Upsert(ctx context.Context, perm permission.Permis
 
 func (r PermissionRepository) List(ctx context.Context, flt permission.Filter) ([]permission.Permission, error) {
 	var fetchedActions []Permission
-	stmt := dialect.Select(&returnedColumns{}).From(TABLE_PERMISSIONS)
+	stmt := dialect.Select(&permReturnedColumns{}).From(TABLE_PERMISSIONS)
 	if flt.NamespaceID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"namespace_name": flt.NamespaceID,
@@ -199,16 +199,16 @@ func (r PermissionRepository) List(ctx context.Context, flt permission.Filter) (
 		return []permission.Permission{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var transformedActions []permission.Permission
+	var transformedPermissions []permission.Permission
 	for _, o := range fetchedActions {
 		transPerm, err := o.transformToPermission()
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform permission model: %w", err)
 		}
-		transformedActions = append(transformedActions, transPerm)
+		transformedPermissions = append(transformedPermissions, transPerm)
 	}
 
-	return transformedActions, nil
+	return transformedPermissions, nil
 }
 
 func (r PermissionRepository) Update(ctx context.Context, act permission.Permission) (permission.Permission, error) {
@@ -227,7 +227,7 @@ func (r PermissionRepository) Update(ctx context.Context, act permission.Permiss
 			"updated_at":     goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": act.ID,
-	}).Returning(&returnedColumns{}).ToSQL()
+	}).Returning(&permReturnedColumns{}).ToSQL()
 	if err != nil {
 		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

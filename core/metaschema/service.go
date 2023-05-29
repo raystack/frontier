@@ -3,8 +3,9 @@ package metaschema
 import (
 	"context"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/pkg/metadata"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
 	"github.com/pkg/errors"
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -35,7 +36,7 @@ func (s Service) Get(ctx context.Context, idOrName string) (MetaSchema, error) {
 		return schema, nil
 	}
 
-	if shielduuid.IsValid(idOrName) {
+	if utils.IsValidUUID(idOrName) {
 		schema, err := s.repository.Get(ctx, idOrName)
 		if err != nil {
 			return MetaSchema{}, err
@@ -66,7 +67,7 @@ func (s Service) List(ctx context.Context) ([]MetaSchema, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, toUpdate MetaSchema) (MetaSchema, error) {
-	if shielduuid.IsValid(id) {
+	if utils.IsValidUUID(id) {
 		schema, err := s.repository.Update(ctx, id, toUpdate)
 		if err != nil {
 			return MetaSchema{}, err
@@ -78,7 +79,7 @@ func (s Service) Update(ctx context.Context, id string, toUpdate MetaSchema) (Me
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if shielduuid.IsValid(id) {
+	if utils.IsValidUUID(id) {
 		name, err := s.repository.Delete(ctx, id)
 		if err != nil {
 			return err

@@ -44,8 +44,14 @@ For eg: "$john-doe@acme.org" returns "johndoe_acme_org"
 */
 func GenerateUserSlug(email string) string {
 	email = strings.ToLower(strings.TrimSpace(email))
-
+	if len(email) == 0 {
+		return ""
+	}
 	i := strings.LastIndexByte(email, '@')
+	if i == -1 {
+		// not a valid email id
+		return ""
+	}
 	// remove all the non-alphanumeric characters from local part
 	regex := "[^a-zA-Z0-9]+"
 	localPart := regexp.MustCompile(regex).ReplaceAllString(email[:i], "")

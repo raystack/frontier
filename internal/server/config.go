@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 
+	"github.com/odpf/shield/pkg/mailer"
+
 	"github.com/odpf/shield/internal/bootstrap"
 
 	"github.com/odpf/shield/core/authenticate"
@@ -58,4 +60,6 @@ type Config struct {
 	CorsOrigin string `yaml:"cors_origin" mapstructure:"cors_origin"`
 
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
+
+	Mailer mailer.Config `yaml:"mailer" mapstructure:"mailer"`
 }

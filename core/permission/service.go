@@ -3,7 +3,7 @@ package permission
 import (
 	"context"
 
-	shielduuid "github.com/odpf/shield/pkg/uuid"
+	"github.com/odpf/shield/pkg/utils"
 )
 
 type Service struct {
@@ -17,7 +17,7 @@ func NewService(repository Repository) *Service {
 }
 
 func (s Service) Get(ctx context.Context, id string) (Permission, error) {
-	if shielduuid.IsValid(id) {
+	if utils.IsValidUUID(id) {
 		return s.repository.Get(ctx, id)
 	}
 	return s.repository.GetBySlug(ctx, ParsePermissionName(id))

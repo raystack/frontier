@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/organization"
@@ -13,7 +15,6 @@ import (
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -244,7 +245,7 @@ func TestCreateOrganization(t *testing.T) {
 }
 
 func TestHandler_GetOrganization(t *testing.T) {
-	someOrgID := uuid.NewString()
+	someOrgID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(os *mocks.OrganizationService)
@@ -326,7 +327,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 }
 
 func TestHandler_UpdateOrganization(t *testing.T) {
-	someOrgID := uuid.NewString()
+	someOrgID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService)
@@ -572,7 +573,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 }
 
 func TestHandler_ListOrganizationAdmins(t *testing.T) {
-	someOrgID := uuid.NewString()
+	someOrgID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(us *mocks.UserService)

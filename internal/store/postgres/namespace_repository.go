@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/uuid"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
+	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/pkg/db"
@@ -33,7 +33,7 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 	}
 
 	stmt := dialect.Select(&Namespace{}).From(TABLE_NAMESPACES)
-	if shielduuid.IsValid(id) {
+	if utils.IsValidUUID(id) {
 		stmt = stmt.Where(goqu.Ex{
 			"id": id,
 		})

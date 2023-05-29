@@ -61,6 +61,7 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 	response, err := h.registrationService.Start(ctx, authenticate.RegistrationStartRequest{
 		ReturnTo: request.ReturnTo,
 		Method:   request.GetStrategyName(),
+		Email:    request.GetEmail(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -77,6 +78,7 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 
 	return &shieldv1beta1.AuthenticateResponse{
 		Endpoint: response.Flow.StartURL,
+		State:    response.State,
 	}, nil
 }
 
@@ -85,9 +87,9 @@ func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCa
 
 	// handle callback
 	response, err := h.registrationService.Finish(ctx, authenticate.RegistrationFinishRequest{
-		Method:     request.GetStrategyName(),
-		OAuthCode:  request.GetCode(),
-		OAuthState: request.GetState(),
+		Method: request.GetStrategyName(),
+		Code:   request.GetCode(),
+		State:  request.GetState(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

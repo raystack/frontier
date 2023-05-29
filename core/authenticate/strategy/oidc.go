@@ -47,7 +47,7 @@ func (g *OIDC) Init(ctx context.Context, issuer string) (*OIDC, error) {
 }
 
 func (g *OIDC) AuthURL(state string) (url string, nonce string, err error) {
-	nonce, err = generateNonce()
+	nonce, err = generateRandomNonce()
 	if err != nil {
 		return
 	}
@@ -129,7 +129,7 @@ func ExtractFlowFromOIDCState(state string) (string, error) {
 	return flowID, nil
 }
 
-func generateNonce() (string, error) {
+func generateRandomNonce() (string, error) {
 	nonceBytes := make([]byte, 16)
 	if _, err := io.ReadFull(rand.Reader, nonceBytes); err != nil {
 		return "", err

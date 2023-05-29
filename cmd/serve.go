@@ -10,6 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/core/invitation"
+
+	"github.com/odpf/shield/pkg/mailer"
+
 	"github.com/odpf/shield/core/permission"
 	"github.com/odpf/shield/internal/bootstrap"
 
@@ -230,9 +234,23 @@ func buildAPIDependencies(
 		userService,
 	)
 
-	registrationService := authenticate.NewRegistrationService(logger, cfg.App.Authentication, postgres.NewFlowRepository(logger, dbc), userService)
+	var mailDialer mailer.Dialer = mailer.NewMockDialer()
+	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
+		mailDialer = mailer.NewDialerImpl(cfg.App.Mailer.SMTPHost,
+			cfg.App.Mailer.SMTPPort,
+			cfg.App.Mailer.SMTPUsername,
+			cfg.App.Mailer.SMTPPassword,
+			cfg.App.Mailer.SMTPInsecure,
+			cfg.App.Mailer.Headers,
+		)
+	}
+	registrationService := authenticate.NewRegistrationService(logger, cfg.App.Authentication,
+		postgres.NewFlowRepository(logger, dbc), userService, mailDialer)
 
-	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService, groupService, policyService, roleService)
+	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
+		organizationService, groupService, userService, relationService)
+	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
+		groupService, policyService, roleService, invitationService)
 
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,
@@ -252,6 +270,7 @@ func buildAPIDependencies(
 		DeleterService:      cascadeDeleter,
 		MetaSchemaService:   metaschemaService,
 		BootstrapService:    bootstrapService,
+		InvitationService:   invitationService,
 	}
 	return dependencies, nil
 }

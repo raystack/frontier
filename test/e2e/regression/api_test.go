@@ -1012,6 +1012,106 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		s.Assert().Equal("res-1", listResourcesResp.GetResources()[0].Name)
 	})
 }
+
+func (s *APIRegressionTestSuite) TestInvitationAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	s.Run("1. a user should successfully create a new invitation in org and accept it", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-invitation-1",
+		})
+		s.Assert().NoError(err)
+		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &shieldv1beta1.CreateGroupRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+			Body: &shieldv1beta1.GroupRequestBody{
+				Name: "new-group",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Title: "new user 1",
+				Email: "new-user-for-invite-1@odpf.io",
+				Name:  "new_user_for_invite_1_odpf_io",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createInviteResp, err := s.testBench.Client.CreateOrganizationInvitation(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationInvitationRequest{
+			OrgId:    existingOrg.GetOrganization().GetId(),
+			UserId:   createUserResp.GetUser().GetEmail(),
+			GroupIds: []string{createGroupResp.GetGroup().GetId()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createInviteResp)
+
+		getInviteResp, err := s.testBench.Client.GetOrganizationInvitation(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationInvitationRequest{
+			Id:    createInviteResp.GetInvitation().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getInviteResp)
+		s.Assert().Equal(createInviteResp.GetInvitation().GetId(), getInviteResp.GetInvitation().GetId())
+
+		listInviteByOrgResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationInvitationsRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getInviteResp)
+		s.Assert().Equal(createInviteResp.GetInvitation().GetId(), listInviteByOrgResp.GetInvitations()[0].GetId())
+
+		listInviteByUserResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationInvitationsRequest{
+			UserId: createUserResp.GetUser().GetEmail(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getInviteResp)
+		s.Assert().Equal(createInviteResp.GetInvitation().GetId(), listInviteByUserResp.GetInvitations()[0].GetId())
+
+		// user should not be part of the org before accept
+		userOrgsBeforeAcceptResp, err := s.testBench.Client.GetOrganizationsByUser(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationsByUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(0, len(userOrgsBeforeAcceptResp.GetOrganizations()))
+		listGroupUsersBeforeAccept, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(listGroupUsersBeforeAccept.GetUsers(), 1)
+
+		// accept invite should add user to org and delete it
+		_, err = s.testBench.Client.AcceptOrganizationInvitation(ctxOrgAdminAuth, &shieldv1beta1.AcceptOrganizationInvitationRequest{
+			Id: createInviteResp.GetInvitation().GetId(),
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.Client.GetOrganizationInvitation(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationInvitationRequest{
+			Id:    createInviteResp.GetInvitation().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().Error(err)
+
+		// user should be part of the org
+		userOrgsAfterAcceptResp, err := s.testBench.Client.GetOrganizationsByUser(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationsByUserRequest{
+			Id: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(userOrgsAfterAcceptResp.GetOrganizations()))
+
+		// should be part of group
+		listGroupUsersAfterAccept, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &shieldv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(listGroupUsersAfterAccept.GetUsers(), 2)
+	})
+}
+
 func TestEndToEndAPIRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(APIRegressionTestSuite))
 }

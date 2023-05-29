@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
@@ -15,7 +17,6 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/uuid"
 )
 
 type UserRepository struct {
@@ -424,7 +425,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 }
 
 func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.User, error) {
-	if usr.ID == "" || !uuid.IsValid(usr.ID) {
+	if usr.ID == "" || !utils.IsValidUUID(usr.ID) {
 		return user.User{}, user.ErrInvalidID
 	}
 	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {

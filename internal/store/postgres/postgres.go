@@ -34,6 +34,7 @@ const (
 	TABLE_METASCHEMA    = "metaschema"
 	TABLE_FLOWS         = "flows"
 	TABLE_SESSIONS      = "sessions"
+	TABLE_INVITATIONS   = "invitations"
 )
 
 func checkPostgresError(err error) error {

@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/internal/bootstrap/schema"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -70,7 +71,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 
 	// If Principal is a user, then we will get ID for that user as Subject.ID
 	if subjectNamespace == schema.UserPrincipal {
-		if !shielduuid.IsValid(subjectID) {
+		if !utils.IsValidUUID(subjectID) {
 			// could be email
 			fetchedUser, err := h.userService.GetByEmail(ctx, subjectID)
 			if err != nil {

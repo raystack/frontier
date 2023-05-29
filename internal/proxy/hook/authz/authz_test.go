@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -19,7 +21,6 @@ import (
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/internal/proxy/hook"
 	shieldlogger "github.com/odpf/shield/pkg/logger"
-	"github.com/odpf/shield/pkg/uuid"
 )
 
 var testPermissionAttributesMap = map[string]any{
@@ -320,7 +321,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:          uuid.NewString(),
+			ID:          utils.NewString(),
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
@@ -411,7 +412,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:          uuid.NewString(),
+			ID:          utils.NewString(),
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
@@ -508,7 +509,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:          uuid.NewString(),
+			ID:          utils.NewString(),
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
@@ -606,7 +607,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:          uuid.NewString(),
+			ID:          utils.NewString(),
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
@@ -703,7 +704,7 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:          uuid.NewString(),
+			ID:          utils.NewString(),
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
