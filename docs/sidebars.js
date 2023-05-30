@@ -62,7 +62,9 @@ module.exports = {
         "reference/configurations",
         "reference/admin-api",
         "reference/api",
-        "reference/cli"
+        "reference/cli",
+        "reference/api-definitions",
+        "reference/shell-autocomplete",
       ],
     },
     {
