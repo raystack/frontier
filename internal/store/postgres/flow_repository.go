@@ -31,6 +31,14 @@ func NewFlowRepository(logger log.Logger, dbc *db.Client) *FlowRepository {
 }
 
 func (s *FlowRepository) Set(ctx context.Context, flow *authenticate.Flow) error {
+	if flow.ID == uuid.Nil {
+		flow.ID = uuid.New()
+	}
+	if flow.Metadata == nil {
+		flow.Metadata = make(map[string]any)
+	}
+	flow.Metadata["start_url"] = flow.StartURL
+	flow.Metadata["finish_url"] = flow.FinishURL
 	marshaledMetadata, err := json.Marshal(flow.Metadata)
 	if err != nil {
 		return fmt.Errorf("%w: %s", parseErr, err)
@@ -40,12 +48,18 @@ func (s *FlowRepository) Set(ctx context.Context, flow *authenticate.Flow) error
 		goqu.Record{
 			"id":         flow.ID,
 			"method":     flow.Method,
-			"start_url":  flow.StartURL,
-			"finish_url": flow.FinishURL,
+			"email":      flow.Email,
 			"nonce":      flow.Nonce,
 			"metadata":   marshaledMetadata,
 			"created_at": flow.CreatedAt,
-		}).Returning(&Flow{}).ToSQL()
+			"expires_at": flow.ExpiresAt,
+		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
+		"method":     flow.Method,
+		"email":      flow.Email,
+		"nonce":      flow.Nonce,
+		"metadata":   marshaledMetadata,
+		"expires_at": flow.ExpiresAt,
+	})).Returning(&Flow{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -143,11 +157,10 @@ func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
-	expiryTime := s.Now().AddDate(0, 0, -7)
 	query, params, err := dialect.Delete(TABLE_FLOWS).
 		Where(
 			goqu.Ex{
-				"created_at": goqu.Op{"lte": expiryTime},
+				"expires_at": goqu.Op{"lte": s.Now()},
 			},
 		).ToSQL()
 	if err != nil {
@@ -160,7 +173,7 @@ func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_FLOWS,
-				Operation:  "DeleteAll",
+				Operation:  "DeleteExpiredFlows",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()

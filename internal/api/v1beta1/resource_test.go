@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -19,7 +20,7 @@ import (
 )
 
 var (
-	testResourceID = uuid.NewString()
+	testResourceID = utils.NewString()
 	testResource   = resource.Resource{
 		ID:          testResourceID,
 		URN:         "res-urn",

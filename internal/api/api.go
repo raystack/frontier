@@ -5,6 +5,7 @@ import (
 	"github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/core/deleter"
 	"github.com/odpf/shield/core/group"
+	"github.com/odpf/shield/core/invitation"
 	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/organization"
@@ -38,4 +39,5 @@ type Deps struct {
 	DeleterService      *deleter.Service
 	MetaSchemaService   *metaschema.Service
 	BootstrapService    *bootstrap.Service
+	InvitationService   *invitation.Service
 }

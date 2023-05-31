@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+	"github.com/odpf/shield/core/invitation"
+
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/core/role"
 
@@ -44,25 +47,33 @@ type GroupService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type InvitationService interface {
+	List(ctx context.Context, flt invitation.Filter) ([]invitation.Invitation, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
 type Service struct {
-	projService   ProjectService
-	orgService    OrganizationService
-	resService    ResourceService
-	groupService  GroupService
-	policyService PolicyService
-	roleService   RoleService
+	projService       ProjectService
+	orgService        OrganizationService
+	resService        ResourceService
+	groupService      GroupService
+	policyService     PolicyService
+	roleService       RoleService
+	invitationService InvitationService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
 	resService ResourceService, groupService GroupService,
-	policyService PolicyService, roleService RoleService) *Service {
+	policyService PolicyService, roleService RoleService,
+	invitationService InvitationService) *Service {
 	return &Service{
-		projService:   projService,
-		orgService:    orgService,
-		resService:    resService,
-		groupService:  groupService,
-		policyService: policyService,
-		roleService:   roleService,
+		projService:       projService,
+		orgService:        orgService,
+		resService:        resService,
+		groupService:      groupService,
+		policyService:     policyService,
+		roleService:       roleService,
+		invitationService: invitationService,
 	}
 }
 
@@ -131,6 +142,17 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	for _, p := range roles {
 		if err = d.roleService.Delete(ctx, p.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a role[%s]: %w", p.Name, err)
+		}
+	}
+
+	// delete all invitations
+	invitations, err := d.invitationService.List(ctx, invitation.Filter{OrgID: id})
+	if err != nil {
+		return err
+	}
+	for _, i := range invitations {
+		if err = d.invitationService.Delete(ctx, i.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a invitation[%s]: %w", i.ID, err)
 		}
 	}
 

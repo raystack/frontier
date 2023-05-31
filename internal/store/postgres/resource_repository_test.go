@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/odpf/salt/log"
@@ -16,7 +18,6 @@ import (
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/uuid"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -123,7 +124,7 @@ func (s *ResourceRepositoryTestSuite) TestGetByID() {
 		},
 		{
 			Description: "should return error no exist if can't found resource",
-			SelectedID:  uuid.NewString(),
+			SelectedID:  utils.NewString(),
 			ErrString:   resource.ErrNotExist.Error(),
 		},
 		{
@@ -241,7 +242,7 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 			ResourceToCreate: resource.Resource{
 				URN:         "new-urn-notexist",
 				Name:        "resource4",
-				ProjectID:   uuid.NewString(),
+				ProjectID:   utils.NewString(),
 				NamespaceID: s.resources[0].NamespaceID,
 				UserID:      s.resources[0].UserID,
 			},

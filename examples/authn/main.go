@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -19,6 +20,8 @@ const (
 	shieldRegisterCallback = "/v1beta1/auth/callback"
 	shieldLogout           = "/v1beta1/auth/logout"
 	shieldUserProfile      = "/v1beta1/users/self"
+
+	mailotpStrategy = "mailotp"
 )
 
 var (
@@ -46,7 +49,8 @@ func main() {
 	})
 	r.GET("/", home())
 	r.GET("/login", login())
-	r.GET("/auth", auth())
+	r.GET("/oauth", oauth())
+	r.GET("/mailauth", mailauth())
 	r.GET("/callback", callback())
 	r.GET("/logout", logout())
 	r.GET("/profile", profile())
@@ -79,6 +83,10 @@ func login() func(ctx *gin.Context) {
 			ctx.Error(err)
 			return
 		}
+		if shieldResp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("shield returned status code %d", shieldResp.StatusCode))
+			return
+		}
 		defer shieldResp.Body.Close()
 
 		type Response struct {
@@ -95,10 +103,22 @@ func login() func(ctx *gin.Context) {
 
 		content := `<div><h3>Supported Providers:</h3>`
 		for _, strategy := range response.Strategies {
-			content += `<div><a href="/auth?strategy=` + strategy.Name
-			//content += `?redirect=1`
-			//content += `&return_to=` + returnAfterAuthURL
-			content += `">` + strategy.Name + `</a></div>`
+			if strategy.Name == mailotpStrategy {
+				content += `<article>`
+				content += `<form action="/mailauth" method="get">`
+				content += `<div>` + strategy.Name + `</div>`
+				content += `Email: <input type="text" name="email" placeholder="email">`
+				content += `<input type="submit" value="Submit">`
+				content += `</form>`
+				content += `</article>`
+			} else {
+				content += `<article>`
+				content += `<a href="/oauth?strategy=` + strategy.Name
+				//content += `?redirect=1`
+				//content += `&return_to=` + returnAfterAuthURL
+				content += `">` + strategy.Name + `</a>`
+				content += "</article>"
+			}
 		}
 		content += `</div>`
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
@@ -109,7 +129,7 @@ func login() func(ctx *gin.Context) {
 	}
 }
 
-func auth() func(ctx *gin.Context) {
+func oauth() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		authStrategy := ctx.Query("strategy")
 		if len(authStrategy) == 0 {
@@ -119,6 +139,10 @@ func auth() func(ctx *gin.Context) {
 		shieldResp, err := http.Get(shieldURL)
 		if err != nil {
 			ctx.Error(err)
+			return
+		}
+		if shieldResp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("shield returned status code %d", shieldResp.StatusCode))
 			return
 		}
 		defer shieldResp.Body.Close()
@@ -135,6 +159,51 @@ func auth() func(ctx *gin.Context) {
 	}
 }
 
+func mailauth() func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		userEmail := ctx.Query("email")
+		if len(userEmail) == 0 {
+			ctx.Redirect(http.StatusSeeOther, "/login")
+		}
+		shieldURL, _ := url.JoinPath(shieldHost, shieldRegister, mailotpStrategy)
+		shieldResp, err := http.Get(shieldURL + "?email=" + userEmail)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+		if shieldResp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("shield returned status code %d", shieldResp.StatusCode))
+			return
+		}
+		defer shieldResp.Body.Close()
+
+		type Response struct {
+			Endpoint string `json:"endpoint"`
+			State    string `json:"state"`
+		}
+		var response Response
+		if err = json.NewDecoder(shieldResp.Body).Decode(&response); err != nil {
+			ctx.Error(err)
+			return
+		}
+		content := ""
+		content += `<div>`
+		content += `<form action="/callback" method="get">`
+		content += `<div>Enter OTP sent to you email: ` + userEmail + `</div>`
+		content += `OTP: <input type="text" name="code" placeholder="otp sent in the mail">`
+		content += `State: <input readonly type="text" name="state" value="` + response.State + `">`
+		content += `<input type="hidden" name="strategy_name" value="` + mailotpStrategy + `">`
+		content += `<input type="submit" value="Submit">`
+		content += `</form>`
+		content += `</div>`
+		ctx.HTML(http.StatusOK, "index.html", gin.H{
+			"title":   "Authentication demo",
+			"page":    "Mail OTP verify",
+			"content": template.HTML(content),
+		})
+	}
+}
+
 func callback() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		// build a pass through request to shield
@@ -147,6 +216,13 @@ func callback() func(ctx *gin.Context) {
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			ctx.Error(err)
+			return
+		}
+		if resp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("shield returned status code %d", resp.StatusCode))
+			respBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			ctx.Error(fmt.Errorf("shield returned %s", string(respBody)))
 			return
 		}
 
@@ -179,7 +255,7 @@ func callback() func(ctx *gin.Context) {
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"title":   "Authentication demo",
 			"page":    "Callback",
-			"content": "Callback successful for auth. Check profile section now.",
+			"content": "Authentication successful. Check profile section now.",
 			"token":   template.HTML(tokenHTML),
 		})
 	}

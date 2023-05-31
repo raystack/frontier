@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/policy"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/pkg/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,7 +19,7 @@ import (
 )
 
 var (
-	testPolicyID           = uuid.NewString()
+	testPolicyID           = utils.NewString()
 	testPolicyResourceType = "compute"
 	testPolicyMap          = map[string]policy.Policy{
 		testPolicyID: {

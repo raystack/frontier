@@ -15,6 +15,14 @@ definition app/group {
 	permission update = org->group_update + granted->app_group_administer + granted->app_group_update + owner
 }
 
+definition app/invitation {
+	permission accept = user
+	permission delete = org->invitationcreate + user
+	permission get = org->invitationlist + org->invitationcreate + user
+	relation org: app/organization
+	relation user: app/user
+}
+
 definition app/organization {
 	permission compute_order_create = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_create
 	permission compute_order_delete = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_delete
@@ -32,6 +40,8 @@ definition app/organization {
 	permission group_update = platform->superuser + granted->app_organization_administer + granted->app_group_update + owner
 	permission groupcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_groupcreate + owner
 	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist + owner
+	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate + owner
+	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist + owner
 	relation member: app/user | app/group#member | app/serviceuser
 
 	// permissions
@@ -93,6 +103,8 @@ definition app/role {
 	relation app_organization_get: app/user:* | app/serviceuser:*
 	relation app_organization_groupcreate: app/user:* | app/serviceuser:*
 	relation app_organization_grouplist: app/user:* | app/serviceuser:*
+	relation app_organization_invitationcreate: app/user:* | app/serviceuser:*
+	relation app_organization_invitationlist: app/user:* | app/serviceuser:*
 	relation app_organization_policymanage: app/user:* | app/serviceuser:*
 	relation app_organization_projectcreate: app/user:* | app/serviceuser:*
 	relation app_organization_projectlist: app/user:* | app/serviceuser:*
@@ -127,6 +139,8 @@ definition app/rolebinding {
 	permission app_organization_get = bearer & role->app_organization_get
 	permission app_organization_groupcreate = bearer & role->app_organization_groupcreate
 	permission app_organization_grouplist = bearer & role->app_organization_grouplist
+	permission app_organization_invitationcreate = bearer & role->app_organization_invitationcreate
+	permission app_organization_invitationlist = bearer & role->app_organization_invitationlist
 	permission app_organization_policymanage = bearer & role->app_organization_policymanage
 	permission app_organization_projectcreate = bearer & role->app_organization_projectcreate
 	permission app_organization_projectlist = bearer & role->app_organization_projectlist

@@ -11,7 +11,7 @@ import (
 type AuthMethod string
 
 const (
-	MailAuthMethod AuthMethod = "mail"
+	MailOTPAuthMethod AuthMethod = "mailotp"
 )
 
 func (m AuthMethod) String() string {
@@ -25,6 +25,9 @@ type Flow struct {
 	// authentication flow type
 	Method string
 
+	// Email is the email of the user
+	Email string
+
 	// StartURL is where flow should start from for verification
 	StartURL string
 	// FinishURL is where flow should end to after successful verification
@@ -37,6 +40,13 @@ type Flow struct {
 
 	// CreatedAt will be used to clean-up dead auth flows
 	CreatedAt time.Time
+
+	// ExpiresAt is the time when the flow will expire
+	ExpiresAt time.Time
+}
+
+func (f Flow) IsValid() bool {
+	return f.ExpiresAt.Before(time.Now().UTC())
 }
 
 type Config struct {
@@ -46,6 +56,7 @@ type Config struct {
 	OIDCConfig map[string]OIDCConfig `yaml:"oidc_config" mapstructure:"oidc_config"`
 	Session    SessionConfig         `yaml:"session" mapstructure:"session"`
 	Token      TokenConfig           `yaml:"token" mapstructure:"token"`
+	MailOTP    MailOTPConfig         `yaml:"mail_otp" mapstructure:"mail_otp"`
 }
 
 type TokenConfig struct {
@@ -64,7 +75,14 @@ type SessionConfig struct {
 }
 
 type OIDCConfig struct {
-	ClientID     string `yaml:"client_id" mapstructure:"client_id"`
-	ClientSecret string `yaml:"client_secret" mapstructure:"client_secret"`
-	IssuerUrl    string `yaml:"issuer_url" mapstructure:"issuer_url"`
+	ClientID     string        `yaml:"client_id" mapstructure:"client_id"`
+	ClientSecret string        `yaml:"client_secret" mapstructure:"client_secret"`
+	IssuerUrl    string        `yaml:"issuer_url" mapstructure:"issuer_url"`
+	Validity     time.Duration `yaml:"validity" mapstructure:"validity" default:"15m"`
+}
+
+type MailOTPConfig struct {
+	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Shield Login OTP"`
+	Body     string        `yaml:"body" mapstructure:"body" default:"Shield Login Link"`
+	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
 }

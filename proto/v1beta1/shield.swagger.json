@@ -175,7 +175,7 @@
           },
           {
             "name": "state",
-            "description": "for oidc",
+            "description": "for oidc \u0026 magic links",
             "in": "query",
             "required": false,
             "type": "string"
@@ -249,7 +249,7 @@
           },
           {
             "name": "state",
-            "description": "for oidc",
+            "description": "for oidc \u0026 magic links",
             "in": "query",
             "required": false,
             "type": "string"
@@ -440,6 +440,13 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "email",
+            "description": "email of the user for magic links\n\nEmail of the user to authenticate. Used for magic links.\u003cbr/\u003e *Example:*`example@acme.org`",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -512,6 +519,13 @@
           {
             "name": "returnTo",
             "description": "by default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication\n\nURL to redirect after successful authentication.\u003cbr/\u003e *Example:*`\"https://shield.example.com\"`",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "description": "email of the user for magic links\n\nEmail of the user to authenticate. Used for magic links.\u003cbr/\u003e *Example:*`example@acme.org`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1133,371 +1147,6 @@
         ]
       }
     },
-    "/v1beta1/organizations/{body.orgId}/groups": {
-      "post": {
-        "summary": "Create Group",
-        "description": "Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.",
-        "operationId": "ShieldService_CreateGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1CreateGroupResponse"
-            }
-          },
-          "400": {
-            "description": "Bad Request - The request was malformed or contained invalid parameters.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication is required",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "403": {
-            "description": "Forbidden - User does not have permission to access the resource",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "404": {
-            "description": "Not Found - The requested resource was not found",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body.orgId",
-            "description": "The organization ID to which the group belongs to.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "The name of the group. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores."
-                },
-                "title": {
-                  "type": "string",
-                  "description": "The title can contain any UTF-8 character, used to provide a human-readable name for the group. Can also be left empty."
-                },
-                "metadata": {
-                  "type": "object",
-                  "description": "Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields.\u003cbr/\u003e*Example:*`{\"labels\": {\"key\": \"value\"}, \"description\": \"Group description\"}`"
-                }
-              },
-              "required": [
-                "name"
-              ]
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/organizations/{body.orgId}/groups/{id}": {
-      "put": {
-        "summary": "Update group by ID",
-        "operationId": "ShieldService_UpdateGroup",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateGroupResponse"
-            }
-          },
-          "400": {
-            "description": "Bad Request - The request was malformed or contained invalid parameters.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication is required",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "403": {
-            "description": "Forbidden - User does not have permission to access the resource",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "404": {
-            "description": "Not Found - The requested resource was not found",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body.orgId",
-            "description": "The organization ID to which the group belongs to.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "The name of the group. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores."
-                },
-                "title": {
-                  "type": "string",
-                  "description": "The title can contain any UTF-8 character, used to provide a human-readable name for the group. Can also be left empty."
-                },
-                "metadata": {
-                  "type": "object",
-                  "description": "Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields.\u003cbr/\u003e*Example:*`{\"labels\": {\"key\": \"value\"}, \"description\": \"Group description\"}`"
-                }
-              },
-              "required": [
-                "name"
-              ]
-            }
-          }
-        ],
-        "tags": [
-          "Group"
-        ]
-      }
-    },
-    "/v1beta1/organizations/{body.orgId}/roles": {
-      "post": {
-        "summary": "Create Role",
-        "operationId": "ShieldService_CreateOrganizationRole",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1CreateOrganizationRoleResponse"
-            }
-          },
-          "400": {
-            "description": "Bad Request - The request was malformed or contained invalid parameters.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication is required",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "403": {
-            "description": "Forbidden - User does not have permission to access the resource",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "404": {
-            "description": "Not Found - The requested resource was not found",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body.orgId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "permissions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "metadata": {
-                  "type": "object"
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      }
-    },
-    "/v1beta1/organizations/{body.orgId}/roles/{id}": {
-      "put": {
-        "summary": "Update Role by ID",
-        "operationId": "ShieldService_UpdateOrganizationRole",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateOrganizationRoleResponse"
-            }
-          },
-          "400": {
-            "description": "Bad Request - The request was malformed or contained invalid parameters.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication is required",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "403": {
-            "description": "Forbidden - User does not have permission to access the resource",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "404": {
-            "description": "Not Found - The requested resource was not found",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body.orgId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "permissions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "metadata": {
-                  "type": "object"
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      }
-    },
     "/v1beta1/organizations/{id}": {
       "get": {
         "summary": "Get organization by ID or slug",
@@ -2018,7 +1667,7 @@
         ]
       },
       "post": {
-        "summary": "Add a user to an organization",
+        "summary": "Add a user to an organization, request fails if the user doesn't exists",
         "operationId": "ShieldService_AddOrganizationUsers",
         "responses": {
           "200": {
@@ -2233,6 +1882,75 @@
         "tags": [
           "Group"
         ]
+      },
+      "post": {
+        "summary": "Create Group",
+        "description": "Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.",
+        "operationId": "ShieldService_CreateGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateGroupResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "description": "The organization ID to which the group belongs to.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1GroupRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
       }
     },
     "/v1beta1/organizations/{orgId}/groups/{id}": {
@@ -2360,6 +2078,80 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Group"
+        ]
+      },
+      "put": {
+        "summary": "Update group by ID",
+        "operationId": "ShieldService_UpdateGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1UpdateGroupResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "description": "The organization ID to which the group belongs to.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1GroupRequestBody"
+            }
           }
         ],
         "tags": [
@@ -2740,6 +2532,352 @@
         ]
       }
     },
+    "/v1beta1/organizations/{orgId}/invitations": {
+      "get": {
+        "summary": "List pending invitations queued for an organization",
+        "operationId": "ShieldService_ListOrganizationInvitations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1ListOrganizationInvitationsResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "post": {
+        "summary": "Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days",
+        "operationId": "ShieldService_CreateOrganizationInvitation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateOrganizationInvitationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "title": "user_id is email id of user who are invited inside the organization\nif user is not registered on the platform, it will be notified"
+                },
+                "groupIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "group_ids are optional, if present users will be assinged part of it"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/invitations/{id}": {
+      "get": {
+        "summary": "Get pending invitation queued for an organization",
+        "operationId": "ShieldService_GetOrganizationInvitation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1GetOrganizationInvitationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "delete": {
+        "summary": "Delete pending invitation queued for an organization",
+        "operationId": "ShieldService_DeleteOrganizationInvitation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1DeleteOrganizationInvitationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/v1beta1/organizations/{orgId}/invitations/{id}/accept": {
+      "post": {
+        "summary": "Accept pending invitation queued for an organization",
+        "operationId": "ShieldService_AcceptOrganizationInvitation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1AcceptOrganizationInvitationResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
     "/v1beta1/organizations/{orgId}/roles": {
       "get": {
         "summary": "Get custom roles under an org",
@@ -2800,6 +2938,74 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Role"
+        ]
+      },
+      "post": {
+        "summary": "Create Role",
+        "operationId": "ShieldService_CreateOrganizationRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateOrganizationRoleResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "description": "The organization ID to which the role belongs to.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1RoleRequestBody"
+            }
           }
         ],
         "tags": [
@@ -2932,6 +3138,79 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Role"
+        ]
+      },
+      "put": {
+        "summary": "Update Role by ID",
+        "operationId": "ShieldService_UpdateOrganizationRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1UpdateOrganizationRoleResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1RoleRequestBody"
+            }
           }
         ],
         "tags": [
@@ -3363,178 +3642,6 @@
         ],
         "tags": [
           "Project"
-        ]
-      }
-    },
-    "/v1beta1/projects/{body.projectId}/resources": {
-      "post": {
-        "summary": "Create Resource",
-        "operationId": "ShieldService_CreateProjectResource",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1CreateProjectResourceResponse"
-            }
-          },
-          "400": {
-            "description": "Bad Request - The request was malformed or contained invalid parameters.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication is required",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "403": {
-            "description": "Forbidden - User does not have permission to access the resource",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "404": {
-            "description": "Not Found - The requested resource was not found",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body.projectId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "namespace": {
-                  "type": "string"
-                },
-                "userId": {
-                  "type": "string"
-                },
-                "metadata": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Resource"
-        ]
-      }
-    },
-    "/v1beta1/projects/{body.projectId}/resources/{id}": {
-      "put": {
-        "summary": "Update Resource by ID",
-        "operationId": "ShieldService_UpdateProjectResource",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1beta1UpdateProjectResourceResponse"
-            }
-          },
-          "400": {
-            "description": "Bad Request - The request was malformed or contained invalid parameters.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication is required",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "403": {
-            "description": "Forbidden - User does not have permission to access the resource",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "404": {
-            "description": "Not Found - The requested resource was not found",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "500": {
-            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body.projectId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "namespace": {
-                  "type": "string"
-                },
-                "userId": {
-                  "type": "string"
-                },
-                "metadata": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Resource"
         ]
       }
     },
@@ -4056,6 +4163,73 @@
         "tags": [
           "Resource"
         ]
+      },
+      "post": {
+        "summary": "Create Resource",
+        "operationId": "ShieldService_CreateProjectResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1CreateProjectResourceResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1ResourceRequestBody"
+            }
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
       }
     },
     "/v1beta1/projects/{projectId}/resources/{id}": {
@@ -4183,6 +4357,79 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      },
+      "put": {
+        "summary": "Update Resource by ID",
+        "operationId": "ShieldService_UpdateProjectResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1beta1UpdateProjectResourceResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication is required",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "404": {
+            "description": "Not Found - The requested resource was not found",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1beta1ResourceRequestBody"
+            }
           }
         ],
         "tags": [
@@ -5331,6 +5578,9 @@
         }
       }
     },
+    "v1beta1AcceptOrganizationInvitationResponse": {
+      "type": "object"
+    },
     "v1beta1AddGroupUsersResponse": {
       "type": "object"
     },
@@ -5358,6 +5608,9 @@
       "type": "object",
       "properties": {
         "endpoint": {
+          "type": "string"
+        },
+        "state": {
           "type": "string"
         }
       }
@@ -5402,6 +5655,14 @@
       "properties": {
         "metaschema": {
           "$ref": "#/definitions/v1beta1MetaSchema"
+        }
+      }
+    },
+    "v1beta1CreateOrganizationInvitationResponse": {
+      "type": "object",
+      "properties": {
+        "invitation": {
+          "$ref": "#/definitions/v1beta1Invitation"
         }
       }
     },
@@ -5465,6 +5726,9 @@
       "type": "object"
     },
     "v1beta1DeleteMetaSchemaResponse": {
+      "type": "object"
+    },
+    "v1beta1DeleteOrganizationInvitationResponse": {
       "type": "object"
     },
     "v1beta1DeleteOrganizationResponse": {
@@ -5541,6 +5805,14 @@
       "properties": {
         "namespace": {
           "$ref": "#/definitions/v1beta1Namespace"
+        }
+      }
+    },
+    "v1beta1GetOrganizationInvitationResponse": {
+      "type": "object",
+      "properties": {
+        "invitation": {
+          "$ref": "#/definitions/v1beta1Invitation"
         }
       }
     },
@@ -5681,9 +5953,39 @@
         }
       },
       "required": [
-        "name",
-        "orgId"
+        "name"
       ]
+    },
+    "v1beta1Invitation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "orgId": {
+          "type": "string"
+        },
+        "groupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
     },
     "v1beta1ListAuthStrategiesResponse": {
       "type": "object",
@@ -5765,6 +6067,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1beta1Group"
+          }
+        }
+      }
+    },
+    "v1beta1ListOrganizationInvitationsResponse": {
+      "type": "object",
+      "properties": {
+        "invitations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1Invitation"
           }
         }
       }

@@ -144,6 +144,26 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*shieldv1beta1.RemoveOrganizationUserRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
 	},
+	"/odpf.shield.v1beta1.ShieldService/ListOrganizationInvitations": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.ListOrganizationInvitationsRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.InvitationListPermission)
+	},
+	"/odpf.shield.v1beta1.ShieldService/CreateOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateOrganizationInvitationRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.InvitationCreatePermission)
+	},
+	"/odpf.shield.v1beta1.ShieldService/GetOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.GetOrganizationInvitationRequest)
+		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.GetPermission)
+	},
+	"/odpf.shield.v1beta1.ShieldService/AcceptOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.AcceptOrganizationInvitationRequest)
+		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.AcceptPermission)
+	},
+	"/odpf.shield.v1beta1.ShieldService/DeleteOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.DeleteOrganizationInvitationRequest)
+		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.DeletePermission)
+	},
 	"/odpf.shield.v1beta1.ShieldService/EnableOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.EnableOrganizationRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.DeletePermission)

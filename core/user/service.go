@@ -5,12 +5,13 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/internal/bootstrap/schema"
 	"github.com/odpf/shield/pkg/errors"
 	"github.com/odpf/shield/pkg/str"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
 )
 
 type SessionService interface {
@@ -39,15 +40,15 @@ func NewService(repository Repository, sessionService SessionService, relationRe
 	}
 }
 
-// Get by user uuid, email or slug
+// GetByID email or slug
 func (s Service) GetByID(ctx context.Context, id string) (User, error) {
 	if isValidEmail(id) {
 		return s.repository.GetByEmail(ctx, id)
 	}
-	if shielduuid.IsValid(id) {
+	if utils.IsValidUUID(id) {
 		return s.repository.GetByID(ctx, id)
 	}
-	return s.repository.GetByName(ctx, id)
+	return s.repository.GetByName(ctx, strings.ToLower(id))
 }
 
 func (s Service) GetByIDs(ctx context.Context, userIDs []string) ([]User, error) {
@@ -55,13 +56,14 @@ func (s Service) GetByIDs(ctx context.Context, userIDs []string) ([]User, error)
 }
 
 func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
+	email = strings.ToLower(email)
 	return s.repository.GetByEmail(ctx, email)
 }
 
 func (s Service) Create(ctx context.Context, user User) (User, error) {
 	newUser, err := s.repository.Create(ctx, User{
-		Name:     user.Name,
-		Email:    user.Email,
+		Name:     strings.ToLower(user.Name),
+		Email:    strings.ToLower(user.Email),
 		Title:    user.Title,
 		Metadata: user.Metadata,
 	})
@@ -87,16 +89,20 @@ func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 // Update by user uuid, email or slug
 func (s Service) Update(ctx context.Context, toUpdate User) (User, error) {
 	id := toUpdate.ID
+	toUpdate.Email = strings.ToLower(toUpdate.Email)
+	toUpdate.Name = strings.ToLower(toUpdate.Name)
 	if isValidEmail(id) {
 		return s.UpdateByEmail(ctx, toUpdate)
 	}
-	if shielduuid.IsValid(id) {
+	if utils.IsValidUUID(id) {
 		return s.repository.UpdateByID(ctx, toUpdate)
 	}
 	return s.repository.UpdateByName(ctx, toUpdate)
 }
 
 func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error) {
+	toUpdate.Email = strings.ToLower(toUpdate.Email)
+	toUpdate.Name = strings.ToLower(toUpdate.Name)
 	return s.repository.UpdateByEmail(ctx, toUpdate)
 }
 
@@ -105,7 +111,7 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 
 	// extract user from session if present
 	session, err := s.sessionService.ExtractFromContext(ctx)
-	if err == nil && session.IsValid() && shielduuid.IsValid(session.UserID) {
+	if err == nil && session.IsValid() && utils.IsValidUUID(session.UserID) {
 		// userID is a valid uuid
 		currentUser, err = s.GetByID(ctx, session.UserID)
 		if err != nil {

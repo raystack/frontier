@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/pkg/errors"
 
 	"github.com/odpf/shield/core/authenticate"
@@ -14,8 +16,6 @@ import (
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/uuid"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -309,7 +309,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	randomID := uuid.NewString()
+	randomID := utils.NewString()
 	table := []struct {
 		title string
 		req   *shieldv1beta1.GetUserRequest
@@ -490,7 +490,7 @@ func TestGetCurrentUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	someID := uuid.NewString()
+	someID := utils.NewString()
 	table := []struct {
 		title  string
 		setup  func(us *mocks.UserService, ms *mocks.MetaSchemaService)
@@ -881,7 +881,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 }
 
 func TestHandler_ListUserGroups(t *testing.T) {
-	someUserID := uuid.NewString()
+	someUserID := utils.NewString()
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService)
@@ -892,7 +892,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, errors.New("some error"))
+				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -903,7 +903,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return empty list if user does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -919,7 +919,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				for _, g := range testGroupMap {
 					testGroupList = append(testGroupList, g)
 				}
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return(testGroupList, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return(testGroupList, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id: someUserID,

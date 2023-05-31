@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/bootstrap/schema"
-	"github.com/odpf/shield/pkg/uuid"
 )
 
 type RelationService interface {
@@ -38,7 +39,7 @@ func NewService(repository Repository, relationService RelationService,
 }
 
 func (s Service) Get(ctx context.Context, idOrName string) (Organization, error) {
-	if uuid.IsValid(idOrName) {
+	if utils.IsValidUUID(idOrName) {
 		return s.repository.GetByID(ctx, idOrName)
 	}
 	return s.repository.GetByName(ctx, idOrName)

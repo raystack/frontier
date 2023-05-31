@@ -30,7 +30,7 @@ func TestCompileSchema(t *testing.T) {
 
 	appService, err := bootstrap.BuildServiceDefinitionFromAZSchema(compiledSchema.ObjectDefinitions, "app")
 	assert.NoError(t, err)
-	assert.Len(t, appService.Permissions, 20)
+	assert.Len(t, appService.Permissions, 22)
 }
 
 func TestAddServiceToSchema(t *testing.T) {

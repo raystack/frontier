@@ -358,6 +358,61 @@ func (_c *GroupService_List_Call) RunAndReturn(run func(context.Context, group.F
 	return _c
 }
 
+// ListByUser provides a mock function with given fields: ctx, userId
+func (_m *GroupService) ListByUser(ctx context.Context, userId string) ([]group.Group, error) {
+	ret := _m.Called(ctx, userId)
+
+	var r0 []group.Group
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]group.Group, error)); ok {
+		return rf(ctx, userId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []group.Group); ok {
+		r0 = rf(ctx, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]group.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GroupService_ListByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByUser'
+type GroupService_ListByUser_Call struct {
+	*mock.Call
+}
+
+// ListByUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userId string
+func (_e *GroupService_Expecter) ListByUser(ctx interface{}, userId interface{}) *GroupService_ListByUser_Call {
+	return &GroupService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userId)}
+}
+
+func (_c *GroupService_ListByUser_Call) Run(run func(ctx context.Context, userId string)) *GroupService_ListByUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GroupService_ListByUser_Call) Return(_a0 []group.Group, _a1 error) *GroupService_ListByUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GroupService_ListByUser_Call) RunAndReturn(run func(context.Context, string) ([]group.Group, error)) *GroupService_ListByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListGroupUsers provides a mock function with given fields: ctx, groupID
 func (_m *GroupService) ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error) {
 	ret := _m.Called(ctx, groupID)
@@ -409,61 +464,6 @@ func (_c *GroupService_ListGroupUsers_Call) Return(_a0 []user.User, _a1 error) *
 }
 
 func (_c *GroupService_ListGroupUsers_Call) RunAndReturn(run func(context.Context, string) ([]user.User, error)) *GroupService_ListGroupUsers_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ListUserGroups provides a mock function with given fields: ctx, userId
-func (_m *GroupService) ListUserGroups(ctx context.Context, userId string) ([]group.Group, error) {
-	ret := _m.Called(ctx, userId)
-
-	var r0 []group.Group
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]group.Group, error)); ok {
-		return rf(ctx, userId)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []group.Group); ok {
-		r0 = rf(ctx, userId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]group.Group)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GroupService_ListUserGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUserGroups'
-type GroupService_ListUserGroups_Call struct {
-	*mock.Call
-}
-
-// ListUserGroups is a helper method to define mock.On call
-//   - ctx context.Context
-//   - userId string
-func (_e *GroupService_Expecter) ListUserGroups(ctx interface{}, userId interface{}) *GroupService_ListUserGroups_Call {
-	return &GroupService_ListUserGroups_Call{Call: _e.mock.On("ListUserGroups", ctx, userId)}
-}
-
-func (_c *GroupService_ListUserGroups_Call) Run(run func(ctx context.Context, userId string)) *GroupService_ListUserGroups_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GroupService_ListUserGroups_Call) Return(_a0 []group.Group, _a1 error) *GroupService_ListUserGroups_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GroupService_ListUserGroups_Call) RunAndReturn(run func(context.Context, string) ([]group.Group, error)) *GroupService_ListUserGroups_Call {
 	_c.Call.Return(run)
 	return _c
 }

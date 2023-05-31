@@ -57,10 +57,7 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	}
 
 	// attach current user to group as owner
-	if err = s.addGroupMember(ctx, newGroup.ID, relation.Subject{
-		ID:        currentUser.ID,
-		Namespace: schema.UserPrincipal,
-	}, schema.OwnerRelationName); err != nil {
+	if err = s.AddMember(ctx, newGroup.ID, currentUser.ID, schema.OwnerRelationName); err != nil {
 		return Group{}, err
 	}
 
@@ -91,7 +88,7 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	return Group{}, ErrInvalidID
 }
 
-func (s Service) ListUserGroups(ctx context.Context, userId string) ([]Group, error) {
+func (s Service) ListByUser(ctx context.Context, userId string) ([]Group, error) {
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.GroupNamespace,
@@ -133,14 +130,17 @@ func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.Use
 	return s.userService.GetByIDs(ctx, subjectIDs)
 }
 
-// addGroupMember adds a subject(user) to group as member
-func (s Service) addGroupMember(ctx context.Context, groupID string, subject relation.Subject, relationName string) error {
+// AddMember adds a subject(user) to group as member
+func (s Service) AddMember(ctx context.Context, groupID, userID, relationName string) error {
 	rel := relation.Relation{
 		Object: relation.Object{
 			ID:        groupID,
 			Namespace: schema.GroupNamespace,
 		},
-		Subject:      subject,
+		Subject: relation.Subject{
+			ID:        userID,
+			Namespace: schema.UserPrincipal,
+		},
 		RelationName: relationName,
 	}
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
@@ -225,10 +225,7 @@ func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, er
 func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string) error {
 	var err error
 	for _, userID := range userIDs {
-		currentErr := s.addGroupMember(ctx, groupID, relation.Subject{
-			ID:        userID,
-			Namespace: schema.UserPrincipal,
-		}, schema.MemberRelationName)
+		currentErr := s.AddMember(ctx, groupID, userID, schema.MemberRelationName)
 		if currentErr != nil {
 			err = errors.Join(err, currentErr)
 		}

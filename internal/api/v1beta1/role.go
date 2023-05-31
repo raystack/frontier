@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/google/uuid"
 	"github.com/odpf/shield/core/permission"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
 
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
@@ -83,7 +84,7 @@ func (h Handler) ListRoles(ctx context.Context, request *shieldv1beta1.ListRoles
 
 func (h Handler) CreateOrganizationRole(ctx context.Context, request *shieldv1beta1.CreateOrganizationRoleRequest) (*shieldv1beta1.CreateOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if shielduuid.IsNull(request.GetBody().GetOrgId()) {
+	if utils.IsNullUUID(request.GetBody().GetOrgId()) {
 		return nil, grpcBadBodyError
 	}
 
@@ -98,11 +99,15 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *shieldv1be
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
+	orgID := request.GetOrgId()
+	if request.GetOrgId() == "" {
+		orgID = request.GetBody().GetOrgId()
+	}
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		ID:          request.GetBody().GetId(),
 		Name:        request.GetBody().GetName(),
 		Permissions: request.GetBody().GetPermissions(),
-		OrgID:       request.GetBody().GetOrgId(),
+		OrgID:       orgID,
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
@@ -154,7 +159,7 @@ func (h Handler) GetOrganizationRole(ctx context.Context, request *shieldv1beta1
 
 func (h Handler) UpdateOrganizationRole(ctx context.Context, request *shieldv1beta1.UpdateOrganizationRoleRequest) (*shieldv1beta1.UpdateOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if shielduuid.IsNull(request.GetBody().GetOrgId()) {
+	if utils.IsNullUUID(request.GetBody().GetOrgId()) {
 		return nil, grpcBadBodyError
 	}
 	if len(request.GetBody().GetPermissions()) == 0 {
@@ -171,9 +176,13 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *shieldv1be
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
+	orgID := request.GetOrgId()
+	if request.GetOrgId() == "" {
+		orgID = request.GetBody().GetOrgId()
+	}
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
 		ID:          request.GetId(),
-		OrgID:       request.GetBody().GetOrgId(),
+		OrgID:       orgID,
 		Name:        request.GetBody().GetName(),
 		Permissions: request.GetBody().GetPermissions(),
 		Metadata:    metaDataMap,
