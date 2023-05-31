@@ -14,23 +14,37 @@ import CodeBlock from '@theme/CodeBlock';
 
 A project in Shield looks like
 
+<Tabs groupId="model">
+  <TabItem value="Model" label="Model" default>
+
+| Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **id**       | uuid   | Unique project identifier                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **name**     | string | The name of the project. This name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. <br/> _Example:"project-alpha"_                                                                                                                                                                                                                    |
+| **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the project. Can also be left empty. <br/> _Example:"Project Alpha"_                                                                                                                                                                                                                                                                                       |
+| **orgId**    | uuid   | Unique Organization identifier to which the project belongs                                                                                                                                                                                                                                                                                                                                                                                     |
+| **metadata** | object | Metadata object for project that can hold key value pairs pre-defined in Project Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the project. Update the same to add more fields to the user metadata object. <br/> _Example:{"label": {"key1": "value1"}, "description": "Project Description"}_ |
+
+</TabItem>
+<TabItem value="JSON" label="Sample JSON" default>
+
 ```json
 {
-    "projects": [
-        {
-            "id": "1b89026b-6713-4327-9d7e-ed03345da288",
-            "name": "Project Alpha",
-            "slug": "project-alpha",
-            "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
-            "metadata": {
-                "description": "Project Alpha"
-            },
-            "createdAt": "2022-12-07T14:31:46.436081Z",
-            "updatedAt": "2022-12-07T14:31:46.436081Z"
-        }
-    ]
+  "project": {
+    "id": "1b89026b-6713-4327-9d7e-ed03345da288",
+    "name": "project-alpha",
+    "title": "Project Alpha",
+    "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
+    "metadata": {
+      "description": "Project Alpha"
+    },
+    "createdAt": "2022-12-07T14:31:46.436081Z",
+    "updatedAt": "2022-12-07T14:31:46.436081Z"
+  }
 }
 ```
+</TabItem>
+</Tabs>
 
 ## API Interface
 

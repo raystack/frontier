@@ -6,6 +6,15 @@ import CodeBlock from '@theme/CodeBlock';
 
 A resource in Shield looks like
 
+<Tabs groupId="model">
+  <TabItem value="Model" label="Model" default>
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+
+</TabItem>
+<TabItem value="JSON" label="Sample JSON" default>
+
 ```json
 {
     "resource": {
@@ -49,6 +58,8 @@ A resource in Shield looks like
     }
 }
 ```
+</TabItem>
+</Tabs>
 
 ## API Interface
 ### Create resources

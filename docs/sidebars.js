@@ -8,6 +8,7 @@ module.exports = {
       items: [
         'installation',
         'configurations',
+        'admin-portal',
       ],
     },
     {
@@ -50,7 +51,6 @@ module.exports = {
         "guides/managing-group",
         "guides/check-permission",
         "guides/managing-resource",
-        "guides/managing-relation",
         "guides/managing-user",
         "guides/managing-metaschemas",
       ],
