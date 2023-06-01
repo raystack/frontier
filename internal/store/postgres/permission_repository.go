@@ -14,7 +14,6 @@ import (
 	"github.com/odpf/shield/core/permission"
 
 	"github.com/doug-martin/goqu/v9"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -48,18 +47,7 @@ func (r PermissionRepository) Get(ctx context.Context, id string) (permission.Pe
 		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PERMISSIONS,
-				Operation:  "Get",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "Get", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedPermission, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -82,18 +70,7 @@ func (r PermissionRepository) GetBySlug(ctx context.Context, slug string) (permi
 		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PERMISSIONS,
-				Operation:  "GetByName",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "GetByName", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedPermission, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -134,18 +111,7 @@ func (r PermissionRepository) Upsert(ctx context.Context, perm permission.Permis
 	}
 
 	var actionModel Permission
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PERMISSIONS,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "Upsert", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -179,18 +145,7 @@ func (r PermissionRepository) List(ctx context.Context, flt permission.Filter) (
 		return []permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PERMISSIONS,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedActions, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -233,18 +188,7 @@ func (r PermissionRepository) Update(ctx context.Context, act permission.Permiss
 	}
 
 	var actionModel Permission
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PERMISSIONS,
-				Operation:  "Update",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "Update", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&actionModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -271,18 +215,7 @@ func (r PermissionRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PERMISSIONS,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "Delete", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}

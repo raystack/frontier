@@ -13,7 +13,6 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/pkg/db"
@@ -55,18 +54,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 	}
 
 	var roleModel Role
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ROLES,
-				Operation:  "Get",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Get", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &roleModel, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -95,18 +83,7 @@ func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role
 	}
 
 	var roleModel Role
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ROLES,
-				Operation:  "GetByName",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "GetByName", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &roleModel, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -154,18 +131,7 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error
 	}
 
 	var roleID string
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ROLES,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Upsert", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -196,18 +162,7 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 	}
 
 	var fetchedRoles []Role
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ROLES,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRoles, query, params...)
 	}); err != nil {
 		return []role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
@@ -257,18 +212,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 	}
 
 	var roleID string
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ROLES,
-				Operation:  "Update",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Update", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -297,18 +241,7 @@ func (r RoleRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ROLES,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Delete", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}

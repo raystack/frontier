@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	newrelic "github.com/newrelic/go-agent"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -32,10 +34,20 @@ func New(cfg Config) (*Client, error) {
 	return &Client{DB: d, queryTimeOut: cfg.MaxQueryTimeoutInMS}, err
 }
 
-func (c Client) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
+func (c Client) WithTimeout(ctx context.Context, collection, operation string, op func(ctx context.Context) error) (err error) {
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:    newrelic.DatastorePostgres,
+			Collection: collection,
+			Operation:  operation,
+			StartTime:  nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
+	}
+
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.queryTimeOut)
 	defer cancel()
-
 	return op(ctxWithTimeout)
 }
 

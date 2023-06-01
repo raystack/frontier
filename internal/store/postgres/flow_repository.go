@@ -8,7 +8,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/core/authenticate"
 	"github.com/odpf/shield/pkg/db"
@@ -65,18 +64,7 @@ func (s *FlowRepository) Set(ctx context.Context, flow *authenticate.Flow) error
 	}
 
 	var flowModel Flow
-	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_FLOWS,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = s.dbc.WithTimeout(ctx, TABLE_FLOWS, "Set", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&flowModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -98,18 +86,7 @@ func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.F
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_FLOWS,
-				Operation:  "Get",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = s.dbc.WithTimeout(ctx, TABLE_FLOWS, "Get", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&flowModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -130,30 +107,20 @@ func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_FLOWS,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
+	return s.dbc.WithTimeout(ctx, TABLE_FLOWS,
+		"Delete", func(ctx context.Context) error {
+			result, err := s.dbc.ExecContext(ctx, query, params...)
+			if err != nil {
+				err = checkPostgresError(err)
+				return fmt.Errorf("%w: %s", dbErr, err)
 			}
-			defer nr.End()
-		}
 
-		result, err := s.dbc.ExecContext(ctx, query, params...)
-		if err != nil {
-			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
-		}
+			if count, _ := result.RowsAffected(); count > 0 {
+				return nil
+			}
 
-		if count, _ := result.RowsAffected(); count > 0 {
-			return nil
-		}
-
-		return fmt.Errorf("no entry to delete")
-	})
+			return fmt.Errorf("no entry to delete")
+		})
 }
 
 func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
@@ -167,18 +134,7 @@ func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_FLOWS,
-				Operation:  "DeleteExpiredFlows",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	return s.dbc.WithTimeout(ctx, TABLE_FLOWS, "DeleteExpiredFlows", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)

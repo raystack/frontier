@@ -12,7 +12,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/salt/log"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -65,18 +64,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 	}
 
 	var inviteModel Invitation
-	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_INVITATIONS,
-				Operation:  "Set",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "Set", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&inviteModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -97,18 +85,7 @@ func (s *InvitationRepository) Get(ctx context.Context, id uuid.UUID) (invitatio
 		return invitation.Invitation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_INVITATIONS,
-				Operation:  "Get",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "Get", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&inviteModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -141,18 +118,7 @@ func (s *InvitationRepository) List(ctx context.Context, flt invitation.Filter) 
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PERMISSIONS,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "List", func(ctx context.Context) error {
 		return s.dbc.SelectContext(ctx, &fetchedInvitations, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -184,18 +150,7 @@ func (s *InvitationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_INVITATIONS,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	return s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "Delete", func(ctx context.Context) error {
 		_, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
@@ -218,18 +173,7 @@ func (s *InvitationRepository) GarbageCollect(ctx context.Context) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_INVITATIONS,
-				Operation:  "GarbageCollect",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	return s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "GarbageCollect", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)

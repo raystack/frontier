@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/metaschema"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -70,18 +69,7 @@ func (m MetaSchemaRepository) Get(ctx context.Context, id string) (metaschema.Me
 	}
 
 	var fetchedMetaSchema MetaSchema
-	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METASCHEMA,
-				Operation:  "Get",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = m.dbc.WithTimeout(ctx, TABLE_METASCHEMA, "Get", func(ctx context.Context) error {
 		return m.dbc.QueryRowxContext(ctx, query, params...).StructScan(&fetchedMetaSchema)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -115,18 +103,7 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 	}
 
 	var schemaModel MetaSchema
-	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METASCHEMA,
-				Operation:  "Create",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = m.dbc.WithTimeout(ctx, TABLE_METASCHEMA, "Create", func(ctx context.Context) error {
 		return m.dbc.QueryRowxContext(ctx, createQuery, params...).StructScan(&schemaModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -148,18 +125,7 @@ func (m MetaSchemaRepository) List(ctx context.Context) ([]metaschema.MetaSchema
 	}
 
 	var schemaModels []MetaSchema
-	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METASCHEMA,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = m.dbc.WithTimeout(ctx, TABLE_METASCHEMA, "List", func(ctx context.Context) error {
 		return m.dbc.SelectContext(ctx, &schemaModels, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -189,18 +155,7 @@ func (m MetaSchemaRepository) Delete(ctx context.Context, id string) (string, er
 	}
 
 	var name string
-	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METASCHEMA,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = m.dbc.WithTimeout(ctx, TABLE_METASCHEMA, "Delete", func(ctx context.Context) error {
 		return m.dbc.QueryRowxContext(ctx, query, params...).Scan(&name)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -229,18 +184,7 @@ func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema met
 	}
 
 	var schemaModel MetaSchema
-	if err = m.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METASCHEMA,
-				Operation:  "Update",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = m.dbc.WithTimeout(ctx, TABLE_METASCHEMA, "Update", func(ctx context.Context) error {
 		return m.dbc.QueryRowxContext(ctx, query, params...).StructScan(&schemaModel)
 	}); err != nil {
 		err = checkPostgresError(err)

@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/project"
 	"github.com/odpf/shield/core/user"
@@ -48,18 +47,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 	}
 
 	var projectModel Project
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "GetByID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "GetByID", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -94,18 +82,7 @@ func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string) ([]projec
 	}
 
 	var projects []Project
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "GetByIDs",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "GetByIDs", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &projects, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -143,17 +120,7 @@ func (r ProjectRepository) GetByName(ctx context.Context, name string) (project.
 	}
 
 	var projectModel Project
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "GetByName",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "GetByName", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -200,17 +167,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 	}
 
 	var projectModel Project
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Upsert", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&projectModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -254,18 +211,7 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 	}
 
 	var projectModels []Project
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &projectModels, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -309,18 +255,7 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 	}
 
 	var projectModel Project
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "Update",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Update", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -368,17 +303,7 @@ func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project
 	}
 
 	var projectModel Project
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "UpdateByName",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "UpdateByName", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &projectModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -417,18 +342,7 @@ func (r ProjectRepository) SetState(ctx context.Context, id string, state projec
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "SetState",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "SetState", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}
@@ -455,18 +369,7 @@ func (r ProjectRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_PROJECTS,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Delete", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}

@@ -13,7 +13,6 @@ import (
 	"github.com/odpf/shield/core/project"
 
 	"github.com/doug-martin/goqu/v9"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -50,18 +49,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "GetByID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetByID", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &orgModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -98,18 +86,7 @@ func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]o
 	var orgs []Organization
 	// TODO(kushsharma): clean up this unnecessary newrelic blot over each query
 	// abstract it over database using a facade
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "GetByIDs",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetByIDs", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &orgs, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -147,17 +124,7 @@ func (r OrganizationRepository) GetByName(ctx context.Context, name string) (org
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "GetByName",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetByName", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &orgModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -203,17 +170,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Upsert", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -248,17 +205,7 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 	}
 
 	var orgModels []Organization
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &orgModels, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -306,17 +253,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "Update",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Update", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -364,17 +301,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 	}
 
 	var orgModel Organization
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "UpdateByName",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "UpdateByName", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -409,18 +336,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "SetState",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "SetState", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}
@@ -447,18 +363,7 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_ORGANIZATIONS,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Delete", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}
