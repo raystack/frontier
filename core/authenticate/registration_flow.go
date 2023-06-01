@@ -95,7 +95,9 @@ func NewRegistrationService(logger log.Logger, config Config, flowRepo FlowRepos
 		userService: userService,
 		config:      config,
 		mailDialer:  mailDialer,
-		Now:         time.Now().UTC,
+		Now: func() time.Time {
+			return time.Now().UTC()
+		},
 	}
 	return r
 }
@@ -218,7 +220,7 @@ func (r RegistrationService) applyMail(ctx context.Context, request Registration
 	if err != nil {
 		return nil, fmt.Errorf("invalid state for mail otp: %w", err)
 	}
-	if !flow.IsValid() {
+	if !flow.IsValid(r.Now()) {
 		return nil, ErrFlowInvalid
 	}
 	if flow.Nonce != request.Code {

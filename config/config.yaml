@@ -54,7 +54,8 @@ app:
         validity: 10m
     mail_otp:
       subject: "Shield - Login Link"
-      body: "Please copy/paste the otp below to login.\n\n{{.Otp}}\n\nThis code will expire in 5 minutes."
+      # body is a go template with `Otp` as a variable
+      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
       validity: 10m
   # platform level administration
   admin:

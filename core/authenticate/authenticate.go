@@ -45,8 +45,8 @@ type Flow struct {
 	ExpiresAt time.Time
 }
 
-func (f Flow) IsValid() bool {
-	return f.ExpiresAt.Before(time.Now().UTC())
+func (f Flow) IsValid(currentTime time.Time) bool {
+	return f.ExpiresAt.After(currentTime)
 }
 
 type Config struct {
@@ -83,6 +83,6 @@ type OIDCConfig struct {
 
 type MailOTPConfig struct {
 	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Shield Login OTP"`
-	Body     string        `yaml:"body" mapstructure:"body" default:"Shield Login Link"`
+	Body     string        `yaml:"body" mapstructure:"body" default:"Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."`
 	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
 }

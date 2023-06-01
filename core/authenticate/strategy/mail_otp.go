@@ -30,7 +30,9 @@ func NewMailLink(d mailer.Dialer, subject, body string) *MailOTP {
 		dialer:  d,
 		subject: subject,
 		body:    body,
-		Now:     time.Now().UTC,
+		Now: func() time.Time {
+			return time.Now().UTC()
+		},
 	}
 }
 
