@@ -12,7 +12,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/namespace"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -48,7 +47,7 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 	}
 
 	var fetchedNamespace Namespace
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_NAMESPACES, "Get", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedNamespace, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -87,18 +86,7 @@ func (r NamespaceRepository) Upsert(ctx context.Context, ns namespace.Namespace)
 	}
 
 	var nsModel Namespace
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_NAMESPACES,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_NAMESPACES, "Upsert", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&nsModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -120,18 +108,7 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 	}
 
 	var fetchedNamespaces []Namespace
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_NAMESPACES,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_NAMESPACES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedNamespaces, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -176,18 +153,7 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 	}
 
 	var nsModel Namespace
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_NAMESPACES,
-				Operation:  "Update",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_NAMESPACES, "Update", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&nsModel)
 	}); err != nil {
 		err = checkPostgresError(err)

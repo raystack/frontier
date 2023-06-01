@@ -14,7 +14,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -63,18 +62,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_USERS,
-				Operation:  "GetByID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByID", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedUser, userQuery, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -112,17 +100,7 @@ func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, 
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_USERS,
-				Operation:  "GetByName",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByName", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedUser, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -166,18 +144,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	}
 
 	var userModel User
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_USERS,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Upsert", func(ctx context.Context) error {
 		return tx.QueryRowContext(ctx, createQuery, params...).
 			Scan(&userModel.CreatedAt,
 				&userModel.DeletedAt,
@@ -247,18 +214,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: fmt.Sprintf("%s.%s", TABLE_USERS, TABLE_METADATA),
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedJoinUserMetadata, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -316,18 +272,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_USERS,
-				Operation:  "GetByIDs",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByIDs", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -378,18 +323,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		}
 
 		var userModel User
-		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			nrCtx := newrelic.FromContext(ctx)
-			if nrCtx != nil {
-				nr := newrelic.DatastoreSegment{
-					Product:    newrelic.DatastorePostgres,
-					Collection: TABLE_USERS,
-					Operation:  "UpdateByEmail",
-					StartTime:  nrCtx.StartSegmentNow(),
-				}
-				defer nr.End()
-			}
-
+		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByEmail", func(ctx context.Context) error {
 			return tx.QueryRowContext(ctx, updateQuery, params...).
 				Scan(&userModel.CreatedAt,
 					&userModel.DeletedAt,
@@ -450,18 +384,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		}
 
 		var userModel User
-		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			nrCtx := newrelic.FromContext(ctx)
-			if nrCtx != nil {
-				nr := newrelic.DatastoreSegment{
-					Product:    newrelic.DatastorePostgres,
-					Collection: TABLE_USERS,
-					Operation:  "Update",
-					StartTime:  nrCtx.StartSegmentNow(),
-				}
-				defer nr.End()
-			}
-
+		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Update", func(ctx context.Context) error {
 			return tx.QueryRowContext(ctx, query, params...).Scan(&userModel.CreatedAt,
 				&userModel.DeletedAt,
 				&userModel.Email,
@@ -525,18 +448,7 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 		}
 
 		var userModel User
-		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			nrCtx := newrelic.FromContext(ctx)
-			if nrCtx != nil {
-				nr := newrelic.DatastoreSegment{
-					Product:    newrelic.DatastorePostgres,
-					Collection: TABLE_USERS,
-					Operation:  "UpdateByName",
-					StartTime:  nrCtx.StartSegmentNow(),
-				}
-				defer nr.End()
-			}
-
+		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByName", func(ctx context.Context) error {
 			return tx.QueryRowContext(ctx, query, params...).Scan(&userModel.CreatedAt,
 				&userModel.DeletedAt,
 				&userModel.Email,
@@ -589,18 +501,7 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_USERS,
-				Operation:  "GetByEmail",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByEmail", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedUser, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -632,18 +533,7 @@ func (r UserRepository) SetState(ctx context.Context, id string, state user.Stat
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_USERS,
-				Operation:  "SetState",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "SetState", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}
@@ -670,18 +560,7 @@ func (r UserRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_USERS,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Delete", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}

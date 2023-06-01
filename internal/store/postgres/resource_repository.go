@@ -14,7 +14,6 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -61,18 +60,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	}
 
 	var resourceModel Resource
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Upsert", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -107,18 +95,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 		return nil, err
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedResources, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -156,18 +133,7 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 	}
 
 	var resourceModel Resource
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
-				Operation:  "GetByID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "GetByID", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &resourceModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -206,18 +172,7 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 	}
 
 	var resourceModel Resource
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
-				Operation:  "Update",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Update", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -252,18 +207,7 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 	}
 
 	var resourceModel Resource
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
-				Operation:  "GetByURN",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "GetByURN", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &resourceModel, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -292,18 +236,7 @@ func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns 
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
-				Operation:  "GetByNamespace",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "GetByNamespace", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedResource, query)
 	})
 
@@ -328,18 +261,7 @@ func (r ResourceRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
-				Operation:  "Delete",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Delete", func(ctx context.Context) error {
 		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
 			return err
 		}

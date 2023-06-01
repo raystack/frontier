@@ -9,7 +9,6 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/pkg/db"
 )
@@ -42,18 +41,7 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 	}
 
 	var relationModel Relation
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RELATIONS,
-				Operation:  "Upsert",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "Upsert", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&relationModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -75,18 +63,7 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, erro
 	}
 
 	var fetchedRelations []Relation
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RELATIONS,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
 	}); err != nil {
 		// List should return empty list and no error instead
@@ -118,18 +95,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 	}
 
 	var relationModel Relation
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RELATIONS,
-				Operation:  "Get",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "Get", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &relationModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -157,18 +123,7 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RELATIONS,
-				Operation:  "DeleteByID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	return r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "DeleteByID", func(ctx context.Context) error {
 		result, err := r.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
@@ -227,18 +182,7 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RELATIONS,
-				Operation:  "GetByFields",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "GetByFields", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRelations, query)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -275,18 +219,7 @@ func (r RelationRepository) ListByFields(ctx context.Context, rel relation.Relat
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RELATIONS,
-				Operation:  "GetByFields",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
+	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "GetByFields", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRelation, query)
 	}); err != nil {
 		err = checkPostgresError(err)
