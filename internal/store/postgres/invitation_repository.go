@@ -27,7 +27,9 @@ func NewInvitationRepository(logger log.Logger, dbc *db.Client) *InvitationRepos
 	return &InvitationRepository{
 		dbc: dbc,
 		log: logger,
-		Now: time.Now().UTC,
+		Now: func() time.Time {
+			return time.Now().UTC()
+		},
 	}
 }
 
