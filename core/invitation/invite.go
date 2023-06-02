@@ -14,11 +14,14 @@ var (
 
 const (
 	inviteEmailSubject = "You have been invited to join an organization"
-	inviteEmailBody    = `Hi {{.UserID}},
-You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.
-
-Thanks,
-Shield Team`
+	inviteEmailBody    = `<div>Hi {{.UserID}},</div>
+<br>
+<p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p>
+<br>
+<div>
+Thanks,<br>
+Team Shield
+</div>`
 )
 
 type Invitation struct {
