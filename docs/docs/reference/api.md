@@ -43,7 +43,7 @@ Callback from a strategy. This is the endpoint where the strategy will redirect 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
-| state | query | for oidc | No | string |
+| state | query | for oidc & magic links | No | string |
 | code | query |  | No | string |
 
 ##### Responses
@@ -72,7 +72,7 @@ Callback from a strategy. This is the endpoint where the strategy will redirect 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
 | strategyName | query | strategy_name will not be set for oidc but can be utilized for methods like email magic links | No | string |
-| state | query | for oidc | No | string |
+| state | query | for oidc & magic links | No | string |
 | code | query |  | No | string |
 
 ##### Responses
@@ -141,6 +141,7 @@ Authenticate a user with a strategy. By default, after successful authentication
 | strategyName | path | Name of the strategy to use for authentication.<br/> *Example:* `google` | Yes | string |
 | redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser  If set to true, location header will be set for redirect | No | boolean |
 | returnTo | query | by default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication  URL to redirect after successful authentication.<br/> *Example:*`"https://shield.example.com"` | No | string |
+| email | query | email of the user for magic links  Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org` | No | string |
 
 ##### Responses
 
@@ -170,6 +171,7 @@ Authenticate a user with a strategy. By default, after successful authentication
 | strategyName | path | Name of the strategy to use for authentication.<br/> *Example:* `google` | Yes | string |
 | redirect | query | by default, location header for redirect if applicable will be skipped unless this is set to true, useful in browser  If set to true, location header will be set for redirect | No | boolean |
 | returnTo | query | by default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url that will be used for redirection after authentication  URL to redirect after successful authentication.<br/> *Example:*`"https://shield.example.com"` | No | string |
+| email | query | email of the user for magic links  Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org` | No | string |
 
 ##### Responses
 
@@ -649,7 +651,7 @@ List organization users
 #### POST
 ##### Summary
 
-Add a user to an organization
+Add a user to an organization, request fails if the user doesn't exists
 
 ##### Parameters
 
@@ -696,32 +698,49 @@ Remove a user to an organization
 | 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-## Group
-Groups in Shield are used to manage users and their access to resources. Each group has a unique name and id that can be used to grant access to resources. When a user is added to a group, they inherit the access permissions that have been granted to the group. This allows you to manage access to resources at scale, without having to grant permissions to individual users.
+### /v1beta1/organizations/{orgId}/invitations
 
-### /v1beta1/organizations/{body.orgId}/groups
+#### GET
+##### Summary
+
+List pending invitations queued for an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| userId | query |  | No | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1ListOrganizationInvitationsResponse](#v1beta1listorganizationinvitationsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 #### POST
 ##### Summary
 
-Create Group
-
-##### Description
-
-Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.
+Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
-| body.orgId | path | The organization ID to which the group belongs to. | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"title"**: string, **"metadata"**: object } |
+| orgId | path |  | Yes | string |
+| body | body |  | Yes | { **"userId"**: string, **"groupIds"**: [ string ] } |
 
 ##### Responses
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateGroupResponse](#v1beta1creategroupresponse) |
+| 200 | A successful response. | [v1beta1CreateOrganizationInvitationResponse](#v1beta1createorganizationinvitationresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
@@ -729,32 +748,84 @@ Create a new group in an organization which serves as a container for users. The
 | 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/organizations/{body.orgId}/groups/{id}
+### /v1beta1/organizations/{orgId}/invitations/{id}
 
-#### PUT
+#### GET
 ##### Summary
 
-Update group by ID
+Get pending invitation queued for an organization
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ------ |
-| body.orgId | path | The organization ID to which the group belongs to. | Yes | string |
+| orgId | path |  | Yes | string |
 | id | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"title"**: string, **"metadata"**: object } |
 
 ##### Responses
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateGroupResponse](#v1beta1updategroupresponse) |
+| 200 | A successful response. | [v1beta1GetOrganizationInvitationResponse](#v1beta1getorganizationinvitationresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
 | 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
 | 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### DELETE
+##### Summary
+
+Delete pending invitation queued for an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1DeleteOrganizationInvitationResponse](#v1beta1deleteorganizationinvitationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+### /v1beta1/organizations/{orgId}/invitations/{id}/accept
+
+#### POST
+##### Summary
+
+Accept pending invitation queued for an organization
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1AcceptOrganizationInvitationResponse](#v1beta1acceptorganizationinvitationresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+## Group
+Groups in Shield are used to manage users and their access to resources. Each group has a unique name and id that can be used to grant access to resources. When a user is added to a group, they inherit the access permissions that have been granted to the group. This allows you to manage access to resources at scale, without having to grant permissions to individual users.
 
 ### /v1beta1/organizations/{orgId}/groups
 
@@ -780,6 +851,34 @@ Get all groups that belong to an organization. It can be filtered by keyword, or
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListOrganizationGroupsResponse](#v1beta1listorganizationgroupsresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create Group
+
+##### Description
+
+Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path | The organization ID to which the group belongs to. | Yes | string |
+| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateGroupResponse](#v1beta1creategroupresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
@@ -830,6 +929,31 @@ Delete a group permanently and all of its relations
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1DeleteGroupResponse](#v1beta1deletegroupresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update group by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path | The organization ID to which the group belongs to. | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1GroupRequestBody](#v1beta1grouprequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateGroupResponse](#v1beta1updategroupresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
@@ -979,59 +1103,6 @@ Remove user from a group
 
 ## Role
 
-### /v1beta1/organizations/{body.orgId}/roles
-
-#### POST
-##### Summary
-
-Create Role
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body.orgId | path |  | Yes | string |
-| body | body |  | Yes | { **"id"**: string, **"name"**: string, **"permissions"**: [ string ], **"metadata"**: object, **"title"**: string } |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateOrganizationRoleResponse](#v1beta1createorganizationroleresponse) |
-| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
-| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
-| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
-| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
-| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{body.orgId}/roles/{id}
-
-#### PUT
-##### Summary
-
-Update Role by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body.orgId | path |  | Yes | string |
-| id | path |  | Yes | string |
-| body | body |  | Yes | { **"id"**: string, **"name"**: string, **"permissions"**: [ string ], **"metadata"**: object, **"title"**: string } |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateOrganizationRoleResponse](#v1beta1updateorganizationroleresponse) |
-| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
-| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
-| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
-| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
-| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
 ### /v1beta1/organizations/{orgId}/roles
 
 #### GET
@@ -1051,6 +1122,30 @@ Get custom roles under an org
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListOrganizationRolesResponse](#v1beta1listorganizationrolesresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create Role
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path | The organization ID to which the role belongs to. | Yes | string |
+| body | body |  | Yes | [v1beta1RoleRequestBody](#v1beta1rolerequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateOrganizationRoleResponse](#v1beta1createorganizationroleresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
@@ -1101,6 +1196,31 @@ Delete a role permanently forever and all of its relations
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1DeleteOrganizationRoleResponse](#v1beta1deleteorganizationroleresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update Role by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| orgId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1RoleRequestBody](#v1beta1rolerequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateOrganizationRoleResponse](#v1beta1updateorganizationroleresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
@@ -1486,59 +1606,6 @@ Get all users of a oroject
 
 ## Resource
 
-### /v1beta1/projects/{body.projectId}/resources
-
-#### POST
-##### Summary
-
-Create Resource
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body.projectId | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1CreateProjectResourceResponse](#v1beta1createprojectresourceresponse) |
-| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
-| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
-| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
-| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
-| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{body.projectId}/resources/{id}
-
-#### PUT
-##### Summary
-
-Update Resource by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ------ |
-| body.projectId | path |  | Yes | string |
-| id | path |  | Yes | string |
-| body | body |  | Yes | { **"name"**: string, **"namespace"**: string, **"userId"**: string, **"metadata"**: object } |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateProjectResourceResponse](#v1beta1updateprojectresourceresponse) |
-| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
-| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
-| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
-| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
-| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
 ### /v1beta1/projects/{projectId}/resources
 
 #### GET
@@ -1558,6 +1625,30 @@ Get all resources
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListProjectResourcesResponse](#v1beta1listprojectresourcesresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### POST
+##### Summary
+
+Create Resource
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1CreateProjectResourceResponse](#v1beta1createprojectresourceresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
@@ -1608,6 +1699,31 @@ Delete a resource permanently forever
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1DeleteProjectResourceResponse](#v1beta1deleteprojectresourceresponse) |
+| 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
+| 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
+| 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
+| 404 | Not Found - The requested resource was not found | [rpcStatus](#rpcstatus) |
+| 500 | Internal Server Error. Returned when theres is something wrong with Shield server. | [rpcStatus](#rpcstatus) |
+| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
+
+#### PUT
+##### Summary
+
+Update Resource by ID
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ------ |
+| projectId | path |  | Yes | string |
+| id | path |  | Yes | string |
+| body | body |  | Yes | [v1beta1ResourceRequestBody](#v1beta1resourcerequestbody) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | A successful response. | [v1beta1UpdateProjectResourceResponse](#v1beta1updateprojectresourceresponse) |
 | 400 | Bad Request - The request was malformed or contained invalid parameters. | [rpcStatus](#rpcstatus) |
 | 401 | Unauthorized - Authentication is required | [rpcStatus](#rpcstatus) |
 | 403 | Forbidden - User does not have permission to access the resource | [rpcStatus](#rpcstatus) |
@@ -2069,6 +2185,12 @@ Get all the organizations a user belongs to.
 | message | string |  | No |
 | details | [ [protobufAny](#protobufany) ] |  | No |
 
+#### v1beta1AcceptOrganizationInvitationResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1AcceptOrganizationInvitationResponse | object |  |  |
+
 #### v1beta1AddGroupUsersResponse
 
 | Name | Type | Description | Required |
@@ -2105,6 +2227,7 @@ Get all the organizations a user belongs to.
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | endpoint | string |  | No |
+| state | string |  | No |
 
 #### v1beta1CheckResourcePermissionRequest
 
@@ -2131,6 +2254,12 @@ Get all the organizations a user belongs to.
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | metaschema | [v1beta1MetaSchema](#v1beta1metaschema) |  | No |
+
+#### v1beta1CreateOrganizationInvitationResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| invitation | [v1beta1Invitation](#v1beta1invitation) |  | No |
 
 #### v1beta1CreateOrganizationResponse
 
@@ -2185,6 +2314,12 @@ Get all the organizations a user belongs to.
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | v1beta1DeleteMetaSchemaResponse | object |  |  |
+
+#### v1beta1DeleteOrganizationInvitationResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| v1beta1DeleteOrganizationInvitationResponse | object |  |  |
 
 #### v1beta1DeleteOrganizationResponse
 
@@ -2300,6 +2435,12 @@ Get all the organizations a user belongs to.
 | ---- | ---- | ----------- | -------- |
 | namespace | [v1beta1Namespace](#v1beta1namespace) |  | No |
 
+#### v1beta1GetOrganizationInvitationResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| invitation | [v1beta1Invitation](#v1beta1invitation) |  | No |
+
 #### v1beta1GetOrganizationResponse
 
 | Name | Type | Description | Required |
@@ -2379,7 +2520,19 @@ Get all the organizations a user belongs to.
 | name | string | The name of the group. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores. | Yes |
 | title | string | The title can contain any UTF-8 character, used to provide a human-readable name for the group. Can also be left empty. | No |
 | metadata | object | Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields.<br/>*Example:*`{"labels": {"key": "value"}, "description": "Group description"}` | No |
-| orgId | string | The organization ID to which the group belongs to. | Yes |
+| orgId | string | The organization ID to which the group belongs to. | No |
+
+#### v1beta1Invitation
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| id | string |  | No |
+| userId | string |  | No |
+| orgId | string |  | No |
+| groupIds | [ string ] |  | No |
+| metadata | object |  | No |
+| createdAt | dateTime |  | No |
+| expiresAt | dateTime |  | No |
 
 #### v1beta1ListAuthStrategiesResponse
 
@@ -2422,6 +2575,12 @@ Get all the organizations a user belongs to.
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | groups | [ [v1beta1Group](#v1beta1group) ] |  | No |
+
+#### v1beta1ListOrganizationInvitationsResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| invitations | [ [v1beta1Invitation](#v1beta1invitation) ] |  | No |
 
 #### v1beta1ListOrganizationProjectsResponse
 

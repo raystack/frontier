@@ -329,10 +329,12 @@ func profile() func(ctx *gin.Context) {
 			return
 		}
 
+		content := "Hello <b>" + response.User.Email + "</b>, you are logged in!"
+		content += "<article>Cookie: " + ctx.Request.Header.Get("Cookie") + "</article>"
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"title":   "Authentication demo",
 			"page":    "Profile",
-			"content": "Hello " + response.User.Email + ", you are logged in!",
+			"content": template.HTML(content),
 		})
 	}
 }
