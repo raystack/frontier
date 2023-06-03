@@ -21,4 +21,6 @@ const (
 	// SessionValidity defines the age of a session
 	// TODO(kushsharma): should we expose this in config?
 	SessionValidity = time.Hour * 24 * 30 // 30 days
+
+	JWKSHandlerPath = "jwks.json"
 )

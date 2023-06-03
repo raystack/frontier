@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/pkg/server"
+
 	"github.com/odpf/shield/pkg/server/consts"
 
 	"github.com/odpf/shield/core/invitation"
@@ -39,7 +41,6 @@ import (
 	"github.com/odpf/shield/core/role"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/api"
-	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/blob"
 	"github.com/odpf/shield/internal/store/postgres"
 	"github.com/odpf/shield/internal/store/spicedb"

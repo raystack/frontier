@@ -5,9 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/odpf/shield/pkg/server"
+
 	"github.com/odpf/salt/config"
 	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/spicedb"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/logger"

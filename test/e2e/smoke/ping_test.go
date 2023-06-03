@@ -8,9 +8,10 @@ import (
 	"path"
 	"testing"
 
+	"github.com/odpf/shield/pkg/server"
+
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/pkg/logger"
 	"github.com/odpf/shield/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"

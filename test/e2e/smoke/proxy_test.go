@@ -13,6 +13,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/odpf/shield/pkg/server"
+
 	"github.com/google/uuid"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/ory/dockertest/v3"
@@ -22,7 +24,6 @@ import (
 
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/internal/store/spicedb"
 	"github.com/odpf/shield/pkg/db"
 	"github.com/odpf/shield/pkg/logger"
