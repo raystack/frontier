@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
+
+	"google.golang.org/grpc"
 
 	"github.com/odpf/shield/pkg/server/consts"
 
@@ -21,7 +24,10 @@ type Session struct {
 }
 
 func NewSession(cookieCutter securecookie.Codec) *Session {
-	return &Session{cookieCodec: cookieCutter}
+	return &Session{
+		// could be nil
+		cookieCodec: cookieCutter,
+	}
 }
 
 // GatewayResponseModifier https://grpc-ecosystem.github.io/grpc-gateway/docs/mapping/customizing_your_gateway/
@@ -32,26 +38,28 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 		return fmt.Errorf("failed to extract ServerMetadata from context")
 	}
 
-	// did the gRPC method set a session ID in the metadata?
-	sessionGatewayHeaders := md.HeaderMD.Get(consts.SessionIDGatewayKey)
-	if len(sessionGatewayHeaders) == 1 && len(sessionGatewayHeaders[0]) > 0 {
-		sessionIDFromGateway := sessionGatewayHeaders[0]
+	if h.cookieCodec != nil {
+		// did the gRPC method set a session ID in the metadata?
+		sessionGatewayHeaders := md.HeaderMD.Get(consts.SessionIDGatewayKey)
+		if len(sessionGatewayHeaders) == 1 && len(sessionGatewayHeaders[0]) > 0 {
+			sessionIDFromGateway := sessionGatewayHeaders[0]
 
-		// delete the gateway headers to not expose any grpc-metadata in http response
-		md.HeaderMD.Delete(consts.SessionIDGatewayKey)
-		w.Header().Del("grpc-metadata-" + consts.SessionIDGatewayKey)
+			// delete the gateway headers to not expose any grpc-metadata in http response
+			md.HeaderMD.Delete(consts.SessionIDGatewayKey)
+			w.Header().Del("grpc-metadata-" + consts.SessionIDGatewayKey)
 
-		// put session id in request cookies
-		if encoded, err := h.cookieCodec.Encode(consts.SessionRequestKey, sessionIDFromGateway); err == nil {
-			http.SetCookie(w, &http.Cookie{
-				Name:     consts.SessionRequestKey,
-				Value:    encoded,
-				Path:     "/",
-				Expires:  time.Now().UTC().Add(consts.SessionValidity),
-				MaxAge:   86400 * 30, // 30 days
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-			})
+			// put session id in request cookies
+			if encoded, err := h.cookieCodec.Encode(consts.SessionRequestKey, sessionIDFromGateway); err == nil {
+				http.SetCookie(w, &http.Cookie{
+					Name:     consts.SessionRequestKey,
+					Value:    encoded,
+					Path:     "/",
+					Expires:  time.Now().UTC().Add(consts.SessionValidity),
+					MaxAge:   86400 * 30, // 30 days
+					HttpOnly: true,
+					SameSite: http.SameSiteLaxMode,
+				})
+			}
 		}
 	}
 
@@ -101,6 +109,10 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 // called just before RPC server side execution
 func (h Session) GatewayRequestMetadataAnnotator(_ context.Context, r *http.Request) metadata.MD {
 	mdMap := map[string]string{}
+	if h.cookieCodec == nil {
+		// pass-through
+		return metadata.New(mdMap)
+	}
 
 	// extract cookie and pass it as context
 	requestCookie, err := r.Cookie(consts.SessionRequestKey)
@@ -115,4 +127,38 @@ func (h Session) GatewayRequestMetadataAnnotator(_ context.Context, r *http.Requ
 	// if not provided during registration flow
 
 	return metadata.New(mdMap)
+}
+
+// UnaryGRPCRequestCookieAnnotator converts session cookies set in grpc metadata to context
+// this requires decrypting the cookie and setting it as context
+func (h Session) UnaryGRPCRequestCookieAnnotator() grpc.UnaryServerInterceptor {
+	if h.cookieCodec == nil {
+		// pass-through
+		return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+			return handler(ctx, req)
+		}
+	}
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		// extract and decode session from cookie
+		if incomingMD, ok := metadata.FromIncomingContext(ctx); ok {
+			if mdCookies := incomingMD.Get("cookie"); len(mdCookies) > 0 {
+				requestCookies := strings.Split(mdCookies[0], "; ")
+
+				for _, requestCookie := range requestCookies {
+					if strings.HasPrefix(requestCookie, consts.SessionRequestKey+"=") {
+						cookieValue := strings.TrimPrefix(requestCookie, consts.SessionRequestKey+"=")
+						var sessionID string
+
+						if err = h.cookieCodec.Decode(consts.SessionRequestKey, cookieValue, &sessionID); err == nil {
+							// pass cookie in context
+							incomingMD.Set(consts.SessionIDGatewayKey, sessionID)
+							ctx = metadata.NewIncomingContext(ctx, incomingMD)
+						}
+					}
+				}
+			}
+		}
+		return handler(ctx, req)
+	}
 }

@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/odpf/shield/pkg/server/consts"
 
@@ -45,7 +46,7 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 
 	// check if user is already logged in
 	session, err := h.sessionService.ExtractFromContext(ctx)
-	if err == nil && session.IsValid() {
+	if err == nil && session.IsValid(time.Now().UTC()) {
 		// already logged in, set location header for return to?
 		if len(request.GetReturnTo()) > 0 {
 			if err = setRedirectHeaders(ctx, request.GetReturnTo()); err != nil {
@@ -156,7 +157,7 @@ func (h Handler) ListAuthStrategies(ctx context.Context, request *shieldv1beta1.
 
 func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
 	session, err := h.sessionService.ExtractFromContext(ctx)
-	if err == nil && session.IsValid() {
+	if err == nil && session.IsValid(time.Now().UTC()) {
 		return session.ID, nil
 	}
 	return uuid.Nil, err

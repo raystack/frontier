@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/odpf/shield/pkg/server"
+	"github.com/odpf/shield/pkg/server/consts"
+	"github.com/odpf/shield/pkg/server/health"
+
 	"github.com/odpf/shield/pkg/server/interceptors"
 
 	"github.com/gorilla/securecookie"
@@ -24,7 +26,6 @@ import (
 	"github.com/odpf/salt/spa"
 	"github.com/odpf/shield/internal/api"
 	"github.com/odpf/shield/internal/api/v1beta1"
-	"github.com/odpf/shield/internal/server/health"
 	"github.com/odpf/shield/pkg/telemetry"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/odpf/shield/ui"
@@ -37,6 +38,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	grpcDialTimeout = 5 * time.Second
+)
+
 func Serve(
 	ctx context.Context,
 	logger log.Logger,
@@ -46,7 +51,7 @@ func Serve(
 ) error {
 	httpMux := http.NewServeMux()
 
-	grpcDialCtx, grpcDialCancel := context.WithTimeout(ctx, time.Second*5)
+	grpcDialCtx, grpcDialCancel := context.WithTimeout(ctx, grpcDialTimeout)
 	defer grpcDialCancel()
 	grpcConn, err := grpc.DialContext(
 		grpcDialCtx,
@@ -60,34 +65,35 @@ func Serve(
 		return err
 	}
 
-	var grpcGatewayServerInterceptors []runtime.ServeMuxOption
-	grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,
-		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
-		runtime.WithIncomingHeaderMatcher(interceptors.GatewayHeaderMatcherFunc(map[string]bool{
-			cfg.IdentityProxyHeader: true,
-		}),
-		),
-	)
+	var sessionCookieCutter securecookie.Codec
 	if len(cfg.Authentication.Session.HashSecretKey) != 32 || len(cfg.Authentication.Session.BlockSecretKey) != 32 {
 		// hash and block keys should be 32 bytes long
 		logger.Warn("session management disabled", errors.New("authentication.session keys should be 32 chars long"))
 	} else {
-		sessionMiddleware := interceptors.NewSession(
-			securecookie.New(
-				[]byte(cfg.Authentication.Session.HashSecretKey),
-				[]byte(cfg.Authentication.Session.BlockSecretKey),
-			),
-		)
-		grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,
-			runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
-			runtime.WithMetadata(sessionMiddleware.GatewayRequestMetadataAnnotator),
+		sessionCookieCutter = securecookie.New(
+			[]byte(cfg.Authentication.Session.HashSecretKey),
+			[]byte(cfg.Authentication.Session.BlockSecretKey),
 		)
 	}
+	sessionMiddleware := interceptors.NewSession(sessionCookieCutter)
 
+	var grpcGatewayServerInterceptors []runtime.ServeMuxOption
+	grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,
+		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
+		runtime.WithIncomingHeaderMatcher(
+			interceptors.GatewayHeaderMatcherFunc(
+				map[string]bool{
+					cfg.IdentityProxyHeader: true,
+				},
+			),
+		),
+		runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
+		runtime.WithMetadata(sessionMiddleware.GatewayRequestMetadataAnnotator),
+	)
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 
-	var rootHandler http.Handler
-	if rootHandler = grpcGateway; cfg.CorsOrigin != "" {
+	var rootHandler http.Handler = grpcGateway
+	if cfg.CorsOrigin != "" {
 		rootHandler = interceptors.WithCors(rootHandler, cfg.CorsOrigin)
 	}
 
@@ -100,10 +106,10 @@ func Serve(
 	}
 
 	// json web key set handler
-	if jwksHandler, err := server.NewTokenJWKSHandler(cfg.Authentication.Token.RSAPath); err != nil {
+	if jwksHandler, err := NewTokenJWKSHandler(cfg.Authentication.Token.RSAPath); err != nil {
 		return err
 	} else {
-		httpMux.Handle("/jwks.json", jwksHandler)
+		httpMux.Handle(fmt.Sprintf("/%s", consts.JWKSHandlerPath), jwksHandler)
 	}
 
 	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
@@ -113,9 +119,9 @@ func Serve(
 		httpMux.Handle("/console/", http.StripPrefix("/console/", spaHandler))
 	}
 
-	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
+	grpcMiddlewares := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware)
+	grpcServer := grpc.NewServer(grpcMiddlewares)
 	reflection.Register(grpcServer)
-
 	grpc_health_v1.RegisterHealthServer(grpcServer, health.NewHandler())
 
 	if err = v1beta1.Register(grpcServer, deps); err != nil {
@@ -126,12 +132,10 @@ func Serve(
 	if err != nil {
 		logger.Error("failed to setup OpenCensus", "err", err)
 	}
-
 	httpMuxMetrics := http.NewServeMux()
 	httpMuxMetrics.Handle("/metrics", pe)
 
-	logger.Info("[shield] api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
-
+	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 	if err := mux.Serve(
 		ctx,
 		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.Port), &http.Server{
@@ -158,9 +162,10 @@ func Serve(
 }
 
 // REVISIT: passing config.Shield as reference
-func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application) grpc.ServerOption {
+func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newrelic.Application,
+	sessionMiddleware *interceptors.Session) grpc.ServerOption {
 	recoveryFunc := func(p interface{}) (err error) {
-		fmt.Println("-----------------------------")
+		fmt.Println(p)
 		return status.Errorf(codes.Internal, "internal server error")
 	}
 
@@ -175,12 +180,14 @@ func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application
 	}
 	return grpc.UnaryInterceptor(
 		grpc_middleware.ChainUnaryServer(
-			interceptors.EnrichCtxWithIdentity(cfg.IdentityProxyHeader),
-			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
-			grpc_ctxtags.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
+			interceptors.EnrichCtxWithIdentity(identityProxyHeader),
+			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
+			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_validator.UnaryServerInterceptor(),
-			interceptors.UnaryAuthorizationCheck(cfg.IdentityProxyHeader),
-		))
+			sessionMiddleware.UnaryGRPCRequestCookieAnnotator(),
+			interceptors.UnaryAuthorizationCheck(identityProxyHeader),
+		),
+	)
 }

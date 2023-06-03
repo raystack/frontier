@@ -25,8 +25,8 @@ type Session struct {
 	Metadata metadata.Metadata
 }
 
-func (s Session) IsValid() bool {
-	if s.ExpiresAt.After(time.Now().UTC()) && !s.AuthenticatedAt.IsZero() {
+func (s Session) IsValid(now time.Time) bool {
+	if s.ExpiresAt.After(now) && !s.AuthenticatedAt.IsZero() {
 		return true
 	}
 	return false

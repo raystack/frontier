@@ -6,12 +6,13 @@ import (
 	"path"
 	"testing"
 
+	"github.com/odpf/shield/pkg/server"
+
 	"github.com/odpf/shield/internal/bootstrap/schema"
 
 	"github.com/odpf/shield/core/organization"
 
 	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/server"
 	"github.com/odpf/shield/pkg/logger"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/odpf/shield/test/e2e/testbench"

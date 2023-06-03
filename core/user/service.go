@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/mail"
 	"strings"
+	"time"
 
 	"github.com/odpf/shield/pkg/utils"
 
@@ -30,6 +31,7 @@ type Service struct {
 	repository      Repository
 	relationService RelationRepository
 	sessionService  SessionService
+	Now             func() time.Time
 }
 
 func NewService(repository Repository, sessionService SessionService, relationRepo RelationRepository) *Service {
@@ -37,6 +39,9 @@ func NewService(repository Repository, sessionService SessionService, relationRe
 		repository:      repository,
 		sessionService:  sessionService,
 		relationService: relationRepo,
+		Now: func() time.Time {
+			return time.Now().UTC()
+		},
 	}
 }
 
@@ -111,7 +116,7 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 
 	// extract user from session if present
 	session, err := s.sessionService.ExtractFromContext(ctx)
-	if err == nil && session.IsValid() && utils.IsValidUUID(session.UserID) {
+	if err == nil && session.IsValid(s.Now()) && utils.IsValidUUID(session.UserID) {
 		// userID is a valid uuid
 		currentUser, err = s.GetByID(ctx, session.UserID)
 		if err != nil {
