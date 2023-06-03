@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/odpf/shield/pkg/server/consts"
+
 	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/authenticate"
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
 	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/server/consts"
 	"github.com/odpf/shield/pkg/errors"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"google.golang.org/grpc"

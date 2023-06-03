@@ -1,4 +1,4 @@
-package bootstrap
+package utils
 
 func AppendIfUnique[T comparable](slice1 []T, slice2 []T) []T {
 	for _, i := range slice2 {

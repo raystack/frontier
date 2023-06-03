@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/odpf/shield/internal/server/consts"
+	"github.com/odpf/shield/pkg/server/consts"
 
 	"github.com/google/uuid"
 	"github.com/odpf/salt/log"

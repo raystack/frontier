@@ -7,22 +7,21 @@ import (
 	"net/http"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/odpf/shield/core/authenticate"
 )
 
 type TokenJWKSHandler struct {
 	keySet jwk.Set
 }
 
-func NewTokenJWKSHandler(cfg authenticate.TokenConfig) (*TokenJWKSHandler, error) {
+func NewTokenJWKSHandler(RSAKeyPath string) (*TokenJWKSHandler, error) {
 	// if no config provided for path, ignore jwks
-	if len(cfg.RSAPath) == 0 {
+	if len(RSAKeyPath) == 0 {
 		return &TokenJWKSHandler{
 			keySet: jwk.NewSet(),
 		}, nil
 	}
 
-	privateSet, err := jwk.ReadFile(cfg.RSAPath)
+	privateSet, err := jwk.ReadFile(RSAKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read rsa key path: %w", err)
 	}
