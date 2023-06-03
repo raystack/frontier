@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/odpf/shield/internal/bootstrap"
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/pkg/mailer"
 
 	"github.com/odpf/salt/log"
@@ -115,7 +116,7 @@ func (r RegistrationService) SupportedStrategies() []string {
 }
 
 func (r RegistrationService) Start(ctx context.Context, request RegistrationStartRequest) (*RegistrationStartResponse, error) {
-	if !bootstrap.Contains(r.SupportedStrategies(), request.Method) {
+	if !utils.Contains(r.SupportedStrategies(), request.Method) {
 		return nil, ErrUnsupportedMethod
 	}
 	flow := &Flow{

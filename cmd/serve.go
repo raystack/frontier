@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/odpf/shield/pkg/server/consts"
+
 	"github.com/odpf/shield/core/invitation"
 
 	"github.com/odpf/shield/pkg/mailer"
@@ -19,14 +21,12 @@ import (
 
 	"github.com/odpf/shield/core/deleter"
 
-	"github.com/odpf/shield/core/authenticate/session"
-	"github.com/odpf/shield/core/metaschema"
-	"github.com/odpf/shield/internal/server/consts"
-
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/odpf/shield/core/authenticate"
+	"github.com/odpf/shield/core/authenticate/session"
+	"github.com/odpf/shield/core/metaschema"
 
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/core/group"

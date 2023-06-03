@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/odpf/shield/pkg/utils"
+
 	aznamespace "github.com/authzed/spicedb/pkg/namespace"
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
@@ -76,7 +78,7 @@ func BuildServiceDefinitionFromAZSchema(azDefinitions []*azcore.NamespaceDefinit
 						permission = permissionParts[0]
 					}
 
-					if len(serviceFilter) > 0 && !Contains(serviceFilter, service) {
+					if len(serviceFilter) > 0 && !utils.Contains(serviceFilter, service) {
 						// ignore service if filter was requested, and it doesn't match
 						continue
 					}

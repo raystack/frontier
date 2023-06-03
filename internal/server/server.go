@@ -7,17 +7,15 @@ import (
 	"net/http"
 	"time"
 
-	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
-
-	"github.com/odpf/shield/internal/server/interceptors"
-	"github.com/odpf/shield/ui"
+	"github.com/odpf/shield/pkg/server"
+	"github.com/odpf/shield/pkg/server/interceptors"
 
 	"github.com/gorilla/securecookie"
-
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
@@ -29,6 +27,7 @@ import (
 	"github.com/odpf/shield/internal/server/health"
 	"github.com/odpf/shield/pkg/telemetry"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/odpf/shield/ui"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -101,7 +100,7 @@ func Serve(
 	}
 
 	// json web key set handler
-	if jwksHandler, err := NewTokenJWKSHandler(cfg.Authentication.Token); err != nil {
+	if jwksHandler, err := server.NewTokenJWKSHandler(cfg.Authentication.Token.RSAPath); err != nil {
 		return err
 	} else {
 		httpMux.Handle("/jwks.json", jwksHandler)
