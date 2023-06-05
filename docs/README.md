@@ -31,3 +31,17 @@ $ GIT_USER=<Your GitHub username> USE_SSH=true yarn deploy
 ```
 
 If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+
+### API References
+
+To remove all the auto-generated API reference markdowns:
+
+```
+yarn docusaurus clean-api-docs all
+```
+
+To generate all the API references:
+
+```
+yarn docusaurus gen-api-docs all
+```

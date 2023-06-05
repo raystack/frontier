@@ -28,8 +28,11 @@ module.exports = {
       type: "category",
       label: "Tour",
       collapsed: true,
+      link: {
+        type: "doc",
+        id: "tour/intro",
+      },
       items: [
-        "tour/intro",
         "tour/setup-idp-oidc",
         "tour/creating-user",
         "tour/creating-organization",
@@ -43,9 +46,13 @@ module.exports = {
     {
       type: "category",
       label: "Guides",
+      link: {
+        type: "generated-index",
+        title: "Overview",
+        slug: "guides/overview",
+      },
       collapsed: true,
       items: [
-        "guides/overview",
         "guides/managing-organization",
         "guides/managing-project",
         "guides/managing-group",
@@ -58,10 +65,13 @@ module.exports = {
     {
       type: "category",
       label: "Reference",
+      link: {
+        type: "generated-index",
+        title: "Overview",
+        slug: "reference/overview",
+      },
       items: [
         "reference/configurations",
-        "reference/admin-api",
-        "reference/api",
         "reference/cli",
         "reference/api-definitions",
         "reference/shell-autocomplete",
@@ -69,10 +79,23 @@ module.exports = {
     },
     {
       type: "category",
+      label: "APIs",
+      link: {
+        type: "doc",
+        id: "apis/shield-administration-api",
+      },
+      items: require("./docs/apis/sidebar.js"),
+    },
+    {
+      type: "category",
       label: "Contribute",
+      link: {
+        type: "doc",
+        id: "contribution/contribute",
+      },
       items: [
         "contribution/contribute",
-      ],
+      ]
     }
   ],
 };

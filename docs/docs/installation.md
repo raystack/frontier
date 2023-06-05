@@ -130,4 +130,4 @@ $ ./shield --help
 ### What's next
 
 - See the [Configurations](./configurations.md) page on how to setup Shield server and client
-- See the [CLI Reference](./reference/api.md) for a complete list of commands and options.
+- See the [CLI Reference](./reference/cli.md) for a complete list of commands and options.

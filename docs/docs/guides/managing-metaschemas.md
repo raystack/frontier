@@ -77,4 +77,4 @@ A sample user MetaSchema is given below, and the second tab shows an example use
 
 ## Disabling MetaSchemas
 
-In a Shield instance if one wants to diable the MetaSchema validation in either of users, group, organization or roles metadata. It is recommended to updated the MetaSchema's **`additionalProperties`** field value to **`true`**. Shield provides APIs to manipulate these schemas at the endpoint **`/v1beta1/meta/schemas`**. See the [API Reference](../reference/api.md#default-8) for more details.
+In a Shield instance if one wants to diable the MetaSchema validation in either of users, group, organization or roles metadata. It is recommended to updated the MetaSchema's **`additionalProperties`** field value to **`true`**. Shield provides APIs to manipulate these schemas at the endpoint **`/v1beta1/meta/schemas`**. See the [API Reference](../apis/shield-service-create-meta-schema.api.mdx) for more details.
