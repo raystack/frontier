@@ -30,41 +30,59 @@ export const ShieldContextProvider = (props: ShieldProviderProps) => {
 
   useEffect(() => {
     async function getShieldInformation() {
-      const {
-        data: { strategies },
-      } = await shieldClient.getAuthAtrategies();
-
-      const strategiesPromises = strategies.map(async (s) => {
+      try {
         const {
-          data: { endpoint },
-        } = await shieldClient.getAuthAtrategyEndpoint(s.name);
-        return {
-          ...s,
-          endpoint,
-        };
-      });
-      const response = await Promise.all(strategiesPromises);
-      setStrategies(response);
+          data: { strategies },
+        } = await shieldClient.getAuthAtrategies();
+
+        const strategiesPromises = strategies.map(async (s) => {
+          const {
+            data: { endpoint },
+          } = await shieldClient.getAuthStrategyEndpoint(s.name);
+          return {
+            ...s,
+            endpoint,
+          };
+        });
+        const response = await Promise.all(strategiesPromises);
+        setStrategies(response);
+      } catch (error) {
+        console.error(
+          "shield:sdk:: There is problem with fetching auth strategies"
+        );
+      }
     }
     getShieldInformation();
   }, []);
 
   useEffect(() => {
     async function getShieldCurrentUser() {
-      const {
-        data: { user },
-      } = await shieldClient.getCurrentUser();
-      setUser(user);
+      try {
+        const {
+          data: { user },
+        } = await shieldClient.getCurrentUser();
+        setUser(user);
+      } catch (error) {
+        console.error(
+          "shield:sdk:: There is problem with fetching current user information"
+        );
+      }
     }
     getShieldCurrentUser();
   }, []);
 
   useEffect(() => {
     async function getShieldCurrentUserGroups(userId: string) {
-      const {
-        data: { groups },
-      } = await shieldClient.getUserGroups(userId);
-      setGroups(groups);
+      try {
+        const {
+          data: { groups },
+        } = await shieldClient.getUserGroups(userId);
+        setGroups(groups);
+      } catch (error) {
+        console.error(
+          "shield:sdk:: There is problem with fetching user groups information"
+        );
+      }
     }
 
     if (user) {
@@ -74,10 +92,16 @@ export const ShieldContextProvider = (props: ShieldProviderProps) => {
 
   useEffect(() => {
     async function getShieldCurrentUserOrganizations(userId: string) {
-      const {
-        data: { organizations },
-      } = await shieldClient.getUserOrganisations(userId);
-      setOrganizations(organizations);
+      try {
+        const {
+          data: { organizations },
+        } = await shieldClient.getUserOrganisations(userId);
+        setOrganizations(organizations);
+      } catch (error) {
+        console.error(
+          "shield:sdk:: There is problem with fetching user current organizations"
+        );
+      }
     }
 
     if (user) {

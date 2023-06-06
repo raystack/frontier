@@ -30,7 +30,7 @@ export default class Shield {
     return await this.instance.get("/v1beta1/auth");
   };
 
-  public getAuthAtrategyEndpoint = async (
+  public getAuthStrategyEndpoint = async (
     strategy: string
   ): Promise<AxiosResponse<{ endpoint: string }>> => {
     return await this.instance.get(`/v1beta1/auth/register/${strategy}`);
