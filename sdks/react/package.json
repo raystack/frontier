@@ -1,6 +1,6 @@
 {
   "name": "@odpf/shield-react",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "A react library for shield",
   "type": "module",
   "main": "dist/index.cjs",

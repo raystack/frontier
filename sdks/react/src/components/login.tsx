@@ -7,8 +7,8 @@ export const SignedIn = ({}: SignedInProps) => {
 
   return (
     <Container>
-      {strategies.map((s) => (
-        <Button onClick={() => (window.location.href = s.endpoint)}>
+      {strategies.map((s, index) => (
+        <Button key={index} onClick={() => (window.location.href = s.endpoint)}>
           Login with {s.name}
         </Button>
       ))}
