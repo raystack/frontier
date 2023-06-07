@@ -38,7 +38,7 @@ Read More about an Organization in the [Concepts](../concepts/org.md) section.
 </TabItem>
 </Tabs>
 
-**Note:** Organization metadata values are validated using MetaSchemas in Shield [Read More](./managing-metaschemas.md)
+**Note:** Organization metadata values are validated using MetaSchemas in Shield [Read More](../reference/metaschemas.md)
 
 ### Create an Organization
 

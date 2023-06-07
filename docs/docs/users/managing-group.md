@@ -46,7 +46,7 @@ A group in Shield looks like
 </TabItem>
 </Tabs>
 
-**Note:** group metadata values are validated using MetaSchemas in Shield [Read More](./managing-metaschemas.md)
+**Note:** group metadata values are validated using MetaSchemas in Shield [Read More](../reference/metaschemas.md)
 
 ### Create an organization group
 

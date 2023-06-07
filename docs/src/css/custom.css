@@ -188,6 +188,7 @@ html[data-theme="dark"] .header-slack-link:before {
 .api-method > .menu__link {
   align-items: center;
   justify-content: start;
+  padding-left: 8%;
 }
 
 .api-method > .menu__link::before {
@@ -276,3 +277,43 @@ html[data-theme="dark"] .header-slack-link:before {
   overflow: auto;
 }
 
+
+.padding-top--md {
+  padding-top: 3rem !important;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+.menu__list-item-collapsible {
+  font: 14px;
+}
+
+.menu__list-item-collapsible::after {
+  opacity: 0.3;
+}
+
+.menu__link {
+  font-size: 14px;
+}
+
+.menu__link--sublist:after {
+  opacity: 0.3;
+}
+
+.padding-top--md {
+  padding-top: 3rem !important;
+}
+
+.theme-doc-sidebar-item-link-level-2 {
+  padding-left: 0.5rem;
+}
+
+.theme-doc-sidebar-item-link-level-3 {
+  padding-left: 1rem;
+}
+
+.theme-doc-sidebar-item-category-level-2 .menu__list-item-collapsible {
+  padding-left: 0.5rem;
+}

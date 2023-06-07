@@ -47,7 +47,7 @@ A project in Shield looks like
 </TabItem>
 </Tabs>
 
-**Note:** user metadata values are validated using MetaSchemas in Shield [Read More](./managing-metaschemas.md)
+**Note:** user metadata values are validated using MetaSchemas in Shield [Read More](../reference/metaschemas.md)
 
 ## API Interface
 

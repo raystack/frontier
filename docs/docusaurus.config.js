@@ -67,6 +67,12 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         defaultMode: 'light',
         respectPrefersColorScheme: true,
       },
+      docs: {
+        sidebar: {
+          autoCollapseCategories: true,
+          hideable: true,
+        },
+      },
       navbar: {
         title: 'Shield',
         logo: { src: 'img/shield.svg', },

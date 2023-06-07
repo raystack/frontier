@@ -1,7 +1,7 @@
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-# Managing MetaSchemas
+# MetaSchemas
 
 MetaSchemas in Shield are default JSON-schemas designed to validate metadata that is included in the body of a resource. These schemas provide a standard way of describing the expected structure and content of metadata, which can be used to ensure consistency and accuracy of metadata across different resources.
 

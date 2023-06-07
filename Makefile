@@ -72,5 +72,9 @@ doc: clean-doc ## Generate api and cli documentation
 	@echo ">genetaye api docs"
 	@cd $(CURDIR)/docs/docs; yarn docusaurus clean-api-docs all;  yarn docusaurus gen-api-docs all
 
+doc-build: ## Run documentation locally
+	@echo "> building docs"
+	@cd $(CURDIR)/docs/docs; yarn start
+
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

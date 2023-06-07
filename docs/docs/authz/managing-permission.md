@@ -2,7 +2,7 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CodeBlock from '@theme/CodeBlock';
 
-# Checking Pemrissions
+# Managing Permission
 
 There are two ways to check a user permission on a resource in shield,
 ## API Interface
