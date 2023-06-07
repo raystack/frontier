@@ -42,7 +42,7 @@ Shield can be used as an authorization service using the `check` API. Currently,
 
 ![Overall System Architecture Authorization](./shield-authorization-architecture.png)
 
-The API gives a boolean response. You can refer this [guide](docs/guides/check-permission.md) for usage information.
+The API gives a boolean response. You can refer this [guide](../authz/managing-permission.md) for usage information.
 
 ## Overall System Architecture - Shield as a Proxy
 

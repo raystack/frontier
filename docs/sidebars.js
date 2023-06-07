@@ -5,21 +5,25 @@ module.exports = {
       type: "category",
       label: "Getting Started",
       collapsed: true,
+      link: {
+        type: "doc",
+        id: "installation",
+      },
       items: [
         'installation',
         'configurations',
+        'admin-portal',
       ],
     },
     {
       type: "category",
       label: "Concepts",
+      link: {
+        type: "doc",
+        id: "concepts/architecture",
+      },
       items: [
         "concepts/architecture",
-        "concepts/org",
-        "concepts/user",
-        "concepts/project",
-        "concepts/policy",
-        "concepts/role",
         "concepts/glossary",
       ],
     },
@@ -27,8 +31,11 @@ module.exports = {
       type: "category",
       label: "Tour",
       collapsed: true,
+      link: {
+        type: "doc",
+        id: "tour/setup-idp-oidc",
+      },
       items: [
-        "tour/intro",
         "tour/setup-idp-oidc",
         "tour/creating-user",
         "tour/creating-organization",
@@ -39,38 +46,133 @@ module.exports = {
         "tour/shield-as-proxy"
       ],
     },
+    // {
+    //   type: "category",
+    //   label: "Authentication",
+    //   collapsed: true,
+    //   link: {
+    //     type: "generated-index",
+    //     title: "Overview",
+    //     slug: "authentication/overview",
+    //   },
+    //   items: [
+    //     "authn/intro",
+    //   ],
+    // },
     {
       type: "category",
-      label: "Guides",
+      label: "Authorization",
       collapsed: true,
+      link: {
+        type: "doc",
+        id: "authz/permission",
+      },
       items: [
-        "guides/overview",
-        "guides/managing-organization",
-        "guides/managing-project",
-        "guides/managing-group",
-        "guides/check-permission",
-        "guides/managing-resource",
-        "guides/managing-relation",
-        "guides/managing-user",
-        "guides/managing-metaschemas",
+        "authz/permission",
+        "authz/role",
+        "authz/policy",
+        {
+          type: "category",
+          label: "Managing Authorization",
+          collapsed: false,
+          link: {
+            type: "doc",
+            id: "authz/managing-permission",
+          },
+          items: [
+            "authz/managing-permission",
+            "authz/managing-role",
+          ],
+        }
       ],
     },
     {
       type: "category",
+      label: "Tenants",
+      collapsed: true,
+      link: {
+        type: "doc",
+        id: "tenants/org",
+      },
+      items: [
+        "tenants/org",
+        "tenants/project",
+        {
+          type: "category",
+          label: "Managing Tenants",
+          collapsed: false,
+          link: {
+            type: "doc",
+            id: "tenants/managing-organization",
+          },
+          items: [
+            "tenants/managing-organization",
+            "tenants/managing-project",
+            "tenants/managing-resource",
+          ],
+        }
+      ],
+    },
+    {
+      type: "category",
+      label: "Principals",
+      collapsed: true,
+      link: {
+        type: "doc",
+        id: "users/principal",
+      },
+      items: [
+        "users/principal",
+        {
+          type: "category",
+          label: "Managing Principals",
+          collapsed: false,
+          link: {
+            type: "doc",
+            id: "users/managing-user",
+          },
+          items: [
+            "users/managing-user",
+            "users/managing-group",
+          ],
+        }
+      ],
+    },
+    {
+      type: "category",
+      label: "APIs",
+      link: {
+        type: "doc",
+        id: "apis/shield-administration-api",
+      },
+      items: require("./docs/apis/sidebar.js"),
+    },
+    {
+      type: "category",
       label: "Reference",
+      link: {
+        type: "generated-index",
+        title: "Overview",
+        slug: "reference/overview",
+      },
       items: [
         "reference/configurations",
-        "reference/admin-api",
-        "reference/api",
-        "reference/cli"
+        "reference/cli",
+        "reference/metaschemas",
+        "reference/api-definitions",
+        "reference/shell-autocomplete",
       ],
     },
     {
       type: "category",
       label: "Contribute",
+      link: {
+        type: "doc",
+        id: "contribution/contribute",
+      },
       items: [
         "contribution/contribute",
-      ],
+      ]
     }
   ],
 };

@@ -1,8 +1,10 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
-
+NAME=github.com/odpf/shield
+TAG := "$(shell git rev-list --tags --max-count=1)"
+VERSION := "$(shell git describe --tags ${TAG})"
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "75601b9e0c409299789b6a373f22d9362dfaea69"
+PROTON_COMMIT := "13a222e07cbefed5b480b31f06420e752002877d"
 
 ui:
 	@echo " > generating ui build"
@@ -14,7 +16,7 @@ install:
 	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
 build:
-	CGO_ENABLED=0 go build -o shield .
+	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/cmd.Version=${VERSION}" -o shield .
 
 generate: ## run all go generate in the code base (including generating mock files)
 	go generate ./...
@@ -60,20 +62,19 @@ proto: ## Generate the protobuf files
 	@cp -R proto/odpf/shield/* proto/ && rm -Rf proto/odpf
 	@echo " > protobuf compilation finished"
 
-update-swagger-md:
-	@npx swagger-markdown -i proto/v1beta1/admin.swagger.json -o docs/docs/reference/admin-api.md
-	@npx swagger-markdown -i proto/v1beta1/shield.swagger.json -o docs/docs/reference/api.md
-
 clean-doc:
 	@echo "> cleaning up auto-generated docs"
 	@rm -rf ./docs/docs/reference/cli.md
-	@rm -f ./docs/docs/reference/admin-api.md
-	@rm -f ./docs/docs/reference/api.md
 
-doc: clean-doc update-swagger-md ## Generate api and cli documentation
+doc: clean-doc ## Generate api and cli documentation
 	@echo "> generate cli docs"
 	@go run . reference --plain | sed '1 s,.*,# CLI,' > ./docs/docs/reference/cli.md
+	@echo ">genetaye api docs"
+	@cd $(CURDIR)/docs/docs; yarn docusaurus clean-api-docs all;  yarn docusaurus gen-api-docs all
+
+doc-build: ## Run documentation locally
+	@echo "> building docs"
+	@cd $(CURDIR)/docs/docs; yarn start
 
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-

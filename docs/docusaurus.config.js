@@ -27,6 +27,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
           editUrl: 'https://github.com/odpf/shield/edit/master/docs/',
           sidebarCollapsed: true,
           breadcrumbs: false,
+          docLayoutComponent: "@theme/DocPage",
+          docItemComponent: "@theme/ApiItem" 
         },
         blog: false,
         theme: {
@@ -39,12 +41,37 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
       })
     ],
   ],
-
+  plugins: [
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: "apiDocs",
+        docsPluginId: "classic",
+        config: {
+          auth: {
+            specPath: "../proto/apidocs.swagger.json",
+            outputDir: "docs/apis",
+            sidebarOptions: {
+              groupPathsBy: "tag",
+            },
+            hideSendButton: false,
+          }
+        }
+      },
+    ],
+  ],
+  themes: ["docusaurus-theme-openapi-docs"],
   themeConfig:
     ({
       colorMode: {
         defaultMode: 'light',
         respectPrefersColorScheme: true,
+      },
+      docs: {
+        sidebar: {
+          autoCollapseCategories: true,
+          hideable: true,
+        },
       },
       navbar: {
         title: 'Shield',

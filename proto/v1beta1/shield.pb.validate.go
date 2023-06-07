@@ -13215,11 +13215,29 @@ func (m *PolicyRequestBody) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for RoleId
+	if utf8.RuneCountInString(m.GetRoleId()) < 3 {
+		err := PolicyRequestBodyValidationError{
+			field:  "RoleId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Title
 
-	// no validation rules for Resource
+	if utf8.RuneCountInString(m.GetResource()) < 3 {
+		err := PolicyRequestBodyValidationError{
+			field:  "Resource",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Principal
 
