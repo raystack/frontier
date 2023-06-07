@@ -3,7 +3,10 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
+
+	"github.com/odpf/shield/core/authenticate/token"
 
 	"github.com/odpf/shield/pkg/server/consts"
 
@@ -11,7 +14,6 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/odpf/shield/core/authenticate"
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
-	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -25,7 +27,7 @@ import (
 type RegistrationService interface {
 	Start(ctx context.Context, request authenticate.RegistrationStartRequest) (*authenticate.RegistrationStartResponse, error)
 	Finish(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
-	Token(user user.User, orgs []organization.Organization) ([]byte, error)
+	Token(ctx context.Context, user user.User, metadata map[string]string) ([]byte, error)
 	SupportedStrategies() []string
 	InitFlows(ctx context.Context) error
 	Close()
@@ -163,9 +165,11 @@ func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
 	return uuid.Nil, err
 }
 
-func (h Handler) getLoggedInUser(ctx context.Context) (user.User, error) {
+func (h Handler) GetLoggedInUser(ctx context.Context) (user.User, error) {
+	logger := grpczap.Extract(ctx)
 	u, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
+		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
 			return u, grpcUserNotFoundError
@@ -186,9 +190,16 @@ func (h Handler) setUserContextTokenInHeaders(ctx context.Context, user user.Use
 		return err
 	}
 
+	var orgNames []string
+	for _, o := range orgs {
+		orgNames = append(orgNames, o.Name)
+	}
+
 	// build jwt for user context
-	token, err := h.registrationService.Token(user, orgs)
-	if errors.Is(err, authenticate.ErrMissingRSADisableToken) {
+	userToken, err := h.registrationService.Token(ctx, user, map[string]string{
+		"orgs": strings.Join(orgNames, ","),
+	})
+	if errors.Is(err, token.ErrMissingRSADisableToken) {
 		// should not fail if user has not configured jwks
 		return nil
 	}
@@ -197,7 +208,7 @@ func (h Handler) setUserContextTokenInHeaders(ctx context.Context, user user.Use
 	}
 
 	// pass as response headers
-	if err = grpc.SetHeader(ctx, metadata.Pairs(consts.UserTokenGatewayKey, string(token))); err != nil {
+	if err = grpc.SetHeader(ctx, metadata.Pairs(consts.UserTokenGatewayKey, string(userToken))); err != nil {
 		return fmt.Errorf("failed to set header: %w", err)
 	}
 	return nil

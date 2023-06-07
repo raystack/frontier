@@ -2536,8 +2536,6 @@ func (m *RoleRequestBody) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
-
 	if utf8.RuneCountInString(m.GetName()) < 2 {
 		err := RoleRequestBodyValidationError{
 			field:  "Name",

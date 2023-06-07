@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/odpf/shield/core/user"
@@ -32,6 +34,9 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	if strings.TrimSpace(res.URN) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
+	if strings.TrimSpace(res.ID) == "" {
+		res.ID = uuid.New().String()
+	}
 
 	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
 	marshaledMetadata, err := json.Marshal(res.Metadata)
@@ -39,8 +44,12 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
 	}
 
+	// TODO(kushsharma): bad actors can bloat a neighbouring urn namespace by following the same
+	// generation strategy, we need to restrict a this arbitrary urn generation to a proper pattern
+	// e.g. srn:resource:<namespace>:<project-id>:<resource-id>
 	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
 		goqu.Record{
+			"id":             res.ID,
 			"urn":            res.URN,
 			"name":           res.Name,
 			"project_id":     res.ProjectID,

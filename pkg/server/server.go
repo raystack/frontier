@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/odpf/shield/pkg/server/consts"
@@ -83,12 +84,14 @@ func Serve(
 		runtime.WithIncomingHeaderMatcher(
 			interceptors.GatewayHeaderMatcherFunc(
 				map[string]bool{
-					cfg.IdentityProxyHeader: true,
+					strings.ToLower(cfg.IdentityProxyHeader): true,
+					consts.UserTokenRequestKey:               true,
+					"cookie":                                 true,
+					"authorization":                          true,
 				},
 			),
 		),
 		runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
-		runtime.WithMetadata(sessionMiddleware.GatewayRequestMetadataAnnotator),
 	)
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 
@@ -186,7 +189,8 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_validator.UnaryServerInterceptor(),
-			sessionMiddleware.UnaryGRPCRequestCookieAnnotator(),
+			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
+			interceptors.UnaryAuthenticationCheck(identityProxyHeader),
 			interceptors.UnaryAuthorizationCheck(identityProxyHeader),
 		),
 	)

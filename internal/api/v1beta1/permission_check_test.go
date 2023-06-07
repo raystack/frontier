@@ -5,9 +5,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/odpf/shield/core/relation"
+
 	"github.com/odpf/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/resource"
 	"github.com/odpf/shield/internal/api/v1beta1/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -26,9 +27,9 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return internal error if relation service's CheckAuthz function returns some error",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.Namespace,
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
+					ID:        testRelationV2.Object.ID,
+					Namespace: testRelationV2.Object.Namespace,
 				}, schema.UpdatePermission).Return(false, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
@@ -42,9 +43,9 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return true when CheckAuthz function returns true bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.Namespace,
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
+					ID:        testRelationV2.Object.ID,
+					Namespace: testRelationV2.Object.Namespace,
 				}, schema.UpdatePermission).Return(true, nil)
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{
@@ -60,9 +61,9 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return false when CheckAuthz function returns false bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.Namespace,
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
+					ID:        testRelationV2.Object.ID,
+					Namespace: testRelationV2.Object.Namespace,
 				}, schema.UpdatePermission).Return(false, nil)
 			},
 			request: &shieldv1beta1.CheckResourcePermissionRequest{

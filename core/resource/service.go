@@ -5,6 +5,10 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/odpf/shield/core/organization"
+	"github.com/odpf/shield/core/project"
+	"github.com/odpf/shield/pkg/utils"
+
 	"github.com/odpf/shield/core/relation"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/internal/bootstrap/schema"
@@ -20,19 +24,33 @@ type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
+type ProjectService interface {
+	Get(ctx context.Context, idOrName string) (project.Project, error)
+}
+
+type OrgService interface {
+	Get(ctx context.Context, idOrName string) (organization.Organization, error)
+}
+
 type Service struct {
 	repository       Repository
 	configRepository ConfigRepository
 	relationService  RelationService
 	userService      UserService
+	projectService   ProjectService
+	orgService       OrgService
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, configRepository ConfigRepository,
+	relationService RelationService, userService UserService,
+	projectService ProjectService, orgService OrgService) *Service {
 	return &Service{
 		repository:       repository,
 		configRepository: configRepository,
 		relationService:  relationService,
 		userService:      userService,
+		projectService:   projectService,
+		orgService:       orgService,
 	}
 }
 
@@ -130,20 +148,38 @@ func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
 	return s.configRepository.GetAll(ctx)
 }
 
-func (s Service) CheckAuthz(ctx context.Context, res Resource, permissionName string) (bool, error) {
+func (s Service) CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return false, err
+	}
+
+	// a user can pass object name instead of id in the request
+	// we should convert name to id based on object namespace
+	if !utils.IsValidUUID(rel.ID) {
+		if rel.Namespace == schema.ProjectNamespace {
+			// if object is project, then fetch project by name
+			project, err := s.projectService.Get(ctx, rel.ID)
+			if err != nil {
+				return false, err
+			}
+			rel.ID = project.ID
+		}
+		if rel.Namespace == schema.OrganizationNamespace {
+			// if object is org, then fetch org by name
+			org, err := s.orgService.Get(ctx, rel.ID)
+			if err != nil {
+				return false, err
+			}
+			rel.ID = org.ID
+		}
 	}
 
 	return s.relationService.CheckPermission(ctx, relation.Subject{
 		ID: currentUser.ID,
 		// TODO(kushsharma): refactor this to also support app/serviceuser
 		Namespace: schema.UserPrincipal,
-	}, relation.Object{
-		ID:        res.ID,
-		Namespace: res.NamespaceID,
-	}, permissionName)
+	}, rel, permissionName)
 }
 
 func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
