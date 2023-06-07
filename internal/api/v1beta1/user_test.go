@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/odpf/shield/core/authenticate/token"
+
 	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/odpf/shield/pkg/errors"
 
-	"github.com/odpf/shield/core/authenticate"
 	"github.com/odpf/shield/core/organization"
 
 	"github.com/odpf/shield/core/group"
@@ -466,14 +467,15 @@ func TestGetCurrentUser(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
+			ctx := context.Background()
 			mockUserSrv := new(mocks.UserService)
 
 			mockOrgService := new(mocks.OrganizationService)
 			mockOrgService.EXPECT().ListByUser(mock.Anything, "user-id-1").Return([]organization.Organization{}, nil)
 			registrationService := new(mocks.RegistrationService)
-			registrationService.EXPECT().Token(mock.AnythingOfType("user.User"), []organization.Organization{}).Return(nil, authenticate.ErrMissingRSADisableToken)
+			registrationService.EXPECT().Token(mock.Anything,
+				mock.AnythingOfType("user.User"), map[string]string{"orgs": ""}).Return(nil, token.ErrMissingRSADisableToken)
 
-			ctx := context.Background()
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockUserSrv, nil)
 			}

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/odpf/shield/core/authenticate/token"
+
 	"github.com/odpf/shield/pkg/utils"
 
 	shieldsession "github.com/odpf/shield/core/authenticate/session"
@@ -27,18 +29,25 @@ type RelationRepository interface {
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 }
 
+type TokenService interface {
+	ParseFromContext(ctx context.Context) (string, map[string]any, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationRepository
 	sessionService  SessionService
+	tokenService    TokenService
 	Now             func() time.Time
 }
 
-func NewService(repository Repository, sessionService SessionService, relationRepo RelationRepository) *Service {
+func NewService(repository Repository, sessionService SessionService,
+	relationRepo RelationRepository, tokenService TokenService) *Service {
 	return &Service{
 		repository:      repository,
 		sessionService:  sessionService,
 		relationService: relationRepo,
+		tokenService:    tokenService,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -113,6 +122,11 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 
 func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 	var currentUser User
+	// check if already enriched by auth middleware
+	if val, ok := GetUserFromContext(ctx); ok {
+		currentUser = *val
+		return currentUser, nil
+	}
 
 	// extract user from session if present
 	session, err := s.sessionService.ExtractFromContext(ctx)
@@ -128,7 +142,22 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 		return User{}, err
 	}
 
+	// extract user from token if present
+	userID, _, err := s.tokenService.ParseFromContext(ctx)
+	if err == nil && utils.IsValidUUID(userID) {
+		// userID is a valid uuid
+		currentUser, err = s.GetByID(ctx, userID)
+		if err != nil {
+			return User{}, err
+		}
+		return currentUser, nil
+	}
+	if err != nil && !errors.Is(err, token.ErrNoToken) {
+		return User{}, err
+	}
+
 	// check if header with user email is set
+	// TODO(kushsharma): this should ideally be deprecated
 	if val, ok := GetEmailFromContext(ctx); ok && len(val) > 0 {
 		currentUser, err = s.GetByEmail(ctx, strings.TrimSpace(val))
 		if err != nil {

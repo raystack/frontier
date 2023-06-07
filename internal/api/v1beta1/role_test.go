@@ -109,7 +109,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -118,7 +117,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
-					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgId:       testRoleMap[testRoleID].OrgID,
@@ -137,7 +135,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -146,7 +143,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
-					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgId:       testRoleMap[testRoleID].OrgID,
@@ -165,7 +161,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:          testRoleMap[testRoleID].ID,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
@@ -173,7 +168,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
-					Id:          testRoleMap[testRoleID].ID,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
@@ -216,7 +210,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
 				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
-					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -225,7 +218,6 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
-					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgId:       testRoleMap[testRoleID].OrgID,

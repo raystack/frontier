@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
+
 	"google.golang.org/grpc"
 
 	"github.com/odpf/shield/pkg/server/consts"
@@ -25,7 +27,7 @@ type Session struct {
 
 func NewSession(cookieCutter securecookie.Codec) *Session {
 	return &Session{
-		// could be nil
+		// could be nil if not configured by user
 		cookieCodec: cookieCutter,
 	}
 }
@@ -105,59 +107,50 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 	return nil
 }
 
-// GatewayRequestMetadataAnnotator look up session header and pass it as context if it exists
-// called just before RPC server side execution
-func (h Session) GatewayRequestMetadataAnnotator(_ context.Context, r *http.Request) metadata.MD {
-	mdMap := map[string]string{}
-	if h.cookieCodec == nil {
-		// pass-through
-		return metadata.New(mdMap)
-	}
-
-	// extract cookie and pass it as context
-	requestCookie, err := r.Cookie(consts.SessionRequestKey)
-	if err == nil && requestCookie.Valid() == nil {
-		var sessionID string
-		if err = h.cookieCodec.Decode(requestCookie.Name, requestCookie.Value, &sessionID); err == nil {
-			mdMap[consts.SessionIDGatewayKey] = sessionID
-		}
-	}
-
-	// TODO(kushsharma): pass `Refer` header as context value and use it as `redirect_to` field
-	// if not provided during registration flow
-
-	return metadata.New(mdMap)
-}
-
-// UnaryGRPCRequestCookieAnnotator converts session cookies set in grpc metadata to context
+// UnaryGRPCRequestHeadersAnnotator converts session cookies set in grpc metadata to context
 // this requires decrypting the cookie and setting it as context
-func (h Session) UnaryGRPCRequestCookieAnnotator() grpc.UnaryServerInterceptor {
+func (h Session) UnaryGRPCRequestHeadersAnnotator() grpc.UnaryServerInterceptor {
 	if h.cookieCodec == nil {
 		// pass-through
 		return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 			return handler(ctx, req)
 		}
 	}
-
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		// extract and decode session from cookie
+		// parse and process cookies
 		if incomingMD, ok := metadata.FromIncomingContext(ctx); ok {
 			if mdCookies := incomingMD.Get("cookie"); len(mdCookies) > 0 {
-				requestCookies := strings.Split(mdCookies[0], "; ")
-
-				for _, requestCookie := range requestCookies {
-					if strings.HasPrefix(requestCookie, consts.SessionRequestKey+"=") {
-						cookieValue := strings.TrimPrefix(requestCookie, consts.SessionRequestKey+"=")
+				header := http.Header{}
+				header.Add("Cookie", mdCookies[0])
+				request := http.Request{Header: header}
+				for _, requestCookie := range request.Cookies() {
+					// check if cookie is session cookie
+					if requestCookie.Name == consts.SessionRequestKey {
 						var sessionID string
-
-						if err = h.cookieCodec.Decode(consts.SessionRequestKey, cookieValue, &sessionID); err == nil {
+						// extract and decode session from cookie
+						if err = h.cookieCodec.Decode(requestCookie.Name, requestCookie.Value, &sessionID); err == nil {
 							// pass cookie in context
-							incomingMD.Set(consts.SessionIDGatewayKey, sessionID)
-							ctx = metadata.NewIncomingContext(ctx, incomingMD)
+							incomingMD.Set(consts.SessionIDGatewayKey, strings.TrimSpace(sessionID))
 						}
 					}
 				}
 			}
+
+			// pass user token if in token header as gateway context
+			if userToken := incomingMD.Get(consts.UserTokenRequestKey); len(userToken) > 0 {
+				incomingMD.Set(consts.UserTokenGatewayKey, strings.TrimSpace(userToken[0]))
+			}
+			// check if the same token is part of Authorization header
+			if authHeader := incomingMD.Get("authorization"); len(authHeader) > 0 {
+				tokenVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Bearer "))
+				if token, err := jwt.ParseInsecure([]byte(tokenVal)); err == nil {
+					if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
+						incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
+					}
+				}
+			}
+
+			ctx = metadata.NewIncomingContext(ctx, incomingMD)
 		}
 		return handler(ctx, req)
 	}

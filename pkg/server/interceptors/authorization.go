@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/odpf/shield/internal/api/v1beta1"
@@ -29,11 +30,13 @@ func UnaryAuthorizationCheck(identityHeader string) grpc.UnaryServerInterceptor 
 		// option (shield.v1beta1.auth_option) = {
 		//      permission: "app_project_update";
 		// };
-		if serverHandler, ok := info.Server.(*v1beta1.Handler); ok {
-			if azFunc, azVerifier := authorizationValidationMap[info.FullMethod]; azVerifier {
-				if err = azFunc(ctx, serverHandler, req); err != nil {
-					return nil, err
-				}
+		serverHandler, ok := info.Server.(*v1beta1.Handler)
+		if !ok {
+			return nil, errors.New("miss-configured server handler")
+		}
+		if azFunc, azVerifier := authorizationValidationMap[info.FullMethod]; azVerifier {
+			if err = azFunc(ctx, serverHandler, req); err != nil {
+				return nil, err
 			}
 		}
 		return handler(ctx, req)

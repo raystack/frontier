@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/odpf/shield/core/relation"
+
 	"google.golang.org/protobuf/types/known/structpb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -22,7 +24,7 @@ type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Update(ctx context.Context, resource resource.Resource) (resource.Resource, error)
-	CheckAuthz(ctx context.Context, resource resource.Resource, permissionName string) (bool, error)
+	CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -103,6 +105,7 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *shieldv1bet
 		projectID = request.GetBody().GetProjectId()
 	}
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
+		ID:          request.GetId(),
 		Name:        request.GetBody().GetName(),
 		ProjectID:   projectID,
 		NamespaceID: request.GetBody().GetNamespace(),

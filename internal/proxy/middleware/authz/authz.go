@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/odpf/shield/core/relation"
+
 	"github.com/mitchellh/mapstructure"
 	"github.com/odpf/salt/log"
 
@@ -17,7 +19,7 @@ import (
 )
 
 type ResourceService interface {
-	CheckAuthz(ctx context.Context, resource resource.Resource, permissionName string) (bool, error)
+	CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error)
 }
 
 type UserService interface {
@@ -206,9 +208,9 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	isAuthorized := false
 	for _, perm := range config.Permissions {
-		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), resource.Resource{
-			Name:        permissionAttributes[perm.Attribute].(string),
-			NamespaceID: perm.Namespace,
+		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), relation.Object{
+			ID:        permissionAttributes[perm.Attribute].(string),
+			Namespace: perm.Namespace,
 		}, perm.Name)
 		if err != nil {
 			c.log.Error("error while performing authz permission check", "err", err)

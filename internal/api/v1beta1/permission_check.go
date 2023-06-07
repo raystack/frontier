@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/core/resource"
+	"github.com/odpf/shield/core/relation"
+
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/errors"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
@@ -16,9 +17,9 @@ import (
 
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
-	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		ID:          req.GetObjectId(),
-		NamespaceID: req.GetObjectNamespace(),
+	result, err := h.resourceService.CheckAuthz(ctx, relation.Object{
+		ID:        req.GetObjectId(),
+		Namespace: req.GetObjectNamespace(),
 	}, req.GetPermission())
 	if err != nil {
 		switch {
@@ -40,9 +41,9 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 
 func (h Handler) IsAuthorized(ctx context.Context, objectNamespace, objectID, permission string) error {
 	logger := grpczap.Extract(ctx)
-	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
-		ID:          objectID,
-		NamespaceID: objectNamespace,
+	result, err := h.resourceService.CheckAuthz(ctx, relation.Object{
+		ID:        objectID,
+		Namespace: objectNamespace,
 	}, permission)
 	if err != nil {
 		switch {
@@ -63,7 +64,7 @@ func (h Handler) IsAuthorized(ctx context.Context, objectNamespace, objectID, pe
 
 func (h Handler) IsSuperUser(ctx context.Context) error {
 	logger := grpczap.Extract(ctx)
-	currentUser, err := h.getLoggedInUser(ctx)
+	currentUser, err := h.GetLoggedInUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return err

@@ -2,6 +2,17 @@ package consts
 
 import "time"
 
+type contextKey struct {
+	name string
+}
+
+func (c *contextKey) String() string { return "context value " + c.name }
+
+var (
+	// AuthenticatedUserContextKey is context key that contains the user object
+	AuthenticatedUserContextKey = contextKey{name: "auth-user"}
+)
+
 const (
 	// const keys used to pass values from gRPC methods to http mux interface
 	SessionIDGatewayKey     = "gateway-session-id"

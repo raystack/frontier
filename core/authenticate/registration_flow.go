@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/odpf/shield/core/authenticate/token"
+
 	"github.com/odpf/shield/pkg/utils"
 
 	"github.com/odpf/shield/pkg/mailer"
@@ -14,11 +16,7 @@ import (
 	"github.com/odpf/salt/log"
 
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/odpf/shield/core/authenticate/strategy"
-	"github.com/odpf/shield/core/organization"
 	"github.com/odpf/shield/core/user"
 	"github.com/odpf/shield/pkg/str"
 	"github.com/robfig/cron/v3"
@@ -26,19 +24,17 @@ import (
 
 const (
 	// TODO(kushsharma): should we expose this in config?
-	tokenValidity  = time.Hour * 24 * 14
 	defaultFlowExp = time.Minute * 10
 	maxOTPAttempt  = 5
 	otpAttemptKey  = "attempt"
 )
 
 var (
-	refreshTime               = "0 0 * * *" // Once a day at midnight
-	ErrMissingRSADisableToken = errors.New("rsa key missing in config, generate and pass file path")
-	ErrStrategyNotApplicable  = errors.New("strategy not applicable")
-	ErrUnsupportedMethod      = errors.New("unsupported authentication method")
-	ErrInvalidMailOTP         = errors.New("invalid mail otp")
-	ErrFlowInvalid            = errors.New("invalid flow or expired")
+	refreshTime              = "0 0 * * *" // Once a day at midnight
+	ErrStrategyNotApplicable = errors.New("strategy not applicable")
+	ErrUnsupportedMethod     = errors.New("unsupported authentication method")
+	ErrInvalidMailOTP        = errors.New("invalid mail otp")
+	ErrFlowInvalid           = errors.New("invalid flow or expired")
 )
 
 type UserService interface {
@@ -78,17 +74,18 @@ type RegistrationFinishResponse struct {
 }
 
 type RegistrationService struct {
-	log         log.Logger
-	cron        *cron.Cron
-	flowRepo    FlowRepository
-	userService UserService
-	config      Config
-	mailDialer  mailer.Dialer
-	Now         func() time.Time
+	log          log.Logger
+	cron         *cron.Cron
+	flowRepo     FlowRepository
+	userService  UserService
+	config       Config
+	mailDialer   mailer.Dialer
+	Now          func() time.Time
+	tokenService token.Service
 }
 
 func NewRegistrationService(logger log.Logger, config Config, flowRepo FlowRepository,
-	userService UserService, mailDialer mailer.Dialer) *RegistrationService {
+	userService UserService, mailDialer mailer.Dialer, tokenService token.Service) *RegistrationService {
 	r := &RegistrationService{
 		log:         logger,
 		cron:        cron.New(),
@@ -99,6 +96,7 @@ func NewRegistrationService(logger log.Logger, config Config, flowRepo FlowRepos
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
+		tokenService: tokenService,
 	}
 	return r
 }
@@ -314,39 +312,8 @@ func (r RegistrationService) applyOIDC(ctx context.Context, request Registration
 	}, nil
 }
 
-func (r RegistrationService) Token(user user.User, orgs []organization.Organization) ([]byte, error) {
-	if len(r.config.Token.RSAPath) == 0 {
-		return nil, ErrMissingRSADisableToken
-	}
-	keySet, err := jwk.ReadFile(r.config.Token.RSAPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse rsa key: %w", err)
-	}
-	// use first key to sign token
-	rsaKey, ok := keySet.Key(0)
-	if !ok {
-		return nil, errors.New("missing rsa key to generate token")
-	}
-
-	var orgNames []string
-	for _, o := range orgs {
-		orgNames = append(orgNames, o.Name)
-	}
-
-	tok, err := jwt.NewBuilder().
-		Issuer(r.config.Token.Issuer).
-		IssuedAt(time.Now().UTC()).
-		NotBefore(time.Now().UTC()).
-		Expiration(time.Now().UTC().Add(tokenValidity)).
-		JwtID(uuid.New().String()).
-		Subject(user.ID).
-		Claim("org", strings.Join(orgNames, ",")).
-		Build()
-	if err != nil {
-		return nil, err
-	}
-
-	return jwt.Sign(tok, jwt.WithKey(jwa.RS256, rsaKey))
+func (r RegistrationService) Token(ctx context.Context, user user.User, metadata map[string]string) ([]byte, error) {
+	return r.tokenService.Build(ctx, user.ID, metadata)
 }
 
 func (r RegistrationService) InitFlows(ctx context.Context) error {

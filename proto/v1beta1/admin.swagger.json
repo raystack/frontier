@@ -1345,9 +1345,6 @@
     "v1beta1RoleRequestBody": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
-        },
         "name": {
           "type": "string"
         },

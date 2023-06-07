@@ -205,7 +205,7 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurrentUserRequest) (*shieldv1beta1.GetCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	currentUser, err := h.getLoggedInUser(ctx)
+	currentUser, err := h.GetLoggedInUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -446,7 +446,7 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *shieldv1bet
 
 func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByCurrentUserRequest) (*shieldv1beta1.GetOrganizationsByCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	currentUser, err := h.getLoggedInUser(ctx)
+	currentUser, err := h.GetLoggedInUser(ctx)
 	if err != nil {
 		return nil, err
 	}

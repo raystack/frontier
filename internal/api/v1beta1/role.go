@@ -104,7 +104,6 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *shieldv1be
 		orgID = request.GetBody().GetOrgId()
 	}
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
-		ID:          request.GetBody().GetId(),
 		Name:        request.GetBody().GetName(),
 		Permissions: request.GetBody().GetPermissions(),
 		OrgID:       orgID,
@@ -226,62 +225,6 @@ func (h Handler) DeleteOrganizationRole(ctx context.Context, request *shieldv1be
 	}
 
 	return &shieldv1beta1.DeleteOrganizationRoleResponse{}, nil
-}
-
-func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRoleRequest) (*shieldv1beta1.CreateRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
-	newRole, err := h.roleService.Upsert(ctx, role.Role{
-		ID:          request.GetBody().GetId(),
-		Name:        request.GetBody().GetName(),
-		Permissions: request.GetBody().GetPermissions(),
-		OrgID:       uuid.Nil.String(),
-		Metadata:    metaDataMap,
-	})
-	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, namespace.ErrNotExist),
-			errors.Is(err, permission.ErrNotExist),
-			errors.Is(err, role.ErrInvalidID),
-			errors.Is(err, role.ErrInvalidDetail):
-			return nil, grpcBadBodyError
-		case errors.Is(err, role.ErrConflict):
-			return nil, grpcConflictError
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
-	rolePB, err := transformRoleToPB(newRole)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-
-	return &shieldv1beta1.CreateRoleResponse{Role: &rolePB}, nil
-}
-
-func (h Handler) DeleteRole(ctx context.Context, request *shieldv1beta1.DeleteRoleRequest) (*shieldv1beta1.DeleteRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	err := h.roleService.Delete(ctx, request.GetId())
-	if err != nil {
-		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
-			return nil, grpcRoleNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
-	}
-
-	return &shieldv1beta1.DeleteRoleResponse{}, nil
 }
 
 func transformRoleToPB(from role.Role) (shieldv1beta1.Role, error) {

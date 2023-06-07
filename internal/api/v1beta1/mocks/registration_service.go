@@ -9,8 +9,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	organization "github.com/odpf/shield/core/organization"
-
 	user "github.com/odpf/shield/core/user"
 )
 
@@ -254,25 +252,25 @@ func (_c *RegistrationService_SupportedStrategies_Call) RunAndReturn(run func() 
 	return _c
 }
 
-// Token provides a mock function with given fields: _a0, orgs
-func (_m *RegistrationService) Token(_a0 user.User, orgs []organization.Organization) ([]byte, error) {
-	ret := _m.Called(_a0, orgs)
+// Token provides a mock function with given fields: ctx, _a1, metadata
+func (_m *RegistrationService) Token(ctx context.Context, _a1 user.User, metadata map[string]string) ([]byte, error) {
+	ret := _m.Called(ctx, _a1, metadata)
 
 	var r0 []byte
 	var r1 error
-	if rf, ok := ret.Get(0).(func(user.User, []organization.Organization) ([]byte, error)); ok {
-		return rf(_a0, orgs)
+	if rf, ok := ret.Get(0).(func(context.Context, user.User, map[string]string) ([]byte, error)); ok {
+		return rf(ctx, _a1, metadata)
 	}
-	if rf, ok := ret.Get(0).(func(user.User, []organization.Organization) []byte); ok {
-		r0 = rf(_a0, orgs)
+	if rf, ok := ret.Get(0).(func(context.Context, user.User, map[string]string) []byte); ok {
+		r0 = rf(ctx, _a1, metadata)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(user.User, []organization.Organization) error); ok {
-		r1 = rf(_a0, orgs)
+	if rf, ok := ret.Get(1).(func(context.Context, user.User, map[string]string) error); ok {
+		r1 = rf(ctx, _a1, metadata)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -286,15 +284,16 @@ type RegistrationService_Token_Call struct {
 }
 
 // Token is a helper method to define mock.On call
-//   - _a0 user.User
-//   - orgs []organization.Organization
-func (_e *RegistrationService_Expecter) Token(_a0 interface{}, orgs interface{}) *RegistrationService_Token_Call {
-	return &RegistrationService_Token_Call{Call: _e.mock.On("Token", _a0, orgs)}
+//   - ctx context.Context
+//   - _a1 user.User
+//   - metadata map[string]string
+func (_e *RegistrationService_Expecter) Token(ctx interface{}, _a1 interface{}, metadata interface{}) *RegistrationService_Token_Call {
+	return &RegistrationService_Token_Call{Call: _e.mock.On("Token", ctx, _a1, metadata)}
 }
 
-func (_c *RegistrationService_Token_Call) Run(run func(_a0 user.User, orgs []organization.Organization)) *RegistrationService_Token_Call {
+func (_c *RegistrationService_Token_Call) Run(run func(ctx context.Context, _a1 user.User, metadata map[string]string)) *RegistrationService_Token_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(user.User), args[1].([]organization.Organization))
+		run(args[0].(context.Context), args[1].(user.User), args[2].(map[string]string))
 	})
 	return _c
 }
@@ -304,7 +303,7 @@ func (_c *RegistrationService_Token_Call) Return(_a0 []byte, _a1 error) *Registr
 	return _c
 }
 
-func (_c *RegistrationService_Token_Call) RunAndReturn(run func(user.User, []organization.Organization) ([]byte, error)) *RegistrationService_Token_Call {
+func (_c *RegistrationService_Token_Call) RunAndReturn(run func(context.Context, user.User, map[string]string) ([]byte, error)) *RegistrationService_Token_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -10,6 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/odpf/shield/core/authenticate/token"
+
 	"github.com/odpf/shield/pkg/server"
 
 	"github.com/odpf/shield/pkg/server/consts"
@@ -145,7 +148,8 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}()
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
+	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader,
+		cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
 	if err != nil {
 		return err
 	}
@@ -181,6 +185,16 @@ func buildAPIDependencies(
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
+	var tokenKeySet jwk.Set
+	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
+		if ks, err := jwk.ReadFile(cfg.App.Authentication.Token.RSAPath); err != nil {
+			return api.Deps{}, fmt.Errorf("failed to parse rsa key: %w", err)
+		} else {
+			tokenKeySet = ks
+		}
+	}
+	tokenService := token.NewService(tokenKeySet, cfg.App.Authentication.Token.Issuer)
+
 	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
@@ -202,7 +216,7 @@ func buildAPIDependencies(
 	roleService := role.NewService(roleRepository, relationService, permissionService)
 
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, sessionService, relationService)
+	userService := user.NewService(userRepository, sessionService, relationService, tokenService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, userService)
@@ -233,6 +247,8 @@ func buildAPIDependencies(
 		resourceBlobRepository,
 		relationService,
 		userService,
+		projectService,
+		organizationService,
 	)
 
 	var mailDialer mailer.Dialer = mailer.NewMockDialer()
@@ -246,7 +262,7 @@ func buildAPIDependencies(
 		)
 	}
 	registrationService := authenticate.NewRegistrationService(logger, cfg.App.Authentication,
-		postgres.NewFlowRepository(logger, dbc), userService, mailDialer)
+		postgres.NewFlowRepository(logger, dbc), userService, mailDialer, tokenService)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
 		organizationService, groupService, userService, relationService)
