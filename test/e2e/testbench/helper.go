@@ -182,12 +182,12 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	for _, d := range data {
-		d.OrgId = orgResp.GetOrganizations()[0].GetId()
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
 		if _, err := cl.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
-			Body: d,
+			Body:  d,
+			OrgId: orgResp.GetOrganizations()[0].GetId(),
 		}); err != nil {
 			return err
 		}

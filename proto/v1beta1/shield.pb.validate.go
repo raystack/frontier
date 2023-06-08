@@ -4161,8 +4161,6 @@ func (m *GroupRequestBody) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for OrgId
-
 	if len(errors) > 0 {
 		return GroupRequestBodyMultiError(errors)
 	}
@@ -5294,8 +5292,6 @@ func (m *ListOrganizationGroupsRequest) validate(all bool) error {
 	}
 
 	var errors []error
-
-	// no validation rules for UserId
 
 	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
 		err := ListOrganizationGroupsRequestValidationError{
@@ -17952,8 +17948,6 @@ func (m *ResourceRequestBody) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for Name
-
-	// no validation rules for ProjectId
 
 	// no validation rules for Namespace
 

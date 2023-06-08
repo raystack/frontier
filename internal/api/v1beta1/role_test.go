@@ -116,10 +116,10 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -142,10 +142,10 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, namespace.ErrNotExist)
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -167,9 +167,9 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -191,10 +191,10 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidID)
 			}, request: &shieldv1beta1.CreateOrganizationRoleRequest{
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -217,10 +217,10 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 				}).Return(testRoleMap[testRoleID], nil)
 			},
 			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -364,11 +364,11 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
-				Id: testRoleMap[testRoleID].ID,
+				Id:    testRoleMap[testRoleID].ID,
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -392,11 +392,11 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, role.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
-				Id: testRoleMap[testRoleID].ID,
+				Id:    testRoleMap[testRoleID].ID,
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -420,11 +420,11 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, role.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
-				Id: testRoleMap[testRoleID].ID,
+				Id:    testRoleMap[testRoleID].ID,
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -447,10 +447,10 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
-				Id: testRoleMap[testRoleID].ID,
+				Id:    testRoleMap[testRoleID].ID,
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -474,11 +474,11 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
-				Id: testRoleMap[testRoleID].ID,
+				Id:    testRoleMap[testRoleID].ID,
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),
@@ -502,11 +502,11 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 				}).Return(role.Role{}, role.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
-				Id: testRoleMap[testRoleID].ID,
+				Id:    testRoleMap[testRoleID].ID,
+				OrgId: testRoleMap[testRoleID].OrgID,
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
-					OrgId:       testRoleMap[testRoleID].OrgID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"foo": structpb.NewStringValue("bar"),

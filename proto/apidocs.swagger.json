@@ -111,12 +111,6 @@
         },
         "parameters": [
           {
-            "name": "userId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "orgId",
             "description": "The organization id to filter by.",
             "in": "query",
@@ -1523,12 +1517,14 @@
         "parameters": [
           {
             "name": "userId",
+            "description": "The user ID to filter by. It can be used to list all the organizations that the user is a member of. Otherwise, all the organizations in the Shield instance will be listed.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "state",
+            "description": "The state to filter by. It can be `enabled` or `disabled`.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -2050,6 +2046,7 @@
           },
           {
             "name": "state",
+            "description": "Filter projects by state. If not specified, all projects are returned. \u003cbr/\u003e *Possible values:* `enabled` or `disabled`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -2192,7 +2189,8 @@
                   "type": "array",
                   "items": {
                     "type": "string"
-                  }
+                  },
+                  "description": "List of user IDs to be added to the organization."
                 }
               }
             }
@@ -2274,7 +2272,7 @@
     "/v1beta1/organizations/{orgId}/groups": {
       "get": {
         "summary": "List Organization Groups",
-        "description": "Get all groups that belong to an organization. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.",
+        "description": "Get all groups that belong to an organization. The results can be filtered by state which can be either be enabled or disabled.",
         "operationId": "ShieldService_ListOrganizationGroups",
         "responses": {
           "200": {
@@ -2328,14 +2326,8 @@
             "type": "string"
           },
           {
-            "name": "userId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "state",
-            "description": "The state to filter by. It can be enabled or disabled.",
+            "description": "The state of the group to filter by. It can be enabled or disabled.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -6880,10 +6872,6 @@
         "metadata": {
           "type": "object",
           "description": "Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields.\u003cbr/\u003e*Example:*`{\"labels\": {\"key\": \"value\"}, \"description\": \"Group description\"}`"
-        },
-        "orgId": {
-          "type": "string",
-          "description": "The organization ID to which the group belongs to."
         }
       },
       "required": [
@@ -7611,21 +7599,25 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
-        },
-        "projectId": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the resource. \u003cbr/\u003e *Example:* `my-resource`"
         },
         "namespace": {
-          "type": "string"
+          "type": "string",
+          "description": "The namespace of the resource. The resource namespace are created when permissions for that resource is created in Shield. If namespace doesn't exists the request will fail. \u003cbr/\u003e *Example:* `potato/cart`"
         },
         "userId": {
-          "type": "string"
+          "type": "string",
+          "description": "The user id of the user who will be made the resource owner. If not provided, the current logged in user will be made the resource owner. \u003cbr/\u003e *Example:* `92f69c3a-334b-4f25-90b8-4d4f3be6b825`"
         },
         "metadata": {
           "type": "object"
         }
-      }
+      },
+      "required": [
+        "name",
+        "namespace"
+      ]
     },
     "v1beta1Role": {
       "type": "object",
@@ -7675,9 +7667,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "orgId": {
-          "type": "string"
         },
         "metadata": {
           "type": "object"

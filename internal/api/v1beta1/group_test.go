@@ -175,10 +175,11 @@ func TestHandler_CreateGroup(t *testing.T) {
 
 				return ctx
 			},
-			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				OrgId:    someOrgID,
-				Metadata: &structpb.Struct{},
-			}},
+			request: &shieldv1beta1.CreateGroupRequest{
+				OrgId: someOrgID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Metadata: &structpb.Struct{},
+				}},
 			want:    nil,
 			wantErr: grpcUnauthenticated,
 		},
@@ -193,11 +194,12 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some-group",
-				OrgId:    someOrgID,
-				Metadata: &structpb.Struct{},
-			}},
+			request: &shieldv1beta1.CreateGroupRequest{
+				OrgId: someOrgID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:     "some-group",
+					Metadata: &structpb.Struct{},
+				}},
 			want:    nil,
 			wantErr: grpcInternalServerError,
 		},
@@ -213,11 +215,12 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrConflict)
 				return user.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some-group",
-				OrgId:    someOrgID,
-				Metadata: &structpb.Struct{},
-			}},
+			request: &shieldv1beta1.CreateGroupRequest{
+				OrgId: someOrgID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:     "some-group",
+					Metadata: &structpb.Struct{},
+				}},
 			want:    nil,
 			wantErr: grpcConflictError,
 		},
@@ -232,11 +235,12 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 				return user.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some-group",
-				OrgId:    someOrgID,
-				Metadata: &structpb.Struct{},
-			}},
+			request: &shieldv1beta1.CreateGroupRequest{
+				OrgId: someOrgID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:     "some-group",
+					Metadata: &structpb.Struct{},
+				}},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
@@ -251,11 +255,12 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
 				return user.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some-group",
-				OrgId:    "some-org-id",
-				Metadata: &structpb.Struct{},
-			}},
+			request: &shieldv1beta1.CreateGroupRequest{
+				OrgId: "some-org-id",
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:     "some-group",
+					Metadata: &structpb.Struct{},
+				}},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
@@ -271,11 +276,12 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, organization.ErrNotExist)
 				return user.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some-group",
-				OrgId:    someOrgID,
-				Metadata: &structpb.Struct{},
-			}},
+			request: &shieldv1beta1.CreateGroupRequest{
+				OrgId: someOrgID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:     "some-group",
+					Metadata: &structpb.Struct{},
+				}},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
@@ -301,11 +307,12 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some-group",
-				OrgId:    someOrgID,
-				Metadata: &structpb.Struct{},
-			}},
+			request: &shieldv1beta1.CreateGroupRequest{
+				OrgId: someOrgID,
+				Body: &shieldv1beta1.GroupRequestBody{
+					Name:     "some-group",
+					Metadata: &structpb.Struct{},
+				}},
 			want: &shieldv1beta1.CreateGroupResponse{
 				Group: &shieldv1beta1.Group{
 					Id:    someGroupID,
@@ -441,10 +448,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: someGroupID,
+				Id:    someGroupID,
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want:    nil,
@@ -471,10 +478,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: "some-id",
+				Id:    "some-id",
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "some-id",
-					OrgId: someOrgID,
+					Name: "some-id",
 				},
 			},
 			want:    nil,
@@ -493,10 +500,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: someGroupID,
+				Id:    someGroupID,
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want:    nil,
@@ -513,9 +520,9 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want:    nil,
@@ -534,10 +541,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: someGroupID,
+				Id:    someGroupID,
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want:    nil,
@@ -556,10 +563,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, organization.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: someGroupID,
+				Id:    someGroupID,
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want:    nil,
@@ -578,10 +585,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: someGroupID,
+				Id:    someGroupID,
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want:    nil,
@@ -600,10 +607,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: someGroupID,
+				Id:    someGroupID,
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want:    nil,
@@ -648,10 +655,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				}, nil)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
-				Id: someGroupID,
+				Id:    someGroupID,
+				OrgId: someOrgID,
 				Body: &shieldv1beta1.GroupRequestBody{
-					Name:  "new-group",
-					OrgId: someOrgID,
+					Name: "new-group",
 				},
 			},
 			want: &shieldv1beta1.UpdateGroupResponse{

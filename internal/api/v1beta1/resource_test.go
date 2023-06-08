@@ -109,9 +109,9 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateProjectResourceRequest{
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				}},
@@ -130,9 +130,9 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateProjectResourceRequest{
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -164,9 +164,9 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 				return user.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateProjectResourceRequest{
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -296,10 +296,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
-				Id: testResourceID,
+				Id:        testResourceID,
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -323,9 +323,9 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, resource.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -349,10 +349,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
-				Id: testResourceID,
+				Id:        testResourceID,
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -376,10 +376,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, resource.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
-				Id: "some-id",
+				Id:        "some-id",
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -403,10 +403,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
-				Id: testResourceID,
+				Id:        testResourceID,
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -430,10 +430,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, resource.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
-				Id: testResourceID,
+				Id:        testResourceID,
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},
@@ -457,10 +457,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}).Return(testResource, nil)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
-				Id: testResourceID,
+				Id:        testResourceID,
+				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
-					ProjectId: testResource.ProjectID,
 					Namespace: testResource.NamespaceID,
 					UserId:    testUserID,
 				},

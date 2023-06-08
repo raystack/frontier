@@ -119,9 +119,9 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	})
 	s.Run("3. org admin should be able to create a new resource inside project", func() {
 		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctx, &shieldv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectID,
 			Body: &shieldv1beta1.ResourceRequestBody{
 				Name:      "res-1",
-				ProjectId: projectID,
 				Namespace: computeOrderNamespace,
 				UserId:    adminID,
 			},
@@ -158,29 +158,29 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	})
 	s.Run("6. creating role with bad body should fail", func() {
 		_, err := s.testBench.Client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{
+			OrgId: orgID,
 			Body: &shieldv1beta1.RoleRequestBody{
 				Name:        "should-fail-without-permission",
 				Permissions: nil,
-				OrgId:       orgID,
 			},
 		})
 		s.Assert().Error(err)
 
 		_, err = s.testBench.Client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{
+			OrgId: orgID,
 			Body: &shieldv1beta1.RoleRequestBody{
 				Name:        "should-fail",
 				Permissions: []string{"unknown-permission"},
-				OrgId:       orgID,
 			},
 		})
 		s.Assert().Error(err)
 	})
 	s.Run("7. list all custom roles successfully", func() {
 		createRoleResp, err := s.testBench.Client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{
+			OrgId: orgID,
 			Body: &shieldv1beta1.RoleRequestBody{
 				Name:        "something_owner",
 				Permissions: []string{"app_organization_get"},
-				OrgId:       orgID,
 			},
 		})
 		s.Assert().NoError(err)
