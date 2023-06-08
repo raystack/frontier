@@ -13,6 +13,8 @@ plugins:
   - plugin: "buf.build/grpc-ecosystem/gateway:v2.15.2"
     out: "proto"
     opt: "paths=source_relative"
-  - plugin: "buf.build/grpc-ecosystem/openapiv2:v2.15.2"
+  - plugin: "buf.build/grpc-ecosystem/openapiv2:v2.16.0"
     out: "proto"
-    opt: "allow_merge=true"
+    opt:
+      - allow_merge=true
+      - output_format=yaml

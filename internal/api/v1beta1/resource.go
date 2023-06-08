@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/odpf/shield/core/relation"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -32,8 +34,9 @@ var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't ex
 func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListResourcesRequest) (*shieldv1beta1.ListResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var resources []*shieldv1beta1.Resource
+	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetNamespace())
 	filters := resource.Filter{
-		NamespaceID: request.GetNamespace(),
+		NamespaceID: namespaceID,
 		ProjectID:   request.GetProjectId(),
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
@@ -60,8 +63,9 @@ func (h Handler) ListProjectResources(ctx context.Context, request *shieldv1beta
 	logger := grpczap.Extract(ctx)
 
 	var resources []*shieldv1beta1.Resource
+	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetNamespace())
 	filters := resource.Filter{
-		NamespaceID: request.GetNamespace(),
+		NamespaceID: namespaceID,
 		ProjectID:   request.GetProjectId(),
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
@@ -100,11 +104,12 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *shieldv1bet
 		}
 	}
 
+	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetBody().GetNamespace())
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
 		ID:          request.GetId(),
 		Name:        request.GetBody().GetName(),
 		ProjectID:   request.GetProjectId(),
-		NamespaceID: request.GetBody().GetNamespace(),
+		NamespaceID: namespaceID,
 		UserID:      request.GetBody().GetUserId(),
 		Metadata:    metaDataMap,
 	})
@@ -165,10 +170,11 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *shieldv1bet
 		return nil, grpcBadBodyError
 	}
 
+	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetBody().GetNamespace())
 	updatedResource, err := h.resourceService.Update(ctx, resource.Resource{
 		ID:          request.GetId(),
 		ProjectID:   request.GetProjectId(),
-		NamespaceID: request.GetBody().GetNamespace(),
+		NamespaceID: namespaceID,
 		Name:        request.GetBody().GetName(),
 		UserID:      request.GetBody().GetUserId(),
 	})

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/odpf/shield/internal/bootstrap/schema"
+
 	"github.com/odpf/shield/core/relation"
 
 	"github.com/odpf/shield/core/user"
@@ -17,9 +19,10 @@ import (
 
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
+	objectNamespace := schema.ParseNamespaceAliasIfRequired(req.GetObjectNamespace())
 	result, err := h.resourceService.CheckAuthz(ctx, relation.Object{
 		ID:        req.GetObjectId(),
-		Namespace: req.GetObjectNamespace(),
+		Namespace: objectNamespace,
 	}, req.GetPermission())
 	if err != nil {
 		switch {
