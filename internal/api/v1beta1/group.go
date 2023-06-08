@@ -113,14 +113,10 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		request.GetBody().Name = str.GenerateSlug(request.GetBody().GetTitle())
 	}
 
-	orgID := request.GetOrgId()
-	if request.GetOrgId() == "" {
-		orgID = request.GetBody().GetOrgId()
-	}
 	newGroup, err := h.groupService.Create(ctx, group.Group{
 		Name:           request.GetBody().GetName(),
 		Title:          request.GetBody().GetTitle(),
-		OrganizationID: orgID,
+		OrganizationID: request.GetOrgId(),
 		Metadata:       metaDataMap,
 	})
 	if err != nil {
@@ -193,15 +189,11 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
-	orgID := request.GetOrgId()
-	if request.GetOrgId() == "" {
-		orgID = request.GetBody().GetOrgId()
-	}
 	updatedGroup, err := h.groupService.Update(ctx, group.Group{
 		ID:             request.GetId(),
 		Name:           request.GetBody().GetName(),
 		Title:          request.GetBody().GetTitle(),
-		OrganizationID: orgID,
+		OrganizationID: request.GetOrgId(),
 		Metadata:       metaDataMap,
 	})
 	if err != nil {

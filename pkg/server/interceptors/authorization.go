@@ -187,7 +187,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/odpf.shield.v1beta1.ShieldService/CreateGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreateGroupRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetOrgId(), schema.GroupCreatePermission)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GroupCreatePermission)
 	},
 	"/odpf.shield.v1beta1.ShieldService/GetGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.GetGroupRequest)
@@ -266,7 +266,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/odpf.shield.v1beta1.ShieldService/CreateOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreateOrganizationRoleRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetOrgId(), schema.RoleManagePermission)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.RoleManagePermission)
 	},
 	"/odpf.shield.v1beta1.ShieldService/GetOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.GetOrganizationRoleRequest)
@@ -274,7 +274,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/odpf.shield.v1beta1.ShieldService/UpdateOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.UpdateOrganizationRoleRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetOrgId(), schema.RoleManagePermission)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.RoleManagePermission)
 	},
 	"/odpf.shield.v1beta1.ShieldService/DeleteOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.DeleteOrganizationRoleRequest)
@@ -395,7 +395,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/odpf.shield.v1beta1.ShieldService/CreateProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreateProjectResourceRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetBody().GetProjectId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetProjectId(), schema.GetPermission)
 	},
 	"/odpf.shield.v1beta1.ShieldService/GetProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.GetProjectResourceRequest)

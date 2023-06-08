@@ -2569,8 +2569,6 @@ func (m *RoleRequestBody) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for OrgId
-
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:

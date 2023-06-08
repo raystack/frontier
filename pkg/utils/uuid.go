@@ -17,6 +17,9 @@ func IsValidUUID(key string) bool {
 	return err == nil
 }
 
+// IsNullUUID returns true if passed string is a null uuid or is not a valid uuid
+// defined by `github.com/google/uuid`.Parse and `github.com/google/uuid`.Nil respectively
+// else return false
 func IsNullUUID(key string) bool {
 	k, err := uuid.Parse(key)
 	return err != nil || k == uuid.Nil
