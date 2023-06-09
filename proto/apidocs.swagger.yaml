@@ -39,31 +39,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListGroupsResponse"
+            $ref: '#/definitions/v1beta1ListGroupsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           description: The organization id to filter by.
@@ -86,31 +86,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListAllOrganizationsResponse"
+            $ref: '#/definitions/v1beta1ListAllOrganizationsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: userId
           description: The user id to filter by.
@@ -133,31 +133,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListProjectsResponse"
+            $ref: '#/definitions/v1beta1ListProjectsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           description: The organization id to filter by.
@@ -179,31 +179,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListRelationsResponse"
+            $ref: '#/definitions/v1beta1ListRelationsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - Relation
   /v1beta1/admin/resources:
@@ -215,31 +215,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListResourcesResponse"
+            $ref: '#/definitions/v1beta1ListResourcesResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: userId
           description: The user id to filter by.
@@ -272,31 +272,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListAllUsersResponse"
+            $ref: '#/definitions/v1beta1ListAllUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: pageSize
           description: The maximum number of users to return per page. The default is 50.
@@ -341,31 +341,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListAuthStrategiesResponse"
+            $ref: '#/definitions/v1beta1ListAuthStrategiesResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - Authn
   /v1beta1/auth/callback:
@@ -377,31 +377,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AuthCallbackResponse"
+            $ref: '#/definitions/v1beta1AuthCallbackResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: strategyName
           description: strategy_name will not be set for oidc but can be utilized for methods like email magic links
@@ -427,31 +427,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AuthCallbackResponse"
+            $ref: '#/definitions/v1beta1AuthCallbackResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: strategyName
           description: strategy_name will not be set for oidc but can be utilized for methods like email magic links
@@ -477,31 +477,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AuthLogoutResponse"
+            $ref: '#/definitions/v1beta1AuthLogoutResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - Authn
     delete:
@@ -511,31 +511,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AuthLogoutResponse"
+            $ref: '#/definitions/v1beta1AuthLogoutResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - Authn
   /v1beta1/auth/register/{strategyName}:
@@ -547,31 +547,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AuthenticateResponse"
+            $ref: '#/definitions/v1beta1AuthenticateResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: strategyName
           description: Name of the strategy to use for authentication.<br/> *Example:* `google`
@@ -615,31 +615,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AuthenticateResponse"
+            $ref: '#/definitions/v1beta1AuthenticateResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: strategyName
           description: Name of the strategy to use for authentication.<br/> *Example:* `google`
@@ -684,37 +684,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CheckResourcePermissionResponse"
+            $ref: '#/definitions/v1beta1CheckResourcePermissionResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1CheckResourcePermissionRequest"
+            $ref: '#/definitions/v1beta1CheckResourcePermissionRequest'
       tags:
         - Authz
   /v1beta1/meta/schemas:
@@ -726,31 +726,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListMetaSchemasResponse"
+            $ref: '#/definitions/v1beta1ListMetaSchemasResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - MetaSchema
     post:
@@ -761,37 +761,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateMetaSchemaResponse"
+            $ref: '#/definitions/v1beta1CreateMetaSchemaResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1MetaSchemaRequestBody"
+            $ref: '#/definitions/v1beta1MetaSchemaRequestBody'
       tags:
         - MetaSchema
   /v1beta1/meta/schemas/{id}:
@@ -803,31 +803,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetMetaSchemaResponse"
+            $ref: '#/definitions/v1beta1GetMetaSchemaResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -843,31 +843,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteMetaSchemaResponse"
+            $ref: '#/definitions/v1beta1DeleteMetaSchemaResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -883,31 +883,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateMetaSchemaResponse"
+            $ref: '#/definitions/v1beta1UpdateMetaSchemaResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -917,7 +917,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1MetaSchemaRequestBody"
+            $ref: '#/definitions/v1beta1MetaSchemaRequestBody'
       tags:
         - MetaSchema
   /v1beta1/namespaces:
@@ -928,31 +928,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListNamespacesResponse"
+            $ref: '#/definitions/v1beta1ListNamespacesResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - Namespace
   /v1beta1/namespaces/{id}:
@@ -963,31 +963,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetNamespaceResponse"
+            $ref: '#/definitions/v1beta1GetNamespaceResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1004,31 +1004,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListOrganizationsResponse"
+            $ref: '#/definitions/v1beta1ListOrganizationsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: userId
           description: The user ID to filter by. It can be used to list all the organizations that the user is a member of. Otherwise, all the organizations in the Shield instance will be listed.
@@ -1049,37 +1049,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateOrganizationResponse"
+            $ref: '#/definitions/v1beta1CreateOrganizationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1OrganizationRequestBody"
+            $ref: '#/definitions/v1beta1OrganizationRequestBody'
       tags:
         - Organization
   /v1beta1/organizations/{id}:
@@ -1091,31 +1091,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetOrganizationResponse"
+            $ref: '#/definitions/v1beta1GetOrganizationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1131,31 +1131,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteOrganizationResponse"
+            $ref: '#/definitions/v1beta1DeleteOrganizationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1171,31 +1171,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateOrganizationResponse"
+            $ref: '#/definitions/v1beta1UpdateOrganizationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1205,7 +1205,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1OrganizationRequestBody"
+            $ref: '#/definitions/v1beta1OrganizationRequestBody'
       tags:
         - Organization
   /v1beta1/organizations/{id}/admins:
@@ -1217,31 +1217,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListOrganizationAdminsResponse"
+            $ref: '#/definitions/v1beta1ListOrganizationAdminsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1258,31 +1258,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DisableOrganizationResponse"
+            $ref: '#/definitions/v1beta1DisableOrganizationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1304,31 +1304,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1EnableOrganizationResponse"
+            $ref: '#/definitions/v1beta1EnableOrganizationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1350,31 +1350,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListOrganizationProjectsResponse"
+            $ref: '#/definitions/v1beta1ListOrganizationProjectsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1395,31 +1395,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListOrganizationUsersResponse"
+            $ref: '#/definitions/v1beta1ListOrganizationUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1439,31 +1439,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AddOrganizationUsersResponse"
+            $ref: '#/definitions/v1beta1AddOrganizationUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1491,31 +1491,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1RemoveOrganizationUserResponse"
+            $ref: '#/definitions/v1beta1RemoveOrganizationUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -1536,31 +1536,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListOrganizationGroupsResponse"
+            $ref: '#/definitions/v1beta1ListOrganizationGroupsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -1581,31 +1581,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateGroupResponse"
+            $ref: '#/definitions/v1beta1CreateGroupResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           description: The organization ID to which the group belongs to.
@@ -1616,7 +1616,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1GroupRequestBody"
+            $ref: '#/definitions/v1beta1GroupRequestBody'
       tags:
         - Group
   /v1beta1/organizations/{orgId}/groups/{id}:
@@ -1627,31 +1627,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetGroupResponse"
+            $ref: '#/definitions/v1beta1GetGroupResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -1671,31 +1671,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteGroupResponse"
+            $ref: '#/definitions/v1beta1DeleteGroupResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -1714,31 +1714,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateGroupResponse"
+            $ref: '#/definitions/v1beta1UpdateGroupResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           description: The organization ID to which the group belongs to.
@@ -1753,7 +1753,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1GroupRequestBody"
+            $ref: '#/definitions/v1beta1GroupRequestBody'
       tags:
         - Group
   /v1beta1/organizations/{orgId}/groups/{id}/disable:
@@ -1765,31 +1765,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DisableGroupResponse"
+            $ref: '#/definitions/v1beta1DisableGroupResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -1815,31 +1815,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1EnableGroupResponse"
+            $ref: '#/definitions/v1beta1EnableGroupResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -1865,31 +1865,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListGroupUsersResponse"
+            $ref: '#/definitions/v1beta1ListGroupUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -1909,31 +1909,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AddGroupUsersResponse"
+            $ref: '#/definitions/v1beta1AddGroupUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -1964,31 +1964,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1RemoveGroupUserResponse"
+            $ref: '#/definitions/v1beta1RemoveGroupUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2013,37 +2013,39 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListOrganizationInvitationsResponse"
+            $ref: '#/definitions/v1beta1ListOrganizationInvitationsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
+          description: unique id of the organization to which user is invited
           in: path
           required: true
           type: string
         - name: userId
+          description: user_id filter is the email id of user who are invited inside the organization.
           in: query
           required: false
           type: string
@@ -2057,31 +2059,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateOrganizationInvitationResponse"
+            $ref: '#/definitions/v1beta1CreateOrganizationInvitationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           description: unique id of the organization to which user is invited
@@ -2115,31 +2117,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetOrganizationInvitationResponse"
+            $ref: '#/definitions/v1beta1GetOrganizationInvitationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2159,31 +2161,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteOrganizationInvitationResponse"
+            $ref: '#/definitions/v1beta1DeleteOrganizationInvitationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2204,31 +2206,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1AcceptOrganizationInvitationResponse"
+            $ref: '#/definitions/v1beta1AcceptOrganizationInvitationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2249,31 +2251,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListOrganizationRolesResponse"
+            $ref: '#/definitions/v1beta1ListOrganizationRolesResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2293,31 +2295,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateOrganizationRoleResponse"
+            $ref: '#/definitions/v1beta1CreateOrganizationRoleResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           description: The organization ID to which the role belongs to.
@@ -2328,7 +2330,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1RoleRequestBody"
+            $ref: '#/definitions/v1beta1RoleRequestBody'
       tags:
         - Role
   /v1beta1/organizations/{orgId}/roles/{id}:
@@ -2340,31 +2342,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetOrganizationRoleResponse"
+            $ref: '#/definitions/v1beta1GetOrganizationRoleResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2384,31 +2386,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteOrganizationRoleResponse"
+            $ref: '#/definitions/v1beta1DeleteOrganizationRoleResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2428,31 +2430,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateOrganizationRoleResponse"
+            $ref: '#/definitions/v1beta1UpdateOrganizationRoleResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           in: path
@@ -2466,7 +2468,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1RoleRequestBody"
+            $ref: '#/definitions/v1beta1RoleRequestBody'
       tags:
         - Role
   /v1beta1/permissions:
@@ -2477,31 +2479,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListPermissionsResponse"
+            $ref: '#/definitions/v1beta1ListPermissionsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - Permission
     post:
@@ -2512,37 +2514,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreatePermissionResponse"
+            $ref: '#/definitions/v1beta1CreatePermissionResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1CreatePermissionRequest"
+            $ref: '#/definitions/v1beta1CreatePermissionRequest'
       tags:
         - Permission
   /v1beta1/permissions/{id}:
@@ -2553,31 +2555,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetPermissionResponse"
+            $ref: '#/definitions/v1beta1GetPermissionResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -2592,31 +2594,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeletePermissionResponse"
+            $ref: '#/definitions/v1beta1DeletePermissionResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -2632,31 +2634,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdatePermissionResponse"
+            $ref: '#/definitions/v1beta1UpdatePermissionResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -2666,7 +2668,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1PermissionRequestBody"
+            $ref: '#/definitions/v1beta1PermissionRequestBody'
       tags:
         - Permission
   /v1beta1/policies:
@@ -2678,31 +2680,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListPoliciesResponse"
+            $ref: '#/definitions/v1beta1ListPoliciesResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: orgId
           description: The organization id to filter by.
@@ -2738,37 +2740,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreatePolicyResponse"
+            $ref: '#/definitions/v1beta1CreatePolicyResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1PolicyRequestBody"
+            $ref: '#/definitions/v1beta1PolicyRequestBody'
       tags:
         - Policy
   /v1beta1/policies/{id}:
@@ -2779,31 +2781,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetPolicyResponse"
+            $ref: '#/definitions/v1beta1GetPolicyResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -2819,31 +2821,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeletePolicyResponse"
+            $ref: '#/definitions/v1beta1DeletePolicyResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -2858,31 +2860,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdatePolicyResponse"
+            $ref: '#/definitions/v1beta1UpdatePolicyResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -2892,7 +2894,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1PolicyRequestBody"
+            $ref: '#/definitions/v1beta1PolicyRequestBody'
       tags:
         - Policy
   /v1beta1/projects:
@@ -2903,37 +2905,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateProjectResponse"
+            $ref: '#/definitions/v1beta1CreateProjectResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1ProjectRequestBody"
+            $ref: '#/definitions/v1beta1ProjectRequestBody'
       tags:
         - Project
   /v1beta1/projects/{id}:
@@ -2945,31 +2947,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetProjectResponse"
+            $ref: '#/definitions/v1beta1GetProjectResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -2985,31 +2987,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteProjectResponse"
+            $ref: '#/definitions/v1beta1DeleteProjectResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3025,31 +3027,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateProjectResponse"
+            $ref: '#/definitions/v1beta1UpdateProjectResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3059,7 +3061,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1ProjectRequestBody"
+            $ref: '#/definitions/v1beta1ProjectRequestBody'
       tags:
         - Project
   /v1beta1/projects/{id}/admins:
@@ -3071,31 +3073,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListProjectAdminsResponse"
+            $ref: '#/definitions/v1beta1ListProjectAdminsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3111,31 +3113,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DisableProjectResponse"
+            $ref: '#/definitions/v1beta1DisableProjectResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3156,31 +3158,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1EnableProjectResponse"
+            $ref: '#/definitions/v1beta1EnableProjectResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3202,31 +3204,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListProjectUsersResponse"
+            $ref: '#/definitions/v1beta1ListProjectUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3246,31 +3248,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListProjectResourcesResponse"
+            $ref: '#/definitions/v1beta1ListProjectResourcesResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: projectId
           in: path
@@ -3289,31 +3291,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateProjectResourceResponse"
+            $ref: '#/definitions/v1beta1CreateProjectResourceResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: projectId
           in: path
@@ -3323,7 +3325,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1ResourceRequestBody"
+            $ref: '#/definitions/v1beta1ResourceRequestBody'
         - name: id
           description: Autogenerated if skipped.
           in: query
@@ -3339,31 +3341,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetProjectResourceResponse"
+            $ref: '#/definitions/v1beta1GetProjectResourceResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: projectId
           in: path
@@ -3382,31 +3384,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteProjectResourceResponse"
+            $ref: '#/definitions/v1beta1DeleteProjectResourceResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: projectId
           in: path
@@ -3425,31 +3427,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateProjectResourceResponse"
+            $ref: '#/definitions/v1beta1UpdateProjectResourceResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: projectId
           in: path
@@ -3463,7 +3465,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1ResourceRequestBody"
+            $ref: '#/definitions/v1beta1ResourceRequestBody'
       tags:
         - Resource
   /v1beta1/relations:
@@ -3474,37 +3476,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateRelationResponse"
+            $ref: '#/definitions/v1beta1CreateRelationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1RelationRequestBody"
+            $ref: '#/definitions/v1beta1RelationRequestBody'
       tags:
         - Relation
   /v1beta1/relations/{id}:
@@ -3515,31 +3517,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetRelationResponse"
+            $ref: '#/definitions/v1beta1GetRelationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3555,31 +3557,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteRelationResponse"
+            $ref: '#/definitions/v1beta1DeleteRelationResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: relation
           in: path
@@ -3606,31 +3608,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListRolesResponse"
+            $ref: '#/definitions/v1beta1ListRolesResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: state
           in: query
@@ -3646,37 +3648,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateRoleResponse"
+            $ref: '#/definitions/v1beta1CreateRoleResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1RoleRequestBody"
+            $ref: '#/definitions/v1beta1RoleRequestBody'
       tags:
         - Role
   /v1beta1/roles/{id}:
@@ -3688,31 +3690,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteRoleResponse"
+            $ref: '#/definitions/v1beta1DeleteRoleResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           description: The role id to delete.
@@ -3730,31 +3732,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListUsersResponse"
+            $ref: '#/definitions/v1beta1ListUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: pageSize
           description: The maximum number of users to return per page. The default is 50.
@@ -3798,37 +3800,37 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1CreateUserResponse"
+            $ref: '#/definitions/v1beta1CreateUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1UserRequestBody"
+            $ref: '#/definitions/v1beta1UserRequestBody'
       tags:
         - User
   /v1beta1/users/{id}:
@@ -3840,31 +3842,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetUserResponse"
+            $ref: '#/definitions/v1beta1GetUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3880,31 +3882,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DeleteUserResponse"
+            $ref: '#/definitions/v1beta1DeleteUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3919,31 +3921,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateUserResponse"
+            $ref: '#/definitions/v1beta1UpdateUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -3953,7 +3955,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1UserRequestBody"
+            $ref: '#/definitions/v1beta1UserRequestBody'
       tags:
         - User
   /v1beta1/users/{id}/disable:
@@ -3965,31 +3967,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1DisableUserResponse"
+            $ref: '#/definitions/v1beta1DisableUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -4011,31 +4013,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1EnableUserResponse"
+            $ref: '#/definitions/v1beta1EnableUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -4051,45 +4053,89 @@ paths:
   /v1beta1/users/{id}/groups:
     get:
       summary: List Groups of a User
-      description: Lists all the groups a user belongs to across all organization in Shield.
+      description: Lists all the groups a user belongs to across all organization in Shield. To get the groups of a user in a specific organization, use the org_id filter in the query parameter.
       operationId: ShieldService_ListUserGroups
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListUserGroupsResponse"
+            $ref: '#/definitions/v1beta1ListUserGroupsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
+          description: The unique ID of the user to get groups for.
           in: path
           required: true
           type: string
-        - name: role
+        - name: orgId
+          description: The organization ID to filter groups by. If not provided, groups from all organizations are returned.
           in: query
           required: false
+          type: string
+      tags:
+        - User
+  /v1beta1/users/{id}/invitations:
+    get:
+      summary: List User Invitations
+      description: List all the invitations sent to a user.
+      operationId: ShieldService_ListUserInvitations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListUserInvitationsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The user email to list the invitations for.
+          in: path
+          required: true
           type: string
       tags:
         - User
@@ -4102,31 +4148,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetOrganizationsByUserResponse"
+            $ref: '#/definitions/v1beta1GetOrganizationsByUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: id
           in: path
@@ -4142,31 +4188,31 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetCurrentUserResponse"
+            $ref: '#/definitions/v1beta1GetCurrentUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - User
     put:
@@ -4176,72 +4222,72 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1UpdateCurrentUserResponse"
+            $ref: '#/definitions/v1beta1UpdateCurrentUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       parameters:
         - name: body
           in: body
           required: true
           schema:
-            $ref: "#/definitions/v1beta1UserRequestBody"
+            $ref: '#/definitions/v1beta1UserRequestBody'
       tags:
         - User
   /v1beta1/users/self/groups:
     get:
-      summary: List groups of a User
+      summary: List My Groups
       operationId: ShieldService_ListCurrentUserGroups
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1ListCurrentUserGroupsResponse"
+            $ref: '#/definitions/v1beta1ListCurrentUserGroupsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - User
   /v1beta1/users/self/organizations:
@@ -4253,38 +4299,38 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: "#/definitions/v1beta1GetOrganizationsByCurrentUserResponse"
+            $ref: '#/definitions/v1beta1GetOrganizationsByCurrentUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "401":
           description: Unauthorized - Authentication is required
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "403":
           description: Forbidden - User does not have permission to access the resource
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "404":
           description: Not Found - The requested resource was not found
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         "500":
           description: Internal Server Error. Returned when theres is something wrong with Shield server.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
         default:
           description: An unexpected error response.
           schema:
-            $ref: "#/definitions/rpcStatus"
+            $ref: '#/definitions/rpcStatus'
       tags:
         - User
 definitions:
   protobufAny:
     type: object
     properties:
-      "@type":
+      '@type':
         type: string
     additionalProperties: {}
   protobufNullValue:
@@ -4311,7 +4357,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/protobufAny"
+          $ref: '#/definitions/protobufAny'
   v1beta1AcceptOrganizationInvitationResponse:
     type: object
   v1beta1AddGroupUsersResponse:
@@ -4358,27 +4404,27 @@ definitions:
     type: object
     properties:
       group:
-        $ref: "#/definitions/v1beta1Group"
+        $ref: '#/definitions/v1beta1Group'
   v1beta1CreateMetaSchemaResponse:
     type: object
     properties:
       metaschema:
-        $ref: "#/definitions/v1beta1MetaSchema"
+        $ref: '#/definitions/v1beta1MetaSchema'
   v1beta1CreateOrganizationInvitationResponse:
     type: object
     properties:
       invitation:
-        $ref: "#/definitions/v1beta1Invitation"
+        $ref: '#/definitions/v1beta1Invitation'
   v1beta1CreateOrganizationResponse:
     type: object
     properties:
       organization:
-        $ref: "#/definitions/v1beta1Organization"
+        $ref: '#/definitions/v1beta1Organization'
   v1beta1CreateOrganizationRoleResponse:
     type: object
     properties:
       role:
-        $ref: "#/definitions/v1beta1Role"
+        $ref: '#/definitions/v1beta1Role'
   v1beta1CreatePermissionRequest:
     type: object
     properties:
@@ -4386,7 +4432,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1PermissionRequestBody"
+          $ref: '#/definitions/v1beta1PermissionRequestBody'
   v1beta1CreatePermissionResponse:
     type: object
     properties:
@@ -4394,37 +4440,37 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Permission"
+          $ref: '#/definitions/v1beta1Permission'
   v1beta1CreatePolicyResponse:
     type: object
     properties:
       policy:
-        $ref: "#/definitions/v1beta1Policy"
+        $ref: '#/definitions/v1beta1Policy'
   v1beta1CreateProjectResourceResponse:
     type: object
     properties:
       resource:
-        $ref: "#/definitions/v1beta1Resource"
+        $ref: '#/definitions/v1beta1Resource'
   v1beta1CreateProjectResponse:
     type: object
     properties:
       project:
-        $ref: "#/definitions/v1beta1Project"
+        $ref: '#/definitions/v1beta1Project'
   v1beta1CreateRelationResponse:
     type: object
     properties:
       relation:
-        $ref: "#/definitions/v1beta1Relation"
+        $ref: '#/definitions/v1beta1Relation'
   v1beta1CreateRoleResponse:
     type: object
     properties:
       role:
-        $ref: "#/definitions/v1beta1Role"
+        $ref: '#/definitions/v1beta1Role'
   v1beta1CreateUserResponse:
     type: object
     properties:
       user:
-        $ref: "#/definitions/v1beta1User"
+        $ref: '#/definitions/v1beta1User'
   v1beta1DeleteGroupResponse:
     type: object
   v1beta1DeleteMetaSchemaResponse:
@@ -4469,37 +4515,37 @@ definitions:
     type: object
     properties:
       user:
-        $ref: "#/definitions/v1beta1User"
+        $ref: '#/definitions/v1beta1User'
   v1beta1GetGroupResponse:
     type: object
     properties:
       group:
-        $ref: "#/definitions/v1beta1Group"
+        $ref: '#/definitions/v1beta1Group'
   v1beta1GetMetaSchemaResponse:
     type: object
     properties:
       metaschema:
-        $ref: "#/definitions/v1beta1MetaSchema"
+        $ref: '#/definitions/v1beta1MetaSchema'
   v1beta1GetNamespaceResponse:
     type: object
     properties:
       namespace:
-        $ref: "#/definitions/v1beta1Namespace"
+        $ref: '#/definitions/v1beta1Namespace'
   v1beta1GetOrganizationInvitationResponse:
     type: object
     properties:
       invitation:
-        $ref: "#/definitions/v1beta1Invitation"
+        $ref: '#/definitions/v1beta1Invitation'
   v1beta1GetOrganizationResponse:
     type: object
     properties:
       organization:
-        $ref: "#/definitions/v1beta1Organization"
+        $ref: '#/definitions/v1beta1Organization'
   v1beta1GetOrganizationRoleResponse:
     type: object
     properties:
       role:
-        $ref: "#/definitions/v1beta1Role"
+        $ref: '#/definitions/v1beta1Role'
   v1beta1GetOrganizationsByCurrentUserResponse:
     type: object
     properties:
@@ -4507,7 +4553,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Organization"
+          $ref: '#/definitions/v1beta1Organization'
   v1beta1GetOrganizationsByUserResponse:
     type: object
     properties:
@@ -4515,37 +4561,37 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Organization"
+          $ref: '#/definitions/v1beta1Organization'
   v1beta1GetPermissionResponse:
     type: object
     properties:
       permission:
-        $ref: "#/definitions/v1beta1Permission"
+        $ref: '#/definitions/v1beta1Permission'
   v1beta1GetPolicyResponse:
     type: object
     properties:
       policy:
-        $ref: "#/definitions/v1beta1Policy"
+        $ref: '#/definitions/v1beta1Policy'
   v1beta1GetProjectResourceResponse:
     type: object
     properties:
       resource:
-        $ref: "#/definitions/v1beta1Resource"
+        $ref: '#/definitions/v1beta1Resource'
   v1beta1GetProjectResponse:
     type: object
     properties:
       project:
-        $ref: "#/definitions/v1beta1Project"
+        $ref: '#/definitions/v1beta1Project'
   v1beta1GetRelationResponse:
     type: object
     properties:
       relation:
-        $ref: "#/definitions/v1beta1Relation"
+        $ref: '#/definitions/v1beta1Relation'
   v1beta1GetUserResponse:
     type: object
     properties:
       user:
-        $ref: "#/definitions/v1beta1User"
+        $ref: '#/definitions/v1beta1User'
   v1beta1Group:
     type: object
     properties:
@@ -4562,9 +4608,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the group was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the group was last updated.
   v1beta1GroupRequestBody:
     type: object
     properties:
@@ -4584,22 +4634,37 @@ definitions:
     properties:
       id:
         type: string
+        example: k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
+        description: The unique invitation identifier.
       userId:
         type: string
+        example: john.doe@raystack.org
+        description: The user email of the invited user.
       orgId:
         type: string
+        example: b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
+        description: The organization id to which the user is invited.
       groupIds:
         type: array
+        example: c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
         items:
           type: string
+        description: The list of group ids to which the user is invited.
       metadata:
         type: object
+        example:
+          key: value
+        description: The metadata of the invitation.
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the invitation was created.
       expiresAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the invitation expires.
   v1beta1ListAllOrganizationsResponse:
     type: object
     properties:
@@ -4607,7 +4672,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Organization"
+          $ref: '#/definitions/v1beta1Organization'
   v1beta1ListAllUsersResponse:
     type: object
     properties:
@@ -4618,7 +4683,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1User"
+          $ref: '#/definitions/v1beta1User'
   v1beta1ListAuthStrategiesResponse:
     type: object
     properties:
@@ -4626,7 +4691,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1AuthStrategy"
+          $ref: '#/definitions/v1beta1AuthStrategy'
   v1beta1ListCurrentUserGroupsResponse:
     type: object
     properties:
@@ -4634,7 +4699,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Group"
+          $ref: '#/definitions/v1beta1Group'
   v1beta1ListGroupUsersResponse:
     type: object
     properties:
@@ -4642,7 +4707,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1User"
+          $ref: '#/definitions/v1beta1User'
   v1beta1ListGroupsResponse:
     type: object
     properties:
@@ -4650,7 +4715,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Group"
+          $ref: '#/definitions/v1beta1Group'
   v1beta1ListMetaSchemasResponse:
     type: object
     properties:
@@ -4658,7 +4723,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1MetaSchema"
+          $ref: '#/definitions/v1beta1MetaSchema'
   v1beta1ListNamespacesResponse:
     type: object
     properties:
@@ -4666,7 +4731,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Namespace"
+          $ref: '#/definitions/v1beta1Namespace'
   v1beta1ListOrganizationAdminsResponse:
     type: object
     properties:
@@ -4674,7 +4739,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1User"
+          $ref: '#/definitions/v1beta1User'
   v1beta1ListOrganizationGroupsResponse:
     type: object
     properties:
@@ -4682,7 +4747,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Group"
+          $ref: '#/definitions/v1beta1Group'
   v1beta1ListOrganizationInvitationsResponse:
     type: object
     properties:
@@ -4690,7 +4755,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Invitation"
+          $ref: '#/definitions/v1beta1Invitation'
   v1beta1ListOrganizationProjectsResponse:
     type: object
     properties:
@@ -4698,7 +4763,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Project"
+          $ref: '#/definitions/v1beta1Project'
   v1beta1ListOrganizationRolesResponse:
     type: object
     properties:
@@ -4706,7 +4771,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Role"
+          $ref: '#/definitions/v1beta1Role'
   v1beta1ListOrganizationUsersResponse:
     type: object
     properties:
@@ -4714,7 +4779,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1User"
+          $ref: '#/definitions/v1beta1User'
   v1beta1ListOrganizationsResponse:
     type: object
     properties:
@@ -4722,7 +4787,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Organization"
+          $ref: '#/definitions/v1beta1Organization'
   v1beta1ListPermissionsResponse:
     type: object
     properties:
@@ -4730,7 +4795,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Permission"
+          $ref: '#/definitions/v1beta1Permission'
   v1beta1ListPoliciesResponse:
     type: object
     properties:
@@ -4738,7 +4803,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Policy"
+          $ref: '#/definitions/v1beta1Policy'
   v1beta1ListProjectAdminsResponse:
     type: object
     properties:
@@ -4746,7 +4811,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1User"
+          $ref: '#/definitions/v1beta1User'
   v1beta1ListProjectResourcesResponse:
     type: object
     properties:
@@ -4754,7 +4819,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Resource"
+          $ref: '#/definitions/v1beta1Resource'
   v1beta1ListProjectUsersResponse:
     type: object
     properties:
@@ -4762,7 +4827,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1User"
+          $ref: '#/definitions/v1beta1User'
   v1beta1ListProjectsResponse:
     type: object
     properties:
@@ -4770,7 +4835,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Project"
+          $ref: '#/definitions/v1beta1Project'
   v1beta1ListRelationsResponse:
     type: object
     properties:
@@ -4778,7 +4843,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Relation"
+          $ref: '#/definitions/v1beta1Relation'
   v1beta1ListResourcesResponse:
     type: object
     properties:
@@ -4786,7 +4851,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Resource"
+          $ref: '#/definitions/v1beta1Resource'
   v1beta1ListRolesResponse:
     type: object
     properties:
@@ -4794,7 +4859,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Role"
+          $ref: '#/definitions/v1beta1Role'
   v1beta1ListUserGroupsResponse:
     type: object
     properties:
@@ -4802,7 +4867,15 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Group"
+          $ref: '#/definitions/v1beta1Group'
+  v1beta1ListUserInvitationsResponse:
+    type: object
+    properties:
+      invitations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Invitation'
   v1beta1ListUsersResponse:
     type: object
     properties:
@@ -4813,22 +4886,31 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1User"
+          $ref: '#/definitions/v1beta1User'
   v1beta1MetaSchema:
     type: object
     properties:
       id:
         type: string
+        example: a9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
+        description: The unique metaschema uuid.
       name:
         type: string
       schema:
         type: string
+        example:
+          type: object
+        description: The metaschema json schema.
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the metaschema was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the metaschema was updated.
   v1beta1MetaSchemaRequestBody:
     type: object
     properties:
@@ -4848,15 +4930,19 @@ definitions:
         type: string
       name:
         type: string
-        title: "name could be in a format like: app/organization"
+        title: 'name could be in a format like: app/organization'
       metadata:
         type: object
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the namespace was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the namespace was last updated.
   v1beta1Organization:
     type: object
     properties:
@@ -4871,9 +4957,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the organization was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the organization was last updated.
   v1beta1OrganizationRequestBody:
     type: object
     properties:
@@ -4900,9 +4990,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the permission was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the permission was last updated.
       namespace:
         type: string
       metadata:
@@ -4936,9 +5030,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the policy was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the policy was last updated.
       roleId:
         type: string
       resource:
@@ -4987,9 +5085,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the project was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the project was last updated.
   v1beta1ProjectRequestBody:
     type: object
     properties:
@@ -5016,9 +5118,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the relation was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the relation was last updated.
       subjectSubRelation:
         type: string
       relation:
@@ -5056,9 +5162,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the resource was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the resource was last updated.
       urn:
         type: string
       projectId:
@@ -5104,9 +5214,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the role was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the role was last updated.
       orgId:
         type: string
       state:
@@ -5128,32 +5242,32 @@ definitions:
     type: object
     properties:
       user:
-        $ref: "#/definitions/v1beta1User"
+        $ref: '#/definitions/v1beta1User'
   v1beta1UpdateGroupResponse:
     type: object
     properties:
       group:
-        $ref: "#/definitions/v1beta1Group"
+        $ref: '#/definitions/v1beta1Group'
   v1beta1UpdateMetaSchemaResponse:
     type: object
     properties:
       metaschema:
-        $ref: "#/definitions/v1beta1MetaSchema"
+        $ref: '#/definitions/v1beta1MetaSchema'
   v1beta1UpdateOrganizationResponse:
     type: object
     properties:
       organization:
-        $ref: "#/definitions/v1beta1Organization"
+        $ref: '#/definitions/v1beta1Organization'
   v1beta1UpdateOrganizationRoleResponse:
     type: object
     properties:
       role:
-        $ref: "#/definitions/v1beta1Role"
+        $ref: '#/definitions/v1beta1Role'
   v1beta1UpdatePermissionResponse:
     type: object
     properties:
       permission:
-        $ref: "#/definitions/v1beta1Permission"
+        $ref: '#/definitions/v1beta1Permission'
   v1beta1UpdatePolicyResponse:
     type: object
     properties:
@@ -5161,22 +5275,22 @@ definitions:
         type: array
         items:
           type: object
-          $ref: "#/definitions/v1beta1Policy"
+          $ref: '#/definitions/v1beta1Policy'
   v1beta1UpdateProjectResourceResponse:
     type: object
     properties:
       resource:
-        $ref: "#/definitions/v1beta1Resource"
+        $ref: '#/definitions/v1beta1Resource'
   v1beta1UpdateProjectResponse:
     type: object
     properties:
       project:
-        $ref: "#/definitions/v1beta1Project"
+        $ref: '#/definitions/v1beta1Project'
   v1beta1UpdateUserResponse:
     type: object
     properties:
       user:
-        $ref: "#/definitions/v1beta1User"
+        $ref: '#/definitions/v1beta1User'
   v1beta1User:
     type: object
     properties:
@@ -5194,15 +5308,19 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the user was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the user was last updated.
   v1beta1UserRequestBody:
     type: object
     properties:
       name:
         type: string
-        description: "The name of the user. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. If not provided, Shield automatically generates a name from the user email. "
+        description: 'The name of the user. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. If not provided, Shield automatically generates a name from the user email. '
       email:
         type: string
         description: The email of the user. The email must be unique within the entire Shield instance.<br/>*Example:*`"john.doe@raystack.org"`

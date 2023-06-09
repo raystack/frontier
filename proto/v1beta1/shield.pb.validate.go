@@ -4015,7 +4015,7 @@ func (m *ListUserGroupsRequest) validate(all bool) error {
 
 	// no validation rules for Id
 
-	// no validation rules for Role
+	// no validation rules for OrgId
 
 	if len(errors) > 0 {
 		return ListUserGroupsRequestMultiError(errors)
@@ -5270,6 +5270,247 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetGroupRequestValidationError{}
+
+// Validate checks the field values on ListUserInvitationsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListUserInvitationsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListUserInvitationsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListUserInvitationsRequestMultiError, or nil if none found.
+func (m *ListUserInvitationsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListUserInvitationsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return ListUserInvitationsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListUserInvitationsRequestMultiError is an error wrapping multiple
+// validation errors returned by ListUserInvitationsRequest.ValidateAll() if
+// the designated constraints aren't met.
+type ListUserInvitationsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListUserInvitationsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListUserInvitationsRequestMultiError) AllErrors() []error { return m }
+
+// ListUserInvitationsRequestValidationError is the validation error returned
+// by ListUserInvitationsRequest.Validate if the designated constraints aren't met.
+type ListUserInvitationsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListUserInvitationsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListUserInvitationsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListUserInvitationsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListUserInvitationsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListUserInvitationsRequestValidationError) ErrorName() string {
+	return "ListUserInvitationsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListUserInvitationsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListUserInvitationsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListUserInvitationsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListUserInvitationsRequestValidationError{}
+
+// Validate checks the field values on ListUserInvitationsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListUserInvitationsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListUserInvitationsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListUserInvitationsResponseMultiError, or nil if none found.
+func (m *ListUserInvitationsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListUserInvitationsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetInvitations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListUserInvitationsResponseValidationError{
+						field:  fmt.Sprintf("Invitations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListUserInvitationsResponseValidationError{
+						field:  fmt.Sprintf("Invitations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListUserInvitationsResponseValidationError{
+					field:  fmt.Sprintf("Invitations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListUserInvitationsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListUserInvitationsResponseMultiError is an error wrapping multiple
+// validation errors returned by ListUserInvitationsResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ListUserInvitationsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListUserInvitationsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListUserInvitationsResponseMultiError) AllErrors() []error { return m }
+
+// ListUserInvitationsResponseValidationError is the validation error returned
+// by ListUserInvitationsResponse.Validate if the designated constraints
+// aren't met.
+type ListUserInvitationsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListUserInvitationsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListUserInvitationsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListUserInvitationsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListUserInvitationsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListUserInvitationsResponseValidationError) ErrorName() string {
+	return "ListUserInvitationsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListUserInvitationsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListUserInvitationsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListUserInvitationsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListUserInvitationsResponseValidationError{}
 
 // Validate checks the field values on ListOrganizationGroupsRequest with the
 // rules defined in the proto definition for this message. If any rules are
