@@ -26,7 +26,7 @@ func (from Invitation) transformToInvitation() (invitation.Invitation, error) {
 		}
 	}
 	var groupIDs []string
-	if val, ok := unmarshalledMetadata["group_ids"]; ok {
+	if val, ok := unmarshalledMetadata["group_ids"]; ok && (val != nil) {
 		for _, groupIDRaw := range val.([]interface{}) {
 			groupIDs = append(groupIDs, groupIDRaw.(string))
 		}
