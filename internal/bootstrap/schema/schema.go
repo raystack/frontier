@@ -156,6 +156,8 @@ func ParseNamespaceAliasIfRequired(n string) string {
 	switch n {
 	case "user":
 		n = UserPrincipal
+	case "superuser":
+		n = SuperUserPrincipal
 	case "group":
 		n = GroupPrincipal
 	case "org", "organization":

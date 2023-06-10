@@ -14,6 +14,6 @@ The current deployment uses the [v1beta1](https://github.com/odpf/proton/tree/ma
 While making any changes in Shield APIs, the makefile in Shield contains the Proton commit hash, which is utilized in Shield for generating protobuf files and documentation with `make proto` and `make doc` rules. 
 :::
 
-The **`make proto`** command creates [admin.swagger.json](https://github.com/odpf/shield/blob/main/proto/v1beta1/admin.swagger.json) and [shield.swagger.json](https://github.com/odpf/shield/blob/main/proto/v1beta1/shield.swagger.json) files in which can be used to create a Postman collection to test these APIs. 
+The **`make proto`** command creates [apidocs.swagger.yaml](https://github.com/odpf/shield/blob/main/proto/apidocs.swagger.json) specification which can be used to create a Postman collection to test these APIs. 
 
 Besides this, one can import these files it in the [Swagger Editor](https://editor.swagger.io/) to visualize the Shield API documentation using the Swagger OpenAPI specification format.

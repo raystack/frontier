@@ -49,7 +49,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         docsPluginId: "classic",
         config: {
           auth: {
-            specPath: "../proto/apidocs.swagger.json",
+            specPath: "../proto/apidocs.swagger.yaml",
             outputDir: "docs/apis",
             sidebarOptions: {
               groupPathsBy: "tag",
