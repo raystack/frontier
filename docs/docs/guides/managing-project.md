@@ -8,19 +8,19 @@ A project in Shield looks like
 
 ```json
 {
-    "projects": [
-        {
-            "id": "1b89026b-6713-4327-9d7e-ed03345da288",
-            "name": "Project Alpha",
-            "slug": "project-alpha",
-            "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
-            "metadata": {
-                "description": "Project Alpha"
-            },
-            "createdAt": "2022-12-07T14:31:46.436081Z",
-            "updatedAt": "2022-12-07T14:31:46.436081Z"
-        }
-    ]
+  "projects": [
+    {
+      "id": "1b89026b-6713-4327-9d7e-ed03345da288",
+      "name": "Project Alpha",
+      "slug": "project-alpha",
+      "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
+      "metadata": {
+        "description": "Project Alpha"
+      },
+      "createdAt": "2022-12-07T14:31:46.436081Z",
+      "updatedAt": "2022-12-07T14:31:46.436081Z"
+    }
+  ]
 }
 ```
 
@@ -101,7 +101,7 @@ A project in Shield looks like
   "name": "Project Beta",
   "slug": "project-beta",
   "metadata": {
-      "description": "Project Beta by ODPF"
+      "description": "Project Beta by Raystack"
   },
   "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8"
 }'`}

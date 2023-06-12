@@ -11,9 +11,9 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/role"
+	"github.com/raystack/shield/pkg/db"
 )
 
 type RoleRepository struct {

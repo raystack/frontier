@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/odpf/shield/core/group"
+	"github.com/raystack/shield/core/group"
 )
 
 type Group struct {

@@ -35,7 +35,7 @@ e2e-regression-test: ## Run regression tests
 	go test -v -race ./test/e2e_test/regression  -coverprofile=coverage.out
 
 benchmark: ## Run benchmarks
-	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/integration
+	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/raystack/shield/integration
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.txt
@@ -44,10 +44,10 @@ clean :
 	rm -rf dist
 
 proto: ## Generate the protobuf files
-	@echo " > generating protobuf from odpf/proton"
+	@echo " > generating protobuf from raystack/proton"
 	@echo " > [info] make sure correct version of dependencies are installed using 'make install'"
-	@buf generate https://github.com/odpf/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path odpf/shield
-	@cp -R proto/odpf/shield/* proto/ && rm -Rf proto/odpf
+	@buf generate https://github.com/raystack/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path raystack/shield
+	@cp -R proto/raystack/shield/* proto/ && rm -Rf proto/raystack
 	@echo " > protobuf compilation finished"
 
 update-swagger-md:

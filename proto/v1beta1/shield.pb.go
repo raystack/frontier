@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.27.1
 // 	protoc        (unknown)
-// source: odpf/shield/v1beta1/shield.proto
+// source: raystack/shield/v1beta1/shield.proto
 
 package shieldv1beta1
 
@@ -34,7 +34,7 @@ type AuthLogoutRequest struct {
 func (x *AuthLogoutRequest) Reset() {
 	*x = AuthLogoutRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[0]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -47,7 +47,7 @@ func (x *AuthLogoutRequest) String() string {
 func (*AuthLogoutRequest) ProtoMessage() {}
 
 func (x *AuthLogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[0]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,7 +60,7 @@ func (x *AuthLogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthLogoutRequest.ProtoReflect.Descriptor instead.
 func (*AuthLogoutRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{0}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{0}
 }
 
 type AuthLogoutResponse struct {
@@ -72,7 +72,7 @@ type AuthLogoutResponse struct {
 func (x *AuthLogoutResponse) Reset() {
 	*x = AuthLogoutResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[1]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -85,7 +85,7 @@ func (x *AuthLogoutResponse) String() string {
 func (*AuthLogoutResponse) ProtoMessage() {}
 
 func (x *AuthLogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[1]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -98,7 +98,7 @@ func (x *AuthLogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthLogoutResponse.ProtoReflect.Descriptor instead.
 func (*AuthLogoutResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{1}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{1}
 }
 
 type AuthCallbackRequest struct {
@@ -116,7 +116,7 @@ type AuthCallbackRequest struct {
 func (x *AuthCallbackRequest) Reset() {
 	*x = AuthCallbackRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[2]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -129,7 +129,7 @@ func (x *AuthCallbackRequest) String() string {
 func (*AuthCallbackRequest) ProtoMessage() {}
 
 func (x *AuthCallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[2]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -142,7 +142,7 @@ func (x *AuthCallbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthCallbackRequest.ProtoReflect.Descriptor instead.
 func (*AuthCallbackRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{2}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AuthCallbackRequest) GetStrategyName() string {
@@ -175,7 +175,7 @@ type AuthCallbackResponse struct {
 func (x *AuthCallbackResponse) Reset() {
 	*x = AuthCallbackResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[3]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -188,7 +188,7 @@ func (x *AuthCallbackResponse) String() string {
 func (*AuthCallbackResponse) ProtoMessage() {}
 
 func (x *AuthCallbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[3]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -201,7 +201,7 @@ func (x *AuthCallbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthCallbackResponse.ProtoReflect.Descriptor instead.
 func (*AuthCallbackResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{3}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{3}
 }
 
 type AuthenticateRequest struct {
@@ -222,7 +222,7 @@ type AuthenticateRequest struct {
 func (x *AuthenticateRequest) Reset() {
 	*x = AuthenticateRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[4]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -235,7 +235,7 @@ func (x *AuthenticateRequest) String() string {
 func (*AuthenticateRequest) ProtoMessage() {}
 
 func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[4]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -248,7 +248,7 @@ func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateRequest.ProtoReflect.Descriptor instead.
 func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{4}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AuthenticateRequest) GetStrategyName() string {
@@ -283,7 +283,7 @@ type AuthenticateResponse struct {
 func (x *AuthenticateResponse) Reset() {
 	*x = AuthenticateResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[5]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -296,7 +296,7 @@ func (x *AuthenticateResponse) String() string {
 func (*AuthenticateResponse) ProtoMessage() {}
 
 func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[5]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -309,7 +309,7 @@ func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateResponse.ProtoReflect.Descriptor instead.
 func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{5}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *AuthenticateResponse) GetEndpoint() string {
@@ -331,7 +331,7 @@ type AuthStrategy struct {
 func (x *AuthStrategy) Reset() {
 	*x = AuthStrategy{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[6]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -344,7 +344,7 @@ func (x *AuthStrategy) String() string {
 func (*AuthStrategy) ProtoMessage() {}
 
 func (x *AuthStrategy) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[6]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -357,7 +357,7 @@ func (x *AuthStrategy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthStrategy.ProtoReflect.Descriptor instead.
 func (*AuthStrategy) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{6}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AuthStrategy) GetName() string {
@@ -383,7 +383,7 @@ type ListAuthStrategiesRequest struct {
 func (x *ListAuthStrategiesRequest) Reset() {
 	*x = ListAuthStrategiesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[7]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -396,7 +396,7 @@ func (x *ListAuthStrategiesRequest) String() string {
 func (*ListAuthStrategiesRequest) ProtoMessage() {}
 
 func (x *ListAuthStrategiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[7]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -409,7 +409,7 @@ func (x *ListAuthStrategiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuthStrategiesRequest.ProtoReflect.Descriptor instead.
 func (*ListAuthStrategiesRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{7}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{7}
 }
 
 type ListAuthStrategiesResponse struct {
@@ -423,7 +423,7 @@ type ListAuthStrategiesResponse struct {
 func (x *ListAuthStrategiesResponse) Reset() {
 	*x = ListAuthStrategiesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[8]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -436,7 +436,7 @@ func (x *ListAuthStrategiesResponse) String() string {
 func (*ListAuthStrategiesResponse) ProtoMessage() {}
 
 func (x *ListAuthStrategiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[8]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -449,7 +449,7 @@ func (x *ListAuthStrategiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuthStrategiesResponse.ProtoReflect.Descriptor instead.
 func (*ListAuthStrategiesResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{8}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListAuthStrategiesResponse) GetStrategies() []*AuthStrategy {
@@ -473,7 +473,7 @@ type UserRequestBody struct {
 func (x *UserRequestBody) Reset() {
 	*x = UserRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[9]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -486,7 +486,7 @@ func (x *UserRequestBody) String() string {
 func (*UserRequestBody) ProtoMessage() {}
 
 func (x *UserRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[9]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -499,7 +499,7 @@ func (x *UserRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRequestBody.ProtoReflect.Descriptor instead.
 func (*UserRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{9}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UserRequestBody) GetName() string {
@@ -541,7 +541,7 @@ type CreateUserRequest struct {
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[10]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -554,7 +554,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[10]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +567,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{10}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CreateUserRequest) GetBody() *UserRequestBody {
@@ -594,7 +594,7 @@ type User struct {
 func (x *User) Reset() {
 	*x = User{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[11]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -607,7 +607,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[11]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -620,7 +620,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{11}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *User) GetId() string {
@@ -683,7 +683,7 @@ type CreateUserResponse struct {
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[12]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -696,7 +696,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[12]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -709,7 +709,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{12}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CreateUserResponse) GetUser() *User {
@@ -731,7 +731,7 @@ type MetadataKeyRequestBody struct {
 func (x *MetadataKeyRequestBody) Reset() {
 	*x = MetadataKeyRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[13]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -744,7 +744,7 @@ func (x *MetadataKeyRequestBody) String() string {
 func (*MetadataKeyRequestBody) ProtoMessage() {}
 
 func (x *MetadataKeyRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[13]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -757,7 +757,7 @@ func (x *MetadataKeyRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetadataKeyRequestBody.ProtoReflect.Descriptor instead.
 func (*MetadataKeyRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{13}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *MetadataKeyRequestBody) GetKey() string {
@@ -785,7 +785,7 @@ type CreateMetadataKeyRequest struct {
 func (x *CreateMetadataKeyRequest) Reset() {
 	*x = CreateMetadataKeyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[14]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -798,7 +798,7 @@ func (x *CreateMetadataKeyRequest) String() string {
 func (*CreateMetadataKeyRequest) ProtoMessage() {}
 
 func (x *CreateMetadataKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[14]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -811,7 +811,7 @@ func (x *CreateMetadataKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMetadataKeyRequest.ProtoReflect.Descriptor instead.
 func (*CreateMetadataKeyRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{14}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateMetadataKeyRequest) GetBody() *MetadataKeyRequestBody {
@@ -833,7 +833,7 @@ type MetadataKey struct {
 func (x *MetadataKey) Reset() {
 	*x = MetadataKey{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[15]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -846,7 +846,7 @@ func (x *MetadataKey) String() string {
 func (*MetadataKey) ProtoMessage() {}
 
 func (x *MetadataKey) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[15]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -859,7 +859,7 @@ func (x *MetadataKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetadataKey.ProtoReflect.Descriptor instead.
 func (*MetadataKey) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{15}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *MetadataKey) GetKey() string {
@@ -887,7 +887,7 @@ type CreateMetadataKeyResponse struct {
 func (x *CreateMetadataKeyResponse) Reset() {
 	*x = CreateMetadataKeyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[16]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -900,7 +900,7 @@ func (x *CreateMetadataKeyResponse) String() string {
 func (*CreateMetadataKeyResponse) ProtoMessage() {}
 
 func (x *CreateMetadataKeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[16]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -913,7 +913,7 @@ func (x *CreateMetadataKeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMetadataKeyResponse.ProtoReflect.Descriptor instead.
 func (*CreateMetadataKeyResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{16}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateMetadataKeyResponse) GetMetadatakey() *MetadataKey {
@@ -934,7 +934,7 @@ type GetOrganizationsByUserRequest struct {
 func (x *GetOrganizationsByUserRequest) Reset() {
 	*x = GetOrganizationsByUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[17]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -947,7 +947,7 @@ func (x *GetOrganizationsByUserRequest) String() string {
 func (*GetOrganizationsByUserRequest) ProtoMessage() {}
 
 func (x *GetOrganizationsByUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[17]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -960,7 +960,7 @@ func (x *GetOrganizationsByUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationsByUserRequest.ProtoReflect.Descriptor instead.
 func (*GetOrganizationsByUserRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{17}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetOrganizationsByUserRequest) GetId() string {
@@ -981,7 +981,7 @@ type GetOrganizationsByUserResponse struct {
 func (x *GetOrganizationsByUserResponse) Reset() {
 	*x = GetOrganizationsByUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[18]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -994,7 +994,7 @@ func (x *GetOrganizationsByUserResponse) String() string {
 func (*GetOrganizationsByUserResponse) ProtoMessage() {}
 
 func (x *GetOrganizationsByUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[18]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1007,7 +1007,7 @@ func (x *GetOrganizationsByUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationsByUserResponse.ProtoReflect.Descriptor instead.
 func (*GetOrganizationsByUserResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{18}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetOrganizationsByUserResponse) GetOrganizations() []*Organization {
@@ -1028,7 +1028,7 @@ type GetUserResponse struct {
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[19]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1041,7 +1041,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[19]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1054,7 +1054,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{19}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetUserResponse) GetUser() *User {
@@ -1073,7 +1073,7 @@ type GetCurrentUserRequest struct {
 func (x *GetCurrentUserRequest) Reset() {
 	*x = GetCurrentUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[20]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1086,7 +1086,7 @@ func (x *GetCurrentUserRequest) String() string {
 func (*GetCurrentUserRequest) ProtoMessage() {}
 
 func (x *GetCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[20]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1099,7 +1099,7 @@ func (x *GetCurrentUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{20}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{20}
 }
 
 type GetCurrentUserResponse struct {
@@ -1113,7 +1113,7 @@ type GetCurrentUserResponse struct {
 func (x *GetCurrentUserResponse) Reset() {
 	*x = GetCurrentUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[21]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1126,7 +1126,7 @@ func (x *GetCurrentUserResponse) String() string {
 func (*GetCurrentUserResponse) ProtoMessage() {}
 
 func (x *GetCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[21]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1139,7 @@ func (x *GetCurrentUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{21}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetCurrentUserResponse) GetUser() *User {
@@ -1160,7 +1160,7 @@ type UpdateUserResponse struct {
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[22]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1173,7 +1173,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[22]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1186,7 +1186,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{22}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateUserResponse) GetUser() *User {
@@ -1207,7 +1207,7 @@ type UpdateCurrentUserResponse struct {
 func (x *UpdateCurrentUserResponse) Reset() {
 	*x = UpdateCurrentUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[23]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1220,7 +1220,7 @@ func (x *UpdateCurrentUserResponse) String() string {
 func (*UpdateCurrentUserResponse) ProtoMessage() {}
 
 func (x *UpdateCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[23]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1233,7 +1233,7 @@ func (x *UpdateCurrentUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{23}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateCurrentUserResponse) GetUser() *User {
@@ -1255,7 +1255,7 @@ type UpdateUserRequest struct {
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[24]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1268,7 +1268,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[24]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1281,7 +1281,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{24}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateUserRequest) GetId() string {
@@ -1309,7 +1309,7 @@ type GetUserRequest struct {
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[25]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1322,7 +1322,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[25]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1335,7 +1335,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{25}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetUserRequest) GetId() string {
@@ -1357,7 +1357,7 @@ type ListUserGroupsRequest struct {
 func (x *ListUserGroupsRequest) Reset() {
 	*x = ListUserGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[26]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1370,7 +1370,7 @@ func (x *ListUserGroupsRequest) String() string {
 func (*ListUserGroupsRequest) ProtoMessage() {}
 
 func (x *ListUserGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[26]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1383,7 +1383,7 @@ func (x *ListUserGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListUserGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{26}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListUserGroupsRequest) GetId() string {
@@ -1413,7 +1413,7 @@ type ListUsersRequest struct {
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[27]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1426,7 +1426,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[27]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1439,7 +1439,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{27}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListUsersRequest) GetPageSize() int32 {
@@ -1475,7 +1475,7 @@ type ListUsersResponse struct {
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[28]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1488,7 +1488,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[28]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1501,7 +1501,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{28}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListUsersResponse) GetCount() int32 {
@@ -1532,7 +1532,7 @@ type GroupRequestBody struct {
 func (x *GroupRequestBody) Reset() {
 	*x = GroupRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[29]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1545,7 +1545,7 @@ func (x *GroupRequestBody) String() string {
 func (*GroupRequestBody) ProtoMessage() {}
 
 func (x *GroupRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[29]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1558,7 +1558,7 @@ func (x *GroupRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupRequestBody.ProtoReflect.Descriptor instead.
 func (*GroupRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{29}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GroupRequestBody) GetName() string {
@@ -1600,7 +1600,7 @@ type CreateGroupRequest struct {
 func (x *CreateGroupRequest) Reset() {
 	*x = CreateGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[30]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1613,7 +1613,7 @@ func (x *CreateGroupRequest) String() string {
 func (*CreateGroupRequest) ProtoMessage() {}
 
 func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[30]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1626,7 +1626,7 @@ func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateGroupRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{30}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CreateGroupRequest) GetBody() *GroupRequestBody {
@@ -1647,7 +1647,7 @@ type ListUserGroupsResponse struct {
 func (x *ListUserGroupsResponse) Reset() {
 	*x = ListUserGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[31]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1660,7 +1660,7 @@ func (x *ListUserGroupsResponse) String() string {
 func (*ListUserGroupsResponse) ProtoMessage() {}
 
 func (x *ListUserGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[31]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1673,7 +1673,7 @@ func (x *ListUserGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListUserGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{31}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListUserGroupsResponse) GetGroups() []*Group {
@@ -1700,7 +1700,7 @@ type Group struct {
 func (x *Group) Reset() {
 	*x = Group{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[32]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1713,7 +1713,7 @@ func (x *Group) String() string {
 func (*Group) ProtoMessage() {}
 
 func (x *Group) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[32]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1726,7 +1726,7 @@ func (x *Group) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Group.ProtoReflect.Descriptor instead.
 func (*Group) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{32}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *Group) GetId() string {
@@ -1789,7 +1789,7 @@ type CreateGroupResponse struct {
 func (x *CreateGroupResponse) Reset() {
 	*x = CreateGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[33]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1802,7 +1802,7 @@ func (x *CreateGroupResponse) String() string {
 func (*CreateGroupResponse) ProtoMessage() {}
 
 func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[33]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1815,7 +1815,7 @@ func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupResponse.ProtoReflect.Descriptor instead.
 func (*CreateGroupResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{33}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CreateGroupResponse) GetGroup() *Group {
@@ -1836,7 +1836,7 @@ type GetGroupResponse struct {
 func (x *GetGroupResponse) Reset() {
 	*x = GetGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[34]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1849,7 +1849,7 @@ func (x *GetGroupResponse) String() string {
 func (*GetGroupResponse) ProtoMessage() {}
 
 func (x *GetGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[34]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1862,7 +1862,7 @@ func (x *GetGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupResponse.ProtoReflect.Descriptor instead.
 func (*GetGroupResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{34}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetGroupResponse) GetGroup() *Group {
@@ -1883,7 +1883,7 @@ type UpdateGroupResponse struct {
 func (x *UpdateGroupResponse) Reset() {
 	*x = UpdateGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[35]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1896,7 +1896,7 @@ func (x *UpdateGroupResponse) String() string {
 func (*UpdateGroupResponse) ProtoMessage() {}
 
 func (x *UpdateGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[35]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1909,7 +1909,7 @@ func (x *UpdateGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateGroupResponse.ProtoReflect.Descriptor instead.
 func (*UpdateGroupResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{35}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *UpdateGroupResponse) GetGroup() *Group {
@@ -1931,7 +1931,7 @@ type UpdateGroupRequest struct {
 func (x *UpdateGroupRequest) Reset() {
 	*x = UpdateGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[36]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1944,7 +1944,7 @@ func (x *UpdateGroupRequest) String() string {
 func (*UpdateGroupRequest) ProtoMessage() {}
 
 func (x *UpdateGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[36]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1957,7 +1957,7 @@ func (x *UpdateGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateGroupRequest.ProtoReflect.Descriptor instead.
 func (*UpdateGroupRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{36}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *UpdateGroupRequest) GetId() string {
@@ -1985,7 +1985,7 @@ type UpdateCurrentUserRequest struct {
 func (x *UpdateCurrentUserRequest) Reset() {
 	*x = UpdateCurrentUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[37]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1998,7 +1998,7 @@ func (x *UpdateCurrentUserRequest) String() string {
 func (*UpdateCurrentUserRequest) ProtoMessage() {}
 
 func (x *UpdateCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[37]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2011,7 +2011,7 @@ func (x *UpdateCurrentUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{37}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *UpdateCurrentUserRequest) GetBody() *UserRequestBody {
@@ -2032,7 +2032,7 @@ type GetGroupRequest struct {
 func (x *GetGroupRequest) Reset() {
 	*x = GetGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[38]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2045,7 +2045,7 @@ func (x *GetGroupRequest) String() string {
 func (*GetGroupRequest) ProtoMessage() {}
 
 func (x *GetGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[38]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2058,7 +2058,7 @@ func (x *GetGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupRequest.ProtoReflect.Descriptor instead.
 func (*GetGroupRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{38}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetGroupRequest) GetId() string {
@@ -2081,7 +2081,7 @@ type ListGroupsRequest struct {
 func (x *ListGroupsRequest) Reset() {
 	*x = ListGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[39]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2094,7 +2094,7 @@ func (x *ListGroupsRequest) String() string {
 func (*ListGroupsRequest) ProtoMessage() {}
 
 func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[39]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2107,7 +2107,7 @@ func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{39}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{39}
 }
 
 // Deprecated: Do not use.
@@ -2136,7 +2136,7 @@ type ListGroupsResponse struct {
 func (x *ListGroupsResponse) Reset() {
 	*x = ListGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[40]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2149,7 +2149,7 @@ func (x *ListGroupsResponse) String() string {
 func (*ListGroupsResponse) ProtoMessage() {}
 
 func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[40]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2162,7 +2162,7 @@ func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{40}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListGroupsResponse) GetGroups() []*Group {
@@ -2191,7 +2191,7 @@ type Role struct {
 func (x *Role) Reset() {
 	*x = Role{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[41]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2204,7 +2204,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[41]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2217,7 +2217,7 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{41}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *Role) GetId() string {
@@ -2292,7 +2292,7 @@ type RoleRequestBody struct {
 func (x *RoleRequestBody) Reset() {
 	*x = RoleRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[42]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2305,7 +2305,7 @@ func (x *RoleRequestBody) String() string {
 func (*RoleRequestBody) ProtoMessage() {}
 
 func (x *RoleRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[42]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2318,7 +2318,7 @@ func (x *RoleRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleRequestBody.ProtoReflect.Descriptor instead.
 func (*RoleRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{42}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *RoleRequestBody) GetId() string {
@@ -2367,7 +2367,7 @@ type CreateRoleRequest struct {
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[43]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2380,7 +2380,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[43]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2393,7 +2393,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{43}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *CreateRoleRequest) GetBody() *RoleRequestBody {
@@ -2414,7 +2414,7 @@ type CreateRoleResponse struct {
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[44]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2427,7 +2427,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[44]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2440,7 +2440,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{44}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CreateRoleResponse) GetRole() *Role {
@@ -2461,7 +2461,7 @@ type GetRoleResponse struct {
 func (x *GetRoleResponse) Reset() {
 	*x = GetRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[45]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2474,7 +2474,7 @@ func (x *GetRoleResponse) String() string {
 func (*GetRoleResponse) ProtoMessage() {}
 
 func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[45]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2487,7 +2487,7 @@ func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleResponse.ProtoReflect.Descriptor instead.
 func (*GetRoleResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{45}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetRoleResponse) GetRole() *Role {
@@ -2508,7 +2508,7 @@ type UpdateRoleResponse struct {
 func (x *UpdateRoleResponse) Reset() {
 	*x = UpdateRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[46]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2521,7 +2521,7 @@ func (x *UpdateRoleResponse) String() string {
 func (*UpdateRoleResponse) ProtoMessage() {}
 
 func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[46]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2534,7 +2534,7 @@ func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{46}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *UpdateRoleResponse) GetRole() *Role {
@@ -2555,7 +2555,7 @@ type GetRoleRequest struct {
 func (x *GetRoleRequest) Reset() {
 	*x = GetRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[47]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2568,7 +2568,7 @@ func (x *GetRoleRequest) String() string {
 func (*GetRoleRequest) ProtoMessage() {}
 
 func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[47]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2581,7 +2581,7 @@ func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleRequest.ProtoReflect.Descriptor instead.
 func (*GetRoleRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{47}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetRoleRequest) GetId() string {
@@ -2603,7 +2603,7 @@ type UpdateRoleRequest struct {
 func (x *UpdateRoleRequest) Reset() {
 	*x = UpdateRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[48]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2616,7 +2616,7 @@ func (x *UpdateRoleRequest) String() string {
 func (*UpdateRoleRequest) ProtoMessage() {}
 
 func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[48]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2629,7 +2629,7 @@ func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{48}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *UpdateRoleRequest) GetId() string {
@@ -2655,7 +2655,7 @@ type ListRolesRequest struct {
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[49]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2668,7 +2668,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[49]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2681,7 +2681,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{49}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{49}
 }
 
 type ListRolesResponse struct {
@@ -2695,7 +2695,7 @@ type ListRolesResponse struct {
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[50]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2708,7 +2708,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[50]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2721,7 +2721,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{50}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ListRolesResponse) GetRoles() []*Role {
@@ -2744,7 +2744,7 @@ type OrganizationRequestBody struct {
 func (x *OrganizationRequestBody) Reset() {
 	*x = OrganizationRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[51]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2757,7 +2757,7 @@ func (x *OrganizationRequestBody) String() string {
 func (*OrganizationRequestBody) ProtoMessage() {}
 
 func (x *OrganizationRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[51]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2770,7 +2770,7 @@ func (x *OrganizationRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrganizationRequestBody.ProtoReflect.Descriptor instead.
 func (*OrganizationRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{51}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *OrganizationRequestBody) GetName() string {
@@ -2805,7 +2805,7 @@ type CreateOrganizationRequest struct {
 func (x *CreateOrganizationRequest) Reset() {
 	*x = CreateOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[52]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2818,7 +2818,7 @@ func (x *CreateOrganizationRequest) String() string {
 func (*CreateOrganizationRequest) ProtoMessage() {}
 
 func (x *CreateOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[52]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2831,7 +2831,7 @@ func (x *CreateOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{52}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CreateOrganizationRequest) GetBody() *OrganizationRequestBody {
@@ -2857,7 +2857,7 @@ type Organization struct {
 func (x *Organization) Reset() {
 	*x = Organization{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[53]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2870,7 +2870,7 @@ func (x *Organization) String() string {
 func (*Organization) ProtoMessage() {}
 
 func (x *Organization) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[53]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2883,7 +2883,7 @@ func (x *Organization) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Organization.ProtoReflect.Descriptor instead.
 func (*Organization) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{53}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *Organization) GetId() string {
@@ -2939,7 +2939,7 @@ type CreateOrganizationResponse struct {
 func (x *CreateOrganizationResponse) Reset() {
 	*x = CreateOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[54]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2952,7 +2952,7 @@ func (x *CreateOrganizationResponse) String() string {
 func (*CreateOrganizationResponse) ProtoMessage() {}
 
 func (x *CreateOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[54]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2965,7 +2965,7 @@ func (x *CreateOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{54}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *CreateOrganizationResponse) GetOrganization() *Organization {
@@ -2986,7 +2986,7 @@ type GetOrganizationResponse struct {
 func (x *GetOrganizationResponse) Reset() {
 	*x = GetOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[55]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2999,7 +2999,7 @@ func (x *GetOrganizationResponse) String() string {
 func (*GetOrganizationResponse) ProtoMessage() {}
 
 func (x *GetOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[55]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3012,7 +3012,7 @@ func (x *GetOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*GetOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{55}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *GetOrganizationResponse) GetOrganization() *Organization {
@@ -3033,7 +3033,7 @@ type UpdateOrganizationResponse struct {
 func (x *UpdateOrganizationResponse) Reset() {
 	*x = UpdateOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[56]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3046,7 +3046,7 @@ func (x *UpdateOrganizationResponse) String() string {
 func (*UpdateOrganizationResponse) ProtoMessage() {}
 
 func (x *UpdateOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[56]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3059,7 +3059,7 @@ func (x *UpdateOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{56}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *UpdateOrganizationResponse) GetOrganization() *Organization {
@@ -3078,7 +3078,7 @@ type ListOrganizationsRequest struct {
 func (x *ListOrganizationsRequest) Reset() {
 	*x = ListOrganizationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[57]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3091,7 +3091,7 @@ func (x *ListOrganizationsRequest) String() string {
 func (*ListOrganizationsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[57]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3104,7 +3104,7 @@ func (x *ListOrganizationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{57}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{57}
 }
 
 type ListOrganizationsResponse struct {
@@ -3118,7 +3118,7 @@ type ListOrganizationsResponse struct {
 func (x *ListOrganizationsResponse) Reset() {
 	*x = ListOrganizationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[58]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3131,7 +3131,7 @@ func (x *ListOrganizationsResponse) String() string {
 func (*ListOrganizationsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[58]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3144,7 +3144,7 @@ func (x *ListOrganizationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{58}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ListOrganizationsResponse) GetOrganizations() []*Organization {
@@ -3165,7 +3165,7 @@ type GetOrganizationRequest struct {
 func (x *GetOrganizationRequest) Reset() {
 	*x = GetOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[59]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3178,7 +3178,7 @@ func (x *GetOrganizationRequest) String() string {
 func (*GetOrganizationRequest) ProtoMessage() {}
 
 func (x *GetOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[59]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3191,7 +3191,7 @@ func (x *GetOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*GetOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{59}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetOrganizationRequest) GetId() string {
@@ -3213,7 +3213,7 @@ type UpdateOrganizationRequest struct {
 func (x *UpdateOrganizationRequest) Reset() {
 	*x = UpdateOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[60]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3226,7 +3226,7 @@ func (x *UpdateOrganizationRequest) String() string {
 func (*UpdateOrganizationRequest) ProtoMessage() {}
 
 func (x *UpdateOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[60]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3239,7 +3239,7 @@ func (x *UpdateOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{60}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *UpdateOrganizationRequest) GetId() string {
@@ -3267,7 +3267,7 @@ type ListOrganizationAdminsRequest struct {
 func (x *ListOrganizationAdminsRequest) Reset() {
 	*x = ListOrganizationAdminsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[61]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3280,7 +3280,7 @@ func (x *ListOrganizationAdminsRequest) String() string {
 func (*ListOrganizationAdminsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationAdminsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[61]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3293,7 +3293,7 @@ func (x *ListOrganizationAdminsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationAdminsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationAdminsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{61}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ListOrganizationAdminsRequest) GetId() string {
@@ -3314,7 +3314,7 @@ type ListOrganizationAdminsResponse struct {
 func (x *ListOrganizationAdminsResponse) Reset() {
 	*x = ListOrganizationAdminsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[62]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3327,7 +3327,7 @@ func (x *ListOrganizationAdminsResponse) String() string {
 func (*ListOrganizationAdminsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationAdminsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[62]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3340,7 +3340,7 @@ func (x *ListOrganizationAdminsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationAdminsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationAdminsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{62}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ListOrganizationAdminsResponse) GetUsers() []*User {
@@ -3362,7 +3362,7 @@ type ListOrganizationUsersRequest struct {
 func (x *ListOrganizationUsersRequest) Reset() {
 	*x = ListOrganizationUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[63]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3375,7 +3375,7 @@ func (x *ListOrganizationUsersRequest) String() string {
 func (*ListOrganizationUsersRequest) ProtoMessage() {}
 
 func (x *ListOrganizationUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[63]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3388,7 +3388,7 @@ func (x *ListOrganizationUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{63}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ListOrganizationUsersRequest) GetId() string {
@@ -3416,7 +3416,7 @@ type ListOrganizationUsersResponse struct {
 func (x *ListOrganizationUsersResponse) Reset() {
 	*x = ListOrganizationUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[64]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3429,7 +3429,7 @@ func (x *ListOrganizationUsersResponse) String() string {
 func (*ListOrganizationUsersResponse) ProtoMessage() {}
 
 func (x *ListOrganizationUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[64]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3442,7 +3442,7 @@ func (x *ListOrganizationUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{64}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *ListOrganizationUsersResponse) GetUsers() []*User {
@@ -3463,7 +3463,7 @@ type ListOrganizationProjectsRequest struct {
 func (x *ListOrganizationProjectsRequest) Reset() {
 	*x = ListOrganizationProjectsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[65]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3476,7 +3476,7 @@ func (x *ListOrganizationProjectsRequest) String() string {
 func (*ListOrganizationProjectsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationProjectsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[65]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3489,7 +3489,7 @@ func (x *ListOrganizationProjectsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationProjectsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationProjectsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{65}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *ListOrganizationProjectsRequest) GetId() string {
@@ -3510,7 +3510,7 @@ type ListOrganizationProjectsResponse struct {
 func (x *ListOrganizationProjectsResponse) Reset() {
 	*x = ListOrganizationProjectsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[66]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3523,7 +3523,7 @@ func (x *ListOrganizationProjectsResponse) String() string {
 func (*ListOrganizationProjectsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationProjectsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[66]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3536,7 +3536,7 @@ func (x *ListOrganizationProjectsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationProjectsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationProjectsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{66}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ListOrganizationProjectsResponse) GetProjects() []*Project {
@@ -3560,7 +3560,7 @@ type ProjectRequestBody struct {
 func (x *ProjectRequestBody) Reset() {
 	*x = ProjectRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[67]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3573,7 +3573,7 @@ func (x *ProjectRequestBody) String() string {
 func (*ProjectRequestBody) ProtoMessage() {}
 
 func (x *ProjectRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[67]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3586,7 +3586,7 @@ func (x *ProjectRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectRequestBody.ProtoReflect.Descriptor instead.
 func (*ProjectRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{67}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ProjectRequestBody) GetName() string {
@@ -3628,7 +3628,7 @@ type CreateProjectRequest struct {
 func (x *CreateProjectRequest) Reset() {
 	*x = CreateProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[68]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3641,7 +3641,7 @@ func (x *CreateProjectRequest) String() string {
 func (*CreateProjectRequest) ProtoMessage() {}
 
 func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[68]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3654,7 +3654,7 @@ func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectRequest.ProtoReflect.Descriptor instead.
 func (*CreateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{68}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *CreateProjectRequest) GetBody() *ProjectRequestBody {
@@ -3681,7 +3681,7 @@ type Project struct {
 func (x *Project) Reset() {
 	*x = Project{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[69]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3694,7 +3694,7 @@ func (x *Project) String() string {
 func (*Project) ProtoMessage() {}
 
 func (x *Project) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[69]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3707,7 +3707,7 @@ func (x *Project) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Project.ProtoReflect.Descriptor instead.
 func (*Project) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{69}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *Project) GetId() string {
@@ -3770,7 +3770,7 @@ type CreateProjectResponse struct {
 func (x *CreateProjectResponse) Reset() {
 	*x = CreateProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[70]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3783,7 +3783,7 @@ func (x *CreateProjectResponse) String() string {
 func (*CreateProjectResponse) ProtoMessage() {}
 
 func (x *CreateProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[70]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3796,7 +3796,7 @@ func (x *CreateProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectResponse.ProtoReflect.Descriptor instead.
 func (*CreateProjectResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{70}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *CreateProjectResponse) GetProject() *Project {
@@ -3817,7 +3817,7 @@ type GetProjectResponse struct {
 func (x *GetProjectResponse) Reset() {
 	*x = GetProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[71]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3830,7 +3830,7 @@ func (x *GetProjectResponse) String() string {
 func (*GetProjectResponse) ProtoMessage() {}
 
 func (x *GetProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[71]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3843,7 +3843,7 @@ func (x *GetProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectResponse.ProtoReflect.Descriptor instead.
 func (*GetProjectResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{71}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *GetProjectResponse) GetProject() *Project {
@@ -3864,7 +3864,7 @@ type UpdateProjectResponse struct {
 func (x *UpdateProjectResponse) Reset() {
 	*x = UpdateProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[72]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3877,7 +3877,7 @@ func (x *UpdateProjectResponse) String() string {
 func (*UpdateProjectResponse) ProtoMessage() {}
 
 func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[72]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3890,7 +3890,7 @@ func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProjectResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{72}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *UpdateProjectResponse) GetProject() *Project {
@@ -3909,7 +3909,7 @@ type ListProjectsRequest struct {
 func (x *ListProjectsRequest) Reset() {
 	*x = ListProjectsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[73]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3922,7 +3922,7 @@ func (x *ListProjectsRequest) String() string {
 func (*ListProjectsRequest) ProtoMessage() {}
 
 func (x *ListProjectsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[73]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3935,7 +3935,7 @@ func (x *ListProjectsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{73}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{73}
 }
 
 type ListProjectsResponse struct {
@@ -3949,7 +3949,7 @@ type ListProjectsResponse struct {
 func (x *ListProjectsResponse) Reset() {
 	*x = ListProjectsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[74]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3962,7 +3962,7 @@ func (x *ListProjectsResponse) String() string {
 func (*ListProjectsResponse) ProtoMessage() {}
 
 func (x *ListProjectsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[74]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3975,7 +3975,7 @@ func (x *ListProjectsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{74}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *ListProjectsResponse) GetProjects() []*Project {
@@ -3996,7 +3996,7 @@ type GetProjectRequest struct {
 func (x *GetProjectRequest) Reset() {
 	*x = GetProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[75]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4009,7 +4009,7 @@ func (x *GetProjectRequest) String() string {
 func (*GetProjectRequest) ProtoMessage() {}
 
 func (x *GetProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[75]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4022,7 +4022,7 @@ func (x *GetProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectRequest.ProtoReflect.Descriptor instead.
 func (*GetProjectRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{75}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *GetProjectRequest) GetId() string {
@@ -4044,7 +4044,7 @@ type UpdateProjectRequest struct {
 func (x *UpdateProjectRequest) Reset() {
 	*x = UpdateProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[76]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4057,7 +4057,7 @@ func (x *UpdateProjectRequest) String() string {
 func (*UpdateProjectRequest) ProtoMessage() {}
 
 func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[76]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4070,7 +4070,7 @@ func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{76}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *UpdateProjectRequest) GetId() string {
@@ -4098,7 +4098,7 @@ type ListProjectAdminsRequest struct {
 func (x *ListProjectAdminsRequest) Reset() {
 	*x = ListProjectAdminsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[77]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4111,7 +4111,7 @@ func (x *ListProjectAdminsRequest) String() string {
 func (*ListProjectAdminsRequest) ProtoMessage() {}
 
 func (x *ListProjectAdminsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[77]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4124,7 +4124,7 @@ func (x *ListProjectAdminsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectAdminsRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectAdminsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{77}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ListProjectAdminsRequest) GetId() string {
@@ -4145,7 +4145,7 @@ type ListProjectAdminsResponse struct {
 func (x *ListProjectAdminsResponse) Reset() {
 	*x = ListProjectAdminsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[78]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4158,7 +4158,7 @@ func (x *ListProjectAdminsResponse) String() string {
 func (*ListProjectAdminsResponse) ProtoMessage() {}
 
 func (x *ListProjectAdminsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[78]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4171,7 +4171,7 @@ func (x *ListProjectAdminsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectAdminsResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectAdminsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{78}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *ListProjectAdminsResponse) GetUsers() []*User {
@@ -4193,7 +4193,7 @@ type ListProjectUsersRequest struct {
 func (x *ListProjectUsersRequest) Reset() {
 	*x = ListProjectUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[79]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[79]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4206,7 +4206,7 @@ func (x *ListProjectUsersRequest) String() string {
 func (*ListProjectUsersRequest) ProtoMessage() {}
 
 func (x *ListProjectUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[79]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[79]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4219,7 +4219,7 @@ func (x *ListProjectUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectUsersRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{79}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ListProjectUsersRequest) GetId() string {
@@ -4247,7 +4247,7 @@ type ListProjectUsersResponse struct {
 func (x *ListProjectUsersResponse) Reset() {
 	*x = ListProjectUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[80]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4260,7 +4260,7 @@ func (x *ListProjectUsersResponse) String() string {
 func (*ListProjectUsersResponse) ProtoMessage() {}
 
 func (x *ListProjectUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[80]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4273,7 +4273,7 @@ func (x *ListProjectUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectUsersResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{80}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *ListProjectUsersResponse) GetUsers() []*User {
@@ -4300,7 +4300,7 @@ type Action struct {
 func (x *Action) Reset() {
 	*x = Action{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[81]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4313,7 +4313,7 @@ func (x *Action) String() string {
 func (*Action) ProtoMessage() {}
 
 func (x *Action) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[81]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4326,7 +4326,7 @@ func (x *Action) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Action.ProtoReflect.Descriptor instead.
 func (*Action) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{81}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *Action) GetId() string {
@@ -4386,7 +4386,7 @@ type Namespace struct {
 func (x *Namespace) Reset() {
 	*x = Namespace{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[82]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4399,7 +4399,7 @@ func (x *Namespace) String() string {
 func (*Namespace) ProtoMessage() {}
 
 func (x *Namespace) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[82]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4412,7 +4412,7 @@ func (x *Namespace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Namespace.ProtoReflect.Descriptor instead.
 func (*Namespace) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{82}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *Namespace) GetId() string {
@@ -4465,7 +4465,7 @@ type Policy struct {
 func (x *Policy) Reset() {
 	*x = Policy{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[83]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4478,7 +4478,7 @@ func (x *Policy) String() string {
 func (*Policy) ProtoMessage() {}
 
 func (x *Policy) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[83]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4491,7 +4491,7 @@ func (x *Policy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Policy.ProtoReflect.Descriptor instead.
 func (*Policy) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{83}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *Policy) GetId() string {
@@ -4573,7 +4573,7 @@ type ActionRequestBody struct {
 func (x *ActionRequestBody) Reset() {
 	*x = ActionRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[84]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4586,7 +4586,7 @@ func (x *ActionRequestBody) String() string {
 func (*ActionRequestBody) ProtoMessage() {}
 
 func (x *ActionRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[84]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4599,7 +4599,7 @@ func (x *ActionRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActionRequestBody.ProtoReflect.Descriptor instead.
 func (*ActionRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{84}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *ActionRequestBody) GetId() string {
@@ -4635,7 +4635,7 @@ type NamespaceRequestBody struct {
 func (x *NamespaceRequestBody) Reset() {
 	*x = NamespaceRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[85]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4648,7 +4648,7 @@ func (x *NamespaceRequestBody) String() string {
 func (*NamespaceRequestBody) ProtoMessage() {}
 
 func (x *NamespaceRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[85]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4661,7 +4661,7 @@ func (x *NamespaceRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NamespaceRequestBody.ProtoReflect.Descriptor instead.
 func (*NamespaceRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{85}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *NamespaceRequestBody) GetId() string {
@@ -4691,7 +4691,7 @@ type PolicyRequestBody struct {
 func (x *PolicyRequestBody) Reset() {
 	*x = PolicyRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[86]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[86]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4704,7 +4704,7 @@ func (x *PolicyRequestBody) String() string {
 func (*PolicyRequestBody) ProtoMessage() {}
 
 func (x *PolicyRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[86]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[86]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4717,7 +4717,7 @@ func (x *PolicyRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyRequestBody.ProtoReflect.Descriptor instead.
 func (*PolicyRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{86}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *PolicyRequestBody) GetRoleId() string {
@@ -4750,7 +4750,7 @@ type ListActionsRequest struct {
 func (x *ListActionsRequest) Reset() {
 	*x = ListActionsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[87]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[87]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4763,7 +4763,7 @@ func (x *ListActionsRequest) String() string {
 func (*ListActionsRequest) ProtoMessage() {}
 
 func (x *ListActionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[87]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[87]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4776,7 +4776,7 @@ func (x *ListActionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListActionsRequest.ProtoReflect.Descriptor instead.
 func (*ListActionsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{87}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{87}
 }
 
 type ListActionsResponse struct {
@@ -4790,7 +4790,7 @@ type ListActionsResponse struct {
 func (x *ListActionsResponse) Reset() {
 	*x = ListActionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[88]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[88]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4803,7 +4803,7 @@ func (x *ListActionsResponse) String() string {
 func (*ListActionsResponse) ProtoMessage() {}
 
 func (x *ListActionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[88]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[88]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4816,7 +4816,7 @@ func (x *ListActionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListActionsResponse.ProtoReflect.Descriptor instead.
 func (*ListActionsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{88}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *ListActionsResponse) GetActions() []*Action {
@@ -4837,7 +4837,7 @@ type CreateActionRequest struct {
 func (x *CreateActionRequest) Reset() {
 	*x = CreateActionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[89]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[89]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4850,7 +4850,7 @@ func (x *CreateActionRequest) String() string {
 func (*CreateActionRequest) ProtoMessage() {}
 
 func (x *CreateActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[89]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[89]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4863,7 +4863,7 @@ func (x *CreateActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateActionRequest.ProtoReflect.Descriptor instead.
 func (*CreateActionRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{89}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *CreateActionRequest) GetBody() *ActionRequestBody {
@@ -4884,7 +4884,7 @@ type CreateActionResponse struct {
 func (x *CreateActionResponse) Reset() {
 	*x = CreateActionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[90]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[90]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4897,7 +4897,7 @@ func (x *CreateActionResponse) String() string {
 func (*CreateActionResponse) ProtoMessage() {}
 
 func (x *CreateActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[90]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[90]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4910,7 +4910,7 @@ func (x *CreateActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateActionResponse.ProtoReflect.Descriptor instead.
 func (*CreateActionResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{90}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *CreateActionResponse) GetAction() *Action {
@@ -4931,7 +4931,7 @@ type GetActionRequest struct {
 func (x *GetActionRequest) Reset() {
 	*x = GetActionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[91]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[91]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4944,7 +4944,7 @@ func (x *GetActionRequest) String() string {
 func (*GetActionRequest) ProtoMessage() {}
 
 func (x *GetActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[91]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[91]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4957,7 +4957,7 @@ func (x *GetActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetActionRequest.ProtoReflect.Descriptor instead.
 func (*GetActionRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{91}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *GetActionRequest) GetId() string {
@@ -4978,7 +4978,7 @@ type GetActionResponse struct {
 func (x *GetActionResponse) Reset() {
 	*x = GetActionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[92]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[92]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4991,7 +4991,7 @@ func (x *GetActionResponse) String() string {
 func (*GetActionResponse) ProtoMessage() {}
 
 func (x *GetActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[92]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[92]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5004,7 +5004,7 @@ func (x *GetActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetActionResponse.ProtoReflect.Descriptor instead.
 func (*GetActionResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{92}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *GetActionResponse) GetAction() *Action {
@@ -5026,7 +5026,7 @@ type UpdateActionRequest struct {
 func (x *UpdateActionRequest) Reset() {
 	*x = UpdateActionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[93]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[93]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5039,7 +5039,7 @@ func (x *UpdateActionRequest) String() string {
 func (*UpdateActionRequest) ProtoMessage() {}
 
 func (x *UpdateActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[93]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[93]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5052,7 +5052,7 @@ func (x *UpdateActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateActionRequest.ProtoReflect.Descriptor instead.
 func (*UpdateActionRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{93}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *UpdateActionRequest) GetId() string {
@@ -5080,7 +5080,7 @@ type UpdateActionResponse struct {
 func (x *UpdateActionResponse) Reset() {
 	*x = UpdateActionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[94]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[94]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5093,7 +5093,7 @@ func (x *UpdateActionResponse) String() string {
 func (*UpdateActionResponse) ProtoMessage() {}
 
 func (x *UpdateActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[94]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[94]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5106,7 +5106,7 @@ func (x *UpdateActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateActionResponse.ProtoReflect.Descriptor instead.
 func (*UpdateActionResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{94}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *UpdateActionResponse) GetAction() *Action {
@@ -5125,7 +5125,7 @@ type ListNamespacesRequest struct {
 func (x *ListNamespacesRequest) Reset() {
 	*x = ListNamespacesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[95]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[95]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5138,7 +5138,7 @@ func (x *ListNamespacesRequest) String() string {
 func (*ListNamespacesRequest) ProtoMessage() {}
 
 func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[95]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[95]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5151,7 +5151,7 @@ func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{95}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{95}
 }
 
 type ListNamespacesResponse struct {
@@ -5165,7 +5165,7 @@ type ListNamespacesResponse struct {
 func (x *ListNamespacesResponse) Reset() {
 	*x = ListNamespacesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[96]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[96]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5178,7 +5178,7 @@ func (x *ListNamespacesResponse) String() string {
 func (*ListNamespacesResponse) ProtoMessage() {}
 
 func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[96]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[96]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5191,7 +5191,7 @@ func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{96}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *ListNamespacesResponse) GetNamespaces() []*Namespace {
@@ -5212,7 +5212,7 @@ type CreateNamespaceRequest struct {
 func (x *CreateNamespaceRequest) Reset() {
 	*x = CreateNamespaceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[97]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[97]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5225,7 +5225,7 @@ func (x *CreateNamespaceRequest) String() string {
 func (*CreateNamespaceRequest) ProtoMessage() {}
 
 func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[97]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[97]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5238,7 +5238,7 @@ func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*CreateNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{97}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *CreateNamespaceRequest) GetBody() *NamespaceRequestBody {
@@ -5259,7 +5259,7 @@ type CreateNamespaceResponse struct {
 func (x *CreateNamespaceResponse) Reset() {
 	*x = CreateNamespaceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[98]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[98]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5272,7 +5272,7 @@ func (x *CreateNamespaceResponse) String() string {
 func (*CreateNamespaceResponse) ProtoMessage() {}
 
 func (x *CreateNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[98]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[98]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5285,7 +5285,7 @@ func (x *CreateNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*CreateNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{98}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *CreateNamespaceResponse) GetNamespace() *Namespace {
@@ -5306,7 +5306,7 @@ type GetNamespaceRequest struct {
 func (x *GetNamespaceRequest) Reset() {
 	*x = GetNamespaceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[99]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[99]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5319,7 +5319,7 @@ func (x *GetNamespaceRequest) String() string {
 func (*GetNamespaceRequest) ProtoMessage() {}
 
 func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[99]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[99]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5332,7 +5332,7 @@ func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*GetNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{99}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *GetNamespaceRequest) GetId() string {
@@ -5353,7 +5353,7 @@ type GetNamespaceResponse struct {
 func (x *GetNamespaceResponse) Reset() {
 	*x = GetNamespaceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[100]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[100]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5366,7 +5366,7 @@ func (x *GetNamespaceResponse) String() string {
 func (*GetNamespaceResponse) ProtoMessage() {}
 
 func (x *GetNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[100]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[100]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5379,7 +5379,7 @@ func (x *GetNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*GetNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{100}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *GetNamespaceResponse) GetNamespace() *Namespace {
@@ -5401,7 +5401,7 @@ type UpdateNamespaceRequest struct {
 func (x *UpdateNamespaceRequest) Reset() {
 	*x = UpdateNamespaceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[101]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[101]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5414,7 +5414,7 @@ func (x *UpdateNamespaceRequest) String() string {
 func (*UpdateNamespaceRequest) ProtoMessage() {}
 
 func (x *UpdateNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[101]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[101]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5427,7 +5427,7 @@ func (x *UpdateNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{101}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *UpdateNamespaceRequest) GetId() string {
@@ -5455,7 +5455,7 @@ type UpdateNamespaceResponse struct {
 func (x *UpdateNamespaceResponse) Reset() {
 	*x = UpdateNamespaceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[102]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[102]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5468,7 +5468,7 @@ func (x *UpdateNamespaceResponse) String() string {
 func (*UpdateNamespaceResponse) ProtoMessage() {}
 
 func (x *UpdateNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[102]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[102]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5481,7 +5481,7 @@ func (x *UpdateNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{102}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *UpdateNamespaceResponse) GetNamespace() *Namespace {
@@ -5500,7 +5500,7 @@ type ListPoliciesRequest struct {
 func (x *ListPoliciesRequest) Reset() {
 	*x = ListPoliciesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[103]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[103]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5513,7 +5513,7 @@ func (x *ListPoliciesRequest) String() string {
 func (*ListPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[103]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[103]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5526,7 +5526,7 @@ func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{103}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{103}
 }
 
 type ListPoliciesResponse struct {
@@ -5540,7 +5540,7 @@ type ListPoliciesResponse struct {
 func (x *ListPoliciesResponse) Reset() {
 	*x = ListPoliciesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[104]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[104]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5553,7 +5553,7 @@ func (x *ListPoliciesResponse) String() string {
 func (*ListPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[104]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[104]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5566,7 +5566,7 @@ func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{104}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *ListPoliciesResponse) GetPolicies() []*Policy {
@@ -5587,7 +5587,7 @@ type CreatePolicyRequest struct {
 func (x *CreatePolicyRequest) Reset() {
 	*x = CreatePolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[105]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[105]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5600,7 +5600,7 @@ func (x *CreatePolicyRequest) String() string {
 func (*CreatePolicyRequest) ProtoMessage() {}
 
 func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[105]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[105]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5613,7 +5613,7 @@ func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyRequest.ProtoReflect.Descriptor instead.
 func (*CreatePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{105}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *CreatePolicyRequest) GetBody() *PolicyRequestBody {
@@ -5634,7 +5634,7 @@ type CreatePolicyResponse struct {
 func (x *CreatePolicyResponse) Reset() {
 	*x = CreatePolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[106]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[106]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5647,7 +5647,7 @@ func (x *CreatePolicyResponse) String() string {
 func (*CreatePolicyResponse) ProtoMessage() {}
 
 func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[106]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[106]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5660,7 +5660,7 @@ func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyResponse.ProtoReflect.Descriptor instead.
 func (*CreatePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{106}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *CreatePolicyResponse) GetPolicies() []*Policy {
@@ -5681,7 +5681,7 @@ type GetPolicyRequest struct {
 func (x *GetPolicyRequest) Reset() {
 	*x = GetPolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[107]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[107]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5694,7 +5694,7 @@ func (x *GetPolicyRequest) String() string {
 func (*GetPolicyRequest) ProtoMessage() {}
 
 func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[107]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[107]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5707,7 +5707,7 @@ func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{107}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *GetPolicyRequest) GetId() string {
@@ -5728,7 +5728,7 @@ type GetPolicyResponse struct {
 func (x *GetPolicyResponse) Reset() {
 	*x = GetPolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[108]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[108]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5741,7 +5741,7 @@ func (x *GetPolicyResponse) String() string {
 func (*GetPolicyResponse) ProtoMessage() {}
 
 func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[108]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[108]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5754,7 +5754,7 @@ func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{108}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *GetPolicyResponse) GetPolicy() *Policy {
@@ -5776,7 +5776,7 @@ type UpdatePolicyRequest struct {
 func (x *UpdatePolicyRequest) Reset() {
 	*x = UpdatePolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[109]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[109]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5789,7 +5789,7 @@ func (x *UpdatePolicyRequest) String() string {
 func (*UpdatePolicyRequest) ProtoMessage() {}
 
 func (x *UpdatePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[109]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[109]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5802,7 +5802,7 @@ func (x *UpdatePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePolicyRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{109}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *UpdatePolicyRequest) GetId() string {
@@ -5830,7 +5830,7 @@ type UpdatePolicyResponse struct {
 func (x *UpdatePolicyResponse) Reset() {
 	*x = UpdatePolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[110]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[110]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5843,7 +5843,7 @@ func (x *UpdatePolicyResponse) String() string {
 func (*UpdatePolicyResponse) ProtoMessage() {}
 
 func (x *UpdatePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[110]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[110]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5856,7 +5856,7 @@ func (x *UpdatePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePolicyResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{110}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *UpdatePolicyResponse) GetPolicies() []*Policy {
@@ -5883,7 +5883,7 @@ type Relation struct {
 func (x *Relation) Reset() {
 	*x = Relation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[111]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[111]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5896,7 +5896,7 @@ func (x *Relation) String() string {
 func (*Relation) ProtoMessage() {}
 
 func (x *Relation) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[111]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[111]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5909,7 +5909,7 @@ func (x *Relation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Relation.ProtoReflect.Descriptor instead.
 func (*Relation) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{111}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *Relation) GetId() string {
@@ -5980,7 +5980,7 @@ type Resource struct {
 func (x *Resource) Reset() {
 	*x = Resource{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[112]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[112]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5993,7 +5993,7 @@ func (x *Resource) String() string {
 func (*Resource) ProtoMessage() {}
 
 func (x *Resource) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[112]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[112]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6006,7 +6006,7 @@ func (x *Resource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resource.ProtoReflect.Descriptor instead.
 func (*Resource) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{112}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *Resource) GetId() string {
@@ -6088,7 +6088,7 @@ type GroupRelation struct {
 func (x *GroupRelation) Reset() {
 	*x = GroupRelation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[113]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[113]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6101,7 +6101,7 @@ func (x *GroupRelation) String() string {
 func (*GroupRelation) ProtoMessage() {}
 
 func (x *GroupRelation) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[113]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[113]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6114,7 +6114,7 @@ func (x *GroupRelation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupRelation.ProtoReflect.Descriptor instead.
 func (*GroupRelation) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{113}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *GroupRelation) GetSubjectType() string {
@@ -6177,7 +6177,7 @@ type ListRelationsRequest struct {
 func (x *ListRelationsRequest) Reset() {
 	*x = ListRelationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[114]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[114]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6190,7 +6190,7 @@ func (x *ListRelationsRequest) String() string {
 func (*ListRelationsRequest) ProtoMessage() {}
 
 func (x *ListRelationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[114]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[114]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6203,7 +6203,7 @@ func (x *ListRelationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRelationsRequest.ProtoReflect.Descriptor instead.
 func (*ListRelationsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{114}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{114}
 }
 
 type ListRelationsResponse struct {
@@ -6217,7 +6217,7 @@ type ListRelationsResponse struct {
 func (x *ListRelationsResponse) Reset() {
 	*x = ListRelationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[115]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[115]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6230,7 +6230,7 @@ func (x *ListRelationsResponse) String() string {
 func (*ListRelationsResponse) ProtoMessage() {}
 
 func (x *ListRelationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[115]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[115]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6243,7 +6243,7 @@ func (x *ListRelationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRelationsResponse.ProtoReflect.Descriptor instead.
 func (*ListRelationsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{115}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *ListRelationsResponse) GetRelations() []*Relation {
@@ -6267,7 +6267,7 @@ type RelationRequestBody struct {
 func (x *RelationRequestBody) Reset() {
 	*x = RelationRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[116]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[116]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6280,7 +6280,7 @@ func (x *RelationRequestBody) String() string {
 func (*RelationRequestBody) ProtoMessage() {}
 
 func (x *RelationRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[116]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[116]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6293,7 +6293,7 @@ func (x *RelationRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationRequestBody.ProtoReflect.Descriptor instead.
 func (*RelationRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{116}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *RelationRequestBody) GetObjectId() string {
@@ -6335,7 +6335,7 @@ type CreateRelationRequest struct {
 func (x *CreateRelationRequest) Reset() {
 	*x = CreateRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[117]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[117]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6348,7 +6348,7 @@ func (x *CreateRelationRequest) String() string {
 func (*CreateRelationRequest) ProtoMessage() {}
 
 func (x *CreateRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[117]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[117]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6361,7 +6361,7 @@ func (x *CreateRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRelationRequest.ProtoReflect.Descriptor instead.
 func (*CreateRelationRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{117}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *CreateRelationRequest) GetBody() *RelationRequestBody {
@@ -6382,7 +6382,7 @@ type CreateRelationResponse struct {
 func (x *CreateRelationResponse) Reset() {
 	*x = CreateRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[118]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[118]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6395,7 +6395,7 @@ func (x *CreateRelationResponse) String() string {
 func (*CreateRelationResponse) ProtoMessage() {}
 
 func (x *CreateRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[118]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[118]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6408,7 +6408,7 @@ func (x *CreateRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRelationResponse.ProtoReflect.Descriptor instead.
 func (*CreateRelationResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{118}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *CreateRelationResponse) GetRelation() *Relation {
@@ -6429,7 +6429,7 @@ type GetRelationRequest struct {
 func (x *GetRelationRequest) Reset() {
 	*x = GetRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[119]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[119]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6442,7 +6442,7 @@ func (x *GetRelationRequest) String() string {
 func (*GetRelationRequest) ProtoMessage() {}
 
 func (x *GetRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[119]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[119]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6455,7 +6455,7 @@ func (x *GetRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRelationRequest.ProtoReflect.Descriptor instead.
 func (*GetRelationRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{119}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *GetRelationRequest) GetId() string {
@@ -6476,7 +6476,7 @@ type GetRelationResponse struct {
 func (x *GetRelationResponse) Reset() {
 	*x = GetRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[120]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[120]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6489,7 +6489,7 @@ func (x *GetRelationResponse) String() string {
 func (*GetRelationResponse) ProtoMessage() {}
 
 func (x *GetRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[120]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[120]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6502,7 +6502,7 @@ func (x *GetRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRelationResponse.ProtoReflect.Descriptor instead.
 func (*GetRelationResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{120}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *GetRelationResponse) GetRelation() *Relation {
@@ -6524,7 +6524,7 @@ type UpdateRelationRequest struct {
 func (x *UpdateRelationRequest) Reset() {
 	*x = UpdateRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[121]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[121]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6537,7 +6537,7 @@ func (x *UpdateRelationRequest) String() string {
 func (*UpdateRelationRequest) ProtoMessage() {}
 
 func (x *UpdateRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[121]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[121]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6550,7 +6550,7 @@ func (x *UpdateRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRelationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRelationRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{121}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *UpdateRelationRequest) GetId() string {
@@ -6578,7 +6578,7 @@ type UpdateRelationResponse struct {
 func (x *UpdateRelationResponse) Reset() {
 	*x = UpdateRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[122]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[122]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6591,7 +6591,7 @@ func (x *UpdateRelationResponse) String() string {
 func (*UpdateRelationResponse) ProtoMessage() {}
 
 func (x *UpdateRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[122]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[122]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6604,7 +6604,7 @@ func (x *UpdateRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRelationResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRelationResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{122}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{122}
 }
 
 func (x *UpdateRelationResponse) GetRelation() *Relation {
@@ -6627,7 +6627,7 @@ type ListGroupRelationsRequest struct {
 func (x *ListGroupRelationsRequest) Reset() {
 	*x = ListGroupRelationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[123]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[123]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6640,7 +6640,7 @@ func (x *ListGroupRelationsRequest) String() string {
 func (*ListGroupRelationsRequest) ProtoMessage() {}
 
 func (x *ListGroupRelationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[123]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[123]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6653,7 +6653,7 @@ func (x *ListGroupRelationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupRelationsRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupRelationsRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{123}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *ListGroupRelationsRequest) GetId() string {
@@ -6688,7 +6688,7 @@ type ListGroupRelationsResponse struct {
 func (x *ListGroupRelationsResponse) Reset() {
 	*x = ListGroupRelationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[124]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[124]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6701,7 +6701,7 @@ func (x *ListGroupRelationsResponse) String() string {
 func (*ListGroupRelationsResponse) ProtoMessage() {}
 
 func (x *ListGroupRelationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[124]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[124]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6714,7 +6714,7 @@ func (x *ListGroupRelationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupRelationsResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupRelationsResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{124}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{124}
 }
 
 func (x *ListGroupRelationsResponse) GetRelations() []*GroupRelation {
@@ -6737,7 +6737,7 @@ type DeleteRelationRequest struct {
 func (x *DeleteRelationRequest) Reset() {
 	*x = DeleteRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[125]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[125]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6750,7 +6750,7 @@ func (x *DeleteRelationRequest) String() string {
 func (*DeleteRelationRequest) ProtoMessage() {}
 
 func (x *DeleteRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[125]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[125]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6763,7 +6763,7 @@ func (x *DeleteRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRelationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRelationRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{125}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *DeleteRelationRequest) GetObjectId() string {
@@ -6798,7 +6798,7 @@ type DeleteRelationResponse struct {
 func (x *DeleteRelationResponse) Reset() {
 	*x = DeleteRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[126]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[126]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6811,7 +6811,7 @@ func (x *DeleteRelationResponse) String() string {
 func (*DeleteRelationResponse) ProtoMessage() {}
 
 func (x *DeleteRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[126]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[126]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6824,7 +6824,7 @@ func (x *DeleteRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRelationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRelationResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{126}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *DeleteRelationResponse) GetMessage() string {
@@ -6848,7 +6848,7 @@ type ListResourcesRequest struct {
 func (x *ListResourcesRequest) Reset() {
 	*x = ListResourcesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[127]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[127]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6861,7 +6861,7 @@ func (x *ListResourcesRequest) String() string {
 func (*ListResourcesRequest) ProtoMessage() {}
 
 func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[127]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[127]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6874,7 +6874,7 @@ func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{127}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *ListResourcesRequest) GetGroupId() string {
@@ -6916,7 +6916,7 @@ type ListResourcesResponse struct {
 func (x *ListResourcesResponse) Reset() {
 	*x = ListResourcesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[128]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[128]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6929,7 +6929,7 @@ func (x *ListResourcesResponse) String() string {
 func (*ListResourcesResponse) ProtoMessage() {}
 
 func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[128]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[128]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6942,7 +6942,7 @@ func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesResponse.ProtoReflect.Descriptor instead.
 func (*ListResourcesResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{128}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *ListResourcesResponse) GetResources() []*Resource {
@@ -6966,7 +6966,7 @@ type ResourceRequestBody struct {
 func (x *ResourceRequestBody) Reset() {
 	*x = ResourceRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[129]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[129]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6979,7 +6979,7 @@ func (x *ResourceRequestBody) String() string {
 func (*ResourceRequestBody) ProtoMessage() {}
 
 func (x *ResourceRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[129]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[129]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6992,7 +6992,7 @@ func (x *ResourceRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceRequestBody.ProtoReflect.Descriptor instead.
 func (*ResourceRequestBody) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{129}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *ResourceRequestBody) GetName() string {
@@ -7034,7 +7034,7 @@ type CreateResourceRequest struct {
 func (x *CreateResourceRequest) Reset() {
 	*x = CreateResourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[130]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[130]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7047,7 +7047,7 @@ func (x *CreateResourceRequest) String() string {
 func (*CreateResourceRequest) ProtoMessage() {}
 
 func (x *CreateResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[130]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[130]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7060,7 +7060,7 @@ func (x *CreateResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResourceRequest.ProtoReflect.Descriptor instead.
 func (*CreateResourceRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{130}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *CreateResourceRequest) GetBody() *ResourceRequestBody {
@@ -7081,7 +7081,7 @@ type CreateResourceResponse struct {
 func (x *CreateResourceResponse) Reset() {
 	*x = CreateResourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[131]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[131]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7094,7 +7094,7 @@ func (x *CreateResourceResponse) String() string {
 func (*CreateResourceResponse) ProtoMessage() {}
 
 func (x *CreateResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[131]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[131]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7107,7 +7107,7 @@ func (x *CreateResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResourceResponse.ProtoReflect.Descriptor instead.
 func (*CreateResourceResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{131}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{131}
 }
 
 func (x *CreateResourceResponse) GetResource() *Resource {
@@ -7128,7 +7128,7 @@ type GetResourceRequest struct {
 func (x *GetResourceRequest) Reset() {
 	*x = GetResourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[132]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[132]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7141,7 +7141,7 @@ func (x *GetResourceRequest) String() string {
 func (*GetResourceRequest) ProtoMessage() {}
 
 func (x *GetResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[132]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[132]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7154,7 +7154,7 @@ func (x *GetResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResourceRequest.ProtoReflect.Descriptor instead.
 func (*GetResourceRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{132}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{132}
 }
 
 func (x *GetResourceRequest) GetId() string {
@@ -7175,7 +7175,7 @@ type GetResourceResponse struct {
 func (x *GetResourceResponse) Reset() {
 	*x = GetResourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[133]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[133]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7188,7 +7188,7 @@ func (x *GetResourceResponse) String() string {
 func (*GetResourceResponse) ProtoMessage() {}
 
 func (x *GetResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[133]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[133]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7201,7 +7201,7 @@ func (x *GetResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResourceResponse.ProtoReflect.Descriptor instead.
 func (*GetResourceResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{133}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{133}
 }
 
 func (x *GetResourceResponse) GetResource() *Resource {
@@ -7223,7 +7223,7 @@ type UpdateResourceRequest struct {
 func (x *UpdateResourceRequest) Reset() {
 	*x = UpdateResourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[134]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[134]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7236,7 +7236,7 @@ func (x *UpdateResourceRequest) String() string {
 func (*UpdateResourceRequest) ProtoMessage() {}
 
 func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[134]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[134]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7249,7 +7249,7 @@ func (x *UpdateResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateResourceRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{134}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{134}
 }
 
 func (x *UpdateResourceRequest) GetId() string {
@@ -7277,7 +7277,7 @@ type UpdateResourceResponse struct {
 func (x *UpdateResourceResponse) Reset() {
 	*x = UpdateResourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[135]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[135]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7290,7 +7290,7 @@ func (x *UpdateResourceResponse) String() string {
 func (*UpdateResourceResponse) ProtoMessage() {}
 
 func (x *UpdateResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[135]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[135]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7303,7 +7303,7 @@ func (x *UpdateResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResourceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateResourceResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{135}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{135}
 }
 
 func (x *UpdateResourceResponse) GetResource() *Resource {
@@ -7326,7 +7326,7 @@ type CheckResourcePermissionRequest struct {
 func (x *CheckResourcePermissionRequest) Reset() {
 	*x = CheckResourcePermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[136]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[136]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7339,7 +7339,7 @@ func (x *CheckResourcePermissionRequest) String() string {
 func (*CheckResourcePermissionRequest) ProtoMessage() {}
 
 func (x *CheckResourcePermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[136]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[136]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7352,7 +7352,7 @@ func (x *CheckResourcePermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResourcePermissionRequest.ProtoReflect.Descriptor instead.
 func (*CheckResourcePermissionRequest) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{136}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{136}
 }
 
 func (x *CheckResourcePermissionRequest) GetObjectId() string {
@@ -7387,7 +7387,7 @@ type CheckResourcePermissionResponse struct {
 func (x *CheckResourcePermissionResponse) Reset() {
 	*x = CheckResourcePermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[137]
+		mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[137]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7400,7 +7400,7 @@ func (x *CheckResourcePermissionResponse) String() string {
 func (*CheckResourcePermissionResponse) ProtoMessage() {}
 
 func (x *CheckResourcePermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_odpf_shield_v1beta1_shield_proto_msgTypes[137]
+	mi := &file_raystack_shield_v1beta1_shield_proto_msgTypes[137]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7413,7 +7413,7 @@ func (x *CheckResourcePermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResourcePermissionResponse.ProtoReflect.Descriptor instead.
 func (*CheckResourcePermissionResponse) Descriptor() ([]byte, []int) {
-	return file_odpf_shield_v1beta1_shield_proto_rawDescGZIP(), []int{137}
+	return file_raystack_shield_v1beta1_shield_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *CheckResourcePermissionResponse) GetStatus() bool {
@@ -7423,9 +7423,9 @@ func (x *CheckResourcePermissionResponse) GetStatus() bool {
 	return false
 }
 
-var File_odpf_shield_v1beta1_shield_proto protoreflect.FileDescriptor
+var File_raystack_shield_v1beta1_shield_proto protoreflect.FileDescriptor
 
-var file_odpf_shield_v1beta1_shield_proto_rawDesc = []byte{
+var file_raystack_shield_v1beta1_shield_proto_rawDesc = []byte{
 	0x0a, 0x20, 0x6f, 0x64, 0x70, 0x66, 0x2f, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2f, 0x76, 0x31,
 	0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x12, 0x13, 0x6f, 0x64, 0x70, 0x66, 0x2e, 0x73, 0x68, 0x69, 0x65, 0x6c, 0x64, 0x2e,
@@ -8915,390 +8915,390 @@ var file_odpf_shield_v1beta1_shield_proto_rawDesc = []byte{
 }
 
 var (
-	file_odpf_shield_v1beta1_shield_proto_rawDescOnce sync.Once
-	file_odpf_shield_v1beta1_shield_proto_rawDescData = file_odpf_shield_v1beta1_shield_proto_rawDesc
+	file_raystack_shield_v1beta1_shield_proto_rawDescOnce sync.Once
+	file_raystack_shield_v1beta1_shield_proto_rawDescData = file_raystack_shield_v1beta1_shield_proto_rawDesc
 )
 
-func file_odpf_shield_v1beta1_shield_proto_rawDescGZIP() []byte {
-	file_odpf_shield_v1beta1_shield_proto_rawDescOnce.Do(func() {
-		file_odpf_shield_v1beta1_shield_proto_rawDescData = protoimpl.X.CompressGZIP(file_odpf_shield_v1beta1_shield_proto_rawDescData)
+func file_raystack_shield_v1beta1_shield_proto_rawDescGZIP() []byte {
+	file_raystack_shield_v1beta1_shield_proto_rawDescOnce.Do(func() {
+		file_raystack_shield_v1beta1_shield_proto_rawDescData = protoimpl.X.CompressGZIP(file_raystack_shield_v1beta1_shield_proto_rawDescData)
 	})
-	return file_odpf_shield_v1beta1_shield_proto_rawDescData
+	return file_raystack_shield_v1beta1_shield_proto_rawDescData
 }
 
-var file_odpf_shield_v1beta1_shield_proto_msgTypes = make([]protoimpl.MessageInfo, 138)
-var file_odpf_shield_v1beta1_shield_proto_goTypes = []interface{}{
-	(*AuthLogoutRequest)(nil),                // 0: odpf.shield.v1beta1.AuthLogoutRequest
-	(*AuthLogoutResponse)(nil),               // 1: odpf.shield.v1beta1.AuthLogoutResponse
-	(*AuthCallbackRequest)(nil),              // 2: odpf.shield.v1beta1.AuthCallbackRequest
-	(*AuthCallbackResponse)(nil),             // 3: odpf.shield.v1beta1.AuthCallbackResponse
-	(*AuthenticateRequest)(nil),              // 4: odpf.shield.v1beta1.AuthenticateRequest
-	(*AuthenticateResponse)(nil),             // 5: odpf.shield.v1beta1.AuthenticateResponse
-	(*AuthStrategy)(nil),                     // 6: odpf.shield.v1beta1.AuthStrategy
-	(*ListAuthStrategiesRequest)(nil),        // 7: odpf.shield.v1beta1.ListAuthStrategiesRequest
-	(*ListAuthStrategiesResponse)(nil),       // 8: odpf.shield.v1beta1.ListAuthStrategiesResponse
-	(*UserRequestBody)(nil),                  // 9: odpf.shield.v1beta1.UserRequestBody
-	(*CreateUserRequest)(nil),                // 10: odpf.shield.v1beta1.CreateUserRequest
-	(*User)(nil),                             // 11: odpf.shield.v1beta1.User
-	(*CreateUserResponse)(nil),               // 12: odpf.shield.v1beta1.CreateUserResponse
-	(*MetadataKeyRequestBody)(nil),           // 13: odpf.shield.v1beta1.MetadataKeyRequestBody
-	(*CreateMetadataKeyRequest)(nil),         // 14: odpf.shield.v1beta1.CreateMetadataKeyRequest
-	(*MetadataKey)(nil),                      // 15: odpf.shield.v1beta1.MetadataKey
-	(*CreateMetadataKeyResponse)(nil),        // 16: odpf.shield.v1beta1.CreateMetadataKeyResponse
-	(*GetOrganizationsByUserRequest)(nil),    // 17: odpf.shield.v1beta1.GetOrganizationsByUserRequest
-	(*GetOrganizationsByUserResponse)(nil),   // 18: odpf.shield.v1beta1.GetOrganizationsByUserResponse
-	(*GetUserResponse)(nil),                  // 19: odpf.shield.v1beta1.GetUserResponse
-	(*GetCurrentUserRequest)(nil),            // 20: odpf.shield.v1beta1.GetCurrentUserRequest
-	(*GetCurrentUserResponse)(nil),           // 21: odpf.shield.v1beta1.GetCurrentUserResponse
-	(*UpdateUserResponse)(nil),               // 22: odpf.shield.v1beta1.UpdateUserResponse
-	(*UpdateCurrentUserResponse)(nil),        // 23: odpf.shield.v1beta1.UpdateCurrentUserResponse
-	(*UpdateUserRequest)(nil),                // 24: odpf.shield.v1beta1.UpdateUserRequest
-	(*GetUserRequest)(nil),                   // 25: odpf.shield.v1beta1.GetUserRequest
-	(*ListUserGroupsRequest)(nil),            // 26: odpf.shield.v1beta1.ListUserGroupsRequest
-	(*ListUsersRequest)(nil),                 // 27: odpf.shield.v1beta1.ListUsersRequest
-	(*ListUsersResponse)(nil),                // 28: odpf.shield.v1beta1.ListUsersResponse
-	(*GroupRequestBody)(nil),                 // 29: odpf.shield.v1beta1.GroupRequestBody
-	(*CreateGroupRequest)(nil),               // 30: odpf.shield.v1beta1.CreateGroupRequest
-	(*ListUserGroupsResponse)(nil),           // 31: odpf.shield.v1beta1.ListUserGroupsResponse
-	(*Group)(nil),                            // 32: odpf.shield.v1beta1.Group
-	(*CreateGroupResponse)(nil),              // 33: odpf.shield.v1beta1.CreateGroupResponse
-	(*GetGroupResponse)(nil),                 // 34: odpf.shield.v1beta1.GetGroupResponse
-	(*UpdateGroupResponse)(nil),              // 35: odpf.shield.v1beta1.UpdateGroupResponse
-	(*UpdateGroupRequest)(nil),               // 36: odpf.shield.v1beta1.UpdateGroupRequest
-	(*UpdateCurrentUserRequest)(nil),         // 37: odpf.shield.v1beta1.UpdateCurrentUserRequest
-	(*GetGroupRequest)(nil),                  // 38: odpf.shield.v1beta1.GetGroupRequest
-	(*ListGroupsRequest)(nil),                // 39: odpf.shield.v1beta1.ListGroupsRequest
-	(*ListGroupsResponse)(nil),               // 40: odpf.shield.v1beta1.ListGroupsResponse
-	(*Role)(nil),                             // 41: odpf.shield.v1beta1.Role
-	(*RoleRequestBody)(nil),                  // 42: odpf.shield.v1beta1.RoleRequestBody
-	(*CreateRoleRequest)(nil),                // 43: odpf.shield.v1beta1.CreateRoleRequest
-	(*CreateRoleResponse)(nil),               // 44: odpf.shield.v1beta1.CreateRoleResponse
-	(*GetRoleResponse)(nil),                  // 45: odpf.shield.v1beta1.GetRoleResponse
-	(*UpdateRoleResponse)(nil),               // 46: odpf.shield.v1beta1.UpdateRoleResponse
-	(*GetRoleRequest)(nil),                   // 47: odpf.shield.v1beta1.GetRoleRequest
-	(*UpdateRoleRequest)(nil),                // 48: odpf.shield.v1beta1.UpdateRoleRequest
-	(*ListRolesRequest)(nil),                 // 49: odpf.shield.v1beta1.ListRolesRequest
-	(*ListRolesResponse)(nil),                // 50: odpf.shield.v1beta1.ListRolesResponse
-	(*OrganizationRequestBody)(nil),          // 51: odpf.shield.v1beta1.OrganizationRequestBody
-	(*CreateOrganizationRequest)(nil),        // 52: odpf.shield.v1beta1.CreateOrganizationRequest
-	(*Organization)(nil),                     // 53: odpf.shield.v1beta1.Organization
-	(*CreateOrganizationResponse)(nil),       // 54: odpf.shield.v1beta1.CreateOrganizationResponse
-	(*GetOrganizationResponse)(nil),          // 55: odpf.shield.v1beta1.GetOrganizationResponse
-	(*UpdateOrganizationResponse)(nil),       // 56: odpf.shield.v1beta1.UpdateOrganizationResponse
-	(*ListOrganizationsRequest)(nil),         // 57: odpf.shield.v1beta1.ListOrganizationsRequest
-	(*ListOrganizationsResponse)(nil),        // 58: odpf.shield.v1beta1.ListOrganizationsResponse
-	(*GetOrganizationRequest)(nil),           // 59: odpf.shield.v1beta1.GetOrganizationRequest
-	(*UpdateOrganizationRequest)(nil),        // 60: odpf.shield.v1beta1.UpdateOrganizationRequest
-	(*ListOrganizationAdminsRequest)(nil),    // 61: odpf.shield.v1beta1.ListOrganizationAdminsRequest
-	(*ListOrganizationAdminsResponse)(nil),   // 62: odpf.shield.v1beta1.ListOrganizationAdminsResponse
-	(*ListOrganizationUsersRequest)(nil),     // 63: odpf.shield.v1beta1.ListOrganizationUsersRequest
-	(*ListOrganizationUsersResponse)(nil),    // 64: odpf.shield.v1beta1.ListOrganizationUsersResponse
-	(*ListOrganizationProjectsRequest)(nil),  // 65: odpf.shield.v1beta1.ListOrganizationProjectsRequest
-	(*ListOrganizationProjectsResponse)(nil), // 66: odpf.shield.v1beta1.ListOrganizationProjectsResponse
-	(*ProjectRequestBody)(nil),               // 67: odpf.shield.v1beta1.ProjectRequestBody
-	(*CreateProjectRequest)(nil),             // 68: odpf.shield.v1beta1.CreateProjectRequest
-	(*Project)(nil),                          // 69: odpf.shield.v1beta1.Project
-	(*CreateProjectResponse)(nil),            // 70: odpf.shield.v1beta1.CreateProjectResponse
-	(*GetProjectResponse)(nil),               // 71: odpf.shield.v1beta1.GetProjectResponse
-	(*UpdateProjectResponse)(nil),            // 72: odpf.shield.v1beta1.UpdateProjectResponse
-	(*ListProjectsRequest)(nil),              // 73: odpf.shield.v1beta1.ListProjectsRequest
-	(*ListProjectsResponse)(nil),             // 74: odpf.shield.v1beta1.ListProjectsResponse
-	(*GetProjectRequest)(nil),                // 75: odpf.shield.v1beta1.GetProjectRequest
-	(*UpdateProjectRequest)(nil),             // 76: odpf.shield.v1beta1.UpdateProjectRequest
-	(*ListProjectAdminsRequest)(nil),         // 77: odpf.shield.v1beta1.ListProjectAdminsRequest
-	(*ListProjectAdminsResponse)(nil),        // 78: odpf.shield.v1beta1.ListProjectAdminsResponse
-	(*ListProjectUsersRequest)(nil),          // 79: odpf.shield.v1beta1.ListProjectUsersRequest
-	(*ListProjectUsersResponse)(nil),         // 80: odpf.shield.v1beta1.ListProjectUsersResponse
-	(*Action)(nil),                           // 81: odpf.shield.v1beta1.Action
-	(*Namespace)(nil),                        // 82: odpf.shield.v1beta1.Namespace
-	(*Policy)(nil),                           // 83: odpf.shield.v1beta1.Policy
-	(*ActionRequestBody)(nil),                // 84: odpf.shield.v1beta1.ActionRequestBody
-	(*NamespaceRequestBody)(nil),             // 85: odpf.shield.v1beta1.NamespaceRequestBody
-	(*PolicyRequestBody)(nil),                // 86: odpf.shield.v1beta1.PolicyRequestBody
-	(*ListActionsRequest)(nil),               // 87: odpf.shield.v1beta1.ListActionsRequest
-	(*ListActionsResponse)(nil),              // 88: odpf.shield.v1beta1.ListActionsResponse
-	(*CreateActionRequest)(nil),              // 89: odpf.shield.v1beta1.CreateActionRequest
-	(*CreateActionResponse)(nil),             // 90: odpf.shield.v1beta1.CreateActionResponse
-	(*GetActionRequest)(nil),                 // 91: odpf.shield.v1beta1.GetActionRequest
-	(*GetActionResponse)(nil),                // 92: odpf.shield.v1beta1.GetActionResponse
-	(*UpdateActionRequest)(nil),              // 93: odpf.shield.v1beta1.UpdateActionRequest
-	(*UpdateActionResponse)(nil),             // 94: odpf.shield.v1beta1.UpdateActionResponse
-	(*ListNamespacesRequest)(nil),            // 95: odpf.shield.v1beta1.ListNamespacesRequest
-	(*ListNamespacesResponse)(nil),           // 96: odpf.shield.v1beta1.ListNamespacesResponse
-	(*CreateNamespaceRequest)(nil),           // 97: odpf.shield.v1beta1.CreateNamespaceRequest
-	(*CreateNamespaceResponse)(nil),          // 98: odpf.shield.v1beta1.CreateNamespaceResponse
-	(*GetNamespaceRequest)(nil),              // 99: odpf.shield.v1beta1.GetNamespaceRequest
-	(*GetNamespaceResponse)(nil),             // 100: odpf.shield.v1beta1.GetNamespaceResponse
-	(*UpdateNamespaceRequest)(nil),           // 101: odpf.shield.v1beta1.UpdateNamespaceRequest
-	(*UpdateNamespaceResponse)(nil),          // 102: odpf.shield.v1beta1.UpdateNamespaceResponse
-	(*ListPoliciesRequest)(nil),              // 103: odpf.shield.v1beta1.ListPoliciesRequest
-	(*ListPoliciesResponse)(nil),             // 104: odpf.shield.v1beta1.ListPoliciesResponse
-	(*CreatePolicyRequest)(nil),              // 105: odpf.shield.v1beta1.CreatePolicyRequest
-	(*CreatePolicyResponse)(nil),             // 106: odpf.shield.v1beta1.CreatePolicyResponse
-	(*GetPolicyRequest)(nil),                 // 107: odpf.shield.v1beta1.GetPolicyRequest
-	(*GetPolicyResponse)(nil),                // 108: odpf.shield.v1beta1.GetPolicyResponse
-	(*UpdatePolicyRequest)(nil),              // 109: odpf.shield.v1beta1.UpdatePolicyRequest
-	(*UpdatePolicyResponse)(nil),             // 110: odpf.shield.v1beta1.UpdatePolicyResponse
-	(*Relation)(nil),                         // 111: odpf.shield.v1beta1.Relation
-	(*Resource)(nil),                         // 112: odpf.shield.v1beta1.Resource
-	(*GroupRelation)(nil),                    // 113: odpf.shield.v1beta1.GroupRelation
-	(*ListRelationsRequest)(nil),             // 114: odpf.shield.v1beta1.ListRelationsRequest
-	(*ListRelationsResponse)(nil),            // 115: odpf.shield.v1beta1.ListRelationsResponse
-	(*RelationRequestBody)(nil),              // 116: odpf.shield.v1beta1.RelationRequestBody
-	(*CreateRelationRequest)(nil),            // 117: odpf.shield.v1beta1.CreateRelationRequest
-	(*CreateRelationResponse)(nil),           // 118: odpf.shield.v1beta1.CreateRelationResponse
-	(*GetRelationRequest)(nil),               // 119: odpf.shield.v1beta1.GetRelationRequest
-	(*GetRelationResponse)(nil),              // 120: odpf.shield.v1beta1.GetRelationResponse
-	(*UpdateRelationRequest)(nil),            // 121: odpf.shield.v1beta1.UpdateRelationRequest
-	(*UpdateRelationResponse)(nil),           // 122: odpf.shield.v1beta1.UpdateRelationResponse
-	(*ListGroupRelationsRequest)(nil),        // 123: odpf.shield.v1beta1.ListGroupRelationsRequest
-	(*ListGroupRelationsResponse)(nil),       // 124: odpf.shield.v1beta1.ListGroupRelationsResponse
-	(*DeleteRelationRequest)(nil),            // 125: odpf.shield.v1beta1.DeleteRelationRequest
-	(*DeleteRelationResponse)(nil),           // 126: odpf.shield.v1beta1.DeleteRelationResponse
-	(*ListResourcesRequest)(nil),             // 127: odpf.shield.v1beta1.ListResourcesRequest
-	(*ListResourcesResponse)(nil),            // 128: odpf.shield.v1beta1.ListResourcesResponse
-	(*ResourceRequestBody)(nil),              // 129: odpf.shield.v1beta1.ResourceRequestBody
-	(*CreateResourceRequest)(nil),            // 130: odpf.shield.v1beta1.CreateResourceRequest
-	(*CreateResourceResponse)(nil),           // 131: odpf.shield.v1beta1.CreateResourceResponse
-	(*GetResourceRequest)(nil),               // 132: odpf.shield.v1beta1.GetResourceRequest
-	(*GetResourceResponse)(nil),              // 133: odpf.shield.v1beta1.GetResourceResponse
-	(*UpdateResourceRequest)(nil),            // 134: odpf.shield.v1beta1.UpdateResourceRequest
-	(*UpdateResourceResponse)(nil),           // 135: odpf.shield.v1beta1.UpdateResourceResponse
-	(*CheckResourcePermissionRequest)(nil),   // 136: odpf.shield.v1beta1.CheckResourcePermissionRequest
-	(*CheckResourcePermissionResponse)(nil),  // 137: odpf.shield.v1beta1.CheckResourcePermissionResponse
+var file_raystack_shield_v1beta1_shield_proto_msgTypes = make([]protoimpl.MessageInfo, 138)
+var file_raystack_shield_v1beta1_shield_proto_goTypes = []interface{}{
+	(*AuthLogoutRequest)(nil),                // 0: raystack.shield.v1beta1.AuthLogoutRequest
+	(*AuthLogoutResponse)(nil),               // 1: raystack.shield.v1beta1.AuthLogoutResponse
+	(*AuthCallbackRequest)(nil),              // 2: raystack.shield.v1beta1.AuthCallbackRequest
+	(*AuthCallbackResponse)(nil),             // 3: raystack.shield.v1beta1.AuthCallbackResponse
+	(*AuthenticateRequest)(nil),              // 4: raystack.shield.v1beta1.AuthenticateRequest
+	(*AuthenticateResponse)(nil),             // 5: raystack.shield.v1beta1.AuthenticateResponse
+	(*AuthStrategy)(nil),                     // 6: raystack.shield.v1beta1.AuthStrategy
+	(*ListAuthStrategiesRequest)(nil),        // 7: raystack.shield.v1beta1.ListAuthStrategiesRequest
+	(*ListAuthStrategiesResponse)(nil),       // 8: raystack.shield.v1beta1.ListAuthStrategiesResponse
+	(*UserRequestBody)(nil),                  // 9: raystack.shield.v1beta1.UserRequestBody
+	(*CreateUserRequest)(nil),                // 10: raystack.shield.v1beta1.CreateUserRequest
+	(*User)(nil),                             // 11: raystack.shield.v1beta1.User
+	(*CreateUserResponse)(nil),               // 12: raystack.shield.v1beta1.CreateUserResponse
+	(*MetadataKeyRequestBody)(nil),           // 13: raystack.shield.v1beta1.MetadataKeyRequestBody
+	(*CreateMetadataKeyRequest)(nil),         // 14: raystack.shield.v1beta1.CreateMetadataKeyRequest
+	(*MetadataKey)(nil),                      // 15: raystack.shield.v1beta1.MetadataKey
+	(*CreateMetadataKeyResponse)(nil),        // 16: raystack.shield.v1beta1.CreateMetadataKeyResponse
+	(*GetOrganizationsByUserRequest)(nil),    // 17: raystack.shield.v1beta1.GetOrganizationsByUserRequest
+	(*GetOrganizationsByUserResponse)(nil),   // 18: raystack.shield.v1beta1.GetOrganizationsByUserResponse
+	(*GetUserResponse)(nil),                  // 19: raystack.shield.v1beta1.GetUserResponse
+	(*GetCurrentUserRequest)(nil),            // 20: raystack.shield.v1beta1.GetCurrentUserRequest
+	(*GetCurrentUserResponse)(nil),           // 21: raystack.shield.v1beta1.GetCurrentUserResponse
+	(*UpdateUserResponse)(nil),               // 22: raystack.shield.v1beta1.UpdateUserResponse
+	(*UpdateCurrentUserResponse)(nil),        // 23: raystack.shield.v1beta1.UpdateCurrentUserResponse
+	(*UpdateUserRequest)(nil),                // 24: raystack.shield.v1beta1.UpdateUserRequest
+	(*GetUserRequest)(nil),                   // 25: raystack.shield.v1beta1.GetUserRequest
+	(*ListUserGroupsRequest)(nil),            // 26: raystack.shield.v1beta1.ListUserGroupsRequest
+	(*ListUsersRequest)(nil),                 // 27: raystack.shield.v1beta1.ListUsersRequest
+	(*ListUsersResponse)(nil),                // 28: raystack.shield.v1beta1.ListUsersResponse
+	(*GroupRequestBody)(nil),                 // 29: raystack.shield.v1beta1.GroupRequestBody
+	(*CreateGroupRequest)(nil),               // 30: raystack.shield.v1beta1.CreateGroupRequest
+	(*ListUserGroupsResponse)(nil),           // 31: raystack.shield.v1beta1.ListUserGroupsResponse
+	(*Group)(nil),                            // 32: raystack.shield.v1beta1.Group
+	(*CreateGroupResponse)(nil),              // 33: raystack.shield.v1beta1.CreateGroupResponse
+	(*GetGroupResponse)(nil),                 // 34: raystack.shield.v1beta1.GetGroupResponse
+	(*UpdateGroupResponse)(nil),              // 35: raystack.shield.v1beta1.UpdateGroupResponse
+	(*UpdateGroupRequest)(nil),               // 36: raystack.shield.v1beta1.UpdateGroupRequest
+	(*UpdateCurrentUserRequest)(nil),         // 37: raystack.shield.v1beta1.UpdateCurrentUserRequest
+	(*GetGroupRequest)(nil),                  // 38: raystack.shield.v1beta1.GetGroupRequest
+	(*ListGroupsRequest)(nil),                // 39: raystack.shield.v1beta1.ListGroupsRequest
+	(*ListGroupsResponse)(nil),               // 40: raystack.shield.v1beta1.ListGroupsResponse
+	(*Role)(nil),                             // 41: raystack.shield.v1beta1.Role
+	(*RoleRequestBody)(nil),                  // 42: raystack.shield.v1beta1.RoleRequestBody
+	(*CreateRoleRequest)(nil),                // 43: raystack.shield.v1beta1.CreateRoleRequest
+	(*CreateRoleResponse)(nil),               // 44: raystack.shield.v1beta1.CreateRoleResponse
+	(*GetRoleResponse)(nil),                  // 45: raystack.shield.v1beta1.GetRoleResponse
+	(*UpdateRoleResponse)(nil),               // 46: raystack.shield.v1beta1.UpdateRoleResponse
+	(*GetRoleRequest)(nil),                   // 47: raystack.shield.v1beta1.GetRoleRequest
+	(*UpdateRoleRequest)(nil),                // 48: raystack.shield.v1beta1.UpdateRoleRequest
+	(*ListRolesRequest)(nil),                 // 49: raystack.shield.v1beta1.ListRolesRequest
+	(*ListRolesResponse)(nil),                // 50: raystack.shield.v1beta1.ListRolesResponse
+	(*OrganizationRequestBody)(nil),          // 51: raystack.shield.v1beta1.OrganizationRequestBody
+	(*CreateOrganizationRequest)(nil),        // 52: raystack.shield.v1beta1.CreateOrganizationRequest
+	(*Organization)(nil),                     // 53: raystack.shield.v1beta1.Organization
+	(*CreateOrganizationResponse)(nil),       // 54: raystack.shield.v1beta1.CreateOrganizationResponse
+	(*GetOrganizationResponse)(nil),          // 55: raystack.shield.v1beta1.GetOrganizationResponse
+	(*UpdateOrganizationResponse)(nil),       // 56: raystack.shield.v1beta1.UpdateOrganizationResponse
+	(*ListOrganizationsRequest)(nil),         // 57: raystack.shield.v1beta1.ListOrganizationsRequest
+	(*ListOrganizationsResponse)(nil),        // 58: raystack.shield.v1beta1.ListOrganizationsResponse
+	(*GetOrganizationRequest)(nil),           // 59: raystack.shield.v1beta1.GetOrganizationRequest
+	(*UpdateOrganizationRequest)(nil),        // 60: raystack.shield.v1beta1.UpdateOrganizationRequest
+	(*ListOrganizationAdminsRequest)(nil),    // 61: raystack.shield.v1beta1.ListOrganizationAdminsRequest
+	(*ListOrganizationAdminsResponse)(nil),   // 62: raystack.shield.v1beta1.ListOrganizationAdminsResponse
+	(*ListOrganizationUsersRequest)(nil),     // 63: raystack.shield.v1beta1.ListOrganizationUsersRequest
+	(*ListOrganizationUsersResponse)(nil),    // 64: raystack.shield.v1beta1.ListOrganizationUsersResponse
+	(*ListOrganizationProjectsRequest)(nil),  // 65: raystack.shield.v1beta1.ListOrganizationProjectsRequest
+	(*ListOrganizationProjectsResponse)(nil), // 66: raystack.shield.v1beta1.ListOrganizationProjectsResponse
+	(*ProjectRequestBody)(nil),               // 67: raystack.shield.v1beta1.ProjectRequestBody
+	(*CreateProjectRequest)(nil),             // 68: raystack.shield.v1beta1.CreateProjectRequest
+	(*Project)(nil),                          // 69: raystack.shield.v1beta1.Project
+	(*CreateProjectResponse)(nil),            // 70: raystack.shield.v1beta1.CreateProjectResponse
+	(*GetProjectResponse)(nil),               // 71: raystack.shield.v1beta1.GetProjectResponse
+	(*UpdateProjectResponse)(nil),            // 72: raystack.shield.v1beta1.UpdateProjectResponse
+	(*ListProjectsRequest)(nil),              // 73: raystack.shield.v1beta1.ListProjectsRequest
+	(*ListProjectsResponse)(nil),             // 74: raystack.shield.v1beta1.ListProjectsResponse
+	(*GetProjectRequest)(nil),                // 75: raystack.shield.v1beta1.GetProjectRequest
+	(*UpdateProjectRequest)(nil),             // 76: raystack.shield.v1beta1.UpdateProjectRequest
+	(*ListProjectAdminsRequest)(nil),         // 77: raystack.shield.v1beta1.ListProjectAdminsRequest
+	(*ListProjectAdminsResponse)(nil),        // 78: raystack.shield.v1beta1.ListProjectAdminsResponse
+	(*ListProjectUsersRequest)(nil),          // 79: raystack.shield.v1beta1.ListProjectUsersRequest
+	(*ListProjectUsersResponse)(nil),         // 80: raystack.shield.v1beta1.ListProjectUsersResponse
+	(*Action)(nil),                           // 81: raystack.shield.v1beta1.Action
+	(*Namespace)(nil),                        // 82: raystack.shield.v1beta1.Namespace
+	(*Policy)(nil),                           // 83: raystack.shield.v1beta1.Policy
+	(*ActionRequestBody)(nil),                // 84: raystack.shield.v1beta1.ActionRequestBody
+	(*NamespaceRequestBody)(nil),             // 85: raystack.shield.v1beta1.NamespaceRequestBody
+	(*PolicyRequestBody)(nil),                // 86: raystack.shield.v1beta1.PolicyRequestBody
+	(*ListActionsRequest)(nil),               // 87: raystack.shield.v1beta1.ListActionsRequest
+	(*ListActionsResponse)(nil),              // 88: raystack.shield.v1beta1.ListActionsResponse
+	(*CreateActionRequest)(nil),              // 89: raystack.shield.v1beta1.CreateActionRequest
+	(*CreateActionResponse)(nil),             // 90: raystack.shield.v1beta1.CreateActionResponse
+	(*GetActionRequest)(nil),                 // 91: raystack.shield.v1beta1.GetActionRequest
+	(*GetActionResponse)(nil),                // 92: raystack.shield.v1beta1.GetActionResponse
+	(*UpdateActionRequest)(nil),              // 93: raystack.shield.v1beta1.UpdateActionRequest
+	(*UpdateActionResponse)(nil),             // 94: raystack.shield.v1beta1.UpdateActionResponse
+	(*ListNamespacesRequest)(nil),            // 95: raystack.shield.v1beta1.ListNamespacesRequest
+	(*ListNamespacesResponse)(nil),           // 96: raystack.shield.v1beta1.ListNamespacesResponse
+	(*CreateNamespaceRequest)(nil),           // 97: raystack.shield.v1beta1.CreateNamespaceRequest
+	(*CreateNamespaceResponse)(nil),          // 98: raystack.shield.v1beta1.CreateNamespaceResponse
+	(*GetNamespaceRequest)(nil),              // 99: raystack.shield.v1beta1.GetNamespaceRequest
+	(*GetNamespaceResponse)(nil),             // 100: raystack.shield.v1beta1.GetNamespaceResponse
+	(*UpdateNamespaceRequest)(nil),           // 101: raystack.shield.v1beta1.UpdateNamespaceRequest
+	(*UpdateNamespaceResponse)(nil),          // 102: raystack.shield.v1beta1.UpdateNamespaceResponse
+	(*ListPoliciesRequest)(nil),              // 103: raystack.shield.v1beta1.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),             // 104: raystack.shield.v1beta1.ListPoliciesResponse
+	(*CreatePolicyRequest)(nil),              // 105: raystack.shield.v1beta1.CreatePolicyRequest
+	(*CreatePolicyResponse)(nil),             // 106: raystack.shield.v1beta1.CreatePolicyResponse
+	(*GetPolicyRequest)(nil),                 // 107: raystack.shield.v1beta1.GetPolicyRequest
+	(*GetPolicyResponse)(nil),                // 108: raystack.shield.v1beta1.GetPolicyResponse
+	(*UpdatePolicyRequest)(nil),              // 109: raystack.shield.v1beta1.UpdatePolicyRequest
+	(*UpdatePolicyResponse)(nil),             // 110: raystack.shield.v1beta1.UpdatePolicyResponse
+	(*Relation)(nil),                         // 111: raystack.shield.v1beta1.Relation
+	(*Resource)(nil),                         // 112: raystack.shield.v1beta1.Resource
+	(*GroupRelation)(nil),                    // 113: raystack.shield.v1beta1.GroupRelation
+	(*ListRelationsRequest)(nil),             // 114: raystack.shield.v1beta1.ListRelationsRequest
+	(*ListRelationsResponse)(nil),            // 115: raystack.shield.v1beta1.ListRelationsResponse
+	(*RelationRequestBody)(nil),              // 116: raystack.shield.v1beta1.RelationRequestBody
+	(*CreateRelationRequest)(nil),            // 117: raystack.shield.v1beta1.CreateRelationRequest
+	(*CreateRelationResponse)(nil),           // 118: raystack.shield.v1beta1.CreateRelationResponse
+	(*GetRelationRequest)(nil),               // 119: raystack.shield.v1beta1.GetRelationRequest
+	(*GetRelationResponse)(nil),              // 120: raystack.shield.v1beta1.GetRelationResponse
+	(*UpdateRelationRequest)(nil),            // 121: raystack.shield.v1beta1.UpdateRelationRequest
+	(*UpdateRelationResponse)(nil),           // 122: raystack.shield.v1beta1.UpdateRelationResponse
+	(*ListGroupRelationsRequest)(nil),        // 123: raystack.shield.v1beta1.ListGroupRelationsRequest
+	(*ListGroupRelationsResponse)(nil),       // 124: raystack.shield.v1beta1.ListGroupRelationsResponse
+	(*DeleteRelationRequest)(nil),            // 125: raystack.shield.v1beta1.DeleteRelationRequest
+	(*DeleteRelationResponse)(nil),           // 126: raystack.shield.v1beta1.DeleteRelationResponse
+	(*ListResourcesRequest)(nil),             // 127: raystack.shield.v1beta1.ListResourcesRequest
+	(*ListResourcesResponse)(nil),            // 128: raystack.shield.v1beta1.ListResourcesResponse
+	(*ResourceRequestBody)(nil),              // 129: raystack.shield.v1beta1.ResourceRequestBody
+	(*CreateResourceRequest)(nil),            // 130: raystack.shield.v1beta1.CreateResourceRequest
+	(*CreateResourceResponse)(nil),           // 131: raystack.shield.v1beta1.CreateResourceResponse
+	(*GetResourceRequest)(nil),               // 132: raystack.shield.v1beta1.GetResourceRequest
+	(*GetResourceResponse)(nil),              // 133: raystack.shield.v1beta1.GetResourceResponse
+	(*UpdateResourceRequest)(nil),            // 134: raystack.shield.v1beta1.UpdateResourceRequest
+	(*UpdateResourceResponse)(nil),           // 135: raystack.shield.v1beta1.UpdateResourceResponse
+	(*CheckResourcePermissionRequest)(nil),   // 136: raystack.shield.v1beta1.CheckResourcePermissionRequest
+	(*CheckResourcePermissionResponse)(nil),  // 137: raystack.shield.v1beta1.CheckResourcePermissionResponse
 	(*structpb.Struct)(nil),                  // 138: google.protobuf.Struct
 	(*timestamppb.Timestamp)(nil),            // 139: google.protobuf.Timestamp
 }
-var file_odpf_shield_v1beta1_shield_proto_depIdxs = []int32{
-	138, // 0: odpf.shield.v1beta1.AuthStrategy.params:type_name -> google.protobuf.Struct
-	6,   // 1: odpf.shield.v1beta1.ListAuthStrategiesResponse.strategies:type_name -> odpf.shield.v1beta1.AuthStrategy
-	138, // 2: odpf.shield.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
-	9,   // 3: odpf.shield.v1beta1.CreateUserRequest.body:type_name -> odpf.shield.v1beta1.UserRequestBody
-	138, // 4: odpf.shield.v1beta1.User.metadata:type_name -> google.protobuf.Struct
-	139, // 5: odpf.shield.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
-	139, // 6: odpf.shield.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
-	11,  // 7: odpf.shield.v1beta1.CreateUserResponse.user:type_name -> odpf.shield.v1beta1.User
-	13,  // 8: odpf.shield.v1beta1.CreateMetadataKeyRequest.body:type_name -> odpf.shield.v1beta1.MetadataKeyRequestBody
-	15,  // 9: odpf.shield.v1beta1.CreateMetadataKeyResponse.metadatakey:type_name -> odpf.shield.v1beta1.MetadataKey
-	53,  // 10: odpf.shield.v1beta1.GetOrganizationsByUserResponse.organizations:type_name -> odpf.shield.v1beta1.Organization
-	11,  // 11: odpf.shield.v1beta1.GetUserResponse.user:type_name -> odpf.shield.v1beta1.User
-	11,  // 12: odpf.shield.v1beta1.GetCurrentUserResponse.user:type_name -> odpf.shield.v1beta1.User
-	11,  // 13: odpf.shield.v1beta1.UpdateUserResponse.user:type_name -> odpf.shield.v1beta1.User
-	11,  // 14: odpf.shield.v1beta1.UpdateCurrentUserResponse.user:type_name -> odpf.shield.v1beta1.User
-	9,   // 15: odpf.shield.v1beta1.UpdateUserRequest.body:type_name -> odpf.shield.v1beta1.UserRequestBody
-	11,  // 16: odpf.shield.v1beta1.ListUsersResponse.users:type_name -> odpf.shield.v1beta1.User
-	138, // 17: odpf.shield.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
-	29,  // 18: odpf.shield.v1beta1.CreateGroupRequest.body:type_name -> odpf.shield.v1beta1.GroupRequestBody
-	32,  // 19: odpf.shield.v1beta1.ListUserGroupsResponse.groups:type_name -> odpf.shield.v1beta1.Group
-	138, // 20: odpf.shield.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
-	139, // 21: odpf.shield.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
-	139, // 22: odpf.shield.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
-	32,  // 23: odpf.shield.v1beta1.CreateGroupResponse.group:type_name -> odpf.shield.v1beta1.Group
-	32,  // 24: odpf.shield.v1beta1.GetGroupResponse.group:type_name -> odpf.shield.v1beta1.Group
-	32,  // 25: odpf.shield.v1beta1.UpdateGroupResponse.group:type_name -> odpf.shield.v1beta1.Group
-	29,  // 26: odpf.shield.v1beta1.UpdateGroupRequest.body:type_name -> odpf.shield.v1beta1.GroupRequestBody
-	9,   // 27: odpf.shield.v1beta1.UpdateCurrentUserRequest.body:type_name -> odpf.shield.v1beta1.UserRequestBody
-	32,  // 28: odpf.shield.v1beta1.ListGroupsResponse.groups:type_name -> odpf.shield.v1beta1.Group
-	82,  // 29: odpf.shield.v1beta1.Role.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	138, // 30: odpf.shield.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
-	139, // 31: odpf.shield.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
-	139, // 32: odpf.shield.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
-	138, // 33: odpf.shield.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
-	42,  // 34: odpf.shield.v1beta1.CreateRoleRequest.body:type_name -> odpf.shield.v1beta1.RoleRequestBody
-	41,  // 35: odpf.shield.v1beta1.CreateRoleResponse.role:type_name -> odpf.shield.v1beta1.Role
-	41,  // 36: odpf.shield.v1beta1.GetRoleResponse.role:type_name -> odpf.shield.v1beta1.Role
-	41,  // 37: odpf.shield.v1beta1.UpdateRoleResponse.role:type_name -> odpf.shield.v1beta1.Role
-	42,  // 38: odpf.shield.v1beta1.UpdateRoleRequest.body:type_name -> odpf.shield.v1beta1.RoleRequestBody
-	41,  // 39: odpf.shield.v1beta1.ListRolesResponse.roles:type_name -> odpf.shield.v1beta1.Role
-	138, // 40: odpf.shield.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
-	51,  // 41: odpf.shield.v1beta1.CreateOrganizationRequest.body:type_name -> odpf.shield.v1beta1.OrganizationRequestBody
-	138, // 42: odpf.shield.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
-	139, // 43: odpf.shield.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
-	139, // 44: odpf.shield.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
-	53,  // 45: odpf.shield.v1beta1.CreateOrganizationResponse.organization:type_name -> odpf.shield.v1beta1.Organization
-	53,  // 46: odpf.shield.v1beta1.GetOrganizationResponse.organization:type_name -> odpf.shield.v1beta1.Organization
-	53,  // 47: odpf.shield.v1beta1.UpdateOrganizationResponse.organization:type_name -> odpf.shield.v1beta1.Organization
-	53,  // 48: odpf.shield.v1beta1.ListOrganizationsResponse.organizations:type_name -> odpf.shield.v1beta1.Organization
-	51,  // 49: odpf.shield.v1beta1.UpdateOrganizationRequest.body:type_name -> odpf.shield.v1beta1.OrganizationRequestBody
-	11,  // 50: odpf.shield.v1beta1.ListOrganizationAdminsResponse.users:type_name -> odpf.shield.v1beta1.User
-	11,  // 51: odpf.shield.v1beta1.ListOrganizationUsersResponse.users:type_name -> odpf.shield.v1beta1.User
-	69,  // 52: odpf.shield.v1beta1.ListOrganizationProjectsResponse.projects:type_name -> odpf.shield.v1beta1.Project
-	138, // 53: odpf.shield.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
-	67,  // 54: odpf.shield.v1beta1.CreateProjectRequest.body:type_name -> odpf.shield.v1beta1.ProjectRequestBody
-	138, // 55: odpf.shield.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
-	139, // 56: odpf.shield.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
-	139, // 57: odpf.shield.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
-	69,  // 58: odpf.shield.v1beta1.CreateProjectResponse.project:type_name -> odpf.shield.v1beta1.Project
-	69,  // 59: odpf.shield.v1beta1.GetProjectResponse.project:type_name -> odpf.shield.v1beta1.Project
-	69,  // 60: odpf.shield.v1beta1.UpdateProjectResponse.project:type_name -> odpf.shield.v1beta1.Project
-	69,  // 61: odpf.shield.v1beta1.ListProjectsResponse.projects:type_name -> odpf.shield.v1beta1.Project
-	67,  // 62: odpf.shield.v1beta1.UpdateProjectRequest.body:type_name -> odpf.shield.v1beta1.ProjectRequestBody
-	11,  // 63: odpf.shield.v1beta1.ListProjectAdminsResponse.users:type_name -> odpf.shield.v1beta1.User
-	11,  // 64: odpf.shield.v1beta1.ListProjectUsersResponse.users:type_name -> odpf.shield.v1beta1.User
-	82,  // 65: odpf.shield.v1beta1.Action.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	139, // 66: odpf.shield.v1beta1.Action.created_at:type_name -> google.protobuf.Timestamp
-	139, // 67: odpf.shield.v1beta1.Action.updated_at:type_name -> google.protobuf.Timestamp
-	139, // 68: odpf.shield.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
-	139, // 69: odpf.shield.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
-	41,  // 70: odpf.shield.v1beta1.Policy.role:type_name -> odpf.shield.v1beta1.Role
-	81,  // 71: odpf.shield.v1beta1.Policy.action:type_name -> odpf.shield.v1beta1.Action
-	82,  // 72: odpf.shield.v1beta1.Policy.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	139, // 73: odpf.shield.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
-	139, // 74: odpf.shield.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
-	81,  // 75: odpf.shield.v1beta1.ListActionsResponse.actions:type_name -> odpf.shield.v1beta1.Action
-	84,  // 76: odpf.shield.v1beta1.CreateActionRequest.body:type_name -> odpf.shield.v1beta1.ActionRequestBody
-	81,  // 77: odpf.shield.v1beta1.CreateActionResponse.action:type_name -> odpf.shield.v1beta1.Action
-	81,  // 78: odpf.shield.v1beta1.GetActionResponse.action:type_name -> odpf.shield.v1beta1.Action
-	84,  // 79: odpf.shield.v1beta1.UpdateActionRequest.body:type_name -> odpf.shield.v1beta1.ActionRequestBody
-	81,  // 80: odpf.shield.v1beta1.UpdateActionResponse.action:type_name -> odpf.shield.v1beta1.Action
-	82,  // 81: odpf.shield.v1beta1.ListNamespacesResponse.namespaces:type_name -> odpf.shield.v1beta1.Namespace
-	85,  // 82: odpf.shield.v1beta1.CreateNamespaceRequest.body:type_name -> odpf.shield.v1beta1.NamespaceRequestBody
-	82,  // 83: odpf.shield.v1beta1.CreateNamespaceResponse.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	82,  // 84: odpf.shield.v1beta1.GetNamespaceResponse.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	85,  // 85: odpf.shield.v1beta1.UpdateNamespaceRequest.body:type_name -> odpf.shield.v1beta1.NamespaceRequestBody
-	82,  // 86: odpf.shield.v1beta1.UpdateNamespaceResponse.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	83,  // 87: odpf.shield.v1beta1.ListPoliciesResponse.policies:type_name -> odpf.shield.v1beta1.Policy
-	86,  // 88: odpf.shield.v1beta1.CreatePolicyRequest.body:type_name -> odpf.shield.v1beta1.PolicyRequestBody
-	83,  // 89: odpf.shield.v1beta1.CreatePolicyResponse.policies:type_name -> odpf.shield.v1beta1.Policy
-	83,  // 90: odpf.shield.v1beta1.GetPolicyResponse.policy:type_name -> odpf.shield.v1beta1.Policy
-	86,  // 91: odpf.shield.v1beta1.UpdatePolicyRequest.body:type_name -> odpf.shield.v1beta1.PolicyRequestBody
-	83,  // 92: odpf.shield.v1beta1.UpdatePolicyResponse.policies:type_name -> odpf.shield.v1beta1.Policy
-	139, // 93: odpf.shield.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
-	139, // 94: odpf.shield.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
-	69,  // 95: odpf.shield.v1beta1.Resource.project:type_name -> odpf.shield.v1beta1.Project
-	53,  // 96: odpf.shield.v1beta1.Resource.organization:type_name -> odpf.shield.v1beta1.Organization
-	82,  // 97: odpf.shield.v1beta1.Resource.namespace:type_name -> odpf.shield.v1beta1.Namespace
-	139, // 98: odpf.shield.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
-	139, // 99: odpf.shield.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
-	11,  // 100: odpf.shield.v1beta1.Resource.user:type_name -> odpf.shield.v1beta1.User
-	11,  // 101: odpf.shield.v1beta1.GroupRelation.user:type_name -> odpf.shield.v1beta1.User
-	32,  // 102: odpf.shield.v1beta1.GroupRelation.group:type_name -> odpf.shield.v1beta1.Group
-	111, // 103: odpf.shield.v1beta1.ListRelationsResponse.relations:type_name -> odpf.shield.v1beta1.Relation
-	116, // 104: odpf.shield.v1beta1.CreateRelationRequest.body:type_name -> odpf.shield.v1beta1.RelationRequestBody
-	111, // 105: odpf.shield.v1beta1.CreateRelationResponse.relation:type_name -> odpf.shield.v1beta1.Relation
-	111, // 106: odpf.shield.v1beta1.GetRelationResponse.relation:type_name -> odpf.shield.v1beta1.Relation
-	116, // 107: odpf.shield.v1beta1.UpdateRelationRequest.body:type_name -> odpf.shield.v1beta1.RelationRequestBody
-	111, // 108: odpf.shield.v1beta1.UpdateRelationResponse.relation:type_name -> odpf.shield.v1beta1.Relation
-	113, // 109: odpf.shield.v1beta1.ListGroupRelationsResponse.relations:type_name -> odpf.shield.v1beta1.GroupRelation
-	112, // 110: odpf.shield.v1beta1.ListResourcesResponse.resources:type_name -> odpf.shield.v1beta1.Resource
-	111, // 111: odpf.shield.v1beta1.ResourceRequestBody.relations:type_name -> odpf.shield.v1beta1.Relation
-	129, // 112: odpf.shield.v1beta1.CreateResourceRequest.body:type_name -> odpf.shield.v1beta1.ResourceRequestBody
-	112, // 113: odpf.shield.v1beta1.CreateResourceResponse.resource:type_name -> odpf.shield.v1beta1.Resource
-	112, // 114: odpf.shield.v1beta1.GetResourceResponse.resource:type_name -> odpf.shield.v1beta1.Resource
-	129, // 115: odpf.shield.v1beta1.UpdateResourceRequest.body:type_name -> odpf.shield.v1beta1.ResourceRequestBody
-	112, // 116: odpf.shield.v1beta1.UpdateResourceResponse.resource:type_name -> odpf.shield.v1beta1.Resource
-	27,  // 117: odpf.shield.v1beta1.ShieldService.ListUsers:input_type -> odpf.shield.v1beta1.ListUsersRequest
-	10,  // 118: odpf.shield.v1beta1.ShieldService.CreateUser:input_type -> odpf.shield.v1beta1.CreateUserRequest
-	25,  // 119: odpf.shield.v1beta1.ShieldService.GetUser:input_type -> odpf.shield.v1beta1.GetUserRequest
-	26,  // 120: odpf.shield.v1beta1.ShieldService.ListUserGroups:input_type -> odpf.shield.v1beta1.ListUserGroupsRequest
-	20,  // 121: odpf.shield.v1beta1.ShieldService.GetCurrentUser:input_type -> odpf.shield.v1beta1.GetCurrentUserRequest
-	24,  // 122: odpf.shield.v1beta1.ShieldService.UpdateUser:input_type -> odpf.shield.v1beta1.UpdateUserRequest
-	37,  // 123: odpf.shield.v1beta1.ShieldService.UpdateCurrentUser:input_type -> odpf.shield.v1beta1.UpdateCurrentUserRequest
-	17,  // 124: odpf.shield.v1beta1.ShieldService.GetOrganizationsByUser:input_type -> odpf.shield.v1beta1.GetOrganizationsByUserRequest
-	14,  // 125: odpf.shield.v1beta1.ShieldService.CreateMetadataKey:input_type -> odpf.shield.v1beta1.CreateMetadataKeyRequest
-	39,  // 126: odpf.shield.v1beta1.ShieldService.ListGroups:input_type -> odpf.shield.v1beta1.ListGroupsRequest
-	30,  // 127: odpf.shield.v1beta1.ShieldService.CreateGroup:input_type -> odpf.shield.v1beta1.CreateGroupRequest
-	38,  // 128: odpf.shield.v1beta1.ShieldService.GetGroup:input_type -> odpf.shield.v1beta1.GetGroupRequest
-	36,  // 129: odpf.shield.v1beta1.ShieldService.UpdateGroup:input_type -> odpf.shield.v1beta1.UpdateGroupRequest
-	123, // 130: odpf.shield.v1beta1.ShieldService.ListGroupRelations:input_type -> odpf.shield.v1beta1.ListGroupRelationsRequest
-	49,  // 131: odpf.shield.v1beta1.ShieldService.ListRoles:input_type -> odpf.shield.v1beta1.ListRolesRequest
-	43,  // 132: odpf.shield.v1beta1.ShieldService.CreateRole:input_type -> odpf.shield.v1beta1.CreateRoleRequest
-	47,  // 133: odpf.shield.v1beta1.ShieldService.GetRole:input_type -> odpf.shield.v1beta1.GetRoleRequest
-	48,  // 134: odpf.shield.v1beta1.ShieldService.UpdateRole:input_type -> odpf.shield.v1beta1.UpdateRoleRequest
-	57,  // 135: odpf.shield.v1beta1.ShieldService.ListOrganizations:input_type -> odpf.shield.v1beta1.ListOrganizationsRequest
-	52,  // 136: odpf.shield.v1beta1.ShieldService.CreateOrganization:input_type -> odpf.shield.v1beta1.CreateOrganizationRequest
-	59,  // 137: odpf.shield.v1beta1.ShieldService.GetOrganization:input_type -> odpf.shield.v1beta1.GetOrganizationRequest
-	60,  // 138: odpf.shield.v1beta1.ShieldService.UpdateOrganization:input_type -> odpf.shield.v1beta1.UpdateOrganizationRequest
-	61,  // 139: odpf.shield.v1beta1.ShieldService.ListOrganizationAdmins:input_type -> odpf.shield.v1beta1.ListOrganizationAdminsRequest
-	63,  // 140: odpf.shield.v1beta1.ShieldService.ListOrganizationUsers:input_type -> odpf.shield.v1beta1.ListOrganizationUsersRequest
-	65,  // 141: odpf.shield.v1beta1.ShieldService.ListOrganizationProjects:input_type -> odpf.shield.v1beta1.ListOrganizationProjectsRequest
-	73,  // 142: odpf.shield.v1beta1.ShieldService.ListProjects:input_type -> odpf.shield.v1beta1.ListProjectsRequest
-	68,  // 143: odpf.shield.v1beta1.ShieldService.CreateProject:input_type -> odpf.shield.v1beta1.CreateProjectRequest
-	75,  // 144: odpf.shield.v1beta1.ShieldService.GetProject:input_type -> odpf.shield.v1beta1.GetProjectRequest
-	76,  // 145: odpf.shield.v1beta1.ShieldService.UpdateProject:input_type -> odpf.shield.v1beta1.UpdateProjectRequest
-	77,  // 146: odpf.shield.v1beta1.ShieldService.ListProjectAdmins:input_type -> odpf.shield.v1beta1.ListProjectAdminsRequest
-	79,  // 147: odpf.shield.v1beta1.ShieldService.ListProjectUsers:input_type -> odpf.shield.v1beta1.ListProjectUsersRequest
-	87,  // 148: odpf.shield.v1beta1.ShieldService.ListActions:input_type -> odpf.shield.v1beta1.ListActionsRequest
-	89,  // 149: odpf.shield.v1beta1.ShieldService.CreateAction:input_type -> odpf.shield.v1beta1.CreateActionRequest
-	91,  // 150: odpf.shield.v1beta1.ShieldService.GetAction:input_type -> odpf.shield.v1beta1.GetActionRequest
-	93,  // 151: odpf.shield.v1beta1.ShieldService.UpdateAction:input_type -> odpf.shield.v1beta1.UpdateActionRequest
-	95,  // 152: odpf.shield.v1beta1.ShieldService.ListNamespaces:input_type -> odpf.shield.v1beta1.ListNamespacesRequest
-	97,  // 153: odpf.shield.v1beta1.ShieldService.CreateNamespace:input_type -> odpf.shield.v1beta1.CreateNamespaceRequest
-	99,  // 154: odpf.shield.v1beta1.ShieldService.GetNamespace:input_type -> odpf.shield.v1beta1.GetNamespaceRequest
-	101, // 155: odpf.shield.v1beta1.ShieldService.UpdateNamespace:input_type -> odpf.shield.v1beta1.UpdateNamespaceRequest
-	103, // 156: odpf.shield.v1beta1.ShieldService.ListPolicies:input_type -> odpf.shield.v1beta1.ListPoliciesRequest
-	105, // 157: odpf.shield.v1beta1.ShieldService.CreatePolicy:input_type -> odpf.shield.v1beta1.CreatePolicyRequest
-	107, // 158: odpf.shield.v1beta1.ShieldService.GetPolicy:input_type -> odpf.shield.v1beta1.GetPolicyRequest
-	109, // 159: odpf.shield.v1beta1.ShieldService.UpdatePolicy:input_type -> odpf.shield.v1beta1.UpdatePolicyRequest
-	114, // 160: odpf.shield.v1beta1.ShieldService.ListRelations:input_type -> odpf.shield.v1beta1.ListRelationsRequest
-	117, // 161: odpf.shield.v1beta1.ShieldService.CreateRelation:input_type -> odpf.shield.v1beta1.CreateRelationRequest
-	119, // 162: odpf.shield.v1beta1.ShieldService.GetRelation:input_type -> odpf.shield.v1beta1.GetRelationRequest
-	125, // 163: odpf.shield.v1beta1.ShieldService.DeleteRelation:input_type -> odpf.shield.v1beta1.DeleteRelationRequest
-	127, // 164: odpf.shield.v1beta1.ShieldService.ListResources:input_type -> odpf.shield.v1beta1.ListResourcesRequest
-	130, // 165: odpf.shield.v1beta1.ShieldService.CreateResource:input_type -> odpf.shield.v1beta1.CreateResourceRequest
-	132, // 166: odpf.shield.v1beta1.ShieldService.GetResource:input_type -> odpf.shield.v1beta1.GetResourceRequest
-	134, // 167: odpf.shield.v1beta1.ShieldService.UpdateResource:input_type -> odpf.shield.v1beta1.UpdateResourceRequest
-	136, // 168: odpf.shield.v1beta1.ShieldService.CheckResourcePermission:input_type -> odpf.shield.v1beta1.CheckResourcePermissionRequest
-	7,   // 169: odpf.shield.v1beta1.ShieldService.ListAuthStrategies:input_type -> odpf.shield.v1beta1.ListAuthStrategiesRequest
-	4,   // 170: odpf.shield.v1beta1.ShieldService.Authenticate:input_type -> odpf.shield.v1beta1.AuthenticateRequest
-	2,   // 171: odpf.shield.v1beta1.ShieldService.AuthCallback:input_type -> odpf.shield.v1beta1.AuthCallbackRequest
-	0,   // 172: odpf.shield.v1beta1.ShieldService.AuthLogout:input_type -> odpf.shield.v1beta1.AuthLogoutRequest
-	28,  // 173: odpf.shield.v1beta1.ShieldService.ListUsers:output_type -> odpf.shield.v1beta1.ListUsersResponse
-	12,  // 174: odpf.shield.v1beta1.ShieldService.CreateUser:output_type -> odpf.shield.v1beta1.CreateUserResponse
-	19,  // 175: odpf.shield.v1beta1.ShieldService.GetUser:output_type -> odpf.shield.v1beta1.GetUserResponse
-	31,  // 176: odpf.shield.v1beta1.ShieldService.ListUserGroups:output_type -> odpf.shield.v1beta1.ListUserGroupsResponse
-	21,  // 177: odpf.shield.v1beta1.ShieldService.GetCurrentUser:output_type -> odpf.shield.v1beta1.GetCurrentUserResponse
-	22,  // 178: odpf.shield.v1beta1.ShieldService.UpdateUser:output_type -> odpf.shield.v1beta1.UpdateUserResponse
-	23,  // 179: odpf.shield.v1beta1.ShieldService.UpdateCurrentUser:output_type -> odpf.shield.v1beta1.UpdateCurrentUserResponse
-	18,  // 180: odpf.shield.v1beta1.ShieldService.GetOrganizationsByUser:output_type -> odpf.shield.v1beta1.GetOrganizationsByUserResponse
-	16,  // 181: odpf.shield.v1beta1.ShieldService.CreateMetadataKey:output_type -> odpf.shield.v1beta1.CreateMetadataKeyResponse
-	40,  // 182: odpf.shield.v1beta1.ShieldService.ListGroups:output_type -> odpf.shield.v1beta1.ListGroupsResponse
-	33,  // 183: odpf.shield.v1beta1.ShieldService.CreateGroup:output_type -> odpf.shield.v1beta1.CreateGroupResponse
-	34,  // 184: odpf.shield.v1beta1.ShieldService.GetGroup:output_type -> odpf.shield.v1beta1.GetGroupResponse
-	35,  // 185: odpf.shield.v1beta1.ShieldService.UpdateGroup:output_type -> odpf.shield.v1beta1.UpdateGroupResponse
-	124, // 186: odpf.shield.v1beta1.ShieldService.ListGroupRelations:output_type -> odpf.shield.v1beta1.ListGroupRelationsResponse
-	50,  // 187: odpf.shield.v1beta1.ShieldService.ListRoles:output_type -> odpf.shield.v1beta1.ListRolesResponse
-	44,  // 188: odpf.shield.v1beta1.ShieldService.CreateRole:output_type -> odpf.shield.v1beta1.CreateRoleResponse
-	45,  // 189: odpf.shield.v1beta1.ShieldService.GetRole:output_type -> odpf.shield.v1beta1.GetRoleResponse
-	46,  // 190: odpf.shield.v1beta1.ShieldService.UpdateRole:output_type -> odpf.shield.v1beta1.UpdateRoleResponse
-	58,  // 191: odpf.shield.v1beta1.ShieldService.ListOrganizations:output_type -> odpf.shield.v1beta1.ListOrganizationsResponse
-	54,  // 192: odpf.shield.v1beta1.ShieldService.CreateOrganization:output_type -> odpf.shield.v1beta1.CreateOrganizationResponse
-	55,  // 193: odpf.shield.v1beta1.ShieldService.GetOrganization:output_type -> odpf.shield.v1beta1.GetOrganizationResponse
-	56,  // 194: odpf.shield.v1beta1.ShieldService.UpdateOrganization:output_type -> odpf.shield.v1beta1.UpdateOrganizationResponse
-	62,  // 195: odpf.shield.v1beta1.ShieldService.ListOrganizationAdmins:output_type -> odpf.shield.v1beta1.ListOrganizationAdminsResponse
-	64,  // 196: odpf.shield.v1beta1.ShieldService.ListOrganizationUsers:output_type -> odpf.shield.v1beta1.ListOrganizationUsersResponse
-	66,  // 197: odpf.shield.v1beta1.ShieldService.ListOrganizationProjects:output_type -> odpf.shield.v1beta1.ListOrganizationProjectsResponse
-	74,  // 198: odpf.shield.v1beta1.ShieldService.ListProjects:output_type -> odpf.shield.v1beta1.ListProjectsResponse
-	70,  // 199: odpf.shield.v1beta1.ShieldService.CreateProject:output_type -> odpf.shield.v1beta1.CreateProjectResponse
-	71,  // 200: odpf.shield.v1beta1.ShieldService.GetProject:output_type -> odpf.shield.v1beta1.GetProjectResponse
-	72,  // 201: odpf.shield.v1beta1.ShieldService.UpdateProject:output_type -> odpf.shield.v1beta1.UpdateProjectResponse
-	78,  // 202: odpf.shield.v1beta1.ShieldService.ListProjectAdmins:output_type -> odpf.shield.v1beta1.ListProjectAdminsResponse
-	80,  // 203: odpf.shield.v1beta1.ShieldService.ListProjectUsers:output_type -> odpf.shield.v1beta1.ListProjectUsersResponse
-	88,  // 204: odpf.shield.v1beta1.ShieldService.ListActions:output_type -> odpf.shield.v1beta1.ListActionsResponse
-	90,  // 205: odpf.shield.v1beta1.ShieldService.CreateAction:output_type -> odpf.shield.v1beta1.CreateActionResponse
-	92,  // 206: odpf.shield.v1beta1.ShieldService.GetAction:output_type -> odpf.shield.v1beta1.GetActionResponse
-	94,  // 207: odpf.shield.v1beta1.ShieldService.UpdateAction:output_type -> odpf.shield.v1beta1.UpdateActionResponse
-	96,  // 208: odpf.shield.v1beta1.ShieldService.ListNamespaces:output_type -> odpf.shield.v1beta1.ListNamespacesResponse
-	98,  // 209: odpf.shield.v1beta1.ShieldService.CreateNamespace:output_type -> odpf.shield.v1beta1.CreateNamespaceResponse
-	100, // 210: odpf.shield.v1beta1.ShieldService.GetNamespace:output_type -> odpf.shield.v1beta1.GetNamespaceResponse
-	102, // 211: odpf.shield.v1beta1.ShieldService.UpdateNamespace:output_type -> odpf.shield.v1beta1.UpdateNamespaceResponse
-	104, // 212: odpf.shield.v1beta1.ShieldService.ListPolicies:output_type -> odpf.shield.v1beta1.ListPoliciesResponse
-	106, // 213: odpf.shield.v1beta1.ShieldService.CreatePolicy:output_type -> odpf.shield.v1beta1.CreatePolicyResponse
-	108, // 214: odpf.shield.v1beta1.ShieldService.GetPolicy:output_type -> odpf.shield.v1beta1.GetPolicyResponse
-	110, // 215: odpf.shield.v1beta1.ShieldService.UpdatePolicy:output_type -> odpf.shield.v1beta1.UpdatePolicyResponse
-	115, // 216: odpf.shield.v1beta1.ShieldService.ListRelations:output_type -> odpf.shield.v1beta1.ListRelationsResponse
-	118, // 217: odpf.shield.v1beta1.ShieldService.CreateRelation:output_type -> odpf.shield.v1beta1.CreateRelationResponse
-	120, // 218: odpf.shield.v1beta1.ShieldService.GetRelation:output_type -> odpf.shield.v1beta1.GetRelationResponse
-	126, // 219: odpf.shield.v1beta1.ShieldService.DeleteRelation:output_type -> odpf.shield.v1beta1.DeleteRelationResponse
-	128, // 220: odpf.shield.v1beta1.ShieldService.ListResources:output_type -> odpf.shield.v1beta1.ListResourcesResponse
-	131, // 221: odpf.shield.v1beta1.ShieldService.CreateResource:output_type -> odpf.shield.v1beta1.CreateResourceResponse
-	133, // 222: odpf.shield.v1beta1.ShieldService.GetResource:output_type -> odpf.shield.v1beta1.GetResourceResponse
-	135, // 223: odpf.shield.v1beta1.ShieldService.UpdateResource:output_type -> odpf.shield.v1beta1.UpdateResourceResponse
-	137, // 224: odpf.shield.v1beta1.ShieldService.CheckResourcePermission:output_type -> odpf.shield.v1beta1.CheckResourcePermissionResponse
-	8,   // 225: odpf.shield.v1beta1.ShieldService.ListAuthStrategies:output_type -> odpf.shield.v1beta1.ListAuthStrategiesResponse
-	5,   // 226: odpf.shield.v1beta1.ShieldService.Authenticate:output_type -> odpf.shield.v1beta1.AuthenticateResponse
-	3,   // 227: odpf.shield.v1beta1.ShieldService.AuthCallback:output_type -> odpf.shield.v1beta1.AuthCallbackResponse
-	1,   // 228: odpf.shield.v1beta1.ShieldService.AuthLogout:output_type -> odpf.shield.v1beta1.AuthLogoutResponse
+var file_raystack_shield_v1beta1_shield_proto_depIdxs = []int32{
+	138, // 0: raystack.shield.v1beta1.AuthStrategy.params:type_name -> google.protobuf.Struct
+	6,   // 1: raystack.shield.v1beta1.ListAuthStrategiesResponse.strategies:type_name -> raystack.shield.v1beta1.AuthStrategy
+	138, // 2: raystack.shield.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
+	9,   // 3: raystack.shield.v1beta1.CreateUserRequest.body:type_name -> raystack.shield.v1beta1.UserRequestBody
+	138, // 4: raystack.shield.v1beta1.User.metadata:type_name -> google.protobuf.Struct
+	139, // 5: raystack.shield.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
+	139, // 6: raystack.shield.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
+	11,  // 7: raystack.shield.v1beta1.CreateUserResponse.user:type_name -> raystack.shield.v1beta1.User
+	13,  // 8: raystack.shield.v1beta1.CreateMetadataKeyRequest.body:type_name -> raystack.shield.v1beta1.MetadataKeyRequestBody
+	15,  // 9: raystack.shield.v1beta1.CreateMetadataKeyResponse.metadatakey:type_name -> raystack.shield.v1beta1.MetadataKey
+	53,  // 10: raystack.shield.v1beta1.GetOrganizationsByUserResponse.organizations:type_name -> raystack.shield.v1beta1.Organization
+	11,  // 11: raystack.shield.v1beta1.GetUserResponse.user:type_name -> raystack.shield.v1beta1.User
+	11,  // 12: raystack.shield.v1beta1.GetCurrentUserResponse.user:type_name -> raystack.shield.v1beta1.User
+	11,  // 13: raystack.shield.v1beta1.UpdateUserResponse.user:type_name -> raystack.shield.v1beta1.User
+	11,  // 14: raystack.shield.v1beta1.UpdateCurrentUserResponse.user:type_name -> raystack.shield.v1beta1.User
+	9,   // 15: raystack.shield.v1beta1.UpdateUserRequest.body:type_name -> raystack.shield.v1beta1.UserRequestBody
+	11,  // 16: raystack.shield.v1beta1.ListUsersResponse.users:type_name -> raystack.shield.v1beta1.User
+	138, // 17: raystack.shield.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
+	29,  // 18: raystack.shield.v1beta1.CreateGroupRequest.body:type_name -> raystack.shield.v1beta1.GroupRequestBody
+	32,  // 19: raystack.shield.v1beta1.ListUserGroupsResponse.groups:type_name -> raystack.shield.v1beta1.Group
+	138, // 20: raystack.shield.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
+	139, // 21: raystack.shield.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
+	139, // 22: raystack.shield.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
+	32,  // 23: raystack.shield.v1beta1.CreateGroupResponse.group:type_name -> raystack.shield.v1beta1.Group
+	32,  // 24: raystack.shield.v1beta1.GetGroupResponse.group:type_name -> raystack.shield.v1beta1.Group
+	32,  // 25: raystack.shield.v1beta1.UpdateGroupResponse.group:type_name -> raystack.shield.v1beta1.Group
+	29,  // 26: raystack.shield.v1beta1.UpdateGroupRequest.body:type_name -> raystack.shield.v1beta1.GroupRequestBody
+	9,   // 27: raystack.shield.v1beta1.UpdateCurrentUserRequest.body:type_name -> raystack.shield.v1beta1.UserRequestBody
+	32,  // 28: raystack.shield.v1beta1.ListGroupsResponse.groups:type_name -> raystack.shield.v1beta1.Group
+	82,  // 29: raystack.shield.v1beta1.Role.namespace:type_name -> raystack.shield.v1beta1.Namespace
+	138, // 30: raystack.shield.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
+	139, // 31: raystack.shield.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
+	139, // 32: raystack.shield.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
+	138, // 33: raystack.shield.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
+	42,  // 34: raystack.shield.v1beta1.CreateRoleRequest.body:type_name -> raystack.shield.v1beta1.RoleRequestBody
+	41,  // 35: raystack.shield.v1beta1.CreateRoleResponse.role:type_name -> raystack.shield.v1beta1.Role
+	41,  // 36: raystack.shield.v1beta1.GetRoleResponse.role:type_name -> raystack.shield.v1beta1.Role
+	41,  // 37: raystack.shield.v1beta1.UpdateRoleResponse.role:type_name -> raystack.shield.v1beta1.Role
+	42,  // 38: raystack.shield.v1beta1.UpdateRoleRequest.body:type_name -> raystack.shield.v1beta1.RoleRequestBody
+	41,  // 39: raystack.shield.v1beta1.ListRolesResponse.roles:type_name -> raystack.shield.v1beta1.Role
+	138, // 40: raystack.shield.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
+	51,  // 41: raystack.shield.v1beta1.CreateOrganizationRequest.body:type_name -> raystack.shield.v1beta1.OrganizationRequestBody
+	138, // 42: raystack.shield.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
+	139, // 43: raystack.shield.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
+	139, // 44: raystack.shield.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
+	53,  // 45: raystack.shield.v1beta1.CreateOrganizationResponse.organization:type_name -> raystack.shield.v1beta1.Organization
+	53,  // 46: raystack.shield.v1beta1.GetOrganizationResponse.organization:type_name -> raystack.shield.v1beta1.Organization
+	53,  // 47: raystack.shield.v1beta1.UpdateOrganizationResponse.organization:type_name -> raystack.shield.v1beta1.Organization
+	53,  // 48: raystack.shield.v1beta1.ListOrganizationsResponse.organizations:type_name -> raystack.shield.v1beta1.Organization
+	51,  // 49: raystack.shield.v1beta1.UpdateOrganizationRequest.body:type_name -> raystack.shield.v1beta1.OrganizationRequestBody
+	11,  // 50: raystack.shield.v1beta1.ListOrganizationAdminsResponse.users:type_name -> raystack.shield.v1beta1.User
+	11,  // 51: raystack.shield.v1beta1.ListOrganizationUsersResponse.users:type_name -> raystack.shield.v1beta1.User
+	69,  // 52: raystack.shield.v1beta1.ListOrganizationProjectsResponse.projects:type_name -> raystack.shield.v1beta1.Project
+	138, // 53: raystack.shield.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
+	67,  // 54: raystack.shield.v1beta1.CreateProjectRequest.body:type_name -> raystack.shield.v1beta1.ProjectRequestBody
+	138, // 55: raystack.shield.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
+	139, // 56: raystack.shield.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
+	139, // 57: raystack.shield.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
+	69,  // 58: raystack.shield.v1beta1.CreateProjectResponse.project:type_name -> raystack.shield.v1beta1.Project
+	69,  // 59: raystack.shield.v1beta1.GetProjectResponse.project:type_name -> raystack.shield.v1beta1.Project
+	69,  // 60: raystack.shield.v1beta1.UpdateProjectResponse.project:type_name -> raystack.shield.v1beta1.Project
+	69,  // 61: raystack.shield.v1beta1.ListProjectsResponse.projects:type_name -> raystack.shield.v1beta1.Project
+	67,  // 62: raystack.shield.v1beta1.UpdateProjectRequest.body:type_name -> raystack.shield.v1beta1.ProjectRequestBody
+	11,  // 63: raystack.shield.v1beta1.ListProjectAdminsResponse.users:type_name -> raystack.shield.v1beta1.User
+	11,  // 64: raystack.shield.v1beta1.ListProjectUsersResponse.users:type_name -> raystack.shield.v1beta1.User
+	82,  // 65: raystack.shield.v1beta1.Action.namespace:type_name -> raystack.shield.v1beta1.Namespace
+	139, // 66: raystack.shield.v1beta1.Action.created_at:type_name -> google.protobuf.Timestamp
+	139, // 67: raystack.shield.v1beta1.Action.updated_at:type_name -> google.protobuf.Timestamp
+	139, // 68: raystack.shield.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
+	139, // 69: raystack.shield.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
+	41,  // 70: raystack.shield.v1beta1.Policy.role:type_name -> raystack.shield.v1beta1.Role
+	81,  // 71: raystack.shield.v1beta1.Policy.action:type_name -> raystack.shield.v1beta1.Action
+	82,  // 72: raystack.shield.v1beta1.Policy.namespace:type_name -> raystack.shield.v1beta1.Namespace
+	139, // 73: raystack.shield.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
+	139, // 74: raystack.shield.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
+	81,  // 75: raystack.shield.v1beta1.ListActionsResponse.actions:type_name -> raystack.shield.v1beta1.Action
+	84,  // 76: raystack.shield.v1beta1.CreateActionRequest.body:type_name -> raystack.shield.v1beta1.ActionRequestBody
+	81,  // 77: raystack.shield.v1beta1.CreateActionResponse.action:type_name -> raystack.shield.v1beta1.Action
+	81,  // 78: raystack.shield.v1beta1.GetActionResponse.action:type_name -> raystack.shield.v1beta1.Action
+	84,  // 79: raystack.shield.v1beta1.UpdateActionRequest.body:type_name -> raystack.shield.v1beta1.ActionRequestBody
+	81,  // 80: raystack.shield.v1beta1.UpdateActionResponse.action:type_name -> raystack.shield.v1beta1.Action
+	82,  // 81: raystack.shield.v1beta1.ListNamespacesResponse.namespaces:type_name -> raystack.shield.v1beta1.Namespace
+	85,  // 82: raystack.shield.v1beta1.CreateNamespaceRequest.body:type_name -> raystack.shield.v1beta1.NamespaceRequestBody
+	82,  // 83: raystack.shield.v1beta1.CreateNamespaceResponse.namespace:type_name -> raystack.shield.v1beta1.Namespace
+	82,  // 84: raystack.shield.v1beta1.GetNamespaceResponse.namespace:type_name -> raystack.shield.v1beta1.Namespace
+	85,  // 85: raystack.shield.v1beta1.UpdateNamespaceRequest.body:type_name -> raystack.shield.v1beta1.NamespaceRequestBody
+	82,  // 86: raystack.shield.v1beta1.UpdateNamespaceResponse.namespace:type_name -> raystack.shield.v1beta1.Namespace
+	83,  // 87: raystack.shield.v1beta1.ListPoliciesResponse.policies:type_name -> raystack.shield.v1beta1.Policy
+	86,  // 88: raystack.shield.v1beta1.CreatePolicyRequest.body:type_name -> raystack.shield.v1beta1.PolicyRequestBody
+	83,  // 89: raystack.shield.v1beta1.CreatePolicyResponse.policies:type_name -> raystack.shield.v1beta1.Policy
+	83,  // 90: raystack.shield.v1beta1.GetPolicyResponse.policy:type_name -> raystack.shield.v1beta1.Policy
+	86,  // 91: raystack.shield.v1beta1.UpdatePolicyRequest.body:type_name -> raystack.shield.v1beta1.PolicyRequestBody
+	83,  // 92: raystack.shield.v1beta1.UpdatePolicyResponse.policies:type_name -> raystack.shield.v1beta1.Policy
+	139, // 93: raystack.shield.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
+	139, // 94: raystack.shield.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
+	69,  // 95: raystack.shield.v1beta1.Resource.project:type_name -> raystack.shield.v1beta1.Project
+	53,  // 96: raystack.shield.v1beta1.Resource.organization:type_name -> raystack.shield.v1beta1.Organization
+	82,  // 97: raystack.shield.v1beta1.Resource.namespace:type_name -> raystack.shield.v1beta1.Namespace
+	139, // 98: raystack.shield.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
+	139, // 99: raystack.shield.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
+	11,  // 100: raystack.shield.v1beta1.Resource.user:type_name -> raystack.shield.v1beta1.User
+	11,  // 101: raystack.shield.v1beta1.GroupRelation.user:type_name -> raystack.shield.v1beta1.User
+	32,  // 102: raystack.shield.v1beta1.GroupRelation.group:type_name -> raystack.shield.v1beta1.Group
+	111, // 103: raystack.shield.v1beta1.ListRelationsResponse.relations:type_name -> raystack.shield.v1beta1.Relation
+	116, // 104: raystack.shield.v1beta1.CreateRelationRequest.body:type_name -> raystack.shield.v1beta1.RelationRequestBody
+	111, // 105: raystack.shield.v1beta1.CreateRelationResponse.relation:type_name -> raystack.shield.v1beta1.Relation
+	111, // 106: raystack.shield.v1beta1.GetRelationResponse.relation:type_name -> raystack.shield.v1beta1.Relation
+	116, // 107: raystack.shield.v1beta1.UpdateRelationRequest.body:type_name -> raystack.shield.v1beta1.RelationRequestBody
+	111, // 108: raystack.shield.v1beta1.UpdateRelationResponse.relation:type_name -> raystack.shield.v1beta1.Relation
+	113, // 109: raystack.shield.v1beta1.ListGroupRelationsResponse.relations:type_name -> raystack.shield.v1beta1.GroupRelation
+	112, // 110: raystack.shield.v1beta1.ListResourcesResponse.resources:type_name -> raystack.shield.v1beta1.Resource
+	111, // 111: raystack.shield.v1beta1.ResourceRequestBody.relations:type_name -> raystack.shield.v1beta1.Relation
+	129, // 112: raystack.shield.v1beta1.CreateResourceRequest.body:type_name -> raystack.shield.v1beta1.ResourceRequestBody
+	112, // 113: raystack.shield.v1beta1.CreateResourceResponse.resource:type_name -> raystack.shield.v1beta1.Resource
+	112, // 114: raystack.shield.v1beta1.GetResourceResponse.resource:type_name -> raystack.shield.v1beta1.Resource
+	129, // 115: raystack.shield.v1beta1.UpdateResourceRequest.body:type_name -> raystack.shield.v1beta1.ResourceRequestBody
+	112, // 116: raystack.shield.v1beta1.UpdateResourceResponse.resource:type_name -> raystack.shield.v1beta1.Resource
+	27,  // 117: raystack.shield.v1beta1.ShieldService.ListUsers:input_type -> raystack.shield.v1beta1.ListUsersRequest
+	10,  // 118: raystack.shield.v1beta1.ShieldService.CreateUser:input_type -> raystack.shield.v1beta1.CreateUserRequest
+	25,  // 119: raystack.shield.v1beta1.ShieldService.GetUser:input_type -> raystack.shield.v1beta1.GetUserRequest
+	26,  // 120: raystack.shield.v1beta1.ShieldService.ListUserGroups:input_type -> raystack.shield.v1beta1.ListUserGroupsRequest
+	20,  // 121: raystack.shield.v1beta1.ShieldService.GetCurrentUser:input_type -> raystack.shield.v1beta1.GetCurrentUserRequest
+	24,  // 122: raystack.shield.v1beta1.ShieldService.UpdateUser:input_type -> raystack.shield.v1beta1.UpdateUserRequest
+	37,  // 123: raystack.shield.v1beta1.ShieldService.UpdateCurrentUser:input_type -> raystack.shield.v1beta1.UpdateCurrentUserRequest
+	17,  // 124: raystack.shield.v1beta1.ShieldService.GetOrganizationsByUser:input_type -> raystack.shield.v1beta1.GetOrganizationsByUserRequest
+	14,  // 125: raystack.shield.v1beta1.ShieldService.CreateMetadataKey:input_type -> raystack.shield.v1beta1.CreateMetadataKeyRequest
+	39,  // 126: raystack.shield.v1beta1.ShieldService.ListGroups:input_type -> raystack.shield.v1beta1.ListGroupsRequest
+	30,  // 127: raystack.shield.v1beta1.ShieldService.CreateGroup:input_type -> raystack.shield.v1beta1.CreateGroupRequest
+	38,  // 128: raystack.shield.v1beta1.ShieldService.GetGroup:input_type -> raystack.shield.v1beta1.GetGroupRequest
+	36,  // 129: raystack.shield.v1beta1.ShieldService.UpdateGroup:input_type -> raystack.shield.v1beta1.UpdateGroupRequest
+	123, // 130: raystack.shield.v1beta1.ShieldService.ListGroupRelations:input_type -> raystack.shield.v1beta1.ListGroupRelationsRequest
+	49,  // 131: raystack.shield.v1beta1.ShieldService.ListRoles:input_type -> raystack.shield.v1beta1.ListRolesRequest
+	43,  // 132: raystack.shield.v1beta1.ShieldService.CreateRole:input_type -> raystack.shield.v1beta1.CreateRoleRequest
+	47,  // 133: raystack.shield.v1beta1.ShieldService.GetRole:input_type -> raystack.shield.v1beta1.GetRoleRequest
+	48,  // 134: raystack.shield.v1beta1.ShieldService.UpdateRole:input_type -> raystack.shield.v1beta1.UpdateRoleRequest
+	57,  // 135: raystack.shield.v1beta1.ShieldService.ListOrganizations:input_type -> raystack.shield.v1beta1.ListOrganizationsRequest
+	52,  // 136: raystack.shield.v1beta1.ShieldService.CreateOrganization:input_type -> raystack.shield.v1beta1.CreateOrganizationRequest
+	59,  // 137: raystack.shield.v1beta1.ShieldService.GetOrganization:input_type -> raystack.shield.v1beta1.GetOrganizationRequest
+	60,  // 138: raystack.shield.v1beta1.ShieldService.UpdateOrganization:input_type -> raystack.shield.v1beta1.UpdateOrganizationRequest
+	61,  // 139: raystack.shield.v1beta1.ShieldService.ListOrganizationAdmins:input_type -> raystack.shield.v1beta1.ListOrganizationAdminsRequest
+	63,  // 140: raystack.shield.v1beta1.ShieldService.ListOrganizationUsers:input_type -> raystack.shield.v1beta1.ListOrganizationUsersRequest
+	65,  // 141: raystack.shield.v1beta1.ShieldService.ListOrganizationProjects:input_type -> raystack.shield.v1beta1.ListOrganizationProjectsRequest
+	73,  // 142: raystack.shield.v1beta1.ShieldService.ListProjects:input_type -> raystack.shield.v1beta1.ListProjectsRequest
+	68,  // 143: raystack.shield.v1beta1.ShieldService.CreateProject:input_type -> raystack.shield.v1beta1.CreateProjectRequest
+	75,  // 144: raystack.shield.v1beta1.ShieldService.GetProject:input_type -> raystack.shield.v1beta1.GetProjectRequest
+	76,  // 145: raystack.shield.v1beta1.ShieldService.UpdateProject:input_type -> raystack.shield.v1beta1.UpdateProjectRequest
+	77,  // 146: raystack.shield.v1beta1.ShieldService.ListProjectAdmins:input_type -> raystack.shield.v1beta1.ListProjectAdminsRequest
+	79,  // 147: raystack.shield.v1beta1.ShieldService.ListProjectUsers:input_type -> raystack.shield.v1beta1.ListProjectUsersRequest
+	87,  // 148: raystack.shield.v1beta1.ShieldService.ListActions:input_type -> raystack.shield.v1beta1.ListActionsRequest
+	89,  // 149: raystack.shield.v1beta1.ShieldService.CreateAction:input_type -> raystack.shield.v1beta1.CreateActionRequest
+	91,  // 150: raystack.shield.v1beta1.ShieldService.GetAction:input_type -> raystack.shield.v1beta1.GetActionRequest
+	93,  // 151: raystack.shield.v1beta1.ShieldService.UpdateAction:input_type -> raystack.shield.v1beta1.UpdateActionRequest
+	95,  // 152: raystack.shield.v1beta1.ShieldService.ListNamespaces:input_type -> raystack.shield.v1beta1.ListNamespacesRequest
+	97,  // 153: raystack.shield.v1beta1.ShieldService.CreateNamespace:input_type -> raystack.shield.v1beta1.CreateNamespaceRequest
+	99,  // 154: raystack.shield.v1beta1.ShieldService.GetNamespace:input_type -> raystack.shield.v1beta1.GetNamespaceRequest
+	101, // 155: raystack.shield.v1beta1.ShieldService.UpdateNamespace:input_type -> raystack.shield.v1beta1.UpdateNamespaceRequest
+	103, // 156: raystack.shield.v1beta1.ShieldService.ListPolicies:input_type -> raystack.shield.v1beta1.ListPoliciesRequest
+	105, // 157: raystack.shield.v1beta1.ShieldService.CreatePolicy:input_type -> raystack.shield.v1beta1.CreatePolicyRequest
+	107, // 158: raystack.shield.v1beta1.ShieldService.GetPolicy:input_type -> raystack.shield.v1beta1.GetPolicyRequest
+	109, // 159: raystack.shield.v1beta1.ShieldService.UpdatePolicy:input_type -> raystack.shield.v1beta1.UpdatePolicyRequest
+	114, // 160: raystack.shield.v1beta1.ShieldService.ListRelations:input_type -> raystack.shield.v1beta1.ListRelationsRequest
+	117, // 161: raystack.shield.v1beta1.ShieldService.CreateRelation:input_type -> raystack.shield.v1beta1.CreateRelationRequest
+	119, // 162: raystack.shield.v1beta1.ShieldService.GetRelation:input_type -> raystack.shield.v1beta1.GetRelationRequest
+	125, // 163: raystack.shield.v1beta1.ShieldService.DeleteRelation:input_type -> raystack.shield.v1beta1.DeleteRelationRequest
+	127, // 164: raystack.shield.v1beta1.ShieldService.ListResources:input_type -> raystack.shield.v1beta1.ListResourcesRequest
+	130, // 165: raystack.shield.v1beta1.ShieldService.CreateResource:input_type -> raystack.shield.v1beta1.CreateResourceRequest
+	132, // 166: raystack.shield.v1beta1.ShieldService.GetResource:input_type -> raystack.shield.v1beta1.GetResourceRequest
+	134, // 167: raystack.shield.v1beta1.ShieldService.UpdateResource:input_type -> raystack.shield.v1beta1.UpdateResourceRequest
+	136, // 168: raystack.shield.v1beta1.ShieldService.CheckResourcePermission:input_type -> raystack.shield.v1beta1.CheckResourcePermissionRequest
+	7,   // 169: raystack.shield.v1beta1.ShieldService.ListAuthStrategies:input_type -> raystack.shield.v1beta1.ListAuthStrategiesRequest
+	4,   // 170: raystack.shield.v1beta1.ShieldService.Authenticate:input_type -> raystack.shield.v1beta1.AuthenticateRequest
+	2,   // 171: raystack.shield.v1beta1.ShieldService.AuthCallback:input_type -> raystack.shield.v1beta1.AuthCallbackRequest
+	0,   // 172: raystack.shield.v1beta1.ShieldService.AuthLogout:input_type -> raystack.shield.v1beta1.AuthLogoutRequest
+	28,  // 173: raystack.shield.v1beta1.ShieldService.ListUsers:output_type -> raystack.shield.v1beta1.ListUsersResponse
+	12,  // 174: raystack.shield.v1beta1.ShieldService.CreateUser:output_type -> raystack.shield.v1beta1.CreateUserResponse
+	19,  // 175: raystack.shield.v1beta1.ShieldService.GetUser:output_type -> raystack.shield.v1beta1.GetUserResponse
+	31,  // 176: raystack.shield.v1beta1.ShieldService.ListUserGroups:output_type -> raystack.shield.v1beta1.ListUserGroupsResponse
+	21,  // 177: raystack.shield.v1beta1.ShieldService.GetCurrentUser:output_type -> raystack.shield.v1beta1.GetCurrentUserResponse
+	22,  // 178: raystack.shield.v1beta1.ShieldService.UpdateUser:output_type -> raystack.shield.v1beta1.UpdateUserResponse
+	23,  // 179: raystack.shield.v1beta1.ShieldService.UpdateCurrentUser:output_type -> raystack.shield.v1beta1.UpdateCurrentUserResponse
+	18,  // 180: raystack.shield.v1beta1.ShieldService.GetOrganizationsByUser:output_type -> raystack.shield.v1beta1.GetOrganizationsByUserResponse
+	16,  // 181: raystack.shield.v1beta1.ShieldService.CreateMetadataKey:output_type -> raystack.shield.v1beta1.CreateMetadataKeyResponse
+	40,  // 182: raystack.shield.v1beta1.ShieldService.ListGroups:output_type -> raystack.shield.v1beta1.ListGroupsResponse
+	33,  // 183: raystack.shield.v1beta1.ShieldService.CreateGroup:output_type -> raystack.shield.v1beta1.CreateGroupResponse
+	34,  // 184: raystack.shield.v1beta1.ShieldService.GetGroup:output_type -> raystack.shield.v1beta1.GetGroupResponse
+	35,  // 185: raystack.shield.v1beta1.ShieldService.UpdateGroup:output_type -> raystack.shield.v1beta1.UpdateGroupResponse
+	124, // 186: raystack.shield.v1beta1.ShieldService.ListGroupRelations:output_type -> raystack.shield.v1beta1.ListGroupRelationsResponse
+	50,  // 187: raystack.shield.v1beta1.ShieldService.ListRoles:output_type -> raystack.shield.v1beta1.ListRolesResponse
+	44,  // 188: raystack.shield.v1beta1.ShieldService.CreateRole:output_type -> raystack.shield.v1beta1.CreateRoleResponse
+	45,  // 189: raystack.shield.v1beta1.ShieldService.GetRole:output_type -> raystack.shield.v1beta1.GetRoleResponse
+	46,  // 190: raystack.shield.v1beta1.ShieldService.UpdateRole:output_type -> raystack.shield.v1beta1.UpdateRoleResponse
+	58,  // 191: raystack.shield.v1beta1.ShieldService.ListOrganizations:output_type -> raystack.shield.v1beta1.ListOrganizationsResponse
+	54,  // 192: raystack.shield.v1beta1.ShieldService.CreateOrganization:output_type -> raystack.shield.v1beta1.CreateOrganizationResponse
+	55,  // 193: raystack.shield.v1beta1.ShieldService.GetOrganization:output_type -> raystack.shield.v1beta1.GetOrganizationResponse
+	56,  // 194: raystack.shield.v1beta1.ShieldService.UpdateOrganization:output_type -> raystack.shield.v1beta1.UpdateOrganizationResponse
+	62,  // 195: raystack.shield.v1beta1.ShieldService.ListOrganizationAdmins:output_type -> raystack.shield.v1beta1.ListOrganizationAdminsResponse
+	64,  // 196: raystack.shield.v1beta1.ShieldService.ListOrganizationUsers:output_type -> raystack.shield.v1beta1.ListOrganizationUsersResponse
+	66,  // 197: raystack.shield.v1beta1.ShieldService.ListOrganizationProjects:output_type -> raystack.shield.v1beta1.ListOrganizationProjectsResponse
+	74,  // 198: raystack.shield.v1beta1.ShieldService.ListProjects:output_type -> raystack.shield.v1beta1.ListProjectsResponse
+	70,  // 199: raystack.shield.v1beta1.ShieldService.CreateProject:output_type -> raystack.shield.v1beta1.CreateProjectResponse
+	71,  // 200: raystack.shield.v1beta1.ShieldService.GetProject:output_type -> raystack.shield.v1beta1.GetProjectResponse
+	72,  // 201: raystack.shield.v1beta1.ShieldService.UpdateProject:output_type -> raystack.shield.v1beta1.UpdateProjectResponse
+	78,  // 202: raystack.shield.v1beta1.ShieldService.ListProjectAdmins:output_type -> raystack.shield.v1beta1.ListProjectAdminsResponse
+	80,  // 203: raystack.shield.v1beta1.ShieldService.ListProjectUsers:output_type -> raystack.shield.v1beta1.ListProjectUsersResponse
+	88,  // 204: raystack.shield.v1beta1.ShieldService.ListActions:output_type -> raystack.shield.v1beta1.ListActionsResponse
+	90,  // 205: raystack.shield.v1beta1.ShieldService.CreateAction:output_type -> raystack.shield.v1beta1.CreateActionResponse
+	92,  // 206: raystack.shield.v1beta1.ShieldService.GetAction:output_type -> raystack.shield.v1beta1.GetActionResponse
+	94,  // 207: raystack.shield.v1beta1.ShieldService.UpdateAction:output_type -> raystack.shield.v1beta1.UpdateActionResponse
+	96,  // 208: raystack.shield.v1beta1.ShieldService.ListNamespaces:output_type -> raystack.shield.v1beta1.ListNamespacesResponse
+	98,  // 209: raystack.shield.v1beta1.ShieldService.CreateNamespace:output_type -> raystack.shield.v1beta1.CreateNamespaceResponse
+	100, // 210: raystack.shield.v1beta1.ShieldService.GetNamespace:output_type -> raystack.shield.v1beta1.GetNamespaceResponse
+	102, // 211: raystack.shield.v1beta1.ShieldService.UpdateNamespace:output_type -> raystack.shield.v1beta1.UpdateNamespaceResponse
+	104, // 212: raystack.shield.v1beta1.ShieldService.ListPolicies:output_type -> raystack.shield.v1beta1.ListPoliciesResponse
+	106, // 213: raystack.shield.v1beta1.ShieldService.CreatePolicy:output_type -> raystack.shield.v1beta1.CreatePolicyResponse
+	108, // 214: raystack.shield.v1beta1.ShieldService.GetPolicy:output_type -> raystack.shield.v1beta1.GetPolicyResponse
+	110, // 215: raystack.shield.v1beta1.ShieldService.UpdatePolicy:output_type -> raystack.shield.v1beta1.UpdatePolicyResponse
+	115, // 216: raystack.shield.v1beta1.ShieldService.ListRelations:output_type -> raystack.shield.v1beta1.ListRelationsResponse
+	118, // 217: raystack.shield.v1beta1.ShieldService.CreateRelation:output_type -> raystack.shield.v1beta1.CreateRelationResponse
+	120, // 218: raystack.shield.v1beta1.ShieldService.GetRelation:output_type -> raystack.shield.v1beta1.GetRelationResponse
+	126, // 219: raystack.shield.v1beta1.ShieldService.DeleteRelation:output_type -> raystack.shield.v1beta1.DeleteRelationResponse
+	128, // 220: raystack.shield.v1beta1.ShieldService.ListResources:output_type -> raystack.shield.v1beta1.ListResourcesResponse
+	131, // 221: raystack.shield.v1beta1.ShieldService.CreateResource:output_type -> raystack.shield.v1beta1.CreateResourceResponse
+	133, // 222: raystack.shield.v1beta1.ShieldService.GetResource:output_type -> raystack.shield.v1beta1.GetResourceResponse
+	135, // 223: raystack.shield.v1beta1.ShieldService.UpdateResource:output_type -> raystack.shield.v1beta1.UpdateResourceResponse
+	137, // 224: raystack.shield.v1beta1.ShieldService.CheckResourcePermission:output_type -> raystack.shield.v1beta1.CheckResourcePermissionResponse
+	8,   // 225: raystack.shield.v1beta1.ShieldService.ListAuthStrategies:output_type -> raystack.shield.v1beta1.ListAuthStrategiesResponse
+	5,   // 226: raystack.shield.v1beta1.ShieldService.Authenticate:output_type -> raystack.shield.v1beta1.AuthenticateResponse
+	3,   // 227: raystack.shield.v1beta1.ShieldService.AuthCallback:output_type -> raystack.shield.v1beta1.AuthCallbackResponse
+	1,   // 228: raystack.shield.v1beta1.ShieldService.AuthLogout:output_type -> raystack.shield.v1beta1.AuthLogoutResponse
 	173, // [173:229] is the sub-list for method output_type
 	117, // [117:173] is the sub-list for method input_type
 	117, // [117:117] is the sub-list for extension type_name
@@ -9306,13 +9306,13 @@ var file_odpf_shield_v1beta1_shield_proto_depIdxs = []int32{
 	0,   // [0:117] is the sub-list for field type_name
 }
 
-func init() { file_odpf_shield_v1beta1_shield_proto_init() }
-func file_odpf_shield_v1beta1_shield_proto_init() {
-	if File_odpf_shield_v1beta1_shield_proto != nil {
+func init() { file_raystack_shield_v1beta1_shield_proto_init() }
+func file_raystack_shield_v1beta1_shield_proto_init() {
+	if File_raystack_shield_v1beta1_shield_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthLogoutRequest); i {
 			case 0:
 				return &v.state
@@ -9324,7 +9324,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthLogoutResponse); i {
 			case 0:
 				return &v.state
@@ -9336,7 +9336,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthCallbackRequest); i {
 			case 0:
 				return &v.state
@@ -9348,7 +9348,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthCallbackResponse); i {
 			case 0:
 				return &v.state
@@ -9360,7 +9360,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthenticateRequest); i {
 			case 0:
 				return &v.state
@@ -9372,7 +9372,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthenticateResponse); i {
 			case 0:
 				return &v.state
@@ -9384,7 +9384,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthStrategy); i {
 			case 0:
 				return &v.state
@@ -9396,7 +9396,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAuthStrategiesRequest); i {
 			case 0:
 				return &v.state
@@ -9408,7 +9408,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAuthStrategiesResponse); i {
 			case 0:
 				return &v.state
@@ -9420,7 +9420,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserRequestBody); i {
 			case 0:
 				return &v.state
@@ -9432,7 +9432,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateUserRequest); i {
 			case 0:
 				return &v.state
@@ -9444,7 +9444,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*User); i {
 			case 0:
 				return &v.state
@@ -9456,7 +9456,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateUserResponse); i {
 			case 0:
 				return &v.state
@@ -9468,7 +9468,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MetadataKeyRequestBody); i {
 			case 0:
 				return &v.state
@@ -9480,7 +9480,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateMetadataKeyRequest); i {
 			case 0:
 				return &v.state
@@ -9492,7 +9492,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MetadataKey); i {
 			case 0:
 				return &v.state
@@ -9504,7 +9504,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateMetadataKeyResponse); i {
 			case 0:
 				return &v.state
@@ -9516,7 +9516,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationsByUserRequest); i {
 			case 0:
 				return &v.state
@@ -9528,7 +9528,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationsByUserResponse); i {
 			case 0:
 				return &v.state
@@ -9540,7 +9540,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetUserResponse); i {
 			case 0:
 				return &v.state
@@ -9552,7 +9552,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetCurrentUserRequest); i {
 			case 0:
 				return &v.state
@@ -9564,7 +9564,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetCurrentUserResponse); i {
 			case 0:
 				return &v.state
@@ -9576,7 +9576,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateUserResponse); i {
 			case 0:
 				return &v.state
@@ -9588,7 +9588,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateCurrentUserResponse); i {
 			case 0:
 				return &v.state
@@ -9600,7 +9600,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateUserRequest); i {
 			case 0:
 				return &v.state
@@ -9612,7 +9612,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetUserRequest); i {
 			case 0:
 				return &v.state
@@ -9624,7 +9624,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserGroupsRequest); i {
 			case 0:
 				return &v.state
@@ -9636,7 +9636,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUsersRequest); i {
 			case 0:
 				return &v.state
@@ -9648,7 +9648,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUsersResponse); i {
 			case 0:
 				return &v.state
@@ -9660,7 +9660,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GroupRequestBody); i {
 			case 0:
 				return &v.state
@@ -9672,7 +9672,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateGroupRequest); i {
 			case 0:
 				return &v.state
@@ -9684,7 +9684,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserGroupsResponse); i {
 			case 0:
 				return &v.state
@@ -9696,7 +9696,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Group); i {
 			case 0:
 				return &v.state
@@ -9708,7 +9708,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateGroupResponse); i {
 			case 0:
 				return &v.state
@@ -9720,7 +9720,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetGroupResponse); i {
 			case 0:
 				return &v.state
@@ -9732,7 +9732,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateGroupResponse); i {
 			case 0:
 				return &v.state
@@ -9744,7 +9744,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateGroupRequest); i {
 			case 0:
 				return &v.state
@@ -9756,7 +9756,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateCurrentUserRequest); i {
 			case 0:
 				return &v.state
@@ -9768,7 +9768,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetGroupRequest); i {
 			case 0:
 				return &v.state
@@ -9780,7 +9780,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupsRequest); i {
 			case 0:
 				return &v.state
@@ -9792,7 +9792,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupsResponse); i {
 			case 0:
 				return &v.state
@@ -9804,7 +9804,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Role); i {
 			case 0:
 				return &v.state
@@ -9816,7 +9816,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RoleRequestBody); i {
 			case 0:
 				return &v.state
@@ -9828,7 +9828,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRoleRequest); i {
 			case 0:
 				return &v.state
@@ -9840,7 +9840,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRoleResponse); i {
 			case 0:
 				return &v.state
@@ -9852,7 +9852,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetRoleResponse); i {
 			case 0:
 				return &v.state
@@ -9864,7 +9864,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateRoleResponse); i {
 			case 0:
 				return &v.state
@@ -9876,7 +9876,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetRoleRequest); i {
 			case 0:
 				return &v.state
@@ -9888,7 +9888,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateRoleRequest); i {
 			case 0:
 				return &v.state
@@ -9900,7 +9900,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRolesRequest); i {
 			case 0:
 				return &v.state
@@ -9912,7 +9912,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRolesResponse); i {
 			case 0:
 				return &v.state
@@ -9924,7 +9924,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*OrganizationRequestBody); i {
 			case 0:
 				return &v.state
@@ -9936,7 +9936,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -9948,7 +9948,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Organization); i {
 			case 0:
 				return &v.state
@@ -9960,7 +9960,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -9972,7 +9972,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -9984,7 +9984,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -9996,7 +9996,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsRequest); i {
 			case 0:
 				return &v.state
@@ -10008,7 +10008,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsResponse); i {
 			case 0:
 				return &v.state
@@ -10020,7 +10020,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -10032,7 +10032,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -10044,7 +10044,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationAdminsRequest); i {
 			case 0:
 				return &v.state
@@ -10056,7 +10056,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationAdminsResponse); i {
 			case 0:
 				return &v.state
@@ -10068,7 +10068,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationUsersRequest); i {
 			case 0:
 				return &v.state
@@ -10080,7 +10080,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationUsersResponse); i {
 			case 0:
 				return &v.state
@@ -10092,7 +10092,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationProjectsRequest); i {
 			case 0:
 				return &v.state
@@ -10104,7 +10104,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationProjectsResponse); i {
 			case 0:
 				return &v.state
@@ -10116,7 +10116,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ProjectRequestBody); i {
 			case 0:
 				return &v.state
@@ -10128,7 +10128,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectRequest); i {
 			case 0:
 				return &v.state
@@ -10140,7 +10140,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Project); i {
 			case 0:
 				return &v.state
@@ -10152,7 +10152,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectResponse); i {
 			case 0:
 				return &v.state
@@ -10164,7 +10164,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetProjectResponse); i {
 			case 0:
 				return &v.state
@@ -10176,7 +10176,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateProjectResponse); i {
 			case 0:
 				return &v.state
@@ -10188,7 +10188,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsRequest); i {
 			case 0:
 				return &v.state
@@ -10200,7 +10200,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsResponse); i {
 			case 0:
 				return &v.state
@@ -10212,7 +10212,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetProjectRequest); i {
 			case 0:
 				return &v.state
@@ -10224,7 +10224,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateProjectRequest); i {
 			case 0:
 				return &v.state
@@ -10236,7 +10236,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectAdminsRequest); i {
 			case 0:
 				return &v.state
@@ -10248,7 +10248,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectAdminsResponse); i {
 			case 0:
 				return &v.state
@@ -10260,7 +10260,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectUsersRequest); i {
 			case 0:
 				return &v.state
@@ -10272,7 +10272,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectUsersResponse); i {
 			case 0:
 				return &v.state
@@ -10284,7 +10284,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Action); i {
 			case 0:
 				return &v.state
@@ -10296,7 +10296,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Namespace); i {
 			case 0:
 				return &v.state
@@ -10308,7 +10308,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Policy); i {
 			case 0:
 				return &v.state
@@ -10320,7 +10320,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ActionRequestBody); i {
 			case 0:
 				return &v.state
@@ -10332,7 +10332,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NamespaceRequestBody); i {
 			case 0:
 				return &v.state
@@ -10344,7 +10344,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PolicyRequestBody); i {
 			case 0:
 				return &v.state
@@ -10356,7 +10356,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListActionsRequest); i {
 			case 0:
 				return &v.state
@@ -10368,7 +10368,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListActionsResponse); i {
 			case 0:
 				return &v.state
@@ -10380,7 +10380,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateActionRequest); i {
 			case 0:
 				return &v.state
@@ -10392,7 +10392,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateActionResponse); i {
 			case 0:
 				return &v.state
@@ -10404,7 +10404,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetActionRequest); i {
 			case 0:
 				return &v.state
@@ -10416,7 +10416,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetActionResponse); i {
 			case 0:
 				return &v.state
@@ -10428,7 +10428,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[93].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[93].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateActionRequest); i {
 			case 0:
 				return &v.state
@@ -10440,7 +10440,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[94].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[94].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateActionResponse); i {
 			case 0:
 				return &v.state
@@ -10452,7 +10452,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[95].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[95].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListNamespacesRequest); i {
 			case 0:
 				return &v.state
@@ -10464,7 +10464,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[96].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[96].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListNamespacesResponse); i {
 			case 0:
 				return &v.state
@@ -10476,7 +10476,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[97].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[97].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateNamespaceRequest); i {
 			case 0:
 				return &v.state
@@ -10488,7 +10488,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[98].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[98].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateNamespaceResponse); i {
 			case 0:
 				return &v.state
@@ -10500,7 +10500,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[99].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[99].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetNamespaceRequest); i {
 			case 0:
 				return &v.state
@@ -10512,7 +10512,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[100].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[100].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetNamespaceResponse); i {
 			case 0:
 				return &v.state
@@ -10524,7 +10524,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[101].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[101].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateNamespaceRequest); i {
 			case 0:
 				return &v.state
@@ -10536,7 +10536,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[102].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[102].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateNamespaceResponse); i {
 			case 0:
 				return &v.state
@@ -10548,7 +10548,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[103].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[103].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPoliciesRequest); i {
 			case 0:
 				return &v.state
@@ -10560,7 +10560,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[104].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[104].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPoliciesResponse); i {
 			case 0:
 				return &v.state
@@ -10572,7 +10572,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[105].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[105].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePolicyRequest); i {
 			case 0:
 				return &v.state
@@ -10584,7 +10584,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[106].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[106].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePolicyResponse); i {
 			case 0:
 				return &v.state
@@ -10596,7 +10596,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[107].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[107].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPolicyRequest); i {
 			case 0:
 				return &v.state
@@ -10608,7 +10608,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[108].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[108].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPolicyResponse); i {
 			case 0:
 				return &v.state
@@ -10620,7 +10620,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[109].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[109].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdatePolicyRequest); i {
 			case 0:
 				return &v.state
@@ -10632,7 +10632,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[110].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[110].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdatePolicyResponse); i {
 			case 0:
 				return &v.state
@@ -10644,7 +10644,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[111].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[111].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Relation); i {
 			case 0:
 				return &v.state
@@ -10656,7 +10656,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[112].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[112].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Resource); i {
 			case 0:
 				return &v.state
@@ -10668,7 +10668,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[113].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[113].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GroupRelation); i {
 			case 0:
 				return &v.state
@@ -10680,7 +10680,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[114].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[114].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRelationsRequest); i {
 			case 0:
 				return &v.state
@@ -10692,7 +10692,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[115].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[115].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRelationsResponse); i {
 			case 0:
 				return &v.state
@@ -10704,7 +10704,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[116].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[116].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RelationRequestBody); i {
 			case 0:
 				return &v.state
@@ -10716,7 +10716,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[117].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[117].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRelationRequest); i {
 			case 0:
 				return &v.state
@@ -10728,7 +10728,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[118].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[118].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRelationResponse); i {
 			case 0:
 				return &v.state
@@ -10740,7 +10740,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[119].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[119].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetRelationRequest); i {
 			case 0:
 				return &v.state
@@ -10752,7 +10752,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[120].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[120].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetRelationResponse); i {
 			case 0:
 				return &v.state
@@ -10764,7 +10764,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[121].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[121].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateRelationRequest); i {
 			case 0:
 				return &v.state
@@ -10776,7 +10776,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[122].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[122].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateRelationResponse); i {
 			case 0:
 				return &v.state
@@ -10788,7 +10788,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[123].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[123].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupRelationsRequest); i {
 			case 0:
 				return &v.state
@@ -10800,7 +10800,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[124].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[124].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupRelationsResponse); i {
 			case 0:
 				return &v.state
@@ -10812,7 +10812,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[125].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[125].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteRelationRequest); i {
 			case 0:
 				return &v.state
@@ -10824,7 +10824,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[126].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[126].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteRelationResponse); i {
 			case 0:
 				return &v.state
@@ -10836,7 +10836,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[127].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[127].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListResourcesRequest); i {
 			case 0:
 				return &v.state
@@ -10848,7 +10848,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[128].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[128].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListResourcesResponse); i {
 			case 0:
 				return &v.state
@@ -10860,7 +10860,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[129].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[129].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ResourceRequestBody); i {
 			case 0:
 				return &v.state
@@ -10872,7 +10872,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[130].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[130].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateResourceRequest); i {
 			case 0:
 				return &v.state
@@ -10884,7 +10884,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[131].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[131].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateResourceResponse); i {
 			case 0:
 				return &v.state
@@ -10896,7 +10896,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[132].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[132].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetResourceRequest); i {
 			case 0:
 				return &v.state
@@ -10908,7 +10908,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[133].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[133].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetResourceResponse); i {
 			case 0:
 				return &v.state
@@ -10920,7 +10920,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[134].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[134].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateResourceRequest); i {
 			case 0:
 				return &v.state
@@ -10932,7 +10932,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[135].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[135].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateResourceResponse); i {
 			case 0:
 				return &v.state
@@ -10944,7 +10944,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[136].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[136].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckResourcePermissionRequest); i {
 			case 0:
 				return &v.state
@@ -10956,7 +10956,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 				return nil
 			}
 		}
-		file_odpf_shield_v1beta1_shield_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_shield_v1beta1_shield_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckResourcePermissionResponse); i {
 			case 0:
 				return &v.state
@@ -10969,7 +10969,7 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 			}
 		}
 	}
-	file_odpf_shield_v1beta1_shield_proto_msgTypes[113].OneofWrappers = []interface{}{
+	file_raystack_shield_v1beta1_shield_proto_msgTypes[113].OneofWrappers = []interface{}{
 		(*GroupRelation_User)(nil),
 		(*GroupRelation_Group)(nil),
 	}
@@ -10977,18 +10977,18 @@ func file_odpf_shield_v1beta1_shield_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_odpf_shield_v1beta1_shield_proto_rawDesc,
+			RawDescriptor: file_raystack_shield_v1beta1_shield_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   138,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_odpf_shield_v1beta1_shield_proto_goTypes,
-		DependencyIndexes: file_odpf_shield_v1beta1_shield_proto_depIdxs,
-		MessageInfos:      file_odpf_shield_v1beta1_shield_proto_msgTypes,
+		GoTypes:           file_raystack_shield_v1beta1_shield_proto_goTypes,
+		DependencyIndexes: file_raystack_shield_v1beta1_shield_proto_depIdxs,
+		MessageInfos:      file_raystack_shield_v1beta1_shield_proto_msgTypes,
 	}.Build()
-	File_odpf_shield_v1beta1_shield_proto = out.File
-	file_odpf_shield_v1beta1_shield_proto_rawDesc = nil
-	file_odpf_shield_v1beta1_shield_proto_goTypes = nil
-	file_odpf_shield_v1beta1_shield_proto_depIdxs = nil
+	File_raystack_shield_v1beta1_shield_proto = out.File
+	file_raystack_shield_v1beta1_shield_proto_rawDesc = nil
+	file_raystack_shield_v1beta1_shield_proto_goTypes = nil
+	file_raystack_shield_v1beta1_shield_proto_depIdxs = nil
 }

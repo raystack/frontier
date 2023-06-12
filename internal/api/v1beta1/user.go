@@ -13,11 +13,11 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/telemetry"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/shield/pkg/telemetry"
+	shielduuid "github.com/raystack/shield/pkg/uuid"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")

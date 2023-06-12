@@ -8,19 +8,19 @@ A project in Shield looks like
 
 ```json
 {
-    "users": [
-        {
-            "id": "598688c6-8c6d-487f-b324-ef3f4af120bb",
-            "name": "John Doe",
-            "slug": "",
-            "email": "john.doe@odpf.io",
-            "metadata": {
-                "role": "\"user-1\""
-            },
-            "createdAt": "2022-12-09T10:45:19.134019Z",
-            "updatedAt": "2022-12-09T10:45:19.134019Z"
-        }
-    ]
+  "users": [
+    {
+      "id": "598688c6-8c6d-487f-b324-ef3f4af120bb",
+      "name": "John Doe",
+      "slug": "",
+      "email": "john.doe@raystack.io",
+      "metadata": {
+        "role": "\"user-1\""
+      },
+      "createdAt": "2022-12-09T10:45:19.134019Z",
+      "updatedAt": "2022-12-09T10:45:19.134019Z"
+    }
+  ]
 }
 ```
 
@@ -36,10 +36,10 @@ One thing to note here is that Shield only allow to have metadata key from a spe
     {`$ curl --location --request POST 'http://localhost:8000/admin/v1beta1/users'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
---header 'X-Shield-Email: admin@odpf.io'
+--header 'X-Shield-Email: admin@raystack.io'
 --data-raw '{
   "name": "Jonny Doe",
-  "email": "jonny.doe@odpf.io",
+  "email": "jonny.doe@raystack.io",
   "metadata": {
       "role": "user-3"
   }
@@ -101,7 +101,7 @@ One thing to note here is that Shield only allow to have metadata key from a spe
 --header 'Accept: application/json'
 --data-raw '{
   "name": "Jonny Doe",
-  "email": "john.doe001@odpf.io",
+  "email": "john.doe001@raystack.io",
   "metadata": {
       "role" :   "user-3"
   }

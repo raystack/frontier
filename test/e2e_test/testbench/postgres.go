@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
-	"github.com/odpf/salt/log"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
+	"github.com/raystack/salt/log"
 )
 
 const (

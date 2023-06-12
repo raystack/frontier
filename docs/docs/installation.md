@@ -1,10 +1,10 @@
 # Installation
 
-We provide pre-built [binaries](https://github.com/odpf/shield/releases), [Docker Images](https://hub.docker.com/r/odpf/shield) and [Helm Charts](https://github.com/odpf/charts/tree/main/stable/shield)
+We provide pre-built [binaries](https://github.com/raystack/shield/releases), [Docker Images](https://hub.docker.com/r/raystack/shield) and [Helm Charts](https://github.com/raystack/charts/tree/main/stable/shield)
 
 ## Binary (Cross-platform)
 
-Download the appropriate version for your platform from [releases](https://github.com/odpf/shield/releases) page. Once downloaded, the binary can be run from anywhere.
+Download the appropriate version for your platform from [releases](https://github.com/raystack/shield/releases) page. Once downloaded, the binary can be run from anywhere.
 You don’t need to install it into a global location. This works well for shared hosts and other systems where you don’t have a privileged account.
 Ideally, you should install it somewhere in your PATH for easy use. `/usr/local/bin` is the most probable location.
 
@@ -12,7 +12,7 @@ Ideally, you should install it somewhere in your PATH for easy use. `/usr/local/
 
 ```sh
 # Install shield (requires homebrew installed)
-$ brew install odpf/taps/shield
+$ brew install raystack/taps/shield
 
 # Upgrade shield (requires homebrew installed)
 $ brew upgrade shield
@@ -33,7 +33,7 @@ Shield provides Docker image as part of the release. Make sure you have Spicedb 
 
 ```sh
 # Download docker image from docker hub
-$ docker pull odpf/shield
+$ docker pull raystack/shield
 
 # Run the following docker command with minimal config.
 $ docker run -p 8080:8080 \
@@ -42,7 +42,7 @@ $ docker run -p 8080:8080 \
   -e SHIELD_SPICEDB_HOST=spicedb.localhost:50051 \
   -e SHIELD_SPICEDB_PRE_SHARED_KEY=randomkey
   -v .config:.config
-  odpf/shield serve
+  raystack/shield serve
 ```
 
 ## Compiling from source
@@ -59,7 +59,7 @@ Shield requires the following dependencies:
 Run the following commands to compile `shield` from source
 
 ```shell
-git clone git@github.com:odpf/shield.git
+git clone git@github.com:raystack/shield.git
 cd shield
 make build
 ```

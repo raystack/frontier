@@ -8,13 +8,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 
 	"github.com/robfig/cron/v3"
 
 	"github.com/ghodss/yaml"
-	"github.com/odpf/shield/core/rule"
 	"github.com/pkg/errors"
+	"github.com/raystack/shield/core/rule"
 	"gocloud.dev/blob"
 )
 

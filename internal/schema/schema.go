@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/core/role"
+	"github.com/raystack/shield/core/action"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/policy"
+	"github.com/raystack/shield/core/role"
 
 	"golang.org/x/exp/maps"
 )

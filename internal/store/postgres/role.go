@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	"github.com/odpf/shield/core/role"
+	"github.com/raystack/shield/core/role"
 )
 
 type Role struct {

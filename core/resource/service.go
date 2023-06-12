@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/raystack/shield/core/action"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/project"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/schema"
 )
 
 type RelationService interface {

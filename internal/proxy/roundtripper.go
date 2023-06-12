@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/odpf/shield/internal/proxy/hook"
+	"github.com/raystack/shield/internal/proxy/hook"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 )

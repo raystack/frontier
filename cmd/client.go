@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

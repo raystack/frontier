@@ -6,7 +6,7 @@ import (
 
 	"database/sql"
 
-	"github.com/odpf/shield/core/user"
+	"github.com/raystack/shield/core/user"
 )
 
 type User struct {

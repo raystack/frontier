@@ -13,8 +13,8 @@ import (
 	_ "embed"
 
 	"github.com/mcuadros/go-defaults"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/pkg/file"
+	"github.com/raystack/shield/internal/proxy"
+	"github.com/raystack/shield/pkg/file"
 	"gopkg.in/yaml.v2"
 )
 

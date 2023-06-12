@@ -98,7 +98,7 @@ func NewShieldServiceClient(cc grpc.ClientConnInterface) ShieldServiceClient {
 
 func (c *shieldServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
 	out := new(ListUsersResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListUsers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *shieldServiceClient) ListUsers(ctx context.Context, in *ListUsersReques
 
 func (c *shieldServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
 	out := new(CreateUserResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (c *shieldServiceClient) CreateUser(ctx context.Context, in *CreateUserRequ
 
 func (c *shieldServiceClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
 	out := new(GetUserResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (c *shieldServiceClient) GetUser(ctx context.Context, in *GetUserRequest, o
 
 func (c *shieldServiceClient) ListUserGroups(ctx context.Context, in *ListUserGroupsRequest, opts ...grpc.CallOption) (*ListUserGroupsResponse, error) {
 	out := new(ListUserGroupsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListUserGroups", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListUserGroups", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (c *shieldServiceClient) ListUserGroups(ctx context.Context, in *ListUserGr
 
 func (c *shieldServiceClient) GetCurrentUser(ctx context.Context, in *GetCurrentUserRequest, opts ...grpc.CallOption) (*GetCurrentUserResponse, error) {
 	out := new(GetCurrentUserResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetCurrentUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetCurrentUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (c *shieldServiceClient) GetCurrentUser(ctx context.Context, in *GetCurrent
 
 func (c *shieldServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error) {
 	out := new(UpdateUserResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (c *shieldServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequ
 
 func (c *shieldServiceClient) UpdateCurrentUser(ctx context.Context, in *UpdateCurrentUserRequest, opts ...grpc.CallOption) (*UpdateCurrentUserResponse, error) {
 	out := new(UpdateCurrentUserResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateCurrentUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateCurrentUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (c *shieldServiceClient) UpdateCurrentUser(ctx context.Context, in *UpdateC
 
 func (c *shieldServiceClient) GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error) {
 	out := new(GetOrganizationsByUserResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetOrganizationsByUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (c *shieldServiceClient) GetOrganizationsByUser(ctx context.Context, in *Ge
 
 func (c *shieldServiceClient) CreateMetadataKey(ctx context.Context, in *CreateMetadataKeyRequest, opts ...grpc.CallOption) (*CreateMetadataKeyResponse, error) {
 	out := new(CreateMetadataKeyResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateMetadataKey", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateMetadataKey", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (c *shieldServiceClient) CreateMetadataKey(ctx context.Context, in *CreateM
 
 func (c *shieldServiceClient) ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error) {
 	out := new(ListGroupsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListGroups", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListGroups", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (c *shieldServiceClient) ListGroups(ctx context.Context, in *ListGroupsRequ
 
 func (c *shieldServiceClient) CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error) {
 	out := new(CreateGroupResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateGroup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func (c *shieldServiceClient) CreateGroup(ctx context.Context, in *CreateGroupRe
 
 func (c *shieldServiceClient) GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupResponse, error) {
 	out := new(GetGroupResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetGroup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (c *shieldServiceClient) GetGroup(ctx context.Context, in *GetGroupRequest,
 
 func (c *shieldServiceClient) UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error) {
 	out := new(UpdateGroupResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateGroup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateGroup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (c *shieldServiceClient) UpdateGroup(ctx context.Context, in *UpdateGroupRe
 
 func (c *shieldServiceClient) ListGroupRelations(ctx context.Context, in *ListGroupRelationsRequest, opts ...grpc.CallOption) (*ListGroupRelationsResponse, error) {
 	out := new(ListGroupRelationsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListGroupRelations", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListGroupRelations", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func (c *shieldServiceClient) ListGroupRelations(ctx context.Context, in *ListGr
 
 func (c *shieldServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error) {
 	out := new(ListRolesResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListRoles", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListRoles", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +233,7 @@ func (c *shieldServiceClient) ListRoles(ctx context.Context, in *ListRolesReques
 
 func (c *shieldServiceClient) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error) {
 	out := new(CreateRoleResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateRole", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateRole", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (c *shieldServiceClient) CreateRole(ctx context.Context, in *CreateRoleRequ
 
 func (c *shieldServiceClient) GetRole(ctx context.Context, in *GetRoleRequest, opts ...grpc.CallOption) (*GetRoleResponse, error) {
 	out := new(GetRoleResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetRole", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetRole", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (c *shieldServiceClient) GetRole(ctx context.Context, in *GetRoleRequest, o
 
 func (c *shieldServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error) {
 	out := new(UpdateRoleResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateRole", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateRole", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +260,7 @@ func (c *shieldServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleRequ
 
 func (c *shieldServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error) {
 	out := new(ListOrganizationsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListOrganizations", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListOrganizations", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +269,7 @@ func (c *shieldServiceClient) ListOrganizations(ctx context.Context, in *ListOrg
 
 func (c *shieldServiceClient) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
 	out := new(CreateOrganizationResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateOrganization", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateOrganization", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func (c *shieldServiceClient) CreateOrganization(ctx context.Context, in *Create
 
 func (c *shieldServiceClient) GetOrganization(ctx context.Context, in *GetOrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error) {
 	out := new(GetOrganizationResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetOrganization", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetOrganization", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ func (c *shieldServiceClient) GetOrganization(ctx context.Context, in *GetOrgani
 
 func (c *shieldServiceClient) UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*UpdateOrganizationResponse, error) {
 	out := new(UpdateOrganizationResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateOrganization", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateOrganization", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ func (c *shieldServiceClient) UpdateOrganization(ctx context.Context, in *Update
 
 func (c *shieldServiceClient) ListOrganizationAdmins(ctx context.Context, in *ListOrganizationAdminsRequest, opts ...grpc.CallOption) (*ListOrganizationAdminsResponse, error) {
 	out := new(ListOrganizationAdminsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListOrganizationAdmins", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListOrganizationAdmins", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (c *shieldServiceClient) ListOrganizationAdmins(ctx context.Context, in *Li
 
 func (c *shieldServiceClient) ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error) {
 	out := new(ListOrganizationUsersResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListOrganizationUsers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListOrganizationUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +314,7 @@ func (c *shieldServiceClient) ListOrganizationUsers(ctx context.Context, in *Lis
 
 func (c *shieldServiceClient) ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error) {
 	out := new(ListOrganizationProjectsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListOrganizationProjects", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListOrganizationProjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func (c *shieldServiceClient) ListOrganizationProjects(ctx context.Context, in *
 
 func (c *shieldServiceClient) ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error) {
 	out := new(ListProjectsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListProjects", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListProjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +332,7 @@ func (c *shieldServiceClient) ListProjects(ctx context.Context, in *ListProjects
 
 func (c *shieldServiceClient) CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error) {
 	out := new(CreateProjectResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateProject", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateProject", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func (c *shieldServiceClient) CreateProject(ctx context.Context, in *CreateProje
 
 func (c *shieldServiceClient) GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error) {
 	out := new(GetProjectResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetProject", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetProject", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +350,7 @@ func (c *shieldServiceClient) GetProject(ctx context.Context, in *GetProjectRequ
 
 func (c *shieldServiceClient) UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error) {
 	out := new(UpdateProjectResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateProject", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateProject", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +359,7 @@ func (c *shieldServiceClient) UpdateProject(ctx context.Context, in *UpdateProje
 
 func (c *shieldServiceClient) ListProjectAdmins(ctx context.Context, in *ListProjectAdminsRequest, opts ...grpc.CallOption) (*ListProjectAdminsResponse, error) {
 	out := new(ListProjectAdminsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListProjectAdmins", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListProjectAdmins", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -368,7 +368,7 @@ func (c *shieldServiceClient) ListProjectAdmins(ctx context.Context, in *ListPro
 
 func (c *shieldServiceClient) ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error) {
 	out := new(ListProjectUsersResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListProjectUsers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListProjectUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +377,7 @@ func (c *shieldServiceClient) ListProjectUsers(ctx context.Context, in *ListProj
 
 func (c *shieldServiceClient) ListActions(ctx context.Context, in *ListActionsRequest, opts ...grpc.CallOption) (*ListActionsResponse, error) {
 	out := new(ListActionsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListActions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListActions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -386,7 +386,7 @@ func (c *shieldServiceClient) ListActions(ctx context.Context, in *ListActionsRe
 
 func (c *shieldServiceClient) CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*CreateActionResponse, error) {
 	out := new(CreateActionResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateAction", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateAction", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +395,7 @@ func (c *shieldServiceClient) CreateAction(ctx context.Context, in *CreateAction
 
 func (c *shieldServiceClient) GetAction(ctx context.Context, in *GetActionRequest, opts ...grpc.CallOption) (*GetActionResponse, error) {
 	out := new(GetActionResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetAction", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetAction", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -404,7 +404,7 @@ func (c *shieldServiceClient) GetAction(ctx context.Context, in *GetActionReques
 
 func (c *shieldServiceClient) UpdateAction(ctx context.Context, in *UpdateActionRequest, opts ...grpc.CallOption) (*UpdateActionResponse, error) {
 	out := new(UpdateActionResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateAction", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateAction", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +413,7 @@ func (c *shieldServiceClient) UpdateAction(ctx context.Context, in *UpdateAction
 
 func (c *shieldServiceClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
 	out := new(ListNamespacesResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListNamespaces", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListNamespaces", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +422,7 @@ func (c *shieldServiceClient) ListNamespaces(ctx context.Context, in *ListNamesp
 
 func (c *shieldServiceClient) CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*CreateNamespaceResponse, error) {
 	out := new(CreateNamespaceResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateNamespace", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateNamespace", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +431,7 @@ func (c *shieldServiceClient) CreateNamespace(ctx context.Context, in *CreateNam
 
 func (c *shieldServiceClient) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error) {
 	out := new(GetNamespaceResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetNamespace", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetNamespace", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +440,7 @@ func (c *shieldServiceClient) GetNamespace(ctx context.Context, in *GetNamespace
 
 func (c *shieldServiceClient) UpdateNamespace(ctx context.Context, in *UpdateNamespaceRequest, opts ...grpc.CallOption) (*UpdateNamespaceResponse, error) {
 	out := new(UpdateNamespaceResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateNamespace", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateNamespace", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +449,7 @@ func (c *shieldServiceClient) UpdateNamespace(ctx context.Context, in *UpdateNam
 
 func (c *shieldServiceClient) ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error) {
 	out := new(ListPoliciesResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListPolicies", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListPolicies", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +458,7 @@ func (c *shieldServiceClient) ListPolicies(ctx context.Context, in *ListPolicies
 
 func (c *shieldServiceClient) CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error) {
 	out := new(CreatePolicyResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreatePolicy", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreatePolicy", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -467,7 +467,7 @@ func (c *shieldServiceClient) CreatePolicy(ctx context.Context, in *CreatePolicy
 
 func (c *shieldServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
 	out := new(GetPolicyResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetPolicy", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetPolicy", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -476,7 +476,7 @@ func (c *shieldServiceClient) GetPolicy(ctx context.Context, in *GetPolicyReques
 
 func (c *shieldServiceClient) UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error) {
 	out := new(UpdatePolicyResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdatePolicy", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdatePolicy", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -485,7 +485,7 @@ func (c *shieldServiceClient) UpdatePolicy(ctx context.Context, in *UpdatePolicy
 
 func (c *shieldServiceClient) ListRelations(ctx context.Context, in *ListRelationsRequest, opts ...grpc.CallOption) (*ListRelationsResponse, error) {
 	out := new(ListRelationsResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListRelations", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListRelations", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -494,7 +494,7 @@ func (c *shieldServiceClient) ListRelations(ctx context.Context, in *ListRelatio
 
 func (c *shieldServiceClient) CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error) {
 	out := new(CreateRelationResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateRelation", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateRelation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +503,7 @@ func (c *shieldServiceClient) CreateRelation(ctx context.Context, in *CreateRela
 
 func (c *shieldServiceClient) GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error) {
 	out := new(GetRelationResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetRelation", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetRelation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -512,7 +512,7 @@ func (c *shieldServiceClient) GetRelation(ctx context.Context, in *GetRelationRe
 
 func (c *shieldServiceClient) DeleteRelation(ctx context.Context, in *DeleteRelationRequest, opts ...grpc.CallOption) (*DeleteRelationResponse, error) {
 	out := new(DeleteRelationResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/DeleteRelation", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/DeleteRelation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -521,7 +521,7 @@ func (c *shieldServiceClient) DeleteRelation(ctx context.Context, in *DeleteRela
 
 func (c *shieldServiceClient) ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error) {
 	out := new(ListResourcesResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListResources", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListResources", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -530,7 +530,7 @@ func (c *shieldServiceClient) ListResources(ctx context.Context, in *ListResourc
 
 func (c *shieldServiceClient) CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error) {
 	out := new(CreateResourceResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CreateResource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CreateResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -539,7 +539,7 @@ func (c *shieldServiceClient) CreateResource(ctx context.Context, in *CreateReso
 
 func (c *shieldServiceClient) GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*GetResourceResponse, error) {
 	out := new(GetResourceResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/GetResource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/GetResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +548,7 @@ func (c *shieldServiceClient) GetResource(ctx context.Context, in *GetResourceRe
 
 func (c *shieldServiceClient) UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error) {
 	out := new(UpdateResourceResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/UpdateResource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/UpdateResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -557,7 +557,7 @@ func (c *shieldServiceClient) UpdateResource(ctx context.Context, in *UpdateReso
 
 func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error) {
 	out := new(CheckResourcePermissionResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/CheckResourcePermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -566,7 +566,7 @@ func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *C
 
 func (c *shieldServiceClient) ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error) {
 	out := new(ListAuthStrategiesResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/ListAuthStrategies", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/ListAuthStrategies", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -575,7 +575,7 @@ func (c *shieldServiceClient) ListAuthStrategies(ctx context.Context, in *ListAu
 
 func (c *shieldServiceClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	out := new(AuthenticateResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/Authenticate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/Authenticate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -584,7 +584,7 @@ func (c *shieldServiceClient) Authenticate(ctx context.Context, in *Authenticate
 
 func (c *shieldServiceClient) AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error) {
 	out := new(AuthCallbackResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/AuthCallback", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/AuthCallback", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -593,7 +593,7 @@ func (c *shieldServiceClient) AuthCallback(ctx context.Context, in *AuthCallback
 
 func (c *shieldServiceClient) AuthLogout(ctx context.Context, in *AuthLogoutRequest, opts ...grpc.CallOption) (*AuthLogoutResponse, error) {
 	out := new(AuthLogoutResponse)
-	err := c.cc.Invoke(ctx, "/odpf.shield.v1beta1.ShieldService/AuthLogout", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/raystack.shield.v1beta1.ShieldService/AuthLogout", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -870,7 +870,7 @@ func _ShieldService_ListUsers_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListUsers",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
@@ -888,7 +888,7 @@ func _ShieldService_CreateUser_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateUser",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
@@ -906,7 +906,7 @@ func _ShieldService_GetUser_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetUser",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetUser(ctx, req.(*GetUserRequest))
@@ -924,7 +924,7 @@ func _ShieldService_ListUserGroups_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListUserGroups",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListUserGroups",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListUserGroups(ctx, req.(*ListUserGroupsRequest))
@@ -942,7 +942,7 @@ func _ShieldService_GetCurrentUser_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetCurrentUser",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetCurrentUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetCurrentUser(ctx, req.(*GetCurrentUserRequest))
@@ -960,7 +960,7 @@ func _ShieldService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateUser",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
@@ -978,7 +978,7 @@ func _ShieldService_UpdateCurrentUser_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateCurrentUser",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateCurrentUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateCurrentUser(ctx, req.(*UpdateCurrentUserRequest))
@@ -996,7 +996,7 @@ func _ShieldService_GetOrganizationsByUser_Handler(srv interface{}, ctx context.
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetOrganizationsByUser",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetOrganizationsByUser(ctx, req.(*GetOrganizationsByUserRequest))
@@ -1014,7 +1014,7 @@ func _ShieldService_CreateMetadataKey_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateMetadataKey",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateMetadataKey",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateMetadataKey(ctx, req.(*CreateMetadataKeyRequest))
@@ -1032,7 +1032,7 @@ func _ShieldService_ListGroups_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListGroups",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListGroups",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListGroups(ctx, req.(*ListGroupsRequest))
@@ -1050,7 +1050,7 @@ func _ShieldService_CreateGroup_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateGroup",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateGroup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateGroup(ctx, req.(*CreateGroupRequest))
@@ -1068,7 +1068,7 @@ func _ShieldService_GetGroup_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetGroup",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetGroup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetGroup(ctx, req.(*GetGroupRequest))
@@ -1086,7 +1086,7 @@ func _ShieldService_UpdateGroup_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateGroup",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateGroup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateGroup(ctx, req.(*UpdateGroupRequest))
@@ -1104,7 +1104,7 @@ func _ShieldService_ListGroupRelations_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListGroupRelations",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListGroupRelations",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListGroupRelations(ctx, req.(*ListGroupRelationsRequest))
@@ -1122,7 +1122,7 @@ func _ShieldService_ListRoles_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListRoles",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListRoles",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListRoles(ctx, req.(*ListRolesRequest))
@@ -1140,7 +1140,7 @@ func _ShieldService_CreateRole_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateRole",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateRole(ctx, req.(*CreateRoleRequest))
@@ -1158,7 +1158,7 @@ func _ShieldService_GetRole_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetRole",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetRole(ctx, req.(*GetRoleRequest))
@@ -1176,7 +1176,7 @@ func _ShieldService_UpdateRole_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateRole",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateRole(ctx, req.(*UpdateRoleRequest))
@@ -1194,7 +1194,7 @@ func _ShieldService_ListOrganizations_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListOrganizations",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListOrganizations",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListOrganizations(ctx, req.(*ListOrganizationsRequest))
@@ -1212,7 +1212,7 @@ func _ShieldService_CreateOrganization_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateOrganization",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateOrganization",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateOrganization(ctx, req.(*CreateOrganizationRequest))
@@ -1230,7 +1230,7 @@ func _ShieldService_GetOrganization_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetOrganization",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetOrganization",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetOrganization(ctx, req.(*GetOrganizationRequest))
@@ -1248,7 +1248,7 @@ func _ShieldService_UpdateOrganization_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateOrganization",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateOrganization",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateOrganization(ctx, req.(*UpdateOrganizationRequest))
@@ -1266,7 +1266,7 @@ func _ShieldService_ListOrganizationAdmins_Handler(srv interface{}, ctx context.
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListOrganizationAdmins",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListOrganizationAdmins",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListOrganizationAdmins(ctx, req.(*ListOrganizationAdminsRequest))
@@ -1284,7 +1284,7 @@ func _ShieldService_ListOrganizationUsers_Handler(srv interface{}, ctx context.C
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListOrganizationUsers",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListOrganizationUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListOrganizationUsers(ctx, req.(*ListOrganizationUsersRequest))
@@ -1302,7 +1302,7 @@ func _ShieldService_ListOrganizationProjects_Handler(srv interface{}, ctx contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListOrganizationProjects",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListOrganizationProjects",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, req.(*ListOrganizationProjectsRequest))
@@ -1320,7 +1320,7 @@ func _ShieldService_ListProjects_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListProjects",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListProjects",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListProjects(ctx, req.(*ListProjectsRequest))
@@ -1338,7 +1338,7 @@ func _ShieldService_CreateProject_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateProject",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateProject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateProject(ctx, req.(*CreateProjectRequest))
@@ -1356,7 +1356,7 @@ func _ShieldService_GetProject_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetProject",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetProject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetProject(ctx, req.(*GetProjectRequest))
@@ -1374,7 +1374,7 @@ func _ShieldService_UpdateProject_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateProject",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateProject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateProject(ctx, req.(*UpdateProjectRequest))
@@ -1392,7 +1392,7 @@ func _ShieldService_ListProjectAdmins_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListProjectAdmins",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListProjectAdmins",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListProjectAdmins(ctx, req.(*ListProjectAdminsRequest))
@@ -1410,7 +1410,7 @@ func _ShieldService_ListProjectUsers_Handler(srv interface{}, ctx context.Contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListProjectUsers",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListProjectUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListProjectUsers(ctx, req.(*ListProjectUsersRequest))
@@ -1428,7 +1428,7 @@ func _ShieldService_ListActions_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListActions",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListActions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListActions(ctx, req.(*ListActionsRequest))
@@ -1446,7 +1446,7 @@ func _ShieldService_CreateAction_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateAction",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateAction",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateAction(ctx, req.(*CreateActionRequest))
@@ -1464,7 +1464,7 @@ func _ShieldService_GetAction_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetAction",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetAction",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetAction(ctx, req.(*GetActionRequest))
@@ -1482,7 +1482,7 @@ func _ShieldService_UpdateAction_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateAction",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateAction",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateAction(ctx, req.(*UpdateActionRequest))
@@ -1500,7 +1500,7 @@ func _ShieldService_ListNamespaces_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListNamespaces",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListNamespaces",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListNamespaces(ctx, req.(*ListNamespacesRequest))
@@ -1518,7 +1518,7 @@ func _ShieldService_CreateNamespace_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateNamespace",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateNamespace",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateNamespace(ctx, req.(*CreateNamespaceRequest))
@@ -1536,7 +1536,7 @@ func _ShieldService_GetNamespace_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetNamespace",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetNamespace",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetNamespace(ctx, req.(*GetNamespaceRequest))
@@ -1554,7 +1554,7 @@ func _ShieldService_UpdateNamespace_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateNamespace",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateNamespace",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateNamespace(ctx, req.(*UpdateNamespaceRequest))
@@ -1572,7 +1572,7 @@ func _ShieldService_ListPolicies_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListPolicies",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListPolicies",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListPolicies(ctx, req.(*ListPoliciesRequest))
@@ -1590,7 +1590,7 @@ func _ShieldService_CreatePolicy_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreatePolicy",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreatePolicy",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreatePolicy(ctx, req.(*CreatePolicyRequest))
@@ -1608,7 +1608,7 @@ func _ShieldService_GetPolicy_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetPolicy",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetPolicy",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetPolicy(ctx, req.(*GetPolicyRequest))
@@ -1626,7 +1626,7 @@ func _ShieldService_UpdatePolicy_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdatePolicy",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdatePolicy",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdatePolicy(ctx, req.(*UpdatePolicyRequest))
@@ -1644,7 +1644,7 @@ func _ShieldService_ListRelations_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListRelations",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListRelations",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListRelations(ctx, req.(*ListRelationsRequest))
@@ -1662,7 +1662,7 @@ func _ShieldService_CreateRelation_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateRelation",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateRelation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateRelation(ctx, req.(*CreateRelationRequest))
@@ -1680,7 +1680,7 @@ func _ShieldService_GetRelation_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetRelation",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetRelation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetRelation(ctx, req.(*GetRelationRequest))
@@ -1698,7 +1698,7 @@ func _ShieldService_DeleteRelation_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/DeleteRelation",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/DeleteRelation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).DeleteRelation(ctx, req.(*DeleteRelationRequest))
@@ -1716,7 +1716,7 @@ func _ShieldService_ListResources_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListResources",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListResources",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListResources(ctx, req.(*ListResourcesRequest))
@@ -1734,7 +1734,7 @@ func _ShieldService_CreateResource_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CreateResource",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CreateResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateResource(ctx, req.(*CreateResourceRequest))
@@ -1752,7 +1752,7 @@ func _ShieldService_GetResource_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/GetResource",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/GetResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetResource(ctx, req.(*GetResourceRequest))
@@ -1770,7 +1770,7 @@ func _ShieldService_UpdateResource_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/UpdateResource",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/UpdateResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).UpdateResource(ctx, req.(*UpdateResourceRequest))
@@ -1788,7 +1788,7 @@ func _ShieldService_CheckResourcePermission_Handler(srv interface{}, ctx context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/CheckResourcePermission",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/CheckResourcePermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CheckResourcePermission(ctx, req.(*CheckResourcePermissionRequest))
@@ -1806,7 +1806,7 @@ func _ShieldService_ListAuthStrategies_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/ListAuthStrategies",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/ListAuthStrategies",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListAuthStrategies(ctx, req.(*ListAuthStrategiesRequest))
@@ -1824,7 +1824,7 @@ func _ShieldService_Authenticate_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/Authenticate",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/Authenticate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).Authenticate(ctx, req.(*AuthenticateRequest))
@@ -1842,7 +1842,7 @@ func _ShieldService_AuthCallback_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/AuthCallback",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/AuthCallback",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).AuthCallback(ctx, req.(*AuthCallbackRequest))
@@ -1860,7 +1860,7 @@ func _ShieldService_AuthLogout_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/odpf.shield.v1beta1.ShieldService/AuthLogout",
+		FullMethod: "/raystack.shield.v1beta1.ShieldService/AuthLogout",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).AuthLogout(ctx, req.(*AuthLogoutRequest))
@@ -1872,7 +1872,7 @@ func _ShieldService_AuthLogout_Handler(srv interface{}, ctx context.Context, dec
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ShieldService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "odpf.shield.v1beta1.ShieldService",
+	ServiceName: "raystack.shield.v1beta1.ShieldService",
 	HandlerType: (*ShieldServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -2101,5 +2101,5 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "odpf/shield/v1beta1/shield.proto",
+	Metadata: "raystack/shield/v1beta1/shield.proto",
 }

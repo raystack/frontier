@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/odpf/shield/internal/server/consts"
+	"github.com/raystack/shield/internal/server/consts"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
+	"github.com/raystack/shield/internal/schema"
+	"github.com/raystack/shield/internal/store/spicedb/schema_generator"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )

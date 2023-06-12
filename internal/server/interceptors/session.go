@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/odpf/shield/internal/server/consts"
+	"github.com/raystack/shield/internal/server/consts"
 
 	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"

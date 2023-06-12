@@ -10,9 +10,9 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/internal/schema"
+	"github.com/raystack/shield/pkg/db"
 )
 
 type RelationRepository struct {

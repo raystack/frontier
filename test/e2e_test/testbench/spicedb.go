@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/internal/store/spicedb"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/internal/store/spicedb"
 )
 
 func migrateSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.Pool, pgConnString string) error {

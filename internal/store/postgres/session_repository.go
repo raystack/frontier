@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 
-	shieldsession "github.com/odpf/shield/core/authenticate/session"
+	shieldsession "github.com/raystack/shield/core/authenticate/session"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/pkg/db"
 )
 
 type SessionRepository struct {

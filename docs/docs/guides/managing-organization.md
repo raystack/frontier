@@ -8,18 +8,18 @@ A organization in Shield looks like
 
 ```json
 {
-    "organizations": [
-        {
-            "id": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
-            "name": "ODPF",
-            "slug": "odpf",
-            "metadata": {
-                "description": "Open DataOps Foundation"
-            },
-            "createdAt": "2022-12-07T14:10:42.755848Z",
-            "updatedAt": "2022-12-07T14:10:42.755848Z"
-        }
-    ]
+  "organizations": [
+    {
+      "id": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
+      "name": "Raystack",
+      "slug": "raystack",
+      "metadata": {
+        "description": "Open DataOps Foundation"
+      },
+      "createdAt": "2022-12-07T14:10:42.755848Z",
+      "updatedAt": "2022-12-07T14:10:42.755848Z"
+    }
+  ]
 }
 ```
 
@@ -34,8 +34,8 @@ A organization in Shield looks like
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
-  "name": "ODPF",
-  "slug": "odpf",
+  "name": "Raystack",
+  "slug": "raystack",
   "metadata": {
       "description": "Open DataOps Foundation"
   }
@@ -96,11 +96,11 @@ A organization in Shield looks like
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --data-raw '{
-  "name": "ODPF",
-  "slug": "odpf",
+  "name": "Raystack",
+  "slug": "raystack",
   "metadata": {
       "description": "Open DataOps Foundation",
-      "url": "github.com/odpf"
+      "url": "github.com/raystack"
   }
 } '`}
     </CodeBlock>

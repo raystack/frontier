@@ -33,10 +33,8 @@ Relations are a copy of the relationships being managed in SpiceDB.
 
 ## Checking Permission
 
-Shield provides an API to check if a user has a  certain permissions on a resource.
+Shield provides an API to check if a user has a certain permissions on a resource.
 
 ## Where to go next?
 
-We recomment you to check all the guides for having a clear understanding of the APIs. For testing these APIs on local, you can import the [Swagger](https://github.com/odpf/shield/blob/main/proto/apidocs.swagger.json).
-
-
+We recomment you to check all the guides for having a clear understanding of the APIs. For testing these APIs on local, you can import the [Swagger](https://github.com/raystack/shield/blob/main/proto/apidocs.swagger.json).

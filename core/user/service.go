@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	shieldsession "github.com/odpf/shield/core/authenticate/session"
-	"github.com/odpf/shield/pkg/errors"
-	shielduuid "github.com/odpf/shield/pkg/uuid"
+	shieldsession "github.com/raystack/shield/core/authenticate/session"
+	"github.com/raystack/shield/pkg/errors"
+	shielduuid "github.com/raystack/shield/pkg/uuid"
 )
 
 type SessionService interface {

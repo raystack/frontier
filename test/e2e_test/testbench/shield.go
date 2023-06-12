@@ -3,11 +3,11 @@ package testbench
 import (
 	"log"
 
-	"github.com/odpf/shield/cmd"
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/store/postgres/migrations"
-	"github.com/odpf/shield/pkg/db"
-	shieldlogger "github.com/odpf/shield/pkg/logger"
+	"github.com/raystack/shield/cmd"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/internal/store/postgres/migrations"
+	"github.com/raystack/shield/pkg/db"
+	shieldlogger "github.com/raystack/shield/pkg/logger"
 )
 
 func migrateShield(appConfig *config.Shield) error {

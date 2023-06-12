@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/pkg/uuid"
+	"github.com/raystack/shield/core/action"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/schema"
+	"github.com/raystack/shield/pkg/uuid"
 )
 
 type RelationService interface {

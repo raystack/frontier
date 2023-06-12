@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/metadata"
 )
 
 type Repository interface {

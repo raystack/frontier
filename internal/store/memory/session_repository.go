@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/authenticate/session"
+	"github.com/raystack/shield/core/authenticate/session"
 )
 
 type SessionRepository struct {

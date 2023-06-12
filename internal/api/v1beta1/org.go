@@ -4,23 +4,23 @@ import (
 	"context"
 	"strings"
 
-	"github.com/odpf/shield/internal/schema"
+	"github.com/raystack/shield/internal/schema"
 
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/errors"
-	"github.com/odpf/shield/pkg/metadata"
-	"github.com/odpf/shield/pkg/str"
-	suuid "github.com/odpf/shield/pkg/uuid"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/errors"
+	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/shield/pkg/str"
+	suuid "github.com/raystack/shield/pkg/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/core/organization"
+	"github.com/raystack/shield/core/organization"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var grpcOrgNotFoundErr = status.Errorf(codes.NotFound, "org doesn't exist")

@@ -7,7 +7,7 @@ plugins:
   - remote: "buf.build/library/plugins/go-grpc:v1.1.0-2"
     out: "proto"
     opt: "paths=source_relative"
-  - remote: buf.build/odpf/plugins/validate
+  - remote: buf.build/raystack/plugins/validate
     out: "proto"
     opt: "paths=source_relative,lang=go"
   - remote: "buf.build/grpc-ecosystem/plugins/grpc-gateway:v2.5.0-1"

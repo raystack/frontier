@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/internal/store/spicedb/schema_generator"
+	"github.com/raystack/shield/core/action"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/internal/schema"
+	"github.com/raystack/shield/internal/store/spicedb/schema_generator"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	newrelic "github.com/newrelic/go-agent"

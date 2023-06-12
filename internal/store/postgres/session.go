@@ -3,7 +3,7 @@ package postgres
 import (
 	"time"
 
-	"github.com/odpf/shield/core/authenticate/session"
+	"github.com/raystack/shield/core/authenticate/session"
 
 	"github.com/google/uuid"
 )

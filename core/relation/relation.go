@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/internal/schema"
+	"github.com/raystack/shield/internal/schema"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/core/user"
+	"github.com/raystack/shield/core/action"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/role"
+	"github.com/raystack/shield/core/user"
 )
 
 type Repository interface {

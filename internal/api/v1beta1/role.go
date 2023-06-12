@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/role"
+	"github.com/raystack/shield/pkg/metadata"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var grpcRoleNotFoundErr = status.Errorf(codes.NotFound, "role doesn't exist")

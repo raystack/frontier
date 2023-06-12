@@ -5,15 +5,15 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/raystack/shield/core/action"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	"github.com/raystack/shield/internal/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var (

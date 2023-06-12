@@ -11,9 +11,9 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
-	"github.com/odpf/shield/core/authenticate/strategy"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/user"
+	"github.com/raystack/shield/core/authenticate/strategy"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/user"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/odpf/shield/cmd"
+	"github.com/raystack/shield/cmd"
 	"github.com/stretchr/testify/assert"
 )
 

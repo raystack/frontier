@@ -11,9 +11,9 @@ builds:
     flags:
       - -a
     ldflags:
-      - -s -w -X github.com/odpf/shield/config.Version={{.Tag}}
-      - -X github.com/odpf/shield/config.BuildCommit={{.FullCommit}}
-      - -X github.com/odpf/shield/config.BuildDate={{.Date}}
+      - -s -w -X github.com/raystack/shield/config.Version={{.Tag}}
+      - -X github.com/raystack/shield/config.BuildCommit={{.FullCommit}}
+      - -X github.com/raystack/shield/config.BuildDate={{.Date}}
     goos: [linux, darwin, windows]
     goarch: [amd64, arm, arm64]
     env:
@@ -47,13 +47,13 @@ dockers:
       - shield
     dockerfile: Dockerfile
     image_templates:
-      - "docker.io/odpf/{{.ProjectName}}:latest"
-      - "docker.io/odpf/{{.ProjectName}}:{{ .Version }}"
-      - "docker.io/odpf/{{.ProjectName}}:{{ .Tag }}-amd64"
+      - "docker.io/raystack/{{.ProjectName}}:latest"
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Version }}"
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
 nfpms:
-  - maintainer: ODPF
+  - maintainer: Raystack
     description: Identity and authorization system
-    homepage: https://github.com/odpf/shield
+    homepage: https://github.com/raystack/shield
     license: Apache 2.0
     formats:
       - deb
@@ -62,17 +62,17 @@ nfpms:
       darwin: macOS
 scoop:
   bucket:
-    owner: odpf
+    owner: raystack
     name: scoop-bucket
-  homepage: "https://github.com/odpf/shield"
+  homepage: "https://github.com/raystack/shield"
   description: "Identity and authorization system"
   license: Apache 2.0
 brews:
   - name: shield
-    homepage: "https://github.com/odpf/shield"
+    homepage: "https://github.com/raystack/shield"
     description: "Identity and authorization system"
     tap:
-      owner: odpf
+      owner: raystack
       name: homebrew-tap
     license: "Apache 2.0"
     folder: Formula

@@ -8,15 +8,15 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/odpf/shield/core/action"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/schema"
+	"github.com/raystack/shield/core/action"
+	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/schema"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/core/relation"
-	errpkg "github.com/odpf/shield/pkg/errors"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/relation"
+	errpkg "github.com/raystack/shield/pkg/errors"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

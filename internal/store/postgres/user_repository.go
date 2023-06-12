@@ -13,9 +13,9 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/uuid"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/shield/pkg/uuid"
 )
 
 type UserRepository struct {

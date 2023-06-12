@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/odpf/salt/config"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/server"
-	"github.com/odpf/shield/internal/store/spicedb"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/logger"
+	"github.com/raystack/salt/config"
+	"github.com/raystack/shield/internal/proxy"
+	"github.com/raystack/shield/internal/server"
+	"github.com/raystack/shield/internal/store/spicedb"
+	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/shield/pkg/logger"
 )
 
 type Shield struct {
