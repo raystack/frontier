@@ -1,13 +1,13 @@
 [
   {
     "title": "John Doe",
-    "email": "john.doe@raystack.io",
+    "email": "john.doe@raystack.org",
     "name": "john_doe_slug",
     "metadata": {}
   },
   {
     "title": "Jane Dee",
-    "email": "jane.dee@raystack.io",
+    "email": "jane.dee@raystack.org",
     "name": "john_dee_slug",
     "metadata": {
       "label": {

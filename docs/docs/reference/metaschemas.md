@@ -60,7 +60,7 @@ A sample user MetaSchema is given below, and the second tab shows an example use
 ```json
 {
   "name": "John Doe",
-  "email": "john.doe@raystack.io",
+  "email": "john.doe@raystack.org",
   "metadata": {
     "label": {
       "role": "team leader"

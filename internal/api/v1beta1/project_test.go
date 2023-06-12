@@ -54,7 +54,7 @@ var (
 )
 
 func TestCreateProject(t *testing.T) {
-	email := "user@raystack.io"
+	email := "user@raystack.org"
 	table := []struct {
 		title string
 		setup func(ctx context.Context, ps *mocks.ProjectService) context.Context

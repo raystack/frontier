@@ -25,7 +25,7 @@ var (
 )
 
 const (
-	OrgAdminEmail  = "admin1-group1-org1@raystack.io"
+	OrgAdminEmail  = "admin1-group1-org1@raystack.org"
 	IdentityHeader = "X-Shield-Email"
 )
 

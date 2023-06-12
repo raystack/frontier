@@ -7,10 +7,10 @@ Before creating a new organization, let's create an organization admin user. Not
 ```sh
 curl --location --request POST 'http://localhost:8000/v1beta1/users'
 --header 'Content-Type: application/json'
---header 'X-Shield-Email: admin@raystack.io'
+--header 'X-Shield-Email: admin@raystack.org'
 --data-raw '{
     "name": "Shield Org Admin",
-    "email": "admin@raystack.io",
+    "email": "admin@raystack.org",
     "metadata": {
         "label": {
             "foo":"bar"
@@ -29,7 +29,7 @@ Expected response for the user created is of type.
         "id": "2fd7f306-61db-4198-9623-6f5f1809df11",
         "name": "Shield Org Admin",
         "slug": "admin_raystack_io",
-        "email": "admin@raystack.io",
+        "email": "admin@raystack.org",
         "metadata": {
             "label": {
                 "key":"value"
@@ -49,7 +49,7 @@ From now onwards, we can use the above user to perform all the admin operations.
 ```sh
 curl --location --request POST 'http://localhost:8000/v1beta1/organizations'
 --header 'Content-Type: application/json'
---header 'X-Shield-Email: admin@raystack.io'
+--header 'X-Shield-Email: admin@raystack.org'
 --data-raw '{
     "name": "Raystack",
     "slug": "raystack",

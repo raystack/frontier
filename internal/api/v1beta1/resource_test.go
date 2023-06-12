@@ -89,7 +89,7 @@ func TestHandler_ListResources(t *testing.T) {
 }
 
 func TestHandler_CreateProjectResource(t *testing.T) {
-	email := "user@raystack.io"
+	email := "user@raystack.org"
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context

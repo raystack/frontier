@@ -197,7 +197,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user for org 1",
-				Email: "user-1-for-org-1@raystack.io",
+				Email: "user-1-for-org-1@raystack.org",
 				Name:  "user_1_for_org_1_raystack_io",
 			},
 		})
@@ -263,7 +263,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user for org 1",
-				Email: "user-2-for-org-1@raystack.io",
+				Email: "user-2-for-org-1@raystack.org",
 				Name:  "user_2_for_org_1_raystack_io",
 			},
 		})

@@ -256,7 +256,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
 
 		resp, err := a.ServeHook(response, nil)
 
@@ -310,7 +310,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -325,7 +325,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.io",
+			UserID:      "user@raystack.org",
 			Name:        rsc.Name,
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -401,7 +401,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -416,7 +416,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.io",
+			UserID:      "user@raystack.org",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -500,7 +500,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
 
 		rsc := resource.Resource{
 			Name:        "bar",
@@ -513,7 +513,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.io",
+			UserID:      "user@raystack.org",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -597,7 +597,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -611,7 +611,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.io",
+			UserID:      "user@raystack.org",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -694,7 +694,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -708,7 +708,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.io",
+			UserID:      "user@raystack.org",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},

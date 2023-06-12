@@ -210,7 +210,7 @@ func (s *ProxySmokeTestSuite) TestProxyToEchoServer() {
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
 
-		req.Header.Set(testbench.IdentityHeader, "john.doe@raystack.com")
+		req.Header.Set(testbench.IdentityHeader, "john.doe@raystack.org")
 
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)

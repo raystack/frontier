@@ -184,17 +184,17 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			Description: "should create a user",
 			UserToCreate: user.User{
 				Title:    "new user",
-				Email:    "new.user@raystack.io",
+				Email:    "new.user@raystack.org",
 				Name:     "test_user_slug",
 				Metadata: metadata.Metadata{},
 			},
-			ExpectedEmail: "new.user@raystack.io",
+			ExpectedEmail: "new.user@raystack.org",
 		},
 		{
 			Description: "should return error if user already exist",
 			UserToCreate: user.User{
 				Title:    "new user",
-				Email:    "new.user@raystack.io",
+				Email:    "new.user@raystack.org",
 				Name:     "test_user_slug",
 				Metadata: metadata.Metadata{},
 			},

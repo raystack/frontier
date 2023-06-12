@@ -1,6 +1,6 @@
 # Adding to a group
 
-In this part we'll learn to add `members` and `managers` to a group. For this, we'll be using relations API. Also, we have added two new users to shield `john.doe@raystack.io` and `doe.john@raystack.io`.
+In this part we'll learn to add `members` and `managers` to a group. For this, we'll be using relations API. Also, we have added two new users to shield `john.doe@raystack.org` and `doe.john@raystack.org`.
 
 ## Add a Member to a Group
 
@@ -10,7 +10,7 @@ curl --location --request POST 'http://localhost:8000/v1beta1/relations'
 --data-raw '{
 "objectId": "86e2f95d-92c7-4c59-8fed-b7686cccbf4f",
   "objectNamespace": "group",
-  "subject": "user:doe.john@raystack.io",
+  "subject": "user:doe.john@raystack.org",
   "roleName": "member"
 }'
 ```
@@ -37,7 +37,7 @@ curl --location --request POST 'http://localhost:8000/v1beta1/relations'
 --data-raw '{
 "objectId": "86e2f95d-92c7-4c59-8fed-b7686cccbf4f",
   "objectNamespace": "group",
-  "subject": "user:doe.john@raystack.io",
+  "subject": "user:doe.john@raystack.org",
   "roleName": "manager"
 }'
 ```
