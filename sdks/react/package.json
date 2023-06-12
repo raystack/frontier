@@ -1,5 +1,5 @@
 {
-  "name": "@odpf/shield-react",
+  "name": "@raystack/shield-react",
   "version": "0.0.5",
   "description": "A react library for shield",
   "type": "module",

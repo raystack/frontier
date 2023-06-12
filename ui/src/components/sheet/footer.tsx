@@ -1,4 +1,4 @@
-import { Flex } from "@odpf/apsara";
+import { Flex } from "@raystack/apsara";
 import { CSS } from "@stitches/react";
 
 type SheetFooterProps = {

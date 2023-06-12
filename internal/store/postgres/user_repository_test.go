@@ -9,12 +9,12 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/metadata"
 	"github.com/ory/dockertest"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/store/postgres"
+	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/shield/pkg/metadata"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -184,17 +184,17 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			Description: "should create a user",
 			UserToCreate: user.User{
 				Title:    "new user",
-				Email:    "new.user@odpf.io",
+				Email:    "new.user@raystack.io",
 				Name:     "test_user_slug",
 				Metadata: metadata.Metadata{},
 			},
-			ExpectedEmail: "new.user@odpf.io",
+			ExpectedEmail: "new.user@raystack.io",
 		},
 		{
 			Description: "should return error if user already exist",
 			UserToCreate: user.User{
 				Title:    "new user",
-				Email:    "new.user@odpf.io",
+				Email:    "new.user@raystack.io",
 				Name:     "test_user_slug",
 				Metadata: metadata.Metadata{},
 			},

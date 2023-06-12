@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/project"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -89,7 +89,7 @@ func TestHandler_ListResources(t *testing.T) {
 }
 
 func TestHandler_CreateProjectResource(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@raystack.io"
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context

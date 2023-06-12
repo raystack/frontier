@@ -1,4 +1,4 @@
-import { Flex } from "@odpf/apsara";
+import { Flex } from "@raystack/apsara";
 import { Outlet } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout";

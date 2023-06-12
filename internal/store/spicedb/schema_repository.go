@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 )

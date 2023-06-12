@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	relation "github.com/odpf/shield/core/relation"
+	relation "github.com/raystack/shield/core/relation"
 	mock "github.com/stretchr/testify/mock"
 )
 

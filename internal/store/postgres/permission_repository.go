@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/core/user"
+	"github.com/raystack/shield/core/user"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/permission"
+	"github.com/raystack/shield/core/permission"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/pkg/db"
 )
 
 var (

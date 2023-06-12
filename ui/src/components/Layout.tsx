@@ -1,4 +1,4 @@
-import { Box, Flex, styled } from "@odpf/apsara";
+import { Box, Flex, styled } from "@raystack/apsara";
 import React from "react";
 import Resizable from "~/components/Resizable";
 

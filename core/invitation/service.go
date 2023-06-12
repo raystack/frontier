@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/odpf/shield/pkg/str"
+	"github.com/raystack/shield/pkg/str"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/bootstrap/schema"
-	"github.com/odpf/shield/pkg/mailer"
+	"github.com/raystack/shield/core/group"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/pkg/mailer"
 	"gopkg.in/mail.v2"
 )
 

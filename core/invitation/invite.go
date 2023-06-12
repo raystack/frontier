@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/pkg/metadata"
 )
 
 var (

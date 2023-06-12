@@ -1,4 +1,4 @@
-import { Dialog, Flex, Grid, Text } from "@odpf/apsara";
+import { Dialog, Flex, Grid, Text } from "@raystack/apsara";
 import { ColumnDef } from "@tanstack/table-core";
 import useSWR from "swr";
 import { DialogHeader } from "~/components/dialog/header";

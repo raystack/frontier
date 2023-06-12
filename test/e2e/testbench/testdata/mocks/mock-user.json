@@ -1,47 +1,47 @@
 [
   {
     "title": "admin1 group1 org1",
-    "email": "admin1-group1-org1@odpf.io",
+    "email": "admin1-group1-org1@raystack.io",
     "name": "admin1_group1_slug"
   },
   {
     "title": "member2 group1",
-    "email": "member2-group1@odpf.io",
+    "email": "member2-group1@raystack.io",
     "name": "member2_group1_slug"
   },
   {
     "title": "member3 group1",
-    "email": "member3-group1@odpf.io",
+    "email": "member3-group1@raystack.io",
     "name": "member3_group1_slug"
   },
   {
     "title": "admin1 group2",
-    "email": "admin1-group2@odpf.io",
+    "email": "admin1-group2@raystack.io",
     "name": "admin1_group2_slug"
   },
   {
     "title": "member2 group2",
-    "email": "member2-group2@odpf.io",
+    "email": "member2-group2@raystack.io",
     "name": "member2_group2_slug"
   },
   {
     "title": "member3 group2",
-    "email": "member3-group2@odpf.io",
+    "email": "member3-group2@raystack.io",
     "name": "member3_group2_slug"
   },
   {
     "title": "admin1 group3",
-    "email": "admin1-group3@odpf.io",
+    "email": "admin1-group3@raystack.io",
     "name": "admin1_group3_slug"
   },
   {
     "title": "member2 group3",
-    "email": "member2-group3@odpf.io",
+    "email": "member2-group3@raystack.io",
     "name": "member2_group3_slug"
   },
   {
     "title": "member3 group3",
-    "email": "member3-group3@odpf.io",
+    "email": "member3-group3@raystack.io",
     "name": "member3_group3_slug"
   }
 ]

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/odpf/shield/internal/proxy/middleware"
+	"github.com/raystack/shield/internal/proxy/middleware"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 	"github.com/rs/xid"
 	"go.uber.org/zap"
 )

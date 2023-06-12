@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/pkg/metadata"
 )
 
 type State string

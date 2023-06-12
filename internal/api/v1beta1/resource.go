@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/relation"
+	"github.com/raystack/shield/core/relation"
 
 	"google.golang.org/protobuf/types/known/structpb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/metadata"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/metadata"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"

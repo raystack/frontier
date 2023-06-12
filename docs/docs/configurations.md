@@ -88,9 +88,11 @@ proxy:
       ruleset: file:///tmp/rules
       ruleset_secret: env://TEST_RULESET_SECRET
 ```
+
 </details>
 
 See [configuration reference](./reference/configurations.md) for more details.
+
 ### Using environment variables
 
 All the server configurations can be passed as environment variables using underscore \_ as the delimiter between nested keys.
@@ -117,6 +119,7 @@ PROXY_SERVICES_0_PORT=5556
 PROXY_SERVICES_0_RULESET=file:///tmp/rules
 PROXY_SERVICES_0_RULESET_SECRET=env://TEST_RULESET_SECRET
 ```
+
 </details>
 
 Set the env variable using export
@@ -177,7 +180,7 @@ $ docker run -d \
     -p 7400:7400 \
     -v $(pwd)/shield.yaml:/shield.yaml \
     --name shield-server \
-    odpf/shield:<version> \
+    raystack/shield:<version> \
     server start -c /config.yaml
 ```
 
@@ -193,7 +196,7 @@ $ docker run -d \
     -p 7400:7400 \
     --env-file .env \
     --name shield-server \
-    odpf/shield:<version> \
+    raystack/shield:<version> \
     server start
 ```
 
@@ -201,19 +204,19 @@ $ docker run -d \
 
 ### Pre-requisites for Helm chart
 
-Shield can be installed in Kubernetes using the Helm chart from https://github.com/odpf/charts.
+Shield can be installed in Kubernetes using the Helm chart from https://github.com/raystack/charts.
 
 Ensure that the following requirements are met:
 
 - Kubernetes 1.14+
 - Helm version 3.x is [installed](https://helm.sh/docs/intro/install/)
 
-### Add ODPF Helm repository
+### Add Raystack Helm repository
 
-Add ODPF chart repository to Helm:
+Add Raystack chart repository to Helm:
 
 ```bash
-helm repo add odpf https://odpf.github.io/charts/
+helm repo add raystack https://raystack.github.io/charts/
 ```
 
 You can update the chart repository by running:
@@ -226,12 +229,12 @@ helm repo update
 
 The following table lists the configurable parameters of the Shield chart and their default values.
 
-See full helm values guide [here](https://github.com/odpf/charts/tree/main/stable/shield#values) and [values.yaml](https://github.com/odpf/charts/blob/main/stable/shield/values.yaml) file
+See full helm values guide [here](https://github.com/raystack/charts/tree/main/stable/shield#values) and [values.yaml](https://github.com/raystack/charts/blob/main/stable/shield/values.yaml) file
 
 Install it with the helm command line:
 
 ```bash
-helm install my-release -f values.yaml odpf/shield
+helm install my-release -f values.yaml raystack/shield
 ```
 
 ## Client Initialisation

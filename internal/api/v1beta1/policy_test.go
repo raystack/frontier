@@ -5,13 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/policy"
+	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"

@@ -1,6 +1,6 @@
 import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, Flex, Table, Text, useTable } from "@odpf/apsara";
+import { Button, Flex, Table, Text, useTable } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 
 export const OrganizationsHeader = () => {

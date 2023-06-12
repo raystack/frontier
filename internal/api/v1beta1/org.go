@@ -3,25 +3,25 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/project"
+	"github.com/raystack/shield/core/project"
 
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/metadata"
 	"github.com/pkg/errors"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/metadata"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/core/organization"
+	"github.com/raystack/shield/core/organization"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var grpcOrgNotFoundErr = status.Errorf(codes.NotFound, "org doesn't exist")

@@ -6,14 +6,14 @@ import (
 	"path"
 	"testing"
 
-	"github.com/odpf/shield/pkg/server"
+	"github.com/raystack/shield/pkg/server"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/pkg/logger"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
-	"github.com/odpf/shield/test/e2e/testbench"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/pkg/logger"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/shield/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -197,8 +197,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user for org 1",
-				Email: "user-1-for-org-1@odpf.io",
-				Name:  "user_1_for_org_1_odpf_io",
+				Email: "user-1-for-org-1@raystack.io",
+				Name:  "user_1_for_org_1_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -263,8 +263,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user for org 1",
-				Email: "user-2-for-org-1@odpf.io",
-				Name:  "user_2_for_org_1_odpf_io",
+				Email: "user-2-for-org-1@raystack.io",
+				Name:  "user_2_for_org_1_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)

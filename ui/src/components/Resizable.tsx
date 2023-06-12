@@ -1,4 +1,4 @@
-import { styled } from "@odpf/apsara";
+import { styled } from "@raystack/apsara";
 import type { NumberSize, ResizableProps, ResizeDirection } from "re-resizable";
 import { Resizable } from "re-resizable";
 import { useState } from "react";

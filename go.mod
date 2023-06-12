@@ -1,4 +1,4 @@
-module github.com/odpf/shield
+module github.com/raystack/shield
 
 go 1.20
 
@@ -30,11 +30,11 @@ require (
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/newrelic/go-agent v3.20.2+incompatible
-	github.com/odpf/salt v0.2.5-0.20221130085531-51c81815f7d6
 	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/ory/dockertest/v3 v3.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.7.0
+	github.com/raystack/salt v0.3.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.4.0
 	github.com/spf13/afero v1.9.3

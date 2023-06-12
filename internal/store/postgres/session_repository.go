@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/salt/log"
-	shieldsession "github.com/odpf/shield/core/authenticate/session"
+	"github.com/raystack/salt/log"
+	shieldsession "github.com/raystack/shield/core/authenticate/session"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/pkg/db"
 )
 
 type SessionRepository struct {

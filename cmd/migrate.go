@@ -10,12 +10,12 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/metaschema"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/internal/store/postgres/migrations"
-	"github.com/odpf/shield/pkg/db"
 	"github.com/pkg/errors"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/core/metaschema"
+	"github.com/raystack/shield/internal/store/postgres"
+	"github.com/raystack/shield/internal/store/postgres/migrations"
+	"github.com/raystack/shield/pkg/db"
 )
 
 func RunMigrations(logger log.Logger, config db.Config) error {

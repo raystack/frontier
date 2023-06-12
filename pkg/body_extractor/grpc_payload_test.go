@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	fixturesv1 "github.com/odpf/shield/pkg/body_extractor/fixtures"
+	fixturesv1 "github.com/raystack/shield/pkg/body_extractor/fixtures"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"

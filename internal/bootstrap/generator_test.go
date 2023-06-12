@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
-	"github.com/odpf/shield/internal/bootstrap"
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )

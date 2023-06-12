@@ -25,7 +25,7 @@ Read More about an Organization in the [Concepts](../concepts/org.md) section.
   "organization": {
     "id": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
     "name": "open-dataops-foundation",
-    "title": "Open DataOps Foundation (ODPF)",
+    "title": "Raystack",
     "metadata": {
       "description": "Some Organization details"
     },
@@ -34,6 +34,7 @@ Read More about an Organization in the [Concepts](../concepts/org.md) section.
   }
 }
 ```
+
 </TabItem>
 </Tabs>
 
@@ -54,7 +55,7 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations' \
 -H 'Content-Type: application/json' \
 -H 'Accept: application/json' \
 --data-raw '{
-  "name": "odpf",
+  "name": "raystack",
   "title": "Open DataOps Foundation",
   "metadata": {"description": "Open DataOps Foundation"}
 }'
@@ -72,11 +73,11 @@ $ shield organization create --file=<path to the organization.json file>
 
 3. To create an organization via the Admin Portal:
 
-  i. Navigate to **Admin Portal > Organizations** from the sidebar
+i. Navigate to **Admin Portal > Organizations** from the sidebar
 
-  ii. Select **+ New Organization** from top right corner
+ii. Select **+ New Organization** from top right corner
 
-  iii. Enter basic information for your organization, and select **Add Organization**.
+iii. Enter basic information for your organization, and select **Add Organization**.
 
 ### Add users to an Organization
 
@@ -164,6 +165,7 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/permissions' \
   ]
 }'
 ```
+
 ### Enable or disable an org
 
 Sets the state of the organization as disabled. The existing users in the org will not be able to access any organization resources when the org is disabled.
@@ -171,9 +173,9 @@ Sets the state of the organization as disabled. The existing users in the org wi
 1. Using **`POST /v1beta1/organizations/:id/disable`** API
 
 ```bash
-$ curl --location 'http://localhost:7400/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/disable' 
---header 'Content-Type: application/json' 
---header 'Accept: application/json' 
+$ curl --location 'http://localhost:7400/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/disable'
+--header 'Content-Type: application/json'
+--header 'Accept: application/json'
 --data '{}'
 ```
 

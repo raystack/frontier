@@ -8,16 +8,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/user"
+	"github.com/raystack/shield/core/user"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/core/group"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/pkg/db"
 )
 
 type GroupRepository struct {

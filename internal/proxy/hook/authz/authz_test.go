@@ -9,18 +9,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/resource"
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/internal/proxy/hook"
-	shieldlogger "github.com/odpf/shield/pkg/logger"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/shield/core/rule"
+	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	"github.com/raystack/shield/internal/proxy/hook"
+	shieldlogger "github.com/raystack/shield/pkg/logger"
 )
 
 var testPermissionAttributesMap = map[string]any{
@@ -29,8 +29,8 @@ var testPermissionAttributesMap = map[string]any{
 	"organization":  "org1",
 	"namespace":     "ns1",
 	"resource_type": "kind",
-	"group":         "group@odpf.com",
-	"user":          "user1@odpf.com",
+	"group":         "group@raystack.com",
+	"user":          "user1@raystack.com",
 }
 
 var expectedResources = []resource.Resource{
@@ -38,12 +38,12 @@ var expectedResources = []resource.Resource{
 		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name:        "resc1",
 		NamespaceID: "ns1/kind",
-		UserID:      "user1@odpf.com",
+		UserID:      "user1@raystack.com",
 	}, {
 		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 		Name:        "resc2",
 		NamespaceID: "ns1/kind",
-		UserID:      "user1@odpf.com",
+		UserID:      "user1@raystack.com",
 	},
 }
 
@@ -256,7 +256,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
 
 		resp, err := a.ServeHook(response, nil)
 
@@ -310,7 +310,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -325,7 +325,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@odpf.io",
+			UserID:      "user@raystack.io",
 			Name:        rsc.Name,
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -401,7 +401,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -416,7 +416,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@odpf.io",
+			UserID:      "user@raystack.io",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -500,7 +500,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
 
 		rsc := resource.Resource{
 			Name:        "bar",
@@ -513,7 +513,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@odpf.io",
+			UserID:      "user@raystack.io",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -597,7 +597,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -611,7 +611,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@odpf.io",
+			UserID:      "user@raystack.io",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -694,7 +694,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@odpf.io")
+		response.Request.Header.Set("X-Shield-Email", "user@raystack.io")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -708,7 +708,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@odpf.io",
+			UserID:      "user@raystack.io",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},

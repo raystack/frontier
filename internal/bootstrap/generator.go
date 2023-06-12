@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
 	aznamespace "github.com/authzed/spicedb/pkg/namespace"
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
 	"github.com/authzed/spicedb/pkg/schemautil"
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 )
 
 func ValidatePreparedAZSchema(ctx context.Context, azSchemaSource string) error {

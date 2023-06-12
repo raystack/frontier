@@ -1,4 +1,4 @@
-import { Flex, Table } from "@odpf/apsara";
+import { Flex, Table } from "@raystack/apsara";
 import { ColumnDef } from "@tanstack/table-core";
 import { tableStyle } from "~/styles";
 

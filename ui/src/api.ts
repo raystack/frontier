@@ -5,7 +5,7 @@ export async function update(
   await fetch(url, {
     method: "POST",
     headers: {
-      "X-Shield-Email": "admin@odpf.io",
+      "X-Shield-Email": "admin@raystack.io",
     },
     body: JSON.stringify(arg),
   });
@@ -18,7 +18,7 @@ export async function updateOrganisation(
   await fetch(url, {
     method: "POST",
     headers: {
-      "X-Shield-Email": "admin@odpf.io",
+      "X-Shield-Email": "admin@raystack.io",
     },
     body: JSON.stringify(arg),
   });

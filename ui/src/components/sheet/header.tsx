@@ -1,4 +1,4 @@
-import { Flex, Text } from "@odpf/apsara";
+import { Flex, Text } from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
 
 type SheetHeaderProps = {

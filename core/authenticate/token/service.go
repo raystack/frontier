@@ -10,7 +10,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
-	"github.com/odpf/shield/pkg/server/consts"
+	"github.com/raystack/shield/pkg/server/consts"
 	"google.golang.org/grpc/metadata"
 )
 

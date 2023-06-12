@@ -6,15 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/odpf/shield/core/authenticate/token"
+	"github.com/raystack/shield/core/authenticate/token"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	shieldsession "github.com/odpf/shield/core/authenticate/session"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/bootstrap/schema"
-	"github.com/odpf/shield/pkg/errors"
-	"github.com/odpf/shield/pkg/str"
+	shieldsession "github.com/raystack/shield/core/authenticate/session"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/pkg/errors"
+	"github.com/raystack/shield/pkg/str"
 )
 
 type SessionService interface {

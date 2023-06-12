@@ -73,7 +73,7 @@ When creating custom permissions, administrators typically define the name and s
 The permissions can either be created dynamically when the Shield is running, or can either be provided in the server configurations.
 :::
 
-For example, let's say you have an e-commerce application where users can manage their shopping carts. To control access to cart-related actions, you can create custom permissions in the **potato/cart** namespace. 
+For example, let's say you have an e-commerce application where users can manage their shopping carts. To control access to cart-related actions, you can create custom permissions in the **potato/cart** namespace.
 
 Sample custom permission requirements:
 
@@ -83,8 +83,8 @@ Sample custom permission requirements:
 | **update**          | Cart Update          | potato/cart   | Allows updating the contents of the shopping cart.         |
 | **get**             | Cart Get             | potato/cart   | Enables retrieving the details of the shopping cart.       |
 
-This is how the [resource config file](https://github.com/odpf/shield/blob/7cae6bf86e99fe96650c6dcd4e8207cb916b8184/test/e2e/smoke/testdata/resource/potato.yaml#L4) will look like
+This is how the [resource config file](https://github.com/raystack/shield/blob/7cae6bf86e99fe96650c6dcd4e8207cb916b8184/test/e2e/smoke/testdata/resource/potato.yaml#L4) will look like
 
 :::info
-While creating permissions, it is important to note that the namespace is appended to the permission name to generate a permission slug. For instance, the **delete** permission name will be appended with namespace **potato/cart**, to generate the final permission slug as **potato_cart_delete** in Shield. This naming convention is used to ensure uniqueness and organization of permissions within Shield. While creating a role, we pass the list of these permission slugs being binded to that role. 
+While creating permissions, it is important to note that the namespace is appended to the permission name to generate a permission slug. For instance, the **delete** permission name will be appended with namespace **potato/cart**, to generate the final permission slug as **potato_cart_delete** in Shield. This naming convention is used to ensure uniqueness and organization of permissions within Shield. While creating a role, we pass the list of these permission slugs being binded to that role.
 :::

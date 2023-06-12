@@ -9,8 +9,8 @@ import (
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/pkg/db"
 )
 
 type RelationRepository struct {

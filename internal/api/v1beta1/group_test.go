@@ -5,15 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/odpf/shield/core/group"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	"github.com/odpf/shield/pkg/errors"
-	"github.com/odpf/shield/pkg/metadata"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/group"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	"github.com/raystack/shield/pkg/errors"
+	"github.com/raystack/shield/pkg/metadata"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -154,7 +154,7 @@ func TestHandler_ListGroups(t *testing.T) {
 }
 
 func TestHandler_CreateGroup(t *testing.T) {
-	email := "user@odpf.io"
+	email := "user@raystack.io"
 	someOrgID := utils.NewString()
 	someGroupID := utils.NewString()
 	tests := []struct {

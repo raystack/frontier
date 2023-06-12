@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/user"
 )
 
 type RelationService interface {

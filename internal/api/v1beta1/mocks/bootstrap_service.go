@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	schema "github.com/odpf/shield/internal/bootstrap/schema"
+	schema "github.com/raystack/shield/internal/bootstrap/schema"
 	mock "github.com/stretchr/testify/mock"
 )
 

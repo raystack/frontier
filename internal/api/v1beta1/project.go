@@ -4,18 +4,18 @@ import (
 	"context"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/errors"
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/errors"
+	"github.com/raystack/shield/pkg/metadata"
 
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/project"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")

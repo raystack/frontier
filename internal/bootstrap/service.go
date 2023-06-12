@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/core/permission"
-	"github.com/odpf/shield/core/role"
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/shield/core/role"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 )
 
 var (

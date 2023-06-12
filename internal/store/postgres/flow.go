@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/authenticate"
+	"github.com/raystack/shield/core/authenticate"
 )
 
 type Flow struct {

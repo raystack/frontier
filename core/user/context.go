@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/odpf/shield/pkg/server/consts"
+	"github.com/raystack/shield/pkg/server/consts"
 )
 
 type contextEmailKey struct{}

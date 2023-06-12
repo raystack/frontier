@@ -7,18 +7,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/odpf/shield/core/authenticate/token"
+	"github.com/raystack/shield/core/authenticate/token"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/odpf/shield/pkg/mailer"
+	"github.com/raystack/shield/pkg/mailer"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/authenticate/strategy"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/str"
+	"github.com/raystack/shield/core/authenticate/strategy"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/str"
 	"github.com/robfig/cron/v3"
 )
 

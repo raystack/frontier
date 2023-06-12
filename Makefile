@@ -1,5 +1,5 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
-NAME=github.com/odpf/shield
+NAME=github.com/raystack/shield
 TAG := "$(shell git rev-list --tags --max-count=1)"
 VERSION := "$(shell git describe --tags ${TAG})"
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
@@ -47,7 +47,7 @@ integration-test:
 	go test -v -race ./test/integration
 
 benchmark: ## Run benchmarks
-	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/test/integration
+	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/raystack/shield/test/integration
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.txt
@@ -56,10 +56,10 @@ clean :
 	rm -rf dist
 
 proto: ## Generate the protobuf files
-	@echo " > generating protobuf from odpf/proton"
+	@echo " > generating protobuf from raystack/proton"
 	@echo " > [info] make sure correct version of dependencies are installed using 'make install'"
-	@buf generate https://github.com/odpf/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path odpf/shield
-	@cp -R proto/odpf/shield/* proto/ && rm -Rf proto/odpf
+	@buf generate https://github.com/raystack/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path raystack/shield
+	@cp -R proto/raystack/shield/* proto/ && rm -Rf proto/raystack
 	@echo " > protobuf compilation finished"
 
 clean-doc:

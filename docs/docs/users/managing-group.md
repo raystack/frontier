@@ -6,7 +6,7 @@ import CodeBlock from '@theme/CodeBlock';
 
 - Create an org group
 - List an org groups
-- Add or invite users to a group 
+- Add or invite users to a group
 - View a group members
 - Assign roles to group members
 - Remove a user from a group
@@ -43,6 +43,7 @@ A group in Shield looks like
   }
 }
 ```
+
 </TabItem>
 </Tabs>
 
@@ -75,11 +76,11 @@ Todo
 
 3. To create a group via the Admin Portal:
 
-  i. Navigate to **Admin Portal > Groups** from the sidebar
+i. Navigate to **Admin Portal > Groups** from the sidebar
 
-  ii. Select **+ New Group** from top right corner
+ii. Select **+ New Group** from top right corner
 
-  iii. Enter basic information for the group, and select **Add Group**
+iii. Enter basic information for the group, and select **Add Group**
 
 ### List an organization groups
 
@@ -87,6 +88,7 @@ Todo
 2. Calling to `GET /v1beta1/organizations/orgId/groups` API
 
 ### View an organization projects
+
 <Tabs groupId="api">
   <TabItem value="http" label="HTTP">
   <CodeBlock className="language-bash">
@@ -178,7 +180,7 @@ Todo
     "orgId": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
     "metadata": {
         "description": "group for users in data batching domain",
-        "org-name": "odpf"
+        "org-name": "raystack"
     }
 }'`}
     </CodeBlock>

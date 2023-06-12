@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/relation"
+	"github.com/raystack/shield/core/relation"
 
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/pkg/errors"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/pkg/errors"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"

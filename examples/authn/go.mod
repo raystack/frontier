@@ -1,4 +1,4 @@
-module github.com/odpf/shield/examples/authn
+module github.com/raystack/shield/examples/authn
 
 go 1.20
 

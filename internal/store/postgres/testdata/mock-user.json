@@ -1,19 +1,19 @@
 [
-    {
-        "title": "John Doe",
-        "email": "john.doe@odpf.io",
-        "name": "john_doe_slug",
-        "metadata": {}
-    },
-    {
-        "title": "Jane Dee",
-        "email": "jane.dee@odpf.io",
-        "name": "john_dee_slug",
-        "metadata": {
-            "label": {
-                "key": "value"
-            },
-            "description": "description"
-        }
+  {
+    "title": "John Doe",
+    "email": "john.doe@raystack.io",
+    "name": "john_doe_slug",
+    "metadata": {}
+  },
+  {
+    "title": "Jane Dee",
+    "email": "jane.dee@raystack.io",
+    "name": "john_dee_slug",
+    "metadata": {
+      "label": {
+        "key": "value"
+      },
+      "description": "description"
     }
+  }
 ]

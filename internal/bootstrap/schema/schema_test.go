@@ -3,7 +3,7 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 )
 
 func TestFQPermissionNameFromNamespace(t *testing.T) {

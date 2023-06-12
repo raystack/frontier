@@ -1,4 +1,4 @@
-import { Flex, Grid, Text } from "@odpf/apsara";
+import { Flex, Grid, Text } from "@raystack/apsara";
 import { useGroup } from ".";
 
 export default function GroupDetails() {

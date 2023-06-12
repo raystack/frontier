@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/invitation"
+	"github.com/raystack/shield/core/invitation"
 )
 
 type Invitation struct {

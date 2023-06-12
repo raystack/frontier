@@ -1,4 +1,4 @@
-import { Flex, Text } from "@odpf/apsara";
+import { Flex, Text } from "@raystack/apsara";
 
 const BRAND_NAME = "Shield";
 export default function SidebarHeader() {

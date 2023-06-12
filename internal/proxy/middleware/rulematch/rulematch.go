@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/internal/proxy/middleware"
+	"github.com/raystack/shield/core/rule"
+	"github.com/raystack/shield/internal/proxy/middleware"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 )
 
 type RuleService interface {

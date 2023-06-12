@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/internal/store/spicedb"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/internal/store/spicedb"
 )
 
 const (

@@ -3,8 +3,8 @@ package policy
 import (
 	"context"
 
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 )
 
 type RelationService interface {

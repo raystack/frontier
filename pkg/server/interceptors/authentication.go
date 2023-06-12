@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/internal/api/v1beta1"
-	"github.com/odpf/shield/pkg/server/consts"
+	"github.com/raystack/shield/internal/api/v1beta1"
+	"github.com/raystack/shield/pkg/server/consts"
 	"google.golang.org/grpc"
 )
 
@@ -39,16 +39,16 @@ func UnaryAuthenticationCheck(identityHeader string) grpc.UnaryServerInterceptor
 
 // authorizationValidationMap stores path to skip authentication, by default its enabled for all requests
 var authenticationSkipList = map[string]bool{
-	"/odpf.shield.v1beta1.ShieldService/ListUsers":          true,
-	"/odpf.shield.v1beta1.ShieldService/ListOrganizations":  true,
-	"/odpf.shield.v1beta1.ShieldService/ListPermissions":    true,
-	"/odpf.shield.v1beta1.ShieldService/GetPermission":      true,
-	"/odpf.shield.v1beta1.ShieldService/ListNamespaces":     true,
-	"/odpf.shield.v1beta1.ShieldService/GetNamespace":       true,
-	"/odpf.shield.v1beta1.ShieldService/ListAuthStrategies": true,
-	"/odpf.shield.v1beta1.ShieldService/Authenticate":       true,
-	"/odpf.shield.v1beta1.ShieldService/AuthCallback":       true,
-	"/odpf.shield.v1beta1.ShieldService/AuthLogout":         true,
-	"/odpf.shield.v1beta1.ShieldService/ListMetaSchemas":    true,
-	"/odpf.shield.v1beta1.ShieldService/GetMetaSchema":      true,
+	"/raystack.shield.v1beta1.ShieldService/ListUsers":          true,
+	"/raystack.shield.v1beta1.ShieldService/ListOrganizations":  true,
+	"/raystack.shield.v1beta1.ShieldService/ListPermissions":    true,
+	"/raystack.shield.v1beta1.ShieldService/GetPermission":      true,
+	"/raystack.shield.v1beta1.ShieldService/ListNamespaces":     true,
+	"/raystack.shield.v1beta1.ShieldService/GetNamespace":       true,
+	"/raystack.shield.v1beta1.ShieldService/ListAuthStrategies": true,
+	"/raystack.shield.v1beta1.ShieldService/Authenticate":       true,
+	"/raystack.shield.v1beta1.ShieldService/AuthCallback":       true,
+	"/raystack.shield.v1beta1.ShieldService/AuthLogout":         true,
+	"/raystack.shield.v1beta1.ShieldService/ListMetaSchemas":    true,
+	"/raystack.shield.v1beta1.ShieldService/GetMetaSchema":      true,
 }

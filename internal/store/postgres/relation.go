@@ -5,7 +5,7 @@ import (
 
 	"database/sql"
 
-	"github.com/odpf/shield/core/relation"
+	"github.com/raystack/shield/core/relation"
 )
 
 type Relation struct {

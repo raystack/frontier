@@ -1,9 +1,9 @@
 package testbench
 
 import (
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/cmd"
-	"github.com/odpf/shield/config"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/cmd"
+	"github.com/raystack/shield/config"
 )
 
 func MigrateShield(logger *log.Zap, appConfig *config.Shield) error {

@@ -13,21 +13,21 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/odpf/shield/pkg/server"
+	"github.com/raystack/shield/pkg/server"
 
 	"github.com/google/uuid"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 
 	_ "embed"
 
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/proxy"
-	"github.com/odpf/shield/internal/store/spicedb"
-	"github.com/odpf/shield/pkg/db"
-	"github.com/odpf/shield/pkg/logger"
-	"github.com/odpf/shield/test/e2e/testbench"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/internal/proxy"
+	"github.com/raystack/shield/internal/store/spicedb"
+	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/shield/pkg/logger"
+	"github.com/raystack/shield/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -210,7 +210,7 @@ func (s *ProxySmokeTestSuite) TestProxyToEchoServer() {
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)
 
-		req.Header.Set(testbench.IdentityHeader, "john.doe@odpf.com")
+		req.Header.Set(testbench.IdentityHeader, "john.doe@raystack.com")
 
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)

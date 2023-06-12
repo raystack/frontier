@@ -5,7 +5,314 @@ description: "Get all projects that belong to an organization"
 sidebar_label: "Get organization projects"
 hide_title: true
 hide_table_of_contents: true
-api: {"description":"Get all projects that belong to an organization","operationId":"ShieldService_ListOrganizationProjects","responses":{"200":{"description":"A successful response.","content":{"application/json":{"schema":{"type":"object","properties":{"projects":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"title":{"type":"string"},"orgId":{"type":"string"},"metadata":{"type":"object"},"createdAt":{"type":"string","format":"date-time"},"updatedAt":{"type":"string","format":"date-time"}}}}}}}}},"400":{"description":"Bad Request - The request was malformed or contained invalid parameters.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"},"details":{"type":"array","items":{"type":"object","properties":{"@type":{"type":"string"}},"additionalProperties":{}}}}}}}},"401":{"description":"Unauthorized - Authentication is required","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"},"details":{"type":"array","items":{"type":"object","properties":{"@type":{"type":"string"}},"additionalProperties":{}}}}}}}},"403":{"description":"Forbidden - User does not have permission to access the resource","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"},"details":{"type":"array","items":{"type":"object","properties":{"@type":{"type":"string"}},"additionalProperties":{}}}}}}}},"404":{"description":"Not Found - The requested resource was not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"},"details":{"type":"array","items":{"type":"object","properties":{"@type":{"type":"string"}},"additionalProperties":{}}}}}}}},"500":{"description":"Internal Server Error. Returned when theres is something wrong with Shield server.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"},"details":{"type":"array","items":{"type":"object","properties":{"@type":{"type":"string"}},"additionalProperties":{}}}}}}}},"default":{"description":"An unexpected error response.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"integer","format":"int32"},"message":{"type":"string"},"details":{"type":"array","items":{"type":"object","properties":{"@type":{"type":"string"}},"additionalProperties":{}}}}}}}}},"parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}},{"name":"state","description":"Filter projects by state. If not specified, all projects are returned. <br/> *Possible values:* `enabled` or `disabled`","in":"query","required":false,"schema":{"type":"string"}}],"tags":["Organization"],"method":"get","path":"/v1beta1/organizations/{id}/projects","servers":[{"url":"http://127.0.0.1:7400"}],"info":{"title":"Shield Administration API","description":"The Shield APIs adhere to the OpenAPI specification, also known as Swagger, which provides a standardized approach for designing, documenting, and consuming RESTful APIs. With OpenAPI, you gain a clear understanding of the API endpoints, request/response structures, and authentication mechanisms supported by the Shield APIs. By leveraging the OpenAPI specification, developers can easily explore and interact with the Shield APIs using a variety of tools and libraries. The OpenAPI specification enables automatic code generation, interactive API documentation, and seamless integration with API testing frameworks, making it easier than ever to integrate Shield into your existing applications and workflows.","version":"0.2.0","contact":{"name":"Open DataOps Foundation","url":"https://www.odpf.io/","email":"hello@odpf.io"},"license":{"name":"Apache 2.0","url":"https://github.com/odpf/shield/blob/main/LICENSE"}},"postman":{"name":"Get organization projects","description":{"content":"Get all projects that belong to an organization","type":"text/plain"},"url":{"path":["v1beta1","organizations",":id","projects"],"host":["{{baseUrl}}"],"query":[{"disabled":false,"description":{"content":"Filter projects by state. If not specified, all projects are returned. <br/> *Possible values:* `enabled` or `disabled`","type":"text/plain"},"key":"state","value":""}],"variable":[{"disabled":false,"description":{"content":"(Required) ","type":"text/plain"},"type":"any","value":"","key":"id"}]},"header":[{"key":"Accept","value":"application/json"}],"method":"GET"}}
+api:
+  {
+    "description": "Get all projects that belong to an organization",
+    "operationId": "ShieldService_ListOrganizationProjects",
+    "responses":
+      {
+        "200":
+          {
+            "description": "A successful response.",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "projects":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      {
+                                        "id": { "type": "string" },
+                                        "name": { "type": "string" },
+                                        "title": { "type": "string" },
+                                        "orgId": { "type": "string" },
+                                        "metadata": { "type": "object" },
+                                        "createdAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                          },
+                                        "updatedAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                          },
+                                      },
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        "400":
+          {
+            "description": "Bad Request - The request was malformed or contained invalid parameters.",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "code": { "type": "integer", "format": "int32" },
+                            "message": { "type": "string" },
+                            "details":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      { "@type": { "type": "string" } },
+                                    "additionalProperties": {},
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        "401":
+          {
+            "description": "Unauthorized - Authentication is required",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "code": { "type": "integer", "format": "int32" },
+                            "message": { "type": "string" },
+                            "details":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      { "@type": { "type": "string" } },
+                                    "additionalProperties": {},
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        "403":
+          {
+            "description": "Forbidden - User does not have permission to access the resource",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "code": { "type": "integer", "format": "int32" },
+                            "message": { "type": "string" },
+                            "details":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      { "@type": { "type": "string" } },
+                                    "additionalProperties": {},
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        "404":
+          {
+            "description": "Not Found - The requested resource was not found",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "code": { "type": "integer", "format": "int32" },
+                            "message": { "type": "string" },
+                            "details":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      { "@type": { "type": "string" } },
+                                    "additionalProperties": {},
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        "500":
+          {
+            "description": "Internal Server Error. Returned when theres is something wrong with Shield server.",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "code": { "type": "integer", "format": "int32" },
+                            "message": { "type": "string" },
+                            "details":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      { "@type": { "type": "string" } },
+                                    "additionalProperties": {},
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        "default":
+          {
+            "description": "An unexpected error response.",
+            "content":
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "code": { "type": "integer", "format": "int32" },
+                            "message": { "type": "string" },
+                            "details":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      { "@type": { "type": "string" } },
+                                    "additionalProperties": {},
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+      },
+    "parameters":
+      [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "state",
+          "description": "Filter projects by state. If not specified, all projects are returned. <br/> *Possible values:* `enabled` or `disabled`",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string" },
+        },
+      ],
+    "tags": ["Organization"],
+    "method": "get",
+    "path": "/v1beta1/organizations/{id}/projects",
+    "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "info":
+      {
+        "title": "Shield Administration API",
+        "description": "The Shield APIs adhere to the OpenAPI specification, also known as Swagger, which provides a standardized approach for designing, documenting, and consuming RESTful APIs. With OpenAPI, you gain a clear understanding of the API endpoints, request/response structures, and authentication mechanisms supported by the Shield APIs. By leveraging the OpenAPI specification, developers can easily explore and interact with the Shield APIs using a variety of tools and libraries. The OpenAPI specification enables automatic code generation, interactive API documentation, and seamless integration with API testing frameworks, making it easier than ever to integrate Shield into your existing applications and workflows.",
+        "version": "0.2.0",
+        "contact":
+          {
+            "name": "Open DataOps Foundation",
+            "url": "https://www.raystack.io/",
+            "email": "hello@raystack.io",
+          },
+        "license":
+          {
+            "name": "Apache 2.0",
+            "url": "https://github.com/raystack/shield/blob/main/LICENSE",
+          },
+      },
+    "postman":
+      {
+        "name": "Get organization projects",
+        "description":
+          {
+            "content": "Get all projects that belong to an organization",
+            "type": "text/plain",
+          },
+        "url":
+          {
+            "path": ["v1beta1", "organizations", ":id", "projects"],
+            "host": ["{{baseUrl}}"],
+            "query":
+              [
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "Filter projects by state. If not specified, all projects are returned. <br/> *Possible values:* `enabled` or `disabled`",
+                      "type": "text/plain",
+                    },
+                  "key": "state",
+                  "value": "",
+                },
+              ],
+            "variable":
+              [
+                {
+                  "disabled": false,
+                  "description":
+                    { "content": "(Required) ", "type": "text/plain" },
+                  "type": "any",
+                  "value": "",
+                  "key": "id",
+                },
+              ],
+          },
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "method": "GET",
+      },
+  }
 sidebar_class_name: "get api-method"
 info_path: apis/shield-administration-api
 custom_edit_url: null
@@ -21,8 +328,6 @@ import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
 ## Get organization projects
-
-
 
 Get all projects that belong to an organization
 
@@ -55,4 +360,4 @@ Internal Server Error. Returned when theres is something wrong with Shield serve
 An unexpected error response.
 
 </div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"code"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem><SchemaItem collapsible={false} name={"message"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>details</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"@type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"code\": 0,\n  \"message\": \"string\",\n  \"details\": [\n    {\n      \"@type\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem></ApiTabs></div>
-      
+
