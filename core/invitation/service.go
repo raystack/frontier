@@ -21,6 +21,7 @@ import (
 type Repository interface {
 	Set(ctx context.Context, invite Invitation) error
 	List(ctx context.Context, flt Filter) ([]Invitation, error)
+	ListByUser(ctx context.Context, id string) ([]Invitation, error)
 	Get(ctx context.Context, id uuid.UUID) (Invitation, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -70,6 +71,10 @@ func NewService(dialer mailer.Dialer, repo Repository,
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Invitation, error) {
 	return s.repo.List(ctx, flt)
+}
+
+func (s Service) ListByUser(ctx context.Context, id string) ([]Invitation, error) {
+	return s.repo.ListByUser(ctx, id)
 }
 
 func (s Service) Get(ctx context.Context, id uuid.UUID) (Invitation, error) {

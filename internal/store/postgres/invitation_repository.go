@@ -115,10 +115,42 @@ func (s *InvitationRepository) List(ctx context.Context, flt invitation.Filter) 
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return []invitation.Invitation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "List", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &fetchedInvitations, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []invitation.Invitation{}, nil
+		}
+		return []invitation.Invitation{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedInvitations []invitation.Invitation
+	for _, o := range fetchedInvitations {
+		transPerm, err := o.transformToInvitation()
+		if err != nil {
+			return []invitation.Invitation{}, fmt.Errorf("failed to transform invitation model: %w", err)
+		}
+		transformedInvitations = append(transformedInvitations, transPerm)
+	}
+
+	return transformedInvitations, nil
+}
+
+func (s *InvitationRepository) ListByUser(ctx context.Context, id string) ([]invitation.Invitation, error) {
+	var fetchedInvitations []Invitation
+	query, params, err := dialect.From(TABLE_INVITATIONS).Where(
+		goqu.Ex{
+			"user_id": id,
+		},
+	).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "ListByUser", func(ctx context.Context) error {
 		return s.dbc.SelectContext(ctx, &fetchedInvitations, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -17,6 +17,7 @@ import (
 type InvitationService interface {
 	Get(ctx context.Context, id uuid.UUID) (invitation.Invitation, error)
 	List(ctx context.Context, filter invitation.Filter) ([]invitation.Invitation, error)
+	ListByUser(ctx context.Context, userID string) ([]invitation.Invitation, error)
 	Create(ctx context.Context, inv invitation.Invitation) (invitation.Invitation, error)
 	Accept(ctx context.Context, id uuid.UUID) error
 	Delete(ctx context.Context, id uuid.UUID) error
@@ -42,6 +43,27 @@ func (h Handler) ListOrganizationInvitations(ctx context.Context, request *shiel
 		pbinvs = append(pbinvs, pbInv)
 	}
 	return &shieldv1beta1.ListOrganizationInvitationsResponse{
+		Invitations: pbinvs,
+	}, nil
+}
+
+func (h Handler) ListUserInvitations(ctx context.Context, request *shieldv1beta1.ListUserInvitationsRequest) (*shieldv1beta1.ListUserInvitationsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	invite, err := h.invitationService.ListByUser(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	var pbinvs []*shieldv1beta1.Invitation
+	for _, inv := range invite {
+		pbInv, err := transformInvitationToPB(inv)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		pbinvs = append(pbinvs, pbInv)
+	}
+	return &shieldv1beta1.ListUserInvitationsResponse{
 		Invitations: pbinvs,
 	}, nil
 }
