@@ -27,7 +27,7 @@ type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
-	ListByUser(ctx context.Context, userId string) ([]group.Group, error)
+	ListByUser(ctx context.Context, userId string, flt group.Filter) ([]group.Group, error)
 	ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error)
 	AddUsers(ctx context.Context, groupID string, userID []string) error
 	RemoveUsers(ctx context.Context, groupID string, userID []string) error

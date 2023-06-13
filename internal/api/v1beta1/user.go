@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/raystack/shield/core/group"
 	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/pkg/metadata"
 	"github.com/raystack/shield/pkg/str"
@@ -370,10 +371,15 @@ func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.List
 	logger := grpczap.Extract(ctx)
 	var groups []*shieldv1beta1.Group
 
-	groupsList, err := h.groupService.ListByUser(ctx, request.GetId())
+	groupsList, err := h.groupService.ListByUser(ctx, request.GetId(), group.Filter{OrganizationID: request.GetOrgId()})
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return nil, grpcGroupNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	for _, group := range groupsList {

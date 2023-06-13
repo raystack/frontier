@@ -73,10 +73,6 @@ func (s Service) Get(ctx context.Context, id string) (Group, error) {
 	return s.repository.GetByID(ctx, id)
 }
 
-func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, error) {
-	return s.repository.GetByIDs(ctx, groupIDs)
-}
-
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 	return s.repository.List(ctx, flt)
 }
@@ -88,7 +84,7 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	return Group{}, ErrInvalidID
 }
 
-func (s Service) ListByUser(ctx context.Context, userId string) ([]Group, error) {
+func (s Service) ListByUser(ctx context.Context, userId string, flt Filter) ([]Group, error) {
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.GroupNamespace,
@@ -106,7 +102,7 @@ func (s Service) ListByUser(ctx context.Context, userId string) ([]Group, error)
 		// no groups
 		return nil, nil
 	}
-	return s.repository.GetByIDs(ctx, subjectIDs)
+	return s.repository.GetByIDs(ctx, subjectIDs, flt)
 }
 
 func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error) {
@@ -219,7 +215,7 @@ func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, er
 		// no groups
 		return []Group{}, nil
 	}
-	return s.repository.GetByIDs(ctx, groupIDs)
+	return s.repository.GetByIDs(ctx, groupIDs, Filter{})
 }
 
 func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string) error {
