@@ -3,7 +3,7 @@ package authenticate
 import (
 	"time"
 
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/pkg/metadata"
 
 	"github.com/google/uuid"
 )

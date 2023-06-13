@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
 	"github.com/pkg/errors"
 	"gocloud.dev/blob"

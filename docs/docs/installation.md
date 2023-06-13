@@ -5,20 +5,20 @@ There are several approaches to install Shield.
 1. [Using a pre-compiled binary](#binary-cross-platform)
 2. [Using the Docker image](#docker)
 3. [Installing from source](#building-from-source)
-4. [Helm Charts](https://github.com/odpf/charts/tree/main/stable/shield)
+4. [Helm Charts](https://github.com/raystack/charts/tree/main/stable/shield)
 
 ### Binary (Cross-platform)
 
-Download the appropriate version for your platform from [releases](https://github.com/odpf/shield/releases) page. Once downloaded, the binary can be run from anywhere.
+Download the appropriate version for your platform from [releases](https://github.com/raystack/shield/releases) page. Once downloaded, the binary can be run from anywhere.
 You don’t need to install it into a global location. This works well for shared hosts and other systems where you don’t have a privileged account.
 Ideally, you should install it somewhere in your PATH for easy use. `/usr/local/bin` is the most probable location.
 
 #### macOS
 
-`Shield` is available via a Homebrew Tap, and as downloadable binary from the [releases](https://github.com/odpf/shield/releases) page:
+`Shield` is available via a Homebrew Tap, and as downloadable binary from the [releases](https://github.com/raystack/shield/releases) page:
 
 ```sh
-$ brew install odpf/taps/shield
+$ brew install raystack/taps/shield
 ```
 
 To upgrade to the latest version:
@@ -29,14 +29,14 @@ $ brew upgrade shield
 
 #### Linux
 
-`Shield` is available as downloadable binaries from the [releases](https://github.com/odpf/shield/releases/latest) page. Download the `.deb` or `.rpm` from the releases page and install with `sudo dpkg -i` and `sudo rpm -i` respectively.
+`Shield` is available as downloadable binaries from the [releases](https://github.com/raystack/shield/releases/latest) page. Download the `.deb` or `.rpm` from the releases page and install with `sudo dpkg -i` and `sudo rpm -i` respectively.
 
 #### Windows
 
-`Shield` is available via [scoop](https://scoop.sh/), and as a downloadable binary from the [releases](https://github.com/odpf/shield/releases/latest) page:
+`Shield` is available via [scoop](https://scoop.sh/), and as a downloadable binary from the [releases](https://github.com/raystack/shield/releases/latest) page:
 
 ```sh
-scoop bucket add shield https://github.com/odpf/scoop-bucket.git
+scoop bucket add shield https://github.com/raystack/scoop-bucket.git
 ```
 
 To upgrade to the latest version:
@@ -50,13 +50,13 @@ scoop update shield
 We provide ready to use Docker container images. To pull the latest image: Make sure you have Spicedb and postgres running on your local and run the following.
 
 ```sh
-$ docker pull odpf/shield
+$ docker pull raystack/shield
 ```
 
 To pull a specific version:
 
 ```sh
-$ docker pull odpf/shield:v0.5.1
+$ docker pull raystack/shield:v0.5.1
 ```
 
 To run the docker image with minimum configurations:
@@ -68,7 +68,7 @@ $ docker run -p 8080:8080 \
   -e SHIELD_SPICEDB_HOST=spicedb.localhost:50051 \
   -e SHIELD_SPICEDB_PRE_SHARED_KEY=randomkey
   -v .config:.config
-  odpf/shield server start
+  raystack/shield server start
 ```
 
 ### Building from source
@@ -81,8 +81,8 @@ Begin by cloning this repository then you have two ways in which you can build S
 Run either of the following commands to clone and compile Shield from source
 
 ```bash
-$ git clone git@github.com:odpf/shield.git                 # (Using SSH Protocol)
-$ git clone https://github.com/odpf/shield.git             # (Using HTTPS Protocol)
+$ git clone git@github.com:raystack/shield.git                 # (Using SSH Protocol)
+$ git clone https://github.com/raystack/shield.git             # (Using HTTPS Protocol)
 ```
 
 #### As a native executable

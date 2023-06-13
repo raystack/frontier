@@ -5,6 +5,7 @@ import CodeBlock from '@theme/CodeBlock';
 # Managing Permission
 
 There are two ways to check a user permission on a resource in shield,
+
 ## API Interface
 
 <Tabs groupId="api">
@@ -13,7 +14,7 @@ There are two ways to check a user permission on a resource in shield,
     {`$ curl --location --request POST 'http://localhost:8000/v1beta1/check'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
---header 'X-Shield-Email: doe.john@odpf.io'
+--header 'X-Shield-Email: doe.john@raystack.org'
 --data-raw '{
   "objectId": "test-resource-beta1",
   "objectNamespace": "entropy/firehose",

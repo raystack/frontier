@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/core/user"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/project"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/core/user"
+	"github.com/raystack/shield/internal/store/postgres"
+	"github.com/raystack/shield/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
 

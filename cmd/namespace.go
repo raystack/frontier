@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/printer"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/salt/printer"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 

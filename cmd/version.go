@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/odpf/salt/version"
+	"github.com/raystack/salt/version"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ func versionCommand() *cobra.Command {
 			}
 
 			fmt.Printf("shield version %s\t", Version)
-			fmt.Println(version.UpdateNotice(Version, "odpf/shield"))
+			fmt.Println(version.UpdateNotice(Version, "raystack/shield"))
 			return nil
 		},
 	}

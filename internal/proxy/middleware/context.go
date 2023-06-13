@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/odpf/shield/core/rule"
-	"github.com/odpf/shield/pkg/httputil"
+	"github.com/raystack/shield/core/rule"
+	"github.com/raystack/shield/pkg/httputil"
 )
 
 func EnrichRule(req *http.Request, r *rule.Rule) {

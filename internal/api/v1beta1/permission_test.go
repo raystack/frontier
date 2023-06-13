@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
 	"github.com/google/uuid"
 
-	"github.com/odpf/shield/core/permission"
+	"github.com/raystack/shield/core/permission"
 
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/internal/api/v1beta1/mocks"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"

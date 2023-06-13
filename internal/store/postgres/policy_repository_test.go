@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/odpf/salt/log"
 	"github.com/ory/dockertest"
+	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
+	"github.com/raystack/shield/core/policy"
+	"github.com/raystack/shield/internal/store/postgres"
+	"github.com/raystack/shield/pkg/db"
 )
 
 type PolicyRepositoryTestSuite struct {

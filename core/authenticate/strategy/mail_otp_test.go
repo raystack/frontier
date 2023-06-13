@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/pkg/mailer"
-	"github.com/odpf/shield/pkg/mailer/mocks"
+	"github.com/raystack/shield/pkg/mailer"
+	"github.com/raystack/shield/pkg/mailer/mocks"
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/mail.v2"
 )

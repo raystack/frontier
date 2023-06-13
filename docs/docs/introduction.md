@@ -9,7 +9,7 @@ Welcome to the introductory guide to Shield! This guide is the best place to sta
 
 ## What is Shield?
 
-Shield by ODPF is a role-based cloud-native user management system, identity & access proxy, and authorization server for your applications and API endpoints. It is purely API-driven and provides CLI, HTTP and GRPC APIs and an Admin Portal and for simpler developer experience. Shield is designed to be easy to use Identity and Access Management tool which handles user authentication by providing a Single-Sign-On(SSO) with any provider which adheres to the OIDC Protocol. Shield being an authorization-aware reverse-proxy service, intercepts incoming client requests and evaluate the authorization rules associated with the requested resources. It checks the client's credentials and permissions against the defined access policies before allowing or denying access to the backend services.
+Shield by Raystack is a role-based cloud-native user management system, identity & access proxy, and authorization server for your applications and API endpoints. It is purely API-driven and provides CLI, HTTP and GRPC APIs and an Admin Portal and for simpler developer experience. Shield is designed to be easy to use Identity and Access Management tool which handles user authentication by providing a Single-Sign-On(SSO) with any provider which adheres to the OIDC Protocol. Shield being an authorization-aware reverse-proxy service, intercepts incoming client requests and evaluate the authorization rules associated with the requested resources. It checks the client's credentials and permissions against the defined access policies before allowing or denying access to the backend services.
 
 ![Shield flow diagram](./shield-flow-diagram.png)
 
@@ -25,7 +25,7 @@ Here are the steps to work with Shield.
 
 ## Key Features
 
-- **Single-Sign-On(SSO)**: Shield implements the OpenID Connect(OIDC) Protocol that extends the OAuth 2.0 framework to provide authentication and identity information, allowing users to authenticate once and access multiple applications seamlessly. It also enables applications to obtain user identity information for authorization purposes. A Single login and logout for all the underlying application and resources ensure a seamless user experience. 
+- **Single-Sign-On(SSO)**: Shield implements the OpenID Connect(OIDC) Protocol that extends the OAuth 2.0 framework to provide authentication and identity information, allowing users to authenticate once and access multiple applications seamlessly. It also enables applications to obtain user identity information for authorization purposes. A Single login and logout for all the underlying application and resources ensure a seamless user experience.
 
 - **Multiple sources of user identities**: Shield allows seamless integration with any identity provider that supports OIDC, enabling a wide range of options for user authentication. This flexibility empowers organizations to leverage their preferred identity providers, such as Google, Microsoft Azure AD, Github, LinkedIn or others, to authenticate and manage user identities within their organisation's ecosystem.
 
@@ -59,4 +59,4 @@ See the [installation](./installation) page to install the Shield CLI. Next, we 
 
 After completing the tour, check out the remainder of the documentation in the reference and concepts sections for your specific areas of interest. We've aimed to provide as much documentation as we can for the various components of Shield to give you a full understanding of Shield's surface area.
 
-Finally, follow the project on [GitHub](https://github.com/odpf/shield), and contact us if you'd like to get involved.
+Finally, follow the project on [GitHub](https://github.com/raystack/shield), and contact us if you'd like to get involved.

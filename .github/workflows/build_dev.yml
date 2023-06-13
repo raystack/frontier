@@ -13,7 +13,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.20'
+          go-version: "1.20"
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -27,4 +27,4 @@ jobs:
           push: true
           file: "./Dockerfile.dev"
           tags: |
-            odpf/shield:dev
+            raystack/shield:dev

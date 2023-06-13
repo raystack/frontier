@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/core/permission"
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 )
 
 type RelationService interface {

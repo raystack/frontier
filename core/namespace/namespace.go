@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/pkg/metadata"
 )
 
 type Repository interface {

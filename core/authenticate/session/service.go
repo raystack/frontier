@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/odpf/shield/pkg/server/consts"
+	"github.com/raystack/shield/pkg/server/consts"
 
 	"github.com/google/uuid"
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 	"github.com/robfig/cron/v3"
 	"google.golang.org/grpc/metadata"
 )

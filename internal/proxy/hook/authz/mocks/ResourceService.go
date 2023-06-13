@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	resource "github.com/odpf/shield/core/resource"
+	resource "github.com/raystack/shield/core/resource"
 	mock "github.com/stretchr/testify/mock"
 )
 

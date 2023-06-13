@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/odpf/shield/core/relation"
-	"github.com/odpf/shield/pkg/metadata"
+	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/shield/pkg/metadata"
 )
 
 type State string

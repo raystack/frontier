@@ -6,10 +6,10 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/pkg/file"
-	"github.com/odpf/shield/pkg/str"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/salt/printer"
+	"github.com/raystack/shield/pkg/file"
+	"github.com/raystack/shield/pkg/str"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 

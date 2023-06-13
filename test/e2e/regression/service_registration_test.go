@@ -6,15 +6,15 @@ import (
 	"path"
 	"testing"
 
-	"github.com/odpf/shield/pkg/server"
+	"github.com/raystack/shield/pkg/server"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/pkg/logger"
-	"github.com/odpf/shield/test/e2e/testbench"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/pkg/logger"
+	"github.com/raystack/shield/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 

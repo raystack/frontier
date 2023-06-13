@@ -1,8 +1,8 @@
 package v1beta1
 
 import (
-	"github.com/odpf/shield/internal/api"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/internal/api"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 )
 

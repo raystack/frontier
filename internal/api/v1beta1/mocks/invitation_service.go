@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	invitation "github.com/odpf/shield/core/invitation"
+	invitation "github.com/raystack/shield/core/invitation"
 	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"

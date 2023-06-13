@@ -1,4 +1,4 @@
-import { EmptyState, Flex, Table } from "@odpf/apsara";
+import { EmptyState, Flex, Table } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { tableStyle } from "~/styles";

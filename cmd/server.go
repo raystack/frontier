@@ -13,8 +13,8 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/shield/config"
-	shieldlogger "github.com/odpf/shield/pkg/logger"
+	"github.com/raystack/shield/config"
+	shieldlogger "github.com/raystack/shield/pkg/logger"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )

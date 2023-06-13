@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/odpf/shield/core/namespace"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/core/namespace"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

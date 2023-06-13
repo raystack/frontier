@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
-import { Button, Container, Flex, Sheet, Text, TextField } from "@odpf/apsara";
+import { Button, Container, Flex, Sheet, Text, TextField } from "@raystack/apsara";
 import {
   Form,
   FormControl,

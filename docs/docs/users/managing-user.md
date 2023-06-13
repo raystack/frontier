@@ -20,8 +20,8 @@ A project in Shield looks like
 | Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **id**       | uuid   | Unique user identifier                                                                                                                                                                                                                                                                                                                                                                                                               |
-| **name**     | string | The name of the user. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. If not provided, Shield automatically generates a name from the user email. <br/> _Example:"john_doe_odpf_io"_                                                                                                                              |
-| **email**    | string | The email of the user. The email must be unique within the entire Shield instance.<br/> _Example:"john.doe@odpf.io"_                                                                                                                                                                                                                                                                                                                 |
+| **name**     | string | The name of the user. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. If not provided, Shield automatically generates a name from the user email. <br/> _Example:"john_doe_raystack_io"_                                                                                                                          |
+| **email**    | string | The email of the user. The email must be unique within the entire Shield instance.<br/> _Example:"john.doe@raystack.org"_                                                                                                                                                                                                                                                                                                            |
 | **metadata** | object | Metadata object for users that can hold key value pairs pre-defined in User Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the user. Update the same to add more fields to the user metadata object. <br/> _Example:{"label": {"key1": "value1"}, "description": "User Description"}_ |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/> _Example:"John Doe"_                                                                                                                                                                                                                                                                                    |
 
@@ -29,12 +29,12 @@ A project in Shield looks like
 <TabItem value="JSON" label="Sample JSON" default>
 
 ```json
-{ 
+{
   "user": {
     "id": "598688c6-8c6d-487f-b324-ef3f4af120bb",
-    "name": "john_doe_odpf_io",
+    "name": "john_doe_raystack_io",
     "title": "John Doe",
-    "email": "john.doe@odpf.io",
+    "email": "john.doe@raystack.org",
     "metadata": {
       "description": "\"Shield human user\""
     },
@@ -59,10 +59,10 @@ A project in Shield looks like
     {`$ curl --location --request POST 'http://localhost:8000/v1beta1/users'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
---header 'X-Shield-Email: admin@odpf.io'
+--header 'X-Shield-Email: admin@raystack.org'
 --data-raw '{
   "name": "Jonny Doe",
-  "email": "jonny.doe@odpf.io",
+  "email": "jonny.doe@raystack.org",
   "metadata": {
       "role": "user-3"
   }
@@ -124,7 +124,7 @@ A project in Shield looks like
 --header 'Accept: application/json'
 --data-raw '{
   "name": "Jonny Doe",
-  "email": "john.doe001@odpf.io",
+  "email": "john.doe001@raystack.org",
   "metadata": {
       "role" :   "user-3"
   }

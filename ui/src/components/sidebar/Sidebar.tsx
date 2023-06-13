@@ -1,4 +1,4 @@
-import { Flex } from "@odpf/apsara";
+import { Flex } from "@raystack/apsara";
 import SidebarContent from "./SidebarContent";
 import SidebarFooter from "./SidebarFooter";
 import SidebarHeader from "./SidebarHeader";

@@ -6,16 +6,16 @@ import (
 	"path"
 	"testing"
 
-	"github.com/odpf/shield/pkg/server"
+	"github.com/raystack/shield/pkg/server"
 
-	"github.com/odpf/shield/internal/bootstrap/schema"
+	"github.com/raystack/shield/internal/bootstrap/schema"
 
-	"github.com/odpf/shield/core/organization"
+	"github.com/raystack/shield/core/organization"
 
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/pkg/logger"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
-	"github.com/odpf/shield/test/e2e/testbench"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/pkg/logger"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/shield/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -119,7 +119,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 
 		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 			Title: "acme 2 member",
-			Email: "acme-member@odpf.io",
+			Email: "acme-member@raystack.org",
 			Name:  "acme_2_member",
 		}})
 		s.Assert().NoError(err)
@@ -148,7 +148,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 
 		createUserResponse, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 			Title: "acme 3 member 1",
-			Email: "acme-member-1@odpf.io",
+			Email: "acme-member-1@raystack.org",
 			Name:  "acme_3_member_1",
 		}})
 		s.Assert().NoError(err)
@@ -453,7 +453,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		// add a user
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
-				Email: "user-for-group@odpf.io",
+				Email: "user-for-group@raystack.org",
 				Name:  "user-for-group",
 			},
 		})
@@ -487,7 +487,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err := s.testBench.Client.CreateUser(context.Background(), &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@raystack.org",
 				Name:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -503,7 +503,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@raystack.org",
 				Name:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -535,7 +535,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		res, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@raystack.org",
 				Name:  "new-user-123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -550,7 +550,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err = s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user a",
-				Email: "new-user-a@odpf.io",
+				Email: "new-user-a@raystack.org",
 				Name:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -563,12 +563,12 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 	})
 
 	s.Run("5. org admin update user with conflicted detail should not update the email and return nil error", func() {
-		ExpectedEmail := "new-user-a@odpf.io"
+		ExpectedEmail := "new-user-a@raystack.org"
 		res, err := s.testBench.Client.UpdateUser(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserRequest{
 			Id: newUser.GetId(),
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user a",
-				Email: "admin1-group2-org1@odpf.io",
+				Email: "admin1-group2-org1@raystack.org",
 				Name:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -604,7 +604,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err := s.testBench.Client.UpdateCurrentUser(ctxCurrentUser, &shieldv1beta1.UpdateCurrentUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user a",
-				Email: "admin1-group1-org1@odpf.io",
+				Email: "admin1-group1-org1@raystack.org",
 				Name:  "new_user_123456",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -629,8 +629,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user for org 1",
-				Email: "user-1-for-org-1@odpf.io",
-				Name:  "user_1_for_org_1_odpf_io",
+				Email: "user-1-for-org-1@raystack.org",
+				Name:  "user_1_for_org_1_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -709,8 +709,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user for org 1",
-				Email: "user-2-for-org-1@odpf.io",
-				Name:  "user_2_for_org_1_odpf_io",
+				Email: "user-2-for-org-1@raystack.org",
+				Name:  "user_2_for_org_1_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -777,8 +777,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user for org 2",
-				Email: "user-1-for-org-2@odpf.io",
-				Name:  "user_1_for_org_2_odpf_io",
+				Email: "user-1-for-org-2@raystack.org",
+				Name:  "user_1_for_org_2_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -806,8 +806,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user",
-				Email: "user-1-random-1@odpf.io",
-				Name:  "user_1_random_1_odpf_io",
+				Email: "user-1-random-1@raystack.org",
+				Name:  "user_1_random_1_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -834,8 +834,8 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user 1",
-				Email: "new-user-for-rel-1@odpf.io",
-				Name:  "new_user_for_rel_1_odpf_io",
+				Email: "new-user-for-rel-1@raystack.org",
+				Name:  "new_user_for_rel_1_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -869,8 +869,8 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user 2",
-				Email: "new-user-for-rel-2@odpf.io",
-				Name:  "new_user_for_rel_2_odpf_io",
+				Email: "new-user-for-rel-2@raystack.org",
+				Name:  "new_user_for_rel_2_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -914,8 +914,8 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user 3",
-				Email: "new-user-for-rel-3@odpf.io",
-				Name:  "new_user_for_rel_3_odpf_io",
+				Email: "new-user-for-rel-3@raystack.org",
+				Name:  "new_user_for_rel_3_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)
@@ -973,7 +973,7 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 
 		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 			Title: "member 1",
-			Email: "user-org-resource-1@odpf.io",
+			Email: "user-org-resource-1@raystack.org",
 			Name:  "user_org_resource_1",
 		}})
 		s.Assert().NoError(err)
@@ -1035,8 +1035,8 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
 			Body: &shieldv1beta1.UserRequestBody{
 				Title: "new user 1",
-				Email: "new-user-for-invite-1@odpf.io",
-				Name:  "new_user_for_invite_1_odpf_io",
+				Email: "new-user-for-invite-1@raystack.org",
+				Name:  "new_user_for_invite_1_raystack_io",
 			},
 		})
 		s.Assert().NoError(err)

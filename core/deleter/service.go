@@ -5,16 +5,16 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/core/invitation"
+	"github.com/raystack/shield/core/invitation"
 
-	"github.com/odpf/shield/core/policy"
-	"github.com/odpf/shield/core/role"
+	"github.com/raystack/shield/core/policy"
+	"github.com/raystack/shield/core/role"
 
-	"github.com/odpf/shield/core/group"
+	"github.com/raystack/shield/core/group"
 
-	"github.com/odpf/shield/core/organization"
-	"github.com/odpf/shield/core/project"
-	"github.com/odpf/shield/core/resource"
+	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/shield/core/project"
+	"github.com/raystack/shield/core/resource"
 )
 
 type ProjectService interface {

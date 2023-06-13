@@ -1,4 +1,4 @@
-import { Box, styled, Text } from "@odpf/apsara";
+import { Box, styled, Text } from "@raystack/apsara";
 import { NavLink } from "react-router-dom";
 
 export type NavigationItemsTypes = {

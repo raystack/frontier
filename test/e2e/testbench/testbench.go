@@ -9,15 +9,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/odpf/shield/pkg/logger"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/pkg/logger"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 
 	"github.com/google/uuid"
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/store/spicedb"
-	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/internal/store/spicedb"
+	"github.com/raystack/shield/pkg/db"
 )
 
 const (

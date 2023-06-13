@@ -42,7 +42,7 @@ A sample user MetaSchema is given below, and the second tab shows an example use
           "title": "Role",
           "description": "User's designation in the org"
         }
-      },
+      }
     },
     "description": {
       "title": "Description",
@@ -60,12 +60,12 @@ A sample user MetaSchema is given below, and the second tab shows an example use
 ```json
 {
   "name": "John Doe",
-  "email": "john.doe@odpf.io",
+  "email": "john.doe@raystack.org",
   "metadata": {
     "label": {
       "role": "team leader"
     },
-    "description": "ODPF user description"
+    "description": "Raystack user description"
   }
 }
 ```
@@ -73,7 +73,7 @@ A sample user MetaSchema is given below, and the second tab shows an example use
 </TabItem>
 </Tabs>
 
-**Note:** The default user, organization, group and project MetaSchemas are in this [repository](https://github.com/odpf/shield/tree/feat/json-schema-validation/internal/store/postgres/metaschemas)
+**Note:** The default user, organization, group and project MetaSchemas are in this [repository](https://github.com/raystack/shield/tree/feat/json-schema-validation/internal/store/postgres/metaschemas)
 
 ## Disabling MetaSchemas
 

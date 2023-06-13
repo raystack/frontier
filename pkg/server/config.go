@@ -3,13 +3,13 @@ package server
 import (
 	"fmt"
 
-	"github.com/odpf/shield/pkg/mailer"
+	"github.com/raystack/shield/pkg/mailer"
 
-	"github.com/odpf/shield/internal/bootstrap"
+	"github.com/raystack/shield/internal/bootstrap"
 
-	"github.com/odpf/shield/core/authenticate"
+	"github.com/raystack/shield/core/authenticate"
 
-	"github.com/odpf/shield/pkg/telemetry"
+	"github.com/raystack/shield/pkg/telemetry"
 )
 
 type GRPCConfig struct {

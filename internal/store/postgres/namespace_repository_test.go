@@ -9,11 +9,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/core/namespace"
-	"github.com/odpf/shield/internal/store/postgres"
-	"github.com/odpf/shield/pkg/db"
 	"github.com/ory/dockertest"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/shield/internal/store/postgres"
+	"github.com/raystack/shield/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
 
