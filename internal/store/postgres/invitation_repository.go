@@ -115,16 +115,16 @@ func (s *InvitationRepository) List(ctx context.Context, flt invitation.Filter) 
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []invitation.Invitation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "List", func(ctx context.Context) error {
 		return s.dbc.SelectContext(ctx, &fetchedInvitations, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []invitation.Invitation{}, nil
+			return nil, nil
 		}
-		return []invitation.Invitation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var transformedInvitations []invitation.Invitation
