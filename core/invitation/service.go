@@ -21,6 +21,7 @@ import (
 type Repository interface {
 	Set(ctx context.Context, invite Invitation) error
 	List(ctx context.Context, flt Filter) ([]Invitation, error)
+	ListByUser(ctx context.Context, id string) ([]Invitation, error)
 	Get(ctx context.Context, id uuid.UUID) (Invitation, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -38,7 +39,7 @@ type OrganizationService interface {
 type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
 	AddMember(ctx context.Context, groupID, userID, relationName string) error
-	ListByUser(ctx context.Context, userID string) ([]group.Group, error)
+	ListByUser(ctx context.Context, userID string, flt group.Filter) ([]group.Group, error)
 }
 
 type RelationService interface {
@@ -70,6 +71,10 @@ func NewService(dialer mailer.Dialer, repo Repository,
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Invitation, error) {
 	return s.repo.List(ctx, flt)
+}
+
+func (s Service) ListByUser(ctx context.Context, id string) ([]Invitation, error) {
+	return s.repo.ListByUser(ctx, id)
 }
 
 func (s Service) Get(ctx context.Context, id uuid.UUID) (Invitation, error) {
@@ -200,7 +205,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if the invitation has a group membership
 	if len(invite.GroupIDs) > 0 {
-		userGroups, err := s.groupSvc.ListByUser(ctx, user.ID)
+		userGroups, err := s.groupSvc.ListByUser(ctx, user.ID, group.Filter{})
 		if err != nil {
 			return err
 		}

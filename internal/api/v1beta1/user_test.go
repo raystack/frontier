@@ -894,7 +894,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, errors.New("some error"))
+				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return([]group.Group{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -905,7 +905,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return empty list if user does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return([]group.Group{}, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return([]group.Group{}, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -921,7 +921,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				for _, g := range testGroupMap {
 					testGroupList = append(testGroupList, g)
 				}
-				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID).Return(testGroupList, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return(testGroupList, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id: someUserID,

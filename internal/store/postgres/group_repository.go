@@ -14,7 +14,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/shield/core/group"
-	"github.com/raystack/shield/core/namespace"
 	"github.com/raystack/shield/core/organization"
 	"github.com/raystack/shield/core/relation"
 	"github.com/raystack/shield/pkg/db"
@@ -75,8 +74,13 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 	return transformedGroup, nil
 }
 
-func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]group.Group, error) {
+func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string, flt group.Filter) ([]group.Group, error) {
 	var fetchedGroups []Group
+
+	sqlStatement := dialect.From(TABLE_GROUPS)
+	if flt.OrganizationID != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
+	}
 
 	for _, id := range groupIDs {
 		if strings.TrimSpace(id) == "" {
@@ -84,7 +88,7 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]gro
 		}
 	}
 
-	query, params, err := dialect.From(TABLE_GROUPS).Where(
+	query, params, err := sqlStatement.Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": groupIDs},
 		}).Where(notDisabledGroupExp).ToSQL()
@@ -266,65 +270,6 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 	}
 
 	return updated, nil
-}
-
-// TODO(kushsharma): marked for deletion
-func (r GroupRepository) ListUserGroups(ctx context.Context, userID string, roleID string) ([]group.Group, error) {
-	if strings.TrimSpace(userID) == "" {
-		return nil, group.ErrInvalidID
-	}
-
-	sqlStatement := dialect.Select(
-		goqu.I("g.id").As("id"),
-		goqu.I("g.metadata").As("metadata"),
-		goqu.I("g.name").As("name"),
-		goqu.I("g.title").As("title"),
-		goqu.I("g.updated_at").As("updated_at"),
-		goqu.I("g.created_at").As("created_at"),
-		goqu.I("g.org_id").As("org_id"),
-	).
-		From(goqu.T(TABLE_RELATIONS).As("r")).
-		Join(goqu.T(TABLE_GROUPS).As("g"), goqu.On(
-			goqu.I("g.id").Cast("text").
-				Eq(goqu.I("r.object_id")),
-		)).
-		Where(goqu.Ex{
-			"r.object_namespace_name": namespace.DefinitionTeam.ID,
-			"subject_namespace_name":  namespace.DefinitionUser.ID,
-			"subject_id":              userID,
-		}).Where(notDisabledGroupExp)
-
-	if strings.TrimSpace(roleID) != "" {
-		sqlStatement = sqlStatement.Where(goqu.Ex{
-			"role_id": roleID,
-		})
-	}
-
-	query, params, err := sqlStatement.ToSQL()
-	if err != nil {
-		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var fetchedGroups []Group
-	if err = r.dbc.WithTimeout(ctx, TABLE_GROUPS, "ListUserGroups", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params...)
-	}); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return []group.Group{}, nil
-		}
-		return []group.Group{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedGroups []group.Group
-	for _, v := range fetchedGroups {
-		transformedGroup, err := v.transformToGroup()
-		if err != nil {
-			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-		}
-		transformedGroups = append(transformedGroups, transformedGroup)
-	}
-
-	return transformedGroups, nil
 }
 
 // TODO(kushsharma): no longer in use, delete if needed

@@ -201,21 +201,40 @@ func (s *GroupRepositoryTestSuite) TestGetByIDs() {
 	type testCase struct {
 		Description    string
 		SelectedIDs    []string
+		Filter         group.Filter
 		ExpectedGroups []group.Group
 		ErrString      string
 	}
 
 	var testCases = []testCase{
 		{
-			Description: "should get a group",
-			SelectedIDs: []string{s.groups[0].ID, s.groups[1].ID},
+			Description: "should list groups from all orgs if no filter applied",
+			SelectedIDs: []string{s.groups[0].ID, s.groups[1].ID, s.groups[2].ID},
+			Filter:      group.Filter{},
 			ExpectedGroups: []group.Group{{
 				Name:           "group-1",
-				OrganizationID: s.groups[0].OrganizationID,
+				OrganizationID: s.orgs[0].ID,
 				State:          group.Enabled,
 			}, {
 				Name:           "group-2",
-				OrganizationID: s.groups[1].OrganizationID,
+				OrganizationID: s.orgs[0].ID,
+				State:          group.Enabled,
+			}, {
+				Name:           "group-3",
+				OrganizationID: s.orgs[1].ID,
+				State:          group.Enabled,
+			},
+			},
+		},
+		{
+			Description: "should list groups from a single org with org filter",
+			SelectedIDs: []string{s.groups[0].ID, s.groups[1].ID, s.groups[2].ID},
+			Filter: group.Filter{
+				OrganizationID: s.orgs[1].ID,
+			},
+			ExpectedGroups: []group.Group{{
+				Name:           "group-3",
+				OrganizationID: s.orgs[1].ID,
 				State:          group.Enabled,
 			},
 			},
@@ -234,13 +253,14 @@ func (s *GroupRepositoryTestSuite) TestGetByIDs() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.GetByIDs(s.ctx, tc.SelectedIDs)
+			got, err := s.repository.GetByIDs(s.ctx, tc.SelectedIDs, tc.Filter)
 			if tc.ErrString != "" && err != nil {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
 
+			s.Assert().Len(got, len(tc.ExpectedGroups))
 			for i, grp := range got {
 				if !cmp.Equal(grp, tc.ExpectedGroups[i], cmpopts.IgnoreFields(group.Group{},
 					"ID",
@@ -405,6 +425,7 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
+			s.Assert().Len(got, len(tc.ExpectedGroups))
 			if !cmp.Equal(got, tc.ExpectedGroups, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroups)
 			}
@@ -507,62 +528,6 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 			}
 			if !cmp.Equal(got, tc.ExpectedGroup, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroup)
-			}
-		})
-	}
-}
-
-func (s *GroupRepositoryTestSuite) TestListUserGroups() {
-	type testCase struct {
-		Description    string
-		UserID         string
-		RoleID         string
-		ExpectedGroups []group.Group
-		ErrString      string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should get a list of group",
-			UserID:      s.users[0].ID,
-			RoleID:      "shield/group:member",
-			ExpectedGroups: []group.Group{
-				{
-					Name:           "group-1",
-					OrganizationID: s.groups[0].OrganizationID,
-					Metadata:       metadata.Metadata{},
-				},
-				{
-					Name:           "group-2",
-					OrganizationID: s.groups[1].OrganizationID,
-					Metadata:       metadata.Metadata{},
-				},
-				{
-					Name:           "group-3",
-					OrganizationID: s.groups[2].OrganizationID,
-					Metadata:       metadata.Metadata{},
-				},
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.ListUserGroups(s.ctx, tc.UserID, tc.RoleID)
-			if tc.ErrString != "" && err != nil {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-
-			for i, grp := range got {
-				if !cmp.Equal(grp, tc.ExpectedGroups[i], cmpopts.IgnoreFields(group.Group{},
-					"ID",
-					"Metadata",
-					"CreatedAt",
-					"UpdatedAt")) {
-					s.T().Fatalf("got result %+v, expected was %+v", grp, tc.ExpectedGroups[i])
-				}
 			}
 		})
 	}
