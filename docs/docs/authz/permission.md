@@ -4,14 +4,15 @@ import CodeBlock from '@theme/CodeBlock';
 
 # Permissions
 
-Permissions represents rules that define what actions or operations a user or identity can perform on specific resources. Permissions help enforce security and access control by governing the level of access granted to individuals or groups.
+Permissions determine what operations are allowed on a resource. In Shield, permissions are represented in the form of `service.resource.verb`, for example, `potato.cart.list`.
 
-Each predefined permission has a specific purpose and grants a defined level of access to a particular resource or service. By assigning these permissions to users, groups, or service accounts, administrators can effectively control and manage access to an organization resources.
-Permissions are assigned to roles such that each role is essentially a group of permissions. Each user has one or more roles that define what the user can do.
+Permissions often correspond one-to-one with API methods. That is, each service has an associated set of permissions for each API method that it exposes. The caller of that method needs those permissions to call that method. For example, if you want to create a new project you must have the projecr create permission.
 
-Each Shield deployment is populated with predefined permissions which allow users to perform common operations such as listing, getting, creating, updating, and deleting entities at different levels of the platform's hierarchy. They also include more specialized permissions like role management, policy management, and acceptance of invitations.
+You don't grant permissions to users directly. Instead, you identify roles that contain the appropriate permissions, and then grant those roles to the user.
 
-Each permission is attached to a logical partition in Shield called Namespace.
+Shield comes with predefined permissions which allow users to perform common operations on IAM resources itself. For example managing organisation, assigning roles to users.
+
+Permissions in Shield are attached to a logical partition called Namespace.
 
 #### Namespace
 
@@ -27,44 +28,44 @@ Includes a list of Shield's predefined permissions at the organization level.
 Shield allows inheritance of permissions for a hierarchical structure, where higher-level permissions grant access to lower-level entities. In this case, granting permissions at the organization level automatically extends those permissions to the projects, resources, and groups within that org.
 :::
 
-| **Permission Title**                 | **Description**                                                                  | **Permission Name**      | **Namespace**      |
-| ------------------------------------ | -------------------------------------------------------------------------------- | ------------------------ | ------------------ |
-| **`Organization Administer`**        | Grants administrative privileges for managing the organization.                  | **_`administer`_**       | _app/organization_ |
-| **`Organization Delete`**            | Allows deleting the organization.                                                | **_`delete`_**           | _app/organization_ |
-| **`Organization Update`**            | Allows updating or modifying the organization's information.                     | **_`update`_**           | _app/organization_ |
-| **`Organization Get`**               | Allows retrieving or accessing a specific organization.                          | **_`get`_**              | _app/organization_ |
-| **`Organization Role Manage`**       | Enables managing or controlling roles within the organization.                   | **_`rolemanage`_**       | _app/organization_ |
-| **`Organization Policy Manage`**     | Enables managing or controlling access control policies within the organization. | **_`policymanage`_**     | _app/organization_ |
-| **`Organization Project List`**      | Allows listing or retrieving a list of projects within the organization.         | **_`projectlist`_**      | _app/organization_ |
-| **`Organization Group List`**        | Allows listing or retrieving a list of groups within the organization.           | **_`grouplist`_**        | _app/organization_ |
-| **`Organization Invitation List`**   | Allows listing or retrieving a list of user invitations in the organization.     | **_`invitationlist`_**   | _app/organization_ |
-| **`Organization Project Create`**    | Allows creating new projects within the organization.                            | **_`projectcreate`_**    | _app/organization_ |
-| **`Organization Group Create`**      | Allows creating new groups within the organization.                              | **_`groupcreate`_**      | _app/organization_ |
-| **`Organization Invitation Create`** | Allows creating new invitations or access requests within the organization.      | **_`invitationcreate`_** | _app/organization_ |
+| **Permission Name**                       | **Permission Title**                 | **Description**                                                                  |
+| ----------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- |
+| **_`app.organization.administer`_**       | **`Organization Administer`**        | Grants administrative privileges for managing the organization.                  |
+| **_`app.organization.delete`_**           | **`Organization Delete`**            | Allows deleting the organization.                                                |
+| **_`app.organization.update`_**           | **`Organization Update`**            | Allows updating or modifying the organization's information.                     |
+| **_`app.organization.get`_**              | **`Organization Get`**               | Allows retrieving or accessing a specific organization.                          |
+| **_`app.organization.rolemanage`_**       | **`Organization Role Manage`**       | Enables managing or controlling roles within the organization.                   |
+| **_`app.organization.policymanage`_**     | **`Organization Policy Manage`**     | Enables managing or controlling access control policies within the organization. |
+| **_`app.organization.projectlist`_**      | **`Organization Project List`**      | Allows listing or retrieving a list of projects within the organization.         |
+| **_`app.organization.grouplist`_**        | **`Organization Group List`**        | Allows listing or retrieving a list of groups within the organization.           |
+| **_`app.organization.invitationlist`_**   | **`Organization Invitation List`**   | Allows listing or retrieving a list of user invitations in the organization.     |
+| **_`app.organization.projectcreate`_**    | **`Organization Project Create`**    | Allows creating new projects within the organization.                            |
+| **_`app.organization.groupcreate`_**      | **`Organization Group Create`**      | Allows creating new groups within the organization.                              |
+| **_`app.organization.invitationcreate`_** | **`Organization Invitation Create`** | Allows creating new invitations or access requests within the organization.      |
 
 ### Predefined Project Permissions
 
 Includes a list of Shield's predefined permissions at the project level.
 
-| **Permission Title**        | **Description**                                                             | **Permission Name**  | **Namespace** |
-| --------------------------- | --------------------------------------------------------------------------- | -------------------- | ------------- |
-| **`Project Administer`**    | Grants administrative privileges for managing the project.                  | **_`administer`_**   | _app/project_ |
-| **`Project Delete`**        | Allows deleting the project.                                                | **_`delete`_**       | _app/project_ |
-| **`Project Update`**        | Allows updating or modifying the project's information.                     | **_`update`_**       | _app/project_ |
-| **`Project Get`**           | Allows retrieving or accessing a specific project.                          | **_`get`_**          | _app/project_ |
-| **`Project Policy Manage`** | Enables managing or controlling access control policies within the project. | **_`policymanage`_** | _app/project_ |
-| **`Project Resource List`** | Allows listing or retrieving a list of resources within the project.        | **_`resourcelist`_** | _app/project_ |
+| **Permission Name**              | **Permission Title**        | **Description**                                                             |
+| -------------------------------- | --------------------------- | --------------------------------------------------------------------------- |
+| **_`app.project.administer`_**   | **`Project Administer`**    | Grants administrative privileges for managing the project.                  |
+| **_`app.project.delete`_**       | **`Project Delete`**        | Allows deleting the project.                                                |
+| **_`app.project.update`_**       | **`Project Update`**        | Allows updating or modifying the project's information.                     |
+| **_`app.project.get`_**          | **`Project Get`**           | Allows retrieving or accessing a specific project.                          |
+| **_`app.project.policymanage`_** | **`Project Policy Manage`** | Enables managing or controlling access control policies within the project. |
+| **_`app.project.resourcelist`_** | **`Project Resource List`** | Allows listing or retrieving a list of resources within the project.        |
 
 ### Predefined Group Permissions
 
 Contains a list of Shield's predefined permissions at the group level.
 
-| **Permission Title**   | **Description**                                          | **Namespace**      | **Permission Name** |
-| ---------------------- | -------------------------------------------------------- | ------------------ | ------------------- |
-| **`Group Administer`** | Grants administrative privileges for managing the group. | **_`administer`_** | _app/group_         |
-| **`Group Delete`**     | Allows deleting the group.                               | **_`delete`_**     | _app/group_         |
-| **`Group Update`**     | Allows updating or modifying the group's information.    | **_`update`_**     | _app/group_         |
-| **`Group Get`**        | Allows retrieving or accessing a specific group.         | **_`get`_**        | _app/group_         |
+| **Permission Name**          | **Permission Title**   | **Description**                                          |
+| ---------------------------- | ---------------------- | -------------------------------------------------------- |
+| **_`app.group.administer`_** | **`Group Administer`** | Grants administrative privileges for managing the group. |
+| **_`app.group.delete`_**     | **`Group Delete`**     | Allows deleting the group.                               |
+| **_`app.group.update`_**     | **`Group Update`**     | Allows updating or modifying the group's information.    |
+| **_`app.group.get`_**        | **`Group Get`**        | Allows retrieving or accessing a specific group.         |
 
 :::note
 Permissions in Shield follow a hierarchical structure, where higher-level permissions include the capabilities of lower-level permissions. For example, a higher-level permission like **adminiter** includes all the capabilities of a lower-level permission like **get**.
