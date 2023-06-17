@@ -63,27 +63,10 @@ module.exports = {
       type: "category",
       label: "Authorization",
       collapsed: true,
-      link: {
-        type: "doc",
-        id: "authz/permission",
-      },
       items: [
         "authz/permission",
         "authz/role",
         "authz/policy",
-        {
-          type: "category",
-          label: "Managing Authorization",
-          collapsed: false,
-          link: {
-            type: "doc",
-            id: "authz/managing-permission",
-          },
-          items: [
-            "authz/managing-permission",
-            "authz/managing-role",
-          ],
-        }
       ],
     },
     {
