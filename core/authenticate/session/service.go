@@ -85,7 +85,7 @@ func (s Service) ExtractFromContext(ctx context.Context) (*Session, error) {
 	return s.repo.Get(ctx, sessionID)
 }
 
-// Initiates CronJob to delete expired sessions from the database
+// InitSessions Initiates CronJob to delete expired sessions from the database
 func (s Service) InitSessions(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.repo.DeleteExpiredSessions(ctx); err != nil {

@@ -5,12 +5,13 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/core/organization"
 	"github.com/raystack/shield/core/project"
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/internal/bootstrap/schema"
 )
 
@@ -20,8 +21,8 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
-type UserService interface {
-	FetchCurrentUser(ctx context.Context) (user.User, error)
+type AuthnService interface {
+	GetPrincipal(ctx context.Context) (authenticate.Principal, error)
 }
 
 type ProjectService interface {
@@ -36,19 +37,19 @@ type Service struct {
 	repository       Repository
 	configRepository ConfigRepository
 	relationService  RelationService
-	userService      UserService
+	authnService     AuthnService
 	projectService   ProjectService
 	orgService       OrgService
 }
 
 func NewService(repository Repository, configRepository ConfigRepository,
-	relationService RelationService, userService UserService,
+	relationService RelationService, authnService AuthnService,
 	projectService ProjectService, orgService OrgService) *Service {
 	return &Service{
 		repository:       repository,
 		configRepository: configRepository,
 		relationService:  relationService,
-		userService:      userService,
+		authnService:     authnService,
 		projectService:   projectService,
 		orgService:       orgService,
 	}
@@ -59,22 +60,23 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 }
 
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	princiapal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return Resource{}, err
 	}
 
-	userId := res.UserID
-	if strings.TrimSpace(userId) == "" {
-		userId = currentUser.ID
+	principalID := res.PrincipalID
+	if strings.TrimSpace(principalID) == "" {
+		principalID = princiapal.ID
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{
-		URN:         res.CreateURN(),
-		Name:        res.Name,
-		ProjectID:   res.ProjectID,
-		NamespaceID: res.NamespaceID,
-		UserID:      userId,
+		URN:           res.CreateURN(),
+		Name:          res.Name,
+		ProjectID:     res.ProjectID,
+		NamespaceID:   res.NamespaceID,
+		PrincipalID:   principalID,
+		PrincipalType: schema.UserPrincipal,
 	})
 	if err != nil {
 		return Resource{}, err
@@ -134,8 +136,8 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 			Namespace: res.NamespaceID,
 		},
 		Subject: relation.Subject{
-			ID:        res.UserID,
-			Namespace: schema.UserPrincipal,
+			ID:        res.PrincipalID,
+			Namespace: res.PrincipalType,
 		},
 		RelationName: schema.OwnerRelationName,
 	}); err != nil {
@@ -149,7 +151,7 @@ func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
 }
 
 func (s Service) CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -176,9 +178,8 @@ func (s Service) CheckAuthz(ctx context.Context, rel relation.Object, permission
 	}
 
 	return s.relationService.CheckPermission(ctx, relation.Subject{
-		ID: currentUser.ID,
-		// TODO(kushsharma): refactor this to also support app/serviceuser
-		Namespace: schema.UserPrincipal,
+		ID:        principal.ID,
+		Namespace: principal.Type,
 	}, rel, permissionName)
 }
 

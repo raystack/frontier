@@ -110,27 +110,23 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 // UnaryGRPCRequestHeadersAnnotator converts session cookies set in grpc metadata to context
 // this requires decrypting the cookie and setting it as context
 func (h Session) UnaryGRPCRequestHeadersAnnotator() grpc.UnaryServerInterceptor {
-	if h.cookieCodec == nil {
-		// pass-through
-		return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-			return handler(ctx, req)
-		}
-	}
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		// parse and process cookies
 		if incomingMD, ok := metadata.FromIncomingContext(ctx); ok {
-			if mdCookies := incomingMD.Get("cookie"); len(mdCookies) > 0 {
-				header := http.Header{}
-				header.Add("Cookie", mdCookies[0])
-				request := http.Request{Header: header}
-				for _, requestCookie := range request.Cookies() {
-					// check if cookie is session cookie
-					if requestCookie.Name == consts.SessionRequestKey {
-						var sessionID string
-						// extract and decode session from cookie
-						if err = h.cookieCodec.Decode(requestCookie.Name, requestCookie.Value, &sessionID); err == nil {
-							// pass cookie in context
-							incomingMD.Set(consts.SessionIDGatewayKey, strings.TrimSpace(sessionID))
+			if h.cookieCodec != nil {
+				if mdCookies := incomingMD.Get("cookie"); len(mdCookies) > 0 {
+					header := http.Header{}
+					header.Add("Cookie", mdCookies[0])
+					request := http.Request{Header: header}
+					for _, requestCookie := range request.Cookies() {
+						// check if cookie is session cookie
+						if requestCookie.Name == consts.SessionRequestKey {
+							var sessionID string
+							// extract and decode session from cookie
+							if err = h.cookieCodec.Decode(requestCookie.Name, requestCookie.Value, &sessionID); err == nil {
+								// pass cookie in context
+								incomingMD.Set(consts.SessionIDGatewayKey, strings.TrimSpace(sessionID))
+							}
 						}
 					}
 				}

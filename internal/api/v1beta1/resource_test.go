@@ -6,12 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/raystack/shield/core/project"
 	"github.com/raystack/shield/core/relation"
 	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/internal/api/v1beta1/mocks"
 	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -22,12 +24,13 @@ import (
 var (
 	testResourceID = utils.NewString()
 	testResource   = resource.Resource{
-		ID:          testResourceID,
-		URN:         "res-urn",
-		Name:        "a resource name",
-		ProjectID:   testProjectID,
-		NamespaceID: testNSID,
-		UserID:      testUserID,
+		ID:            testResourceID,
+		URN:           "res-urn",
+		Name:          "a resource name",
+		ProjectID:     testProjectID,
+		NamespaceID:   testNSID,
+		PrincipalID:   testUserID,
+		PrincipalType: schema.UserPrincipal,
 	}
 	testResourcePB = &shieldv1beta1.Resource{
 		Id:        testResource.ID,
@@ -35,7 +38,7 @@ var (
 		Urn:       testResource.URN,
 		ProjectId: testProjectID,
 		Namespace: testNSID,
-		UserId:    testUserID,
+		Principal: schema.JoinNamespaceAndResourceID(testResource.PrincipalType, testResource.PrincipalID),
 		CreatedAt: timestamppb.New(time.Time{}),
 		UpdatedAt: timestamppb.New(time.Time{}),
 	}
@@ -101,19 +104,20 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 			name: "should return internal error if resource service return some error",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					NamespaceID: testResource.NamespaceID,
-					UserID:      testUserID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalID:   testUserID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				}},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -122,19 +126,20 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					NamespaceID: testResource.NamespaceID,
-					UserID:      testUserID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalID:   testUserID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want:    nil,
@@ -156,19 +161,20 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 				}).Return(relation.Relation{}, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					NamespaceID: testResource.NamespaceID,
-					UserID:      testUserID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalID:   testUserID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(testResource, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want: &shieldv1beta1.CreateProjectResourceResponse{
@@ -288,11 +294,12 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testResourceID,
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					UserID:      testResource.UserID,
-					NamespaceID: testResource.NamespaceID,
+					ID:            testResourceID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					PrincipalID:   testResource.PrincipalID,
+					PrincipalType: testResource.PrincipalType,
+					NamespaceID:   testResource.NamespaceID,
 				}).Return(resource.Resource{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
@@ -301,7 +308,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want:    nil,
@@ -315,11 +322,12 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          "",
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					NamespaceID: testResource.NamespaceID,
-					UserID:      testResource.UserID,
+					ID:            "",
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalID:   testResource.PrincipalID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
@@ -327,7 +335,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want:    nil,
@@ -341,11 +349,12 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testResourceID,
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					UserID:      testResource.UserID,
-					NamespaceID: testResource.NamespaceID,
+					ID:            testResourceID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					PrincipalID:   testResource.PrincipalID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
@@ -354,7 +363,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want:    nil,
@@ -368,11 +377,12 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          "some-id",
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					UserID:      testResource.UserID,
-					NamespaceID: testResource.NamespaceID,
+					ID:            "some-id",
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					PrincipalID:   testResource.PrincipalID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
@@ -381,7 +391,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want:    nil,
@@ -395,11 +405,12 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testResourceID,
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					UserID:      testResource.UserID,
-					NamespaceID: testResource.NamespaceID,
+					ID:            testResourceID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					PrincipalID:   testResource.PrincipalID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
@@ -408,7 +419,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want:    nil,
@@ -422,11 +433,12 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testResourceID,
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					UserID:      testResource.UserID,
-					NamespaceID: testResource.NamespaceID,
+					ID:            testResourceID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					PrincipalID:   testResource.PrincipalID,
+					PrincipalType: testResource.PrincipalType,
+					NamespaceID:   testResource.NamespaceID,
 				}).Return(resource.Resource{}, resource.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
@@ -435,7 +447,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want:    nil,
@@ -449,11 +461,12 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					ID:          testResourceID,
-					Name:        testResource.Name,
-					ProjectID:   testResource.ProjectID,
-					NamespaceID: testResource.NamespaceID,
-					UserID:      testResource.UserID,
+					ID:            testResourceID,
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalID:   testResource.PrincipalID,
+					PrincipalType: testResource.PrincipalType,
 				}).Return(testResource, nil)
 			},
 			request: &shieldv1beta1.UpdateProjectResourceRequest{
@@ -462,7 +475,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 				Body: &shieldv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
-					UserId:    testUserID,
+					Principal: testUserID,
 				},
 			},
 			want: &shieldv1beta1.UpdateProjectResourceResponse{

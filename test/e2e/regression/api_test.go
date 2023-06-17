@@ -233,7 +233,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 	myOrg := res.GetOrganizations()[0]
 
 	s.Run("1. org admin create a new project successfully", func() {
-		_, err := s.testBench.Client.CreateProject(context.Background(), &shieldv1beta1.CreateProjectRequest{
+		_, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
 			Body: &shieldv1beta1.ProjectRequestBody{
 				Name:  "new-project",
 				OrgId: myOrg.GetId(),
@@ -999,7 +999,7 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 			Body: &shieldv1beta1.ResourceRequestBody{
 				Name:      "res-1",
 				Namespace: computeOrderNamespace,
-				UserId:    userResp.GetUser().GetId(),
+				Principal: userResp.GetUser().GetId(),
 				Metadata:  &structpb.Struct{},
 			},
 		})

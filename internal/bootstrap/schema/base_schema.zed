@@ -1,6 +1,9 @@
 definition app/user {}
 
-definition app/serviceuser {}
+definition app/serviceuser {
+	relation org: app/organization
+	permission manage = org->serviceusermanage
+}
 
 definition app/platform {
 	relation admin: app/user | app/serviceuser
@@ -21,7 +24,7 @@ definition app/organization {
 	relation platform: app/platform
 	relation granted: app/rolebinding
 	relation member: app/user | app/group#member | app/serviceuser
-	relation owner: app/user
+	relation owner: app/user | app/serviceuser
 
 	// permissions
     // org
@@ -38,6 +41,7 @@ definition app/organization {
     permission groupcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_groupcreate + owner
 	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist + owner
 	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate + owner
+    permission serviceusermanage = platform->superuser + granted->app_organization_administer + granted->app_organization_serviceusermanage + owner
 
     // synthetic permissions - project
     permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + owner
@@ -57,7 +61,7 @@ definition app/group {
 	relation org: app/organization
 	relation granted: app/rolebinding
 	relation member: app/user
-	relation owner: app/user
+	relation owner: app/user | app/serviceuser
 
 	// permissions
 	permission membership = member + owner
@@ -96,6 +100,7 @@ definition app/rolebinding {
 	permission app_organization_projectcreate = bearer & role->app_organization_projectcreate
 	permission app_organization_groupcreate = bearer & role->app_organization_groupcreate
 	permission app_organization_invitationcreate = bearer & role->app_organization_invitationcreate
+    permission app_organization_serviceusermanage = bearer & role->app_organization_serviceusermanage
 
     // project
     permission app_project_administer = bearer & role->app_project_administer
@@ -126,6 +131,7 @@ definition app/role {
 	relation app_organization_projectcreate: app/user:* | app/serviceuser:*
 	relation app_organization_groupcreate: app/user:* | app/serviceuser:*
 	relation app_organization_invitationcreate: app/user:* | app/serviceuser:*
+    relation app_organization_serviceusermanage: app/user:* | app/serviceuser:*
 
     // project
     relation app_project_administer: app/user:* | app/serviceuser:*

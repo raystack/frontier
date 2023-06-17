@@ -185,11 +185,15 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 		// prepare an owner relation
 		// either we can attach each user who creates the resource with owner relation or
 		// create an owner role and assign it to the user when the resource is created
-		relationsForResource = append(relationsForResource, aznamespace.MustRelation("owner", nil, aznamespace.AllowedRelation(schema.UserPrincipal, generator.Ellipsis)))
+		relationsForResource = append(relationsForResource, aznamespace.MustRelation("owner", nil,
+			aznamespace.AllowedRelation(schema.UserPrincipal, generator.Ellipsis),
+			aznamespace.AllowedRelation(schema.ServiceUserPrincipal, generator.Ellipsis)))
 		// attach service to project
-		relationsForResource = append(relationsForResource, aznamespace.MustRelation("project", nil, aznamespace.AllowedRelation(schema.ProjectNamespace, generator.Ellipsis)))
+		relationsForResource = append(relationsForResource, aznamespace.MustRelation("project", nil,
+			aznamespace.AllowedRelation(schema.ProjectNamespace, generator.Ellipsis)))
 		// attach role binding to service
-		relationsForResource = append(relationsForResource, aznamespace.MustRelation("granted", nil, aznamespace.AllowedRelation(schema.RoleBindingNamespace, generator.Ellipsis)))
+		relationsForResource = append(relationsForResource, aznamespace.MustRelation("granted", nil,
+			aznamespace.AllowedRelation(schema.RoleBindingNamespace, generator.Ellipsis)))
 
 		// prepare a new az definition
 		resourceDef := aznamespace.Namespace(namespaceName, relationsForResource...)

@@ -19,9 +19,17 @@ import (
 
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
-	objectNamespace := schema.ParseNamespaceAliasIfRequired(req.GetObjectNamespace())
+	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.GetResource())
+	if len(req.GetResource()) == 0 || err != nil {
+		objectNamespace = schema.ParseNamespaceAliasIfRequired(req.GetObjectNamespace())
+		objectID = req.GetObjectId()
+	}
+	if objectNamespace == "" || objectID == "" {
+		return nil, grpcBadBodyError
+	}
+
 	result, err := h.resourceService.CheckAuthz(ctx, relation.Object{
-		ID:        req.GetObjectId(),
+		ID:        objectID,
 		Namespace: objectNamespace,
 	}, req.GetPermission())
 	if err != nil {
@@ -67,7 +75,7 @@ func (h Handler) IsAuthorized(ctx context.Context, objectNamespace, objectID, pe
 
 func (h Handler) IsSuperUser(ctx context.Context) error {
 	logger := grpczap.Extract(ctx)
-	currentUser, err := h.GetLoggedInUser(ctx)
+	currentUser, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return err

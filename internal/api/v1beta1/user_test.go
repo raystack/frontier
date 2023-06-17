@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/core/authenticate/token"
 
 	"github.com/raystack/shield/pkg/utils"
@@ -143,7 +145,7 @@ func TestCreateUser(t *testing.T) {
 			title: "should return bad request error if metadata is not parsable",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "some user",
@@ -164,7 +166,7 @@ func TestCreateUser(t *testing.T) {
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Title: "some user",
 				}).Return(user.User{}, user.ErrInvalidEmail)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "some user",
@@ -189,7 +191,7 @@ func TestCreateUser(t *testing.T) {
 					Name:     "user-slug",
 					Metadata: metadata.Metadata{},
 				}).Return(user.User{}, user.ErrConflict)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title:    "some user",
@@ -217,7 +219,7 @@ func TestCreateUser(t *testing.T) {
 						Name:     "user-slug",
 						Metadata: metadata.Metadata{"foo": "bar"},
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "some user",
@@ -261,7 +263,7 @@ func TestCreateUser(t *testing.T) {
 						Name:     "user-slug",
 						Metadata: metadata.Metadata{"foo": "bar"},
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "some user",
@@ -401,7 +403,7 @@ func TestGetCurrentUser(t *testing.T) {
 	email := "user@raystack.org"
 	table := []struct {
 		title  string
-		setup  func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context
+		setup  func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context
 		header string
 		want   *shieldv1beta1.GetCurrentUserResponse
 		err    error
@@ -410,44 +412,47 @@ func TestGetCurrentUser(t *testing.T) {
 			title: "should return unauthenticated error if no auth email header in context",
 			want:  nil,
 			err:   grpcUnauthenticated,
-			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.emptyCtx")).Return(user.User{}, errors.ErrUnauthenticated)
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
 				return ctx
 			},
 		},
 		{
 			title: "should return not found error if user does not exist",
-			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(user.User{}, user.ErrNotExist)
-				return user.SetContextWithEmail(ctx, email)
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(authenticate.Principal{}, user.ErrNotExist)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			want: nil,
 			err:  grpcUserNotFoundError,
 		},
 		{
 			title: "should return error if user service return some error",
-			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(user.User{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(authenticate.Principal{}, errors.New("some error"))
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			want: nil,
 			err:  grpcInternalServerError,
 		},
 		{
 			title: "should return user if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(
-					user.User{
-						ID:    "user-id-1",
-						Title: "some user",
-						Email: "someuser@test.com",
-						Metadata: metadata.Metadata{
-							"foo": "bar",
+			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(
+					authenticate.Principal{
+						ID: "user-id-1",
+						User: &user.User{
+							ID:    "user-id-1",
+							Title: "some user",
+							Email: "someuser@test.com",
+							Metadata: metadata.Metadata{
+								"foo": "bar",
+							},
+							CreatedAt: time.Time{},
+							UpdatedAt: time.Time{},
 						},
-						CreatedAt: time.Time{},
-						UpdatedAt: time.Time{},
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			want: &shieldv1beta1.GetCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
@@ -468,21 +473,19 @@ func TestGetCurrentUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			ctx := context.Background()
-			mockUserSrv := new(mocks.UserService)
+			mockAuthnSrv := new(mocks.AuthnService)
 
 			mockOrgService := new(mocks.OrganizationService)
 			mockOrgService.EXPECT().ListByUser(mock.Anything, "user-id-1").Return([]organization.Organization{}, nil)
-			registrationService := new(mocks.RegistrationService)
-			registrationService.EXPECT().Token(mock.Anything,
-				mock.AnythingOfType("user.User"), map[string]string{"orgs": ""}).Return(nil, token.ErrMissingRSADisableToken)
+			mockAuthnSrv.EXPECT().BuildToken(mock.Anything,
+				"user-id-1", map[string]string{"orgs": ""}).Return(nil, token.ErrMissingRSADisableToken)
 
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv, nil)
+				ctx = tt.setup(ctx, mockAuthnSrv, nil)
 			}
 			mockDep := Handler{
-				userService:         mockUserSrv,
-				orgService:          mockOrgService,
-				registrationService: registrationService,
+				authnService: mockAuthnSrv,
+				orgService:   mockOrgService,
 			}
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
@@ -757,7 +760,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 						"foo": "bar",
 					},
 				}).Return(user.User{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "abc user",
@@ -782,7 +785,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 						"foo": "bar",
 					},
 				}).Return(user.User{}, user.ErrNotExist)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "abc user",
@@ -800,7 +803,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			title: "should return bad request error if diff emails in header and body",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "abc user",
@@ -818,7 +821,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			title: "should return bad request error if empty request body",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req:  &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
 			want: nil,
@@ -839,7 +842,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "abc user",

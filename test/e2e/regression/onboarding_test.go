@@ -123,7 +123,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 			Body: &shieldv1beta1.ResourceRequestBody{
 				Name:      "res-1",
 				Namespace: computeOrderNamespace,
-				UserId:    adminID,
+				Principal: adminID,
 			},
 		})
 		s.Assert().NoError(err)
@@ -154,7 +154,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		listPermissionsResp, err := s.testBench.Client.ListPermissions(ctx, &shieldv1beta1.ListPermissionsRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listPermissionsResp)
-		s.Assert().Len(listPermissionsResp.GetPermissions(), 26)
+		s.Assert().Len(listPermissionsResp.GetPermissions(), 27)
 	})
 	s.Run("6. creating role with bad body should fail", func() {
 		_, err := s.testBench.Client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{

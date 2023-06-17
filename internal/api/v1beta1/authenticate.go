@@ -2,9 +2,12 @@ package v1beta1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/raystack/shield/core/authenticate/token"
 
@@ -23,11 +26,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//go:generate mockery --name=RegistrationService -r --case underscore --with-expecter --structname RegistrationService --filename registration_service.go --output=./mocks
-type RegistrationService interface {
-	Start(ctx context.Context, request authenticate.RegistrationStartRequest) (*authenticate.RegistrationStartResponse, error)
-	Finish(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
-	Token(ctx context.Context, user user.User, metadata map[string]string) ([]byte, error)
+//go:generate mockery --name=AuthnService -r --case underscore --with-expecter --structname AuthnService --filename authn_service.go --output=./mocks
+type AuthnService interface {
+	StartFlow(ctx context.Context, request authenticate.RegistrationStartRequest) (*authenticate.RegistrationStartResponse, error)
+	FinishFlow(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
+	BuildToken(ctx context.Context, principalID string, metadata map[string]string) ([]byte, error)
+	JWKs(ctx context.Context) jwk.Set
+	GetPrincipal(ctx context.Context) (authenticate.Principal, error)
 	SupportedStrategies() []string
 	InitFlows(ctx context.Context) error
 	Close()
@@ -51,6 +56,8 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 	if err == nil && session.IsValid(time.Now().UTC()) {
 		// already logged in, set location header for return to?
 		if len(request.GetReturnTo()) > 0 {
+			// TODO(kushsharma): only redirect to white listed domains from config
+			// to avoid https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
 			if err = setRedirectHeaders(ctx, request.GetReturnTo()); err != nil {
 				logger.Error(err.Error())
 				return nil, status.Error(codes.Internal, err.Error())
@@ -62,7 +69,7 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 	}
 
 	// not logged in, try registration
-	response, err := h.registrationService.Start(ctx, authenticate.RegistrationStartRequest{
+	response, err := h.authnService.StartFlow(ctx, authenticate.RegistrationStartRequest{
 		ReturnTo: request.ReturnTo,
 		Method:   request.GetStrategyName(),
 		Email:    request.GetEmail(),
@@ -90,7 +97,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCa
 	logger := grpczap.Extract(ctx)
 
 	// handle callback
-	response, err := h.registrationService.Finish(ctx, authenticate.RegistrationFinishRequest{
+	response, err := h.authnService.FinishFlow(ctx, authenticate.RegistrationFinishRequest{
 		Method: request.GetStrategyName(),
 		Code:   request.GetCode(),
 		State:  request.GetState(),
@@ -112,7 +119,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCa
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	if err = h.setUserContextTokenInHeaders(ctx, response.User); err != nil {
+	if err = h.setUserContextTokenInHeaders(ctx, response.User.ID); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -148,13 +155,26 @@ func (h Handler) AuthLogout(ctx context.Context, request *shieldv1beta1.AuthLogo
 
 func (h Handler) ListAuthStrategies(ctx context.Context, request *shieldv1beta1.ListAuthStrategiesRequest) (*shieldv1beta1.ListAuthStrategiesResponse, error) {
 	var pbstrategy []*shieldv1beta1.AuthStrategy
-	for _, strategy := range h.registrationService.SupportedStrategies() {
+	for _, strategy := range h.authnService.SupportedStrategies() {
 		pbstrategy = append(pbstrategy, &shieldv1beta1.AuthStrategy{
 			Name:   strategy,
 			Params: nil,
 		})
 	}
 	return &shieldv1beta1.ListAuthStrategiesResponse{Strategies: pbstrategy}, nil
+}
+
+func (h Handler) GetJWKs(ctx context.Context, request *shieldv1beta1.GetJWKsRequest) (*shieldv1beta1.GetJWKsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	keySet := h.authnService.JWKs(ctx)
+	jwks, err := toJSONWebKey(keySet)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &shieldv1beta1.GetJWKsResponse{
+		Keys: jwks.Keys,
+	}, nil
 }
 
 func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
@@ -165,27 +185,27 @@ func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
 	return uuid.Nil, err
 }
 
-func (h Handler) GetLoggedInUser(ctx context.Context) (user.User, error) {
+func (h Handler) GetLoggedInPrincipal(ctx context.Context) (authenticate.Principal, error) {
 	logger := grpczap.Extract(ctx)
-	u, err := h.userService.FetchCurrentUser(ctx)
+	principal, err := h.authnService.GetPrincipal(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
-			return u, grpcUserNotFoundError
+			return principal, grpcUserNotFoundError
 		case errors.Is(err, errors.ErrUnauthenticated):
-			return u, grpcUnauthenticated
+			return principal, grpcUnauthenticated
 		default:
-			return u, grpcInternalServerError
+			return principal, grpcInternalServerError
 		}
 	}
-	return u, nil
+	return principal, nil
 }
 
 // setUserContextTokenInHeaders sends a jwt token with user/org details
-func (h Handler) setUserContextTokenInHeaders(ctx context.Context, user user.User) error {
+func (h Handler) setUserContextTokenInHeaders(ctx context.Context, principalID string) error {
 	// get orgs a user belongs to
-	orgs, err := h.orgService.ListByUser(ctx, user.ID)
+	orgs, err := h.orgService.ListByUser(ctx, principalID)
 	if err != nil {
 		return err
 	}
@@ -196,7 +216,7 @@ func (h Handler) setUserContextTokenInHeaders(ctx context.Context, user user.Use
 	}
 
 	// build jwt for user context
-	userToken, err := h.registrationService.Token(ctx, user, map[string]string{
+	userToken, err := h.authnService.BuildToken(ctx, principalID, map[string]string{
 		"orgs": strings.Join(orgNames, ","),
 	})
 	if errors.Is(err, token.ErrMissingRSADisableToken) {
@@ -224,4 +244,22 @@ func setCookieHeaders(ctx context.Context, cookie string) error {
 
 func deleteCookieHeaders(ctx context.Context) error {
 	return grpc.SetHeader(ctx, metadata.Pairs(consts.SessionDeleteGatewayKey, "true"))
+}
+
+type JsonWebKeySet struct {
+	Keys []*shieldv1beta1.JSONWebKey `json:"keys"`
+}
+
+func toJSONWebKey(keySet jwk.Set) (*JsonWebKeySet, error) {
+	jwks := &JsonWebKeySet{
+		Keys: []*shieldv1beta1.JSONWebKey{},
+	}
+	keySetJson, err := json.Marshal(keySet)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(keySetJson, &jwks); err != nil {
+		return nil, err
+	}
+	return jwks, nil
 }

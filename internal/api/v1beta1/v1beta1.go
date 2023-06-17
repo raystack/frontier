@@ -24,11 +24,12 @@ type Handler struct {
 	resourceService     ResourceService
 	ruleService         RuleService
 	sessionService      SessionService
-	registrationService RegistrationService
+	authnService        AuthnService
 	deleterService      CascadeDeleter
 	metaSchemaService   MetaSchemaService
 	bootstrapService    BootstrapService
 	invitationService   InvitationService
+	serviceUserService  ServiceUserService
 }
 
 func Register(s *grpc.Server, deps api.Deps) error {
@@ -47,11 +48,12 @@ func Register(s *grpc.Server, deps api.Deps) error {
 		resourceService:     deps.ResourceService,
 		ruleService:         deps.RuleService,
 		sessionService:      deps.SessionService,
-		registrationService: deps.RegistrationService,
+		authnService:        deps.AuthnService,
 		deleterService:      deps.DeleterService,
 		metaSchemaService:   deps.MetaSchemaService,
 		bootstrapService:    deps.BootstrapService,
 		invitationService:   deps.InvitationService,
+		serviceUserService:  deps.ServiceUserService,
 	}
 	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
 	s.RegisterService(&shieldv1beta1.AdminService_ServiceDesc, handler)

@@ -92,7 +92,8 @@ func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	if err != nil {
 		return err
 	}
-	if len(data) != len(uRes.GetUsers()) {
+	// +1 for counting admin user
+	if len(data)+1 != len(uRes.GetUsers()) {
 		return errors.New("failed to validate number of users created")
 	}
 	return nil

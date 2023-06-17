@@ -28,7 +28,7 @@ func TestHealthCheck(t *testing.T) {
 		t.Run(tc.Description, func(t *testing.T) {
 			ctx := context.Background()
 
-			healthHandler := &HealthHandler{}
+			healthHandler := &Handler{}
 
 			got, err := healthHandler.Check(ctx, tc.Request)
 			code := status.Code(err)

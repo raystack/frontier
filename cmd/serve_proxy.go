@@ -5,12 +5,13 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/salt/log"
 	"github.com/raystack/shield/core/project"
 	"github.com/raystack/shield/core/relation"
 	"github.com/raystack/shield/core/resource"
 	"github.com/raystack/shield/core/rule"
-	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/internal/api/v1beta1"
 	"github.com/raystack/shield/internal/proxy"
 	"github.com/raystack/shield/internal/proxy/hook"
@@ -32,7 +33,7 @@ func serveProxies(
 	cfg proxy.ServicesConfig,
 	resourceService *resource.Service,
 	relationService *relation.Service,
-	userService *user.Service,
+	principalService *authenticate.Service,
 	projectService *project.Service,
 ) ([]func() error, []func(ctx context.Context) error, error) {
 	var cleanUpBlobs []func() error
@@ -64,7 +65,8 @@ func serveProxies(
 
 		ruleService := rule.NewService(ruleBlobRepository)
 
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, ruleService, projectService)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey,
+			resourceService, principalService, ruleService, projectService)
 
 		cps := proxy.Serve(ctx, logger, svcConfig, middlewarePipeline)
 		cleanUpProxies = append(cleanUpProxies, cps)
@@ -84,13 +86,13 @@ func buildMiddlewarePipeline(
 	proxy http.Handler,
 	identityProxyHeaderKey, userIDHeaderKey string,
 	resourceService *resource.Service,
-	userService *user.Service,
+	principalService *authenticate.Service,
 	ruleService *rule.Service,
 	projectService *project.Service,
 ) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	spiceDBAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService)
+	spiceDBAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, principalService)
 	basicAuthn := basic_auth.New(logger, spiceDBAuthz)
 	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey, projectService)
 	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))

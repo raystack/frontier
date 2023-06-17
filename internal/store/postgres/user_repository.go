@@ -138,7 +138,8 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	if usr.State != "" {
 		insertRow["state"] = usr.State
 	}
-	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning("created_at", "deleted_at", "email", "id", "name", "title", "state", "updated_at").ToSQL()
+	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).
+		Returning("created_at", "deleted_at", "email", "id", "name", "title", "state", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

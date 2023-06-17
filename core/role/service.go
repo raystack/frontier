@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/shield/pkg/utils"
+
 	"github.com/raystack/shield/core/permission"
 	"github.com/raystack/shield/core/relation"
 	"github.com/raystack/shield/internal/bootstrap/schema"
@@ -67,13 +69,32 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 		if err != nil {
 			return Role{}, err
 		}
+		// do the same with service user
+		_, err = s.relationService.Create(ctx, relation.Relation{
+			Object: relation.Object{
+				ID:        roleID,
+				Namespace: schema.RoleNamespace,
+			},
+			Subject: relation.Subject{
+				ID:        "*", // all principles who have role will have access
+				Namespace: schema.ServiceUserPrincipal,
+			},
+			RelationName: perm,
+		})
+		if err != nil {
+			return Role{}, err
+		}
 	}
 
 	return s.repository.Get(ctx, roleID)
 }
 
 func (s Service) Get(ctx context.Context, id string) (Role, error) {
-	return s.repository.Get(ctx, id)
+	if utils.IsValidUUID(id) {
+		return s.repository.Get(ctx, id)
+	}
+	// passing empty orgID will return roles created by system
+	return s.repository.GetByName(ctx, "", id)
 }
 
 func (s Service) List(ctx context.Context, f Filter) ([]Role, error) {

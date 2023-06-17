@@ -1,10 +1,5 @@
 [
   {
-    "title": "admin1 group1 org1",
-    "email": "admin1-group1-org1@raystack.org",
-    "name": "admin1_group1_slug"
-  },
-  {
     "title": "member2 group1",
     "email": "member2-group1@raystack.org",
     "name": "member2_group1_slug"

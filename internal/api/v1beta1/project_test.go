@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/raystack/shield/internal/bootstrap/schema"
@@ -71,7 +73,7 @@ func TestCreateProject(t *testing.T) {
 						"team": "Platforms",
 					},
 				}).Return(project.Project{}, user.ErrInvalidEmail)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
@@ -92,7 +94,7 @@ func TestCreateProject(t *testing.T) {
 						"team": "Platforms",
 					},
 				}).Return(project.Project{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
@@ -113,7 +115,7 @@ func TestCreateProject(t *testing.T) {
 						"team": "Platforms",
 					},
 				}).Return(project.Project{}, organization.ErrInvalidUUID)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
@@ -134,7 +136,7 @@ func TestCreateProject(t *testing.T) {
 						"team": "Platforms",
 					},
 				}).Return(project.Project{}, organization.ErrInvalidUUID)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
@@ -155,7 +157,7 @@ func TestCreateProject(t *testing.T) {
 						"team": "Platforms",
 					},
 				}).Return(project.Project{}, project.ErrConflict)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
@@ -176,7 +178,7 @@ func TestCreateProject(t *testing.T) {
 						"team": "Platforms",
 					},
 				}).Return(project.Project{}, project.ErrInvalidDetail)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
@@ -211,7 +213,7 @@ func TestCreateProject(t *testing.T) {
 						"email": "org1@org1.com",
 					},
 				}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			want: &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
 				Id:   testProjectMap[testProjectID].ID,

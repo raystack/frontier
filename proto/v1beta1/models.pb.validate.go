@@ -170,6 +170,8 @@ func (m *User) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for State
+
 	if len(errors) > 0 {
 		return UserMultiError(errors)
 	}
@@ -298,6 +300,198 @@ var _ interface {
 } = UserValidationError{}
 
 var _User_Name_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$")
+
+// Validate checks the field values on ServiceUser with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ServiceUser) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ServiceUser with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ServiceUserMultiError, or
+// nil if none found.
+func (m *ServiceUser) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ServiceUser) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ServiceUserValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ServiceUserValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServiceUserValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ServiceUserValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ServiceUserValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServiceUserValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ServiceUserValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ServiceUserValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServiceUserValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for State
+
+	if len(errors) > 0 {
+		return ServiceUserMultiError(errors)
+	}
+
+	return nil
+}
+
+// ServiceUserMultiError is an error wrapping multiple validation errors
+// returned by ServiceUser.ValidateAll() if the designated constraints aren't met.
+type ServiceUserMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ServiceUserMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ServiceUserMultiError) AllErrors() []error { return m }
+
+// ServiceUserValidationError is the validation error returned by
+// ServiceUser.Validate if the designated constraints aren't met.
+type ServiceUserValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ServiceUserValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ServiceUserValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ServiceUserValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ServiceUserValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ServiceUserValidationError) ErrorName() string { return "ServiceUserValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ServiceUserValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sServiceUser.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ServiceUserValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ServiceUserValidationError{}
 
 // Validate checks the field values on Group with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -2029,7 +2223,7 @@ func (m *Resource) validate(all bool) error {
 
 	// no validation rules for Namespace
 
-	// no validation rules for UserId
+	// no validation rules for Principal
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -2513,6 +2707,503 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = InvitationValidationError{}
+
+// Validate checks the field values on ServiceUserKey with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ServiceUserKey) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ServiceUserKey with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ServiceUserKeyMultiError,
+// or nil if none found.
+func (m *ServiceUserKey) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ServiceUserKey) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	// no validation rules for PrincipalId
+
+	// no validation rules for PublicKey
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ServiceUserKeyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ServiceUserKeyValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServiceUserKeyValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ServiceUserKeyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ServiceUserKeyMultiError is an error wrapping multiple validation errors
+// returned by ServiceUserKey.ValidateAll() if the designated constraints
+// aren't met.
+type ServiceUserKeyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ServiceUserKeyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ServiceUserKeyMultiError) AllErrors() []error { return m }
+
+// ServiceUserKeyValidationError is the validation error returned by
+// ServiceUserKey.Validate if the designated constraints aren't met.
+type ServiceUserKeyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ServiceUserKeyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ServiceUserKeyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ServiceUserKeyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ServiceUserKeyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ServiceUserKeyValidationError) ErrorName() string { return "ServiceUserKeyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ServiceUserKeyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sServiceUserKey.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ServiceUserKeyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ServiceUserKeyValidationError{}
+
+// Validate checks the field values on KeyCredential with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *KeyCredential) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on KeyCredential with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in KeyCredentialMultiError, or
+// nil if none found.
+func (m *KeyCredential) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *KeyCredential) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Type
+
+	// no validation rules for Kid
+
+	// no validation rules for PrincipalId
+
+	// no validation rules for PrivateKey
+
+	if len(errors) > 0 {
+		return KeyCredentialMultiError(errors)
+	}
+
+	return nil
+}
+
+// KeyCredentialMultiError is an error wrapping multiple validation errors
+// returned by KeyCredential.ValidateAll() if the designated constraints
+// aren't met.
+type KeyCredentialMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m KeyCredentialMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m KeyCredentialMultiError) AllErrors() []error { return m }
+
+// KeyCredentialValidationError is the validation error returned by
+// KeyCredential.Validate if the designated constraints aren't met.
+type KeyCredentialValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e KeyCredentialValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e KeyCredentialValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e KeyCredentialValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e KeyCredentialValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e KeyCredentialValidationError) ErrorName() string { return "KeyCredentialValidationError" }
+
+// Error satisfies the builtin error interface
+func (e KeyCredentialValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sKeyCredential.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = KeyCredentialValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = KeyCredentialValidationError{}
+
+// Validate checks the field values on SecretCredential with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *SecretCredential) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SecretCredential with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SecretCredentialMultiError, or nil if none found.
+func (m *SecretCredential) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SecretCredential) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	// no validation rules for Secret
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SecretCredentialValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SecretCredentialValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SecretCredentialValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SecretCredentialMultiError(errors)
+	}
+
+	return nil
+}
+
+// SecretCredentialMultiError is an error wrapping multiple validation errors
+// returned by SecretCredential.ValidateAll() if the designated constraints
+// aren't met.
+type SecretCredentialMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SecretCredentialMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SecretCredentialMultiError) AllErrors() []error { return m }
+
+// SecretCredentialValidationError is the validation error returned by
+// SecretCredential.Validate if the designated constraints aren't met.
+type SecretCredentialValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SecretCredentialValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SecretCredentialValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SecretCredentialValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SecretCredentialValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SecretCredentialValidationError) ErrorName() string { return "SecretCredentialValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SecretCredentialValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSecretCredential.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SecretCredentialValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SecretCredentialValidationError{}
+
+// Validate checks the field values on JSONWebKey with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JSONWebKey) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JSONWebKey with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JSONWebKeyMultiError, or
+// nil if none found.
+func (m *JSONWebKey) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JSONWebKey) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Kty
+
+	// no validation rules for Alg
+
+	// no validation rules for Use
+
+	// no validation rules for Kid
+
+	// no validation rules for N
+
+	// no validation rules for E
+
+	// no validation rules for X
+
+	// no validation rules for Y
+
+	// no validation rules for Crv
+
+	if len(errors) > 0 {
+		return JSONWebKeyMultiError(errors)
+	}
+
+	return nil
+}
+
+// JSONWebKeyMultiError is an error wrapping multiple validation errors
+// returned by JSONWebKey.ValidateAll() if the designated constraints aren't met.
+type JSONWebKeyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JSONWebKeyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JSONWebKeyMultiError) AllErrors() []error { return m }
+
+// JSONWebKeyValidationError is the validation error returned by
+// JSONWebKey.Validate if the designated constraints aren't met.
+type JSONWebKeyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JSONWebKeyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JSONWebKeyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JSONWebKeyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JSONWebKeyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JSONWebKeyValidationError) ErrorName() string { return "JSONWebKeyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JSONWebKeyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJSONWebKey.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JSONWebKeyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JSONWebKeyValidationError{}
 
 // Validate checks the field values on RoleRequestBody with the rules defined
 // in the proto definition for this message. If any rules are violated, the

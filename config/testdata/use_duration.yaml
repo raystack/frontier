@@ -1,0 +1,12 @@
+version: 1
+
+db:
+  url: postgres://shield:@localhost:5432/shield?sslmode=disable
+  max_query_timeout: 500ms
+  conn_max_life_time: 10ms
+  max_idle_conns: 10
+
+spicedb:
+  host: spicedb.localhost
+  pre_shared_key: randomkey
+  port: 50051

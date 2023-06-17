@@ -108,13 +108,11 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
-	org := organization.Organization{
+	newOrg, err := h.orgService.Create(ctx, organization.Organization{
 		Name:     request.GetBody().GetName(),
 		Title:    request.GetBody().GetTitle(),
 		Metadata: metaDataMap,
-	}
-
-	newOrg, err := h.orgService.Create(ctx, org)
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {

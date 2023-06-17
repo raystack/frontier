@@ -16,6 +16,7 @@ import (
 	"github.com/raystack/shield/core/resource"
 	"github.com/raystack/shield/core/role"
 	"github.com/raystack/shield/core/rule"
+	"github.com/raystack/shield/core/serviceuser"
 	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/internal/bootstrap"
 )
@@ -35,9 +36,10 @@ type Deps struct {
 	ResourceService     *resource.Service
 	RuleService         *rule.Service
 	SessionService      *session.Service
-	RegistrationService *authenticate.RegistrationService
+	AuthnService        *authenticate.Service
 	DeleterService      *deleter.Service
 	MetaSchemaService   *metaschema.Service
 	BootstrapService    *bootstrap.Service
 	InvitationService   *invitation.Service
+	ServiceUserService  *serviceuser.Service
 }

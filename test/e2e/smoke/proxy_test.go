@@ -13,6 +13,8 @@ import (
 	"text/template"
 	"time"
 
+	"google.golang.org/grpc/metadata"
+
 	"github.com/raystack/shield/pkg/server"
 
 	"github.com/google/uuid"
@@ -180,6 +182,9 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	err = testbench.BootstrapProject(ctx, sClient, testbench.OrgAdminEmail)
 	s.Assert().NoError(err)
 
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
 	projResp, err := sClient.ListOrganizationProjects(ctx, &shieldv1beta1.ListOrganizationProjectsRequest{
 		Id: s.orgID,
 	})
@@ -205,6 +210,9 @@ func (s *ProxySmokeTestSuite) TearDownSuite() {
 }
 
 func (s *ProxySmokeTestSuite) TestProxyToEchoServer() {
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
 	s.Run("should be able to proxy to an echo server", func() {
 		url := fmt.Sprintf("http://localhost:%d/api/ping", s.proxyPort)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -234,7 +242,7 @@ func (s *ProxySmokeTestSuite) TestProxyToEchoServer() {
 
 		defer res.Body.Close()
 
-		resourceResp, err := s.sClient.ListProjectResources(context.Background(), &shieldv1beta1.ListProjectResourcesRequest{
+		resourceResp, err := s.sClient.ListProjectResources(ctx, &shieldv1beta1.ListProjectResourcesRequest{
 			ProjectId: s.projID,
 		})
 		s.Assert().NoError(err)

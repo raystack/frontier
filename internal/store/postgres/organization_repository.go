@@ -372,7 +372,7 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return organization.ErrNotExist
 		default:
 			return err
 		}

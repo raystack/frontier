@@ -20,6 +20,7 @@ const (
 	shieldRegisterCallback = "/v1beta1/auth/callback"
 	shieldLogout           = "/v1beta1/auth/logout"
 	shieldUserProfile      = "/v1beta1/users/self"
+	jwksPath               = "/.well-known/jwks.json"
 
 	mailotpStrategy = "mailotp"
 )
@@ -230,10 +231,10 @@ func callback() func(ctx *gin.Context) {
 		userToken := resp.Header.Get("x-user-token")
 		jwks, err := jwk.Fetch(
 			ctx,
-			shieldHost+"/jwks.json",
+			shieldHost+jwksPath,
 		)
 		if err != nil {
-			ctx.Error(err)
+			ctx.Error(fmt.Errorf("failed to fetch JWK: %s", err))
 			return
 		}
 		verifiedToken, err := jwt.Parse([]byte(userToken), jwt.WithKeySet(jwks))
@@ -251,7 +252,7 @@ func callback() func(ctx *gin.Context) {
 		ctx.Writer.Header().Set("set-cookie", resp.Header.Get("set-cookie"))
 
 		// render token
-		tokenHTML := "<article>" + userToken + "</article><article>" + fmt.Sprintf("%v", tokenClaims) + "</article>"
+		tokenHTML := "<h3>UserToken:</h3><article>" + userToken + "</article><article>" + fmt.Sprintf("%v", tokenClaims) + "</article>"
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"title":   "Authentication demo",
 			"page":    "Callback",

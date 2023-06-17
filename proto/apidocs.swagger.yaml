@@ -30,6 +30,41 @@ consumes:
 produces:
   - application/json
 paths:
+  /.well-known/jwks.json:
+    get:
+      summary: Get well known JWKs
+      operationId: ShieldService_GetJWKs2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetJWKsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Authz
   /v1beta1/admin/groups:
     get:
       summary: Get all groups
@@ -469,6 +504,41 @@ paths:
           type: string
       tags:
         - Authn
+  /v1beta1/auth/jwks:
+    get:
+      summary: Get well known JWKs
+      operationId: ShieldService_GetJWKs
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetJWKsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Authz
   /v1beta1/auth/logout:
     get:
       summary: Logout from a strategy
@@ -3723,6 +3793,499 @@ paths:
           type: string
       tags:
         - Role
+  /v1beta1/serviceusers:
+    get:
+      summary: List service users of an organization
+      description: Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.
+      operationId: ShieldService_ListServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: The organization ID to filter service users by.
+          in: query
+          required: true
+          type: string
+        - name: state
+          description: The state to filter by. It can be enabled or disabled.
+          in: query
+          required: false
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create Service User
+      description: Create a service user.
+      operationId: ShieldService_CreateServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserRequest'
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}:
+    get:
+      summary: Get service user by id
+      description: Get service user details by its id.
+      operationId: ShieldService_GetServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to get.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    delete:
+      summary: Delete a service user
+      description: Delete a service user permanently and all of its relations (keys, organizations, roles, etc)
+      operationId: ShieldService_DeleteServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/keys:
+    get:
+      summary: List service user keys
+      description: List all the keys of a service user with its details except jwk.
+      operationId: ShieldService_ListServiceUserKeys
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserKeysResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to list keys for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create a service user key
+      description: Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
+      operationId: ShieldService_CreateServiceUserKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserKeyResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to create a key for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/keys/{keyId}:
+    get:
+      summary: Get a service user key
+      description: Get a service user public RSA JWK set.
+      operationId: ShieldService_GetServiceUserKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetServiceUserKeyResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to get a key for.
+          in: path
+          required: true
+          type: string
+        - name: keyId
+          description: The unique ID of the key to get.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    delete:
+      summary: Delete a service user key
+      description: Delete a service user key permanently.
+      operationId: ShieldService_DeleteServiceUserKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserKeyResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to delete a key for.
+          in: path
+          required: true
+          type: string
+        - name: keyId
+          description: The unique ID of the key to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/secrets:
+    get:
+      summary: List service user secrets
+      description: List all the secrets of a service user.
+      operationId: ShieldService_ListServiceUserSecrets
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserSecretsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to list secrets for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create a service user secret
+      description: Generate a service user secret and return it. The secret value will not be persisted and should be securely stored by client.
+      operationId: ShieldService_CreateServiceUserSecret
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserSecretResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to create a key for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/secrets/{secretId}:
+    delete:
+      summary: Delete a service user secret
+      description: Delete a service user secret credential.
+      operationId: ShieldService_DeleteServiceUserSecret
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserSecretResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to delete a secret for.
+          in: path
+          required: true
+          type: string
+        - name: secretId
+          description: The unique ID of the secret to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
   /v1beta1/users:
     get:
       summary: List public users
@@ -4391,9 +4954,10 @@ definitions:
         type: string
       permission:
         type: string
+      resource:
+        type: string
+        description: namespace:uuid of the resource. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825`
     required:
-      - objectId
-      - objectNamespace
       - permission
   v1beta1CheckResourcePermissionResponse:
     type: object
@@ -4466,6 +5030,31 @@ definitions:
     properties:
       role:
         $ref: '#/definitions/v1beta1Role'
+  v1beta1CreateServiceUserKeyResponse:
+    type: object
+    properties:
+      key:
+        $ref: '#/definitions/v1beta1KeyCredential'
+  v1beta1CreateServiceUserRequest:
+    type: object
+    properties:
+      body:
+        $ref: '#/definitions/v1beta1ServiceUserRequestBody'
+      orgId:
+        type: string
+        description: The organization ID to which the service user belongs to.
+    required:
+      - orgId
+  v1beta1CreateServiceUserResponse:
+    type: object
+    properties:
+      serviceuser:
+        $ref: '#/definitions/v1beta1ServiceUser'
+  v1beta1CreateServiceUserSecretResponse:
+    type: object
+    properties:
+      secret:
+        $ref: '#/definitions/v1beta1SecretCredential'
   v1beta1CreateUserResponse:
     type: object
     properties:
@@ -4493,6 +5082,12 @@ definitions:
     type: object
   v1beta1DeleteRoleResponse:
     type: object
+  v1beta1DeleteServiceUserKeyResponse:
+    type: object
+  v1beta1DeleteServiceUserResponse:
+    type: object
+  v1beta1DeleteServiceUserSecretResponse:
+    type: object
   v1beta1DeleteUserResponse:
     type: object
   v1beta1DisableGroupResponse:
@@ -4516,11 +5111,22 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+      serviceuser:
+        $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1GetGroupResponse:
     type: object
     properties:
       group:
         $ref: '#/definitions/v1beta1Group'
+  v1beta1GetJWKsResponse:
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1JSONWebKey'
+    title: GetJWKsResponse is a valid JSON Web Key Set as specififed in rfc 7517
   v1beta1GetMetaSchemaResponse:
     type: object
     properties:
@@ -4587,6 +5193,19 @@ definitions:
     properties:
       relation:
         $ref: '#/definitions/v1beta1Relation'
+  v1beta1GetServiceUserKeyResponse:
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1JSONWebKey'
+  v1beta1GetServiceUserResponse:
+    type: object
+    properties:
+      serviceuser:
+        $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1GetUserResponse:
     type: object
     properties:
@@ -4665,6 +5284,49 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the invitation expires.
+  v1beta1JSONWebKey:
+    type: object
+    properties:
+      kty:
+        type: string
+        description: Key Type.
+      alg:
+        type: string
+        description: Algorithm.
+      use:
+        type: string
+        description: Permitted uses for the public keys.
+      kid:
+        type: string
+        description: Key ID.
+      "n":
+        type: string
+        description: Used for RSA keys.
+      e:
+        type: string
+        description: Used for RSA keys.
+      x:
+        type: string
+        description: Used for ECDSA keys.
+      "y":
+        type: string
+        description: Used for ECDSA keys.
+      crv:
+        type: string
+        description: Used for ECDSA keys.
+    title: JSON Web Key as specified in RFC 7517
+  v1beta1KeyCredential:
+    type: object
+    properties:
+      type:
+        type: string
+      kid:
+        type: string
+      principalId:
+        type: string
+      privateKey:
+        type: string
+        title: RSA private key as string
   v1beta1ListAllOrganizationsResponse:
     type: object
     properties:
@@ -4860,6 +5522,31 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Role'
+  v1beta1ListServiceUserKeysResponse:
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUserKey'
+  v1beta1ListServiceUserSecretsResponse:
+    type: object
+    properties:
+      secrets:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1SecretCredential'
+        title: secrets will be listed without the secret value
+  v1beta1ListServiceUsersResponse:
+    type: object
+    properties:
+      serviceusers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1ListUserGroupsResponse:
     type: object
     properties:
@@ -5175,7 +5862,7 @@ definitions:
         type: string
       namespace:
         type: string
-      userId:
+      principal:
         type: string
       metadata:
         type: object
@@ -5187,10 +5874,11 @@ definitions:
         description: The name of the resource. <br/> *Example:* `my-resource`
       namespace:
         type: string
-        description: The namespace of the resource. The resource namespace are created when permissions for that resource is created in Shield. If namespace doesn't exists the request will fail. <br/> *Example:* `potato/cart`
-      userId:
+        description: The namespace of the resource. The resource namespace are created when permissions for that resource is created in Shield. If namespace doesn't exists the request will fail. <br/> *Example:* `compute/instance`
+      principal:
         type: string
-        description: The user id of the user who will be made the resource owner. If not provided, the current logged in user will be made the resource owner. <br/> *Example:* `92f69c3a-334b-4f25-90b8-4d4f3be6b825`
+        description: UserID or ServiceUserID that should be marked as owner of the resource. If not provided, the current logged in user will be made the resource owner. <br/> *Example:* `user:92f69c3a-334b-4f25-90b8-4d4f3be6b825`
+        title: format namespace:uuid or just uuid for user
       metadata:
         type: object
     required:
@@ -5238,6 +5926,71 @@ definitions:
         type: object
       title:
         type: string
+  v1beta1SecretCredential:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      secret:
+        type: string
+        title: |-
+          secret will only be returned once as part of the create process
+          this value is never persisted in the system so if lost, can't be recovered
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the secret was created.
+  v1beta1ServiceUser:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+        example: Order Service
+        description: User friendly name of the service user.
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the user was created.
+      updatedAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the user was last updated.
+      state:
+        type: string
+  v1beta1ServiceUserKey:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      principalId:
+        type: string
+      publicKey:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the secret was created.
+  v1beta1ServiceUserRequestBody:
+    type: object
+    properties:
+      title:
+        type: string
+        example: Order Service
+        description: User friendly name of the service user.
+      metadata:
+        type: object
   v1beta1UpdateCurrentUserResponse:
     type: object
     properties:
@@ -5298,9 +6051,13 @@ definitions:
         type: string
       name:
         type: string
+        example: johndoe
+        description: Unique name of the user.
         title: can either be empty or must start with a character
       title:
         type: string
+        example: John Doe
+        description: Name of the user.
       email:
         type: string
       metadata:
@@ -5315,6 +6072,8 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the user was last updated.
+      state:
+        type: string
   v1beta1UserRequestBody:
     type: object
     properties:

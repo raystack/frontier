@@ -11,7 +11,7 @@ definition app/group {
 
 	// relations
 	relation org: app/organization
-	relation owner: app/user
+	relation owner: app/user | app/serviceuser
 	permission update = org->group_update + granted->app_group_administer + granted->app_group_update + owner
 }
 
@@ -47,7 +47,7 @@ definition app/organization {
 	// permissions
 	// org
 	permission membership = member + owner
-	relation owner: app/user
+	relation owner: app/user | app/serviceuser
 
 	// relations
 	relation platform: app/platform
@@ -62,6 +62,7 @@ definition app/organization {
 	permission projectcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_projectcreate + owner
 	permission projectlist = platform->superuser + granted->app_organization_administer + granted->app_organization_projectlist + owner
 	permission rolemanage = platform->superuser + granted->app_organization_administer + granted->app_organization_rolemanage + owner
+	permission serviceusermanage = platform->superuser + granted->app_organization_administer + granted->app_organization_serviceusermanage + owner
 	permission update = platform->superuser + granted->app_organization_administer + granted->app_organization_update + owner
 }
 
@@ -109,6 +110,7 @@ definition app/role {
 	relation app_organization_projectcreate: app/user:* | app/serviceuser:*
 	relation app_organization_projectlist: app/user:* | app/serviceuser:*
 	relation app_organization_rolemanage: app/user:* | app/serviceuser:*
+	relation app_organization_serviceusermanage: app/user:* | app/serviceuser:*
 	relation app_organization_update: app/user:* | app/serviceuser:*
 
 	// project
@@ -145,6 +147,7 @@ definition app/rolebinding {
 	permission app_organization_projectcreate = bearer & role->app_organization_projectcreate
 	permission app_organization_projectlist = bearer & role->app_organization_projectlist
 	permission app_organization_rolemanage = bearer & role->app_organization_rolemanage
+	permission app_organization_serviceusermanage = bearer & role->app_organization_serviceusermanage
 	permission app_organization_update = bearer & role->app_organization_update
 
 	// project
@@ -164,7 +167,10 @@ definition app/rolebinding {
 	relation role: app/role
 }
 
-definition app/serviceuser {}
+definition app/serviceuser {
+	permission manage = org->serviceusermanage
+	relation org: app/organization
+}
 
 definition app/user {}
 
@@ -173,7 +179,7 @@ definition compute/order {
 	permission delete = owner + project->app_project_administer + project->compute_order_delete + granted->compute_order_delete
 	permission get = owner + project->app_project_administer + project->compute_order_get + granted->compute_order_get
 	relation granted: app/rolebinding
-	relation owner: app/user
+	relation owner: app/user | app/serviceuser
 	relation project: app/project
 	permission update = owner + project->app_project_administer + project->compute_order_update + granted->compute_order_update
 }
@@ -181,7 +187,7 @@ definition compute/order {
 definition compute/receipt {
 	permission get = owner + project->app_project_administer + project->compute_receipt_get + granted->compute_receipt_get
 	relation granted: app/rolebinding
-	relation owner: app/user
+	relation owner: app/user | app/serviceuser
 	relation project: app/project
 	permission update = owner + project->app_project_administer + project->compute_receipt_update + granted->compute_receipt_update
 }

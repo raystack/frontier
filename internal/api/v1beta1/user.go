@@ -5,6 +5,9 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -35,7 +38,6 @@ type UserService interface {
 	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
-	FetchCurrentUser(ctx context.Context) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error
@@ -108,7 +110,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	logger := grpczap.Extract(ctx)
 	ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "CreateUser"))
 
-	currentUserEmail, ok := user.GetEmailFromContext(ctx)
+	currentUserEmail, ok := authenticate.GetEmailFromContext(ctx)
 	if !ok {
 		return nil, grpcUnauthenticated
 	}
@@ -134,15 +136,17 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		name = str.GenerateUserSlug(email)
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
-
-	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyMetaSchemaError
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
+		if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyMetaSchemaError
+		}
 	}
 
 	// TODO might need to check the valid email form
@@ -206,18 +210,31 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetCurrentUserRequest) (*shieldv1beta1.GetCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	currentUser, err := h.GetLoggedInUser(ctx)
+	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
 	}
 
-	if err = h.setUserContextTokenInHeaders(ctx, currentUser); err != nil {
+	if err = h.setUserContextTokenInHeaders(ctx, principal.ID); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	userPB, err := transformUserToPB(currentUser)
+	if principal.Type == schema.ServiceUserPrincipal {
+		return &shieldv1beta1.GetCurrentUserResponse{
+			Serviceuser: &shieldv1beta1.ServiceUser{
+				Id:        principal.ServiceUser.ID,
+				Title:     principal.ServiceUser.Title,
+				State:     principal.ServiceUser.State,
+				Metadata:  nil,
+				CreatedAt: timestamppb.New(principal.ServiceUser.CreatedAt),
+				UpdatedAt: timestamppb.New(principal.ServiceUser.UpdatedAt),
+			},
+		}, nil
+	}
+
+	userPB, err := transformUserToPB(*principal.User)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -310,7 +327,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.UpdateCurrentUserRequest) (*shieldv1beta1.UpdateCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	email, ok := user.GetEmailFromContext(ctx)
+	email, ok := authenticate.GetEmailFromContext(ctx)
 	if !ok {
 		return nil, grpcUnauthenticated
 	}
@@ -452,11 +469,11 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *shieldv1bet
 
 func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByCurrentUserRequest) (*shieldv1beta1.GetOrganizationsByCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	currentUser, err := h.GetLoggedInUser(ctx)
+	princiapl, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
 	}
-	orgList, err := h.orgService.ListByUser(ctx, currentUser.ID)
+	orgList, err := h.orgService.ListByUser(ctx, princiapl.ID)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
