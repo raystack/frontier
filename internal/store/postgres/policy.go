@@ -21,13 +21,15 @@ type Policy struct {
 }
 
 type PolicyCols struct {
-	ID            string `db:"id"`
-	RoleID        string `db:"role_id"`
-	ResourceType  string `db:"resource_type"`
-	ResourceID    string `db:"resource_id"`
-	PrincipalID   string `db:"principal_id"`
-	PrincipalType string `db:"principal_type"`
-	Metadata      []byte `db:"metadata"`
+	ID            string    `db:"id"`
+	RoleID        string    `db:"role_id"`
+	ResourceType  string    `db:"resource_type"`
+	ResourceID    string    `db:"resource_id"`
+	PrincipalID   string    `db:"principal_id"`
+	PrincipalType string    `db:"principal_type"`
+	Metadata      []byte    `db:"metadata"`
+	CreatedAt     time.Time `db:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at"`
 }
 
 func (from Policy) transformToPolicy() (policy.Policy, error) {

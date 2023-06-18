@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/raystack/shield/core/relation"
@@ -19,22 +21,27 @@ type RelationService interface {
 }
 
 type UserService interface {
-	FetchCurrentUser(ctx context.Context) (user.User, error)
 	GetByID(ctx context.Context, id string) (user.User, error)
+}
+
+type AuthnService interface {
+	GetPrincipal(ctx context.Context) (authenticate.Principal, error)
 }
 
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	authnService    AuthnService
 }
 
 func NewService(repository Repository, relationService RelationService,
-	userService UserService) *Service {
+	userService UserService, authnService AuthnService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		authnService:    authnService,
 	}
 }
 
@@ -46,9 +53,9 @@ func (s Service) Get(ctx context.Context, idOrName string) (Organization, error)
 }
 
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
-		return Organization{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Organization{}, fmt.Errorf("%w: %s", user.ErrNotExist, err.Error())
 	}
 
 	newOrg, err := s.repository.Create(ctx, Organization{
@@ -60,7 +67,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	}
 
 	// attach user as owner
-	if err = s.AddMember(ctx, newOrg.ID, currentUser.ID, schema.OwnerRelationName); err != nil {
+	if err = s.AddMember(ctx, newOrg.ID, schema.OwnerRelationName, principal); err != nil {
 		return newOrg, err
 	}
 
@@ -72,15 +79,15 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 	return newOrg, nil
 }
 
-func (s Service) AddMember(ctx context.Context, orgID, userID, relationName string) error {
+func (s Service) AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error {
 	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        userID,
-			Namespace: schema.UserPrincipal,
+			ID:        principal.ID,
+			Namespace: principal.Type,
 		},
 		RelationName: relationName,
 	}); err != nil {
@@ -146,7 +153,10 @@ func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization,
 func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) error {
 	var err error
 	for _, userID := range userIDs {
-		if currentErr := s.AddMember(ctx, orgID, userID, schema.MemberRelationName); currentErr != nil {
+		if currentErr := s.AddMember(ctx, orgID, schema.MemberRelationName, authenticate.Principal{
+			ID:   userID,
+			Type: schema.UserPrincipal,
+		}); currentErr != nil {
 			err = errors.Join(err, currentErr)
 		}
 	}

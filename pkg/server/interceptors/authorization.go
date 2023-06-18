@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/shield/pkg/server/health"
+
 	"github.com/raystack/shield/internal/api/v1beta1"
 	"github.com/raystack/shield/internal/bootstrap/schema"
 	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
@@ -19,6 +21,10 @@ var (
 
 func UnaryAuthorizationCheck(identityHeader string) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		if _, ok := info.Server.(*health.Handler); ok {
+			// pass through health handler
+			return handler(ctx, req)
+		}
 		if len(identityHeader) != 0 {
 			// if configured, skip
 			return handler(ctx, req)
@@ -111,6 +117,51 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return nil
+	},
+
+	// serviceuser
+	"/raystack.shield.v1beta1.ShieldService/ListServiceUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.ListServiceUsersRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GetPermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/CreateServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateServiceUserRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ServiceUserManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/GetServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateServiceUserKeyRequest)
+		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/DeleteServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateServiceUserRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ServiceUserManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/ListServiceUserKeys": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.ListServiceUserKeysRequest)
+		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/CreateServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateServiceUserKeyRequest)
+		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/GetServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return nil
+	},
+	"/raystack.shield.v1beta1.ShieldService/DeleteServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.DeleteServiceUserKeyRequest)
+		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/CreateServiceUserSecret": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateServiceUserSecretRequest)
+		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/ListServiceUserSecrets": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.ListServiceUserSecretsRequest)
+		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/DeleteServiceUserSecret": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.DeleteServiceUserSecretRequest)
+		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
 	},
 
 	// org

@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/raystack/shield/core/authenticate"
+
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/mitchellh/mapstructure"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -15,7 +19,6 @@ import (
 	"github.com/raystack/shield/core/project"
 	"github.com/raystack/shield/core/relation"
 	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/internal/proxy/hook"
 	"github.com/raystack/shield/internal/proxy/middleware"
 	"github.com/raystack/shield/pkg/body_extractor"
@@ -122,7 +125,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 
 	identityProxyHeaderValue := res.Request.Header.Get(a.identityProxyHeaderKey)
 	attributes["user"] = identityProxyHeaderValue
-	res.Request = res.Request.WithContext(user.SetContextWithEmail(res.Request.Context(), identityProxyHeaderValue))
+	res.Request = res.Request.WithContext(authenticate.SetContextWithEmail(res.Request.Context(), identityProxyHeaderValue))
 
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)
@@ -319,10 +322,11 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 	for _, project := range projects {
 		for _, res := range resourceList {
 			resources = append(resources, resource.Resource{
-				Name:        res,
-				ProjectID:   project,
-				NamespaceID: namespace.CreateID(backendNamespace[0], resourceType[0]),
-				UserID:      userID,
+				Name:          res,
+				ProjectID:     project,
+				NamespaceID:   namespace.CreateID(backendNamespace[0], resourceType[0]),
+				PrincipalID:   userID,
+				PrincipalType: schema.UserPrincipal,
 			})
 		}
 	}

@@ -364,7 +364,7 @@ func (r GroupRepository) Delete(ctx context.Context, id string) error {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return group.ErrNotExist
 		default:
 			return err
 		}

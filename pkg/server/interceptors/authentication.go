@@ -4,15 +4,18 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/shield/pkg/server/health"
+
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/internal/api/v1beta1"
-	"github.com/raystack/shield/pkg/server/consts"
 	"google.golang.org/grpc"
 )
 
-func UnaryAuthenticationCheck(identityHeader string) grpc.UnaryServerInterceptor {
+func UnaryAuthenticationCheck() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		if len(identityHeader) != 0 {
-			// if configured, skip
+		if _, ok := info.Server.(*health.Handler); ok {
+			// pass through health handler
 			return handler(ctx, req)
 		}
 		if authenticationSkipList[info.FullMethod] {
@@ -28,17 +31,19 @@ func UnaryAuthenticationCheck(identityHeader string) grpc.UnaryServerInterceptor
 			return nil, errors.New("miss-configured server handler")
 		}
 
-		currentUser, err := serverHandler.GetLoggedInUser(ctx)
+		principal, err := serverHandler.GetLoggedInPrincipal(ctx)
 		if err != nil {
 			return nil, err
 		}
-		ctx = context.WithValue(ctx, consts.AuthenticatedUserContextKey, &currentUser)
+		ctx = authenticate.SetContextWithPrincipal(ctx, &principal)
 		return handler(ctx, req)
 	}
 }
 
 // authorizationValidationMap stores path to skip authentication, by default its enabled for all requests
 var authenticationSkipList = map[string]bool{
+	"/raystack.shield.v1beta1.ShieldService/GetJWKs":            true,
+	"/raystack.shield.v1beta1.ShieldService/GetServiceUserKey":  true,
 	"/raystack.shield.v1beta1.ShieldService/ListUsers":          true,
 	"/raystack.shield.v1beta1.ShieldService/ListOrganizations":  true,
 	"/raystack.shield.v1beta1.ShieldService/ListPermissions":    true,

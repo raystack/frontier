@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/shield/core/serviceuser"
+
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/raystack/shield/core/authenticate/token"
 
@@ -140,16 +142,16 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		deps.SessionService.Close()
 	}()
 
-	if err := deps.RegistrationService.InitFlows(context.Background()); err != nil {
+	if err := deps.AuthnService.InitFlows(context.Background()); err != nil {
 		logger.Warn("flows database cleanup failed", "err", err)
 	}
 	defer func() {
-		deps.RegistrationService.Close()
+		deps.AuthnService.Close()
 	}()
 
 	// serving proxies
 	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader,
-		cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
+		cfg.Proxy, deps.ResourceService, deps.RelationService, deps.AuthnService, deps.ProjectService)
 	if err != nil {
 		return err
 	}
@@ -194,7 +196,6 @@ func buildAPIDependencies(
 		}
 	}
 	tokenService := token.NewService(tokenKeySet, cfg.App.Authentication.Token.Issuer)
-
 	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
@@ -209,17 +210,34 @@ func buildAPIDependencies(
 	permissionRepository := postgres.NewPermissionRepository(dbc)
 	permissionService := permission.NewService(permissionRepository)
 
-	policyPGRepository := postgres.NewPolicyRepository(dbc)
-	policyService := policy.NewService(policyPGRepository, relationService)
-
 	roleRepository := postgres.NewRoleRepository(dbc)
 	roleService := role.NewService(roleRepository, relationService, permissionService)
 
+	policyPGRepository := postgres.NewPolicyRepository(dbc)
+	policyService := policy.NewService(policyPGRepository, relationService, roleService)
+
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, sessionService, relationService, tokenService)
+	userService := user.NewService(userRepository, relationService)
+
+	svUserRepo := postgres.NewServiceUserRepository(dbc)
+	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
+	serviceUserService := serviceuser.NewService(svUserRepo, scUserCredRepo, relationService)
+
+	var mailDialer mailer.Dialer = mailer.NewMockDialer()
+	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
+		mailDialer = mailer.NewDialerImpl(cfg.App.Mailer.SMTPHost,
+			cfg.App.Mailer.SMTPPort,
+			cfg.App.Mailer.SMTPUsername,
+			cfg.App.Mailer.SMTPPassword,
+			cfg.App.Mailer.SMTPInsecure,
+			cfg.App.Mailer.Headers,
+		)
+	}
+	authnService := authenticate.NewService(logger, cfg.App.Authentication,
+		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(groupRepository, relationService, userService)
+	groupService := group.NewService(groupRepository, relationService, userService, authnService)
 
 	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
 	bootstrapService := bootstrap.NewBootstrapService(
@@ -233,7 +251,7 @@ func buildAPIDependencies(
 	)
 
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
-	organizationService := organization.NewService(organizationRepository, relationService, userService)
+	organizationService := organization.NewService(organizationRepository, relationService, userService, authnService)
 
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService)
@@ -246,23 +264,10 @@ func buildAPIDependencies(
 		resourcePGRepository,
 		resourceBlobRepository,
 		relationService,
-		userService,
+		authnService,
 		projectService,
 		organizationService,
 	)
-
-	var mailDialer mailer.Dialer = mailer.NewMockDialer()
-	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
-		mailDialer = mailer.NewDialerImpl(cfg.App.Mailer.SMTPHost,
-			cfg.App.Mailer.SMTPPort,
-			cfg.App.Mailer.SMTPUsername,
-			cfg.App.Mailer.SMTPPassword,
-			cfg.App.Mailer.SMTPInsecure,
-			cfg.App.Mailer.Headers,
-		)
-	}
-	registrationService := authenticate.NewRegistrationService(logger, cfg.App.Authentication,
-		postgres.NewFlowRepository(logger, dbc), userService, mailDialer, tokenService)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
 		organizationService, groupService, userService, relationService)
@@ -283,11 +288,12 @@ func buildAPIDependencies(
 		RelationService:     relationService,
 		ResourceService:     resourceService,
 		SessionService:      sessionService,
-		RegistrationService: registrationService,
+		AuthnService:        authnService,
 		DeleterService:      cascadeDeleter,
 		MetaSchemaService:   metaschemaService,
 		BootstrapService:    bootstrapService,
 		InvitationService:   invitationService,
+		ServiceUserService:  serviceUserService,
 	}
 	return dependencies, nil
 }

@@ -80,8 +80,6 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		return nil, ErrNamespaceSplitNotation
 	}
 
-	// TODO(kushsharma): while creating policy, we should support
-	// for non-uuid role ids, like app_project_manager
 	newPolicy, err := h.policyService.Create(ctx, policy.Policy{
 		RoleID:        request.GetBody().GetRoleId(),
 		ResourceID:    resourceID,

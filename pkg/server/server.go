@@ -108,13 +108,6 @@ func Serve(
 		return err
 	}
 
-	// json web key set handler
-	if jwksHandler, err := NewTokenJWKSHandler(cfg.Authentication.Token.RSAPath); err != nil {
-		return err
-	} else {
-		httpMux.Handle(fmt.Sprintf("/%s", consts.JWKSHandlerPath), jwksHandler)
-	}
-
 	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
 	if err != nil {
 		logger.Warn("failed to load spa", "err", err)
@@ -185,12 +178,12 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 		grpc_middleware.ChainUnaryServer(
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
 			nrgrpc.UnaryServerInterceptor(nrApp),
-			interceptors.EnrichCtxWithIdentity(identityProxyHeader),
+			interceptors.EnrichCtxWithPassthroughEmail(identityProxyHeader),
 			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_validator.UnaryServerInterceptor(),
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
-			interceptors.UnaryAuthenticationCheck(identityProxyHeader),
+			interceptors.UnaryAuthenticationCheck(),
 			interceptors.UnaryAuthorizationCheck(identityProxyHeader),
 		),
 	)

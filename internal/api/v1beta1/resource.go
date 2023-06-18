@@ -104,14 +104,21 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *shieldv1bet
 		}
 	}
 
+	principalType := schema.UserPrincipal
+	principalID := request.GetBody().GetPrincipal()
+	if ns, id, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetPrincipal()); err == nil {
+		principalType = ns
+		principalID = id
+	}
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetBody().GetNamespace())
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
-		ID:          request.GetId(),
-		Name:        request.GetBody().GetName(),
-		ProjectID:   request.GetProjectId(),
-		NamespaceID: namespaceID,
-		UserID:      request.GetBody().GetUserId(),
-		Metadata:    metaDataMap,
+		ID:            request.GetId(),
+		Name:          request.GetBody().GetName(),
+		ProjectID:     request.GetProjectId(),
+		NamespaceID:   namespaceID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		Metadata:      metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -170,13 +177,31 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *shieldv1bet
 		return nil, grpcBadBodyError
 	}
 
+	var metaDataMap metadata.Metadata
+	var err error
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
+	}
+
+	principalType := schema.UserPrincipal
+	principalID := request.GetBody().GetPrincipal()
+	if ns, id, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetPrincipal()); err == nil {
+		principalType = ns
+		principalID = id
+	}
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetBody().GetNamespace())
 	updatedResource, err := h.resourceService.Update(ctx, resource.Resource{
-		ID:          request.GetId(),
-		ProjectID:   request.GetProjectId(),
-		NamespaceID: namespaceID,
-		Name:        request.GetBody().GetName(),
-		UserID:      request.GetBody().GetUserId(),
+		ID:            request.GetId(),
+		ProjectID:     request.GetProjectId(),
+		NamespaceID:   namespaceID,
+		Name:          request.GetBody().GetName(),
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		Metadata:      metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -206,6 +231,11 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *shieldv1bet
 	}, nil
 }
 
+func (h Handler) DeleteProjectResource(ctx context.Context, in *shieldv1beta1.DeleteProjectResourceRequest) (*shieldv1beta1.DeleteProjectResourceResponse, error) {
+	//TODO implement me
+	return nil, grpcOperationUnsupported
+}
+
 func transformResourceToPB(from resource.Resource) (*shieldv1beta1.Resource, error) {
 	var metadata *structpb.Struct
 	var err error
@@ -222,7 +252,7 @@ func transformResourceToPB(from resource.Resource) (*shieldv1beta1.Resource, err
 		Name:      from.Name,
 		ProjectId: from.ProjectID,
 		Namespace: from.NamespaceID,
-		UserId:    from.UserID,
+		Principal: schema.JoinNamespaceAndResourceID(from.PrincipalType, from.PrincipalID),
 		Metadata:  metadata,
 		CreatedAt: timestamppb.New(from.CreatedAt),
 		UpdatedAt: timestamppb.New(from.UpdatedAt),

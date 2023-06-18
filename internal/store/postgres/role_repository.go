@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/raystack/shield/core/user"
 
 	"database/sql"
 
@@ -170,11 +169,11 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 
 	var transformedRoles []role.Role
 	for _, o := range fetchedRoles {
-		transformedOrg, err := o.transformToRole()
+		transformedRole, err := o.transformToRole()
 		if err != nil {
 			return []role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
-		transformedRoles = append(transformedRoles, transformedOrg)
+		transformedRoles = append(transformedRoles, transformedRole)
 	}
 
 	return transformedRoles, nil
@@ -250,7 +249,7 @@ func (r RoleRepository) Delete(ctx context.Context, id string) error {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return role.ErrNotExist
 		default:
 			return err
 		}

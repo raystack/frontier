@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/stretchr/testify/assert"
@@ -35,15 +37,17 @@ var testPermissionAttributesMap = map[string]any{
 
 var expectedResources = []resource.Resource{
 	{
-		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		Name:        "resc1",
-		NamespaceID: "ns1/kind",
-		UserID:      "user1@raystack.com",
+		ProjectID:     "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		Name:          "resc1",
+		NamespaceID:   "ns1/kind",
+		PrincipalID:   "user1@raystack.com",
+		PrincipalType: schema.UserPrincipal,
 	}, {
-		ProjectID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
-		Name:        "resc2",
-		NamespaceID: "ns1/kind",
-		UserID:      "user1@raystack.com",
+		ProjectID:     "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+		Name:          "resc2",
+		NamespaceID:   "ns1/kind",
+		PrincipalID:   "user1@raystack.com",
+		PrincipalType: schema.UserPrincipal,
 	},
 }
 
@@ -83,9 +87,10 @@ func TestCreateResources(t *testing.T) {
 			a: Authz{},
 			want: []resource.Resource{
 				{
-					ProjectID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
-					Name:        "res1",
-					NamespaceID: "ns1/type",
+					ProjectID:     "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+					Name:          "res1",
+					NamespaceID:   "ns1/type",
+					PrincipalType: schema.UserPrincipal,
 				},
 			},
 			err: nil,
@@ -314,21 +319,24 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:        testPermissionAttributesMap["resource"].([]string)[0],
-			ProjectID:   testPermissionAttributesMap["project"].(string),
-			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
-			UserID:      testPermissionAttributesMap["user"].(string),
+			Name:      testPermissionAttributesMap["resource"].([]string)[0],
+			ProjectID: testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string),
+				testPermissionAttributesMap["resource_type"].(string)),
+			PrincipalID:   testPermissionAttributesMap["user"].(string),
+			PrincipalType: schema.UserPrincipal,
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:          utils.NewString(),
-			URN:         "new-resource-urn",
-			ProjectID:   rsc.ProjectID,
-			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.org",
-			Name:        rsc.Name,
-			CreatedAt:   time.Time{},
-			UpdatedAt:   time.Time{},
+			ID:            utils.NewString(),
+			URN:           "new-resource-urn",
+			ProjectID:     rsc.ProjectID,
+			NamespaceID:   rsc.NamespaceID,
+			PrincipalID:   "user@raystack.org",
+			PrincipalType: schema.UserPrincipal,
+			Name:          rsc.Name,
+			CreatedAt:     time.Time{},
+			UpdatedAt:     time.Time{},
 		}, nil)
 
 		resp, err := a.ServeHook(response, nil)
@@ -405,10 +413,12 @@ func TestServeHook(t *testing.T) {
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
-			Name:        "bar",
-			ProjectID:   testPermissionAttributesMap["project"].(string),
-			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
-			UserID:      testPermissionAttributesMap["user"].(string),
+			Name:      "bar",
+			ProjectID: testPermissionAttributesMap["project"].(string),
+			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string),
+				testPermissionAttributesMap["resource_type"].(string)),
+			PrincipalID:   testPermissionAttributesMap["user"].(string),
+			PrincipalType: schema.UserPrincipal,
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
@@ -416,7 +426,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.org",
+			PrincipalID: "user@raystack.org",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -513,7 +523,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.org",
+			PrincipalID: "user@raystack.org",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -611,7 +621,7 @@ func TestServeHook(t *testing.T) {
 			URN:         "new-resource-urn",
 			ProjectID:   rsc.ProjectID,
 			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.org",
+			PrincipalID: "user@raystack.org",
 			Name:        "bar",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -704,14 +714,15 @@ func TestServeHook(t *testing.T) {
 		}
 
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
-			ID:          utils.NewString(),
-			URN:         "new-resource-urn",
-			ProjectID:   rsc.ProjectID,
-			NamespaceID: rsc.NamespaceID,
-			UserID:      "user@raystack.org",
-			Name:        "bar",
-			CreatedAt:   time.Time{},
-			UpdatedAt:   time.Time{},
+			ID:            utils.NewString(),
+			URN:           "new-resource-urn",
+			ProjectID:     rsc.ProjectID,
+			NamespaceID:   rsc.NamespaceID,
+			PrincipalID:   "user@raystack.org",
+			PrincipalType: schema.UserPrincipal,
+			Name:          "bar",
+			CreatedAt:     time.Time{},
+			UpdatedAt:     time.Time{},
 		}, nil)
 
 		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.Relation")).Return(

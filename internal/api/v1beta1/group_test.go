@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/raystack/shield/core/group"
@@ -192,7 +194,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
@@ -213,7 +215,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrConflict)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
@@ -233,7 +235,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
@@ -253,7 +255,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: "some-org-id",
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{
 				OrgId: "some-org-id",
@@ -274,7 +276,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrNotExist)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
@@ -305,7 +307,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &shieldv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,

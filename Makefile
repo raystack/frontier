@@ -1,10 +1,10 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
 NAME=github.com/raystack/shield
-TAG := "$(shell git rev-list --tags --max-count=1)"
-VERSION := "$(shell git describe --tags ${TAG})"
+TAG := $(shell git rev-list --tags --max-count=1)
+VERSION := $(shell git describe --tags ${TAG})
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "bda48839f4dc4511615cdbbba45ea48f4a756e9a"
+PROTON_COMMIT := "c0f6108353d92ccef95a1c0f145b54b48e1e4c8a"
 
 ui:
 	@echo " > generating ui build"
@@ -29,7 +29,7 @@ lint-fix:
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out -count 3
+	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out -count 2
 
 test-all: test e2e-smoke-test e2e-regression-test integration-test ## Run all tests
 
@@ -69,7 +69,7 @@ clean-doc:
 doc: clean-doc ## Generate api and cli documentation
 	@echo "> generate cli docs"
 	@go run . reference --plain | sed '1 s,.*,# CLI,' > ./docs/docs/reference/cli.md
-	@echo ">genetaye api docs"
+	@echo ">generate api docs"
 	@cd $(CURDIR)/docs/docs; yarn docusaurus clean-api-docs all;  yarn docusaurus gen-api-docs all
 
 doc-build: ## Run documentation locally

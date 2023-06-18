@@ -11,8 +11,6 @@ import (
 
 	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/raystack/shield/core/user"
-
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
@@ -38,14 +36,16 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		res.ID = uuid.New().String()
 	}
 
-	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
+	principalID := sql.NullString{String: res.PrincipalID, Valid: res.PrincipalID != ""}
+	principalType := sql.NullString{String: res.PrincipalType, Valid: res.PrincipalType != ""}
+
 	marshaledMetadata, err := json.Marshal(res.Metadata)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
 	}
 
 	// TODO(kushsharma): bad actors can bloat a neighbouring urn namespace by following the same
-	// generation strategy, we need to restrict a this arbitrary urn generation to a proper pattern
+	// generation strategy, we need to restrict this arbitrary urn generation to a proper pattern
 	// e.g. srn:resource:<namespace>:<project-id>:<resource-id>
 	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
 		goqu.Record{
@@ -54,14 +54,16 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			"name":           res.Name,
 			"project_id":     res.ProjectID,
 			"namespace_name": res.NamespaceID,
-			"user_id":        userID,
+			"principal_id":   principalID,
+			"principal_type": principalType,
 			"metadata":       marshaledMetadata,
 		}).OnConflict(
 		goqu.DoUpdate("urn", goqu.Record{
 			"name":           res.Name,
 			"project_id":     res.ProjectID,
 			"namespace_name": res.NamespaceID,
-			"user_id":        userID,
+			"principal_id":   principalID,
+			"principal_type": principalType,
 			"metadata":       marshaledMetadata,
 		})).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
@@ -94,7 +96,10 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
 	if flt.UserID != "" {
-		sqlStatement = sqlStatement.Where(goqu.Ex{"user_id": flt.UserID})
+		sqlStatement = sqlStatement.Where(goqu.Ex{"principal_id": flt.UserID})
+	}
+	if flt.ServiceUserID != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"principal_id": flt.ServiceUserID})
 	}
 	if flt.NamespaceID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"namespace_name": flt.NamespaceID})
@@ -228,19 +233,14 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 	return resourceModel.transformToResource()
 }
 
-func buildGetResourcesByNamespaceQuery(dialect goqu.DialectWrapper, name string, namespace string) (string, interface{}, error) {
-	getResourcesByURNQuery, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
-		"name":           name,
-		"namespace_name": namespace,
-	}).ToSQL()
-
-	return getResourcesByURNQuery, params, err
-}
-
 func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns string) (resource.Resource, error) {
 	var fetchedResource Resource
 
-	query, _, err := buildGetResourcesByNamespaceQuery(dialect, name, ns)
+	//TODO(kushsharma): fix params getting appended to query instead of being passed as args
+	query, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
+		"name":           name,
+		"namespace_name": ns,
+	}).ToSQL()
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -279,7 +279,7 @@ func (r ResourceRepository) Delete(ctx context.Context, id string) error {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return resource.ErrNotExist
 		default:
 			return err
 		}

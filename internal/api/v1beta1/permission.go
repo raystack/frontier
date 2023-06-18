@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//go:generate mockery --name=PermissionService -r --case underscore --with-expecter --structname PermissionService --filename action_service.go --output=./mocks
+//go:generate mockery --name=PermissionService -r --case underscore --with-expecter --structname PermissionService --filename permission_service.go --output=./mocks
 type PermissionService interface {
 	Get(ctx context.Context, id string) (permission.Permission, error)
 	List(ctx context.Context, filter permission.Filter) ([]permission.Permission, error)

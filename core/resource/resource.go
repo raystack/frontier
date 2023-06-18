@@ -26,13 +26,14 @@ type ConfigRepository interface {
 }
 
 type Resource struct {
-	ID          string `json:"id"`
-	URN         string
-	Name        string
-	ProjectID   string `json:"project_id"`
-	NamespaceID string `json:"namespace_id"`
-	UserID      string `json:"user_id"`
-	Metadata    metadata.Metadata
+	ID            string `json:"id"`
+	URN           string
+	Name          string
+	ProjectID     string `json:"project_id"`
+	NamespaceID   string `json:"namespace_id"`
+	PrincipalID   string `json:"principal_id"`
+	PrincipalType string `json:"principal_type"`
+	Metadata      metadata.Metadata
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

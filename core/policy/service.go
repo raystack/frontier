@@ -3,6 +3,8 @@ package policy
 import (
 	"context"
 
+	"github.com/raystack/shield/core/role"
+
 	"github.com/raystack/shield/core/relation"
 	"github.com/raystack/shield/internal/bootstrap/schema"
 )
@@ -12,15 +14,21 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
+type RoleService interface {
+	Get(ctx context.Context, id string) (role.Role, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
+	roleService     RoleService
 }
 
-func NewService(repository Repository, relationService RelationService) *Service {
+func NewService(repository Repository, relationService RelationService, roleService RoleService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
+		roleService:     roleService,
 	}
 }
 
@@ -33,6 +41,13 @@ func (s Service) List(ctx context.Context, f Filter) ([]Policy, error) {
 }
 
 func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
+	// check if role exists and get its ID if it was passed by name
+	policyRole, err := s.roleService.Get(ctx, policy.RoleID)
+	if err != nil {
+		return Policy{}, err
+	}
+	policy.RoleID = policyRole.ID
+
 	pol, err := s.repository.Upsert(ctx, policy)
 	if err != nil {
 		return Policy{}, err
