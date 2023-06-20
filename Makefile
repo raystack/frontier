@@ -31,7 +31,7 @@ lint-fix:
 test: ## Run tests
 	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out -count 2
 
-test-all: test e2e-smoke-test e2e-regression-test integration-test ## Run all tests
+test-all: test e2e-smoke-test e2e-regression-test integration-test lint ## Run all tests
 
 e2e-test: ## Run all e2e tests
 	## run `docker network prune` if docker fails to find non-overlapping ipv4 address pool
