@@ -71,6 +71,8 @@ doc: clean-doc ## Generate api and cli documentation
 	@go run . reference --plain | sed '1 s,.*,# CLI,' > ./docs/docs/reference/cli.md
 	@echo ">generate api docs"
 	@cd $(CURDIR)/docs/docs; yarn docusaurus clean-api-docs all;  yarn docusaurus gen-api-docs all
+	@echo "> format api docs"
+	@npx prettier --write $(CURDIR)/docs/docs/apis/*.mdx
 
 doc-build: ## Run documentation locally
 	@echo "> building docs"

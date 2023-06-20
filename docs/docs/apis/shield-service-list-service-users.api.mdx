@@ -1,13 +1,14 @@
 ---
-id: shield-service-get-project-resource
-title: "Get Resource by ID"
-description: "Get Resource by ID"
-sidebar_label: "Get Resource by ID"
+id: shield-service-list-service-users
+title: "List service users of an organization"
+description: "Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination."
+sidebar_label: "List service users of an organization"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "operationId": "ShieldService_GetProjectResource",
+    "description": "Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.",
+    "operationId": "ShieldService_ListServiceUsers",
     "responses":
       {
         "200":
@@ -22,32 +23,38 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "resource":
+                            "serviceusers":
                               {
-                                "type": "object",
-                                "properties":
+                                "type": "array",
+                                "items":
                                   {
-                                    "id": { "type": "string" },
-                                    "name": { "type": "string" },
-                                    "createdAt":
+                                    "type": "object",
+                                    "properties":
                                       {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was created.",
+                                        "id": { "type": "string" },
+                                        "title":
+                                          {
+                                            "type": "string",
+                                            "example": "Order Service",
+                                            "description": "User friendly name of the service user.",
+                                          },
+                                        "metadata": { "type": "object" },
+                                        "createdAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the user was created.",
+                                          },
+                                        "updatedAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the user was last updated.",
+                                          },
+                                        "state": { "type": "string" },
                                       },
-                                    "updatedAt":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was last updated.",
-                                      },
-                                    "urn": { "type": "string" },
-                                    "projectId": { "type": "string" },
-                                    "namespace": { "type": "string" },
-                                    "principal": { "type": "string" },
-                                    "metadata": { "type": "object" },
                                   },
                               },
                           },
@@ -239,22 +246,23 @@ api:
     "parameters":
       [
         {
-          "name": "projectId",
-          "in": "path",
+          "name": "orgId",
+          "description": "The organization ID to filter service users by.",
+          "in": "query",
           "required": true,
           "schema": { "type": "string" },
         },
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
+          "name": "state",
+          "description": "The state to filter by. It can be enabled or disabled.",
+          "in": "query",
+          "required": false,
           "schema": { "type": "string" },
         },
       ],
-    "tags": ["Resource"],
-    "description": "Get Resource by ID",
+    "tags": ["ServiceUser"],
     "method": "get",
-    "path": "/v1beta1/projects/{projectId}/resources/{id}",
+    "path": "/v1beta1/serviceusers",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "info":
       {
@@ -275,32 +283,40 @@ api:
       },
     "postman":
       {
-        "name": "Get Resource by ID",
-        "description": { "type": "text/plain" },
+        "name": "List service users of an organization",
+        "description":
+          {
+            "content": "Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.",
+            "type": "text/plain",
+          },
         "url":
           {
-            "path": ["v1beta1", "projects", ":projectId", "resources", ":id"],
+            "path": ["v1beta1", "serviceusers"],
             "host": ["{{baseUrl}}"],
-            "query": [],
-            "variable":
+            "query":
               [
                 {
                   "disabled": false,
                   "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
+                    {
+                      "content": "(Required) The organization ID to filter service users by.",
+                      "type": "text/plain",
+                    },
+                  "key": "orgId",
                   "value": "",
-                  "key": "projectId",
                 },
                 {
                   "disabled": false,
                   "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
+                    {
+                      "content": "The state to filter by. It can be enabled or disabled.",
+                      "type": "text/plain",
+                    },
+                  "key": "state",
                   "value": "",
-                  "key": "id",
                 },
               ],
+            "variable": [],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
         "method": "GET",
@@ -320,15 +336,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get Resource by ID
+## List service users of an organization
 
-Get Resource by ID
+Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"projectId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"The organization ID to filter service users by.","in":"query","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"state","description":"The state to filter by. It can be enabled or disabled.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resource</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"projectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resource\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n    \"urn\": \"string\",\n    \"projectId\": \"string\",\n    \"namespace\": \"string\",\n    \"principal\": \"string\",\n    \"metadata\": {}\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>serviceusers</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"Order Service","description":"User friendly name of the service user."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"serviceusers\": [\n    {\n      \"id\": \"string\",\n      \"title\": \"Order Service\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"state\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

@@ -1,13 +1,14 @@
 ---
-id: shield-service-get-project-resource
-title: "Get Resource by ID"
-description: "Get Resource by ID"
-sidebar_label: "Get Resource by ID"
+id: shield-service-list-service-user-keys
+title: "List service user keys"
+description: "List all the keys of a service user with its details except jwk."
+sidebar_label: "List service user keys"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "operationId": "ShieldService_GetProjectResource",
+    "description": "List all the keys of a service user with its details except jwk.",
+    "operationId": "ShieldService_ListServiceUserKeys",
     "responses":
       {
         "200":
@@ -22,32 +23,26 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "resource":
+                            "keys":
                               {
-                                "type": "object",
-                                "properties":
+                                "type": "array",
+                                "items":
                                   {
-                                    "id": { "type": "string" },
-                                    "name": { "type": "string" },
-                                    "createdAt":
+                                    "type": "object",
+                                    "properties":
                                       {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was created.",
+                                        "id": { "type": "string" },
+                                        "title": { "type": "string" },
+                                        "principalId": { "type": "string" },
+                                        "publicKey": { "type": "string" },
+                                        "createdAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time when the secret was created.",
+                                          },
                                       },
-                                    "updatedAt":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was last updated.",
-                                      },
-                                    "urn": { "type": "string" },
-                                    "projectId": { "type": "string" },
-                                    "namespace": { "type": "string" },
-                                    "principal": { "type": "string" },
-                                    "metadata": { "type": "object" },
                                   },
                               },
                           },
@@ -239,22 +234,16 @@ api:
     "parameters":
       [
         {
-          "name": "projectId",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-        {
           "name": "id",
+          "description": "The unique ID of the service user to list keys for.",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
-    "tags": ["Resource"],
-    "description": "Get Resource by ID",
+    "tags": ["ServiceUser"],
     "method": "get",
-    "path": "/v1beta1/projects/{projectId}/resources/{id}",
+    "path": "/v1beta1/serviceusers/{id}/keys",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "info":
       {
@@ -275,11 +264,15 @@ api:
       },
     "postman":
       {
-        "name": "Get Resource by ID",
-        "description": { "type": "text/plain" },
+        "name": "List service user keys",
+        "description":
+          {
+            "content": "List all the keys of a service user with its details except jwk.",
+            "type": "text/plain",
+          },
         "url":
           {
-            "path": ["v1beta1", "projects", ":projectId", "resources", ":id"],
+            "path": ["v1beta1", "serviceusers", ":id", "keys"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -287,15 +280,10 @@ api:
                 {
                   "disabled": false,
                   "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
-                  "value": "",
-                  "key": "projectId",
-                },
-                {
-                  "disabled": false,
-                  "description":
-                    { "content": "(Required) ", "type": "text/plain" },
+                    {
+                      "content": "(Required) The unique ID of the service user to list keys for.",
+                      "type": "text/plain",
+                    },
                   "type": "any",
                   "value": "",
                   "key": "id",
@@ -320,15 +308,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get Resource by ID
+## List service user keys
 
-Get Resource by ID
+List all the keys of a service user with its details except jwk.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"projectId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to list keys for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resource</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"projectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resource\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n    \"urn\": \"string\",\n    \"projectId\": \"string\",\n    \"namespace\": \"string\",\n    \"principal\": \"string\",\n    \"metadata\": {}\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>keys</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principalId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"publicKey"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the secret was created."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"keys\": [\n    {\n      \"id\": \"string\",\n      \"title\": \"string\",\n      \"principalId\": \"string\",\n      \"publicKey\": \"string\",\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

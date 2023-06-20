@@ -1,13 +1,14 @@
 ---
-id: shield-service-get-project-resource
-title: "Get Resource by ID"
-description: "Get Resource by ID"
-sidebar_label: "Get Resource by ID"
+id: shield-service-create-service-user
+title: "Create Service User"
+description: "Create a service user."
+sidebar_label: "Create Service User"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "operationId": "ShieldService_GetProjectResource",
+    "description": "Create a service user.",
+    "operationId": "ShieldService_CreateServiceUser",
     "responses":
       {
         "200":
@@ -22,32 +23,34 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "resource":
+                            "serviceuser":
                               {
                                 "type": "object",
                                 "properties":
                                   {
                                     "id": { "type": "string" },
-                                    "name": { "type": "string" },
+                                    "title":
+                                      {
+                                        "type": "string",
+                                        "example": "Order Service",
+                                        "description": "User friendly name of the service user.",
+                                      },
+                                    "metadata": { "type": "object" },
                                     "createdAt":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was created.",
+                                        "description": "The time the user was created.",
                                       },
                                     "updatedAt":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was last updated.",
+                                        "description": "The time the user was last updated.",
                                       },
-                                    "urn": { "type": "string" },
-                                    "projectId": { "type": "string" },
-                                    "namespace": { "type": "string" },
-                                    "principal": { "type": "string" },
-                                    "metadata": { "type": "object" },
+                                    "state": { "type": "string" },
                                   },
                               },
                           },
@@ -236,26 +239,52 @@ api:
               },
           },
       },
-    "parameters":
-      [
-        {
-          "name": "projectId",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-      ],
-    "tags": ["Resource"],
-    "description": "Get Resource by ID",
-    "method": "get",
-    "path": "/v1beta1/projects/{projectId}/resources/{id}",
+    "requestBody":
+      {
+        "content":
+          {
+            "application/json":
+              {
+                "schema":
+                  {
+                    "type": "object",
+                    "properties":
+                      {
+                        "body":
+                          {
+                            "type": "object",
+                            "properties":
+                              {
+                                "title":
+                                  {
+                                    "type": "string",
+                                    "example": "Order Service",
+                                    "description": "User friendly name of the service user.",
+                                  },
+                                "metadata": { "type": "object" },
+                              },
+                          },
+                        "orgId":
+                          {
+                            "type": "string",
+                            "description": "The organization ID to which the service user belongs to.",
+                          },
+                      },
+                    "required": ["orgId"],
+                  },
+              },
+          },
+        "required": true,
+      },
+    "tags": ["ServiceUser"],
+    "method": "post",
+    "path": "/v1beta1/serviceusers",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "jsonRequestBodyExample":
+      {
+        "body": { "title": "Order Service", "metadata": {} },
+        "orgId": "string",
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -275,38 +304,31 @@ api:
       },
     "postman":
       {
-        "name": "Get Resource by ID",
-        "description": { "type": "text/plain" },
+        "name": "Create Service User",
+        "description":
+          { "content": "Create a service user.", "type": "text/plain" },
         "url":
           {
-            "path": ["v1beta1", "projects", ":projectId", "resources", ":id"],
+            "path": ["v1beta1", "serviceusers"],
             "host": ["{{baseUrl}}"],
             "query": [],
-            "variable":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
-                  "value": "",
-                  "key": "projectId",
-                },
-                {
-                  "disabled": false,
-                  "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
-                  "value": "",
-                  "key": "id",
-                },
-              ],
+            "variable": [],
           },
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "GET",
+        "header":
+          [
+            { "key": "Content-Type", "value": "application/json" },
+            { "key": "Accept", "value": "application/json" },
+          ],
+        "method": "POST",
+        "body":
+          {
+            "mode": "raw",
+            "raw": '""',
+            "options": { "raw": { "language": "json" } },
+          },
       },
   }
-sidebar_class_name: "get api-method"
+sidebar_class_name: "post api-method"
 info_path: apis/shield-administration-api
 custom_edit_url: null
 ---
@@ -320,15 +342,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get Resource by ID
+## Create Service User
 
-Get Resource by ID
+Create a service user.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"projectId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>body</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"Order Service","description":"User friendly name of the service user."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The organization ID to which the service user belongs to."}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resource</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"projectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resource\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n    \"urn\": \"string\",\n    \"projectId\": \"string\",\n    \"namespace\": \"string\",\n    \"principal\": \"string\",\n    \"metadata\": {}\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>serviceuser</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"Order Service","description":"User friendly name of the service user."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"serviceuser\": {\n    \"id\": \"string\",\n    \"title\": \"Order Service\",\n    \"metadata\": {},\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n    \"state\": \"string\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 
