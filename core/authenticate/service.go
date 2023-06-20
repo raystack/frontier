@@ -2,9 +2,12 @@ package authenticate
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	shieldsession "github.com/raystack/shield/core/authenticate/session"
 	"github.com/raystack/shield/core/serviceuser"
@@ -50,6 +53,7 @@ type UserService interface {
 
 type ServiceUserService interface {
 	GetByToken(ctx context.Context, token string) (serviceuser.ServiceUser, error)
+	GetBySecret(ctx context.Context, clientID, clientSecret string) (serviceuser.ServiceUser, error)
 }
 
 type FlowRepository interface {
@@ -381,22 +385,33 @@ func (s Service) GetPrincipal(ctx context.Context) (Principal, error) {
 	// check for token
 	userToken, tokenOK := GetTokenFromContext(ctx)
 	if tokenOK {
-		// extract user from token if present as its created by shield
-		userID, _, err := s.internalTokenService.Parse(ctx, []byte(userToken))
-		if err == nil && utils.IsValidUUID(userID) {
-			// userID is a valid uuid
-			currentUser, err := s.userService.GetByID(ctx, userID)
-			if err != nil {
-				return Principal{}, err
-			}
-			return Principal{
-				ID:   currentUser.ID,
-				Type: schema.UserPrincipal,
-				User: &currentUser,
-			}, nil
-		}
+		insecureJWT, err := jwt.ParseInsecure([]byte(userToken))
 		if err != nil {
-			s.log.Debug("failed to parse as internal token ", "err", err)
+			return Principal{}, errors.ErrUnauthenticated
+		}
+
+		//check type of jwt
+		if val, ok := insecureJWT.Get(token.GeneratedClaimKey); ok {
+			if claimVal, ok := val.(string); ok && claimVal == token.GeneratedClaimValue {
+				// extract user from token if present as its created by shield
+				userID, _, err := s.internalTokenService.Parse(ctx, []byte(userToken))
+				if err == nil && utils.IsValidUUID(userID) {
+					// userID is a valid uuid
+					currentUser, err := s.userService.GetByID(ctx, userID)
+					if err != nil {
+						return Principal{}, err
+					}
+					return Principal{
+						ID:   currentUser.ID,
+						Type: schema.UserPrincipal,
+						User: &currentUser,
+					}, nil
+				}
+				if err != nil {
+					s.log.Debug("failed to parse as internal token ", "err", err)
+					return Principal{}, errors.ErrUnauthenticated
+				}
+			}
 		}
 
 		// extract user from token if it's a service user
@@ -410,6 +425,36 @@ func (s Service) GetPrincipal(ctx context.Context) (Principal, error) {
 		}
 		if err != nil {
 			s.log.Debug("failed to parse as user token ", "err", err)
+			return Principal{}, errors.ErrUnauthenticated
+		}
+	}
+
+	// check for client secret
+	userSecretRaw, secretOK := GetSecretFromContext(ctx)
+	if secretOK {
+		// verify client secret
+		userSecret, err := base64.StdEncoding.DecodeString(userSecretRaw)
+		if err != nil {
+			return Principal{}, errors.ErrUnauthenticated
+		}
+		userSecretParts := strings.Split(string(userSecret), ":")
+		if len(userSecretParts) != 2 {
+			return Principal{}, errors.ErrUnauthenticated
+		}
+		clientID, clientSecret := userSecretParts[0], userSecretParts[1]
+
+		// extract user from secret if it's a service user
+		serviceUser, err := s.serviceUserService.GetBySecret(ctx, clientID, clientSecret)
+		if err == nil {
+			return Principal{
+				ID:          serviceUser.ID,
+				Type:        schema.ServiceUserPrincipal,
+				ServiceUser: &serviceUser,
+			}, nil
+		}
+		if err != nil {
+			s.log.Debug("failed to parse as user token ", "err", err)
+			return Principal{}, errors.ErrUnauthenticated
 		}
 	}
 

@@ -21,9 +21,9 @@ type ServiceUserService interface {
 	CreateKey(ctx context.Context, cred serviceuser.Credential) (serviceuser.Credential, error)
 	GetKey(ctx context.Context, credID string) (serviceuser.Credential, error)
 	DeleteKey(ctx context.Context, credID string) error
-	CreateSecret(ctx context.Context, serviceUserID string) (serviceuser.Credential, error)
-	GetSecret(ctx context.Context, serviceUserID string, credID string) (serviceuser.Credential, error)
-	DeleteSecret(ctx context.Context, serviceUserID string, credID string) error
+	CreateSecret(ctx context.Context, credential serviceuser.Credential) (serviceuser.Secret, error)
+	ListSecret(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error)
+	DeleteSecret(ctx context.Context, credID string) error
 }
 
 func (h Handler) ListServiceUsers(ctx context.Context, request *shieldv1beta1.ListServiceUsersRequest) (*shieldv1beta1.ListServiceUsersResponse, error) {
@@ -195,15 +195,53 @@ func (h Handler) DeleteServiceUserKey(ctx context.Context, request *shieldv1beta
 }
 
 func (h Handler) CreateServiceUserSecret(ctx context.Context, request *shieldv1beta1.CreateServiceUserSecretRequest) (*shieldv1beta1.CreateServiceUserSecretResponse, error) {
-	return nil, grpcOperationUnsupported
+	logger := grpczap.Extract(ctx)
+	secret, err := h.serviceUserService.CreateSecret(ctx, serviceuser.Credential{
+		ServiceUserID: request.GetId(),
+		Title:         request.GetTitle(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &shieldv1beta1.CreateServiceUserSecretResponse{
+		Secret: &shieldv1beta1.SecretCredential{
+			Id:        secret.ID,
+			Secret:    string(secret.Value),
+			CreatedAt: timestamppb.New(secret.CreatedAt),
+		},
+	}, nil
 }
 
 func (h Handler) ListServiceUserSecrets(ctx context.Context, request *shieldv1beta1.ListServiceUserSecretsRequest) (*shieldv1beta1.ListServiceUserSecretsResponse, error) {
-	return nil, grpcOperationUnsupported
+	logger := grpczap.Extract(ctx)
+
+	credentials, err := h.serviceUserService.ListSecret(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	secretsPB := make([]*shieldv1beta1.SecretCredential, 0, len(credentials))
+	for _, sec := range credentials {
+		secretsPB = append(secretsPB, &shieldv1beta1.SecretCredential{
+			Id:        sec.ID,
+			Title:     sec.Title,
+			CreatedAt: timestamppb.New(sec.CreatedAt),
+		})
+	}
+	return &shieldv1beta1.ListServiceUserSecretsResponse{
+		Secrets: secretsPB,
+	}, nil
 }
 
 func (h Handler) DeleteServiceUserSecret(ctx context.Context, request *shieldv1beta1.DeleteServiceUserSecretRequest) (*shieldv1beta1.DeleteServiceUserSecretResponse, error) {
-	return nil, grpcOperationUnsupported
+	logger := grpczap.Extract(ctx)
+	err := h.serviceUserService.DeleteSecret(ctx, request.GetSecretId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &shieldv1beta1.DeleteServiceUserSecretResponse{}, nil
 }
 
 func transformServiceUserToPB(usr serviceuser.ServiceUser) (*shieldv1beta1.ServiceUser, error) {

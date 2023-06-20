@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -276,6 +277,52 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().False(checkPermAfterResp.Status)
+	})
+}
+
+func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
+	var svUserSecret *shieldv1beta1.SecretCredential
+	var svKeySecret string
+	s.Run("1. create a service user in an org and generate a secret", func() {
+		ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: testbench.OrgAdminEmail,
+		}))
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-sv-user-1",
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserSecretRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserSecretResp)
+		svUserSecret = createServiceUserSecretResp.GetSecret()
+		svKeySecret = fmt.Sprintf("%s:%s", svUserSecret.GetId(),
+			svUserSecret.GetSecret())
+		svKeySecret = base64.StdEncoding.EncodeToString([]byte(svKeySecret))
+	})
+	s.Run("2. fetch current profile and ensure request is authenticated using service user key", func() {
+		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic " + svKeySecret,
+		}))
+
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &shieldv1beta1.GetCurrentUserRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getCurrentUserResp)
+	})
+	s.Run("3. passing invalid type of jwt should fail", func() {
+		ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic randomsecret",
+		}))
+		_, err := s.testBench.Client.GetCurrentUser(ctx, &shieldv1beta1.GetCurrentUserRequest{})
+		s.Assert().Error(err)
 	})
 }
 

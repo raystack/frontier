@@ -30,8 +30,6 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 	stmt := dialect.Select(
 		goqu.I("s.id"),
 		goqu.I("s.serviceuser_id"),
-		goqu.I("s.secret_hash"),
-		goqu.I("s.public_key"),
 		goqu.I("s.title"),
 		goqu.I("s.metadata"),
 		goqu.I("s.created_at"),
@@ -40,6 +38,16 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
+		})
+	}
+	if flt.IsKey {
+		stmt = stmt.Where(goqu.Ex{
+			"public_key": goqu.Op{"is not": nil},
+		})
+	}
+	if flt.IsSecret {
+		stmt = stmt.Where(goqu.Ex{
+			"secret_hash": goqu.Op{"is not": nil},
 		})
 	}
 
@@ -76,6 +84,7 @@ func (s ServiceUserCredentialRepository) Create(ctx context.Context, credential 
 	if err != nil {
 		return serviceuser.Credential{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
 	publicKeyJson, err := json.Marshal(credential.PublicKey)
 	if err != nil {
 		return serviceuser.Credential{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -86,7 +95,7 @@ func (s ServiceUserCredentialRepository) Create(ctx context.Context, credential 
 		goqu.Record{
 			"id":             credential.ID,
 			"serviceuser_id": credential.ServiceUserID,
-			"secret_hash":    credential.SecretHash,
+			"secret_hash":    string(credential.SecretHash),
 			"public_key":     publicKeyJson,
 			"title":          credential.Title,
 			"metadata":       marshaledMetadata,

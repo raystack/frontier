@@ -2,9 +2,13 @@ package serviceuser
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
+	"github.com/gtank/cryptopasta"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/raystack/shield/core/relation"
@@ -105,17 +109,27 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	// TODO(kushsharma): delete all of serviceuser relationships
+	// delete all of serviceuser relationships
 	// before deleting the serviceuser
+	if err := s.relService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        id,
+			Namespace: schema.ServiceUserPrincipal,
+		},
+	}); err != nil {
+		return err
+	}
 	return s.repo.Delete(ctx, id)
 }
 
 func (s Service) ListKeys(ctx context.Context, serviceUserID string) ([]Credential, error) {
 	return s.credRepo.List(ctx, Filter{
 		ServiceUserID: serviceUserID,
+		IsKey:         true,
 	})
 }
 
+// CreateKey creates a key pair for the service user
 func (s Service) CreateKey(ctx context.Context, credential Credential) (Credential, error) {
 	credential.ID = uuid.New().String()
 
@@ -149,28 +163,73 @@ func (s Service) CreateKey(ctx context.Context, credential Credential) (Credenti
 }
 
 func (s Service) GetKey(ctx context.Context, credID string) (Credential, error) {
-	return s.credRepo.Get(ctx, credID)
+	cred, err := s.credRepo.Get(ctx, credID)
+	if err != nil {
+		return Credential{}, err
+	}
+	if len(cred.SecretHash) > 0 || cred.PublicKey == nil || cred.PublicKey.Len() == 0 {
+		return Credential{}, ErrCredNotExist
+	}
+	return cred, err
 }
 
 func (s Service) DeleteKey(ctx context.Context, credID string) error {
 	return s.credRepo.Delete(ctx, credID)
 }
 
-func (s Service) CreateSecret(ctx context.Context, serviceUserID string) (Credential, error) {
-	//TODO implement me
-	panic("implement me")
+// CreateSecret creates a secret for the service user
+func (s Service) CreateSecret(ctx context.Context, credential Credential) (Secret, error) {
+	// generate a random secret
+	secretBytes := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, secretBytes); err != nil {
+		return Secret{}, err
+	}
+	secretString := base64.RawStdEncoding.EncodeToString(secretBytes)
+	if sHash, err := cryptopasta.HashPassword([]byte(secretString)); err != nil {
+		return Secret{}, err
+	} else {
+		credential.SecretHash = sHash
+	}
+
+	createdCred, err := s.credRepo.Create(ctx, credential)
+	if err != nil {
+		return Secret{}, err
+	}
+	return Secret{
+		ID:        createdCred.ID,
+		Value:     []byte(secretString),
+		CreatedAt: createdCred.CreatedAt,
+	}, nil
 }
 
-func (s Service) GetSecret(ctx context.Context, serviceUserID string, credID string) (Credential, error) {
-	//TODO implement me
-	panic("implement me")
+func (s Service) DeleteSecret(ctx context.Context, credID string) error {
+	return s.DeleteKey(ctx, credID)
 }
 
-func (s Service) DeleteSecret(ctx context.Context, serviceUserID string, credID string) error {
-	//TODO implement me
-	panic("implement me")
+func (s Service) ListSecret(ctx context.Context, serviceUserID string) ([]Credential, error) {
+	return s.credRepo.List(ctx, Filter{
+		ServiceUserID: serviceUserID,
+		IsSecret:      true,
+	})
 }
 
+// GetBySecret matches the secret with the secret hash stored in the database of the service user
+// and if the secret matches, returns the service user
+func (s Service) GetBySecret(ctx context.Context, credID string, credSecret string) (ServiceUser, error) {
+	cred, err := s.credRepo.Get(ctx, credID)
+	if err != nil {
+		return ServiceUser{}, err
+	}
+	if len(cred.SecretHash) <= 0 {
+		return ServiceUser{}, ErrInvalidCred
+	}
+	if err := cryptopasta.CheckPasswordHash(cred.SecretHash, []byte(credSecret)); err != nil {
+		return ServiceUser{}, ErrInvalidCred
+	}
+	return s.repo.Get(ctx, cred.ServiceUserID)
+}
+
+// GetByToken returns the service user by verifying the token
 func (s Service) GetByToken(ctx context.Context, token string) (ServiceUser, error) {
 	insecureToken, err := jwt.ParseInsecure([]byte(token))
 	if err != nil {
