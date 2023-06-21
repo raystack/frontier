@@ -134,7 +134,7 @@ func bootstrapData(client shieldv1beta1.ShieldServiceClient) error {
 
 	fmt.Printf("created user with email %s in shield\n", userResp.User.Email)
 
-	// create orgBody
+	// create organization
 	var orgBody *shieldv1beta1.OrganizationRequestBody
 	if err := json.Unmarshal(mockOrganization, &orgBody); err != nil {
 		fmt.Println("Error unmarshaling JSON :", err)
@@ -149,7 +149,18 @@ func bootstrapData(client shieldv1beta1.ShieldServiceClient) error {
 	}
 	fmt.Printf("created organization name %s with user %s as the org admin \n", orgResp.Organization.Name, orgAdminEmail)
 
-	// create projBody inside org
+	// create service user for an org
+	serviceUserResp, err := client.CreateServiceUser(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserRequest{
+		Body:  &shieldv1beta1.ServiceUserRequestBody{Title: "sample service user"},
+		OrgId: orgResp.Organization.Id,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create sample service user: %w", err)
+	}
+
+	fmt.Printf("created service user with id %s in org %s\n", serviceUserResp.Serviceuser.Id, orgResp.Organization.Name)
+
+	// create project inside org
 	var projBody *shieldv1beta1.ProjectRequestBody
 	if err := json.Unmarshal(mockProject, &projBody); err != nil {
 		return fmt.Errorf("failed to unmarshal project body: %w", err)
