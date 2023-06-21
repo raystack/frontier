@@ -19,6 +19,7 @@ const (
 	SessionDeleteGatewayKey = "gateway-session-delete"
 	UserTokenGatewayKey     = "gateway-user-token"
 	LocationGatewayKey      = "gateway-location"
+	UserSecretGatewayKey    = "gateway-user-secret"
 
 	// UserTokenRequestKey is returned from the application to client containing user details in
 	// response headers

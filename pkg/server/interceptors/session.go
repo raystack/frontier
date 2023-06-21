@@ -144,6 +144,10 @@ func (h Session) UnaryGRPCRequestHeadersAnnotator() grpc.UnaryServerInterceptor 
 						incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
 					}
 				}
+				secretVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Basic "))
+				if len(secretVal) > 0 {
+					incomingMD.Set(consts.UserSecretGatewayKey, secretVal)
+				}
 			}
 
 			ctx = metadata.NewIncomingContext(ctx, incomingMD)

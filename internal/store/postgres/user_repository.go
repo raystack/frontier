@@ -94,7 +94,7 @@ func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, 
 	var fetchedUser User
 	query, params, err := dialect.From(TABLE_USERS).
 		Where(goqu.Ex{
-			"name": name,
+			"name": strings.ToLower(name),
 		}).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -131,8 +131,8 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	}
 
 	insertRow := goqu.Record{
-		"name":  usr.Name,
-		"email": usr.Email,
+		"name":  strings.ToLower(usr.Name),
+		"email": strings.ToLower(usr.Email),
 		"title": usr.Title,
 	}
 	if usr.State != "" {
@@ -311,12 +311,11 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
-				"name":       usr.Name,
 				"title":      usr.Title,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
-				"email": usr.Email,
+				"email": strings.ToLower(usr.Email),
 			},
 		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "title", "updated_at").ToSQL()
 		if err != nil {
@@ -372,7 +371,6 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
-				"name":       usr.Name,
 				"title":      usr.Title,
 				"updated_at": goqu.L("now()"),
 			}).Where(
@@ -436,12 +434,11 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
-				"name":       usr.Name,
 				"title":      usr.Name,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
-				"slug": usr.ID,
+				"name": strings.ToLower(usr.Name),
 			},
 		).Returning("created_at", "deleted_at", "email", "id", "name", "title", "updated_at").ToSQL()
 		if err != nil {
@@ -495,7 +492,7 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 
 	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
-			"email": email,
+			"email": strings.ToLower(email),
 		}).Where(notDisabledUserExp).ToSQL()
 
 	if err != nil {

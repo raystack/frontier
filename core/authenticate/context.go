@@ -44,3 +44,15 @@ func GetTokenFromContext(ctx context.Context) (string, bool) {
 	}
 	return tokenHeaders[0], true
 }
+
+func GetSecretFromContext(ctx context.Context) (string, bool) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", false
+	}
+	secretHeaders := md.Get(consts.UserSecretGatewayKey)
+	if len(secretHeaders) == 0 || len(secretHeaders[0]) == 0 {
+		return "", false
+	}
+	return secretHeaders[0], true
+}

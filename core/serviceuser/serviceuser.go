@@ -42,7 +42,7 @@ type Credential struct {
 	ServiceUserID string
 
 	// SecretHash used for basic auth
-	SecretHash string
+	SecretHash []byte
 
 	// PublicKey used for JWT verification using RSA
 	PublicKey jwk.Set
@@ -54,4 +54,10 @@ type Credential struct {
 	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Secret struct {
+	ID        string
+	Value     []byte
+	CreatedAt time.Time
 }
