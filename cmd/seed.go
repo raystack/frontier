@@ -2,20 +2,33 @@ package cmd
 
 import (
 	"context"
+	_ "embed"
+	"encoding/json"
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raystack/salt/printer"
 	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
-var orgAdminEmail = "johndoe@raystack.org"
-var orgUserEmail = "johndee@raystack.org"
+var (
+	//go:embed seed/permissions.json
+	mockCustomPermissions []byte
+	//go:embed seed/roles.json
+	mockCustomRoles []byte
+	//go:embed seed/user.json
+	mockHumanUser []byte
+	//go:embed seed/organization.json
+	mockOrganization []byte
+	//go:embed seed/project.json
+	mockProject []byte
+	//go:embed seed/resource.json
+	mockResource []byte
 
-const computeOrderNamespace = "compute/order"
+	orgAdminEmail  = "sampleAdmin@raystack.org"
+	identityHeader = "X-Shield-Email"
+)
 
 func SeedCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
@@ -31,9 +44,6 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 		},
 
 		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
 			adminClient, cancel, err := createAdminClient(cmd.Context(), cliConfig.Host)
 			if err != nil {
 				return err
@@ -55,7 +65,6 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 				return fmt.Errorf("failed to bootstrap data: %w", err)
 			}
 
-			spinner.Stop()
 			fmt.Println("initialized sample data in shield successfully")
 			return nil
 		},
@@ -69,79 +78,35 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 // create compute/order namespace and custom roles and permissions
 func createCustomRolesAndPermissions(client shieldv1beta1.AdminServiceClient) error {
 	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		"X-Shield-Email": orgAdminEmail,
+		identityHeader: orgAdminEmail,
 	}))
+
+	var permissionBodies []*shieldv1beta1.PermissionRequestBody
+	if err := json.Unmarshal(mockCustomPermissions, &permissionBodies); err != nil {
+		fmt.Println("Error unmarshaling JSON :", err)
+		return err
+	}
 
 	// create custom permission
 	if _, err := client.CreatePermission(ctx, &shieldv1beta1.CreatePermissionRequest{
-		Bodies: []*shieldv1beta1.PermissionRequestBody{
-			{
-				Name:      "create",
-				Title:     "Create Order",
-				Namespace: computeOrderNamespace,
-				Metadata:  &structpb.Struct{},
-			},
-			{
-				Name:      "get",
-				Title:     "Read Order",
-				Namespace: computeOrderNamespace,
-				Metadata:  &structpb.Struct{},
-			},
-			{
-				Name:      "update",
-				Title:     "Update Order",
-				Namespace: computeOrderNamespace,
-				Metadata:  &structpb.Struct{},
-			},
-			{
-				Name:      "delete",
-				Title:     "Delete Order",
-				Namespace: computeOrderNamespace,
-				Metadata:  &structpb.Struct{},
-			},
-			{
-				Name:      "list",
-				Title:     "List Orders",
-				Namespace: computeOrderNamespace,
-				Metadata:  &structpb.Struct{},
-			},
-		},
+		Bodies: permissionBodies,
 	}); err != nil {
 		return fmt.Errorf("failed to create custom permission: %w", err)
 	}
 
 	fmt.Printf("created custom permissions for compute order service: %s, %s, %s, %s, %s\n", "create", "get", "update", "delete", "list")
 
-	// create custom roles for compute order manager and viewer
-	if _, err := client.CreateRole(ctx, &shieldv1beta1.CreateRoleRequest{
-		Body: &shieldv1beta1.RoleRequestBody{
-			Name:     "compute_order_manager",
-			Title:    "Compute Order Manager",
-			Metadata: &structpb.Struct{},
-			Permissions: []string{
-				computeOrderNamespace + ":create",
-				computeOrderNamespace + ":get",
-				computeOrderNamespace + ":update",
-				computeOrderNamespace + ":delete",
-				computeOrderNamespace + ":list",
-			},
-		},
-	}); err != nil {
-		return fmt.Errorf("failed to create custom role: %w", err)
+	var roles []*shieldv1beta1.RoleRequestBody
+	if err := json.Unmarshal(mockCustomRoles, &roles); err != nil {
+		return fmt.Errorf("failed to unmarshal custom roles: %w", err)
 	}
 
-	if _, err := client.CreateRole(ctx, &shieldv1beta1.CreateRoleRequest{
-		Body: &shieldv1beta1.RoleRequestBody{
-			Name:     "compute_order_viewer",
-			Title:    "Compute Order Viewer",
-			Metadata: &structpb.Struct{},
-			Permissions: []string{
-				computeOrderNamespace + ":get",
-				computeOrderNamespace + ":list",
-			},
-		},
-	}); err != nil {
-		return fmt.Errorf("failed to create custom organization role: %w", err)
+	for _, role := range roles {
+		if _, err := client.CreateRole(ctx, &shieldv1beta1.CreateRoleRequest{
+			Body: role,
+		}); err != nil {
+			return fmt.Errorf("failed to create custom role: %w", err)
+		}
 	}
 
 	fmt.Printf("created custom roles %s and %s\n", "compute_order_manager", "compute_order_viewer")
@@ -150,17 +115,17 @@ func createCustomRolesAndPermissions(client shieldv1beta1.AdminServiceClient) er
 }
 
 func bootstrapData(client shieldv1beta1.ShieldServiceClient) error {
-	// create (human) user for org admin
-	userData := &shieldv1beta1.UserRequestBody{
-		Email: orgUserEmail,
-	}
-
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-		"X-Shield-Email": orgAdminEmail,
+		identityHeader: orgAdminEmail,
 	}))
 
+	// create (human) user for org admin
+	var userBody *shieldv1beta1.UserRequestBody
+	if err := json.Unmarshal(mockHumanUser, &userBody); err != nil {
+		return fmt.Errorf("failed to unmarshal user body: %w", err)
+	}
 	userResp, err := client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
-		Body: userData,
+		Body: userBody,
 	})
 
 	if err != nil {
@@ -169,39 +134,30 @@ func bootstrapData(client shieldv1beta1.ShieldServiceClient) error {
 
 	fmt.Printf("created user with email %s in shield\n", userResp.User.Email)
 
-	// create org
-	orgData := &shieldv1beta1.OrganizationRequestBody{
-		Name:  "raystack-09111",
-		Title: "Raystack",
-		Metadata: &structpb.Struct{
-			Fields: map[string]*structpb.Value{
-				"description": structpb.NewStringValue("Description"),
-			},
-		},
+	// create orgBody
+	var orgBody *shieldv1beta1.OrganizationRequestBody
+	if err := json.Unmarshal(mockOrganization, &orgBody); err != nil {
+		fmt.Println("Error unmarshaling JSON :", err)
+		return err
 	}
 
 	orgResp, err := client.CreateOrganization(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationRequest{
-		Body: orgData,
+		Body: orgBody,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create sample organization: %w", err)
 	}
 	fmt.Printf("created organization name %s with user %s as the org admin \n", orgResp.Organization.Name, orgAdminEmail)
 
-	// create project inside org
-	projData := &shieldv1beta1.ProjectRequestBody{
-		Name:  "raystack-09111",
-		Title: "Raystack",
-		OrgId: orgResp.Organization.Id,
-		Metadata: &structpb.Struct{
-			Fields: map[string]*structpb.Value{
-				"description": structpb.NewStringValue("Description"),
-			},
-		},
+	// create projBody inside org
+	var projBody *shieldv1beta1.ProjectRequestBody
+	if err := json.Unmarshal(mockProject, &projBody); err != nil {
+		return fmt.Errorf("failed to unmarshal project body: %w", err)
 	}
+	projBody.OrgId = orgResp.Organization.Id
 
 	projResp, err := client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
-		Body: projData,
+		Body: projBody,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create sample project: %w", err)
@@ -210,20 +166,20 @@ func bootstrapData(client shieldv1beta1.ShieldServiceClient) error {
 	fmt.Printf("created project in org %s with name %s \n", orgResp.Organization.Name, projResp.Project.Name)
 
 	// create resource inside project
+	var resourceBody *shieldv1beta1.ResourceRequestBody
+	if err := json.Unmarshal(mockResource, &resourceBody); err != nil {
+		return fmt.Errorf("failed to unmarshal resource body: %w", err)
+	}
+	resourceBody.Principal = userResp.User.Id
+
 	resrcResp, err := client.CreateProjectResource(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectResourceRequest{
 		ProjectId: projResp.Project.Id,
-		Body: &shieldv1beta1.ResourceRequestBody{
-			Name:      "resource-1",
-			Namespace: computeOrderNamespace,
-			Principal: userResp.User.Id,
-			Metadata:  &structpb.Struct{},
-		},
+		Body:      resourceBody,
 	})
-
 	if err != nil {
 		return fmt.Errorf("failed to create sample resource: %w", err)
 	}
-	fmt.Printf("created resource in project %s with name %s \n", projResp.Project.Name, resrcResp.Resource.Name)
 
+	fmt.Printf("created resource in project %s with name %s \n", projResp.Project.Name, resrcResp.Resource.Name)
 	return nil
 }

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "compute_order_viewer",
+    "title": "Compute Order Viewer",
+    "metadata": {},
+    "permissions": ["compute/order:get", "compute/order:list"]
+  },
+  {
+    "name": "compute_order_manager",
+    "title": "Compute Order Manager",
+    "metadata": {},
+    "permissions": ["compute/order:get", "compute/order:list", "compute/order:create", "compute/order:delete"]
+  }
+]

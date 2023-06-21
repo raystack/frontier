@@ -1,0 +1,8 @@
+{
+  "name": "compute-guard-project",
+  "title": "Compute Guard Project",
+  "metadata": {
+    "description": "Sample project for enforcing security policies on compute order service"
+  },
+  "org_id": "organization-id"
+}

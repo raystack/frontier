@@ -1,0 +1,8 @@
+{
+    "name": "resource-1",
+    "namespace": "compute/order",
+    "principal": "user-id",
+    "metadata": {
+        "description": "Sample resource for compute order"
+    }
+}

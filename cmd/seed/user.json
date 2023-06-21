@@ -1,0 +1,8 @@
+{
+    "name":"",
+    "email":"sample.user@raystack.org",
+    "title": "John Doe",
+    "metadata": {
+        "description": "This is a sample human user"
+    }
+}

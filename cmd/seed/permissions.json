@@ -1,0 +1,32 @@
+[
+  {
+    "name": "create",
+    "title": "Create Order",
+    "namespace": "compute/order",
+    "metadata": {}
+  },
+  {
+    "name": "get",
+    "title": "Read Order",
+    "namespace": "compute/order",
+    "metadata": {}
+  },
+  {
+    "name": "update",
+    "title": "Update Order",
+    "namespace": "compute/order",
+    "metadata": {}
+  },
+  {
+    "name": "delete",
+    "title": "Delete Order",
+    "namespace": "compute/order",
+    "metadata": {}
+  },
+  {
+    "name": "list",
+    "title": "List Orders",
+    "namespace": "compute/order",
+    "metadata": {}
+  }
+]
