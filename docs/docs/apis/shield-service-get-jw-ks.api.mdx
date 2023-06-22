@@ -1,13 +1,13 @@
 ---
-id: shield-service-get-project-resource
-title: "Get Resource by ID"
-description: "Get Resource by ID"
-sidebar_label: "Get Resource by ID"
+id: shield-service-get-jw-ks
+title: "Get well known JWKs"
+description: "Get well known JWKs"
+sidebar_label: "Get well known JWKs"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "operationId": "ShieldService_GetProjectResource",
+    "operationId": "ShieldService_GetJWKs",
     "responses":
       {
         "200":
@@ -22,35 +22,65 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "resource":
+                            "keys":
                               {
-                                "type": "object",
-                                "properties":
+                                "type": "array",
+                                "items":
                                   {
-                                    "id": { "type": "string" },
-                                    "name": { "type": "string" },
-                                    "createdAt":
+                                    "type": "object",
+                                    "properties":
                                       {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was created.",
+                                        "kty":
+                                          {
+                                            "type": "string",
+                                            "description": "Key Type.",
+                                          },
+                                        "alg":
+                                          {
+                                            "type": "string",
+                                            "description": "Algorithm.",
+                                          },
+                                        "use":
+                                          {
+                                            "type": "string",
+                                            "description": "Permitted uses for the public keys.",
+                                          },
+                                        "kid":
+                                          {
+                                            "type": "string",
+                                            "description": "Key ID.",
+                                          },
+                                        "n":
+                                          {
+                                            "type": "string",
+                                            "description": "Used for RSA keys.",
+                                          },
+                                        "e":
+                                          {
+                                            "type": "string",
+                                            "description": "Used for RSA keys.",
+                                          },
+                                        "x":
+                                          {
+                                            "type": "string",
+                                            "description": "Used for ECDSA keys.",
+                                          },
+                                        "y":
+                                          {
+                                            "type": "string",
+                                            "description": "Used for ECDSA keys.",
+                                          },
+                                        "crv":
+                                          {
+                                            "type": "string",
+                                            "description": "Used for ECDSA keys.",
+                                          },
                                       },
-                                    "updatedAt":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time the resource was last updated.",
-                                      },
-                                    "urn": { "type": "string" },
-                                    "projectId": { "type": "string" },
-                                    "namespace": { "type": "string" },
-                                    "principal": { "type": "string" },
-                                    "metadata": { "type": "object" },
+                                    "title": "JSON Web Key as specified in RFC 7517",
                                   },
                               },
                           },
+                        "title": "GetJWKsResponse is a valid JSON Web Key Set as specififed in rfc 7517",
                       },
                   },
               },
@@ -236,25 +266,10 @@ api:
               },
           },
       },
-    "parameters":
-      [
-        {
-          "name": "projectId",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-      ],
-    "tags": ["Resource"],
-    "description": "Get Resource by ID",
+    "tags": ["Authz"],
+    "description": "Get well known JWKs",
     "method": "get",
-    "path": "/v1beta1/projects/{projectId}/resources/{id}",
+    "path": "/v1beta1/auth/jwks",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "info":
       {
@@ -275,32 +290,14 @@ api:
       },
     "postman":
       {
-        "name": "Get Resource by ID",
+        "name": "Get well known JWKs",
         "description": { "type": "text/plain" },
         "url":
           {
-            "path": ["v1beta1", "projects", ":projectId", "resources", ":id"],
+            "path": ["v1beta1", "auth", "jwks"],
             "host": ["{{baseUrl}}"],
             "query": [],
-            "variable":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
-                  "value": "",
-                  "key": "projectId",
-                },
-                {
-                  "disabled": false,
-                  "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
-                  "value": "",
-                  "key": "id",
-                },
-              ],
+            "variable": [],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
         "method": "GET",
@@ -320,15 +317,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get Resource by ID
+## Get well known JWKs
 
-Get Resource by ID
+Get well known JWKs
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"projectId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resource</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"projectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resource\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n    \"urn\": \"string\",\n    \"projectId\": \"string\",\n    \"namespace\": \"string\",\n    \"principal\": \"string\",\n    \"metadata\": {}\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>keys</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"kty"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Key Type."}}></SchemaItem><SchemaItem collapsible={false} name={"alg"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Algorithm."}}></SchemaItem><SchemaItem collapsible={false} name={"use"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Permitted uses for the public keys."}}></SchemaItem><SchemaItem collapsible={false} name={"kid"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Key ID."}}></SchemaItem><SchemaItem collapsible={false} name={"n"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for RSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"e"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for RSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"x"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for ECDSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"y"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for ECDSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"crv"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for ECDSA keys."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"keys\": [\n    {\n      \"kty\": \"string\",\n      \"alg\": \"string\",\n      \"use\": \"string\",\n      \"kid\": \"string\",\n      \"n\": \"string\",\n      \"e\": \"string\",\n      \"x\": \"string\",\n      \"y\": \"string\",\n      \"crv\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

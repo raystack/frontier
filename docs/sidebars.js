@@ -142,6 +142,7 @@ module.exports = {
         "reference/configurations",
         "reference/cli",
         "reference/metaschemas",
+        "reference/smtp",
         "reference/api-definitions",
         "reference/shell-autocomplete",
       ],
