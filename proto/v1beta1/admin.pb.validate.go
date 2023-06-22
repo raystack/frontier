@@ -2336,6 +2336,8 @@ func (m *PermissionRequestBody) validate(all bool) error {
 
 	// no validation rules for Title
 
+	// no validation rules for Key
+
 	if len(errors) > 0 {
 		return PermissionRequestBodyMultiError(errors)
 	}

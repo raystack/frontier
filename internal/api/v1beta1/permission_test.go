@@ -27,7 +27,7 @@ var (
 		{
 			ID:          uuid.New().String(),
 			Name:        "Read",
-			NamespaceID: "resource-1",
+			NamespaceID: "app/resource",
 			Metadata:    map[string]any{},
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -35,14 +35,14 @@ var (
 		{
 			ID:          uuid.New().String(),
 			Name:        "Write",
-			NamespaceID: "resource-1",
+			NamespaceID: "app/resource",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
 		},
 		{
 			ID:          uuid.New().String(),
 			Name:        "Manage",
-			NamespaceID: "resource-1",
+			NamespaceID: "app/resource",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
 		},
@@ -79,16 +79,19 @@ func TestListPermissions(t *testing.T) {
 					Id:        testPermissions[0].ID,
 					Name:      testPermissions[0].Name,
 					Namespace: testPermissions[0].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[0].NamespaceID, testPermissions[0].Name),
 				},
 				{
 					Id:        testPermissions[1].ID,
 					Name:      testPermissions[1].Name,
 					Namespace: testPermissions[1].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[1].NamespaceID, testPermissions[1].Name),
 				},
 				{
 					Id:        testPermissions[2].ID,
 					Name:      testPermissions[2].Name,
 					Namespace: testPermissions[2].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[2].NamespaceID, testPermissions[2].Name),
 				},
 			}},
 			err: nil,
@@ -219,11 +222,53 @@ func TestCreatePermission(t *testing.T) {
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name + "0",
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
 				},
 				{
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name + "1",
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"1"),
+				},
+			}},
+			err: nil,
+		},
+		{
+			title: "should return success if permission service return nil error with permission key",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
+				bs.EXPECT().AppendSchema(mock.AnythingOfType("*context.emptyCtx"), schema.ServiceDefinition{
+					Permissions: []schema.ResourcePermission{
+						{
+							Name:      testPermissions[testPermissionIdx].Name + "0",
+							Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						},
+					},
+				}).Return(nil)
+				as.EXPECT().List(mock.Anything, permission.Filter{
+					Slugs: []string{
+						schema.FQPermissionNameFromNamespace(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+					},
+				}).Return([]permission.Permission{
+					{
+						ID:          testPermissions[testPermissionIdx].ID,
+						Name:        testPermissions[testPermissionIdx].Name + "0",
+						NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
+					},
+				}, nil)
+			},
+			req: &shieldv1beta1.CreatePermissionRequest{
+				Bodies: []*shieldv1beta1.PermissionRequestBody{
+					{
+						Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+					},
+				},
+			},
+			want: &shieldv1beta1.CreatePermissionResponse{Permissions: []*shieldv1beta1.Permission{
+				{
+					Id:        testPermissions[testPermissionIdx].ID,
+					Name:      testPermissions[testPermissionIdx].Name + "0",
+					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
 				},
 			}},
 			err: nil,
@@ -298,6 +343,7 @@ func TestHandler_GetPermission(t *testing.T) {
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 				},
 			},
 			wantErr: nil,
@@ -433,6 +479,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 				},
 			},
 			wantErr: nil,

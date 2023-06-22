@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/google/uuid"
-	"github.com/gtank/cryptopasta"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/raystack/shield/core/relation"
@@ -185,7 +186,7 @@ func (s Service) CreateSecret(ctx context.Context, credential Credential) (Secre
 		return Secret{}, err
 	}
 	secretString := base64.RawStdEncoding.EncodeToString(secretBytes)
-	if sHash, err := cryptopasta.HashPassword([]byte(secretString)); err != nil {
+	if sHash, err := bcrypt.GenerateFromPassword([]byte(secretString), 14); err != nil {
 		return Secret{}, err
 	} else {
 		credential.SecretHash = sHash
@@ -223,7 +224,7 @@ func (s Service) GetBySecret(ctx context.Context, credID string, credSecret stri
 	if len(cred.SecretHash) <= 0 {
 		return ServiceUser{}, ErrInvalidCred
 	}
-	if err := cryptopasta.CheckPasswordHash(cred.SecretHash, []byte(credSecret)); err != nil {
+	if err := bcrypt.CompareHashAndPassword(cred.SecretHash, []byte(credSecret)); err != nil {
 		return ServiceUser{}, ErrInvalidCred
 	}
 	return s.repo.Get(ctx, cred.ServiceUserID)

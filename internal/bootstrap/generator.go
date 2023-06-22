@@ -108,7 +108,7 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 	// gather list of resources
 	namespaceNameToPermissionNameMap := map[string][]string{}
 	for _, perm := range serviceDef.Permissions {
-		namespaceNameToPermissionNameMap[perm.Namespace] = append(namespaceNameToPermissionNameMap[perm.Namespace], perm.Name)
+		namespaceNameToPermissionNameMap[perm.GetNamespace()] = append(namespaceNameToPermissionNameMap[perm.GetNamespace()], perm.GetName())
 	}
 
 	// prepare new definition with its own relations and permissions
