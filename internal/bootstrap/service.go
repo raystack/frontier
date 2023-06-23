@@ -223,8 +223,8 @@ func (s Service) migrateServiceDefinitionToDB(ctx context.Context, appServiceDef
 	for _, perm := range appServiceDefinition.Permissions {
 		// create permissions if needed
 		_, err := s.permissionService.Upsert(ctx, permission.Permission{
-			Name:        perm.Name,
-			NamespaceID: perm.Namespace,
+			Name:        perm.GetName(),
+			NamespaceID: perm.GetNamespace(),
 			Metadata: map[string]any{
 				"description": perm.Description,
 			},

@@ -61,10 +61,14 @@ func (h Handler) CreatePermission(ctx context.Context, request *shieldv1beta1.Cr
 	definition := schema.ServiceDefinition{}
 	var permissionSlugs []string
 	for _, permBody := range request.GetBodies() {
-		if permBody.GetName() == "" || permBody.GetNamespace() == "" {
+		permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(permBody.GetKey())
+		if permNamespace == "" || permName == "" {
+			permNamespace, permName = permBody.GetNamespace(), permBody.GetName()
+		}
+		if permName == "" || permNamespace == "" {
 			return nil, grpcBadBodyError
 		}
-		permissionSlugs = append(permissionSlugs, schema.FQPermissionNameFromNamespace(permBody.GetNamespace(), permBody.GetName()))
+		permissionSlugs = append(permissionSlugs, schema.FQPermissionNameFromNamespace(permNamespace, permName))
 
 		metaDataMap := metadata.Metadata{}
 		if permBody.GetMetadata() != nil {
@@ -79,8 +83,8 @@ func (h Handler) CreatePermission(ctx context.Context, request *shieldv1beta1.Cr
 		}
 
 		definition.Permissions = append(definition.Permissions, schema.ResourcePermission{
-			Name:        permBody.Name,
-			Namespace:   permBody.Namespace,
+			Name:        permName,
+			Namespace:   permNamespace,
 			Description: metaDataMap["description"].(string),
 		})
 	}
@@ -153,10 +157,14 @@ func (h Handler) UpdatePermission(ctx context.Context, request *shieldv1beta1.Up
 		}
 	}
 
+	permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(request.GetBody().GetKey())
+	if permNamespace == "" || permName == "" {
+		permNamespace, permName = request.GetBody().GetNamespace(), request.GetBody().GetName()
+	}
 	updatedPermission, err := h.permissionService.Update(ctx, permission.Permission{
 		ID:          request.GetId(),
-		Name:        request.GetBody().GetName(),
-		NamespaceID: request.GetBody().GetNamespace(),
+		Name:        permName,
+		NamespaceID: permNamespace,
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
@@ -194,6 +202,7 @@ func transformPermissionToPB(perm permission.Permission) (*shieldv1beta1.Permiss
 
 	return &shieldv1beta1.Permission{
 		Id:        perm.ID,
+		Key:       schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name),
 		Name:      perm.Name,
 		Namespace: perm.NamespaceID,
 		Metadata:  metadata,

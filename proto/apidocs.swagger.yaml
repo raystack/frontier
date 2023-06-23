@@ -5688,6 +5688,10 @@ definitions:
         type: string
       metadata:
         type: object
+      key:
+        type: string
+        example: compute.instance.get
+        description: Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
   v1beta1PermissionRequestBody:
     type: object
     properties:
@@ -5704,9 +5708,10 @@ definitions:
       title:
         type: string
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the permissions. Can also be left empty.
-    required:
-      - name
-      - namespace
+      key:
+        type: string
+        example: compute.instance.get
+        description: Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
   v1beta1Policy:
     type: object
     properties:

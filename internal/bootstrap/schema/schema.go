@@ -91,7 +91,7 @@ func MergeServiceDefinitions(definitions ...ServiceDefinition) *ServiceDefinitio
 			roles[role.Name] = role
 		}
 		for _, permission := range definition.Permissions {
-			permissions[FQPermissionNameFromNamespace(permission.Namespace, permission.Name)] = permission
+			permissions[permission.Slug()] = permission
 		}
 	}
 	roleList := make([]RoleDefinition, 0, len(roles))
@@ -124,6 +124,34 @@ type ResourcePermission struct {
 	// Namespace is an object over which authz rules will be applied
 	Namespace   string
 	Description string
+
+	// Key is a unique identifier composed of namespace and name
+	// for example: "app.platform.list" which is composed as service.resource.verb
+	// here app.platform is namespace and list is name of the permission
+	Key string
+}
+
+func (r ResourcePermission) GetName() string {
+	if r.Name != "" {
+		return r.Name
+	}
+	_, name := PermissionNamespaceAndNameFromKey(r.Key)
+	return name
+}
+
+func (r ResourcePermission) GetNamespace() string {
+	if r.Namespace != "" {
+		return r.Namespace
+	}
+	ns, _ := PermissionNamespaceAndNameFromKey(r.Key)
+	return ns
+}
+
+func (r ResourcePermission) Slug() string {
+	if r.Key != "" {
+		return FQPermissionNameFromNamespace(PermissionNamespaceAndNameFromKey(r.Key))
+	}
+	return FQPermissionNameFromNamespace(r.Namespace, r.Name)
 }
 
 func BuildNamespaceName(service, resource string) string {
@@ -175,6 +203,19 @@ func ParseNamespaceAliasIfRequired(n string) string {
 func FQPermissionNameFromNamespace(namespace, verb string) string {
 	service, resource := SplitNamespaceResource(namespace)
 	return fmt.Sprintf("%s_%s_%s", service, resource, verb)
+}
+
+func PermissionNamespaceAndNameFromKey(key string) (string, string) {
+	parts := strings.Split(key, ".")
+	if len(parts) != 3 {
+		return "", ""
+	}
+	return fmt.Sprintf("%s/%s", parts[0], parts[1]), parts[2]
+}
+
+func PermissionKeyFromNamespaceAndName(namespace, name string) string {
+	service, resource := SplitNamespaceResource(namespace)
+	return fmt.Sprintf("%s.%s.%s", service, resource, name)
 }
 
 var PredefinedRoles = []RoleDefinition{

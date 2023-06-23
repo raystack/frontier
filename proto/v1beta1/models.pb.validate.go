@@ -1853,6 +1853,8 @@ func (m *Permission) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Key
+
 	if len(errors) > 0 {
 		return PermissionMultiError(errors)
 	}
