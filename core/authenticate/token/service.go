@@ -15,13 +15,9 @@ import (
 var (
 	ErrMissingRSADisableToken = errors.New("rsa key missing in config, generate and pass file path")
 	ErrInvalidToken           = errors.New("failed to verify a valid token")
-	ErrNoToken                = errors.New("no token")
 )
 
 const (
-	// TODO(kushsharma): should we expose this in config?
-	tokenValidity = time.Hour * 24 * 7
-
 	GeneratedClaimKey   = "gen"
 	GeneratedClaimValue = "system"
 )
@@ -30,11 +26,12 @@ type Service struct {
 	keySet       jwk.Set
 	publicKeySet jwk.Set
 	issuer       string
+	validity     time.Duration
 }
 
 // NewService creates a new token service
 // generate keys used for rsa via shield cli "shield server keygen"
-func NewService(keySet jwk.Set, issuer string) Service {
+func NewService(keySet jwk.Set, issuer string, validity time.Duration) Service {
 	publicKeySet := jwk.NewSet()
 	if keySet != nil {
 		pub, err := utils.GetPublicKeySet(context.Background(), keySet)
@@ -48,14 +45,17 @@ func NewService(keySet jwk.Set, issuer string) Service {
 		keySet:       keySet,
 		issuer:       issuer,
 		publicKeySet: publicKeySet,
+		validity:     validity,
 	}
 }
 
+// GetPublicKeySet returns the public keys to verify the access token
 func (s Service) GetPublicKeySet() jwk.Set {
 	return s.publicKeySet
 }
 
-func (s Service) Build(userID string, metadata map[string]string) ([]byte, error) {
+// Build creates an access token for the given subjectID
+func (s Service) Build(subjectID string, metadata map[string]string) ([]byte, error) {
 	if s.keySet == nil {
 		return nil, ErrMissingRSADisableToken
 	}
@@ -68,7 +68,7 @@ func (s Service) Build(userID string, metadata map[string]string) ([]byte, error
 	// shield generated token has an extra custom claim
 	// used to identify which public key to use to verify the token
 	metadata[GeneratedClaimKey] = GeneratedClaimValue
-	return utils.BuildToken(rsaKey, s.issuer, userID, tokenValidity, metadata)
+	return utils.BuildToken(rsaKey, s.issuer, subjectID, s.validity, metadata)
 }
 
 func (s Service) Parse(ctx context.Context, userToken []byte) (string, map[string]any, error) {

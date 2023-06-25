@@ -226,33 +226,37 @@ func callback() func(ctx *gin.Context) {
 			ctx.Error(fmt.Errorf("shield returned %s", string(respBody)))
 			return
 		}
-
-		// parse & verify jwt with shield public keys
-		userToken := resp.Header.Get("x-user-token")
-		jwks, err := jwk.Fetch(
-			ctx,
-			shieldHost+jwksPath,
-		)
-		if err != nil {
-			ctx.Error(fmt.Errorf("failed to fetch JWK: %s", err))
-			return
-		}
-		verifiedToken, err := jwt.Parse([]byte(userToken), jwt.WithKeySet(jwks))
-		if err != nil {
-			fmt.Printf("failed to verify JWS: %s\n", err)
-			return
-		}
-		tokenClaims, err := verifiedToken.AsMap(ctx)
-		if err != nil {
-			ctx.Error(err)
-			return
-		}
-
 		// clone response headers for cookie
 		ctx.Writer.Header().Set("set-cookie", resp.Header.Get("set-cookie"))
 
 		// render token
-		tokenHTML := "<h3>UserToken:</h3><article>" + userToken + "</article><article>" + fmt.Sprintf("%v", tokenClaims) + "</article>"
+		tokenHTML := "Access token is disabled by auth server"
+
+		// parse & verify jwt with shield public keys if provided
+		userToken := resp.Header.Get("x-user-token")
+		if userToken != "" {
+			jwks, err := jwk.Fetch(
+				ctx,
+				shieldHost+jwksPath,
+			)
+			if err != nil {
+				ctx.Error(fmt.Errorf("failed to fetch JWK: %s", err))
+				return
+			}
+			verifiedToken, err := jwt.Parse([]byte(userToken), jwt.WithKeySet(jwks))
+			if err != nil {
+				fmt.Printf("failed to verify JWS: %s\n", err)
+				return
+			}
+			tokenClaims, err := verifiedToken.AsMap(ctx)
+			if err != nil {
+				ctx.Error(err)
+				return
+			}
+			// token ready to use
+			tokenHTML = "<h4>User Token:</h4><article>" + userToken + "</article><article>" + fmt.Sprintf("%v", tokenClaims) + "</article>"
+		}
+
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"title":   "Authentication demo",
 			"page":    "Callback",

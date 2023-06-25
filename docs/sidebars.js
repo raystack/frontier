@@ -46,19 +46,21 @@ module.exports = {
         "tour/shield-as-proxy"
       ],
     },
-    // {
-    //   type: "category",
-    //   label: "Authentication",
-    //   collapsed: true,
-    //   link: {
-    //     type: "generated-index",
-    //     title: "Overview",
-    //     slug: "authentication/overview",
-    //   },
-    //   items: [
-    //     "authn/intro",
-    //   ],
-    // },
+    {
+      type: "category",
+      label: "Authentication",
+      collapsed: true,
+      link: {
+        type: "generated-index",
+        title: "Authentication",
+        keywords: ['authentication'],
+      },
+      items: [
+        "authn/introduction",
+        "authn/user",
+        "authn/serviceuser",
+      ],
+    },
     {
       type: "category",
       label: "Authorization",

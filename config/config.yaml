@@ -27,9 +27,9 @@ app:
   disable_orgs_listing: false
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
-  # configuration to allow authentication in shield
   # cors_origin is origin value from where we want to allow cors
   cors_origin: http://localhost:3000
+  # configuration to allow authentication in shield
   authentication:
     # to use shield as session store
     session:
@@ -39,10 +39,16 @@ app:
       # block helps in encryption
       block_secret_key: "block-secret-should-be-32-chars-"
     # once authenticated, server responds with a jwt with user context
+    # this jwt works as a bearer access token for all APIs
     token:
       # generate key file via "./shield server keygen"
-      rsa_path: ./temp/rsa
+      # if not specified, access tokens will be disabled
+      # example: /opt/rsa
+      rsa_path: ""
+      # issuer claim to be added to the jwt
       iss: "http://localhost.shield"
+      # validity of the token
+      validity: "1h"
     # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
     oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
     # oidc auth server configs
@@ -51,12 +57,13 @@ app:
         client_id: "xxxxx.apps.googleusercontent.com"
         client_secret: "xxxxx"
         issuer_url: "https://accounts.google.com"
-        validity: 10m
+        # validity of the verification duration
+        validity: "10m"
     mail_otp:
       subject: "Shield - Login Link"
       # body is a go template with `Otp` as a variable
       body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
-      validity: 10m
+      validity: "1h"
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers

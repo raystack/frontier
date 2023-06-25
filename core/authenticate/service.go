@@ -311,10 +311,12 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 	}, nil
 }
 
+// BuildToken creates an access token for the given subjectID
 func (s Service) BuildToken(ctx context.Context, subjectID string, metadata map[string]string) ([]byte, error) {
 	return s.internalTokenService.Build(subjectID, metadata)
 }
 
+// JWKs returns the public keys to verify the access token
 func (s Service) JWKs(ctx context.Context) jwk.Set {
 	return s.internalTokenService.GetPublicKeySet()
 }

@@ -195,7 +195,8 @@ func buildAPIDependencies(
 			tokenKeySet = ks
 		}
 	}
-	tokenService := token.NewService(tokenKeySet, cfg.App.Authentication.Token.Issuer)
+	tokenService := token.NewService(tokenKeySet, cfg.App.Authentication.Token.Issuer,
+		cfg.App.Authentication.Token.Validity)
 	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
