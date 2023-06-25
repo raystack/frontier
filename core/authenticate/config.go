@@ -13,13 +13,17 @@ type Config struct {
 }
 
 type TokenConfig struct {
-	// path to rsa key file, it can contain more than one key as a json array
-	// jwt will be signed by first key, but will be tried to be decoded by all matching key ids, this helps in key rotation
+	// Path to rsa key file, it can contain more than one key as a json array
+	// jwt will be signed by first key, but will be tried to be decoded by all matching key ids, this helps in key rotation.
+	// If not provided, access token will not be generated
 	RSAPath string `yaml:"rsa_path" mapstructure:"rsa_path"`
 
 	// Issuer uniquely identifies the service that issued the token
 	// a good example could be fully qualified domain name
 	Issuer string `yaml:"iss" mapstructure:"iss" default:"shield"`
+
+	// Validity is the duration for which the token is valid
+	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"1h"`
 }
 
 type SessionConfig struct {
