@@ -14,19 +14,19 @@ Shield is a cloud native role-based authorization aware server and reverse-proxy
 
 Discover why users choose Shield as their authorization proxy
 
-- **Policy Management**: Policies help you assign various roles to users/groups that determine their access to various resources
-- **Group Management**: Group is nothing but another word for team. Shield provides APIs to add/remove users to/from a group, fetch list of users in a group along with their roles in the group, and fetch list of groups a user is part of.
+- **Authentication**: It supports multiple authentication strategies like Email OTP, Social Login(Google/Github) for human users and API keys, RSA JWT based for machine users.
+- **Authorization**: Policies bind a user to its access level. It assigns various roles to users/groups that determine their access to various resources
+- **Group Management**: Group is a collection of users. Shield provides APIs to add/remove users to/from a group, fetch list of users in a group along with their roles in the group, and fetch list of groups a user is part of.
+- **Multi-tenancy**: Shield supports multi-tenancy. It allows you to create multiple organizations and each organization can have multiple users and groups.
 - **Activity Logs**: Shield has APIs that store and retrieve all the access related logs. You can see who added/removed a user to/from group in these logs.
-- **Reverse Proxy**: In addition to configuring access management, you can also use Shield as a reverse proxy to directly protect your endpoints by configuring appropriate permissions for them.
-- **Google IAP**: Shield also utilizes Google IAP as an authentication mechanism. So if your services are behind a Google IAP, Shield will seemlessly integrate with it.
-- **Runtime**: Shield can run inside containers or VMs in a fully managed runtime environment like Kubernetes. Shield also depends on a Postgres server to store data.
+- **Runtime**: Shield can run inside containers or VMs in a fully managed runtime environment like Kubernetes. Shield uses a Postgres server to store data and SpiceDB for authorization rules.
 
 ## How can I get started?
 
-- [Guides](guides/overview.md) provide guidance on how to use Shield and configure it to your needs
-- [Concepts](concepts/casbin.md) descibe the primary concepts and architecture behind Shield
-- [Reference](reference/api.md) contains the list of all the APIs that Shield exposes
-- [Contributing](contribute/contribution.md) contains resources for anyone who wants to contribute to Shield
+- [Introduction](docs/docs/introduction.md) provide guidance on how to use Shield and configure it to your needs
+- [Concepts](docs/docs/concepts/architecture.md) descibe the primary concepts and architecture behind Shield
+- [Reference](docs/docs/reference/api-definitions.md) contains the list of all the APIs that Shield exposes
+- [Contributing](docs/docs/contribution/contribute.md) contains resources for anyone who wants to contribute to Shield
 
 ## Installation
 
@@ -127,7 +127,7 @@ Shield provides a fully-featured GRPC and HTTP API to interact with Shield serve
   <summary>Dependencies:</summary>
 
     - Git
-    - Go 1.17 or above
+    - Go 1.20 or above
     - PostgreSQL 13.2 or above
 
 </details>
@@ -187,7 +187,7 @@ $ make coverage
 
 ## Contribute
 
-Development of Shield happens in the open on GitHub, and we are grateful to the community for contributing bugfixes and
+Development of Shield happens on GitHub, and we are grateful to the community for contributing bugfixes and
 improvements. Read below to learn how you can take part in improving Shield.
 
 Read our [contributing guide](https://raystack.github.io/shield/docs/contribute/contribution) to learn about our development process, how to propose

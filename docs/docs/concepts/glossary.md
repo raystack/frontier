@@ -1,6 +1,7 @@
 # Glossary
 
-Terminology and concepts used in Shield documnetation.
+Terminology and concepts used in Shield documentation.
+
 ### Access Token
 An access token is a credential which serves as proof of authentication and authorisation to access protected resources in a system or an API. After successful authorisation, an access token is included in the headers or parameters of API requests to validate the user's identity and permissions. The access token contains information such as the client's identity and the permissions granted to it. The server validates the access token to determine if the client is authorised to access the requested resource. 
 
@@ -13,10 +14,6 @@ The Client ID is a public identifier assigned to a client application by the aut
 
 ### Client Secret
 The Client Secret is a confidential string or password associated with the client application. It is meant to be kept confidential and only known to the client application and the OAuth identity provider. The Client Secret adds an extra layer of security by ensuring that only authorized client applications can access protected resources.
-
-### FGAC
-
-Fine Grained Access Control(FGAC) is a methodolofy of controlling access to resources based on the specific permissions that users need. Permissions are defined by the organization and typically represent actions that can be performed on a resource.
 
 ### Identity Providers (IdPs)
 
@@ -67,6 +64,7 @@ By which we can group Resources, of various different Resource Types, who have c
 
 ### Redirect URI
 The Redirect URI is registered with the OIDC provider and serves as a callback URL, indicating the location which the OIDC provider redirects an authorized user with an authorization code or an ID token after authentication is complete.  
+
 ### Resource
 
 Entity which needs authorization to be accessed. For example, a GCE instance is a resource over which we need permission such as edit & view.

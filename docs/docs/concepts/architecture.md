@@ -21,7 +21,7 @@ Shield is developed with
 
 ## Components
 
-### API and Proxy Server
+### API Server
 
 Shield server exposes both HTTP and gRPC APIs (via GRPC gateway) to manage users, groups, policies, etc. It also runs a proxy server on different port.
 

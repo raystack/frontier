@@ -34,7 +34,6 @@ To authenticate a service user, you need to pass the client id and secret in the
     <TabItem value="HTTP" label="HTTP" default>
     <CodeBlock className="language-bash">
     {`$ curl --location 'http://localhost:7400/v1beta1/users/self'
-    --header 'Content-Type: application/json'
     --header 'Accept: application/json'
     --header 'Authorization: Basic {base64(id:secret)}'`}
     </CodeBlock>
@@ -72,19 +71,58 @@ you will have to generate a new one. The public key can be retrieved using the f
     <TabItem value="HTTP" label="HTTP" default>
     <CodeBlock className="language-bash">
     {`$ curl --location --request GET 'http://localhost:7400/v1beta1/serviceusers/{id}/keys/{kid}'
-    --header 'Content-Type: application/json'
     --header 'Accept: application/json'`}
     </CodeBlock>
     </TabItem>
 </Tabs>
 
-To authenticate a request, you need to generate a JWT token using the private key and pass it in the **Authorization**
-header as follows:
+To authenticate a request, you need to generate a JWT token using the private key. There are various libraries that can
+use a PEM file and generate a JWT token. The `private_key` is in PEM format of the KeyCredential message. One example
+of generating a JWT token using the private key can be found in the 
+[shield-go](https://github.com/raystack/shield-go/blob/01b6fc925b355e69d79fcde66e1f6bb5bfd475ab/pkg/serviceuser.go) SDK.
+
+```go
+package pkg
+
+import (
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/raystack/shield/pkg/utils"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"time"
+)
+
+type ServiceUserTokenGenerator func() ([]byte, error)
+
+func GetServiceUserTokenGenerator(credential *shieldv1beta1.KeyCredential) (ServiceUserTokenGenerator, error) {
+	// generate a token out of key
+	rsaKey, err := jwk.ParseKey([]byte(credential.GetPrivateKey()), jwk.WithPEM(true))
+	if err != nil {
+		return nil, err
+	}
+	if err = rsaKey.Set(jwk.KeyIDKey, credential.GetKid()); err != nil {
+		return nil, err
+	}
+	return func() ([]byte, error) {
+		return utils.BuildToken(rsaKey, "//shield-go-sdk", credential.GetPrincipalId(), time.Hour*12, nil)
+	}, nil
+}
+```
+
+To identify your key, it is necessary that you provide a JWT with a kid header claim representing your key id from the
+`KeyCredential`:
+```json
+{
+"alg": "RS256",
+"kid": "c029a17d-0bad-472c-b335-ed58ba370d84"
+}
+```
+
+The generated JWT can be used in the **Authorization** header as follows:
+
 <Tabs groupId="api">
 <TabItem value="HTTP" label="HTTP" default>
 <CodeBlock className="language-bash">
 {`$ curl --location 'http://localhost:7400/v1beta1/users/self'
---header 'Content-Type: application/json'
 --header 'Accept: application/json'
 --header 'Authorization: Bearer <jwt token>'`}
 </CodeBlock>

@@ -7,7 +7,7 @@ import (
 
 	"github.com/raystack/shield/pkg/server"
 
-	"github.com/odpf/salt/config"
+	"github.com/raystack/salt/config"
 	"github.com/raystack/shield/internal/proxy"
 	"github.com/raystack/shield/internal/store/spicedb"
 	"github.com/raystack/shield/pkg/db"
