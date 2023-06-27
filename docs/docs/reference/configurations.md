@@ -6,12 +6,18 @@
 <summary> Sample Config </summary>
 
 ```yaml title=config.yaml
+version: 1
+
+# logging configuration
+log:
+  # debug, info, warning, error, fatal - default 'info'
+  level: debug
+
 app:
   port: 8000
   grpc:
     port: 8001
   metrics_port: 9000
-  host: 127.0.0.1
   identity_proxy_header: X-Shield-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
@@ -41,10 +47,16 @@ app:
       # block helps in encryption
       block_secret_key: "block-secret-should-be-32-chars-"
     # once authenticated, server responds with a jwt with user context
+    # this jwt works as a bearer access token for all APIs
     token:
       # generate key file via "./shield server keygen"
-      rsa_path: ./temp/rsa
+      # if not specified, access tokens will be disabled
+      # example: /opt/rsa
+      rsa_path: ""
+      # issuer claim to be added to the jwt
       iss: "http://localhost.shield"
+      # validity of the token
+      validity: "1h"
     # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
     oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
     # oidc auth server configs
@@ -53,6 +65,13 @@ app:
         client_id: "xxxxx.apps.googleusercontent.com"
         client_secret: "xxxxx"
         issuer_url: "https://accounts.google.com"
+        # validity of the verification duration
+        validity: "10m"
+    mail_otp:
+      subject: "Shield - Login Link"
+      # body is a go template with `Otp` as a variable
+      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
+      validity: "1h"
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers
@@ -61,42 +80,27 @@ app:
     # UUIDs/slugs of existing users can also be provided instead of email ids
     # but in that case a new user will not be created.
     users: []
-
+  # smtp configuration for sending emails
+  mailer:
+    smtp_host: smtp.example.com
+    smtp_port: 587
+    smtp_username: "username"
+    smtp_password: "password"
+    smtp_insecure: true
+    headers:
+      from: "username@acme.org"
 db:
   driver: postgres
-  url: postgres://username:password@localhost:5432/databaseName?sslmode=disable
-  max_idle_conns: 10
-  max_open_conns: 10
-  conn_max_life_time: 10ms
-  max_query_timeout: 100ms
+  url: postgres://shield:@localhost:5432/shield?sslmode=disable
+  max_query_timeout: 500ms
 
 spicedb:
-  host: localhost
-  pre_shared_key: random_key
+  host: spicedb.localhost
+  pre_shared_key: randomkey
   port: 50051
   # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
   # suggested to keep it false for performance
   fully_consistent: false
-
-# proxy configuration
-proxy:
-  services:
-    - name: test
-      host: 0.0.0.0
-      # port where the proxy will be listening on for requests
-      port: 5556
-      # full path prefixed with scheme where ruleset yaml files are kept
-      # e.g.:
-      # local storage file "file:///tmp/rules"
-      # GCS Bucket "gs://shield/rules"
-      ruleset: file:///tmp/rules
-      # secret required to access ruleset
-      # e.g.:
-      # system environment variable "env://TEST_RULESET_SECRET"
-      # local file "file:///opt/auth.json"
-      # secret string "val://user:password"
-      # optional
-      ruleset_secret: env://TEST_RULESET_SECRET
 ```
 
 </details>

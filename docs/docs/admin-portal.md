@@ -32,7 +32,7 @@ Create a **.env** file or export **`SHILD_API_URL`** environment variable for co
 SHILD_API_URL=http://localhost:8000
 ```
 
-Finally to start the Admin portal, run the following commands:
+Finally, to start the Admin portal, run the following commands:
 
 ```bash
 # install all dependencies

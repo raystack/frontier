@@ -5,11 +5,11 @@ slug: /
 
 # Introduction
 
-Welcome to the introductory guide to Shield! This guide is the best place to start with Shield. We cover what Shield is, what problems it can solve, how it works, and how you can get started using it. If you are familiar with the basics of Shield, the guides provides a more detailed reference of available features.
+Welcome to the introductory guide to Shield! We cover what Shield is, what problems it can solve, how it works, and how you can get started using it. If you are familiar with the basics of Shield, the guides provides a more detailed reference of available features.
 
 ## What is Shield?
 
-Shield by Raystack is a role-based cloud-native user management system, identity & access proxy, and authorization server for your applications and API endpoints. It is purely API-driven and provides CLI, HTTP and GRPC APIs and an Admin Portal and for simpler developer experience. Shield is designed to be easy to use Identity and Access Management tool which handles user authentication by providing a Single-Sign-On(SSO) with any provider which adheres to the OIDC Protocol. Shield being an authorization-aware reverse-proxy service, intercepts incoming client requests and evaluate the authorization rules associated with the requested resources. It checks the client's credentials and permissions against the defined access policies before allowing or denying access to the backend services.
+Shield by Raystack is a role-based cloud-native user management system and authorization server for your applications and API endpoints. It is API-driven and provides CLI, HTTP/GRPC APIs and an Admin Portal. Shield is designed to be easy to use Identity and Access Management tool which handles user authentication by providing a Single-Sign-On(SSO) with any provider which adheres to the OIDC Protocol. It checks the client's credentials and permissions against the defined access policies before allowing or denying access to the backend services.
 
 ![Shield flow diagram](./shield-flow-diagram.png)
 
@@ -17,7 +17,7 @@ Shield by Raystack is a role-based cloud-native user management system, identity
 
 Here are the steps to work with Shield.
 
-1. Configure policies: This step involes defition of resource types that will exist in the connected backend. User can also configure the roles and permissions that exist.
+1. Configure policies: This step involves definition of resource types that will exist in the connected backend. User can also configure the roles and permissions that exist.
 
 2. Configure rules: This step involves defining the authorization(via authz middleware) and resource creation(via hook) for each path in the backend.
 
@@ -31,11 +31,7 @@ Here are the steps to work with Shield.
 
 - **Role-Based-Access-Control(RBAC)**: Shield follows the RBAC model, which means you can assign roles to users, groups, or service accounts. This simplifies access management by providing predefined roles with specific permissions, reducing the need for manual permission assignments.
 
-- **Fine-Grained-Access-Control(FGAC)**: In addition, to RBAC, Shield provides granular control over resource permissions, allowing you to define access at a very detailed level. You can grant or revoke permissions for the project, folder, or individual resources. Using both these Access Control mechanism helps to imporve the security of your organization by reducing the risk of unauthorized access to your resources.<br/><br/> One can use RBAC to assign roles to principals, that give them access to certain applications. For example, you can create a role called "Team Leader" that gives users access to the application.You could then use FGAC to give users specific permissions within those applications. For example, you could give some Team Leader A, the permission to create and edit orders, but not the permission to view customer reports. While another Team Leader B, can have permissions to read them as well.
-
 - **Resource Management**: Shield provides API to create and manage organizations/projects. Admins can create projects and groups within organizations. In addition, group admins can manage groups, add-remove members to the groups, and assign roles to these principals. Using Shield, admins can define policies which bind roles to the underlying resources.
-
-- **Reverse Proxy**: Shield can also restrict access to the proxy api to the users as per attributes and policies.
 
 ## Using Shield
 

@@ -6,21 +6,21 @@ Principal in Shield are entities that can be authenticated and authorized to acc
 
 - **User**: A User Principal in Shield refers to an individual user who is granted certain privileges and access rights within the system. This type of principal is associated with a specific user account and is used to authenticate and authorize actions performed by the user. User principals are commonly used to manage and control access to resources, enforce security policies, and track user activities within the Shield system.
 
-- **Machine User** (coming up): A Machine User Principal is a type of principal in Shield that represents a non-human entity, such as a software application or a service, that interacts with the system. This principal is specifically designed to authenticate and authorize actions performed by automated processes or scripts, allowing machines to securely access and manipulate resources within the Shield environment. Machine User Principals are commonly used in scenarios where programmatic access is required without human intervention.
+- **Service User**: A Service User Principal is a type of principal in Shield that represents a non-human entity, such as a software application or a service, that interacts with the system. This principal is specifically designed to authenticate and authorize actions performed by automated processes or scripts, allowing machines to securely access and manipulate resources within the Shield environment. Machine User Principals are commonly used in scenarios where programmatic access is required without human intervention.
 
 - **Group**: A Group in Shield refers to a logical grouping of users or machine users who share common access rights and permissions. This type of principal simplifies the management of access control by assigning privileges and permissions to a group instead of individual users. Group principals enable administrators to efficiently define and enforce security policies across multiple users or machine users, making it easier to grant or revoke access to resources based on membership in a particular group.
 
 - **Super User**: Superusers are platform level admins used to manage a Shield instance. A Shield Super User have the highest level of access and control, allowing them to perform administrative tasks, configure settings, and manage other organization accounts. A superuser email can be added in configurations yaml while setting up the Shield server.
 
 :::info
-**Constaints**: In Shield, a (human) user or a machine user can belong to more than one organizations, but a Group will belong to only one organization that created it.
+**Constraints**: In Shield, a (human) user can belong to more than one organization, but a Group will belong to only one organization that created it.
 :::
 
 ### Authenticating Principals
 
-Shield authenticates a principal using OIDC (OpenID Connect) and the Magic Link approach (coming up). [OIDC](../concepts/glossary.md#oidc) is an authentication protocol that allows applications to verify the identity of users and obtain their basic profile information. The Magic Link approach combines the simplicity of email-based authentication with the security of OIDC to create a seamless and secure authentication experience.
+Shield authenticates a principal using OIDC (OpenID Connect) and the Magic Link approach. [OIDC](../concepts/glossary.md#oidc) is an authentication protocol that allows applications to verify the identity of users and obtain their basic profile information. The Magic Link approach combines the simplicity of email-based authentication with the security of OIDC to create a seamless and secure authentication experience.
 
-Currently users authenticate with the help of an external IdP, which issues security tokens that are then exchanged with the system.
+Currently, users authenticate with the help of an external IdP, which issues security tokens that are then exchanged with the system.
 
 ### Authorizing Principals
 

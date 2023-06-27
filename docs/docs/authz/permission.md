@@ -4,7 +4,7 @@ import CodeBlock from '@theme/CodeBlock';
 
 # Permissions
 
-Permissions represents rules that define what actions or operations a user or identity can perform on specific resources. Permissions help enforce security and access control by governing the level of access granted to individuals or groups.
+Permissions represent rules that define what actions or operations a user or identity can perform on specific resources. Permissions help enforce security and access control by governing the level of access granted to individuals or groups.
 
 Each predefined permission has a specific purpose and grants a defined level of access to a particular resource or service. By assigning these permissions to users, groups, or service accounts, administrators can effectively control and manage access to an organization resources.
 Permissions are assigned to roles such that each role is essentially a group of permissions. Each user has one or more roles that define what the user can do.

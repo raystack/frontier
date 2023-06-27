@@ -65,7 +65,13 @@ module.exports = {
       type: "category",
       label: "Authorization",
       collapsed: true,
+      link: {
+        type: "generated-index",
+        title: "Authorization",
+        keywords: ['authorization'],
+      },
       items: [
+        "authz/introduction",
         "authz/permission",
         "authz/role",
         "authz/policy",
