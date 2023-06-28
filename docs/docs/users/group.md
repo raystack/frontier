@@ -1,8 +1,8 @@
+# Group
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CodeBlock from '@theme/CodeBlock';
-
-# Managing Group
 
 - Create an org group
 - List an org groups

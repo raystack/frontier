@@ -167,6 +167,8 @@ func (s Service) CheckAuthz(ctx context.Context, rel relation.Object, permission
 
 	// a user can pass object name instead of id in the request
 	// we should convert name to id based on object namespace
+
+	// TODO: if the object is a resource, get the resource by name/urn
 	if !utils.IsValidUUID(rel.ID) {
 		if schema.IsSystemNamespace(rel.Namespace) {
 			if rel.Namespace == schema.ProjectNamespace {

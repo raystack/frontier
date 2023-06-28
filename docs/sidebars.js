@@ -51,9 +51,8 @@ module.exports = {
       label: "Authentication",
       collapsed: true,
       link: {
-        type: "generated-index",
-        title: "Authentication",
-        keywords: ['authentication'],
+        type: "doc",
+        id: "authn/introduction",
       },
       items: [
         "authn/introduction",
@@ -66,15 +65,15 @@ module.exports = {
       label: "Authorization",
       collapsed: true,
       link: {
-        type: "generated-index",
-        title: "Authorization",
-        keywords: ['authorization'],
+        type: "doc",
+        id: "authz/overview",
       },
       items: [
-        "authz/introduction",
+        "authz/overview",
         "authz/permission",
         "authz/role",
         "authz/policy",
+        "authz/example",
       ],
     },
     {
@@ -88,20 +87,6 @@ module.exports = {
       items: [
         "tenants/org",
         "tenants/project",
-        {
-          type: "category",
-          label: "Managing Tenants",
-          collapsed: false,
-          link: {
-            type: "doc",
-            id: "tenants/managing-organization",
-          },
-          items: [
-            "tenants/managing-organization",
-            "tenants/managing-project",
-            "tenants/managing-resource",
-          ],
-        }
       ],
     },
     {
@@ -114,19 +99,7 @@ module.exports = {
       },
       items: [
         "users/principal",
-        {
-          type: "category",
-          label: "Managing Principals",
-          collapsed: false,
-          link: {
-            type: "doc",
-            id: "users/managing-user",
-          },
-          items: [
-            "users/managing-user",
-            "users/managing-group",
-          ],
-        }
+        "users/group",
       ],
     },
     {
