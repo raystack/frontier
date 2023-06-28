@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  dev:
+  docker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,24 +15,31 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
+          go-version: '1.20'
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
+      - name: Publish stable image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: |
+            raystack/shield:${{ github.ref }}
+            raystack/shield:latest
+      - name: Publish dev image
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           push: true
           file: "./Dockerfile.dev"
-          tags: |
-            raystack/shield:dev
-  release:
+          tags: raystack/shield:dev
+  releaser:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,20 +47,14 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: "1.20"
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2.6.1
+        uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
-          args: --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_TOKEN }}
