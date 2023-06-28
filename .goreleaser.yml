@@ -1,33 +1,39 @@
 project_name: shield
+
 release:
   prerelease: auto
+
 before:
   hooks:
     - make test
+
 builds:
   - id: "shield"
-    main: ./main.go
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm, arm64]
     binary: shield
-    flags:
-      - -a
+    main: ./main.go
     ldflags:
       - -s -w -X github.com/raystack/shield/config.Version={{.Tag}}
       - -X github.com/raystack/shield/config.BuildCommit={{.FullCommit}}
       - -X github.com/raystack/shield/config.BuildDate={{.Date}}
-    goos: [linux, darwin, windows]
-    goarch: [amd64, arm, arm64]
     env:
       - CGO_ENABLED=0
+
 archives:
-  - replacements:
-      darwin: macos
-      linux: linux
-      windows: windows
-      386: i386
-      amd64: x86_64
+  - id: "shield-archive"
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
       - goos: windows
         format: zip
+
 changelog:
   sort: asc
   filters:
@@ -36,10 +42,12 @@ changelog:
       - "^test"
       - "^build"
       - "^chore"
+
 checksum:
   name_template: "checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-next"
+
 dockers:
   - goos: linux
     goarch: amd64
@@ -50,6 +58,7 @@ dockers:
       - "docker.io/raystack/{{.ProjectName}}:latest"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Version }}"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
+
 nfpms:
   - maintainer: Raystack
     description: Identity and authorization system
@@ -58,15 +67,15 @@ nfpms:
     formats:
       - deb
       - rpm
-    replacements:
-      darwin: macOS
-scoop:
-  bucket:
-    owner: raystack
-    name: scoop-bucket
-  homepage: "https://github.com/raystack/shield"
-  description: "Identity and authorization system"
-  license: Apache 2.0
+
+scoops:
+  - homepage: "https://github.com/raystack/shield"
+    description: "Identity and authorization system"
+    license: Apache 2.0
+    bucket:
+      owner: raystack
+      name: scoop-bucket
+
 brews:
   - name: shield
     homepage: "https://github.com/raystack/shield"
