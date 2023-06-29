@@ -77,8 +77,15 @@ An Organization in Shield is a top-level resource. Each Project, Group, User, an
 
 **Note:** Organization metadata values are validated using MetaSchemas in Shield [Read More](../reference/metaschemas.md)
 
----
+:::tip
+Some of these APIs require special privileges to access these endpoints and to authorize these requests, users may need a Client ID/Secret or an Access token to proceed. Read [**Authorization for APIs**](../reference/api-auth.md) to learn more.
+:::
+
 ### Create an Organization
+
+Any (human) user or a service user can create an Organization in Shield. The user must exist in Shield before procceding to create an Organization. This user/service account will be assigned the role of **Organization Admin** once the action is completed successful and will contain all the permissions to manage the org.
+
+**Required Authorization:** User request just needs to be authenticated and no particular roles/permission are required to proceed.
 
 You can create organizations using either the Admin Portal, Shield Command Line Interface or via the HTTP APIs.
 
@@ -92,10 +99,11 @@ You can create organizations using either the Admin Portal, Shield Command Line 
 $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations' \
 -H 'Content-Type: application/json' \
 -H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' \
 --data-raw '{
   "name": "raystack",
-  "title": "Open DataOps Foundation",
-  "metadata": {"description": "Open DataOps Foundation"}
+  "title": "Raystack Foundation",
+  "metadata": {"description": "Raystack Foundation"}
 }'
 ```
 
@@ -109,18 +117,17 @@ $ shield organization create --file=<path to the organization.json file>
   </TabItem>
 </Tabs>
 
-3. To create an organization via the Admin Portal:
-
-i. Navigate to **Admin Portal > Organizations** from the sidebar
-
-ii. Select **+ New Organization** from top right corner
-
-iii. Enter basic information for your organization, and select **Add Organization**.
+3. To create an organization via the **Admin Portal**:
+   1. Navigate to **Admin Portal > Organizations** from the sidebar
+   2. Select **+ New Organization** from top right corner
+   3. Enter basic information for your organization, and select **Add Organization**.
 
 ---
-### Add users to an Organization
+### Add Users to an Organization
 
-Add a user to an organization. A user must exists in Shield before adding it to an org. This request will fail if the user doesn't exists.
+Add users to an organization. A user must exists in Shield before adding it to an org. This request will fail if the user doesn't exists. This API accepts a list of comma seperated (human) user IDs to be added to the organization. In case a user is already a member of the organization, no action will be taken for that particular user.
+
+**Required Authorization** : A user/service account with the role `Organization Admin` or `Organization Manager` is authorized to take this action. Also any user being assigned with custom role with `update` permission at `app/organization` namespace can also perform this action. 
 
 1. Using the **`POST /v1beta1/organizations/:id/users`** API
 
@@ -128,6 +135,7 @@ Add a user to an organization. A user must exists in Shield before adding it to 
 $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/:id/users' \
 -H 'Content-Type: application/json' \
 -H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' \
 --data-raw '{
   "userIds": [
     "2e73f4a2-3763-4dc6-a00e-7a9aebeaa971"
@@ -135,9 +143,11 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/:id/users' \
 }'
 ```
 ---
-### Invite users to an Organization
+### Invite user to an Organization
 
-Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days.
+Invite user with email to an organization and optionally to the groups within that Org. A user must exists in Shield before sending the invitation otherwise the request will fail. Invitations expire in 7 days.
+
+**Required Authorization** : A user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `invitationcreate` permission at `app/organization` namespace can also perform this action. 
 
 1. Using **`POST /v1beta1/organizations/:orgId/invitations`** API
 
@@ -145,8 +155,9 @@ Invite users to an organization, if the user doesn't exists, it will be created 
 $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitations' \
 -H 'Content-Type: application/json' \
 -H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' \
 --data-raw '{
-  "userId": "8e73f4a2-3763-4dc6-a00e-7a9aebeaa971",
+  "userId": "john.doe@raystack.org",
   "groupIds": [
     "4e76f4a2-3763-4dc6-b00e-7a9a5beaa923",
     "2e45f4a2-1539-4df6-a70e-7a9aebeaa952"
@@ -156,36 +167,47 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitation
 ---
 ### List pending invitations
 
-Get all the pending invitations queued for an organization.
+This API can be used to list all the pending invitations queued for an organization which the user haven't take any action on. Once the user accepts an invitation or rejects it, the invitation is deleted from the Shield database. 
+
+**Required Authorization** : A user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `invitationlist` or `invitationcreate` permission at the `app/organization` namespace can also perform this action. 
 
 1. Using **`GET /v1beta1/organizations/:orgId/invitations`** API
 
 ```bash
 $ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitations' \
--H 'Accept: application/json'
+-H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
 ```
 ---
 ### Delete pending invitations
 
-Delete a pending invitation queued for an organization
+Delete a pending invitation queued for an organization.
+
+**Required Authorization** : Any user/service account with the role `Organization Admin` is authorized to take this action. Also the user for whom the invite was created can delete the invite. Any user being assigned with custom role with `invitationcreate` permission at the `app/organization` namespace for that particular organization can also perform this action. 
 
 1. Using **`DELETE /v1beta1/organizations/:orgId/invitations/:id`** API
 
 ```bash
 $ curl -L -X DELETE 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitations/:id' \
--H 'Accept: application/json'
+-H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
 ```
 ---
 ### View an organization users
+
+This API only returns a list of human users in an Organization. For listing service users of the Org refer this [API](../apis/shield-service-list-service-users.api.mdx)
+
+**Required Authorization** : Any user/service user with `get` permission at Organization level can perform this action. Meaning all the Organization users with role `Organization Admin` , `Organization Manager` or an `Organization Viewer` can list the org users.
 
 1. Calling to `GET /v1beta1/organizations/{id}/users` API
 
 ```bash
 curl -L -X GET 'http://127.0.0.1:7400/v1beta1/organizations/:id/users' \
--H 'Accept: application/json'
+-H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
 ```
 ---
-### Create custom permissions for an organization
+### Create custom permissions for an Organization
 
 1. Using the **`POST /v1beta1/permissions`** API. <br/>**Note:** Specify the namespace **`app/organization`** to create a org level custom permission
 
@@ -193,6 +215,7 @@ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/organizations/:id/users' \
 $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/permissions' \
 -H 'Content-Type: application/json' \
 -H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' \
 --data-raw '{
   "bodies": [
     {
@@ -205,29 +228,33 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/permissions' \
 }'
 ```
 ---
-### Enable or disable an org
+### Enable or disable an Organization
 
 Sets the state of the organization as disabled. The existing users in the org will not be able to access any organization resources when the org is disabled.
 
 1. Using **`POST /v1beta1/organizations/:id/disable`** API
 
 ```bash
-$ curl --location 'http://localhost:7400/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/disable'
---header 'Content-Type: application/json'
---header 'Accept: application/json'
+$ curl --location 'http://localhost:7400/v1beta1/organizations/adf997e8-59d1-4462-a4f2-ab02f60a86e7/disable' \
+--header 'Content-Type: application/json' \
+--header 'Accept: application/json' \
+--header 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' \
 --data '{}'
 ```
 
 To Enable the Org again send the request on **`POST /v1beta1/organizations/:id/enable`** API in same way as described above
 
 ---
-### Remove an Org user
+### Remove Organization User
 
-Removes a user from the organization. The user however will not br deleted from Shield.
+Removes a user from the organization. The user will be removed from all the groups inside the Organization ans will lose all the access to underlying projects and resources, the user will not be deleted from the Shield instance.
+
+**Required Authorization** : A user/service account with the role `Organization Admin` or `Organization Manager` is authorized to take this action. Also any user being assigned with custom role with `update` permission at `app/organization` namespace can also perform this action. 
 
 1. Calling to **`DELETE {HOST}/v1beta1/organizations/:id/users/:userId`** API
 
 ```bash
 $ curl -L -X DELETE 'http://127.0.0.1:7400/v1beta1/organizations/:id/users/:userId' \
--H 'Accept: application/json'
+-H 'Accept: application/json' \
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
 ```

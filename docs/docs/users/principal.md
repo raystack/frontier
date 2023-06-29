@@ -87,6 +87,10 @@ A project in Shield looks like
 
 ---
 
+:::tip
+Some of these APIs require special privileges to access these endpoints and to authorize these requests, users may need a Client ID/Secret or an Access token to proceed. Read [**Authorization for APIs**](../reference/api-auth.md) to learn more.
+:::
+
 ### Create users
 
 Create a user in Shield with the given details. A user is not attached to an organization or a group by default, and can be invited to the org/group. The name of the user must be unique within the entire Shield instance. If a user name is not provided, Shield automatically generates a name from the user email.

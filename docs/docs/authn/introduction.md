@@ -1,6 +1,7 @@
 ---
 title: Overview
 ---
+import Mermaid from '@theme/Mermaid';
 
 # Overview
 
@@ -35,6 +36,43 @@ The server can then use the cookie to identify the user and verify if the sessio
 still valid. If it is, the user no longer needs to authenticate again. This is how most web applications work. 
 
 On high level here are some of the steps involved in the authentication process when working with a web application:
+
+<Mermaid chart = {`sequenceDiagram
+    %% participant User
+    participant User
+    participant Authentication Server
+    participant Third-Party OIDC Provider
+    participant Resource
+   %
+    User ->> Authentication Server: Sends request to access resource
+      alt Check Authentication
+        Authentication Server ->> Authentication Server: Check if user is authenticated
+        alt User Not Authenticated
+            Authentication Server -->> User: Redirects to login page
+            User ->> Authentication Server: Selects third party provider (say Google)
+            Authentication Server ->> Third-Party OIDC Provider: Redirects to OIDC login page
+            User -->> Third-Party OIDC Provider: Enters credentials on OIDC login page
+            Third-Party OIDC Provider ->> User: Sends authorization code
+            User ->> Third-Party OIDC Provider: Exchanges code for access token and ID token
+            Third-Party OIDC Provider -->> User: Retrieves access token and ID token
+            User ->> Authentication Server: Sends ID token for verification
+            Authentication Server ->> Third-Party OIDC Provider: Verifies ID token
+            alt ID token valid
+                Authentication Server -->> Resource: Continues to get requested resource
+            else ID token invalid
+                Authentication Server -->> User: Returns error
+            end
+        else User Authenticated
+            Note over Authentication Server, Resource: Assuming user has permissions to access the resource
+            Authentication Server ->> Resource: Continues to get the requested resource
+            Resource ->> User: Return Requested Resource
+        end
+    end`}
+/>
+
+<br/>
+
+Detailed Authentication Flow: 
 
 1. A user sends a request to access a resource. The resource can be a web page, an API endpoint, a file, etc.
 2. The request can either be intercepted by the authentication server or the frontend application can proxy the request

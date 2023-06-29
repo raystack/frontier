@@ -91,6 +91,10 @@ Shield also provides flexibility to Org Admins to create a custom role specific 
 </TabItem>
 </Tabs>
 
+:::tip
+Some of these APIs require special privileges to access these endpoints and to authorize these requests, users may need a Client ID/Secret or an Access token to proceed. Read [**Authorization for APIs**](../reference/api-auth.md) to learn more.
+:::
+
 ### List Organization Roles
 
 To get a list of custom roles created under an organization with their associated permissions. Note the default roles avaliable across the Shield platform and inherited in every organizations wont be displayed with this

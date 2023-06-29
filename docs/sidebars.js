@@ -38,12 +38,6 @@ module.exports = {
       items: [
         "tour/setup-idp-oidc",
         "tour/creating-user",
-        "tour/creating-organization",
-        "tour/creating-project",
-        "tour/creating-group",
-        "tour/add-to-group",
-        "tour/check-permissions",
-        "tour/shield-as-proxy"
       ],
     },
     {
@@ -109,7 +103,9 @@ module.exports = {
         type: "doc",
         id: "apis/shield-administration-api",
       },
-      items: require("./docs/apis/sidebar.js"),
+      items: [
+        require("./docs/apis/sidebar.js")
+      ]
     },
     {
       type: "category",
@@ -121,9 +117,10 @@ module.exports = {
       },
       items: [
         "reference/configurations",
+        "reference/smtp",
+        "reference/api-auth",
         "reference/cli",
         "reference/metaschemas",
-        "reference/smtp",
         "reference/api-definitions",
         "reference/shell-autocomplete",
       ],
