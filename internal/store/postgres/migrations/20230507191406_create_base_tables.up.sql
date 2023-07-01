@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS resources (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     urn text NOT NULL UNIQUE,
     name text,
+    title text,
     principal_id uuid,
     principal_type text REFERENCES namespaces (name),
     project_id uuid REFERENCES projects (id),

@@ -22,10 +22,7 @@ func UnaryAuthenticationCheck() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		// authentication can be done via
-		// - session id sent via cookies
-		// - jwt token
-		// - api key (not supported yet)
+		// authentication can be done via various authenticate.ClientAssertion
 		serverHandler, ok := info.Server.(*v1beta1.Handler)
 		if !ok {
 			return nil, errors.New("miss-configured server handler")
@@ -40,7 +37,7 @@ func UnaryAuthenticationCheck() grpc.UnaryServerInterceptor {
 	}
 }
 
-// authorizationValidationMap stores path to skip authentication, by default its enabled for all requests
+// authenticationSkipList stores path to skip authentication, by default its enabled for all requests
 var authenticationSkipList = map[string]bool{
 	"/raystack.shield.v1beta1.ShieldService/GetJWKs":            true,
 	"/raystack.shield.v1beta1.ShieldService/GetServiceUserKey":  true,
@@ -53,6 +50,7 @@ var authenticationSkipList = map[string]bool{
 	"/raystack.shield.v1beta1.ShieldService/ListAuthStrategies": true,
 	"/raystack.shield.v1beta1.ShieldService/Authenticate":       true,
 	"/raystack.shield.v1beta1.ShieldService/AuthCallback":       true,
+	"/raystack.shield.v1beta1.ShieldService/AuthToken":          true,
 	"/raystack.shield.v1beta1.ShieldService/AuthLogout":         true,
 	"/raystack.shield.v1beta1.ShieldService/ListMetaSchemas":    true,
 	"/raystack.shield.v1beta1.ShieldService/GetMetaSchema":      true,

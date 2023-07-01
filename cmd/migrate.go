@@ -39,10 +39,12 @@ func RunMigrations(logger log.Logger, config db.Config) error {
 		return errors.Wrap(err, "failed to add default schemas to db")
 	}
 
-	return nil
+	migrationVer, dirty, err := m.Version()
+	logger.Info("db migrated", "version", migrationVer, "dirty", dirty)
+	return err
 }
 
-func RunRollback(config db.Config) error {
+func RunRollback(logger log.Logger, config db.Config) error {
 	m, err := getDatabaseMigrationInstance(config)
 	if err != nil {
 		return err
@@ -52,6 +54,9 @@ func RunRollback(config db.Config) error {
 	if err != nil && err != migrate.ErrNoChange {
 		return err
 	}
+
+	migrationVer, dirty, err := m.Version()
+	logger.Info("db rolled back", "version", migrationVer, "dirty", dirty)
 	return err
 }
 

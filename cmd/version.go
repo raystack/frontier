@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/raystack/shield/config"
+
 	"github.com/raystack/salt/version"
 	"github.com/spf13/cobra"
 )
@@ -14,13 +16,13 @@ func versionCommand() *cobra.Command {
 		Aliases: []string{"v"},
 		Short:   "Print version information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if Version == "" {
+			if config.Version == "" {
 				fmt.Println("Version information not available")
 				return nil
 			}
-
-			fmt.Printf("shield version %s\t", Version)
-			fmt.Println(version.UpdateNotice(Version, "raystack/shield"))
+			fmt.Println("Shield: A secure and easy-to-use Authentication & Authorization Server")
+			fmt.Printf("Version: %s\nBuild date: %s\nCommit: %s", config.Version, config.BuildDate, config.BuildCommit)
+			fmt.Println(version.UpdateNotice(config.Version, "raystack/shield"))
 			return nil
 		},
 	}

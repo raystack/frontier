@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	shieldsession "github.com/raystack/shield/core/authenticate/session"
@@ -357,8 +359,12 @@ func (s Service) getOrCreateUser(ctx context.Context, email, title string) (user
 	})
 }
 
-func (s Service) GetPrincipal(ctx context.Context) (Principal, error) {
+func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion) (Principal, error) {
 	var currentPrincipal Principal
+	if len(assertions) == 0 {
+		// check all assertions
+		assertions = AllClientAssertions
+	}
 
 	// check if already enriched by auth middleware
 	if val, ok := GetPrincipalFromContext(ctx); ok {
@@ -367,21 +373,23 @@ func (s Service) GetPrincipal(ctx context.Context) (Principal, error) {
 	}
 
 	// extract user from session if present
-	session, err := s.sessionService.ExtractFromContext(ctx)
-	if err == nil && session.IsValid(s.Now()) && utils.IsValidUUID(session.UserID) {
-		// userID is a valid uuid
-		currentUser, err := s.userService.GetByID(ctx, session.UserID)
-		if err != nil {
+	if slices.Contains[ClientAssertion](assertions, SessionClientAssertion) {
+		session, err := s.sessionService.ExtractFromContext(ctx)
+		if err == nil && session.IsValid(s.Now()) && utils.IsValidUUID(session.UserID) {
+			// userID is a valid uuid
+			currentUser, err := s.userService.GetByID(ctx, session.UserID)
+			if err != nil {
+				return Principal{}, err
+			}
+			return Principal{
+				ID:   currentUser.ID,
+				Type: schema.UserPrincipal,
+				User: &currentUser,
+			}, nil
+		}
+		if err != nil && !errors.Is(err, shieldsession.ErrNoSession) {
 			return Principal{}, err
 		}
-		return Principal{
-			ID:   currentUser.ID,
-			Type: schema.UserPrincipal,
-			User: &currentUser,
-		}, nil
-	}
-	if err != nil && !errors.Is(err, shieldsession.ErrNoSession) {
-		return Principal{}, err
 	}
 
 	// check for token
@@ -392,86 +400,94 @@ func (s Service) GetPrincipal(ctx context.Context) (Principal, error) {
 			return Principal{}, errors.ErrUnauthenticated
 		}
 
-		//check type of jwt
-		if val, ok := insecureJWT.Get(token.GeneratedClaimKey); ok {
-			if claimVal, ok := val.(string); ok && claimVal == token.GeneratedClaimValue {
-				// extract user from token if present as its created by shield
-				userID, _, err := s.internalTokenService.Parse(ctx, []byte(userToken))
-				if err == nil && utils.IsValidUUID(userID) {
-					// userID is a valid uuid
-					currentUser, err := s.userService.GetByID(ctx, userID)
-					if err != nil {
-						return Principal{}, err
+		if slices.Contains[ClientAssertion](assertions, AccessTokenClientAssertion) {
+			//check type of jwt
+			if val, ok := insecureJWT.Get(token.GeneratedClaimKey); ok {
+				if claimVal, ok := val.(string); ok && claimVal == token.GeneratedClaimValue {
+					// extract user from token if present as its created by shield
+					userID, _, err := s.internalTokenService.Parse(ctx, []byte(userToken))
+					if err == nil && utils.IsValidUUID(userID) {
+						// userID is a valid uuid
+						currentUser, err := s.userService.GetByID(ctx, userID)
+						if err != nil {
+							return Principal{}, err
+						}
+						return Principal{
+							ID:   currentUser.ID,
+							Type: schema.UserPrincipal,
+							User: &currentUser,
+						}, nil
 					}
-					return Principal{
-						ID:   currentUser.ID,
-						Type: schema.UserPrincipal,
-						User: &currentUser,
-					}, nil
-				}
-				if err != nil {
-					s.log.Debug("failed to parse as internal token ", "err", err)
-					return Principal{}, errors.ErrUnauthenticated
+					if err != nil {
+						s.log.Debug("failed to parse as internal token ", "err", err)
+						return Principal{}, errors.ErrUnauthenticated
+					}
 				}
 			}
 		}
 
 		// extract user from token if it's a service user
-		serviceUser, err := s.serviceUserService.GetByToken(ctx, userToken)
-		if err == nil {
-			return Principal{
-				ID:          serviceUser.ID,
-				Type:        schema.ServiceUserPrincipal,
-				ServiceUser: &serviceUser,
-			}, nil
-		}
-		if err != nil {
-			s.log.Debug("failed to parse as user token ", "err", err)
-			return Principal{}, errors.ErrUnauthenticated
+		if slices.Contains[ClientAssertion](assertions, JWTGrantClientAssertion) {
+			serviceUser, err := s.serviceUserService.GetByToken(ctx, userToken)
+			if err == nil {
+				return Principal{
+					ID:          serviceUser.ID,
+					Type:        schema.ServiceUserPrincipal,
+					ServiceUser: &serviceUser,
+				}, nil
+			}
+			if err != nil {
+				s.log.Debug("failed to parse as user token ", "err", err)
+				return Principal{}, errors.ErrUnauthenticated
+			}
 		}
 	}
 
 	// check for client secret
-	userSecretRaw, secretOK := GetSecretFromContext(ctx)
-	if secretOK {
-		// verify client secret
-		userSecret, err := base64.StdEncoding.DecodeString(userSecretRaw)
-		if err != nil {
-			return Principal{}, errors.ErrUnauthenticated
-		}
-		userSecretParts := strings.Split(string(userSecret), ":")
-		if len(userSecretParts) != 2 {
-			return Principal{}, errors.ErrUnauthenticated
-		}
-		clientID, clientSecret := userSecretParts[0], userSecretParts[1]
+	if slices.Contains[ClientAssertion](assertions, ClientCredentialsClientAssertion) {
+		userSecretRaw, secretOK := GetSecretFromContext(ctx)
+		if secretOK {
+			// verify client secret
+			userSecret, err := base64.StdEncoding.DecodeString(userSecretRaw)
+			if err != nil {
+				return Principal{}, errors.ErrUnauthenticated
+			}
+			userSecretParts := strings.Split(string(userSecret), ":")
+			if len(userSecretParts) != 2 {
+				return Principal{}, errors.ErrUnauthenticated
+			}
+			clientID, clientSecret := userSecretParts[0], userSecretParts[1]
 
-		// extract user from secret if it's a service user
-		serviceUser, err := s.serviceUserService.GetBySecret(ctx, clientID, clientSecret)
-		if err == nil {
-			return Principal{
-				ID:          serviceUser.ID,
-				Type:        schema.ServiceUserPrincipal,
-				ServiceUser: &serviceUser,
-			}, nil
-		}
-		if err != nil {
-			s.log.Debug("failed to parse as user token ", "err", err)
-			return Principal{}, errors.ErrUnauthenticated
+			// extract user from secret if it's a service user
+			serviceUser, err := s.serviceUserService.GetBySecret(ctx, clientID, clientSecret)
+			if err == nil {
+				return Principal{
+					ID:          serviceUser.ID,
+					Type:        schema.ServiceUserPrincipal,
+					ServiceUser: &serviceUser,
+				}, nil
+			}
+			if err != nil {
+				s.log.Debug("failed to parse as user token ", "err", err)
+				return Principal{}, errors.ErrUnauthenticated
+			}
 		}
 	}
 
-	// check if header with user email is set
-	// TODO(kushsharma): this should ideally be deprecated
-	if val, ok := GetEmailFromContext(ctx); ok && len(val) > 0 {
-		currentUser, err := s.getOrCreateUser(ctx, strings.TrimSpace(val), strings.Split(val, "@")[0])
-		if err != nil {
-			return Principal{}, err
+	if slices.Contains[ClientAssertion](assertions, PassthroughHeaderClientAssertion) {
+		// check if header with user email is set
+		// TODO(kushsharma): this should ideally be deprecated
+		if val, ok := GetEmailFromContext(ctx); ok && len(val) > 0 {
+			currentUser, err := s.getOrCreateUser(ctx, strings.TrimSpace(val), strings.Split(val, "@")[0])
+			if err != nil {
+				return Principal{}, err
+			}
+			return Principal{
+				ID:   currentUser.ID,
+				Type: schema.UserPrincipal,
+				User: &currentUser,
+			}, nil
 		}
-		return Principal{
-			ID:   currentUser.ID,
-			Type: schema.UserPrincipal,
-			User: &currentUser,
-		}, nil
 	}
 	return Principal{}, errors.ErrUnauthenticated
 }

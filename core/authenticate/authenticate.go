@@ -21,6 +21,28 @@ func (m AuthMethod) String() string {
 	return string(m)
 }
 
+type ClientAssertion string
+
+const (
+	SessionClientAssertion           ClientAssertion = "session"
+	AccessTokenClientAssertion       ClientAssertion = "access_token"
+	JWTGrantClientAssertion          ClientAssertion = "jwt_grant"
+	ClientCredentialsClientAssertion ClientAssertion = "client_credentials"
+	PassthroughHeaderClientAssertion ClientAssertion = "passthrough_header"
+)
+
+func (a ClientAssertion) String() string {
+	return string(a)
+}
+
+var AllClientAssertions = []ClientAssertion{
+	SessionClientAssertion,
+	AccessTokenClientAssertion,
+	JWTGrantClientAssertion,
+	ClientCredentialsClientAssertion,
+	PassthroughHeaderClientAssertion,
+}
+
 // Flow is a temporary state used to finish login/registration flows
 type Flow struct {
 	ID uuid.UUID

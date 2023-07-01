@@ -211,8 +211,8 @@ looks like:
 
 :::note
 Access token by default is returned as part of the response header **"x-user-token"** after successful login. This can be
-requested again by sending a request to the Shield server with the cookies containing session details on endpoint
-`/v1beta1/users/self`.
+requested again by sending a post request to the Shield server with the cookies containing session details on endpoint
+`/v1beta1/auth/token`.
 :::
 
 Shield only generates the access token if the RSA keys are configured in the `config.yaml` file. If the RSA keys are not

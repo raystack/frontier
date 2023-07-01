@@ -2,14 +2,13 @@ package v1beta1
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-
-	"github.com/raystack/shield/core/authenticate/token"
 
 	"github.com/raystack/shield/pkg/server/consts"
 
@@ -32,7 +31,7 @@ type AuthnService interface {
 	FinishFlow(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
 	BuildToken(ctx context.Context, principalID string, metadata map[string]string) ([]byte, error)
 	JWKs(ctx context.Context) jwk.Set
-	GetPrincipal(ctx context.Context) (authenticate.Principal, error)
+	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 	SupportedStrategies() []string
 	InitFlows(ctx context.Context) error
 	Close()
@@ -119,11 +118,6 @@ func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCa
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	if err = h.setUserContextTokenInHeaders(ctx, response.User.ID); err != nil {
-		logger.Error(err.Error())
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
 	// set location header for redirect to finish auth and send client to origin
 	if len(response.Flow.FinishURL) > 0 {
 		if err = setRedirectHeaders(ctx, response.Flow.FinishURL); err != nil {
@@ -177,6 +171,48 @@ func (h Handler) GetJWKs(ctx context.Context, request *shieldv1beta1.GetJWKsRequ
 	}, nil
 }
 
+func (h Handler) AuthToken(ctx context.Context, request *shieldv1beta1.AuthTokenRequest) (*shieldv1beta1.AuthTokenResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	// if values are passed in body instead of headers, populate them in context
+	switch request.GetGrantType() {
+	case "client_credentials":
+		if request.GetClientId() != "" && request.GetClientSecret() != "" {
+			secretVal := base64.StdEncoding.EncodeToString([]byte(request.GetClientId() + ":" + request.GetClientSecret()))
+			ctx = metadata.NewIncomingContext(ctx, metadata.Pairs(consts.UserSecretGatewayKey, secretVal))
+		}
+	case "urn:ietf:params:oauth:grant-type:jwt-bearer":
+		if request.GetAssertion() != "" {
+			ctx = metadata.NewIncomingContext(ctx, metadata.Pairs(consts.UserTokenGatewayKey, request.GetAssertion()))
+		}
+	}
+
+	// only get principal from service user assertions
+	principal, err := h.GetLoggedInPrincipal(ctx,
+		authenticate.SessionClientAssertion,
+		authenticate.ClientCredentialsClientAssertion,
+		authenticate.JWTGrantClientAssertion)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, err
+	}
+
+	token, err := h.getAccessToken(ctx, principal.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if err := setUserContextTokenInHeaders(ctx, string(token)); err != nil {
+		logger.Error(fmt.Errorf("error setting token in context: %w", err).Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &shieldv1beta1.AuthTokenResponse{
+		AccessToken: string(token),
+		TokenType:   "Bearer",
+	}, nil
+}
+
 func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
 	session, err := h.sessionService.ExtractFromContext(ctx)
 	if err == nil && session.IsValid(time.Now().UTC()) {
@@ -185,9 +221,9 @@ func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
 	return uuid.Nil, err
 }
 
-func (h Handler) GetLoggedInPrincipal(ctx context.Context) (authenticate.Principal, error) {
+func (h Handler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error) {
 	logger := grpczap.Extract(ctx)
-	principal, err := h.authnService.GetPrincipal(ctx)
+	principal, err := h.authnService.GetPrincipal(ctx, via...)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -202,12 +238,12 @@ func (h Handler) GetLoggedInPrincipal(ctx context.Context) (authenticate.Princip
 	return principal, nil
 }
 
-// setUserContextTokenInHeaders sends a jwt token with user/org details
-func (h Handler) setUserContextTokenInHeaders(ctx context.Context, principalID string) error {
+// getAccessToken generates a jwt access token with user/org details
+func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte, error) {
 	// get orgs a user belongs to
 	orgs, err := h.orgService.ListByUser(ctx, principalID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var orgNames []string
@@ -216,22 +252,9 @@ func (h Handler) setUserContextTokenInHeaders(ctx context.Context, principalID s
 	}
 
 	// build jwt for user context
-	userToken, err := h.authnService.BuildToken(ctx, principalID, map[string]string{
+	return h.authnService.BuildToken(ctx, principalID, map[string]string{
 		"orgs": strings.Join(orgNames, ","),
 	})
-	if errors.Is(err, token.ErrMissingRSADisableToken) {
-		// should not fail if user has not configured jwks
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-
-	// pass as response headers
-	if err = grpc.SetHeader(ctx, metadata.Pairs(consts.UserTokenGatewayKey, string(userToken))); err != nil {
-		return fmt.Errorf("failed to set header: %w", err)
-	}
-	return nil
 }
 
 func setRedirectHeaders(ctx context.Context, url string) error {
@@ -244,6 +267,11 @@ func setCookieHeaders(ctx context.Context, cookie string) error {
 
 func deleteCookieHeaders(ctx context.Context) error {
 	return grpc.SetHeader(ctx, metadata.Pairs(consts.SessionDeleteGatewayKey, "true"))
+}
+
+// setUserContextTokenInHeaders sends a jwt token in headers
+func setUserContextTokenInHeaders(ctx context.Context, userToken string) error {
+	return grpc.SetHeader(ctx, metadata.Pairs(consts.UserTokenGatewayKey, userToken))
 }
 
 type JsonWebKeySet struct {

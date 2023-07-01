@@ -15,12 +15,6 @@ import (
 	cli "github.com/spf13/cobra"
 )
 
-// Version of the current build. overridden by the build system.
-// see "Makefile" for more information
-var (
-	Version string
-)
-
 func ServerCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "server",
@@ -144,14 +138,14 @@ func serverMigrateCommand() *cobra.Command {
 			}
 
 			logger := shieldlogger.InitLogger(appConfig.Log)
-			logger.Info("shield is migrating", "version", Version)
+			logger.Info("shield is migrating", "version", config.Version)
 
 			if err = RunMigrations(logger, appConfig.DB); err != nil {
 				logger.Error("error running migrations", "error", err)
 				return err
 			}
 
-			logger.Info("shield migration completed")
+			logger.Info("shield migration complete")
 			return nil
 		},
 	}
@@ -173,14 +167,14 @@ func serverMigrateRollbackCommand() *cobra.Command {
 				panic(err)
 			}
 			logger := shieldlogger.InitLogger(appConfig.Log)
-			logger.Info("shield is migrating", "version", Version)
+			logger.Info("shield is migrating", "version", config.Version)
 
-			if err = RunRollback(appConfig.DB); err != nil {
+			if err = RunRollback(logger, appConfig.DB); err != nil {
 				logger.Error("error running migrations rollback", "error", err)
 				return err
 			}
 
-			logger.Info("shield migration rollback completed")
+			logger.Info("shield migration rollback complete")
 			return nil
 		},
 	}

@@ -59,17 +59,12 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 }
 
 func (s Service) Create(ctx context.Context, user User) (User, error) {
-	newUser, err := s.repository.Create(ctx, User{
+	return s.repository.Create(ctx, User{
 		Name:     strings.ToLower(user.Name),
 		Email:    strings.ToLower(user.Email),
 		Title:    user.Title,
 		Metadata: user.Metadata,
 	})
-	if err != nil {
-		return User{}, err
-	}
-
-	return newUser, nil
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {

@@ -218,6 +218,13 @@ func PermissionKeyFromNamespaceAndName(namespace, name string) string {
 	return fmt.Sprintf("%s.%s.%s", service, resource, name)
 }
 
+func IsSystemNamespace(namespace string) bool {
+	return namespace == OrganizationNamespace || namespace == ProjectNamespace ||
+		namespace == UserPrincipal || namespace == ServiceUserPrincipal ||
+		namespace == SuperUserPrincipal || namespace == GroupPrincipal ||
+		namespace == PlatformNamespace
+}
+
 var PredefinedRoles = []RoleDefinition{
 	// org
 	{

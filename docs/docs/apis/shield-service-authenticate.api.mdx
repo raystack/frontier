@@ -222,7 +222,7 @@ api:
         },
         {
           "name": "redirect",
-          "description": "by default, location header for redirect if applicable\nwill be skipped unless this is set to true, useful in browser\n\nIf set to true, location header will be set for redirect",
+          "description": "by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser\n\nIf set to true, location header will be set for redirect",
           "in": "query",
           "required": false,
           "schema": { "type": "boolean" },
@@ -281,7 +281,7 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "by default, location header for redirect if applicable\nwill be skipped unless this is set to true, useful in browser\n\nIf set to true, location header will be set for redirect",
+                      "content": "by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser\n\nIf set to true, location header will be set for redirect",
                       "type": "text/plain",
                     },
                   "key": "redirect",
@@ -345,7 +345,7 @@ import TabItem from "@theme/TabItem";
 
 Authenticate a user with a strategy. By default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url in the authenticate request body that will be used for redirection after authentication. Also set redirect as true for redirecting the user request to the redirect_url after successful authentication.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"strategyName","description":"Name of the strategy to use for authentication.<br/> *Example:* `google`","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"redirect","description":"by default, location header for redirect if applicable\nwill be skipped unless this is set to true, useful in browser\n\nIf set to true, location header will be set for redirect","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"returnTo","description":"by default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication\n\nURL to redirect after successful authentication.<br/> *Example:*`\"https://shield.example.com\"`","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"email","description":"email of the user for magic links\n\nEmail of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"strategyName","description":"Name of the strategy to use for authentication.<br/> *Example:* `google`","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"redirect","description":"by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser\n\nIf set to true, location header will be set for redirect","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"returnTo","description":"by default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication\n\nURL to redirect after successful authentication.<br/> *Example:*`\"https://shield.example.com\"`","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"email","description":"email of the user for magic links\n\nEmail of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

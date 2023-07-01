@@ -128,23 +128,23 @@ func (_c *ServiceUserService_CreateKey_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
-// CreateSecret provides a mock function with given fields: ctx, serviceUserID
-func (_m *ServiceUserService) CreateSecret(ctx context.Context, serviceUserID string) (serviceuser.Credential, error) {
-	ret := _m.Called(ctx, serviceUserID)
+// CreateSecret provides a mock function with given fields: ctx, credential
+func (_m *ServiceUserService) CreateSecret(ctx context.Context, credential serviceuser.Credential) (serviceuser.Secret, error) {
+	ret := _m.Called(ctx, credential)
 
-	var r0 serviceuser.Credential
+	var r0 serviceuser.Secret
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (serviceuser.Credential, error)); ok {
-		return rf(ctx, serviceUserID)
+	if rf, ok := ret.Get(0).(func(context.Context, serviceuser.Credential) (serviceuser.Secret, error)); ok {
+		return rf(ctx, credential)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) serviceuser.Credential); ok {
-		r0 = rf(ctx, serviceUserID)
+	if rf, ok := ret.Get(0).(func(context.Context, serviceuser.Credential) serviceuser.Secret); ok {
+		r0 = rf(ctx, credential)
 	} else {
-		r0 = ret.Get(0).(serviceuser.Credential)
+		r0 = ret.Get(0).(serviceuser.Secret)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, serviceUserID)
+	if rf, ok := ret.Get(1).(func(context.Context, serviceuser.Credential) error); ok {
+		r1 = rf(ctx, credential)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -159,24 +159,24 @@ type ServiceUserService_CreateSecret_Call struct {
 
 // CreateSecret is a helper method to define mock.On call
 //   - ctx context.Context
-//   - serviceUserID string
-func (_e *ServiceUserService_Expecter) CreateSecret(ctx interface{}, serviceUserID interface{}) *ServiceUserService_CreateSecret_Call {
-	return &ServiceUserService_CreateSecret_Call{Call: _e.mock.On("CreateSecret", ctx, serviceUserID)}
+//   - credential serviceuser.Credential
+func (_e *ServiceUserService_Expecter) CreateSecret(ctx interface{}, credential interface{}) *ServiceUserService_CreateSecret_Call {
+	return &ServiceUserService_CreateSecret_Call{Call: _e.mock.On("CreateSecret", ctx, credential)}
 }
 
-func (_c *ServiceUserService_CreateSecret_Call) Run(run func(ctx context.Context, serviceUserID string)) *ServiceUserService_CreateSecret_Call {
+func (_c *ServiceUserService_CreateSecret_Call) Run(run func(ctx context.Context, credential serviceuser.Credential)) *ServiceUserService_CreateSecret_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(serviceuser.Credential))
 	})
 	return _c
 }
 
-func (_c *ServiceUserService_CreateSecret_Call) Return(_a0 serviceuser.Credential, _a1 error) *ServiceUserService_CreateSecret_Call {
+func (_c *ServiceUserService_CreateSecret_Call) Return(_a0 serviceuser.Secret, _a1 error) *ServiceUserService_CreateSecret_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ServiceUserService_CreateSecret_Call) RunAndReturn(run func(context.Context, string) (serviceuser.Credential, error)) *ServiceUserService_CreateSecret_Call {
+func (_c *ServiceUserService_CreateSecret_Call) RunAndReturn(run func(context.Context, serviceuser.Credential) (serviceuser.Secret, error)) *ServiceUserService_CreateSecret_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -267,13 +267,13 @@ func (_c *ServiceUserService_DeleteKey_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
-// DeleteSecret provides a mock function with given fields: ctx, serviceUserID, credID
-func (_m *ServiceUserService) DeleteSecret(ctx context.Context, serviceUserID string, credID string) error {
-	ret := _m.Called(ctx, serviceUserID, credID)
+// DeleteSecret provides a mock function with given fields: ctx, credID
+func (_m *ServiceUserService) DeleteSecret(ctx context.Context, credID string) error {
+	ret := _m.Called(ctx, credID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, serviceUserID, credID)
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, credID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -288,15 +288,14 @@ type ServiceUserService_DeleteSecret_Call struct {
 
 // DeleteSecret is a helper method to define mock.On call
 //   - ctx context.Context
-//   - serviceUserID string
 //   - credID string
-func (_e *ServiceUserService_Expecter) DeleteSecret(ctx interface{}, serviceUserID interface{}, credID interface{}) *ServiceUserService_DeleteSecret_Call {
-	return &ServiceUserService_DeleteSecret_Call{Call: _e.mock.On("DeleteSecret", ctx, serviceUserID, credID)}
+func (_e *ServiceUserService_Expecter) DeleteSecret(ctx interface{}, credID interface{}) *ServiceUserService_DeleteSecret_Call {
+	return &ServiceUserService_DeleteSecret_Call{Call: _e.mock.On("DeleteSecret", ctx, credID)}
 }
 
-func (_c *ServiceUserService_DeleteSecret_Call) Run(run func(ctx context.Context, serviceUserID string, credID string)) *ServiceUserService_DeleteSecret_Call {
+func (_c *ServiceUserService_DeleteSecret_Call) Run(run func(ctx context.Context, credID string)) *ServiceUserService_DeleteSecret_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -306,7 +305,7 @@ func (_c *ServiceUserService_DeleteSecret_Call) Return(_a0 error) *ServiceUserSe
 	return _c
 }
 
-func (_c *ServiceUserService_DeleteSecret_Call) RunAndReturn(run func(context.Context, string, string) error) *ServiceUserService_DeleteSecret_Call {
+func (_c *ServiceUserService_DeleteSecret_Call) RunAndReturn(run func(context.Context, string) error) *ServiceUserService_DeleteSecret_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -417,60 +416,6 @@ func (_c *ServiceUserService_GetKey_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
-// GetSecret provides a mock function with given fields: ctx, serviceUserID, credID
-func (_m *ServiceUserService) GetSecret(ctx context.Context, serviceUserID string, credID string) (serviceuser.Credential, error) {
-	ret := _m.Called(ctx, serviceUserID, credID)
-
-	var r0 serviceuser.Credential
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (serviceuser.Credential, error)); ok {
-		return rf(ctx, serviceUserID, credID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) serviceuser.Credential); ok {
-		r0 = rf(ctx, serviceUserID, credID)
-	} else {
-		r0 = ret.Get(0).(serviceuser.Credential)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, serviceUserID, credID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ServiceUserService_GetSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSecret'
-type ServiceUserService_GetSecret_Call struct {
-	*mock.Call
-}
-
-// GetSecret is a helper method to define mock.On call
-//   - ctx context.Context
-//   - serviceUserID string
-//   - credID string
-func (_e *ServiceUserService_Expecter) GetSecret(ctx interface{}, serviceUserID interface{}, credID interface{}) *ServiceUserService_GetSecret_Call {
-	return &ServiceUserService_GetSecret_Call{Call: _e.mock.On("GetSecret", ctx, serviceUserID, credID)}
-}
-
-func (_c *ServiceUserService_GetSecret_Call) Run(run func(ctx context.Context, serviceUserID string, credID string)) *ServiceUserService_GetSecret_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *ServiceUserService_GetSecret_Call) Return(_a0 serviceuser.Credential, _a1 error) *ServiceUserService_GetSecret_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ServiceUserService_GetSecret_Call) RunAndReturn(run func(context.Context, string, string) (serviceuser.Credential, error)) *ServiceUserService_GetSecret_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // List provides a mock function with given fields: ctx, flt
 func (_m *ServiceUserService) List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error) {
 	ret := _m.Called(ctx, flt)
@@ -526,6 +471,61 @@ func (_c *ServiceUserService_List_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
+// ListByOrg provides a mock function with given fields: ctx, orgID
+func (_m *ServiceUserService) ListByOrg(ctx context.Context, orgID string) ([]serviceuser.ServiceUser, error) {
+	ret := _m.Called(ctx, orgID)
+
+	var r0 []serviceuser.ServiceUser
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]serviceuser.ServiceUser, error)); ok {
+		return rf(ctx, orgID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []serviceuser.ServiceUser); ok {
+		r0 = rf(ctx, orgID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]serviceuser.ServiceUser)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, orgID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceUserService_ListByOrg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByOrg'
+type ServiceUserService_ListByOrg_Call struct {
+	*mock.Call
+}
+
+// ListByOrg is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+func (_e *ServiceUserService_Expecter) ListByOrg(ctx interface{}, orgID interface{}) *ServiceUserService_ListByOrg_Call {
+	return &ServiceUserService_ListByOrg_Call{Call: _e.mock.On("ListByOrg", ctx, orgID)}
+}
+
+func (_c *ServiceUserService_ListByOrg_Call) Run(run func(ctx context.Context, orgID string)) *ServiceUserService_ListByOrg_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_ListByOrg_Call) Return(_a0 []serviceuser.ServiceUser, _a1 error) *ServiceUserService_ListByOrg_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceUserService_ListByOrg_Call) RunAndReturn(run func(context.Context, string) ([]serviceuser.ServiceUser, error)) *ServiceUserService_ListByOrg_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListKeys provides a mock function with given fields: ctx, serviceUserID
 func (_m *ServiceUserService) ListKeys(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error) {
 	ret := _m.Called(ctx, serviceUserID)
@@ -577,6 +577,61 @@ func (_c *ServiceUserService_ListKeys_Call) Return(_a0 []serviceuser.Credential,
 }
 
 func (_c *ServiceUserService_ListKeys_Call) RunAndReturn(run func(context.Context, string) ([]serviceuser.Credential, error)) *ServiceUserService_ListKeys_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListSecret provides a mock function with given fields: ctx, serviceUserID
+func (_m *ServiceUserService) ListSecret(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error) {
+	ret := _m.Called(ctx, serviceUserID)
+
+	var r0 []serviceuser.Credential
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]serviceuser.Credential, error)); ok {
+		return rf(ctx, serviceUserID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []serviceuser.Credential); ok {
+		r0 = rf(ctx, serviceUserID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]serviceuser.Credential)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, serviceUserID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceUserService_ListSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSecret'
+type ServiceUserService_ListSecret_Call struct {
+	*mock.Call
+}
+
+// ListSecret is a helper method to define mock.On call
+//   - ctx context.Context
+//   - serviceUserID string
+func (_e *ServiceUserService_Expecter) ListSecret(ctx interface{}, serviceUserID interface{}) *ServiceUserService_ListSecret_Call {
+	return &ServiceUserService_ListSecret_Call{Call: _e.mock.On("ListSecret", ctx, serviceUserID)}
+}
+
+func (_c *ServiceUserService_ListSecret_Call) Run(run func(ctx context.Context, serviceUserID string)) *ServiceUserService_ListSecret_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_ListSecret_Call) Return(_a0 []serviceuser.Credential, _a1 error) *ServiceUserService_ListSecret_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceUserService_ListSecret_Call) RunAndReturn(run func(context.Context, string) ([]serviceuser.Credential, error)) *ServiceUserService_ListSecret_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -13,6 +13,7 @@ type Resource struct {
 	ID            string         `db:"id"`
 	URN           string         `db:"urn"`
 	Name          string         `db:"name"`
+	Title         string         `db:"title"`
 	ProjectID     string         `db:"project_id"`
 	Project       Project        `db:"project"`
 	Metadata      []byte         `db:"metadata"`
@@ -50,6 +51,7 @@ func (from Resource) transformToResource() (resource.Resource, error) {
 type ResourceCols struct {
 	ID            string         `db:"id"`
 	URN           string         `db:"urn"`
+	Title         string         `db:"title"`
 	Name          string         `db:"name"`
 	ProjectID     string         `db:"project_id"`
 	NamespaceID   string         `db:"namespace_name"`

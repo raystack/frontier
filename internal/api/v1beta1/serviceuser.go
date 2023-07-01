@@ -24,6 +24,7 @@ type ServiceUserService interface {
 	CreateSecret(ctx context.Context, credential serviceuser.Credential) (serviceuser.Secret, error)
 	ListSecret(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error)
 	DeleteSecret(ctx context.Context, credID string) error
+	ListByOrg(ctx context.Context, orgID string) ([]serviceuser.ServiceUser, error)
 }
 
 func (h Handler) ListServiceUsers(ctx context.Context, request *shieldv1beta1.ListServiceUsersRequest) (*shieldv1beta1.ListServiceUsersResponse, error) {
@@ -252,6 +253,7 @@ func transformServiceUserToPB(usr serviceuser.ServiceUser) (*shieldv1beta1.Servi
 
 	return &shieldv1beta1.ServiceUser{
 		Id:        usr.ID,
+		OrgId:     usr.OrgID,
 		Title:     usr.Title,
 		State:     usr.State,
 		Metadata:  metaData,

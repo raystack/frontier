@@ -20,7 +20,8 @@ import (
 type Repository interface {
 	List(ctx context.Context, flt Filter) ([]ServiceUser, error)
 	Create(ctx context.Context, serviceUser ServiceUser) (ServiceUser, error)
-	Get(ctx context.Context, id string) (ServiceUser, error)
+	GetByID(ctx context.Context, id string) (ServiceUser, error)
+	GetByIDs(ctx context.Context, id []string) ([]ServiceUser, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -34,6 +35,7 @@ type CredentialRepository interface {
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
+	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 }
 
 type Service struct {
@@ -55,19 +57,33 @@ func (s Service) List(ctx context.Context, flt Filter) ([]ServiceUser, error) {
 }
 
 func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUser, error) {
-	createdSvUser, err := s.repo.Create(ctx, serviceUser)
+	createdSU, err := s.repo.Create(ctx, serviceUser)
 	if err != nil {
 		return ServiceUser{}, err
 	}
 
-	// attach the serviceuser to the organization
+	// attach service user to organization
 	_, err = s.relService.Create(ctx, relation.Relation{
 		Object: relation.Object{
-			ID:        createdSvUser.ID,
+			ID:        serviceUser.OrgID,
+			Namespace: schema.OrganizationNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        createdSU.ID,
+			Namespace: schema.ServiceUserPrincipal,
+		},
+		RelationName: schema.MemberRelationName,
+	})
+	if err != nil {
+		return ServiceUser{}, err
+	}
+	_, err = s.relService.Create(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        createdSU.ID,
 			Namespace: schema.ServiceUserPrincipal,
 		},
 		Subject: relation.Subject{
-			ID:        createdSvUser.OrgID,
+			ID:        serviceUser.OrgID,
 			Namespace: schema.OrganizationNamespace,
 		},
 		RelationName: schema.OrganizationRelationName,
@@ -75,25 +91,33 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 	if err != nil {
 		return ServiceUser{}, err
 	}
-	_, err = s.relService.Create(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        createdSvUser.ID,
-			Namespace: schema.ServiceUserPrincipal,
-		},
-		Subject: relation.Subject{
-			ID:        createdSvUser.OrgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		RelationName: schema.OrganizationRelationName,
-	})
-	if err != nil {
-		return ServiceUser{}, err
-	}
-	return createdSvUser, nil
+
+	return createdSU, nil
 }
 
 func (s Service) Get(ctx context.Context, id string) (ServiceUser, error) {
-	return s.repo.Get(ctx, id)
+	return s.repo.GetByID(ctx, id)
+}
+
+func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, error) {
+	userIDs, err := s.relService.LookupSubjects(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        orgID,
+			Namespace: schema.OrganizationNamespace,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.ServiceUserPrincipal,
+		},
+		RelationName: schema.MembershipPermission,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(userIDs) == 0 {
+		// no users
+		return []ServiceUser{}, nil
+	}
+	return s.repo.GetByIDs(ctx, userIDs)
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
@@ -227,7 +251,7 @@ func (s Service) GetBySecret(ctx context.Context, credID string, credSecret stri
 	if err := bcrypt.CompareHashAndPassword(cred.SecretHash, []byte(credSecret)); err != nil {
 		return ServiceUser{}, ErrInvalidCred
 	}
-	return s.repo.Get(ctx, cred.ServiceUserID)
+	return s.repo.GetByID(ctx, cred.ServiceUserID)
 }
 
 // GetByToken returns the service user by verifying the token
@@ -250,5 +274,5 @@ func (s Service) GetByToken(ctx context.Context, token string) (ServiceUser, err
 	if err != nil {
 		return ServiceUser{}, fmt.Errorf("invalid serviceuser token: %w", err)
 	}
-	return s.repo.Get(ctx, cred.ServiceUserID)
+	return s.repo.GetByID(ctx, cred.ServiceUserID)
 }
