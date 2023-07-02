@@ -61,7 +61,7 @@ var (
 )
 
 func StartServer(logger *log.Zap, cfg *config.Shield) error {
-	logger.Info("shield starting", "version", Version)
+	logger.Info("shield starting", "version", config.Version)
 	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}

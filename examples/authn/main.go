@@ -1,17 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"html/template"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 const (
@@ -19,7 +19,8 @@ const (
 	shieldRegister         = "/v1beta1/auth/register"
 	shieldRegisterCallback = "/v1beta1/auth/callback"
 	shieldLogout           = "/v1beta1/auth/logout"
-	shieldUserProfile      = "/v1beta1/users/self"
+	shieldAccessToken      = "/v1beta1/auth/token"
+	shieldUserProfile      = "/v1beta1/users/self" // protected endpoint
 	jwksPath               = "/.well-known/jwks.json"
 
 	mailotpStrategy = "mailotp"
@@ -52,6 +53,8 @@ func main() {
 	r.GET("/login", login())
 	r.GET("/oauth", oauth())
 	r.GET("/mailauth", mailauth())
+	r.GET("/token", token())
+	r.POST("/token", token())
 	r.GET("/callback", callback())
 	r.GET("/logout", logout())
 	r.GET("/profile", profile())
@@ -229,12 +232,83 @@ func callback() func(ctx *gin.Context) {
 		// clone response headers for cookie
 		ctx.Writer.Header().Set("set-cookie", resp.Header.Get("set-cookie"))
 
+		ctx.HTML(http.StatusOK, "index.html", gin.H{
+			"title":   "Authentication demo",
+			"page":    "Callback",
+			"content": "Authentication successful. Check profile section now.",
+		})
+	}
+}
+
+func token() func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		if ctx.Request.Method == http.MethodGet {
+			ctx.HTML(http.StatusOK, "index.html", gin.H{
+				"title": "Authentication demo",
+				"page":  "Stateless Profile via Client Credentials",
+				"content": template.HTML(`
+<div>
+	<form action="/token" method="post">
+	<input type="hidden" name="grant_type" value="client_credentials">
+	<input type="text" name="client_id" placeholder="client id">
+	<input type="text" name="client_secret" placeholder="client secret">
+	<input type="submit" value="Get Profile">
+	</form>
+</div>
+`),
+			})
+			return
+		}
+
+		type tokenRequest struct {
+			GrantType    string `json:"grant_type"`
+			ClientID     string `json:"client_id"`
+			ClientSecret string `json:"client_secret"`
+		}
+		bodyBuf := &bytes.Buffer{}
+		if err := json.NewEncoder(bodyBuf).Encode(tokenRequest{
+			GrantType:    ctx.PostForm("grant_type"),
+			ClientID:     ctx.PostForm("client_id"),
+			ClientSecret: ctx.PostForm("client_secret"),
+		}); err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		// build a pass through request to shield
+		req, err := http.NewRequest(http.MethodPost, shieldHost+shieldAccessToken, bodyBuf)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+		if resp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("shield returned status code %d", resp.StatusCode))
+			respBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			ctx.Error(fmt.Errorf("shield returned %s", string(respBody)))
+			return
+		}
+
 		// render token
 		tokenHTML := "Access token is disabled by auth server"
 
+		// get access token from shield
+		var tokenResp struct {
+			AccessToken string `json:"access_token"`
+			TokenType   string `json:"token_type"`
+		}
+		if err = json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+			ctx.Error(fmt.Errorf("failed to decode token response: %s", err))
+			return
+		}
+
 		// parse & verify jwt with shield public keys if provided
-		userToken := resp.Header.Get("x-user-token")
-		if userToken != "" {
+		if tokenResp.AccessToken != "" {
 			jwks, err := jwk.Fetch(
 				ctx,
 				shieldHost+jwksPath,
@@ -243,7 +317,7 @@ func callback() func(ctx *gin.Context) {
 				ctx.Error(fmt.Errorf("failed to fetch JWK: %s", err))
 				return
 			}
-			verifiedToken, err := jwt.Parse([]byte(userToken), jwt.WithKeySet(jwks))
+			verifiedToken, err := jwt.Parse([]byte(tokenResp.AccessToken), jwt.WithKeySet(jwks))
 			if err != nil {
 				fmt.Printf("failed to verify JWS: %s\n", err)
 				return
@@ -254,14 +328,17 @@ func callback() func(ctx *gin.Context) {
 				return
 			}
 			// token ready to use
-			tokenHTML = "<h4>User Token:</h4><article>" + userToken + "</article><article>" + fmt.Sprintf("%v", tokenClaims) + "</article>"
+			tokenHTML = `Authentication successful via client credentials. 
+<h4>User Token:</h4>
+<article>` + tokenResp.AccessToken + `</article>
+<h4>Claims:</h4>
+<article>` + fmt.Sprintf("%v", tokenClaims) + `</article>`
 		}
 
 		ctx.HTML(http.StatusOK, "index.html", gin.H{
 			"title":   "Authentication demo",
 			"page":    "Callback",
-			"content": "Authentication successful. Check profile section now.",
-			"token":   template.HTML(tokenHTML),
+			"content": template.HTML(tokenHTML),
 		})
 	}
 }

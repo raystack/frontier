@@ -25,7 +25,7 @@ type UserService interface {
 }
 
 type AuthnService interface {
-	GetPrincipal(ctx context.Context) (authenticate.Principal, error)
+	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
 
 type Service struct {

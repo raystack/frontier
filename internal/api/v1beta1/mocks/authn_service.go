@@ -168,23 +168,30 @@ func (_c *AuthnService_FinishFlow_Call) RunAndReturn(run func(context.Context, a
 	return _c
 }
 
-// GetPrincipal provides a mock function with given fields: ctx
-func (_m *AuthnService) GetPrincipal(ctx context.Context) (authenticate.Principal, error) {
-	ret := _m.Called(ctx)
+// GetPrincipal provides a mock function with given fields: ctx, via
+func (_m *AuthnService) GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error) {
+	_va := make([]interface{}, len(via))
+	for _i := range via {
+		_va[_i] = via[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 authenticate.Principal
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (authenticate.Principal, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, ...authenticate.ClientAssertion) (authenticate.Principal, error)); ok {
+		return rf(ctx, via...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) authenticate.Principal); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, ...authenticate.ClientAssertion) authenticate.Principal); ok {
+		r0 = rf(ctx, via...)
 	} else {
 		r0 = ret.Get(0).(authenticate.Principal)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, ...authenticate.ClientAssertion) error); ok {
+		r1 = rf(ctx, via...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -199,13 +206,21 @@ type AuthnService_GetPrincipal_Call struct {
 
 // GetPrincipal is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *AuthnService_Expecter) GetPrincipal(ctx interface{}) *AuthnService_GetPrincipal_Call {
-	return &AuthnService_GetPrincipal_Call{Call: _e.mock.On("GetPrincipal", ctx)}
+//   - via ...authenticate.ClientAssertion
+func (_e *AuthnService_Expecter) GetPrincipal(ctx interface{}, via ...interface{}) *AuthnService_GetPrincipal_Call {
+	return &AuthnService_GetPrincipal_Call{Call: _e.mock.On("GetPrincipal",
+		append([]interface{}{ctx}, via...)...)}
 }
 
-func (_c *AuthnService_GetPrincipal_Call) Run(run func(ctx context.Context)) *AuthnService_GetPrincipal_Call {
+func (_c *AuthnService_GetPrincipal_Call) Run(run func(ctx context.Context, via ...authenticate.ClientAssertion)) *AuthnService_GetPrincipal_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		variadicArgs := make([]authenticate.ClientAssertion, len(args)-1)
+		for i, a := range args[1:] {
+			if a != nil {
+				variadicArgs[i] = a.(authenticate.ClientAssertion)
+			}
+		}
+		run(args[0].(context.Context), variadicArgs...)
 	})
 	return _c
 }
@@ -215,7 +230,7 @@ func (_c *AuthnService_GetPrincipal_Call) Return(_a0 authenticate.Principal, _a1
 	return _c
 }
 
-func (_c *AuthnService_GetPrincipal_Call) RunAndReturn(run func(context.Context) (authenticate.Principal, error)) *AuthnService_GetPrincipal_Call {
+func (_c *AuthnService_GetPrincipal_Call) RunAndReturn(run func(context.Context, ...authenticate.ClientAssertion) (authenticate.Principal, error)) *AuthnService_GetPrincipal_Call {
 	_c.Call.Return(run)
 	return _c
 }

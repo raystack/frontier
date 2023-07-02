@@ -102,7 +102,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 	return fetchedServiceUser.transform()
 }
 
-func (s ServiceUserRepository) Get(ctx context.Context, id string) (serviceuser.ServiceUser, error) {
+func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceuser.ServiceUser, error) {
 	if strings.TrimSpace(id) == "" {
 		return serviceuser.ServiceUser{}, role.ErrInvalidID
 	}
@@ -133,6 +133,48 @@ func (s ServiceUserRepository) Get(ctx context.Context, id string) (serviceuser.
 	}
 
 	return serviceUserModel.transform()
+}
+
+// GetByIDs returns a list of service users by their IDs.
+func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]serviceuser.ServiceUser, error) {
+	if len(ids) == 0 {
+		return nil, role.ErrInvalidID
+	}
+
+	query, params, err := dialect.Select(
+		goqu.I("s.id"),
+		goqu.I("s.org_id"),
+		goqu.I("s.title"),
+		goqu.I("s.state"),
+		goqu.I("s.metadata"),
+		goqu.I("s.created_at"),
+		goqu.I("s.updated_at"),
+	).Where(
+		goqu.Ex{"s.id": goqu.Op{"in": ids}},
+	).From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var fetchedUsers []ServiceUser
+	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Get", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, role.ErrNotExist
+		}
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	var transformedUsers []serviceuser.ServiceUser
+	for _, u := range fetchedUsers {
+		transformedUser, err := u.transform()
+		if err != nil {
+			return nil, fmt.Errorf("failed to transform user: %w", err)
+		}
+		transformedUsers = append(transformedUsers, transformedUser)
+	}
+	return transformedUsers, nil
 }
 
 func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {

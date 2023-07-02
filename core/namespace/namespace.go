@@ -23,19 +23,6 @@ type Namespace struct {
 	UpdatedAt time.Time
 }
 
-func strListHas(list []string, a string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
-func IsSystemNamespaceID(nsID string) bool {
-	return strListHas(systemIdsDefinition, nsID)
-}
-
 func CreateID(backend, resourceType string) string {
 	if resourceType == "" {
 		return backend

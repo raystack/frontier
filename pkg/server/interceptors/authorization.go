@@ -36,17 +36,55 @@ func UnaryAuthorizationCheck(identityHeader string) grpc.UnaryServerInterceptor 
 		// option (shield.v1beta1.auth_option) = {
 		//      permission: "app_project_update";
 		// };
+
+		// check if authorization needs to be skipped
+		if authorizationSkipList[info.FullMethod] {
+			return handler(ctx, req)
+		}
+
 		serverHandler, ok := info.Server.(*v1beta1.Handler)
 		if !ok {
 			return nil, errors.New("miss-configured server handler")
 		}
-		if azFunc, azVerifier := authorizationValidationMap[info.FullMethod]; azVerifier {
-			if err = azFunc(ctx, serverHandler, req); err != nil {
-				return nil, err
-			}
+
+		// apply authorization rules
+		azFunc, azVerifier := authorizationValidationMap[info.FullMethod]
+		if !azVerifier {
+			// deny access if not configured by default
+			return nil, status.Error(codes.Unauthenticated, "unauthorized access")
+		}
+		if err = azFunc(ctx, serverHandler, req); err != nil {
+			return nil, err
 		}
 		return handler(ctx, req)
 	}
+}
+
+// authorizationSkipList stores path to skip authorization, by default its enabled for all requests
+var authorizationSkipList = map[string]bool{
+	"/raystack.shield.v1beta1.ShieldService/GetJWKs":            true,
+	"/raystack.shield.v1beta1.ShieldService/ListAuthStrategies": true,
+	"/raystack.shield.v1beta1.ShieldService/Authenticate":       true,
+	"/raystack.shield.v1beta1.ShieldService/AuthCallback":       true,
+	"/raystack.shield.v1beta1.ShieldService/AuthToken":          true,
+	"/raystack.shield.v1beta1.ShieldService/AuthLogout":         true,
+
+	"/raystack.shield.v1beta1.ShieldService/ListPermissions": true,
+	"/raystack.shield.v1beta1.ShieldService/GetPermission":   true,
+
+	"/raystack.shield.v1beta1.ShieldService/ListNamespaces": true,
+	"/raystack.shield.v1beta1.ShieldService/GetNamespace":   true,
+
+	"/raystack.shield.v1beta1.ShieldService/ListMetaSchemas": true,
+	"/raystack.shield.v1beta1.ShieldService/GetMetaSchema":   true,
+
+	"/raystack.shield.v1beta1.ShieldService/ListCurrentUserGroups":         true,
+	"/raystack.shield.v1beta1.ShieldService/GetCurrentUser":                true,
+	"/raystack.shield.v1beta1.ShieldService/UpdateCurrentUser":             true,
+	"/raystack.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser": true,
+	"/raystack.shield.v1beta1.ShieldService/GetServiceUserKey":             true,
+
+	"/raystack.shield.v1beta1.ShieldService/CreateOrganization": true,
 }
 
 // authorizationValidationMap stores path to validation function
@@ -76,20 +114,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
-	"/raystack.shield.v1beta1.ShieldService/ListCurrentUserGroups": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
-	},
-	"/raystack.shield.v1beta1.ShieldService/GetCurrentUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
-	},
 	"/raystack.shield.v1beta1.ShieldService/UpdateUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
-	},
-	"/raystack.shield.v1beta1.ShieldService/UpdateCurrentUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
 	},
 	"/raystack.shield.v1beta1.ShieldService/EnableUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
@@ -144,9 +173,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*shieldv1beta1.CreateServiceUserKeyRequest)
 		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
 	},
-	"/raystack.shield.v1beta1.ShieldService/GetServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
-	},
 	"/raystack.shield.v1beta1.ShieldService/DeleteServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.DeleteServiceUserKeyRequest)
 		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
@@ -169,9 +195,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if handler.DisableOrgsListing {
 			return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 		}
-		return nil
-	},
-	"/raystack.shield.v1beta1.ShieldService/CreateOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return nil
 	},
 	"/raystack.shield.v1beta1.ShieldService/GetOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -332,22 +355,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.RoleManagePermission)
 	},
 
-	// permissions
-	"/raystack.shield.v1beta1.ShieldService/ListPermissions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
-	},
-	"/raystack.shield.v1beta1.ShieldService/GetPermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
-	},
-
-	// namespaces
-	"/raystack.shield.v1beta1.ShieldService/ListNamespaces": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
-	},
-	"/raystack.shield.v1beta1.ShieldService/GetNamespace": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
-	},
-
 	// policies
 	"/raystack.shield.v1beta1.ShieldService/CreatePolicy": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreatePolicyRequest)
@@ -411,7 +418,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
 	"/raystack.shield.v1beta1.ShieldService/GetRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
+		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.shield.v1beta1.ShieldService/DeleteRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*shieldv1beta1.CreateRelationRequest)

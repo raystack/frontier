@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/raystack/shield/core/authenticate"
@@ -22,7 +23,7 @@ type RelationService interface {
 }
 
 type AuthnService interface {
-	GetPrincipal(ctx context.Context) (authenticate.Principal, error)
+	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
 
 type ProjectService interface {
@@ -56,27 +57,40 @@ func NewService(repository Repository, configRepository ConfigRepository,
 }
 
 func (s Service) Get(ctx context.Context, id string) (Resource, error) {
-	return s.repository.GetByID(ctx, id)
+	if utils.IsValidUUID(id) {
+		return s.repository.GetByID(ctx, id)
+	}
+	return s.repository.GetByURN(ctx, id)
 }
 
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
-	princiapal, err := s.authnService.GetPrincipal(ctx)
-	if err != nil {
-		return Resource{}, err
+	// TODO(kushsharma): currently we allow users to pass a principal in request which allow
+	// them to create resource on behalf of other users. Should we only allow this for admins?
+	principalID := res.PrincipalID
+	principalType := res.PrincipalType
+	if strings.TrimSpace(principalID) == "" {
+		principal, err := s.authnService.GetPrincipal(ctx)
+		if err != nil {
+			return Resource{}, err
+		}
+		principalID = principal.ID
+		principalType = principal.Type
 	}
 
-	principalID := res.PrincipalID
-	if strings.TrimSpace(principalID) == "" {
-		principalID = princiapal.ID
+	resourceProject, err := s.projectService.Get(ctx, res.ProjectID)
+	if err != nil {
+		return Resource{}, fmt.Errorf("failed to get project: %w", err)
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{
-		URN:           res.CreateURN(),
+		URN:           res.CreateURN(resourceProject.Name),
 		Name:          res.Name,
-		ProjectID:     res.ProjectID,
+		Title:         res.Title,
+		ProjectID:     resourceProject.ID,
 		NamespaceID:   res.NamespaceID,
 		PrincipalID:   principalID,
-		PrincipalType: schema.UserPrincipal,
+		PrincipalType: principalType,
+		Metadata:      res.Metadata,
 	})
 	if err != nil {
 		return Resource{}, err
@@ -106,7 +120,6 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
 }
 
 func (s Service) Update(ctx context.Context, resource Resource) (Resource, error) {
-	// TODO there should be an update logic like create here
 	return s.repository.Update(ctx, resource)
 }
 
@@ -146,10 +159,6 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 	return nil
 }
 
-func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
-	return s.configRepository.GetAll(ctx)
-}
-
 func (s Service) CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error) {
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
@@ -159,21 +168,30 @@ func (s Service) CheckAuthz(ctx context.Context, rel relation.Object, permission
 	// a user can pass object name instead of id in the request
 	// we should convert name to id based on object namespace
 	if !utils.IsValidUUID(rel.ID) {
-		if rel.Namespace == schema.ProjectNamespace {
-			// if object is project, then fetch project by name
-			project, err := s.projectService.Get(ctx, rel.ID)
+		if schema.IsSystemNamespace(rel.Namespace) {
+			if rel.Namespace == schema.ProjectNamespace {
+				// if object is project, then fetch project by name
+				project, err := s.projectService.Get(ctx, rel.ID)
+				if err != nil {
+					return false, err
+				}
+				rel.ID = project.ID
+			}
+			if rel.Namespace == schema.OrganizationNamespace {
+				// if object is org, then fetch org by name
+				org, err := s.orgService.Get(ctx, rel.ID)
+				if err != nil {
+					return false, err
+				}
+				rel.ID = org.ID
+			}
+		} else {
+			// if not a system namespace it could be a resource, so fetch resource by urn
+			resource, err := s.Get(ctx, rel.ID)
 			if err != nil {
 				return false, err
 			}
-			rel.ID = project.ID
-		}
-		if rel.Namespace == schema.OrganizationNamespace {
-			// if object is org, then fetch org by name
-			org, err := s.orgService.Get(ctx, rel.ID)
-			if err != nil {
-				return false, err
-			}
-			rel.ID = org.ID
+			rel.ID = resource.ID
 		}
 	}
 

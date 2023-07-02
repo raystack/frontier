@@ -10,7 +10,7 @@ before:
 builds:
   - id: "shield"
     goos: [linux, darwin, windows]
-    goarch: [amd64, arm, arm64]
+    goarch: [amd64, arm64]
     binary: shield
     main: ./main.go
     ldflags:
@@ -58,6 +58,13 @@ dockers:
       - "docker.io/raystack/{{.ProjectName}}:latest"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Version }}"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
+  - goos: linux
+    goarch: arm64
+    ids:
+      - shield
+    dockerfile: Dockerfile
+    image_templates:
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-arm64"
 
 nfpms:
   - maintainer: Raystack

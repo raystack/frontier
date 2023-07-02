@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/raystack/shield/core/namespace"
 	"github.com/raystack/shield/pkg/metadata"
 )
-
-const NON_RESOURCE_ID = "*"
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Resource, error)
@@ -17,7 +14,6 @@ type Repository interface {
 	Create(ctx context.Context, resource Resource) (Resource, error)
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, resource Resource) (Resource, error)
-	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -27,8 +23,9 @@ type ConfigRepository interface {
 
 type Resource struct {
 	ID            string `json:"id"`
-	URN           string
-	Name          string
+	URN           string `json:"urn"`
+	Name          string `json:"name"`
+	Title         string `json:"title"`
 	ProjectID     string `json:"project_id"`
 	NamespaceID   string `json:"namespace_id"`
 	PrincipalID   string `json:"principal_id"`
@@ -39,15 +36,8 @@ type Resource struct {
 	UpdatedAt time.Time
 }
 
-func (res Resource) CreateURN() string {
-	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
-	if isSystemNS {
-		return res.Name
-	}
-	if res.Name == NON_RESOURCE_ID {
-		return fmt.Sprintf("p/%s/%s", res.ProjectID, res.NamespaceID)
-	}
-	return fmt.Sprintf("r/%s/%s", res.NamespaceID, res.Name)
+func (res Resource) CreateURN(projectName string) string {
+	return fmt.Sprintf("srn:%s:%s:%s", projectName, res.NamespaceID, res.Name)
 }
 
 type YAML struct {

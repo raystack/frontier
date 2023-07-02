@@ -44,14 +44,12 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
 	}
 
-	// TODO(kushsharma): bad actors can bloat a neighbouring urn namespace by following the same
-	// generation strategy, we need to restrict this arbitrary urn generation to a proper pattern
-	// e.g. srn:resource:<namespace>:<project-id>:<resource-id>
 	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
 		goqu.Record{
 			"id":             res.ID,
 			"urn":            res.URN,
 			"name":           res.Name,
+			"title":          res.Title,
 			"project_id":     res.ProjectID,
 			"namespace_name": res.NamespaceID,
 			"principal_id":   principalID,
@@ -175,10 +173,8 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 	}
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
-			"name":           res.Name,
-			"project_id":     res.ProjectID,
-			"namespace_name": res.NamespaceID,
-			"metadata":       marshaledMetadata,
+			"title":    res.Title,
+			"metadata": marshaledMetadata,
 		},
 	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
@@ -231,33 +227,6 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 	}
 
 	return resourceModel.transformToResource()
-}
-
-func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns string) (resource.Resource, error) {
-	var fetchedResource Resource
-
-	//TODO(kushsharma): fix params getting appended to query instead of being passed as args
-	query, _, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(goqu.Ex{
-		"name":           name,
-		"namespace_name": ns,
-	}).ToSQL()
-	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "GetByNamespace", func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &fetchedResource, query)
-	})
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return resource.Resource{}, resource.ErrNotExist
-		}
-
-		return resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	return fetchedResource.transformToResource()
 }
 
 func (r ResourceRepository) Delete(ctx context.Context, id string) error {

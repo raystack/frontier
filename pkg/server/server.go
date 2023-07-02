@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/protobuf/encoding/protojson"
+
 	"github.com/raystack/shield/pkg/server/consts"
 	"github.com/raystack/shield/pkg/server/health"
 
@@ -92,6 +94,15 @@ func Serve(
 			),
 		),
 		runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			MarshalOptions: protojson.MarshalOptions{
+				UseProtoNames:   true,
+				EmitUnpopulated: true,
+			},
+			UnmarshalOptions: protojson.UnmarshalOptions{
+				DiscardUnknown: true,
+			},
+		}),
 	)
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 

@@ -216,11 +216,6 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		return nil, err
 	}
 
-	if err = h.setUserContextTokenInHeaders(ctx, principal.ID); err != nil {
-		logger.Error(err.Error())
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
 	if principal.Type == schema.ServiceUserPrincipal {
 		return &shieldv1beta1.GetCurrentUserResponse{
 			Serviceuser: &shieldv1beta1.ServiceUser{

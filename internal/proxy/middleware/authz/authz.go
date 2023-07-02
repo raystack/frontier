@@ -24,7 +24,7 @@ type ResourceService interface {
 }
 
 type AuthnService interface {
-	GetPrincipal(ctx context.Context) (authenticate.Principal, error)
+	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
 
 type Authz struct {

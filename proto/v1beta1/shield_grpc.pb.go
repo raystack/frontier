@@ -69,6 +69,7 @@ const (
 	ShieldService_ListOrganizationUsers_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/ListOrganizationUsers"
 	ShieldService_AddOrganizationUsers_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/AddOrganizationUsers"
 	ShieldService_RemoveOrganizationUser_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/RemoveOrganizationUser"
+	ShieldService_ListOrganizationServiceUsers_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/ListOrganizationServiceUsers"
 	ShieldService_ListOrganizationInvitations_FullMethodName   = "/raystack.shield.v1beta1.ShieldService/ListOrganizationInvitations"
 	ShieldService_CreateOrganizationInvitation_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/CreateOrganizationInvitation"
 	ShieldService_GetOrganizationInvitation_FullMethodName     = "/raystack.shield.v1beta1.ShieldService/GetOrganizationInvitation"
@@ -106,6 +107,7 @@ const (
 	ShieldService_ListAuthStrategies_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/ListAuthStrategies"
 	ShieldService_Authenticate_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/Authenticate"
 	ShieldService_AuthCallback_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/AuthCallback"
+	ShieldService_AuthToken_FullMethodName                     = "/raystack.shield.v1beta1.ShieldService/AuthToken"
 	ShieldService_AuthLogout_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/AuthLogout"
 	ShieldService_ListMetaSchemas_FullMethodName               = "/raystack.shield.v1beta1.ShieldService/ListMetaSchemas"
 	ShieldService_CreateMetaSchema_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/CreateMetaSchema"
@@ -173,6 +175,7 @@ type ShieldServiceClient interface {
 	ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error)
+	ListOrganizationServiceUsers(ctx context.Context, in *ListOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*ListOrganizationServiceUsersResponse, error)
 	ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error)
 	CreateOrganizationInvitation(ctx context.Context, in *CreateOrganizationInvitationRequest, opts ...grpc.CallOption) (*CreateOrganizationInvitationResponse, error)
 	GetOrganizationInvitation(ctx context.Context, in *GetOrganizationInvitationRequest, opts ...grpc.CallOption) (*GetOrganizationInvitationResponse, error)
@@ -218,6 +221,7 @@ type ShieldServiceClient interface {
 	ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error)
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error)
+	AuthToken(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenResponse, error)
 	AuthLogout(ctx context.Context, in *AuthLogoutRequest, opts ...grpc.CallOption) (*AuthLogoutResponse, error)
 	// MetaSchemas
 	ListMetaSchemas(ctx context.Context, in *ListMetaSchemasRequest, opts ...grpc.CallOption) (*ListMetaSchemasResponse, error)
@@ -685,6 +689,15 @@ func (c *shieldServiceClient) RemoveOrganizationUser(ctx context.Context, in *Re
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListOrganizationServiceUsers(ctx context.Context, in *ListOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*ListOrganizationServiceUsersResponse, error) {
+	out := new(ListOrganizationServiceUsersResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationServiceUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error) {
 	out := new(ListOrganizationInvitationsResponse)
 	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationInvitations_FullMethodName, in, out, opts...)
@@ -1018,6 +1031,15 @@ func (c *shieldServiceClient) AuthCallback(ctx context.Context, in *AuthCallback
 	return out, nil
 }
 
+func (c *shieldServiceClient) AuthToken(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenResponse, error) {
+	out := new(AuthTokenResponse)
+	err := c.cc.Invoke(ctx, ShieldService_AuthToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) AuthLogout(ctx context.Context, in *AuthLogoutRequest, opts ...grpc.CallOption) (*AuthLogoutResponse, error) {
 	out := new(AuthLogoutResponse)
 	err := c.cc.Invoke(ctx, ShieldService_AuthLogout_FullMethodName, in, out, opts...)
@@ -1131,6 +1153,7 @@ type ShieldServiceServer interface {
 	ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error)
+	ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error)
 	ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error)
 	CreateOrganizationInvitation(context.Context, *CreateOrganizationInvitationRequest) (*CreateOrganizationInvitationResponse, error)
 	GetOrganizationInvitation(context.Context, *GetOrganizationInvitationRequest) (*GetOrganizationInvitationResponse, error)
@@ -1176,6 +1199,7 @@ type ShieldServiceServer interface {
 	ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error)
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error)
+	AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error)
 	AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error)
 	// MetaSchemas
 	ListMetaSchemas(context.Context, *ListMetaSchemasRequest) (*ListMetaSchemasResponse, error)
@@ -1340,6 +1364,9 @@ func (UnimplementedShieldServiceServer) AddOrganizationUsers(context.Context, *A
 func (UnimplementedShieldServiceServer) RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationUser not implemented")
 }
+func (UnimplementedShieldServiceServer) ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationServiceUsers not implemented")
+}
 func (UnimplementedShieldServiceServer) ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationInvitations not implemented")
 }
@@ -1450,6 +1477,9 @@ func (UnimplementedShieldServiceServer) Authenticate(context.Context, *Authentic
 }
 func (UnimplementedShieldServiceServer) AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthCallback not implemented")
+}
+func (UnimplementedShieldServiceServer) AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthToken not implemented")
 }
 func (UnimplementedShieldServiceServer) AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthLogout not implemented")
@@ -2382,6 +2412,24 @@ func _ShieldService_RemoveOrganizationUser_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListOrganizationServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationServiceUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListOrganizationServiceUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListOrganizationServiceUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListOrganizationServiceUsers(ctx, req.(*ListOrganizationServiceUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_ListOrganizationInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationInvitationsRequest)
 	if err := dec(in); err != nil {
@@ -3048,6 +3096,24 @@ func _ShieldService_AuthCallback_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_AuthToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).AuthToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_AuthToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).AuthToken(ctx, req.(*AuthTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_AuthLogout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthLogoutRequest)
 	if err := dec(in); err != nil {
@@ -3364,6 +3430,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_RemoveOrganizationUser_Handler,
 		},
 		{
+			MethodName: "ListOrganizationServiceUsers",
+			Handler:    _ShieldService_ListOrganizationServiceUsers_Handler,
+		},
+		{
 			MethodName: "ListOrganizationInvitations",
 			Handler:    _ShieldService_ListOrganizationInvitations_Handler,
 		},
@@ -3510,6 +3580,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthCallback",
 			Handler:    _ShieldService_AuthCallback_Handler,
+		},
+		{
+			MethodName: "AuthToken",
+			Handler:    _ShieldService_AuthToken_Handler,
 		},
 		{
 			MethodName: "AuthLogout",

@@ -198,33 +198,40 @@ api:
               },
           },
       },
-    "parameters":
-      [
-        {
-          "name": "strategyName",
-          "description": "strategy_name will not be set for oidc but can be utilized for methods like email magic links",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "state",
-          "description": "for oidc & magic links",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "code",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-        },
-      ],
+    "requestBody":
+      {
+        "content":
+          {
+            "application/json":
+              {
+                "schema":
+                  {
+                    "type": "object",
+                    "properties":
+                      {
+                        "strategyName":
+                          {
+                            "type": "string",
+                            "title": "strategy_name will not be set for oidc but can be utilized for methods like email magic links",
+                          },
+                        "state":
+                          {
+                            "type": "string",
+                            "title": "for oidc & magic links",
+                          },
+                        "code": { "type": "string" },
+                      },
+                  },
+              },
+          },
+        "required": true,
+      },
     "tags": ["Authn"],
     "method": "post",
     "path": "/v1beta1/auth/callback",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "jsonRequestBodyExample":
+      { "strategyName": "string", "state": "string", "code": "string" },
     "info":
       {
         "title": "Shield Administration API",
@@ -254,34 +261,21 @@ api:
           {
             "path": ["v1beta1", "auth", "callback"],
             "host": ["{{baseUrl}}"],
-            "query":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "strategy_name will not be set for oidc but can be utilized for methods like email magic links",
-                      "type": "text/plain",
-                    },
-                  "key": "strategyName",
-                  "value": "",
-                },
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "for oidc & magic links",
-                      "type": "text/plain",
-                    },
-                  "key": "state",
-                  "value": "",
-                },
-                { "disabled": false, "key": "code", "value": "" },
-              ],
+            "query": [],
             "variable": [],
           },
-        "header": [{ "key": "Accept", "value": "application/json" }],
+        "header":
+          [
+            { "key": "Content-Type", "value": "application/json" },
+            { "key": "Accept", "value": "application/json" },
+          ],
         "method": "POST",
+        "body":
+          {
+            "mode": "raw",
+            "raw": '""',
+            "options": { "raw": { "language": "json" } },
+          },
       },
   }
 sidebar_class_name: "post api-method"
@@ -302,7 +296,7 @@ import TabItem from "@theme/TabItem";
 
 Callback from a strategy. This is the endpoint where the strategy will redirect the user after successful authentication. This endpoint will be called with the code and state query parameters. The code will be used to get the access token from the strategy and the state will be used to get the return_to url from the session and redirect the user to that url.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"strategyName","description":"strategy_name will not be set for oidc but can be utilized for methods like email magic links","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"state","description":"for oidc & magic links","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"code","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"strategyName"} required={false} schemaName={"strategy_name will not be set for oidc but can be utilized for methods like email magic links"} qualifierMessage={undefined} schema={{"type":"string","title":"strategy_name will not be set for oidc but can be utilized for methods like email magic links"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"for oidc & magic links"} qualifierMessage={undefined} schema={{"type":"string","title":"for oidc & magic links"}}></SchemaItem><SchemaItem collapsible={false} name={"code"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

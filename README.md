@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/github/v/release/raystack/shield?logo=semantic-release)](Version)
 [![Coverage Status](https://coveralls.io/repos/github/raystack/shield/badge.svg?branch=main)](https://coveralls.io/github/raystack/shield?branch=main)
 
-Shield is a cloud native role-based authorization aware server and reverse-proxy system. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
+Shield is a cloud native role-based authorization aware system. With Shield, you can assign roles to users or groups of users to configure policies that determine whether a particular user has the ability to perform a certain action on a given resource.
 
 <p align="center"><img src="./docs/static/img/overview.svg" /></p>
 
