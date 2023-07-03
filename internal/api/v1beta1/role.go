@@ -83,15 +83,23 @@ func (h Handler) ListRoles(ctx context.Context, request *shieldv1beta1.ListRoles
 
 func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRoleRequest) (*shieldv1beta1.CreateRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
+
+	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
 
-	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyMetaSchemaError
+	var metaDataMap metadata.Metadata
+	var err error
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
+		if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyMetaSchemaError
+		}
 	}
 
 	newRole, err := h.roleService.Upsert(ctx, role.Role{

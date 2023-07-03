@@ -15,7 +15,7 @@ func main() {
 		cliConfig = &cmd.Config{}
 	}
 	if err := cmd.New(cliConfig).Execute(); err != nil {
-		fmt.Printf("%+v", err)
+		fmt.Printf("%+v\n", err)
 		os.Exit(1)
 	}
 }

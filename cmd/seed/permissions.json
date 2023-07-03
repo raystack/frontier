@@ -28,5 +28,23 @@
     "title": "List Orders",
     "namespace": "compute/order",
     "metadata": {}
+  },
+  {
+    "name": "get",
+    "title": "List Database Order",
+    "namespace": "database/order",
+    "metadata":{}
+  },
+  {
+    "name": "update",
+    "title": "Update Database Order",
+    "namespace": "database/order",
+    "metadata":{}
+  },
+  {
+    "name": "delete",
+    "title": "Delete Database Order",
+    "namespace": "database/order",
+    "metadata":{}
   }
 ]

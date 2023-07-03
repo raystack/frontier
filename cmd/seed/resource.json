@@ -1,8 +1,18 @@
-{
-    "name": "resource-1",
+[
+  {
+    "name": "org1-resource-1",
     "namespace": "compute/order",
     "principal": "user-id",
     "metadata": {
-        "description": "Sample resource for compute order"
+      "description": "Sample resource for compute order"
     }
-}
+  },
+  {
+    "name": "org2-resource-1",
+    "namespace": "database/order",
+    "principal": "user-id",
+    "metadata": {
+      "description": "Sample resource for compute order"
+    }
+  }
+]
