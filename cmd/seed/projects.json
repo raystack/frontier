@@ -1,0 +1,18 @@
+[
+  {
+    "name": "compute-guard-project",
+    "title": "Compute Guard Project",
+    "metadata": {
+      "description": "Sample project for enforcing security policies on compute order service"
+    },
+    "org_id": ""
+  },
+  {
+    "name": "order-management-project",
+    "title": "Order Management service",
+    "metadata": {
+      "description": "Sample project for enforcing security policies on order management service"
+    },
+    "org_id": ""
+  }
+]

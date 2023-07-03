@@ -1,0 +1,14 @@
+[
+  {
+    "name": "sample-org1",
+    "title": "Sample Org 1",
+    "metadata": {
+      "description": "Sample Shield Organization"
+    }
+  },
+  {
+    "name": "sample-org2",
+    "title": "Sample Org 2",
+    "metadata": {}
+  }
+]
