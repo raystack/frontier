@@ -42,5 +42,7 @@ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/check' \
 :::info
 The resource field should contain the resource namespace and resource id/name in this format **namespace:uuid** or **namespace:name**.<br/><br/>Instead of passing complete namespaces for organization and projects, one can also use the aliases of **org**, **organization** or **project** instead of **app/organization** and **app/project**. 
 
-Similarly, instead of passing the unique UUID for the organization or project, one can pass the unique organization or project **name** used while creating these resources.
+Similarly, instead of passing the unique UUID for the organization or project, one can pass the unique organization or project **name** used while creating these resources. 
+
+In case the object is not an organization or project, it can be a project resource and one can use format of **namespace:uuid** or **namespace:urn** in the resource field above.
 :::

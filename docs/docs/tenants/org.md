@@ -83,7 +83,7 @@ Some of these APIs require special privileges to access these endpoints and to a
 
 ### Create an Organization
 
-Any (human) user or a service user can create an Organization in Shield. The user must exist in Shield before procceding to create an Organization. This user/service account will be assigned the role of **Organization Admin** once the action is completed successful and will contain all the permissions to manage the org.
+Any (human) user can create an Organization in Shield. The user must exist in Shield before procceding to create an Organization. This user will be assigned the role of **Organization Admin** once the action is completed successful and will contain all the necessary permissions to manage the org.
 
 **Required Authorization:** User request just needs to be authenticated and no particular roles/permission are required to proceed.
 
@@ -197,7 +197,7 @@ $ curl -L -X DELETE 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitati
 
 This API only returns a list of human users in an Organization. For listing service users of the Org refer this [API](../apis/shield-service-list-service-users.api.mdx)
 
-**Required Authorization** : Any user/service user with `get` permission at Organization level can perform this action. Meaning all the Organization users with role `Organization Admin` , `Organization Manager` or an `Organization Viewer` can list the org users.
+**Required Authorization** : Any user/service user with `get` permission at Organization level can perform this action. Meaning all the Organization users/service users with role `Organization Admin` , `Organization Manager` or an `Organization Viewer` can list the org users.
 
 1. Calling to `GET /v1beta1/organizations/{id}/users` API
 
@@ -207,30 +207,34 @@ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/organizations/:id/users' \
 -H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
 ```
 ---
-### Create custom permissions for an Organization
+### Create custom role for an Organization
+
+**Required Authorization** : Any user/service user with the role `Organization Admin` is authorized to take this action. Also any user being assigned a custom role with `rolemanage` permission at the `app/organization` namespace can also perform this action. 
 
 1. Using the **`POST /v1beta1/permissions`** API. <br/>**Note:** Specify the namespace **`app/organization`** to create a org level custom permission
 
 ```bash
-$ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/permissions' \
+$ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/92f69c3a-334b-4f25-90b8-4d4f3be6b825/roles' \
 -H 'Content-Type: application/json' \
 -H 'Accept: application/json' \
 -H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' \
 --data-raw '{
-  "bodies": [
-    {
-      "name": "customrole",
-      "namespace": "app/organization",
-      "metadata": {},
-      "title": "Custom Role"
-    }
-  ]
+  "name": "app_organization_member",
+  "permissions": [
+    "app_organization_get",
+    "app_organization_update",
+    "app_organization_invitationcreate"
+  ],
+  "metadata": {"decription": "Custom Role with managing invitations permissions"},
+  "title": "Organization Member"
 }'
 ```
 ---
 ### Enable or disable an Organization
 
 Sets the state of the organization as disabled. The existing users in the org will not be able to access any organization resources when the org is disabled.
+
+**Required Authorization** : Any user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `delete` permission at the `app/organization` namespace can also perform this action. 
 
 1. Using **`POST /v1beta1/organizations/:id/disable`** API
 

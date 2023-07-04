@@ -50,7 +50,11 @@ The private key you created never persists in Shield and is only returned once. 
 
 3. Refer [shield-go](https://github.com/raystack/shield-go/blob/01b6fc925b355e69d79fcde66e1f6bb5bfd475ab/pkg/serviceuser.go) to see a Golang implementation to get a JWT token from private key using various libraries. This JWT token can be used in headers for user verification. 
 
+4. Alternatively, Shield also exposes a [Create Access Token](../apis/shield-service-auth-token) API from Client ID and Secret. Use the access token returned from the API response in the headers for authentication as discussed above. 
+
 ---
+
+## X-Shield-Email 
 
 :::danger Warning
 Currently Shield CLI and APIs also allow an identity header like `X-Shield-Email` which can be configured via the server configurations file. This will be deprecated in the upcoming versions and should not be used in deployment. 
