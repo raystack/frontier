@@ -1,12 +1,13 @@
 ---
 id: shield-service-get-project-resource
-title: "Get Resource by ID"
-description: "Get Resource by ID"
-sidebar_label: "Get Resource by ID"
+title: "Get resource"
+description: "Returns a project resource by ID"
+sidebar_label: "Get resource"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
+    "description": "Returns a project resource by ID",
     "operationId": "ShieldService_GetProjectResource",
     "responses":
       {
@@ -256,10 +257,28 @@ api:
         },
       ],
     "tags": ["Resource"],
-    "description": "Get Resource by ID",
     "method": "get",
     "path": "/v1beta1/projects/{projectId}/resources/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -267,8 +286,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -279,8 +298,12 @@ api:
       },
     "postman":
       {
-        "name": "Get Resource by ID",
-        "description": { "type": "text/plain" },
+        "name": "Get resource",
+        "description":
+          {
+            "content": "Returns a project resource by ID",
+            "type": "text/plain",
+          },
         "url":
           {
             "path": ["v1beta1", "projects", ":projectId", "resources", ":id"],
@@ -324,9 +347,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get Resource by ID
+## Get resource
 
-Get Resource by ID
+Returns a project resource by ID
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"projectId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

@@ -21,25 +21,13 @@ import Export from "@theme/ApiDemoPanel/Export";
 
 The Shield APIs adhere to the OpenAPI specification, also known as Swagger, which provides a standardized approach for designing, documenting, and consuming RESTful APIs. With OpenAPI, you gain a clear understanding of the API endpoints, request/response structures, and authentication mechanisms supported by the Shield APIs. By leveraging the OpenAPI specification, developers can easily explore and interact with the Shield APIs using a variety of tools and libraries. The OpenAPI specification enables automatic code generation, interactive API documentation, and seamless integration with API testing frameworks, making it easier than ever to integrate Shield into your existing applications and workflows.
 
-<div
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    marginBottom: "var(--ifm-paragraph-margin-bottom)",
-  }}
->
-  <h3 style={{ marginBottom: "0.25rem" }}>Contact</h3>
-  <span>
-    Open DataOps Foundation:{" "}
-    <a href={"mailto:hello@raystack.org"}>hello@raystack.org</a>
-  </span>
-  <span>
-    URL: <a href={"https://www.raystack.org/"}>https://www.raystack.org/</a>
-  </span>
-</div>
-<div style={{ marginBottom: "var(--ifm-paragraph-margin-bottom)" }}>
-  <h3 style={{ marginBottom: "0.25rem" }}>License</h3>
-  <a href={"https://github.com/raystack/shield/blob/main/LICENSE"}>
-    Apache 2.0
-  </a>
-</div>
+<div style={{"marginBottom":"2rem"}}><h2 id={"authentication"} style={{"marginBottom":"1rem"}}>Authentication</h2><SchemaTabs className={"openapi-tabs__security-schemes"}><TabItem label={"HTTP: Basic Auth"} value={"Basic"}>
+
+use Client ID as username and Client Secret as password
+
+<div><table><tbody><tr><th>Security Scheme Type:</th><td>http</td></tr><tr><th>HTTP Authorization Scheme:</th><td>basic</td></tr></tbody></table></div></TabItem><TabItem label={"OAuth 2.0: Bearer"} value={"Bearer"}>
+
+Access token or JWT token, prefixed by Bearer: Bearer <token\>
+
+<div><table><tbody><tr><th>Security Scheme Type:</th><td>oauth2</td></tr><tr><th>OAuth Flow (undefined):</th><td><span>Scopes:</span><ul></ul></td></tr></tbody></table></div></TabItem></SchemaTabs></div><div style={{"display":"flex","flexDirection":"column","marginBottom":"var(--ifm-paragraph-margin-bottom)"}}><h3 style={{"marginBottom":"0.25rem"}}>Contact</h3><span>Raystack Foundation: <a href={"mailto:hello@raystack.org"}>hello@raystack.org</a></span><span>URL: <a href={"https://raystack.org/"}>https://raystack.org/</a></span></div><div style={{"marginBottom":"var(--ifm-paragraph-margin-bottom)"}}><h3 style={{"marginBottom":"0.25rem"}}>License</h3><a href={"https://github.com/raystack/shield/blob/main/LICENSE"}>Apache 2.0</a></div>
+

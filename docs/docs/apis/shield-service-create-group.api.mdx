@@ -1,8 +1,8 @@
 ---
 id: shield-service-create-group
-title: "Create Group"
+title: "Create group"
 description: "Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups."
-sidebar_label: "Create Group"
+sidebar_label: "Create group"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -282,6 +282,25 @@ api:
     "method": "post",
     "path": "/v1beta1/organizations/{orgId}/groups",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample":
       { "name": "string", "title": "string", "metadata": {} },
     "info":
@@ -291,8 +310,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -303,7 +322,7 @@ api:
       },
     "postman":
       {
-        "name": "Create Group",
+        "name": "Create group",
         "description":
           {
             "content": "Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.",
@@ -357,7 +376,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Create Group
+## Create group
 
 Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.
 

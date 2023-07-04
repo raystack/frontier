@@ -1,6 +1,4 @@
-# Configurations
-
-## Server Configurations
+# Server Configurations
 
 <details>
 <summary> Sample Config </summary>

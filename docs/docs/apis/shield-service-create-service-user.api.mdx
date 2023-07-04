@@ -1,8 +1,8 @@
 ---
 id: shield-service-create-service-user
-title: "Create Service User"
+title: "Create service user"
 description: "Create a service user."
-sidebar_label: "Create Service User"
+sidebar_label: "Create service user"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -281,6 +281,25 @@ api:
     "method": "post",
     "path": "/v1beta1/serviceusers",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample":
       {
         "body": { "title": "Order Service", "metadata": {} },
@@ -293,8 +312,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -305,7 +324,7 @@ api:
       },
     "postman":
       {
-        "name": "Create Service User",
+        "name": "Create service user",
         "description":
           { "content": "Create a service user.", "type": "text/plain" },
         "url":
@@ -343,7 +362,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Create Service User
+## Create service user
 
 Create a service user.
 

@@ -1,12 +1,13 @@
 ---
 id: shield-service-delete-relation
-title: "Remove a subject having a relation from an object"
+title: "Delete relation"
 description: "Remove a subject having a relation from an object"
-sidebar_label: "Remove a subject having a relation from an object"
+sidebar_label: "Delete relation"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
+    "description": "Remove a subject having a relation from an object",
     "operationId": "ShieldService_DeleteRelation",
     "responses":
       {
@@ -221,10 +222,28 @@ api:
         },
       ],
     "tags": ["Relation"],
-    "description": "Remove a subject having a relation from an object",
     "method": "delete",
     "path": "/v1beta1/relations/{relation}/object/{object}/subject/{subject}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -232,8 +251,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -244,8 +263,12 @@ api:
       },
     "postman":
       {
-        "name": "Remove a subject having a relation from an object",
-        "description": { "type": "text/plain" },
+        "name": "Delete relation",
+        "description":
+          {
+            "content": "Remove a subject having a relation from an object",
+            "type": "text/plain",
+          },
         "url":
           {
             "path":
@@ -312,7 +335,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Remove a subject having a relation from an object
+## Delete relation
 
 Remove a subject having a relation from an object
 

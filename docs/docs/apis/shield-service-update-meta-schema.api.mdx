@@ -1,8 +1,8 @@
 ---
 id: shield-service-update-meta-schema
-title: "Update metaSchema"
+title: "Update metaschema"
 description: "Update a metadata schema. Only `schema` field of a metaschema can be updated. The metaschema `schema` must be a valid JSON schema.Please refer to https://json-schema.org/ to know more about json schema. <br/>*Example:* `{name:'user',schema:{'type':'object','properties':{'label':{'type':'object','additionalProperties':{'type':'string'}},'description':{'type':'string'}}}}`"
-sidebar_label: "Update metaSchema"
+sidebar_label: "Update metaschema"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -284,6 +284,25 @@ api:
     "method": "put",
     "path": "/v1beta1/meta/schemas/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample": { "name": "string", "schema": "string" },
     "info":
       {
@@ -292,8 +311,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -304,7 +323,7 @@ api:
       },
     "postman":
       {
-        "name": "Update metaSchema",
+        "name": "Update metaschema",
         "description":
           {
             "content": 'Update a metadata schema. Only `schema` field of a metaschema can be updated. The metaschema `schema` must be a valid JSON schema.Please refer to https://json-schema.org/ to know more about json schema. <br/>*Example:* `{name:"user",schema:{"type":"object","properties":{"label":{"type":"object","additionalProperties":{"type":"string"}},"description":{"type":"string"}}}}`',
@@ -355,7 +374,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Update metaSchema
+## Update metaschema
 
 Update a metadata schema. Only `schema` field of a metaschema can be updated. The metaschema `schema` must be a valid JSON schema.Please refer to https://json-schema.org/ to know more about json schema. <br/>_Example:_ `{name:"user",schema:{"type":"object","properties":{"label":{"type":"object","additionalProperties":{"type":"string"}},"description":{"type":"string"}}}}`
 

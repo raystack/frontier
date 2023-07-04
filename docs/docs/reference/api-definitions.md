@@ -14,6 +14,6 @@ The current deployment uses the [v1beta1](https://github.com/raystack/proton/tre
 While making any changes in Shield APIs, the makefile in Shield contains the Proton commit hash, which is utilized in Shield for generating protobuf files and documentation with `make proto` and `make doc` rules.
 :::
 
-The **`make proto`** command creates [apidocs.swagger.yaml](https://github.com/raystack/shield/blob/main/proto/apidocs.swagger.json) specification which can be used to create a Postman collection to test these APIs.
+The **`make proto`** command creates [apidocs.swagger.yaml](https://github.com/raystack/shield/blob/main/proto/apidocs.swagger.yaml) specification which can be used to create a Postman collection to test these APIs.
 
 Besides this, one can import these files it in the [Swagger Editor](https://editor.swagger.io/) to visualize the Shield API documentation using the Swagger OpenAPI specification format.
