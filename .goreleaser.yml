@@ -56,7 +56,7 @@ dockers:
     dockerfile: Dockerfile
     image_templates:
       - "docker.io/raystack/{{.ProjectName}}:latest"
-      - "docker.io/raystack/{{.ProjectName}}:{{ .Version }}"
+      - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
   - goos: linux
     goarch: arm64

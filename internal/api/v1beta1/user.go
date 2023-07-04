@@ -498,6 +498,7 @@ func transformUserToPB(usr user.User) (*shieldv1beta1.User, error) {
 		Email:     usr.Email,
 		Name:      usr.Name,
 		Metadata:  metaData,
+		State:     usr.State.String(),
 		CreatedAt: timestamppb.New(usr.CreatedAt),
 		UpdatedAt: timestamppb.New(usr.UpdatedAt),
 	}, nil

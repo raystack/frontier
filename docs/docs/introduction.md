@@ -17,11 +17,14 @@ Shield by Raystack is a role-based cloud-native user management system and autho
 
 Here are the steps to work with Shield.
 
-1. Configure policies: This step involves definition of resource types that will exist in the connected backend. User can also configure the roles and permissions that exist.
-
-2. Configure rules: This step involves defining the authorization(via authz middleware) and resource creation(via hook) for each path in the backend.
-
-3. Making Shield proxy request: User can now hit at the shield server followed by the url path.
+1. Configure shield: Shield has various tuning parameters that can be configured to suit the needs of the organization. 
+This includes the configuration of the database, OIDC provider, email provider, etc.
+2. Configure policies: This step involves definition of resource types that will exist in the connected backend. 
+A resource is a protected backend service for example an order management service or user picture library. User can 
+also configure the roles and permissions to be assigned to the users.
+3. Connecting frontend: Shield provides a set of APIs that can be used by the frontend to authenticate, authorize and
+manage users. The frontend can be a web application, mobile application or any other application that can make HTTP
+requests.
 
 ## Key Features
 
@@ -47,7 +50,7 @@ You can manage relation creation, checking authorization on a resource and much 
 
 ### Admin Portal
 
-Besides HTTP APIs and CLI tool, Shield provides an provides an out-of-the-box UI for admins to configure SSO for the clients and manage roles, users, groups and organisations in one place.
+Besides HTTP APIs and CLI tool, Shield provides an out-of-the-box UI for admins to configure SSO for the clients and manage roles, users, groups and organisations in one place.
 
 ## Where to go from here
 

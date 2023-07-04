@@ -12,7 +12,7 @@ Shield is a cloud native role-based authorization aware system. With Shield, you
 
 ## Key Features
 
-Discover why users choose Shield as their authorization proxy
+Discover why users choose Shield as their authorization server
 
 - **Authentication**: It supports multiple authentication strategies like Email OTP, Social Login(Google/Github) for human users and API keys, RSA JWT based for machine users.
 - **Authorization**: Policies bind a user to its access level. It assigns various roles to users/groups that determine their access to various resources
@@ -87,7 +87,7 @@ docker pull raystack/shield:latest
 To pull a specific version:
 
 ```
-docker pull raystack/shield:v0.3.2
+docker pull raystack/shield:v0.6.2-arm64
 ```
 
 If you like to have a shell alias that runs the latest version of shield from docker whenever you type `shield`:
