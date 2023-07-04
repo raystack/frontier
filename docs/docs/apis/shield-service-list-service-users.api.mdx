@@ -1,13 +1,13 @@
 ---
 id: shield-service-list-service-users
-title: "List service users of an organization"
-description: "Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination."
-sidebar_label: "List service users of an organization"
+title: "List org service users"
+description: "Returns the service user of an organization in a Shield instance. It can be filter by it's state"
+sidebar_label: "List org service users"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.",
+    "description": "Returns the service user of an organization in a Shield instance. It can be filter by it's state",
     "operationId": "ShieldService_ListServiceUsers",
     "responses":
       {
@@ -265,6 +265,25 @@ api:
     "method": "get",
     "path": "/v1beta1/serviceusers",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -272,8 +291,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -284,10 +303,10 @@ api:
       },
     "postman":
       {
-        "name": "List service users of an organization",
+        "name": "List org service users",
         "description":
           {
-            "content": "Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.",
+            "content": "Returns the service user of an organization in a Shield instance. It can be filter by it's state",
             "type": "text/plain",
           },
         "url":
@@ -337,9 +356,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List service users of an organization
+## List org service users
 
-Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.
+Returns the service user of an organization in a Shield instance. It can be filter by it's state
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"The organization ID to filter service users by.","in":"query","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"state","description":"The state to filter by. It can be enabled or disabled.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

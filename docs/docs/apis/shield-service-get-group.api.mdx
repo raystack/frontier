@@ -1,8 +1,8 @@
 ---
 id: shield-service-get-group
-title: "Get group by ID"
-description: "Get group by ID"
-sidebar_label: "Get group by ID"
+title: "Get group"
+description: "Get group"
+sidebar_label: "Get group"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -250,10 +250,29 @@ api:
         },
       ],
     "tags": ["Group"],
-    "description": "Get group by ID",
+    "description": "Get group",
     "method": "get",
     "path": "/v1beta1/organizations/{orgId}/groups/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -261,8 +280,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -273,7 +292,7 @@ api:
       },
     "postman":
       {
-        "name": "Get group by ID",
+        "name": "Get group",
         "description": { "type": "text/plain" },
         "url":
           {
@@ -318,9 +337,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get group by ID
+## Get group
 
-Get group by ID
+Get group
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

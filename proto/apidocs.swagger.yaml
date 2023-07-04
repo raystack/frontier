@@ -4,8 +4,8 @@ info:
   description: The Shield APIs adhere to the OpenAPI specification, also known as Swagger, which provides a standardized approach for designing, documenting, and consuming RESTful APIs. With OpenAPI, you gain a clear understanding of the API endpoints, request/response structures, and authentication mechanisms supported by the Shield APIs. By leveraging the OpenAPI specification, developers can easily explore and interact with the Shield APIs using a variety of tools and libraries. The OpenAPI specification enables automatic code generation, interactive API documentation, and seamless integration with API testing frameworks, making it easier than ever to integrate Shield into your existing applications and workflows.
   version: 0.2.0
   contact:
-    name: Open DataOps Foundation
-    url: https://www.raystack.org/
+    name: Raystack Foundation
+    url: https://raystack.org/
     email: hello@raystack.org
   license:
     name: Apache 2.0
@@ -67,7 +67,7 @@ paths:
         - Authz
   /v1beta1/admin/groups:
     get:
-      summary: Get all groups
+      summary: List all groups
       description: Lists all the groups from all the organizations in a Shield instance. It can be filtered by organization and state.
       operationId: AdminService_ListGroups
       responses:
@@ -114,7 +114,7 @@ paths:
         - Group
   /v1beta1/admin/organizations:
     get:
-      summary: Get all organization
+      summary: List all organizations
       description: Lists all the organizations in a Shield instance. It can be filtered by user and state.
       operationId: AdminService_ListAllOrganizations
       responses:
@@ -161,7 +161,7 @@ paths:
         - Organization
   /v1beta1/admin/projects:
     get:
-      summary: Get all project
+      summary: List all projects
       description: Lists all the projects from all the organizations in a Shield instance. It can be filtered by organization and state.
       operationId: AdminService_ListProjects
       responses:
@@ -208,7 +208,7 @@ paths:
         - Project
   /v1beta1/admin/relations:
     get:
-      summary: Get all relations
+      summary: List all relations
       operationId: AdminService_ListRelations
       responses:
         "200":
@@ -243,7 +243,7 @@ paths:
         - Relation
   /v1beta1/admin/resources:
     get:
-      summary: Get all resources
+      summary: List all resources
       description: Lists all the resources from all the organizations in a Shield instance. It can be filtered by user, project, organization and namespace.
       operationId: AdminService_ListResources
       responses:
@@ -300,7 +300,7 @@ paths:
         - Resource
   /v1beta1/admin/users:
     get:
-      summary: Get all users
+      summary: List all users
       description: Lists all the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state.
       operationId: AdminService_ListAllUsers
       responses:
@@ -777,7 +777,7 @@ paths:
   /v1beta1/check:
     post:
       summary: Check
-      description: Returns true if a principle has required permissions to access a resource and false otherwise
+      description: Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Shield will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).
       operationId: ShieldService_CheckResourcePermission
       responses:
         "200":
@@ -895,7 +895,7 @@ paths:
         - MetaSchema
   /v1beta1/meta/schemas/{id}:
     get:
-      summary: Get metaSchema
+      summary: Get metaschema
       description: Get a metadata schema by ID.
       operationId: ShieldService_GetMetaSchema
       responses:
@@ -935,7 +935,7 @@ paths:
       tags:
         - MetaSchema
     delete:
-      summary: Delete metaSchema
+      summary: Delete metaschema
       description: Delete a metadata schema permanently. Once deleted the metaschema won't be used to validate the metadata. For example, if a metaschema(with `label` and `description` fields) is used to validate the metadata of a user, then deleting the metaschema will not validate the metadata of the user and metadata field can contain any key-value pair(and say another field called `foo` can be inserted in a user's metadata).
       operationId: ShieldService_DeleteMetaSchema
       responses:
@@ -975,7 +975,7 @@ paths:
       tags:
         - MetaSchema
     put:
-      summary: Update metaSchema
+      summary: Update metaschema
       description: Update a metadata schema. Only `schema` field of a metaschema can be updated. The metaschema `schema` must be a valid JSON schema.Please refer to https://json-schema.org/ to know more about json schema. <br/>*Example:* `{name:"user",schema:{"type":"object","properties":{"label":{"type":"object","additionalProperties":{"type":"string"}},"description":{"type":"string"}}}}`
       operationId: ShieldService_UpdateMetaSchema
       responses:
@@ -1021,7 +1021,8 @@ paths:
         - MetaSchema
   /v1beta1/namespaces:
     get:
-      summary: Get all Namespaces
+      summary: Get all namespaces
+      description: Returns the list of all namespaces in a Shield instance
       operationId: ShieldService_ListNamespaces
       responses:
         "200":
@@ -1056,7 +1057,8 @@ paths:
         - Namespace
   /v1beta1/namespaces/{id}:
     get:
-      summary: Get a Namespaces
+      summary: Get namespace
+      description: Returns a namespace by ID
       operationId: ShieldService_GetNamespace
       responses:
         "200":
@@ -1668,7 +1670,7 @@ paths:
         - Organization
   /v1beta1/organizations/{orgId}/groups:
     get:
-      summary: List Organization Groups
+      summary: List organization groups
       description: Get all groups that belong to an organization. The results can be filtered by state which can be either be enabled or disabled.
       operationId: ShieldService_ListOrganizationGroups
       responses:
@@ -1713,7 +1715,7 @@ paths:
       tags:
         - Group
     post:
-      summary: Create Group
+      summary: Create group
       description: Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.
       operationId: ShieldService_CreateGroup
       responses:
@@ -1760,7 +1762,7 @@ paths:
         - Group
   /v1beta1/organizations/{orgId}/groups/{id}:
     get:
-      summary: Get group by ID
+      summary: Get group
       operationId: ShieldService_GetGroup
       responses:
         "200":
@@ -1847,7 +1849,7 @@ paths:
       tags:
         - Group
     put:
-      summary: Update group by ID
+      summary: Update group
       operationId: ShieldService_UpdateGroup
       responses:
         "200":
@@ -2474,7 +2476,7 @@ paths:
         - Role
   /v1beta1/organizations/{orgId}/roles/{id}:
     get:
-      summary: Get Organization Role
+      summary: Get organization role
       description: Returns a custom role under an organization along with its associated permissions
       operationId: ShieldService_GetOrganizationRole
       responses:
@@ -2518,7 +2520,7 @@ paths:
       tags:
         - Role
     delete:
-      summary: Delete Organization Role
+      summary: Delete organization role
       description: Delete a custom role and all of its relations under an organization permanently.
       operationId: ShieldService_DeleteOrganizationRole
       responses:
@@ -2612,7 +2614,7 @@ paths:
         - Role
   /v1beta1/permissions:
     get:
-      summary: Get all Permissions
+      summary: Get all permissions
       operationId: ShieldService_ListPermissions
       responses:
         "200":
@@ -2646,7 +2648,7 @@ paths:
       tags:
         - Permission
     post:
-      summary: Create permission
+      summary: Create platform permission
       description: Creates a permission. It can be used to grant permissions to all the resources in a Shield instance.
       operationId: AdminService_CreatePermission
       responses:
@@ -2688,7 +2690,8 @@ paths:
         - Permission
   /v1beta1/permissions/{id}:
     get:
-      summary: Get permission by ID
+      summary: Get permission
+      description: Returns a permission by ID
       operationId: ShieldService_GetPermission
       responses:
         "200":
@@ -2727,7 +2730,7 @@ paths:
       tags:
         - Permission
     delete:
-      summary: Delete permission by ID
+      summary: Delete platform permission
       operationId: AdminService_DeletePermission
       responses:
         "200":
@@ -2766,7 +2769,7 @@ paths:
       tags:
         - Permission
     put:
-      summary: Update permission by ID
+      summary: Update platform permission
       description: Updates a permission by ID. It can be used to grant permissions to all the resources in a Shield instance.
       operationId: AdminService_UpdatePermission
       responses:
@@ -2812,7 +2815,7 @@ paths:
         - Permission
   /v1beta1/policies:
     get:
-      summary: Get all policies
+      summary: List all policies
       description: Lists all the policies from all the organizations in a Shield instance. It can be filtered by organization, project, user, role and group.
       operationId: AdminService_ListPolicies
       responses:
@@ -2874,6 +2877,7 @@ paths:
         - Policy
     post:
       summary: Create policy
+      description: 'Creates a policy '
       operationId: ShieldService_CreatePolicy
       responses:
         "200":
@@ -2914,7 +2918,8 @@ paths:
         - Policy
   /v1beta1/policies/{id}:
     get:
-      summary: Get policy by ID
+      summary: Get policy
+      description: Returns a policy by ID
       operationId: ShieldService_GetPolicy
       responses:
         "200":
@@ -2993,7 +2998,8 @@ paths:
       tags:
         - Policy
     put:
-      summary: Update policy by ID
+      summary: Update policy
+      description: Updates a policy by ID
       operationId: ShieldService_UpdatePolicy
       responses:
         "200":
@@ -3424,7 +3430,8 @@ paths:
       tags:
         - Resource
     post:
-      summary: Create Resource
+      summary: Create resource
+      description: Creates a resource in a project
       operationId: ShieldService_CreateProjectResource
       responses:
         "200":
@@ -3475,7 +3482,8 @@ paths:
         - Resource
   /v1beta1/projects/{projectId}/resources/{id}:
     get:
-      summary: Get Resource by ID
+      summary: Get resource
+      description: Returns a project resource by ID
       operationId: ShieldService_GetProjectResource
       responses:
         "200":
@@ -3518,7 +3526,8 @@ paths:
       tags:
         - Resource
     delete:
-      summary: Delete a resource permanently forever
+      summary: Delete resource
+      description: Deletes a resource from a project permanently
       operationId: ShieldService_DeleteProjectResource
       responses:
         "200":
@@ -3561,7 +3570,8 @@ paths:
       tags:
         - Resource
     put:
-      summary: Update Resource by ID
+      summary: Update resource
+      description: Updates a resource in a project
       operationId: ShieldService_UpdateProjectResource
       responses:
         "200":
@@ -3610,7 +3620,7 @@ paths:
         - Resource
   /v1beta1/relations:
     post:
-      summary: Create Relation
+      summary: Create relation
       operationId: ShieldService_CreateRelation
       responses:
         "200":
@@ -3651,7 +3661,8 @@ paths:
         - Relation
   /v1beta1/relations/{id}:
     get:
-      summary: Get Relation by ID
+      summary: Get relation
+      description: Returns a relation by ID
       operationId: ShieldService_GetRelation
       responses:
         "200":
@@ -3691,7 +3702,8 @@ paths:
         - Relation
   /v1beta1/relations/{relation}/object/{object}/subject/{subject}:
     delete:
-      summary: Remove a subject having a relation from an object
+      summary: Delete relation
+      description: Remove a subject having a relation from an object
       operationId: ShieldService_DeleteRelation
       responses:
         "200":
@@ -3741,8 +3753,8 @@ paths:
         - Relation
   /v1beta1/roles:
     get:
-      summary: List default roles
-      description: Returns a list of Shield predefined roles with their associated permissions
+      summary: List platform roles
+      description: Returns a list of platform wide roles available in enitre Shield instance along with their associated permissions
       operationId: ShieldService_ListRoles
       responses:
         "200":
@@ -3865,8 +3877,8 @@ paths:
         - Role
   /v1beta1/serviceusers:
     get:
-      summary: List service users of an organization
-      description: Returns the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state. Additionally you can include page number and page size for pagination.
+      summary: List org service users
+      description: Returns the service user of an organization in a Shield instance. It can be filter by it's state
       operationId: ShieldService_ListServiceUsers
       responses:
         "200":
@@ -3911,7 +3923,7 @@ paths:
       tags:
         - ServiceUser
     post:
-      summary: Create Service User
+      summary: Create service user
       description: Create a service user.
       operationId: ShieldService_CreateServiceUser
       responses:
@@ -3953,7 +3965,7 @@ paths:
         - ServiceUser
   /v1beta1/serviceusers/{id}:
     get:
-      summary: Get service user by id
+      summary: Get service user
       description: Get service user details by its id.
       operationId: ShieldService_GetServiceUser
       responses:
@@ -3994,7 +4006,7 @@ paths:
       tags:
         - ServiceUser
     delete:
-      summary: Delete a service user
+      summary: Delete service user
       description: Delete a service user permanently and all of its relations (keys, organizations, roles, etc)
       operationId: ShieldService_DeleteServiceUser
       responses:
@@ -4077,7 +4089,7 @@ paths:
       tags:
         - ServiceUser
     post:
-      summary: Create a service user key
+      summary: Create service user key
       description: Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
       operationId: ShieldService_CreateServiceUserKey
       responses:
@@ -4127,7 +4139,7 @@ paths:
         - ServiceUser
   /v1beta1/serviceusers/{id}/keys/{keyId}:
     get:
-      summary: Get a service user key
+      summary: Get service user key
       description: Get a service user public RSA JWK set.
       operationId: ShieldService_GetServiceUserKey
       responses:
@@ -4173,7 +4185,7 @@ paths:
       tags:
         - ServiceUser
     delete:
-      summary: Delete a service user key
+      summary: Delete service user key
       description: Delete a service user key permanently.
       operationId: ShieldService_DeleteServiceUserKey
       responses:
@@ -4261,7 +4273,7 @@ paths:
       tags:
         - ServiceUser
     post:
-      summary: Create a service user secret
+      summary: Create service user secret
       description: Generate a service user secret and return it. The secret value will not be persisted and should be securely stored by client.
       operationId: ShieldService_CreateServiceUserSecret
       responses:
@@ -4311,7 +4323,7 @@ paths:
         - ServiceUser
   /v1beta1/serviceusers/{id}/secrets/{secretId}:
     delete:
-      summary: Delete a service user secret
+      summary: Delete service user secret
       description: Delete a service user secret credential.
       operationId: ShieldService_DeleteServiceUserSecret
       responses:
@@ -4466,9 +4478,10 @@ paths:
             $ref: '#/definitions/v1beta1UserRequestBody'
       tags:
         - User
+      security: []
   /v1beta1/users/{id}:
     get:
-      summary: Get a user by id
+      summary: Get user
       description: Get a user by id searched over all organizations in Shield.
       operationId: ShieldService_GetUser
       responses:
@@ -4548,7 +4561,7 @@ paths:
       tags:
         - User
     put:
-      summary: Update User by ID
+      summary: Update user
       operationId: ShieldService_UpdateUser
       responses:
         "200":
@@ -4685,7 +4698,7 @@ paths:
         - User
   /v1beta1/users/{id}/groups:
     get:
-      summary: List Groups of a User
+      summary: List user groups
       description: Lists all the groups a user belongs to across all organization in Shield. To get the groups of a user in a specific organization, use the org_id filter in the query parameter.
       operationId: ShieldService_ListUserGroups
       responses:
@@ -4732,7 +4745,7 @@ paths:
         - User
   /v1beta1/users/{id}/invitations:
     get:
-      summary: List User Invitations
+      summary: List user invitations
       description: List all the invitations sent to a user.
       operationId: ShieldService_ListUserInvitations
       responses:
@@ -4774,7 +4787,7 @@ paths:
         - User
   /v1beta1/users/{id}/organizations:
     get:
-      summary: Get Organizations by User
+      summary: Get user organizations
       description: Get all the organizations a user belongs to.
       operationId: ShieldService_GetOrganizationsByUser
       responses:
@@ -4849,7 +4862,7 @@ paths:
       tags:
         - User
     put:
-      summary: Update current User
+      summary: Update current user
       operationId: ShieldService_UpdateCurrentUser
       responses:
         "200":
@@ -4890,7 +4903,7 @@ paths:
         - User
   /v1beta1/users/self/groups:
     get:
-      summary: List My Groups
+      summary: List my groups
       operationId: ShieldService_ListCurrentUserGroups
       responses:
         "200":
@@ -4925,7 +4938,7 @@ paths:
         - User
   /v1beta1/users/self/organizations:
     get:
-      summary: Get My Organizations
+      summary: Get my organizations
       description: Get all organizations the current user belongs to
       operationId: ShieldService_GetOrganizationsByCurrentUser
       responses:
@@ -5055,13 +5068,16 @@ definitions:
     properties:
       objectId:
         type: string
+        description: Deprecated. Use `resource` field instead.
       objectNamespace:
         type: string
+        description: Deprecated. Use `resource` field instead.
       permission:
         type: string
+        description: the permission name to check. <br/> *Example:* `get` or `list`
       resource:
         type: string
-        description: namespace:uuid of the resource. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825`
+        description: '`namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Shield can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825`'
     required:
       - permission
   v1beta1CheckResourcePermissionResponse:
@@ -6215,3 +6231,17 @@ definitions:
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"`
     required:
       - email
+securityDefinitions:
+  Basic:
+    type: basic
+    description: use Client ID as username and Client Secret as password
+    name: 'Basic '
+    in: header
+  Bearer:
+    type: oauth2
+    description: 'Access token or JWT token, prefixed by Bearer: Bearer <token>'
+    name: 'Bearer '
+    in: header
+security:
+  - Basic: []
+  - Bearer: []

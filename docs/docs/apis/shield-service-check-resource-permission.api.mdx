@@ -1,13 +1,13 @@
 ---
 id: shield-service-check-resource-permission
 title: "Check"
-description: "Returns true if a principle has required permissions to access a resource and false otherwise"
+description: "Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Shield will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts)."
 sidebar_label: "Check"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Returns true if a principle has required permissions to access a resource and false otherwise",
+    "description": "Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Shield will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).",
     "operationId": "ShieldService_CheckResourcePermission",
     "responses":
       {
@@ -218,13 +218,25 @@ api:
                     "type": "object",
                     "properties":
                       {
-                        "objectId": { "type": "string" },
-                        "objectNamespace": { "type": "string" },
-                        "permission": { "type": "string" },
+                        "objectId":
+                          {
+                            "type": "string",
+                            "description": "Deprecated. Use `resource` field instead.",
+                          },
+                        "objectNamespace":
+                          {
+                            "type": "string",
+                            "description": "Deprecated. Use `resource` field instead.",
+                          },
+                        "permission":
+                          {
+                            "type": "string",
+                            "description": "the permission name to check. <br/> *Example:* `get` or `list`",
+                          },
                         "resource":
                           {
                             "type": "string",
-                            "description": "namespace:uuid of the resource. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825`",
+                            "description": "`namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Shield can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825`",
                           },
                       },
                     "required": ["permission"],
@@ -237,6 +249,25 @@ api:
     "method": "post",
     "path": "/v1beta1/check",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample":
       {
         "objectId": "string",
@@ -251,8 +282,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -266,7 +297,7 @@ api:
         "name": "Check",
         "description":
           {
-            "content": "Returns true if a principle has required permissions to access a resource and false otherwise",
+            "content": "Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Shield will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).",
             "type": "text/plain",
           },
         "url":
@@ -306,9 +337,9 @@ import TabItem from "@theme/TabItem";
 
 ## Check
 
-Returns true if a principle has required permissions to access a resource and false otherwise
+Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Shield will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).
 
-<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"objectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"objectNamespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"permission"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"resource"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"namespace:uuid of the resource. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825`"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"objectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Deprecated. Use `resource` field instead."}}></SchemaItem><SchemaItem collapsible={false} name={"objectNamespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Deprecated. Use `resource` field instead."}}></SchemaItem><SchemaItem collapsible={false} name={"permission"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"the permission name to check. <br/> *Example:* `get` or `list`"}}></SchemaItem><SchemaItem collapsible={false} name={"resource"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"`namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Shield can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825`"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

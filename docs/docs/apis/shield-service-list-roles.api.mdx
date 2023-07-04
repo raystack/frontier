@@ -1,13 +1,13 @@
 ---
 id: shield-service-list-roles
-title: "List default roles"
-description: "Returns a list of Shield predefined roles with their associated permissions"
-sidebar_label: "List default roles"
+title: "List platform roles"
+description: "Returns a list of platform wide roles available in enitre Shield instance along with their associated permissions"
+sidebar_label: "List platform roles"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Returns a list of Shield predefined roles with their associated permissions",
+    "description": "Returns a list of platform wide roles available in enitre Shield instance along with their associated permissions",
     "operationId": "ShieldService_ListRoles",
     "responses":
       {
@@ -258,6 +258,25 @@ api:
     "method": "get",
     "path": "/v1beta1/roles",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -265,8 +284,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -277,10 +296,10 @@ api:
       },
     "postman":
       {
-        "name": "List default roles",
+        "name": "List platform roles",
         "description":
           {
-            "content": "Returns a list of Shield predefined roles with their associated permissions",
+            "content": "Returns a list of platform wide roles available in enitre Shield instance along with their associated permissions",
             "type": "text/plain",
           },
         "url":
@@ -308,9 +327,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List default roles
+## List platform roles
 
-Returns a list of Shield predefined roles with their associated permissions
+Returns a list of platform wide roles available in enitre Shield instance along with their associated permissions
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"state","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

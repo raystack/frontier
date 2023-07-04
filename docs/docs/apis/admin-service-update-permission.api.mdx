@@ -1,8 +1,8 @@
 ---
 id: admin-service-update-permission
-title: "Update permission by ID"
+title: "Update platform permission"
 description: "Updates a permission by ID. It can be used to grant permissions to all the resources in a Shield instance."
-sidebar_label: "Update permission by ID"
+sidebar_label: "Update platform permission"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -298,6 +298,25 @@ api:
     "method": "put",
     "path": "/v1beta1/permissions/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample":
       {
         "name": "string",
@@ -313,8 +332,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -325,7 +344,7 @@ api:
       },
     "postman":
       {
-        "name": "Update permission by ID",
+        "name": "Update platform permission",
         "description":
           {
             "content": "Updates a permission by ID. It can be used to grant permissions to all the resources in a Shield instance.",
@@ -376,7 +395,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Update permission by ID
+## Update platform permission
 
 Updates a permission by ID. It can be used to grant permissions to all the resources in a Shield instance.
 

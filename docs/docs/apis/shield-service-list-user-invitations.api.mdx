@@ -1,8 +1,8 @@
 ---
 id: shield-service-list-user-invitations
-title: "List User Invitations"
+title: "List user invitations"
 description: "List all the invitations sent to a user."
-sidebar_label: "List User Invitations"
+sidebar_label: "List user invitations"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -279,6 +279,25 @@ api:
     "method": "get",
     "path": "/v1beta1/users/{id}/invitations",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -286,8 +305,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -298,7 +317,7 @@ api:
       },
     "postman":
       {
-        "name": "List User Invitations",
+        "name": "List user invitations",
         "description":
           {
             "content": "List all the invitations sent to a user.",
@@ -342,7 +361,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List User Invitations
+## List user invitations
 
 List all the invitations sent to a user.
 

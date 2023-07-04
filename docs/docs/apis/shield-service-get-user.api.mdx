@@ -1,8 +1,8 @@
 ---
 id: shield-service-get-user
-title: "Get a user by id"
+title: "Get user"
 description: "Get a user by id searched over all organizations in Shield."
-sidebar_label: "Get a user by id"
+sidebar_label: "Get user"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -260,6 +260,25 @@ api:
     "method": "get",
     "path": "/v1beta1/users/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -267,8 +286,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -279,7 +298,7 @@ api:
       },
     "postman":
       {
-        "name": "Get a user by id",
+        "name": "Get user",
         "description":
           {
             "content": "Get a user by id searched over all organizations in Shield.",
@@ -320,7 +339,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get a user by id
+## Get user
 
 Get a user by id searched over all organizations in Shield.
 

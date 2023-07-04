@@ -1,8 +1,8 @@
 ---
 id: admin-service-create-permission
-title: "Create permission"
+title: "Create platform permission"
 description: "Creates a permission. It can be used to grant permissions to all the resources in a Shield instance."
-sidebar_label: "Create permission"
+sidebar_label: "Create platform permission"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -304,6 +304,25 @@ api:
     "method": "post",
     "path": "/v1beta1/permissions",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample":
       {
         "bodies":
@@ -324,8 +343,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -336,7 +355,7 @@ api:
       },
     "postman":
       {
-        "name": "Create permission",
+        "name": "Create platform permission",
         "description":
           {
             "content": "Creates a permission. It can be used to grant permissions to all the resources in a Shield instance.",
@@ -377,7 +396,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Create permission
+## Create platform permission
 
 Creates a permission. It can be used to grant permissions to all the resources in a Shield instance.
 

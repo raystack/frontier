@@ -1,12 +1,13 @@
 ---
 id: shield-service-delete-project-resource
-title: "Delete a resource permanently forever"
-description: "Delete a resource permanently forever"
-sidebar_label: "Delete a resource permanently forever"
+title: "Delete resource"
+description: "Deletes a resource from a project permanently"
+sidebar_label: "Delete resource"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
+    "description": "Deletes a resource from a project permanently",
     "operationId": "ShieldService_DeleteProjectResource",
     "responses":
       {
@@ -213,10 +214,28 @@ api:
         },
       ],
     "tags": ["Resource"],
-    "description": "Delete a resource permanently forever",
     "method": "delete",
     "path": "/v1beta1/projects/{projectId}/resources/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -224,8 +243,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -236,8 +255,12 @@ api:
       },
     "postman":
       {
-        "name": "Delete a resource permanently forever",
-        "description": { "type": "text/plain" },
+        "name": "Delete resource",
+        "description":
+          {
+            "content": "Deletes a resource from a project permanently",
+            "type": "text/plain",
+          },
         "url":
           {
             "path": ["v1beta1", "projects", ":projectId", "resources", ":id"],
@@ -281,9 +304,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Delete a resource permanently forever
+## Delete resource
 
-Delete a resource permanently forever
+Deletes a resource from a project permanently
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"projectId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

@@ -1,8 +1,8 @@
 ---
 id: shield-service-list-user-groups
-title: "List Groups of a User"
+title: "List user groups"
 description: "Lists all the groups a user belongs to across all organization in Shield. To get the groups of a user in a specific organization, use the org_id filter in the query parameter."
-sidebar_label: "List Groups of a User"
+sidebar_label: "List user groups"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -260,6 +260,25 @@ api:
     "method": "get",
     "path": "/v1beta1/users/{id}/groups",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -267,8 +286,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -279,7 +298,7 @@ api:
       },
     "postman":
       {
-        "name": "List Groups of a User",
+        "name": "List user groups",
         "description":
           {
             "content": "Lists all the groups a user belongs to across all organization in Shield. To get the groups of a user in a specific organization, use the org_id filter in the query parameter.",
@@ -335,7 +354,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List Groups of a User
+## List user groups
 
 Lists all the groups a user belongs to across all organization in Shield. To get the groups of a user in a specific organization, use the org_id filter in the query parameter.
 

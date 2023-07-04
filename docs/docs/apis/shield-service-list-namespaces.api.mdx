@@ -1,12 +1,13 @@
 ---
 id: shield-service-list-namespaces
-title: "Get all Namespaces"
-description: "Get all Namespaces"
-sidebar_label: "Get all Namespaces"
+title: "Get all namespaces"
+description: "Returns the list of all namespaces in a Shield instance"
+sidebar_label: "Get all namespaces"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
+    "description": "Returns the list of all namespaces in a Shield instance",
     "operationId": "ShieldService_ListNamespaces",
     "responses":
       {
@@ -241,10 +242,28 @@ api:
           },
       },
     "tags": ["Namespace"],
-    "description": "Get all Namespaces",
     "method": "get",
     "path": "/v1beta1/namespaces",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -252,8 +271,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -264,8 +283,12 @@ api:
       },
     "postman":
       {
-        "name": "Get all Namespaces",
-        "description": { "type": "text/plain" },
+        "name": "Get all namespaces",
+        "description":
+          {
+            "content": "Returns the list of all namespaces in a Shield instance",
+            "type": "text/plain",
+          },
         "url":
           {
             "path": ["v1beta1", "namespaces"],
@@ -291,9 +314,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get all Namespaces
+## Get all namespaces
 
-Get all Namespaces
+Returns the list of all namespaces in a Shield instance
 
 <div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

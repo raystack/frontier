@@ -1,8 +1,8 @@
 ---
 id: shield-service-delete-organization-role
-title: "Delete Organization Role"
+title: "Delete organization role"
 description: "Delete a custom role and all of its relations under an organization permanently."
-sidebar_label: "Delete Organization Role"
+sidebar_label: "Delete organization role"
 hide_title: true
 hide_table_of_contents: true
 api:
@@ -217,6 +217,25 @@ api:
     "method": "delete",
     "path": "/v1beta1/organizations/{orgId}/roles/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -224,8 +243,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -236,7 +255,7 @@ api:
       },
     "postman":
       {
-        "name": "Delete Organization Role",
+        "name": "Delete organization role",
         "description":
           {
             "content": "Delete a custom role and all of its relations under an organization permanently.",
@@ -285,7 +304,7 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Delete Organization Role
+## Delete organization role
 
 Delete a custom role and all of its relations under an organization permanently.
 
