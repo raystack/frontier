@@ -56,7 +56,7 @@ $ docker pull raystack/shield
 To pull a specific version:
 
 ```sh
-$ docker pull raystack/shield:v0.5.1
+$ docker pull raystack/shield:v0.6.2-arm64
 ```
 
 To run the docker image with minimum configurations:
