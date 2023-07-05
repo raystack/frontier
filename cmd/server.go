@@ -1,28 +1,18 @@
 package cmd
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path"
-	"strconv"
-	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/shield/config"
 	shieldlogger "github.com/raystack/shield/pkg/logger"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
-)
-
-// Version of the current build. overridden by the build system.
-// see "Makefile" for more information
-var (
-	Version string
 )
 
 func ServerCommand() *cobra.Command {
@@ -39,6 +29,7 @@ func ServerCommand() *cobra.Command {
 			$ shield server migrate -c ./config.yaml
 			$ shield server migrate-rollback
 			$ shield server migrate-rollback -c ./config.yaml
+			$ shield server keygen
 		`),
 	}
 
@@ -147,14 +138,14 @@ func serverMigrateCommand() *cobra.Command {
 			}
 
 			logger := shieldlogger.InitLogger(appConfig.Log)
-			logger.Info("shield is migrating", "version", Version)
+			logger.Info("shield is migrating", "version", config.Version)
 
 			if err = RunMigrations(logger, appConfig.DB); err != nil {
 				logger.Error("error running migrations", "error", err)
 				return err
 			}
 
-			logger.Info("shield migration completed")
+			logger.Info("shield migration complete")
 			return nil
 		},
 	}
@@ -176,14 +167,14 @@ func serverMigrateRollbackCommand() *cobra.Command {
 				panic(err)
 			}
 			logger := shieldlogger.InitLogger(appConfig.Log)
-			logger.Info("shield is migrating", "version", Version)
+			logger.Info("shield is migrating", "version", config.Version)
 
-			if err = RunRollback(appConfig.DB); err != nil {
+			if err = RunRollback(logger, appConfig.DB); err != nil {
 				logger.Error("error running migrations rollback", "error", err)
 				return err
 			}
 
-			logger.Info("shield migration rollback completed")
+			logger.Info("shield migration rollback complete")
 			return nil
 		},
 	}
@@ -199,21 +190,9 @@ func serverGenRSACommand() *cobra.Command {
 		Short:   "Generate 2 rsa keys as jwks for auth token generation",
 		Example: "shield server keygen",
 		RunE: func(c *cli.Command, args []string) error {
-			keySet := jwk.NewSet()
-			for ; numOfKeys > 0; numOfKeys-- {
-				// generate keys
-				keyRaw, err := rsa.GenerateKey(rand.Reader, 2048)
-				if err != nil {
-					return err
-				}
-				rsaKey, err := jwk.FromRaw(keyRaw)
-				if err != nil {
-					return err
-				}
-				rsaKey.Set(jwk.AlgorithmKey, "RS256")
-				rsaKey.Set(jwk.KeyUsageKey, "sig")
-				rsaKey.Set(jwk.KeyIDKey, strconv.FormatInt(time.Now().UnixMilli(), 10))
-				keySet.AddKey(rsaKey)
+			keySet, err := utils.CreateJWKs(numOfKeys)
+			if err != nil {
+				return err
 			}
 			return json.NewEncoder(os.Stdout).Encode(keySet)
 		},

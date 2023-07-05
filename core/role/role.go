@@ -20,6 +20,7 @@ const (
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Role, error)
+	GetByName(ctx context.Context, orgID, name string) (Role, error)
 	List(ctx context.Context, f Filter) ([]Role, error)
 	Upsert(ctx context.Context, role Role) (string, error)
 	Update(ctx context.Context, toUpdate Role) (string, error)

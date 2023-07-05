@@ -36,7 +36,7 @@ func (p Permission) GenerateSlug() string {
 }
 
 func ParsePermissionName(s string) string {
-	return convertHashPermissionToSlug(convertColonPermissionToSlug(s))
+	return convertDotPermissionToSlug(convertHashPermissionToSlug(convertColonPermissionToSlug(s)))
 }
 
 // convertHashPermissionToSlug will rarely be used but still if someone specifies a permission
@@ -60,6 +60,18 @@ func convertColonPermissionToSlug(s string) string {
 		if len(parts) > 1 {
 			subparts := strings.Split(parts[0], "/")
 			return fmt.Sprintf("%s_%s_%s", subparts[0], subparts[1], parts[1])
+		}
+	}
+	return s
+}
+
+// convertDotPermissionToSlug if someone specifies a permission
+// in the form of app.project.view it should process it correctly
+func convertDotPermissionToSlug(s string) string {
+	if strings.Contains(s, ".") {
+		parts := strings.Split(s, ".")
+		if len(parts) == 3 {
+			return fmt.Sprintf("%s_%s_%s", parts[0], parts[1], parts[2])
 		}
 	}
 	return s

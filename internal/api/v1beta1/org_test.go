@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/raystack/shield/internal/bootstrap/schema"
@@ -131,7 +133,7 @@ func TestCreateOrganization(t *testing.T) {
 					Name:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, errors.New("some error"))
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "abc",
@@ -148,7 +150,7 @@ func TestCreateOrganization(t *testing.T) {
 					Name:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, organization.ErrInvalidDetail)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "abc",
@@ -165,7 +167,7 @@ func TestCreateOrganization(t *testing.T) {
 					Name:     "abc",
 					Metadata: metadata.Metadata{},
 				}).Return(organization.Organization{}, organization.ErrConflict)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name:     "abc",
@@ -204,7 +206,7 @@ func TestCreateOrganization(t *testing.T) {
 						"email": "a",
 					},
 				}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
 				Name: "some-org",

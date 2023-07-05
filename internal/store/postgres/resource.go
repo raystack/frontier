@@ -10,19 +10,20 @@ import (
 )
 
 type Resource struct {
-	ID          string         `db:"id"`
-	URN         string         `db:"urn"`
-	Name        string         `db:"name"`
-	ProjectID   string         `db:"project_id"`
-	Project     Project        `db:"project"`
-	Metadata    []byte         `db:"metadata"`
-	NamespaceID string         `db:"namespace_name"`
-	Namespace   Namespace      `db:"namespace"`
-	User        User           `db:"user"`
-	UserID      sql.NullString `db:"user_id"`
-	CreatedAt   time.Time      `db:"created_at"`
-	UpdatedAt   time.Time      `db:"updated_at"`
-	DeletedAt   sql.NullTime   `db:"deleted_at"`
+	ID            string         `db:"id"`
+	URN           string         `db:"urn"`
+	Name          string         `db:"name"`
+	Title         string         `db:"title"`
+	ProjectID     string         `db:"project_id"`
+	Project       Project        `db:"project"`
+	Metadata      []byte         `db:"metadata"`
+	NamespaceID   string         `db:"namespace_name"`
+	Namespace     Namespace      `db:"namespace"`
+	PrincipalID   sql.NullString `db:"principal_id"`
+	PrincipalType sql.NullString `db:"principal_type"`
+	CreatedAt     time.Time      `db:"created_at"`
+	UpdatedAt     time.Time      `db:"updated_at"`
+	DeletedAt     sql.NullTime   `db:"deleted_at"`
 }
 
 func (from Resource) transformToResource() (resource.Resource, error) {
@@ -34,26 +35,29 @@ func (from Resource) transformToResource() (resource.Resource, error) {
 	}
 
 	return resource.Resource{
-		ID:          from.ID,
-		URN:         from.URN,
-		Name:        from.Name,
-		ProjectID:   from.ProjectID,
-		NamespaceID: from.NamespaceID,
-		Metadata:    unmarshalledMetadata,
-		UserID:      from.UserID.String,
-		CreatedAt:   from.CreatedAt,
-		UpdatedAt:   from.UpdatedAt,
+		ID:            from.ID,
+		URN:           from.URN,
+		Name:          from.Name,
+		ProjectID:     from.ProjectID,
+		NamespaceID:   from.NamespaceID,
+		Metadata:      unmarshalledMetadata,
+		PrincipalID:   from.PrincipalID.String,
+		PrincipalType: from.PrincipalType.String,
+		CreatedAt:     from.CreatedAt,
+		UpdatedAt:     from.UpdatedAt,
 	}, nil
 }
 
 type ResourceCols struct {
-	ID          string         `db:"id"`
-	URN         string         `db:"urn"`
-	Name        string         `db:"name"`
-	ProjectID   string         `db:"project_id"`
-	NamespaceID string         `db:"namespace_name"`
-	UserID      sql.NullString `db:"user_id"`
-	Metadata    []byte         `db:"metadata"`
-	CreatedAt   time.Time      `db:"created_at"`
-	UpdatedAt   time.Time      `db:"updated_at"`
+	ID            string         `db:"id"`
+	URN           string         `db:"urn"`
+	Title         string         `db:"title"`
+	Name          string         `db:"name"`
+	ProjectID     string         `db:"project_id"`
+	NamespaceID   string         `db:"namespace_name"`
+	PrincipalID   sql.NullString `db:"principal_id"`
+	PrincipalType sql.NullString `db:"principal_type"`
+	Metadata      []byte         `db:"metadata"`
+	CreatedAt     time.Time      `db:"created_at"`
+	UpdatedAt     time.Time      `db:"updated_at"`
 }

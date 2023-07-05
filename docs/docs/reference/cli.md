@@ -226,6 +226,14 @@ View a role
 -m, --metadata   Set this flag to see metadata
 ````
 
+## `shield seed [flags]`
+
+Seed the database with initial data
+
+```
+-H, --header string   Header <key>
+````
+
 ## `shield server`
 
 Server management

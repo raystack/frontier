@@ -1,0 +1,26 @@
+[
+  {
+    "name": "compute_order_viewer",
+    "title": "Compute Order Viewer",
+    "metadata": {},
+    "permissions": ["compute/order:get", "compute/order:list"]
+  },
+  {
+    "name": "compute_order_manager",
+    "title": "Compute Order Manager",
+    "metadata": {},
+    "permissions": ["compute/order:get", "compute/order:list", "compute/order:create", "compute/order:delete"]
+  },
+  {
+    "name": "database_order_viewer",
+    "title": "Database Order Viewer",
+    "metadata": {},
+    "permissions": ["database/order:get"] 
+  },
+  {
+    "name": "database_order_manager",
+    "title": "Database Order Manager",
+    "metadata": {},
+    "permissions": ["database/order:get", "database/order:update", "database/order:delete"] 
+  }
+]

@@ -21,7 +21,7 @@ Shield is developed with
 
 ## Components
 
-### API and Proxy Server
+### API Server
 
 Shield server exposes both HTTP and gRPC APIs (via GRPC gateway) to manage users, groups, policies, etc. It also runs a proxy server on different port.
 
@@ -42,7 +42,7 @@ Shield can be used as an authorization service using the `check` API. Currently,
 
 ![Overall System Architecture Authorization](./shield-authorization-architecture.png)
 
-The API gives a boolean response. You can refer this [guide](../authz/managing-permission.md) for usage information.
+The API gives a boolean response. You can refer this [guide](../authz/permission.md#managing-permission) for usage information.
 
 ## Overall System Architecture - Shield as a Proxy
 

@@ -9,8 +9,8 @@ type contextKey struct {
 func (c *contextKey) String() string { return "context value " + c.name }
 
 var (
-	// AuthenticatedUserContextKey is context key that contains the user object
-	AuthenticatedUserContextKey = contextKey{name: "auth-user"}
+	// AuthenticatedPrincipalContextKey is context key that contains the principal object
+	AuthenticatedPrincipalContextKey = contextKey{name: "auth-principal"}
 )
 
 const (
@@ -19,6 +19,7 @@ const (
 	SessionDeleteGatewayKey = "gateway-session-delete"
 	UserTokenGatewayKey     = "gateway-user-token"
 	LocationGatewayKey      = "gateway-location"
+	UserSecretGatewayKey    = "gateway-user-secret"
 
 	// UserTokenRequestKey is returned from the application to client containing user details in
 	// response headers
@@ -32,6 +33,4 @@ const (
 	// SessionValidity defines the age of a session
 	// TODO(kushsharma): should we expose this in config?
 	SessionValidity = time.Hour * 24 * 30 // 30 days
-
-	JWKSHandlerPath = "jwks.json"
 )

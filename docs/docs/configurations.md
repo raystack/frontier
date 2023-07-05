@@ -7,8 +7,8 @@ Shield binary contains both the CLI client and the server. Each has it's own con
 There are several approaches to setup Shield Server
 
 1. [Using the CLI](#using-the-cli)
-1. [Using the Docker](#using-the-docker)
-1. [Using the Helm Chart](#using-the-helm-chart)
+2. [Using the Docker](#using-the-docker)
+3. [Using the Helm Chart](#using-the-helm-chart)
 
 #### General pre-requisites
 
@@ -36,57 +36,80 @@ Following is a sample server configuration yaml:
 <details>
 <summary> config.yaml </summary>
 
-```yaml
+```yaml title=config.yaml
 version: 1
 
+# logging configuration
 log:
+  # debug, info, warning, error, fatal - default 'info'
   level: debug
 
 app:
   port: 8000
   grpc:
     port: 8001
-  metrics_port: 9000
-  identity_proxy_header: X-Shield-Email
-  resources_config_path: file:///tmp/resources_config\
-  resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
+  # full path prefixed with scheme where resources config yaml files are kept
+  # e.g.:
+  # local storage file "file:///tmp/resources_config"
+  # GCS Bucket "gs://shield/resources_config"
+  resources_config_path: file:///tmp/resources_config
+  # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
   disable_orgs_listing: false
+  # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
+  # cors_origin is origin value from where we want to allow cors
   cors_origin: http://localhost:3000
+  # configuration to allow authentication in shield
   authentication:
+    # to use shield as session store
     session:
+      # both of them should be 32 chars long
+      # hash helps identify if the value is tempered with
       hash_secret_key: "hash-secret-should-be-32-chars--"
+      # block helps in encryption
       block_secret_key: "block-secret-should-be-32-chars-"
+    # once authenticated, server responds with a jwt with user context
+    # this jwt works as a bearer access token for all APIs
     token:
-      rsa_path: ./temp/rsa
+      # generate key file via "./shield server keygen"
+      # if not specified, access tokens will be disabled
+      # example: /opt/rsa
+      rsa_path: ""
+      # issuer claim to be added to the jwt
       iss: "http://localhost.shield"
-    oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
-    oidc_config:
-      google:
-        client_id: "xxxxx.apps.googleusercontent.com"
-        client_secret: "xxxxx"
-        issuer_url: "https://accounts.google.com"
+      # validity of the token
+      validity: "1h"
+    mail_otp:
+      subject: "Shield - Login Link"
+      # body is a go template with `Otp` as a variable
+      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
+      validity: "1h"
+  # platform level administration
   admin:
+    # Email list of users which needs to be converted as superusers
+    # if the user is already present in the system, it is promoted to su
+    # if not, a new account is created with provided email id and promoted to su.
+    # UUIDs/slugs of existing users can also be provided instead of email ids
+    # but in that case a new user will not be created.
     users: []
-
+  # smtp configuration for sending emails
+  mailer:
+    smtp_host: smtp.example.com
+    smtp_port: 587
+    smtp_username: "username"
+    smtp_password: "password"
+    smtp_insecure: true
+    headers:
+      from: "username@acme.org"
 db:
   driver: postgres
   url: postgres://shield:@localhost:5432/shield?sslmode=disable
   max_query_timeout: 500ms
 
 spicedb:
-  host: localhost
+  host: spicedb.localhost
   pre_shared_key: randomkey
   port: 50051
-  fully_consistent: false
-
-proxy:
-  services:
-    - name: test
-      host: 0.0.0.0
-      port: 5556
-      ruleset: file:///tmp/rules
-      ruleset_secret: env://TEST_RULESET_SECRET
 ```
 
 </details>
@@ -104,7 +127,6 @@ All the server configurations can be passed as environment variables using under
 LOG_LEVEL=debug
 APP_PORT=8000
 APP_GRPC_PORT=8001
-APP_METRICS_PORT=9000
 APP_IDENTITY_PROXY_HEADER=X-Shield-Email
 DB_DRIVER=postgres
 DB_URL=postgres://shield:@localhost:5432/shield?sslmode=disable

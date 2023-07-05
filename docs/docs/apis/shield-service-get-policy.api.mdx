@@ -1,12 +1,13 @@
 ---
 id: shield-service-get-policy
-title: "Get policy by ID"
-description: "Get policy by ID"
-sidebar_label: "Get policy by ID"
+title: "Get policy"
+description: "Returns a policy by ID"
+sidebar_label: "Get policy"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
+    "description": "Returns a policy by ID",
     "operationId": "ShieldService_GetPolicy",
     "responses":
       {
@@ -253,10 +254,28 @@ api:
         },
       ],
     "tags": ["Policy"],
-    "description": "Get policy by ID",
     "method": "get",
     "path": "/v1beta1/policies/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -264,8 +283,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -276,8 +295,9 @@ api:
       },
     "postman":
       {
-        "name": "Get policy by ID",
-        "description": { "type": "text/plain" },
+        "name": "Get policy",
+        "description":
+          { "content": "Returns a policy by ID", "type": "text/plain" },
         "url":
           {
             "path": ["v1beta1", "policies", ":id"],
@@ -313,9 +333,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get policy by ID
+## Get policy
 
-Get policy by ID
+Returns a policy by ID
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

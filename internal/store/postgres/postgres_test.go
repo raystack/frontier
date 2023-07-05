@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/raystack/shield/core/permission"
 
 	"github.com/ory/dockertest"
@@ -414,15 +416,18 @@ func bootstrapResource(
 
 	data[0].ProjectID = projects[0].ID
 	data[0].NamespaceID = namespaces[0].Name
-	data[0].UserID = users[0].ID
+	data[0].PrincipalID = users[0].ID
+	data[0].PrincipalType = schema.UserPrincipal
 
 	data[1].ProjectID = projects[1].ID
 	data[1].NamespaceID = namespaces[1].Name
-	data[1].UserID = users[1].ID
+	data[1].PrincipalID = users[1].ID
+	data[1].PrincipalType = schema.UserPrincipal
 
 	data[2].ProjectID = projects[2].ID
 	data[2].NamespaceID = namespaces[1].Name
-	data[2].UserID = users[1].ID
+	data[2].PrincipalID = users[1].ID
+	data[2].PrincipalType = schema.UserPrincipal
 
 	var insertedData []resource.Resource
 	for _, d := range data {

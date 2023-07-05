@@ -1,12 +1,13 @@
 ---
 id: shield-service-get-namespace
-title: "Get a Namespaces"
-description: "Get a Namespaces"
-sidebar_label: "Get a Namespaces"
+title: "Get namespace"
+description: "Returns a namespace by ID"
+sidebar_label: "Get namespace"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
+    "description": "Returns a namespace by ID",
     "operationId": "ShieldService_GetNamespace",
     "responses":
       {
@@ -246,10 +247,28 @@ api:
         },
       ],
     "tags": ["Namespace"],
-    "description": "Get a Namespaces",
     "method": "get",
     "path": "/v1beta1/namespaces/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "info":
       {
         "title": "Shield Administration API",
@@ -257,8 +276,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -269,8 +288,9 @@ api:
       },
     "postman":
       {
-        "name": "Get a Namespaces",
-        "description": { "type": "text/plain" },
+        "name": "Get namespace",
+        "description":
+          { "content": "Returns a namespace by ID", "type": "text/plain" },
         "url":
           {
             "path": ["v1beta1", "namespaces", ":id"],
@@ -306,9 +326,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get a Namespaces
+## Get namespace
 
-Get a Namespaces
+Returns a namespace by ID
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

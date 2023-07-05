@@ -56,6 +56,30 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at timestamptz NOT NULL DEFAULT NOW(),
     deleted_at timestamptz
     );
+DROP TABLE IF EXISTS serviceusers CASCADE;
+CREATE TABLE IF NOT EXISTS serviceusers (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    org_id uuid,
+    title text,
+    metadata jsonb,
+    state text DEFAULT 'enabled',
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    updated_at timestamptz NOT NULL DEFAULT NOW(),
+    deleted_at timestamptz
+    );
+DROP TABLE IF EXISTS serviceuser_credentials CASCADE;
+CREATE TABLE IF NOT EXISTS serviceuser_credentials (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    serviceuser_id uuid NOT NULL REFERENCES serviceusers(id),
+    title text,
+    secret_hash text,
+    public_key jsonb,
+    metadata jsonb,
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    updated_at timestamptz NOT NULL DEFAULT NOW(),
+    deleted_at timestamptz
+    );
+
 DROP TABLE IF EXISTS actions CASCADE;
 DROP TABLE IF EXISTS permissions CASCADE;
 CREATE TABLE IF NOT EXISTS permissions(
@@ -107,7 +131,9 @@ CREATE TABLE IF NOT EXISTS resources (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     urn text NOT NULL UNIQUE,
     name text,
-    user_id uuid REFERENCES users (id),
+    title text,
+    principal_id uuid,
+    principal_type text REFERENCES namespaces (name),
     project_id uuid REFERENCES projects (id),
     namespace_name text REFERENCES namespaces (name),
     metadata jsonb,
@@ -169,7 +195,13 @@ CREATE TABLE IF NOT EXISTS invitations (
 -- create state index
 CREATE INDEX organizations_state_idx ON organizations(state);
 CREATE INDEX projects_state_idx ON projects(state);
+CREATE INDEX projects_org_id_idx ON projects(org_id);
 CREATE INDEX groups_state_idx ON groups(state);
+CREATE INDEX groups_org_id_idx ON groups(org_id);
 CREATE INDEX users_state_idx ON users(state);
 CREATE INDEX roles_state_idx ON roles(state);
 CREATE INDEX invitations_user_id_idx ON invitations(user_id);
+CREATE INDEX resources_principal_id_idx ON resources(principal_id);
+CREATE INDEX resources_principal_type_idx ON resources(principal_type);
+CREATE INDEX resources_project_id_idx ON resources(project_id);
+CREATE INDEX serviceusers_org_id_idx ON serviceusers(org_id);

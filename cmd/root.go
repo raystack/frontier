@@ -10,9 +10,9 @@ import (
 func New(cliConfig *Config) *cli.Command {
 	var cmd = &cli.Command{
 		Use:   "shield <command> <subcommand> [flags]",
-		Short: "A cloud native role-based authorization aware reverse-proxy service",
+		Short: "A cloud native role-based authorization server",
 		Long: heredoc.Doc(`
-			A cloud native role-based authorization aware reverse-proxy service.`),
+			A cloud native role-based authorization server.`),
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Annotations: map[string]string{
@@ -48,6 +48,7 @@ func New(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(RoleCommand(cliConfig))
 	cmd.AddCommand(PermissionCommand(cliConfig))
 	cmd.AddCommand(PolicyCommand(cliConfig))
+	cmd.AddCommand(SeedCommand(cliConfig))
 	cmd.AddCommand(configCommand())
 	cmd.AddCommand(versionCommand())
 

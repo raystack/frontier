@@ -4,8 +4,8 @@ info:
   description: The Shield APIs adhere to the OpenAPI specification, also known as Swagger, which provides a standardized approach for designing, documenting, and consuming RESTful APIs. With OpenAPI, you gain a clear understanding of the API endpoints, request/response structures, and authentication mechanisms supported by the Shield APIs. By leveraging the OpenAPI specification, developers can easily explore and interact with the Shield APIs using a variety of tools and libraries. The OpenAPI specification enables automatic code generation, interactive API documentation, and seamless integration with API testing frameworks, making it easier than ever to integrate Shield into your existing applications and workflows.
   version: 0.2.0
   contact:
-    name: Open DataOps Foundation
-    url: https://www.raystack.org/
+    name: Raystack Foundation
+    url: https://raystack.org/
     email: hello@raystack.org
   license:
     name: Apache 2.0
@@ -30,9 +30,44 @@ consumes:
 produces:
   - application/json
 paths:
+  /.well-known/jwks.json:
+    get:
+      summary: Get well known JWKs
+      operationId: ShieldService_GetJWKs2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetJWKsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Authz
   /v1beta1/admin/groups:
     get:
-      summary: Get all groups
+      summary: List all groups
       description: Lists all the groups from all the organizations in a Shield instance. It can be filtered by organization and state.
       operationId: AdminService_ListGroups
       responses:
@@ -79,7 +114,7 @@ paths:
         - Group
   /v1beta1/admin/organizations:
     get:
-      summary: Get all organization
+      summary: List all organizations
       description: Lists all the organizations in a Shield instance. It can be filtered by user and state.
       operationId: AdminService_ListAllOrganizations
       responses:
@@ -126,7 +161,7 @@ paths:
         - Organization
   /v1beta1/admin/projects:
     get:
-      summary: Get all project
+      summary: List all projects
       description: Lists all the projects from all the organizations in a Shield instance. It can be filtered by organization and state.
       operationId: AdminService_ListProjects
       responses:
@@ -173,7 +208,7 @@ paths:
         - Project
   /v1beta1/admin/relations:
     get:
-      summary: Get all relations
+      summary: List all relations
       operationId: AdminService_ListRelations
       responses:
         "200":
@@ -208,7 +243,7 @@ paths:
         - Relation
   /v1beta1/admin/resources:
     get:
-      summary: Get all resources
+      summary: List all resources
       description: Lists all the resources from all the organizations in a Shield instance. It can be filtered by user, project, organization and namespace.
       operationId: AdminService_ListResources
       responses:
@@ -265,7 +300,7 @@ paths:
         - Resource
   /v1beta1/admin/users:
     get:
-      summary: Get all users
+      summary: List all users
       description: Lists all the users from all the organizations in a Shield instance. It can be filtered by keyword, organization, group and state.
       operationId: AdminService_ListAllUsers
       responses:
@@ -453,22 +488,48 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: strategyName
-          description: strategy_name will not be set for oidc but can be utilized for methods like email magic links
-          in: query
-          required: false
-          type: string
-        - name: state
-          description: for oidc & magic links
-          in: query
-          required: false
-          type: string
-        - name: code
-          in: query
-          required: false
-          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1AuthCallbackRequest'
       tags:
         - Authn
+  /v1beta1/auth/jwks:
+    get:
+      summary: Get well known JWKs
+      operationId: ShieldService_GetJWKs
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetJWKsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Authz
   /v1beta1/auth/logout:
     get:
       summary: Logout from a strategy
@@ -580,7 +641,7 @@ paths:
           type: string
         - name: redirect
           description: |-
-            by default, location header for redirect if applicable
+            by default, location redirect header for starting authentication flow if applicable
             will be skipped unless this is set to true, useful in browser
 
             If set to true, location header will be set for redirect
@@ -646,39 +707,77 @@ paths:
           in: path
           required: true
           type: string
-        - name: redirect
-          description: |-
-            by default, location header for redirect if applicable
-            will be skipped unless this is set to true, useful in browser
-
-            If set to true, location header will be set for redirect
-          in: query
-          required: false
-          type: boolean
-        - name: returnTo
-          description: |-
-            by default, after successful authentication no operation will be performed
-            to apply redirection in case of browsers, provide a url that will be used
-            for redirection after authentication
-
-            URL to redirect after successful authentication.<br/> *Example:*`"https://shield.example.com"`
-          in: query
-          required: false
-          type: string
-        - name: email
-          description: |-
-            email of the user for magic links
-
-            Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
-          in: query
-          required: false
-          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              redirect:
+                type: boolean
+                description: If set to true, location header will be set for redirect
+                title: |-
+                  by default, location redirect header for starting authentication flow if applicable
+                  will be skipped unless this is set to true, useful in browser
+              returnTo:
+                type: string
+                description: URL to redirect after successful authentication.<br/> *Example:*`"https://shield.example.com"`
+                title: |-
+                  by default, after successful authentication no operation will be performed
+                  to apply redirection in case of browsers, provide a url that will be used
+                  for redirection after authentication
+              email:
+                type: string
+                description: Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
+                title: email of the user for magic links
+      tags:
+        - Authn
+  /v1beta1/auth/token:
+    post:
+      summary: Generate access token by given credentials
+      description: Access token can be generated by providing the credentials in the request body/header. The credentials can be client id and secret or service account generated key jwt. Use the generated access token in Authorization header to access the shield resources.
+      operationId: ShieldService_AuthToken
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1AuthTokenResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1AuthTokenRequest'
       tags:
         - Authn
   /v1beta1/check:
     post:
       summary: Check
-      description: Returns true if a principle has required permissions to access a resource and false otherwise
+      description: Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Shield will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).
       operationId: ShieldService_CheckResourcePermission
       responses:
         "200":
@@ -796,7 +895,7 @@ paths:
         - MetaSchema
   /v1beta1/meta/schemas/{id}:
     get:
-      summary: Get metaSchema
+      summary: Get metaschema
       description: Get a metadata schema by ID.
       operationId: ShieldService_GetMetaSchema
       responses:
@@ -836,7 +935,7 @@ paths:
       tags:
         - MetaSchema
     delete:
-      summary: Delete metaSchema
+      summary: Delete metaschema
       description: Delete a metadata schema permanently. Once deleted the metaschema won't be used to validate the metadata. For example, if a metaschema(with `label` and `description` fields) is used to validate the metadata of a user, then deleting the metaschema will not validate the metadata of the user and metadata field can contain any key-value pair(and say another field called `foo` can be inserted in a user's metadata).
       operationId: ShieldService_DeleteMetaSchema
       responses:
@@ -876,7 +975,7 @@ paths:
       tags:
         - MetaSchema
     put:
-      summary: Update metaSchema
+      summary: Update metaschema
       description: Update a metadata schema. Only `schema` field of a metaschema can be updated. The metaschema `schema` must be a valid JSON schema.Please refer to https://json-schema.org/ to know more about json schema. <br/>*Example:* `{name:"user",schema:{"type":"object","properties":{"label":{"type":"object","additionalProperties":{"type":"string"}},"description":{"type":"string"}}}}`
       operationId: ShieldService_UpdateMetaSchema
       responses:
@@ -922,7 +1021,8 @@ paths:
         - MetaSchema
   /v1beta1/namespaces:
     get:
-      summary: Get all Namespaces
+      summary: Get all namespaces
+      description: Returns the list of all namespaces in a Shield instance
       operationId: ShieldService_ListNamespaces
       responses:
         "200":
@@ -957,7 +1057,8 @@ paths:
         - Namespace
   /v1beta1/namespaces/{id}:
     get:
-      summary: Get a Namespaces
+      summary: Get namespace
+      description: Returns a namespace by ID
       operationId: ShieldService_GetNamespace
       responses:
         "200":
@@ -1387,6 +1488,46 @@ paths:
           type: string
       tags:
         - Organization
+  /v1beta1/organizations/{id}/serviceusers:
+    get:
+      summary: List organization service users
+      operationId: ShieldService_ListOrganizationServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListOrganizationServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
   /v1beta1/organizations/{id}/users:
     get:
       summary: List organization users
@@ -1485,7 +1626,7 @@ paths:
   /v1beta1/organizations/{id}/users/{userId}:
     delete:
       summary: Remove organization user
-      description: Remove a user to an organization
+      description: Remove a user from an organization
       operationId: ShieldService_RemoveOrganizationUser
       responses:
         "200":
@@ -1529,7 +1670,7 @@ paths:
         - Organization
   /v1beta1/organizations/{orgId}/groups:
     get:
-      summary: List Organization Groups
+      summary: List organization groups
       description: Get all groups that belong to an organization. The results can be filtered by state which can be either be enabled or disabled.
       operationId: ShieldService_ListOrganizationGroups
       responses:
@@ -1574,7 +1715,7 @@ paths:
       tags:
         - Group
     post:
-      summary: Create Group
+      summary: Create group
       description: Create a new group in an organization which serves as a container for users. The group can be assigned roles and permissions and can be used to manage access to resources. Also a group can also be assigned to other groups.
       operationId: ShieldService_CreateGroup
       responses:
@@ -1621,7 +1762,7 @@ paths:
         - Group
   /v1beta1/organizations/{orgId}/groups/{id}:
     get:
-      summary: Get group by ID
+      summary: Get group
       operationId: ShieldService_GetGroup
       responses:
         "200":
@@ -1708,7 +1849,7 @@ paths:
       tags:
         - Group
     put:
-      summary: Update group by ID
+      summary: Update group
       operationId: ShieldService_UpdateGroup
       responses:
         "200":
@@ -2335,7 +2476,7 @@ paths:
         - Role
   /v1beta1/organizations/{orgId}/roles/{id}:
     get:
-      summary: Get Organization Role
+      summary: Get organization role
       description: Returns a custom role under an organization along with its associated permissions
       operationId: ShieldService_GetOrganizationRole
       responses:
@@ -2379,7 +2520,7 @@ paths:
       tags:
         - Role
     delete:
-      summary: Delete Organization Role
+      summary: Delete organization role
       description: Delete a custom role and all of its relations under an organization permanently.
       operationId: ShieldService_DeleteOrganizationRole
       responses:
@@ -2473,7 +2614,7 @@ paths:
         - Role
   /v1beta1/permissions:
     get:
-      summary: Get all Permissions
+      summary: Get all permissions
       operationId: ShieldService_ListPermissions
       responses:
         "200":
@@ -2507,7 +2648,7 @@ paths:
       tags:
         - Permission
     post:
-      summary: Create permission
+      summary: Create platform permission
       description: Creates a permission. It can be used to grant permissions to all the resources in a Shield instance.
       operationId: AdminService_CreatePermission
       responses:
@@ -2549,7 +2690,8 @@ paths:
         - Permission
   /v1beta1/permissions/{id}:
     get:
-      summary: Get permission by ID
+      summary: Get permission
+      description: Returns a permission by ID
       operationId: ShieldService_GetPermission
       responses:
         "200":
@@ -2588,7 +2730,7 @@ paths:
       tags:
         - Permission
     delete:
-      summary: Delete permission by ID
+      summary: Delete platform permission
       operationId: AdminService_DeletePermission
       responses:
         "200":
@@ -2627,7 +2769,7 @@ paths:
       tags:
         - Permission
     put:
-      summary: Update permission by ID
+      summary: Update platform permission
       description: Updates a permission by ID. It can be used to grant permissions to all the resources in a Shield instance.
       operationId: AdminService_UpdatePermission
       responses:
@@ -2673,7 +2815,7 @@ paths:
         - Permission
   /v1beta1/policies:
     get:
-      summary: Get all policies
+      summary: List all policies
       description: Lists all the policies from all the organizations in a Shield instance. It can be filtered by organization, project, user, role and group.
       operationId: AdminService_ListPolicies
       responses:
@@ -2735,6 +2877,7 @@ paths:
         - Policy
     post:
       summary: Create policy
+      description: 'Creates a policy '
       operationId: ShieldService_CreatePolicy
       responses:
         "200":
@@ -2775,7 +2918,8 @@ paths:
         - Policy
   /v1beta1/policies/{id}:
     get:
-      summary: Get policy by ID
+      summary: Get policy
+      description: Returns a policy by ID
       operationId: ShieldService_GetPolicy
       responses:
         "200":
@@ -2854,7 +2998,8 @@ paths:
       tags:
         - Policy
     put:
-      summary: Update policy by ID
+      summary: Update policy
+      description: Updates a policy by ID
       operationId: ShieldService_UpdatePolicy
       responses:
         "200":
@@ -3285,7 +3430,8 @@ paths:
       tags:
         - Resource
     post:
-      summary: Create Resource
+      summary: Create resource
+      description: Creates a resource in a project
       operationId: ShieldService_CreateProjectResource
       responses:
         "200":
@@ -3318,6 +3464,7 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: projectId
+          description: project uuid or name
           in: path
           required: true
           type: string
@@ -3335,7 +3482,8 @@ paths:
         - Resource
   /v1beta1/projects/{projectId}/resources/{id}:
     get:
-      summary: Get Resource by ID
+      summary: Get resource
+      description: Returns a project resource by ID
       operationId: ShieldService_GetProjectResource
       responses:
         "200":
@@ -3378,7 +3526,8 @@ paths:
       tags:
         - Resource
     delete:
-      summary: Delete a resource permanently forever
+      summary: Delete resource
+      description: Deletes a resource from a project permanently
       operationId: ShieldService_DeleteProjectResource
       responses:
         "200":
@@ -3421,7 +3570,8 @@ paths:
       tags:
         - Resource
     put:
-      summary: Update Resource by ID
+      summary: Update resource
+      description: Updates a resource in a project
       operationId: ShieldService_UpdateProjectResource
       responses:
         "200":
@@ -3470,7 +3620,7 @@ paths:
         - Resource
   /v1beta1/relations:
     post:
-      summary: Create Relation
+      summary: Create relation
       operationId: ShieldService_CreateRelation
       responses:
         "200":
@@ -3511,7 +3661,8 @@ paths:
         - Relation
   /v1beta1/relations/{id}:
     get:
-      summary: Get Relation by ID
+      summary: Get relation
+      description: Returns a relation by ID
       operationId: ShieldService_GetRelation
       responses:
         "200":
@@ -3551,7 +3702,8 @@ paths:
         - Relation
   /v1beta1/relations/{relation}/object/{object}/subject/{subject}:
     delete:
-      summary: Remove a subject having a relation from an object
+      summary: Delete relation
+      description: Remove a subject having a relation from an object
       operationId: ShieldService_DeleteRelation
       responses:
         "200":
@@ -3601,8 +3753,8 @@ paths:
         - Relation
   /v1beta1/roles:
     get:
-      summary: List default roles
-      description: Returns a list of Shield predefined roles with their associated permissions
+      summary: List platform roles
+      description: Returns a list of platform wide roles available in enitre Shield instance along with their associated permissions
       operationId: ShieldService_ListRoles
       responses:
         "200":
@@ -3723,6 +3875,499 @@ paths:
           type: string
       tags:
         - Role
+  /v1beta1/serviceusers:
+    get:
+      summary: List org service users
+      description: Returns the service user of an organization in a Shield instance. It can be filter by it's state
+      operationId: ShieldService_ListServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: The organization ID to filter service users by.
+          in: query
+          required: true
+          type: string
+        - name: state
+          description: The state to filter by. It can be enabled or disabled.
+          in: query
+          required: false
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create service user
+      description: Create a service user.
+      operationId: ShieldService_CreateServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserRequest'
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}:
+    get:
+      summary: Get service user
+      description: Get service user details by its id.
+      operationId: ShieldService_GetServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to get.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    delete:
+      summary: Delete service user
+      description: Delete a service user permanently and all of its relations (keys, organizations, roles, etc)
+      operationId: ShieldService_DeleteServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/keys:
+    get:
+      summary: List service user keys
+      description: List all the keys of a service user with its details except jwk.
+      operationId: ShieldService_ListServiceUserKeys
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserKeysResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to list keys for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create service user key
+      description: Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
+      operationId: ShieldService_CreateServiceUserKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserKeyResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to create a key for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/keys/{keyId}:
+    get:
+      summary: Get service user key
+      description: Get a service user public RSA JWK set.
+      operationId: ShieldService_GetServiceUserKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetServiceUserKeyResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to get a key for.
+          in: path
+          required: true
+          type: string
+        - name: keyId
+          description: The unique ID of the key to get.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    delete:
+      summary: Delete service user key
+      description: Delete a service user key permanently.
+      operationId: ShieldService_DeleteServiceUserKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserKeyResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to delete a key for.
+          in: path
+          required: true
+          type: string
+        - name: keyId
+          description: The unique ID of the key to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/secrets:
+    get:
+      summary: List service user secrets
+      description: List all the secrets of a service user.
+      operationId: ShieldService_ListServiceUserSecrets
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserSecretsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to list secrets for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create service user secret
+      description: Generate a service user secret and return it. The secret value will not be persisted and should be securely stored by client.
+      operationId: ShieldService_CreateServiceUserSecret
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserSecretResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to create a key for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/secrets/{secretId}:
+    delete:
+      summary: Delete service user secret
+      description: Delete a service user secret credential.
+      operationId: ShieldService_DeleteServiceUserSecret
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserSecretResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to delete a secret for.
+          in: path
+          required: true
+          type: string
+        - name: secretId
+          description: The unique ID of the secret to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
   /v1beta1/users:
     get:
       summary: List public users
@@ -3833,9 +4478,10 @@ paths:
             $ref: '#/definitions/v1beta1UserRequestBody'
       tags:
         - User
+      security: []
   /v1beta1/users/{id}:
     get:
-      summary: Get a user by id
+      summary: Get user
       description: Get a user by id searched over all organizations in Shield.
       operationId: ShieldService_GetUser
       responses:
@@ -3915,7 +4561,7 @@ paths:
       tags:
         - User
     put:
-      summary: Update User by ID
+      summary: Update user
       operationId: ShieldService_UpdateUser
       responses:
         "200":
@@ -4052,7 +4698,7 @@ paths:
         - User
   /v1beta1/users/{id}/groups:
     get:
-      summary: List Groups of a User
+      summary: List user groups
       description: Lists all the groups a user belongs to across all organization in Shield. To get the groups of a user in a specific organization, use the org_id filter in the query parameter.
       operationId: ShieldService_ListUserGroups
       responses:
@@ -4099,7 +4745,7 @@ paths:
         - User
   /v1beta1/users/{id}/invitations:
     get:
-      summary: List User Invitations
+      summary: List user invitations
       description: List all the invitations sent to a user.
       operationId: ShieldService_ListUserInvitations
       responses:
@@ -4141,7 +4787,7 @@ paths:
         - User
   /v1beta1/users/{id}/organizations:
     get:
-      summary: Get Organizations by User
+      summary: Get user organizations
       description: Get all the organizations a user belongs to.
       operationId: ShieldService_GetOrganizationsByUser
       responses:
@@ -4216,7 +4862,7 @@ paths:
       tags:
         - User
     put:
-      summary: Update current User
+      summary: Update current user
       operationId: ShieldService_UpdateCurrentUser
       responses:
         "200":
@@ -4257,7 +4903,7 @@ paths:
         - User
   /v1beta1/users/self/groups:
     get:
-      summary: List My Groups
+      summary: List my groups
       operationId: ShieldService_ListCurrentUserGroups
       responses:
         "200":
@@ -4292,7 +4938,7 @@ paths:
         - User
   /v1beta1/users/self/organizations:
     get:
-      summary: Get My Organizations
+      summary: Get my organizations
       description: Get all organizations the current user belongs to
       operationId: ShieldService_GetOrganizationsByCurrentUser
       responses:
@@ -4364,6 +5010,17 @@ definitions:
     type: object
   v1beta1AddOrganizationUsersResponse:
     type: object
+  v1beta1AuthCallbackRequest:
+    type: object
+    properties:
+      strategyName:
+        type: string
+        title: strategy_name will not be set for oidc but can be utilized for methods like email magic links
+      state:
+        type: string
+        title: for oidc & magic links
+      code:
+        type: string
   v1beta1AuthCallbackResponse:
     type: object
   v1beta1AuthLogoutResponse:
@@ -4375,6 +5032,30 @@ definitions:
         type: string
       params:
         type: object
+  v1beta1AuthTokenRequest:
+    type: object
+    properties:
+      grantType:
+        type: string
+        title: |-
+          grant_type can be one of the following:
+          - client_credentials
+          - urn:ietf:params:oauth:grant-type:jwt-bearer
+      clientId:
+        type: string
+        title: client_id and client_secret are required for grant_type client_credentials
+      clientSecret:
+        type: string
+      assertion:
+        type: string
+        title: assertion is required for grant_type urn:ietf:params:oauth:grant-type:jwt-bearer
+  v1beta1AuthTokenResponse:
+    type: object
+    properties:
+      accessToken:
+        type: string
+      tokenType:
+        type: string
   v1beta1AuthenticateResponse:
     type: object
     properties:
@@ -4387,13 +5068,17 @@ definitions:
     properties:
       objectId:
         type: string
+        description: Deprecated. Use `resource` field instead.
       objectNamespace:
         type: string
+        description: Deprecated. Use `resource` field instead.
       permission:
         type: string
+        description: the permission name to check. <br/> *Example:* `get` or `list`
+      resource:
+        type: string
+        description: '`namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Shield can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825`'
     required:
-      - objectId
-      - objectNamespace
       - permission
   v1beta1CheckResourcePermissionResponse:
     type: object
@@ -4466,6 +5151,31 @@ definitions:
     properties:
       role:
         $ref: '#/definitions/v1beta1Role'
+  v1beta1CreateServiceUserKeyResponse:
+    type: object
+    properties:
+      key:
+        $ref: '#/definitions/v1beta1KeyCredential'
+  v1beta1CreateServiceUserRequest:
+    type: object
+    properties:
+      body:
+        $ref: '#/definitions/v1beta1ServiceUserRequestBody'
+      orgId:
+        type: string
+        description: The organization ID to which the service user belongs to.
+    required:
+      - orgId
+  v1beta1CreateServiceUserResponse:
+    type: object
+    properties:
+      serviceuser:
+        $ref: '#/definitions/v1beta1ServiceUser'
+  v1beta1CreateServiceUserSecretResponse:
+    type: object
+    properties:
+      secret:
+        $ref: '#/definitions/v1beta1SecretCredential'
   v1beta1CreateUserResponse:
     type: object
     properties:
@@ -4493,6 +5203,12 @@ definitions:
     type: object
   v1beta1DeleteRoleResponse:
     type: object
+  v1beta1DeleteServiceUserKeyResponse:
+    type: object
+  v1beta1DeleteServiceUserResponse:
+    type: object
+  v1beta1DeleteServiceUserSecretResponse:
+    type: object
   v1beta1DeleteUserResponse:
     type: object
   v1beta1DisableGroupResponse:
@@ -4516,11 +5232,22 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+      serviceuser:
+        $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1GetGroupResponse:
     type: object
     properties:
       group:
         $ref: '#/definitions/v1beta1Group'
+  v1beta1GetJWKsResponse:
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1JSONWebKey'
+    title: GetJWKsResponse is a valid JSON Web Key Set as specififed in rfc 7517
   v1beta1GetMetaSchemaResponse:
     type: object
     properties:
@@ -4587,6 +5314,19 @@ definitions:
     properties:
       relation:
         $ref: '#/definitions/v1beta1Relation'
+  v1beta1GetServiceUserKeyResponse:
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1JSONWebKey'
+  v1beta1GetServiceUserResponse:
+    type: object
+    properties:
+      serviceuser:
+        $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1GetUserResponse:
     type: object
     properties:
@@ -4665,6 +5405,49 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the invitation expires.
+  v1beta1JSONWebKey:
+    type: object
+    properties:
+      kty:
+        type: string
+        description: Key Type.
+      alg:
+        type: string
+        description: Algorithm.
+      use:
+        type: string
+        description: Permitted uses for the public keys.
+      kid:
+        type: string
+        description: Key ID.
+      "n":
+        type: string
+        description: Used for RSA keys.
+      e:
+        type: string
+        description: Used for RSA keys.
+      x:
+        type: string
+        description: Used for ECDSA keys.
+      "y":
+        type: string
+        description: Used for ECDSA keys.
+      crv:
+        type: string
+        description: Used for ECDSA keys.
+    title: JSON Web Key as specified in RFC 7517
+  v1beta1KeyCredential:
+    type: object
+    properties:
+      type:
+        type: string
+      kid:
+        type: string
+      principalId:
+        type: string
+      privateKey:
+        type: string
+        title: RSA private key as string
   v1beta1ListAllOrganizationsResponse:
     type: object
     properties:
@@ -4772,6 +5555,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Role'
+  v1beta1ListOrganizationServiceUsersResponse:
+    type: object
+    properties:
+      serviceusers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1ListOrganizationUsersResponse:
     type: object
     properties:
@@ -4860,6 +5651,31 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Role'
+  v1beta1ListServiceUserKeysResponse:
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUserKey'
+  v1beta1ListServiceUserSecretsResponse:
+    type: object
+    properties:
+      secrets:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1SecretCredential'
+        title: secrets will be listed without the secret value
+  v1beta1ListServiceUsersResponse:
+    type: object
+    properties:
+      serviceusers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1ListUserGroupsResponse:
     type: object
     properties:
@@ -5001,6 +5817,10 @@ definitions:
         type: string
       metadata:
         type: object
+      key:
+        type: string
+        example: compute.instance.get
+        description: Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
   v1beta1PermissionRequestBody:
     type: object
     properties:
@@ -5017,9 +5837,10 @@ definitions:
       title:
         type: string
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the permissions. Can also be left empty.
-    required:
-      - name
-      - namespace
+      key:
+        type: string
+        example: compute.instance.get
+        description: Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
   v1beta1Policy:
     type: object
     properties:
@@ -5159,6 +5980,7 @@ definitions:
         type: string
       name:
         type: string
+        description: Name of the resource. Must be unique within the project.
       createdAt:
         type: string
         format: date-time
@@ -5175,7 +5997,7 @@ definitions:
         type: string
       namespace:
         type: string
-      userId:
+      principal:
         type: string
       metadata:
         type: object
@@ -5184,13 +6006,17 @@ definitions:
     properties:
       name:
         type: string
-        description: The name of the resource. <br/> *Example:* `my-resource`
+        description: The name of the resource.  Must be unique within the project. <br/> *Example:* `my-resource`
+      title:
+        type: string
+        description: The title can contain any UTF-8 character, used to provide a human-readable name for the resource. Can also be left empty.
       namespace:
         type: string
-        description: The namespace of the resource. The resource namespace are created when permissions for that resource is created in Shield. If namespace doesn't exists the request will fail. <br/> *Example:* `potato/cart`
-      userId:
+        description: The namespace of the resource. The resource namespace are created when permissions for that resource is created in Shield. If namespace doesn't exists the request will fail. <br/> *Example:* `compute/instance`
+      principal:
         type: string
-        description: The user id of the user who will be made the resource owner. If not provided, the current logged in user will be made the resource owner. <br/> *Example:* `92f69c3a-334b-4f25-90b8-4d4f3be6b825`
+        description: UserID or ServiceUserID that should be marked as owner of the resource. If not provided, the current logged in user will be made the resource owner. <br/> *Example:* `user:92f69c3a-334b-4f25-90b8-4d4f3be6b825`
+        title: format namespace:uuid or just uuid for user
       metadata:
         type: object
     required:
@@ -5238,6 +6064,73 @@ definitions:
         type: object
       title:
         type: string
+  v1beta1SecretCredential:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      secret:
+        type: string
+        title: |-
+          secret will only be returned once as part of the create process
+          this value is never persisted in the system so if lost, can't be recovered
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the secret was created.
+  v1beta1ServiceUser:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+        example: Order Service
+        description: User friendly name of the service user.
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the user was created.
+      updatedAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the user was last updated.
+      state:
+        type: string
+      orgId:
+        type: string
+  v1beta1ServiceUserKey:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      principalId:
+        type: string
+      publicKey:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the secret was created.
+  v1beta1ServiceUserRequestBody:
+    type: object
+    properties:
+      title:
+        type: string
+        example: Order Service
+        description: User friendly name of the service user.
+      metadata:
+        type: object
   v1beta1UpdateCurrentUserResponse:
     type: object
     properties:
@@ -5298,9 +6191,13 @@ definitions:
         type: string
       name:
         type: string
+        example: johndoe
+        description: Unique name of the user.
         title: can either be empty or must start with a character
       title:
         type: string
+        example: John Doe
+        description: Name of the user.
       email:
         type: string
       metadata:
@@ -5315,6 +6212,8 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the user was last updated.
+      state:
+        type: string
   v1beta1UserRequestBody:
     type: object
     properties:
@@ -5332,3 +6231,17 @@ definitions:
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"`
     required:
       - email
+securityDefinitions:
+  Basic:
+    type: basic
+    description: use Client ID as username and Client Secret as password
+    name: 'Basic '
+    in: header
+  Bearer:
+    type: oauth2
+    description: 'Access token or JWT token, prefixed by Bearer: Bearer <token>'
+    name: 'Bearer '
+    in: header
+security:
+  - Basic: []
+  - Bearer: []

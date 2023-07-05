@@ -37,7 +37,7 @@ api:
                                     "userId":
                                       {
                                         "type": "string",
-                                        "example": "john.doe@raystack.io",
+                                        "example": "john.doe@raystack.org",
                                         "description": "The user email of the invited user.",
                                       },
                                     "orgId":
@@ -304,6 +304,25 @@ api:
     "method": "post",
     "path": "/v1beta1/organizations/{orgId}/invitations",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample": { "userId": "string", "groupIds": ["string"] },
     "info":
       {
@@ -312,8 +331,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -386,7 +405,7 @@ Invite users to an organization, if the user doesn't exists, it will be created 
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>invitation</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The unique invitation identifier."}}></SchemaItem><SchemaItem collapsible={false} name={"userId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"john.doe@raystack.io","description":"The user email of the invited user."}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The organization id to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","example":"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","items":{"type":"string"},"description":"The list of group ids to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","example":{"key":"value"},"description":"The metadata of the invitation."}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation was created."}}></SchemaItem><SchemaItem collapsible={false} name={"expiresAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation expires."}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"invitation\": {\n    \"id\": \"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"userId\": \"john.doe@raystack.io\",\n    \"orgId\": \"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"groupIds\": \"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"metadata\": {\n      \"key\": \"value\"\n    },\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"expiresAt\": \"2023-06-07T05:39:56.961Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>invitation</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The unique invitation identifier."}}></SchemaItem><SchemaItem collapsible={false} name={"userId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"john.doe@raystack.org","description":"The user email of the invited user."}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The organization id to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","example":"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","items":{"type":"string"},"description":"The list of group ids to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","example":{"key":"value"},"description":"The metadata of the invitation."}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation was created."}}></SchemaItem><SchemaItem collapsible={false} name={"expiresAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation expires."}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"invitation\": {\n    \"id\": \"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"userId\": \"john.doe@raystack.org\",\n    \"orgId\": \"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"groupIds\": \"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"metadata\": {\n      \"key\": \"value\"\n    },\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"expiresAt\": \"2023-06-07T05:39:56.961Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

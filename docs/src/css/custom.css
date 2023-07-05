@@ -248,36 +248,6 @@ html[data-theme="dark"] .header-slack-link:before {
   border-color: var(--ifm-color-secondary-dark);
 }
 
-.code__tab--python::after {
-  content: "python";
-  width: var(--code-tab-logo-width);
-  height: var(--code-tab-logo-height);
-  background: url("https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg");
-  margin-block: auto;
-}
-
-.code__tab--python {
-  content: "python";
-  color: var(--ifm-color-success);
-  padding-left: 1.4rem;
-  padding-right: 1.4rem;
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
-}
-
-.code__tab--python.tabs__item--active {
-  content: "python";
-  border-bottom-color: var(--ifm-color-success);
-  background-color: var(--ifm-color-emphasis-100);
-}
-
-.language-python {
-  content: "python";
-  max-height: 500px;
-  overflow: auto;
-}
-
-
 .padding-top--md {
   padding-top: 3rem !important;
 }
@@ -316,4 +286,9 @@ html[data-theme="dark"] .header-slack-link:before {
 
 .theme-doc-sidebar-item-category-level-2 .menu__list-item-collapsible {
   padding-left: 0.5rem;
+}
+
+code {
+  font-size: 90%;
+  background-color: var(--ifm-color-info-contrast-background);
 }

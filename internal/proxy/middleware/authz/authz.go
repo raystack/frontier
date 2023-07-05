@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/core/relation"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/raystack/salt/log"
 
 	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/internal/proxy/middleware"
 	"github.com/raystack/shield/pkg/body_extractor"
 )
@@ -22,8 +23,8 @@ type ResourceService interface {
 	CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error)
 }
 
-type UserService interface {
-	FetchCurrentUser(ctx context.Context) (user.User, error)
+type AuthnService interface {
+	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
 
 type Authz struct {
@@ -31,7 +32,7 @@ type Authz struct {
 	userIDHeaderKey string
 	next            http.Handler
 	resourceService ResourceService
-	userService     UserService
+	userService     AuthnService
 }
 
 type Config struct {
@@ -51,13 +52,13 @@ func New(
 	next http.Handler,
 	userIDHeaderKey string,
 	resourceService ResourceService,
-	userService UserService) *Authz {
+	principalService AuthnService) *Authz {
 	return &Authz{
 		log:             log,
 		userIDHeaderKey: userIDHeaderKey,
 		next:            next,
 		resourceService: resourceService,
-		userService:     userService,
+		userService:     principalService,
 	}
 }
 
@@ -80,7 +81,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	usr, err := c.userService.FetchCurrentUser(req.Context())
+	usr, err := c.userService.GetPrincipal(req.Context())
 	if err != nil {
 		c.log.Error("middleware: failed to get user details", "err", err.Error())
 		c.notAllowed(rw, nil)

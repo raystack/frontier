@@ -7,6 +7,7 @@ permissions:
     namespace: compute/order
   - name: create
     namespace: compute/order
+  - key: compute.order.configure
 roles:
   - name: compute_order_manager
     permissions:

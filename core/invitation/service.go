@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"html/template"
 
+	"github.com/raystack/shield/core/authenticate"
+
 	"github.com/raystack/shield/pkg/str"
 
 	"github.com/google/uuid"
@@ -32,13 +34,13 @@ type UserService interface {
 
 type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
-	AddMember(ctx context.Context, orgID, userID, relationName string) error
+	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
 	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
 }
 
 type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
-	AddMember(ctx context.Context, groupID, userID, relationName string) error
+	AddMember(ctx context.Context, groupID, relationName string, principal authenticate.Principal) error
 	ListByUser(ctx context.Context, userID string, flt group.Filter) ([]group.Group, error)
 }
 
@@ -198,7 +200,10 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// else, add user to the organization
 	if !userOrgMember {
-		if err = s.orgSvc.AddMember(ctx, invite.OrgID, user.ID, schema.MemberRelationName); err != nil {
+		if err = s.orgSvc.AddMember(ctx, invite.OrgID, schema.MemberRelationName, authenticate.Principal{
+			ID:   user.ID,
+			Type: schema.UserPrincipal,
+		}); err != nil {
 			return err
 		}
 	}
@@ -226,7 +231,10 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 				}
 			}
 			if !alreadyGroupMember {
-				if err = s.groupSvc.AddMember(ctx, grp.ID, user.ID, schema.MemberRelationName); err != nil {
+				if err = s.groupSvc.AddMember(ctx, grp.ID, schema.MemberRelationName, authenticate.Principal{
+					ID:   user.ID,
+					Type: schema.UserPrincipal,
+				}); err != nil {
 					return err
 				}
 			}

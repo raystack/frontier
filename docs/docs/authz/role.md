@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Roles
 
 A Role is a collection of permissions in Shield. Roles are typically associated with one or more policies, which specify the permissions granted to the users. When a user is assigned a role, they inherit the permissions defined within that role. This simplifies access management by allowing administrators to assign roles to users rather than individually assigning permissions.
@@ -47,10 +50,9 @@ Shield superusers can create a custom role platform wide which mean this role wi
 Shield also provides flexibility to Org Admins to create a custom role specific to the organization.
 :::
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+---
 
-# Managing Role
+## Managing Roles
 
 <Tabs groupId="model">
   <TabItem value="Model" label="Model" default>
@@ -88,6 +90,10 @@ import TabItem from '@theme/TabItem';
 
 </TabItem>
 </Tabs>
+
+:::tip
+Some of these APIs require special privileges to access these endpoints and to authorize these requests, users may need a Client ID/Secret or an Access token to proceed. Read [**Authorization for APIs**](../reference/api-auth.md) to learn more.
+:::
 
 ### List Organization Roles
 

@@ -3,6 +3,9 @@ package authenticate
 import (
 	"time"
 
+	"github.com/raystack/shield/core/serviceuser"
+	"github.com/raystack/shield/core/user"
+
 	"github.com/raystack/shield/pkg/metadata"
 
 	"github.com/google/uuid"
@@ -16,6 +19,28 @@ const (
 
 func (m AuthMethod) String() string {
 	return string(m)
+}
+
+type ClientAssertion string
+
+const (
+	SessionClientAssertion           ClientAssertion = "session"
+	AccessTokenClientAssertion       ClientAssertion = "access_token"
+	JWTGrantClientAssertion          ClientAssertion = "jwt_grant"
+	ClientCredentialsClientAssertion ClientAssertion = "client_credentials"
+	PassthroughHeaderClientAssertion ClientAssertion = "passthrough_header"
+)
+
+func (a ClientAssertion) String() string {
+	return string(a)
+}
+
+var AllClientAssertions = []ClientAssertion{
+	SessionClientAssertion,
+	AccessTokenClientAssertion,
+	JWTGrantClientAssertion,
+	ClientCredentialsClientAssertion,
+	PassthroughHeaderClientAssertion,
 }
 
 // Flow is a temporary state used to finish login/registration flows
@@ -49,40 +74,34 @@ func (f Flow) IsValid(currentTime time.Time) bool {
 	return f.ExpiresAt.After(currentTime)
 }
 
-type Config struct {
-	// OIDCCallbackHost is external host used for oidc redirect uri
-	OIDCCallbackHost string `yaml:"oidc_callback_host" mapstructure:"oidc_callback_host"`
-
-	OIDCConfig map[string]OIDCConfig `yaml:"oidc_config" mapstructure:"oidc_config"`
-	Session    SessionConfig         `yaml:"session" mapstructure:"session"`
-	Token      TokenConfig           `yaml:"token" mapstructure:"token"`
-	MailOTP    MailOTPConfig         `yaml:"mail_otp" mapstructure:"mail_otp"`
+type RegistrationStartRequest struct {
+	Method   string
+	ReturnTo string
+	Email    string
 }
 
-type TokenConfig struct {
-	// path to rsa key file, it can contain more than one key as a json array
-	// jwt will be signed by first key, but will be tried to be decoded by all matching key ids, this helps in key rotation
-	RSAPath string `yaml:"rsa_path" mapstructure:"rsa_path"`
+type RegistrationFinishRequest struct {
+	Method string
 
-	// Issuer uniquely identifies the service that issued the token
-	// a good example could be fully qualified domain name
-	Issuer string `yaml:"iss" mapstructure:"iss" default:"shield"`
+	// used for OIDC & mail otp auth strategy
+	Code  string
+	State string
 }
 
-type SessionConfig struct {
-	HashSecretKey  string `mapstructure:"hash_secret_key" yaml:"hash_secret_key" default:"hash-secret-should-be-32-chars--"`
-	BlockSecretKey string `mapstructure:"block_secret_key" yaml:"block_secret_key" default:"block-secret-should-be-32-chars-"`
+type RegistrationStartResponse struct {
+	Flow  *Flow
+	State string
 }
 
-type OIDCConfig struct {
-	ClientID     string        `yaml:"client_id" mapstructure:"client_id"`
-	ClientSecret string        `yaml:"client_secret" mapstructure:"client_secret"`
-	IssuerUrl    string        `yaml:"issuer_url" mapstructure:"issuer_url"`
-	Validity     time.Duration `yaml:"validity" mapstructure:"validity" default:"15m"`
+type RegistrationFinishResponse struct {
+	User user.User
+	Flow *Flow
 }
 
-type MailOTPConfig struct {
-	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Shield Login OTP"`
-	Body     string        `yaml:"body" mapstructure:"body" default:"Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."`
-	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
+type Principal struct {
+	ID   string
+	Type string
+
+	User        *user.User
+	ServiceUser *serviceuser.ServiceUser
 }

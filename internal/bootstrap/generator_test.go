@@ -15,7 +15,7 @@ import (
 )
 
 //go:embed testdata/compute_service.yml
-var atlasSchemaYaml []byte
+var computeSchemaYaml []byte
 
 //go:embed testdata/compiled_schema.zed
 var compiledSchemaZed string
@@ -30,7 +30,7 @@ func TestCompileSchema(t *testing.T) {
 
 	appService, err := bootstrap.BuildServiceDefinitionFromAZSchema(compiledSchema.ObjectDefinitions, "app")
 	assert.NoError(t, err)
-	assert.Len(t, appService.Permissions, 22)
+	assert.Len(t, appService.Permissions, 23)
 }
 
 func TestAddServiceToSchema(t *testing.T) {
@@ -41,12 +41,12 @@ func TestAddServiceToSchema(t *testing.T) {
 	}, &tenantName)
 	assert.NoError(t, err)
 
-	atlasServiceDefinition := schema.ServiceDefinition{}
-	err = yaml.Unmarshal(atlasSchemaYaml, &atlasServiceDefinition)
+	computeServiceDefinition := schema.ServiceDefinition{}
+	err = yaml.Unmarshal(computeSchemaYaml, &computeServiceDefinition)
 	assert.NoError(t, err)
 
 	spiceDBDefinitions := existingSchema.ObjectDefinitions
-	spiceDBDefinitions, err = bootstrap.ApplyServiceDefinitionOverAZSchema(&atlasServiceDefinition, spiceDBDefinitions)
+	spiceDBDefinitions, err = bootstrap.ApplyServiceDefinitionOverAZSchema(&computeServiceDefinition, spiceDBDefinitions)
 	assert.NoError(t, err)
 
 	// sort definitions, useful to keep it consistent

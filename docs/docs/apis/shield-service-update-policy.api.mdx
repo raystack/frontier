@@ -1,12 +1,13 @@
 ---
 id: shield-service-update-policy
-title: "Update policy by ID"
-description: "Update policy by ID"
-sidebar_label: "Update policy by ID"
+title: "Update policy"
+description: "Updates a policy by ID"
+sidebar_label: "Update policy"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
+    "description": "Updates a policy by ID",
     "operationId": "ShieldService_UpdatePolicy",
     "responses":
       {
@@ -300,10 +301,28 @@ api:
         "required": true,
       },
     "tags": ["Policy"],
-    "description": "Update policy by ID",
     "method": "put",
     "path": "/v1beta1/policies/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
+    "security": [{ "Basic": [] }, { "Bearer": [] }],
+    "securitySchemes":
+      {
+        "Basic":
+          {
+            "type": "http",
+            "description": "use Client ID as username and Client Secret as password",
+            "name": "Basic ",
+            "in": "header",
+            "scheme": "basic",
+          },
+        "Bearer":
+          {
+            "type": "oauth2",
+            "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
+            "in": "header",
+            "flows": { "undefined": { "scopes": {} } },
+          },
+      },
     "jsonRequestBodyExample":
       {
         "roleId": "string",
@@ -319,8 +338,8 @@ api:
         "version": "0.2.0",
         "contact":
           {
-            "name": "Open DataOps Foundation",
-            "url": "https://www.raystack.org/",
+            "name": "Raystack Foundation",
+            "url": "https://raystack.org/",
             "email": "hello@raystack.org",
           },
         "license":
@@ -331,8 +350,9 @@ api:
       },
     "postman":
       {
-        "name": "Update policy by ID",
-        "description": { "type": "text/plain" },
+        "name": "Update policy",
+        "description":
+          { "content": "Updates a policy by ID", "type": "text/plain" },
         "url":
           {
             "path": ["v1beta1", "policies", ":id"],
@@ -378,9 +398,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Update policy by ID
+## Update policy
 
-Update policy by ID
+Updates a policy by ID
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"roleId"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"unique id of the role to which policy is assigned"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The title can contain any UTF-8 character, used to provide a human-readable name for the policy. Can also be left empty. <br/> *Example:* `Policy title`"}}></SchemaItem><SchemaItem collapsible={false} name={"resource"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The resource to which policy is assigned in this format `namespace:uuid`. <br/> *Example:* `app/guardian:70f69c3a-334b-4f25-90b8-4d4f3be6b8e2`"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"principal is the user or group to which policy is assigned. The principal id must be prefixed with its namespace id in this format `namespace:uuid`. The namespace can be `app/user`, `app/group` or `app/serviceuser` (coming up!) and uuid is the unique id of the principal. <br/> *Example:* `app/user:92f69c3a-334b-4f25-90b8-4d4f3be6b825`"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","description":"Metadata object for policies that can hold key value pairs defined in Policy Metaschema.<br/> *Example:* `{\"labels\": {\"key\": \"value\"}, \"description\": \"Policy description\"}`"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

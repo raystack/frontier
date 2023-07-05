@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/shield/core/user"
-
 	"github.com/google/uuid"
 	"github.com/raystack/shield/core/permission"
 
@@ -224,7 +222,7 @@ func (r PermissionRepository) Delete(ctx context.Context, id string) error {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return permission.ErrNotExist
 		default:
 			return err
 		}

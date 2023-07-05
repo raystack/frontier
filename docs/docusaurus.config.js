@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
   title: 'Shield',
   tagline: 'Identity and authorization for your APIs',
   url: 'https://raystack.github.io/',
-  baseUrl: '/shield/',
+  baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',

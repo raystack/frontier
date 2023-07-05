@@ -33,6 +33,17 @@ const (
 	ShieldService_GetOrganizationsByUser_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByUser"
 	ShieldService_GetOrganizationsByCurrentUser_FullMethodName = "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser"
 	ShieldService_ListUserInvitations_FullMethodName           = "/raystack.shield.v1beta1.ShieldService/ListUserInvitations"
+	ShieldService_ListServiceUsers_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/ListServiceUsers"
+	ShieldService_CreateServiceUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/CreateServiceUser"
+	ShieldService_GetServiceUser_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/GetServiceUser"
+	ShieldService_DeleteServiceUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/DeleteServiceUser"
+	ShieldService_CreateServiceUserKey_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/CreateServiceUserKey"
+	ShieldService_ListServiceUserKeys_FullMethodName           = "/raystack.shield.v1beta1.ShieldService/ListServiceUserKeys"
+	ShieldService_GetServiceUserKey_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/GetServiceUserKey"
+	ShieldService_DeleteServiceUserKey_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/DeleteServiceUserKey"
+	ShieldService_CreateServiceUserSecret_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/CreateServiceUserSecret"
+	ShieldService_ListServiceUserSecrets_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/ListServiceUserSecrets"
+	ShieldService_DeleteServiceUserSecret_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/DeleteServiceUserSecret"
 	ShieldService_ListOrganizationGroups_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/ListOrganizationGroups"
 	ShieldService_CreateGroup_FullMethodName                   = "/raystack.shield.v1beta1.ShieldService/CreateGroup"
 	ShieldService_GetGroup_FullMethodName                      = "/raystack.shield.v1beta1.ShieldService/GetGroup"
@@ -58,6 +69,7 @@ const (
 	ShieldService_ListOrganizationUsers_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/ListOrganizationUsers"
 	ShieldService_AddOrganizationUsers_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/AddOrganizationUsers"
 	ShieldService_RemoveOrganizationUser_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/RemoveOrganizationUser"
+	ShieldService_ListOrganizationServiceUsers_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/ListOrganizationServiceUsers"
 	ShieldService_ListOrganizationInvitations_FullMethodName   = "/raystack.shield.v1beta1.ShieldService/ListOrganizationInvitations"
 	ShieldService_CreateOrganizationInvitation_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/CreateOrganizationInvitation"
 	ShieldService_GetOrganizationInvitation_FullMethodName     = "/raystack.shield.v1beta1.ShieldService/GetOrganizationInvitation"
@@ -91,9 +103,11 @@ const (
 	ShieldService_UpdateProjectResource_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/UpdateProjectResource"
 	ShieldService_DeleteProjectResource_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/DeleteProjectResource"
 	ShieldService_CheckResourcePermission_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/CheckResourcePermission"
+	ShieldService_GetJWKs_FullMethodName                       = "/raystack.shield.v1beta1.ShieldService/GetJWKs"
 	ShieldService_ListAuthStrategies_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/ListAuthStrategies"
 	ShieldService_Authenticate_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/Authenticate"
 	ShieldService_AuthCallback_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/AuthCallback"
+	ShieldService_AuthToken_FullMethodName                     = "/raystack.shield.v1beta1.ShieldService/AuthToken"
 	ShieldService_AuthLogout_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/AuthLogout"
 	ShieldService_ListMetaSchemas_FullMethodName               = "/raystack.shield.v1beta1.ShieldService/ListMetaSchemas"
 	ShieldService_CreateMetaSchema_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/CreateMetaSchema"
@@ -121,6 +135,18 @@ type ShieldServiceClient interface {
 	GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error)
 	GetOrganizationsByCurrentUser(ctx context.Context, in *GetOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByCurrentUserResponse, error)
 	ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error)
+	// ServieUser
+	ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error)
+	CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error)
+	GetServiceUser(ctx context.Context, in *GetServiceUserRequest, opts ...grpc.CallOption) (*GetServiceUserResponse, error)
+	DeleteServiceUser(ctx context.Context, in *DeleteServiceUserRequest, opts ...grpc.CallOption) (*DeleteServiceUserResponse, error)
+	CreateServiceUserKey(ctx context.Context, in *CreateServiceUserKeyRequest, opts ...grpc.CallOption) (*CreateServiceUserKeyResponse, error)
+	ListServiceUserKeys(ctx context.Context, in *ListServiceUserKeysRequest, opts ...grpc.CallOption) (*ListServiceUserKeysResponse, error)
+	GetServiceUserKey(ctx context.Context, in *GetServiceUserKeyRequest, opts ...grpc.CallOption) (*GetServiceUserKeyResponse, error)
+	DeleteServiceUserKey(ctx context.Context, in *DeleteServiceUserKeyRequest, opts ...grpc.CallOption) (*DeleteServiceUserKeyResponse, error)
+	CreateServiceUserSecret(ctx context.Context, in *CreateServiceUserSecretRequest, opts ...grpc.CallOption) (*CreateServiceUserSecretResponse, error)
+	ListServiceUserSecrets(ctx context.Context, in *ListServiceUserSecretsRequest, opts ...grpc.CallOption) (*ListServiceUserSecretsResponse, error)
+	DeleteServiceUserSecret(ctx context.Context, in *DeleteServiceUserSecretRequest, opts ...grpc.CallOption) (*DeleteServiceUserSecretResponse, error)
 	// Group
 	ListOrganizationGroups(ctx context.Context, in *ListOrganizationGroupsRequest, opts ...grpc.CallOption) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
@@ -149,6 +175,7 @@ type ShieldServiceClient interface {
 	ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error)
+	ListOrganizationServiceUsers(ctx context.Context, in *ListOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*ListOrganizationServiceUsersResponse, error)
 	ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error)
 	CreateOrganizationInvitation(ctx context.Context, in *CreateOrganizationInvitationRequest, opts ...grpc.CallOption) (*CreateOrganizationInvitationResponse, error)
 	GetOrganizationInvitation(ctx context.Context, in *GetOrganizationInvitationRequest, opts ...grpc.CallOption) (*GetOrganizationInvitationResponse, error)
@@ -190,9 +217,11 @@ type ShieldServiceClient interface {
 	// Authz
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
 	// Authn
+	GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error)
 	ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error)
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error)
+	AuthToken(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenResponse, error)
 	AuthLogout(ctx context.Context, in *AuthLogoutRequest, opts ...grpc.CallOption) (*AuthLogoutResponse, error)
 	// MetaSchemas
 	ListMetaSchemas(ctx context.Context, in *ListMetaSchemasRequest, opts ...grpc.CallOption) (*ListMetaSchemasResponse, error)
@@ -330,6 +359,105 @@ func (c *shieldServiceClient) GetOrganizationsByCurrentUser(ctx context.Context,
 func (c *shieldServiceClient) ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error) {
 	out := new(ListUserInvitationsResponse)
 	err := c.cc.Invoke(ctx, ShieldService_ListUserInvitations_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error) {
+	out := new(ListServiceUsersResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListServiceUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error) {
+	out := new(CreateServiceUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateServiceUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetServiceUser(ctx context.Context, in *GetServiceUserRequest, opts ...grpc.CallOption) (*GetServiceUserResponse, error) {
+	out := new(GetServiceUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetServiceUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteServiceUser(ctx context.Context, in *DeleteServiceUserRequest, opts ...grpc.CallOption) (*DeleteServiceUserResponse, error) {
+	out := new(DeleteServiceUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteServiceUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) CreateServiceUserKey(ctx context.Context, in *CreateServiceUserKeyRequest, opts ...grpc.CallOption) (*CreateServiceUserKeyResponse, error) {
+	out := new(CreateServiceUserKeyResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateServiceUserKey_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListServiceUserKeys(ctx context.Context, in *ListServiceUserKeysRequest, opts ...grpc.CallOption) (*ListServiceUserKeysResponse, error) {
+	out := new(ListServiceUserKeysResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListServiceUserKeys_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetServiceUserKey(ctx context.Context, in *GetServiceUserKeyRequest, opts ...grpc.CallOption) (*GetServiceUserKeyResponse, error) {
+	out := new(GetServiceUserKeyResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetServiceUserKey_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteServiceUserKey(ctx context.Context, in *DeleteServiceUserKeyRequest, opts ...grpc.CallOption) (*DeleteServiceUserKeyResponse, error) {
+	out := new(DeleteServiceUserKeyResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteServiceUserKey_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) CreateServiceUserSecret(ctx context.Context, in *CreateServiceUserSecretRequest, opts ...grpc.CallOption) (*CreateServiceUserSecretResponse, error) {
+	out := new(CreateServiceUserSecretResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateServiceUserSecret_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListServiceUserSecrets(ctx context.Context, in *ListServiceUserSecretsRequest, opts ...grpc.CallOption) (*ListServiceUserSecretsResponse, error) {
+	out := new(ListServiceUserSecretsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListServiceUserSecrets_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteServiceUserSecret(ctx context.Context, in *DeleteServiceUserSecretRequest, opts ...grpc.CallOption) (*DeleteServiceUserSecretResponse, error) {
+	out := new(DeleteServiceUserSecretResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteServiceUserSecret_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -555,6 +683,15 @@ func (c *shieldServiceClient) AddOrganizationUsers(ctx context.Context, in *AddO
 func (c *shieldServiceClient) RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error) {
 	out := new(RemoveOrganizationUserResponse)
 	err := c.cc.Invoke(ctx, ShieldService_RemoveOrganizationUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) ListOrganizationServiceUsers(ctx context.Context, in *ListOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*ListOrganizationServiceUsersResponse, error) {
+	out := new(ListOrganizationServiceUsersResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationServiceUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -858,6 +995,15 @@ func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *C
 	return out, nil
 }
 
+func (c *shieldServiceClient) GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error) {
+	out := new(GetJWKsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetJWKs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error) {
 	out := new(ListAuthStrategiesResponse)
 	err := c.cc.Invoke(ctx, ShieldService_ListAuthStrategies_FullMethodName, in, out, opts...)
@@ -879,6 +1025,15 @@ func (c *shieldServiceClient) Authenticate(ctx context.Context, in *Authenticate
 func (c *shieldServiceClient) AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error) {
 	out := new(AuthCallbackResponse)
 	err := c.cc.Invoke(ctx, ShieldService_AuthCallback_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) AuthToken(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenResponse, error) {
+	out := new(AuthTokenResponse)
+	err := c.cc.Invoke(ctx, ShieldService_AuthToken_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -958,6 +1113,18 @@ type ShieldServiceServer interface {
 	GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error)
 	GetOrganizationsByCurrentUser(context.Context, *GetOrganizationsByCurrentUserRequest) (*GetOrganizationsByCurrentUserResponse, error)
 	ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error)
+	// ServieUser
+	ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error)
+	CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error)
+	GetServiceUser(context.Context, *GetServiceUserRequest) (*GetServiceUserResponse, error)
+	DeleteServiceUser(context.Context, *DeleteServiceUserRequest) (*DeleteServiceUserResponse, error)
+	CreateServiceUserKey(context.Context, *CreateServiceUserKeyRequest) (*CreateServiceUserKeyResponse, error)
+	ListServiceUserKeys(context.Context, *ListServiceUserKeysRequest) (*ListServiceUserKeysResponse, error)
+	GetServiceUserKey(context.Context, *GetServiceUserKeyRequest) (*GetServiceUserKeyResponse, error)
+	DeleteServiceUserKey(context.Context, *DeleteServiceUserKeyRequest) (*DeleteServiceUserKeyResponse, error)
+	CreateServiceUserSecret(context.Context, *CreateServiceUserSecretRequest) (*CreateServiceUserSecretResponse, error)
+	ListServiceUserSecrets(context.Context, *ListServiceUserSecretsRequest) (*ListServiceUserSecretsResponse, error)
+	DeleteServiceUserSecret(context.Context, *DeleteServiceUserSecretRequest) (*DeleteServiceUserSecretResponse, error)
 	// Group
 	ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
@@ -986,6 +1153,7 @@ type ShieldServiceServer interface {
 	ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error)
+	ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error)
 	ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error)
 	CreateOrganizationInvitation(context.Context, *CreateOrganizationInvitationRequest) (*CreateOrganizationInvitationResponse, error)
 	GetOrganizationInvitation(context.Context, *GetOrganizationInvitationRequest) (*GetOrganizationInvitationResponse, error)
@@ -1027,9 +1195,11 @@ type ShieldServiceServer interface {
 	// Authz
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
 	// Authn
+	GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error)
 	ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error)
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error)
+	AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error)
 	AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error)
 	// MetaSchemas
 	ListMetaSchemas(context.Context, *ListMetaSchemasRequest) (*ListMetaSchemasResponse, error)
@@ -1085,6 +1255,39 @@ func (UnimplementedShieldServiceServer) GetOrganizationsByCurrentUser(context.Co
 }
 func (UnimplementedShieldServiceServer) ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserInvitations not implemented")
+}
+func (UnimplementedShieldServiceServer) ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUsers not implemented")
+}
+func (UnimplementedShieldServiceServer) CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUser not implemented")
+}
+func (UnimplementedShieldServiceServer) GetServiceUser(context.Context, *GetServiceUserRequest) (*GetServiceUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetServiceUser not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteServiceUser(context.Context, *DeleteServiceUserRequest) (*DeleteServiceUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUser not implemented")
+}
+func (UnimplementedShieldServiceServer) CreateServiceUserKey(context.Context, *CreateServiceUserKeyRequest) (*CreateServiceUserKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserKey not implemented")
+}
+func (UnimplementedShieldServiceServer) ListServiceUserKeys(context.Context, *ListServiceUserKeysRequest) (*ListServiceUserKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserKeys not implemented")
+}
+func (UnimplementedShieldServiceServer) GetServiceUserKey(context.Context, *GetServiceUserKeyRequest) (*GetServiceUserKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetServiceUserKey not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteServiceUserKey(context.Context, *DeleteServiceUserKeyRequest) (*DeleteServiceUserKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserKey not implemented")
+}
+func (UnimplementedShieldServiceServer) CreateServiceUserSecret(context.Context, *CreateServiceUserSecretRequest) (*CreateServiceUserSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserSecret not implemented")
+}
+func (UnimplementedShieldServiceServer) ListServiceUserSecrets(context.Context, *ListServiceUserSecretsRequest) (*ListServiceUserSecretsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserSecrets not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteServiceUserSecret(context.Context, *DeleteServiceUserSecretRequest) (*DeleteServiceUserSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserSecret not implemented")
 }
 func (UnimplementedShieldServiceServer) ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationGroups not implemented")
@@ -1160,6 +1363,9 @@ func (UnimplementedShieldServiceServer) AddOrganizationUsers(context.Context, *A
 }
 func (UnimplementedShieldServiceServer) RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationUser not implemented")
+}
+func (UnimplementedShieldServiceServer) ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationServiceUsers not implemented")
 }
 func (UnimplementedShieldServiceServer) ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationInvitations not implemented")
@@ -1260,6 +1466,9 @@ func (UnimplementedShieldServiceServer) DeleteProjectResource(context.Context, *
 func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
 }
+func (UnimplementedShieldServiceServer) GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetJWKs not implemented")
+}
 func (UnimplementedShieldServiceServer) ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthStrategies not implemented")
 }
@@ -1268,6 +1477,9 @@ func (UnimplementedShieldServiceServer) Authenticate(context.Context, *Authentic
 }
 func (UnimplementedShieldServiceServer) AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthCallback not implemented")
+}
+func (UnimplementedShieldServiceServer) AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthToken not implemented")
 }
 func (UnimplementedShieldServiceServer) AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthLogout not implemented")
@@ -1548,6 +1760,204 @@ func _ShieldService_ListUserInvitations_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).ListUserInvitations(ctx, req.(*ListUserInvitationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListServiceUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListServiceUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListServiceUsers(ctx, req.(*ListServiceUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_CreateServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).CreateServiceUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_CreateServiceUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).CreateServiceUser(ctx, req.(*CreateServiceUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetServiceUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetServiceUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetServiceUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetServiceUser(ctx, req.(*GetServiceUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteServiceUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteServiceUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_DeleteServiceUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteServiceUser(ctx, req.(*DeleteServiceUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_CreateServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceUserKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).CreateServiceUserKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_CreateServiceUserKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).CreateServiceUserKey(ctx, req.(*CreateServiceUserKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListServiceUserKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceUserKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListServiceUserKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListServiceUserKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListServiceUserKeys(ctx, req.(*ListServiceUserKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetServiceUserKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetServiceUserKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetServiceUserKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetServiceUserKey(ctx, req.(*GetServiceUserKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteServiceUserKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteServiceUserKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_DeleteServiceUserKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteServiceUserKey(ctx, req.(*DeleteServiceUserKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_CreateServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceUserSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).CreateServiceUserSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_CreateServiceUserSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).CreateServiceUserSecret(ctx, req.(*CreateServiceUserSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListServiceUserSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceUserSecretsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListServiceUserSecrets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListServiceUserSecrets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListServiceUserSecrets(ctx, req.(*ListServiceUserSecretsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteServiceUserSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteServiceUserSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_DeleteServiceUserSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteServiceUserSecret(ctx, req.(*DeleteServiceUserSecretRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1998,6 +2408,24 @@ func _ShieldService_RemoveOrganizationUser_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).RemoveOrganizationUser(ctx, req.(*RemoveOrganizationUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_ListOrganizationServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationServiceUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListOrganizationServiceUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListOrganizationServiceUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListOrganizationServiceUsers(ctx, req.(*ListOrganizationServiceUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2596,6 +3024,24 @@ func _ShieldService_CheckResourcePermission_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_GetJWKs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJWKsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetJWKs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetJWKs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetJWKs(ctx, req.(*GetJWKsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_ListAuthStrategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAuthStrategiesRequest)
 	if err := dec(in); err != nil {
@@ -2646,6 +3092,24 @@ func _ShieldService_AuthCallback_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).AuthCallback(ctx, req.(*AuthCallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_AuthToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).AuthToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_AuthToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).AuthToken(ctx, req.(*AuthTokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2822,6 +3286,50 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_ListUserInvitations_Handler,
 		},
 		{
+			MethodName: "ListServiceUsers",
+			Handler:    _ShieldService_ListServiceUsers_Handler,
+		},
+		{
+			MethodName: "CreateServiceUser",
+			Handler:    _ShieldService_CreateServiceUser_Handler,
+		},
+		{
+			MethodName: "GetServiceUser",
+			Handler:    _ShieldService_GetServiceUser_Handler,
+		},
+		{
+			MethodName: "DeleteServiceUser",
+			Handler:    _ShieldService_DeleteServiceUser_Handler,
+		},
+		{
+			MethodName: "CreateServiceUserKey",
+			Handler:    _ShieldService_CreateServiceUserKey_Handler,
+		},
+		{
+			MethodName: "ListServiceUserKeys",
+			Handler:    _ShieldService_ListServiceUserKeys_Handler,
+		},
+		{
+			MethodName: "GetServiceUserKey",
+			Handler:    _ShieldService_GetServiceUserKey_Handler,
+		},
+		{
+			MethodName: "DeleteServiceUserKey",
+			Handler:    _ShieldService_DeleteServiceUserKey_Handler,
+		},
+		{
+			MethodName: "CreateServiceUserSecret",
+			Handler:    _ShieldService_CreateServiceUserSecret_Handler,
+		},
+		{
+			MethodName: "ListServiceUserSecrets",
+			Handler:    _ShieldService_ListServiceUserSecrets_Handler,
+		},
+		{
+			MethodName: "DeleteServiceUserSecret",
+			Handler:    _ShieldService_DeleteServiceUserSecret_Handler,
+		},
+		{
 			MethodName: "ListOrganizationGroups",
 			Handler:    _ShieldService_ListOrganizationGroups_Handler,
 		},
@@ -2920,6 +3428,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveOrganizationUser",
 			Handler:    _ShieldService_RemoveOrganizationUser_Handler,
+		},
+		{
+			MethodName: "ListOrganizationServiceUsers",
+			Handler:    _ShieldService_ListOrganizationServiceUsers_Handler,
 		},
 		{
 			MethodName: "ListOrganizationInvitations",
@@ -3054,6 +3566,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldService_CheckResourcePermission_Handler,
 		},
 		{
+			MethodName: "GetJWKs",
+			Handler:    _ShieldService_GetJWKs_Handler,
+		},
+		{
 			MethodName: "ListAuthStrategies",
 			Handler:    _ShieldService_ListAuthStrategies_Handler,
 		},
@@ -3064,6 +3580,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthCallback",
 			Handler:    _ShieldService_AuthCallback_Handler,
+		},
+		{
+			MethodName: "AuthToken",
+			Handler:    _ShieldService_AuthToken_Handler,
 		},
 		{
 			MethodName: "AuthLogout",

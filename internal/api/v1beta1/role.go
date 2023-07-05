@@ -81,6 +81,57 @@ func (h Handler) ListRoles(ctx context.Context, request *shieldv1beta1.ListRoles
 	return &shieldv1beta1.ListRolesResponse{Roles: roles}, nil
 }
 
+func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRoleRequest) (*shieldv1beta1.CreateRoleResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetBody() == nil {
+		return nil, grpcBadBodyError
+	}
+
+	var metaDataMap metadata.Metadata
+	var err error
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
+		if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyMetaSchemaError
+		}
+	}
+
+	newRole, err := h.roleService.Upsert(ctx, role.Role{
+		Name:        request.GetBody().GetName(),
+		Permissions: request.GetBody().GetPermissions(),
+		OrgID:       uuid.Nil.String(), // to create a platform wide role
+		Metadata:    metaDataMap,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, namespace.ErrNotExist),
+			errors.Is(err, permission.ErrNotExist),
+			errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		case errors.Is(err, role.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	rolePB, err := transformRoleToPB(newRole)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &shieldv1beta1.CreateRoleResponse{Role: &rolePB}, nil
+}
+
 func (h Handler) CreateOrganizationRole(ctx context.Context, request *shieldv1beta1.CreateOrganizationRoleRequest) (*shieldv1beta1.CreateOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) {
@@ -201,8 +252,31 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *shieldv1be
 	return &shieldv1beta1.UpdateOrganizationRoleResponse{Role: &rolePB}, nil
 }
 
+func (h Handler) DeleteRole(ctx context.Context, request *shieldv1beta1.DeleteRoleRequest) (*shieldv1beta1.DeleteRoleResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if utils.IsNullUUID(request.GetId()) {
+		return nil, grpcBadBodyError
+	}
+
+	err := h.roleService.Delete(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
+			return nil, grpcRoleNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.DeleteRoleResponse{}, nil
+}
+
 func (h Handler) DeleteOrganizationRole(ctx context.Context, request *shieldv1beta1.DeleteOrganizationRoleRequest) (*shieldv1beta1.DeleteOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
+	if utils.IsNullUUID(request.GetOrgId()) || utils.IsNullUUID(request.GetId()) {
+		return nil, grpcBadBodyError
+	}
 
 	err := h.roleService.Delete(ctx, request.GetId())
 	if err != nil {

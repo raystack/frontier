@@ -204,58 +204,6 @@ func (_c *UserService_Enable_Call) RunAndReturn(run func(context.Context, string
 	return _c
 }
 
-// FetchCurrentUser provides a mock function with given fields: ctx
-func (_m *UserService) FetchCurrentUser(ctx context.Context) (user.User, error) {
-	ret := _m.Called(ctx)
-
-	var r0 user.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (user.User, error)); ok {
-		return rf(ctx)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context) user.User); ok {
-		r0 = rf(ctx)
-	} else {
-		r0 = ret.Get(0).(user.User)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserService_FetchCurrentUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchCurrentUser'
-type UserService_FetchCurrentUser_Call struct {
-	*mock.Call
-}
-
-// FetchCurrentUser is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *UserService_Expecter) FetchCurrentUser(ctx interface{}) *UserService_FetchCurrentUser_Call {
-	return &UserService_FetchCurrentUser_Call{Call: _e.mock.On("FetchCurrentUser", ctx)}
-}
-
-func (_c *UserService_FetchCurrentUser_Call) Run(run func(ctx context.Context)) *UserService_FetchCurrentUser_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *UserService_FetchCurrentUser_Call) Return(_a0 user.User, _a1 error) *UserService_FetchCurrentUser_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *UserService_FetchCurrentUser_Call) RunAndReturn(run func(context.Context) (user.User, error)) *UserService_FetchCurrentUser_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetByEmail provides a mock function with given fields: ctx, email
 func (_m *UserService) GetByEmail(ctx context.Context, email string) (user.User, error) {
 	ret := _m.Called(ctx, email)

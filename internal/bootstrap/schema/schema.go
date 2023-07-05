@@ -38,22 +38,24 @@ const (
 	RoleBearerRelationName   = "bearer"
 
 	// permissions
-	ListPermission             = "list"
-	GetPermission              = "get"
-	CreatePermission           = "create"
-	UpdatePermission           = "update"
-	DeletePermission           = "delete"
-	SudoPermission             = "superuser"
-	RoleManagePermission       = "rolemanage"
-	PolicyManagePermission     = "policymanage"
-	ProjectListPermission      = "projectlist"
-	GroupListPermission        = "grouplist"
-	ProjectCreatePermission    = "projectcreate"
-	GroupCreatePermission      = "groupcreate"
-	ResourceListPermission     = "resourcelist"
-	InvitationListPermission   = "invitationlist"
-	InvitationCreatePermission = "invitationcreate"
-	AcceptPermission           = "accept"
+	ListPermission              = "list"
+	GetPermission               = "get"
+	CreatePermission            = "create"
+	UpdatePermission            = "update"
+	DeletePermission            = "delete"
+	SudoPermission              = "superuser"
+	RoleManagePermission        = "rolemanage"
+	PolicyManagePermission      = "policymanage"
+	ProjectListPermission       = "projectlist"
+	GroupListPermission         = "grouplist"
+	ProjectCreatePermission     = "projectcreate"
+	GroupCreatePermission       = "groupcreate"
+	ResourceListPermission      = "resourcelist"
+	InvitationListPermission    = "invitationlist"
+	InvitationCreatePermission  = "invitationcreate"
+	AcceptPermission            = "accept"
+	ServiceUserManagePermission = "serviceusermanage"
+	ManagePermission            = "manage"
 
 	// synthetic permission
 	MembershipPermission = "membership"
@@ -89,7 +91,7 @@ func MergeServiceDefinitions(definitions ...ServiceDefinition) *ServiceDefinitio
 			roles[role.Name] = role
 		}
 		for _, permission := range definition.Permissions {
-			permissions[FQPermissionNameFromNamespace(permission.Namespace, permission.Name)] = permission
+			permissions[permission.Slug()] = permission
 		}
 	}
 	roleList := make([]RoleDefinition, 0, len(roles))
@@ -122,6 +124,34 @@ type ResourcePermission struct {
 	// Namespace is an object over which authz rules will be applied
 	Namespace   string
 	Description string
+
+	// Key is a unique identifier composed of namespace and name
+	// for example: "app.platform.list" which is composed as service.resource.verb
+	// here app.platform is namespace and list is name of the permission
+	Key string
+}
+
+func (r ResourcePermission) GetName() string {
+	if r.Name != "" {
+		return r.Name
+	}
+	_, name := PermissionNamespaceAndNameFromKey(r.Key)
+	return name
+}
+
+func (r ResourcePermission) GetNamespace() string {
+	if r.Namespace != "" {
+		return r.Namespace
+	}
+	ns, _ := PermissionNamespaceAndNameFromKey(r.Key)
+	return ns
+}
+
+func (r ResourcePermission) Slug() string {
+	if r.Key != "" {
+		return FQPermissionNameFromNamespace(PermissionNamespaceAndNameFromKey(r.Key))
+	}
+	return FQPermissionNameFromNamespace(r.Namespace, r.Name)
 }
 
 func BuildNamespaceName(service, resource string) string {
@@ -158,6 +188,8 @@ func ParseNamespaceAliasIfRequired(n string) string {
 		n = UserPrincipal
 	case "superuser":
 		n = SuperUserPrincipal
+	case "serviceuser":
+		n = ServiceUserPrincipal
 	case "group":
 		n = GroupPrincipal
 	case "org", "organization":
@@ -171,6 +203,26 @@ func ParseNamespaceAliasIfRequired(n string) string {
 func FQPermissionNameFromNamespace(namespace, verb string) string {
 	service, resource := SplitNamespaceResource(namespace)
 	return fmt.Sprintf("%s_%s_%s", service, resource, verb)
+}
+
+func PermissionNamespaceAndNameFromKey(key string) (string, string) {
+	parts := strings.Split(key, ".")
+	if len(parts) != 3 {
+		return "", ""
+	}
+	return fmt.Sprintf("%s/%s", parts[0], parts[1]), parts[2]
+}
+
+func PermissionKeyFromNamespaceAndName(namespace, name string) string {
+	service, resource := SplitNamespaceResource(namespace)
+	return fmt.Sprintf("%s.%s.%s", service, resource, name)
+}
+
+func IsSystemNamespace(namespace string) bool {
+	return namespace == OrganizationNamespace || namespace == ProjectNamespace ||
+		namespace == UserPrincipal || namespace == ServiceUserPrincipal ||
+		namespace == SuperUserPrincipal || namespace == GroupPrincipal ||
+		namespace == PlatformNamespace
 }
 
 var PredefinedRoles = []RoleDefinition{

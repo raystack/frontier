@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/shield/core/user"
-
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/shield/core/namespace"
 	"github.com/raystack/shield/core/policy"
@@ -231,7 +229,7 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return policy.ErrNotExist
 		default:
 			return err
 		}

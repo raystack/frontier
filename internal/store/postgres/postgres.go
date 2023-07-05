@@ -20,21 +20,22 @@ var (
 )
 
 const (
-	TABLE_PERMISSIONS   = "permissions"
-	TABLE_GROUPS        = "groups"
-	TABLE_NAMESPACES    = "namespaces"
-	TABLE_ORGANIZATIONS = "organizations"
-	TABLE_POLICIES      = "policies"
-	TABLE_PROJECTS      = "projects"
-	TABLE_RELATIONS     = "relations"
-	TABLE_RESOURCES     = "resources"
-	TABLE_ROLES         = "roles"
-	TABLE_USERS         = "users"
-	TABLE_METADATA      = "metadata"
-	TABLE_METASCHEMA    = "metaschema"
-	TABLE_FLOWS         = "flows"
-	TABLE_SESSIONS      = "sessions"
-	TABLE_INVITATIONS   = "invitations"
+	TABLE_PERMISSIONS            = "permissions"
+	TABLE_GROUPS                 = "groups"
+	TABLE_NAMESPACES             = "namespaces"
+	TABLE_ORGANIZATIONS          = "organizations"
+	TABLE_POLICIES               = "policies"
+	TABLE_PROJECTS               = "projects"
+	TABLE_RELATIONS              = "relations"
+	TABLE_RESOURCES              = "resources"
+	TABLE_ROLES                  = "roles"
+	TABLE_USERS                  = "users"
+	TABLE_METASCHEMA             = "metaschema"
+	TABLE_FLOWS                  = "flows"
+	TABLE_SESSIONS               = "sessions"
+	TABLE_INVITATIONS            = "invitations"
+	TABLE_SERVICEUSER            = "serviceusers"
+	TABLE_SERVICEUSERCREDENTIALS = "serviceuser_credentials"
 )
 
 func checkPostgresError(err error) error {
