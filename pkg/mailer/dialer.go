@@ -11,6 +11,7 @@ import (
 
 const (
 	defaultFromHeader = "shield@raystack.org"
+	SampleHost        = "smtp.example.com"
 )
 
 //go:generate mockery --name=Dialer -r --case underscore --with-expecter --structname Dialer --filename dialer.go --output=./mocks

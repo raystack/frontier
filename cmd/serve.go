@@ -224,16 +224,21 @@ func buildAPIDependencies(
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
 	serviceUserService := serviceuser.NewService(svUserRepo, scUserCredRepo, relationService)
 
-	var mailDialer mailer.Dialer = mailer.NewMockDialer()
-	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
-		mailDialer = mailer.NewDialerImpl(cfg.App.Mailer.SMTPHost,
-			cfg.App.Mailer.SMTPPort,
-			cfg.App.Mailer.SMTPUsername,
-			cfg.App.Mailer.SMTPPassword,
-			cfg.App.Mailer.SMTPInsecure,
-			cfg.App.Mailer.Headers,
-		)
+	var mailDialer mailer.Dialer = nil
+	if cfg.App.Mailer.SMTPHost != "" {
+		if cfg.App.Mailer.SMTPHost == mailer.SampleHost {
+			mailDialer = mailer.NewMockDialer()
+		} else {
+			mailDialer = mailer.NewDialerImpl(cfg.App.Mailer.SMTPHost,
+				cfg.App.Mailer.SMTPPort,
+				cfg.App.Mailer.SMTPUsername,
+				cfg.App.Mailer.SMTPPassword,
+				cfg.App.Mailer.SMTPInsecure,
+				cfg.App.Mailer.Headers,
+			)
+		}
 	}
+
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService)
 
@@ -273,7 +278,7 @@ func buildAPIDependencies(
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
 		organizationService, groupService, userService, relationService)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
-		groupService, policyService, roleService, invitationService)
+		groupService, policyService, roleService, invitationService, serviceUserService)
 
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,

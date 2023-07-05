@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/shield/core/serviceuser"
+
 	"github.com/google/uuid"
 	"github.com/raystack/shield/core/invitation"
 
@@ -52,28 +54,35 @@ type InvitationService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
+type ServiceUserService interface {
+	List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type Service struct {
-	projService       ProjectService
-	orgService        OrganizationService
-	resService        ResourceService
-	groupService      GroupService
-	policyService     PolicyService
-	roleService       RoleService
-	invitationService InvitationService
+	projService        ProjectService
+	orgService         OrganizationService
+	resService         ResourceService
+	groupService       GroupService
+	policyService      PolicyService
+	roleService        RoleService
+	invitationService  InvitationService
+	serviceUserService ServiceUserService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
 	resService ResourceService, groupService GroupService,
 	policyService PolicyService, roleService RoleService,
-	invitationService InvitationService) *Service {
+	invitationService InvitationService, serviceUserService ServiceUserService) *Service {
 	return &Service{
-		projService:       projService,
-		orgService:        orgService,
-		resService:        resService,
-		groupService:      groupService,
-		policyService:     policyService,
-		roleService:       roleService,
-		invitationService: invitationService,
+		projService:        projService,
+		orgService:         orgService,
+		resService:         resService,
+		groupService:       groupService,
+		policyService:      policyService,
+		roleService:        roleService,
+		invitationService:  invitationService,
+		serviceUserService: serviceUserService,
 	}
 }
 
@@ -95,6 +104,10 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 }
 
 func (d Service) DeleteOrganization(ctx context.Context, id string) error {
+	if uuid.MustParse(id) == uuid.Nil {
+		return fmt.Errorf("invalid organization id: %s", id)
+	}
+
 	// delete all policies
 	policies, err := d.policyService.List(ctx, policy.Filter{
 		OrgID: id,
@@ -153,6 +166,17 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	for _, i := range invitations {
 		if err = d.invitationService.Delete(ctx, i.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a invitation[%s]: %w", i.ID, err)
+		}
+	}
+
+	// delete all service users
+	serviceUsers, err := d.serviceUserService.List(ctx, serviceuser.Filter{OrgID: id})
+	if err != nil {
+		return err
+	}
+	for _, su := range serviceUsers {
+		if err = d.serviceUserService.Delete(ctx, su.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a service user[%s]: %w", su.ID, err)
 		}
 	}
 

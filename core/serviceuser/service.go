@@ -100,24 +100,9 @@ func (s Service) Get(ctx context.Context, id string) (ServiceUser, error) {
 }
 
 func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, error) {
-	userIDs, err := s.relService.LookupSubjects(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        orgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.ServiceUserPrincipal,
-		},
-		RelationName: schema.MembershipPermission,
+	return s.List(ctx, Filter{
+		OrgID: orgID,
 	})
-	if err != nil {
-		return nil, err
-	}
-	if len(userIDs) == 0 {
-		// no users
-		return []ServiceUser{}, nil
-	}
-	return s.repo.GetByIDs(ctx, userIDs)
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {

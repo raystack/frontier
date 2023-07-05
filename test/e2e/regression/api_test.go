@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"github.com/raystack/shield/pkg/mailer"
+
 	"github.com/raystack/shield/pkg/server"
 
 	"github.com/raystack/shield/internal/bootstrap/schema"
@@ -58,6 +60,9 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 			},
 			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Mailer: mailer.Config{
+				SMTPHost: mailer.SampleHost,
+			},
 		},
 	}
 
