@@ -74,7 +74,7 @@ func TestClientRole(t *testing.T) {
 				cli := cmd.New(tt.cliConfig)
 
 				buf := new(bytes.Buffer)
-				cli.SetOutput(buf)
+				cli.SetOut(buf)
 				args := append([]string{"role"}, tt.subCommands...)
 				cli.SetArgs(args)
 

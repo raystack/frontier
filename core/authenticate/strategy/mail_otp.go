@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	otpLetterRunes = []rune("abcdefghijkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789")
+	otpLetterRunes = []rune("ABCDEFGHJKMNPQRSTWXYZ23456789")
 	otpLen         = 6
 )
 

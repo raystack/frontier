@@ -126,7 +126,7 @@ func Serve(
 		httpMux.Handle("/console/", http.StripPrefix("/console/", spaHandler))
 	}
 
-	grpcMiddlewares := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware)
+	grpcMiddlewares := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware, deps)
 	grpcServer := grpc.NewServer(grpcMiddlewares)
 	reflection.Register(grpcServer)
 	grpc_health_v1.RegisterHealthServer(grpcServer, health.NewHandler())
@@ -170,7 +170,7 @@ func Serve(
 
 // REVISIT: passing config.Shield as reference
 func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newrelic.Application,
-	sessionMiddleware *interceptors.Session) grpc.ServerOption {
+	sessionMiddleware *interceptors.Session, deps api.Deps) grpc.ServerOption {
 	recoveryFunc := func(p interface{}) (err error) {
 		fmt.Println(p)
 		return status.Errorf(codes.Internal, "internal server error")
@@ -196,6 +196,7 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
 			interceptors.UnaryAuthenticationCheck(),
 			interceptors.UnaryAuthorizationCheck(identityProxyHeader),
+			interceptors.UnaryCtxWithAudit(deps.AuditService),
 		),
 	)
 }

@@ -6,8 +6,6 @@ import (
 
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 
-	"github.com/google/uuid"
-
 	"github.com/raystack/shield/core/namespace"
 	"github.com/raystack/shield/core/permission"
 	"github.com/raystack/shield/core/role"
@@ -15,7 +13,7 @@ import (
 )
 
 var (
-	defaultOrgID = uuid.Nil.String()
+	defaultOrgID = schema.PlatformOrgID.String()
 )
 
 type NamespaceService interface {

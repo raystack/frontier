@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/raystack/shield/pkg/server"
 
 	"github.com/raystack/shield/internal/bootstrap/schema"
@@ -46,7 +48,8 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 
 	appConfig := &config.Shield{
 		Log: logger.Config{
-			Level: "error",
+			Level:       "error",
+			AuditEvents: "db",
 		},
 		App: server.Config{
 			Host: "localhost",
@@ -1110,6 +1113,76 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersAfterAccept.GetUsers(), 2)
+	})
+}
+
+func (s *APIRegressionTestSuite) TestOrganizationAuditLogsAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	dummyAuditLogs := []*shieldv1beta1.AuditLog{
+		{
+			Source: "shield",
+			Action: "user.login",
+			Actor: &shieldv1beta1.AuditLogActor{
+				Type: schema.UserPrincipal,
+				Name: "john",
+			},
+			Target: &shieldv1beta1.AuditLogTarget{
+				Name: "org-1",
+				Type: schema.OrganizationNamespace,
+			},
+			Context: map[string]string{
+				"usage": "test",
+			},
+		},
+		{
+			Source: "shield",
+			Action: "user.logout",
+			Actor: &shieldv1beta1.AuditLogActor{
+				Type: schema.UserPrincipal,
+				Name: "john",
+			},
+			Target: &shieldv1beta1.AuditLogTarget{
+				Name: "org-1",
+				Type: schema.OrganizationNamespace,
+			},
+		},
+	}
+	s.Run("1. create a new log successfully under an org", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-auditlogs-1",
+		})
+		s.Assert().NoError(err)
+
+		createLogResp, err := s.testBench.Client.CreateOrganizationAuditLogs(ctxOrgAdminAuth, &shieldv1beta1.CreateOrganizationAuditLogsRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+			Logs:  dummyAuditLogs,
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createLogResp)
+	})
+	s.Run("2. list logs successfully under an org", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-auditlogs-1",
+		})
+		s.Assert().NoError(err)
+
+		listLogResp, err := s.testBench.Client.ListOrganizationAuditLogs(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationAuditLogsRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(listLogResp)
+		unMatchedLogs := 2
+		for _, log := range listLogResp.GetLogs() {
+			if slices.ContainsFunc[*shieldv1beta1.AuditLog](dummyAuditLogs, func(l *shieldv1beta1.AuditLog) bool {
+				return l.Action == log.Action && l.Source == log.Source
+			}) {
+				unMatchedLogs--
+			}
+		}
+		s.Assert().Equal(0, unMatchedLogs)
 	})
 }
 

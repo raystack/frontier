@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/shield/core/audit"
 	"github.com/raystack/shield/internal/bootstrap/schema"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -104,6 +105,15 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+		LogWithAttrs(audit.PolicyCreatedEvent, audit.Target{
+			ID:   newPolicy.ResourceID,
+			Type: newPolicy.ResourceType,
+		}, map[string]string{
+			"role_id":        newPolicy.RoleID,
+			"principal_id":   newPolicy.PrincipalID,
+			"principal_type": newPolicy.PrincipalType,
+		})
 	return &shieldv1beta1.CreatePolicyResponse{Policy: policyPB}, nil
 }
 
@@ -157,6 +167,10 @@ func (h Handler) DeletePolicy(ctx context.Context, request *shieldv1beta1.Delete
 		}
 	}
 
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.PolicyDeletedEvent, audit.Target{
+		ID:   request.GetId(),
+		Type: "app/policy",
+	})
 	return &shieldv1beta1.DeletePolicyResponse{}, nil
 }
 

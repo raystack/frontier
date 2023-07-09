@@ -3,6 +3,8 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/shield/core/audit"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/shield/core/user"
 	"github.com/raystack/shield/pkg/errors"
@@ -65,6 +67,7 @@ func (h Handler) CreateProject(
 	request *shieldv1beta1.CreateProjectRequest,
 ) (*shieldv1beta1.CreateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
+	auditor := audit.GetAuditor(ctx, request.GetBody().GetOrgId())
 
 	metaDataMap := map[string]any{}
 	var err error
@@ -102,6 +105,7 @@ func (h Handler) CreateProject(
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
+	auditor.Log(audit.ProjectCreatedEvent, audit.ProjectTarget(newProject.ID))
 	return &shieldv1beta1.CreateProjectResponse{Project: projectPB}, nil
 }
 
@@ -136,6 +140,7 @@ func (h Handler) UpdateProject(
 	request *shieldv1beta1.UpdateProjectRequest,
 ) (*shieldv1beta1.UpdateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
+	auditor := audit.GetAuditor(ctx, request.GetBody().GetOrgId())
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -174,6 +179,7 @@ func (h Handler) UpdateProject(
 		return nil, grpcInternalServerError
 	}
 
+	auditor.Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
 	return &shieldv1beta1.UpdateProjectResponse{Project: projectPB}, nil
 }
 

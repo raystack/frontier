@@ -30,6 +30,7 @@ type Handler struct {
 	bootstrapService    BootstrapService
 	invitationService   InvitationService
 	serviceUserService  ServiceUserService
+	auditService        AuditService
 }
 
 func Register(s *grpc.Server, deps api.Deps) error {
@@ -54,6 +55,7 @@ func Register(s *grpc.Server, deps api.Deps) error {
 		bootstrapService:    deps.BootstrapService,
 		invitationService:   deps.InvitationService,
 		serviceUserService:  deps.ServiceUserService,
+		auditService:        deps.AuditService,
 	}
 	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
 	s.RegisterService(&shieldv1beta1.AdminService_ServiceDesc, handler)

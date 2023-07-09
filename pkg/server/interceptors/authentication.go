@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/shield/core/audit"
+
 	"github.com/raystack/shield/pkg/server/health"
 
 	"github.com/raystack/shield/core/authenticate"
@@ -33,6 +35,10 @@ func UnaryAuthenticationCheck() grpc.UnaryServerInterceptor {
 			return nil, err
 		}
 		ctx = authenticate.SetContextWithPrincipal(ctx, &principal)
+		ctx = audit.SetContextWithActor(ctx, audit.Actor{
+			ID:   principal.ID,
+			Type: principal.Type,
+		})
 		return handler(ctx, req)
 	}
 }

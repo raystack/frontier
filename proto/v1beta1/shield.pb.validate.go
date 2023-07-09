@@ -6244,6 +6244,8 @@ func (m *DeleteServiceUserRequest) validate(all bool) error {
 
 	// no validation rules for Id
 
+	// no validation rules for OrgId
+
 	if len(errors) > 0 {
 		return DeleteServiceUserRequestMultiError(errors)
 	}
@@ -24573,3 +24575,843 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListMetaSchemasResponseValidationError{}
+
+// Validate checks the field values on ListOrganizationAuditLogsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ListOrganizationAuditLogsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListOrganizationAuditLogsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// ListOrganizationAuditLogsRequestMultiError, or nil if none found.
+func (m *ListOrganizationAuditLogsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListOrganizationAuditLogsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := ListOrganizationAuditLogsRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Source
+
+	// no validation rules for Action
+
+	if all {
+		switch v := interface{}(m.GetStartTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListOrganizationAuditLogsRequestValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListOrganizationAuditLogsRequestValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListOrganizationAuditLogsRequestValidationError{
+				field:  "StartTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetEndTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListOrganizationAuditLogsRequestValidationError{
+					field:  "EndTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListOrganizationAuditLogsRequestValidationError{
+					field:  "EndTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEndTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListOrganizationAuditLogsRequestValidationError{
+				field:  "EndTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ListOrganizationAuditLogsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListOrganizationAuditLogsRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// ListOrganizationAuditLogsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListOrganizationAuditLogsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListOrganizationAuditLogsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListOrganizationAuditLogsRequestMultiError) AllErrors() []error { return m }
+
+// ListOrganizationAuditLogsRequestValidationError is the validation error
+// returned by ListOrganizationAuditLogsRequest.Validate if the designated
+// constraints aren't met.
+type ListOrganizationAuditLogsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOrganizationAuditLogsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOrganizationAuditLogsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOrganizationAuditLogsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOrganizationAuditLogsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOrganizationAuditLogsRequestValidationError) ErrorName() string {
+	return "ListOrganizationAuditLogsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOrganizationAuditLogsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOrganizationAuditLogsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOrganizationAuditLogsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOrganizationAuditLogsRequestValidationError{}
+
+// Validate checks the field values on ListOrganizationAuditLogsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ListOrganizationAuditLogsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListOrganizationAuditLogsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ListOrganizationAuditLogsResponseMultiError, or nil if none found.
+func (m *ListOrganizationAuditLogsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListOrganizationAuditLogsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetLogs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListOrganizationAuditLogsResponseValidationError{
+						field:  fmt.Sprintf("Logs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListOrganizationAuditLogsResponseValidationError{
+						field:  fmt.Sprintf("Logs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListOrganizationAuditLogsResponseValidationError{
+					field:  fmt.Sprintf("Logs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListOrganizationAuditLogsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListOrganizationAuditLogsResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// ListOrganizationAuditLogsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListOrganizationAuditLogsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListOrganizationAuditLogsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListOrganizationAuditLogsResponseMultiError) AllErrors() []error { return m }
+
+// ListOrganizationAuditLogsResponseValidationError is the validation error
+// returned by ListOrganizationAuditLogsResponse.Validate if the designated
+// constraints aren't met.
+type ListOrganizationAuditLogsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOrganizationAuditLogsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOrganizationAuditLogsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOrganizationAuditLogsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOrganizationAuditLogsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOrganizationAuditLogsResponseValidationError) ErrorName() string {
+	return "ListOrganizationAuditLogsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOrganizationAuditLogsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOrganizationAuditLogsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOrganizationAuditLogsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOrganizationAuditLogsResponseValidationError{}
+
+// Validate checks the field values on CreateOrganizationAuditLogsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CreateOrganizationAuditLogsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateOrganizationAuditLogsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateOrganizationAuditLogsRequestMultiError, or nil if none found.
+func (m *CreateOrganizationAuditLogsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateOrganizationAuditLogsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := CreateOrganizationAuditLogsRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetLogs()) < 1 {
+		err := CreateOrganizationAuditLogsRequestValidationError{
+			field:  "Logs",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetLogs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateOrganizationAuditLogsRequestValidationError{
+						field:  fmt.Sprintf("Logs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateOrganizationAuditLogsRequestValidationError{
+						field:  fmt.Sprintf("Logs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateOrganizationAuditLogsRequestValidationError{
+					field:  fmt.Sprintf("Logs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateOrganizationAuditLogsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateOrganizationAuditLogsRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateOrganizationAuditLogsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateOrganizationAuditLogsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateOrganizationAuditLogsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateOrganizationAuditLogsRequestMultiError) AllErrors() []error { return m }
+
+// CreateOrganizationAuditLogsRequestValidationError is the validation error
+// returned by CreateOrganizationAuditLogsRequest.Validate if the designated
+// constraints aren't met.
+type CreateOrganizationAuditLogsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateOrganizationAuditLogsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateOrganizationAuditLogsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateOrganizationAuditLogsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateOrganizationAuditLogsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateOrganizationAuditLogsRequestValidationError) ErrorName() string {
+	return "CreateOrganizationAuditLogsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateOrganizationAuditLogsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateOrganizationAuditLogsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateOrganizationAuditLogsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateOrganizationAuditLogsRequestValidationError{}
+
+// Validate checks the field values on CreateOrganizationAuditLogsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CreateOrganizationAuditLogsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateOrganizationAuditLogsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateOrganizationAuditLogsResponseMultiError, or nil if none found.
+func (m *CreateOrganizationAuditLogsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateOrganizationAuditLogsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return CreateOrganizationAuditLogsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateOrganizationAuditLogsResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateOrganizationAuditLogsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateOrganizationAuditLogsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateOrganizationAuditLogsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateOrganizationAuditLogsResponseMultiError) AllErrors() []error { return m }
+
+// CreateOrganizationAuditLogsResponseValidationError is the validation error
+// returned by CreateOrganizationAuditLogsResponse.Validate if the designated
+// constraints aren't met.
+type CreateOrganizationAuditLogsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateOrganizationAuditLogsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateOrganizationAuditLogsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateOrganizationAuditLogsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateOrganizationAuditLogsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateOrganizationAuditLogsResponseValidationError) ErrorName() string {
+	return "CreateOrganizationAuditLogsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateOrganizationAuditLogsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateOrganizationAuditLogsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateOrganizationAuditLogsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateOrganizationAuditLogsResponseValidationError{}
+
+// Validate checks the field values on GetOrganizationAuditLogRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetOrganizationAuditLogRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetOrganizationAuditLogRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetOrganizationAuditLogRequestMultiError, or nil if none found.
+func (m *GetOrganizationAuditLogRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetOrganizationAuditLogRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := GetOrganizationAuditLogRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := GetOrganizationAuditLogRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetOrganizationAuditLogRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetOrganizationAuditLogRequestMultiError is an error wrapping multiple
+// validation errors returned by GetOrganizationAuditLogRequest.ValidateAll()
+// if the designated constraints aren't met.
+type GetOrganizationAuditLogRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetOrganizationAuditLogRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetOrganizationAuditLogRequestMultiError) AllErrors() []error { return m }
+
+// GetOrganizationAuditLogRequestValidationError is the validation error
+// returned by GetOrganizationAuditLogRequest.Validate if the designated
+// constraints aren't met.
+type GetOrganizationAuditLogRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetOrganizationAuditLogRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetOrganizationAuditLogRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetOrganizationAuditLogRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetOrganizationAuditLogRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetOrganizationAuditLogRequestValidationError) ErrorName() string {
+	return "GetOrganizationAuditLogRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetOrganizationAuditLogRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetOrganizationAuditLogRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetOrganizationAuditLogRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetOrganizationAuditLogRequestValidationError{}
+
+// Validate checks the field values on GetOrganizationAuditLogResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetOrganizationAuditLogResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetOrganizationAuditLogResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetOrganizationAuditLogResponseMultiError, or nil if none found.
+func (m *GetOrganizationAuditLogResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetOrganizationAuditLogResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetLog()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetOrganizationAuditLogResponseValidationError{
+					field:  "Log",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetOrganizationAuditLogResponseValidationError{
+					field:  "Log",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLog()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetOrganizationAuditLogResponseValidationError{
+				field:  "Log",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetOrganizationAuditLogResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetOrganizationAuditLogResponseMultiError is an error wrapping multiple
+// validation errors returned by GetOrganizationAuditLogResponse.ValidateAll()
+// if the designated constraints aren't met.
+type GetOrganizationAuditLogResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetOrganizationAuditLogResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetOrganizationAuditLogResponseMultiError) AllErrors() []error { return m }
+
+// GetOrganizationAuditLogResponseValidationError is the validation error
+// returned by GetOrganizationAuditLogResponse.Validate if the designated
+// constraints aren't met.
+type GetOrganizationAuditLogResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetOrganizationAuditLogResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetOrganizationAuditLogResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetOrganizationAuditLogResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetOrganizationAuditLogResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetOrganizationAuditLogResponseValidationError) ErrorName() string {
+	return "GetOrganizationAuditLogResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetOrganizationAuditLogResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetOrganizationAuditLogResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetOrganizationAuditLogResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetOrganizationAuditLogResponseValidationError{}

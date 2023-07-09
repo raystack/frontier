@@ -158,11 +158,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ServiceUserManagePermission)
 	},
 	"/raystack.shield.v1beta1.ShieldService/GetServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*shieldv1beta1.CreateServiceUserKeyRequest)
+		pbreq := req.(*shieldv1beta1.GetServiceUserRequest)
 		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
 	},
 	"/raystack.shield.v1beta1.ShieldService/DeleteServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*shieldv1beta1.CreateServiceUserRequest)
+		pbreq := req.(*shieldv1beta1.DeleteServiceUserRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ServiceUserManagePermission)
 	},
 	"/raystack.shield.v1beta1.ShieldService/ListServiceUserKeys": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -474,6 +474,20 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			return err
 		}
 		return handler.IsAuthorized(ctx, resp.GetResource().GetNamespace(), resp.GetResource().GetId(), schema.DeletePermission)
+	},
+
+	// audit logs
+	"/raystack.shield.v1beta1.ShieldService/ListOrganizationAuditLogs": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.ListOrganizationAuditLogsRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ManagePermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/CreateOrganizationAuditLogs": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.CreateOrganizationAuditLogsRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GetPermission)
+	},
+	"/raystack.shield.v1beta1.ShieldService/GetOrganizationAuditLog": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*shieldv1beta1.GetOrganizationAuditLogRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ManagePermission)
 	},
 
 	// admin APIs

@@ -10,6 +10,8 @@ version: 1
 log:
   # debug, info, warning, error, fatal - default 'info'
   level: debug
+  #  none(default), stdout, db
+  audit_events: none
 
 app:
   port: 8000
@@ -111,11 +113,12 @@ This page contains reference for all the application configurations for Shield.
 | ----------- | -------- | ------------------------------------------------ | ------------ |
 | **version** | `int`    | Version number of the Shield configuration file. | No           |
 
-### Loggin Configuration
+### Logging Configuration
 
-| **Field**     | **Type** | **Description**                                                                            | **Required** |
-| ------------- | -------- | ------------------------------------------------------------------------------------------ | ------------ |
-| **log.level** | `string` | Logging level for Shield. Possible values **`debug`, `info`, `warning`, `error`, `fatal`** | No           |
+| **Field**            | **Type** | **Description**                                                                            | **Required** |
+|----------------------| -------- |--------------------------------------------------------------------------------------------| ------------ |
+| **log.level**        | `string` | Logging level for Shield. Possible values **`debug`, `info`, `warning`, `error`, `fatal`** | No           |
+| **log.audit_events** | `string` | Audit level for Shield. Possible values **`none`, `stdout`, `db`**                         | No           |
 
 ### App Configuration
 

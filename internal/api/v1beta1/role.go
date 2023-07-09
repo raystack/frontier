@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
+	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/raystack/shield/core/permission"
 
 	"github.com/raystack/shield/core/namespace"
@@ -61,7 +63,7 @@ func (h Handler) ListRoles(ctx context.Context, request *shieldv1beta1.ListRoles
 	var roles []*shieldv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
-		OrgID: uuid.Nil.String(),
+		OrgID: schema.PlatformOrgID.String(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -105,7 +107,7 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		Name:        request.GetBody().GetName(),
 		Permissions: request.GetBody().GetPermissions(),
-		OrgID:       uuid.Nil.String(), // to create a platform wide role
+		OrgID:       schema.PlatformOrgID.String(), // to create a platform wide role
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
@@ -129,6 +131,11 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleCreatedEvent, audit.Target{
+		ID:   newRole.ID,
+		Type: schema.RoleNamespace,
+		Name: newRole.Name,
+	})
 	return &shieldv1beta1.CreateRoleResponse{Role: &rolePB}, nil
 }
 
@@ -176,6 +183,11 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *shieldv1be
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.RoleCreatedEvent, audit.Target{
+		ID:   newRole.ID,
+		Type: schema.RoleNamespace,
+		Name: newRole.Name,
+	})
 	return &shieldv1beta1.CreateOrganizationRoleResponse{Role: &rolePB}, nil
 }
 
@@ -249,6 +261,11 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *shieldv1be
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.RoleUpdatedEvent, audit.Target{
+		ID:   updatedRole.ID,
+		Type: schema.RoleNamespace,
+		Name: updatedRole.Name,
+	})
 	return &shieldv1beta1.UpdateOrganizationRoleResponse{Role: &rolePB}, nil
 }
 
@@ -289,6 +306,10 @@ func (h Handler) DeleteOrganizationRole(ctx context.Context, request *shieldv1be
 		}
 	}
 
+	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.RoleDeletedEvent, audit.Target{
+		ID:   request.GetId(),
+		Type: schema.RoleNamespace,
+	})
 	return &shieldv1beta1.DeleteOrganizationRoleResponse{}, nil
 }
 
