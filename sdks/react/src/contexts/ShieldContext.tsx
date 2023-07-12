@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import Shield from "../shield";
 import {
   Group,
@@ -14,8 +14,13 @@ import type { Strategy } from "./StrategyContext";
 import { StrategyContext } from "./StrategyContext";
 import { UserContext } from "./UserContext";
 
-type ShieldContextProviderProps = {};
-const initialValues: ShieldContextProviderProps = {};
+type ShieldContextProviderProps = {
+  client: Shield;
+};
+const initialValues: ShieldContextProviderProps = {
+  client: Shield.getOrCreateInstance({ endpoint: "" }),
+};
+
 export const ShieldContext =
   createContext<ShieldContextProviderProps>(initialValues);
 ShieldContext.displayName = "ShieldContext ";
@@ -35,17 +40,17 @@ export const ShieldContextProvider = (props: ShieldProviderProps) => {
           data: { strategies },
         } = await shieldClient.getAuthAtrategies();
 
-        const strategiesPromises = strategies.map(async (s) => {
-          const {
-            data: { endpoint },
-          } = await shieldClient.getAuthStrategyEndpoint(s.name);
-          return {
-            ...s,
-            endpoint,
-          };
-        });
-        const response = await Promise.all(strategiesPromises);
-        setStrategies(response);
+        // const strategiesPromises = strategies.map(async (s) => {
+        //   const {
+        //     data: { endpoint },
+        //   } = await shieldClient.getAuthStrategyEndpoint(s.name);
+        //   return {
+        //     ...s,
+        //     endpoint,
+        //   };
+        // });
+        // const response = await Promise.all(strategiesPromises);
+        setStrategies(strategies);
       } catch (error) {
         console.error(
           "shield:sdk:: There is problem with fetching auth strategies"
@@ -132,3 +137,8 @@ export const useShieldClient = (options: ShieldClientOptions) => {
 
   return { shieldClient };
 };
+
+export function useShieldContext() {
+  const context = useContext<ShieldContextProviderProps>(ShieldContext);
+  return context ? context : (initialValues as ShieldContextProviderProps);
+}

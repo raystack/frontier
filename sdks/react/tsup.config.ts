@@ -8,10 +8,10 @@ export const tsup: Options = {
   clean: true,
   splitting: false,
   minify: isProduction,
-  bundle: isProduction,
   watch: !isProduction,
   target: "es2020",
   format: ["cjs", "esm"],
   skipNodeModulesBundle: true,
   entryPoints: ["src/index.ts"],
+  publicDir: true,
 };

@@ -1,6 +1,6 @@
 {
   "name": "@raystack/shield-react",
-  "version": "0.0.5",
+  "version": "0.0.0",
   "description": "A react library for shield",
   "type": "module",
   "main": "dist/index.cjs",
@@ -13,7 +13,7 @@
     "build": "tsup",
     "dev": "NODE_ENV=development tsup",
     "release": "npm run build && np",
-    "test": ""
+    "test": "echo \"Error: no test specified\" && exit 0"
   },
   "peerDependencies": {
     "react": "^18.2.0"

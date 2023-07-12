@@ -36,6 +36,23 @@ export default class Shield {
     return await this.instance.get(`/v1beta1/auth/register/${strategy}`);
   };
 
+  public getMagicLinkAuthStrategyEndpoint = async (
+    email: string
+  ): Promise<AxiosResponse<{ state: string }>> => {
+    return await this.instance.get(
+      `/v1beta1/auth/register/mailotp?email=${email}`
+    );
+  };
+
+  public verifyMagicLinkAuthStrategyEndpoint = async (
+    code: string,
+    state: string
+  ): Promise<AxiosResponse<{ state: string }>> => {
+    return await this.instance.get(
+      `/v1beta1/auth/callback?strategy_name=mailotp&code=${code}&state=${state}`
+    );
+  };
+
   public getCurrentUser = async (): Promise<AxiosResponse<{ user: User }>> => {
     return await this.instance.get("/v1beta1/users/self");
   };
