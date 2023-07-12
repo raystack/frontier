@@ -1,6 +1,6 @@
 {
   "name": "@raystack/shield-react",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A react library for shield",
   "type": "module",
   "main": "dist/index.cjs",
