@@ -1,5 +1,6 @@
+import { ShieldProviderProps } from "@raystack/shield-js";
 import React from "react";
-import { ShieldProviderProps } from "../types";
+
 import { ShieldContextProvider } from "./ShieldContext";
 import { withMaxAllowedInstancesGuard } from "./useMaxAllowedInstancesGuard";
 

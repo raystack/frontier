@@ -1,7 +1,6 @@
 import { Text } from "@raystack/apsara";
 import React, { ComponentPropsWithRef, useCallback } from "react";
-import { useShieldContext } from "../contexts/ShieldContext";
-import { useStrategyContext } from "../contexts/StrategyContext";
+import { useShield } from "../contexts/ShieldContext";
 import { MagicLink } from "./magiclink";
 import { OIDCButton } from "./oidc";
 
@@ -69,8 +68,8 @@ const defaultLogo = (
 
 type SignedInProps = ComponentPropsWithRef<typeof Container>;
 export const SignedIn = (props: SignedInProps) => {
-  const { client } = useShieldContext();
-  const { strategies = [] } = useStrategyContext();
+  const { client, strategies = [] } = useShield();
+
   const clickHandler = useCallback(
     async (name: string) => {
       const {

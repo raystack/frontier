@@ -1,24 +1,31 @@
 {
-  "name": "@raystack/shield-react",
+  "name": "@raystack/shield-js",
   "version": "0.0.1",
-  "description": "A react library for shield",
+  "description": "A js library for shield",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "unpkg": "dist/shield.min.js",
   "files": [
     "dist",
     "README.md"
   ],
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.cjs"
+    }
+  },
+  "engines": {
+    "node": ">=16"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch src",
     "size": "size-limit",
     "test": "echo \"Error: no test specified\" && exit 0"
-  },
-  "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
   },
   "author": "pyadav9678@gmail.com",
   "license": "Apache-2.0",
@@ -38,25 +45,18 @@
     }
   ],
   "devDependencies": {
-    "@raystack/shield-js": "workspace:^",
     "@size-limit/preset-small-lib": "^8.2.6",
-    "@types/react": "^18.2.5",
-    "@types/react-dom": "^18.2.7",
     "esbuild-plugin-external-global": "^1.0.1",
-    "husky": "^4.3.8",
     "lint-staged": "^13.2.3",
     "np": "^7.7.0",
     "prettier": "^2.5.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "size-limit": "^8.2.6",
     "tsup": "^6.7.0",
-    "typescript": "4.7",
-    "zustand": "^4.3.9"
+    "typescript": "4.7"
   },
   "dependencies": {
-    "@raystack/apsara": "^0.10.1",
-    "axios": "^1.4.0"
+    "@types/react": "^18.2.5",
+    "cross-fetch": "^4.0.0"
   },
   "publishConfig": {
     "access": "public"

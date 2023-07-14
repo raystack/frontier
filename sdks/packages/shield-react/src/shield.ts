@@ -1,8 +1,12 @@
+import {
+  Group,
+  Organization,
+  ShieldClientOptions,
+  Strategy,
+  User,
+} from "@raystack/shield-js";
 import type { AxiosInstance, AxiosResponse } from "axios";
 import axios from "axios";
-import type { Strategy } from "./contexts/StrategyContext";
-import type { Group, ShieldClientOptions, User } from "./types";
-import { Organization } from "./types/organization";
 
 export default class Shield {
   protected readonly instance: AxiosInstance;

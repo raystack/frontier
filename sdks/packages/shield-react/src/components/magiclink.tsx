@@ -1,6 +1,6 @@
 import { Button, TextField } from "@raystack/apsara";
 import React, { useCallback, useState } from "react";
-import { useShieldContext } from "../contexts/ShieldContext";
+import { useShield } from "../contexts/ShieldContext";
 import { hasWindow } from "./helper";
 
 const styles = {
@@ -28,7 +28,7 @@ type MagicLinkProps = {
   children?: React.ReactNode;
 };
 export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
-  const { client } = useShieldContext();
+  const { client } = useShield();
   const [loading, setLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [otp, setOTP] = useState<string>("");
