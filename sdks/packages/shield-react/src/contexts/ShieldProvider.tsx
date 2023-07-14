@@ -15,7 +15,7 @@ const ShieldProviderBase = (props: ShieldProviderProps) => {
   );
 };
 
-export const ShieldProvider = withMaxAllowedInstancesGuard(
+export const ShieldProvider = withMaxAllowedInstancesGuard<ShieldProviderProps>(
   ShieldProviderBase,
   "ShieldProvider",
   multipleShieldProvidersError

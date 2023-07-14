@@ -1,0 +1,62 @@
+{
+  "name": "@raystack/shield-react",
+  "version": "0.0.1",
+  "description": "A react library for shield",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch src",
+    "size": "size-limit",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "author": "pyadav9678@gmail.com",
+  "license": "Apache-2.0",
+  "lint-staged": {
+    "*.{json,md,html,js,jsx,ts,tsx}": [
+      "prettier --write"
+    ]
+  },
+  "size-limit": [
+    {
+      "path": "dist/index.js",
+      "limit": "200 KB"
+    },
+    {
+      "path": "dist/index.cjs",
+      "limit": "200 KB"
+    }
+  ],
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^8.2.6",
+    "@types/react": "^18.2.5",
+    "@types/react-dom": "^18.2.7",
+    "esbuild-plugin-external-global": "^1.0.1",
+    "husky": "^4.3.8",
+    "lint-staged": "^13.2.3",
+    "np": "^7.7.0",
+    "prettier": "^2.5.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "size-limit": "^8.2.6",
+    "tsup": "^6.7.0",
+    "typescript": "4.7"
+  },
+  "dependencies": {
+    "@raystack/apsara": "^0.10.1",
+    "axios": "^1.4.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,3 +1,5 @@
+import "@raystack/apsara/index.css";
+
 export * from "./components/login";
 export * from "./contexts/GroupContext";
 export * from "./contexts/OrganizationContext";

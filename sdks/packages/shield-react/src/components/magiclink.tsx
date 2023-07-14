@@ -1,3 +1,4 @@
+import { Button, TextField } from "@raystack/apsara";
 import React, { useCallback, useState } from "react";
 import { useShieldContext } from "../contexts/ShieldContext";
 import { hasWindow } from "./helper";
@@ -19,25 +20,8 @@ const styles = {
 
   button: {
     width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-
-    fontSize: "10px",
-    lineHeight: "20px",
-
-    padding: "4px 8px",
-    fontWeight: "bold",
-    borderRadius: "4px",
-
-    borderColor: "transparent",
-    backgroundColor: "rgb(225, 229, 236)",
-
-    cursor: "pointer",
-    color: "inherit",
   },
-
-  disabled: { backgroundColor: "rgba(225, 229, 236, 0.4)" },
+  disabled: { opacity: 1 },
 };
 
 type MagicLinkProps = {
@@ -87,14 +71,16 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
   return (
     <div style={{ ...styles.container, flexDirection: "column" }}>
       {state ? (
-        <input
+        <TextField
+          size="medium"
           key={"otp"}
           style={{ ...styles.input, boxSizing: "border-box" }}
           placeholder="enter OTP"
           onChange={handleOTPChange}
         />
       ) : (
-        <input
+        <TextField
+          size="medium"
           key={"email"}
           style={{ ...styles.input, boxSizing: "border-box" }}
           placeholder="name@example.com"
@@ -103,16 +89,18 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
       )}
 
       {loading ? (
-        <button
+        <Button
+          size="medium"
           {...props}
           style={{
             ...styles.button,
           }}
         >
           loading...
-        </button>
+        </Button>
       ) : (
-        <button
+        <Button
+          size="medium"
           {...props}
           style={{
             ...styles.button,
@@ -122,7 +110,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
           onClick={state ? OTPVerifyClickHandler : magicLinkClickHandler}
         >
           {state ? "Verify OTP" : "Continue"}
-        </button>
+        </Button>
       )}
     </div>
   );
