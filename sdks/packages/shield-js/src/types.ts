@@ -1,5 +1,11 @@
 import React from "react";
 
+export interface Strategy {
+  name: string;
+  params: any;
+  endpoint: string;
+}
+
 export interface User {
   id: string;
   name: string;

@@ -1,4 +1,4 @@
-import { ShieldProviderProps } from "@raystack/shield-js";
+import { ShieldProviderProps } from "@raystack/shield";
 import React from "react";
 
 import { ShieldContextProvider } from "./ShieldContext";

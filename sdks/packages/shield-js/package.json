@@ -1,5 +1,5 @@
 {
-  "name": "@raystack/shield-js",
+  "name": "@raystack/shield",
   "version": "0.0.1",
   "description": "A js library for shield",
   "type": "module",

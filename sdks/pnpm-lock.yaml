@@ -24,7 +24,7 @@ importers:
         specifier: '4.7'
         version: 4.7.2
 
-  packages/shield-js:
+  packages/shield:
     dependencies:
       '@types/react':
         specifier: ^18.2.5
@@ -67,9 +67,9 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
-      '@raystack/shield-js':
+      '@raystack/shield':
         specifier: workspace:^
-        version: link:../shield-js
+        version: link:../shield
       '@size-limit/preset-small-lib':
         specifier: ^8.2.6
         version: 8.2.6(size-limit@8.2.6)

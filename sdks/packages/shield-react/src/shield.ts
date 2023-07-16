@@ -4,7 +4,7 @@ import {
   ShieldClientOptions,
   Strategy,
   User,
-} from "@raystack/shield-js";
+} from "@raystack/shield";
 import type { AxiosInstance, AxiosResponse } from "axios";
 import axios from "axios";
 

@@ -5,7 +5,7 @@ import {
   ShieldProviderProps,
   Strategy,
   User,
-} from "@raystack/shield-js";
+} from "@raystack/shield";
 import React, {
   createContext,
   Dispatch,
