@@ -1,6 +1,6 @@
 {
   "name": "@raystack/shield-react",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "A react library for shield",
   "type": "module",
   "main": "dist/index.cjs",
@@ -38,6 +38,7 @@
     }
   ],
   "devDependencies": {
+    "@hookform/resolvers": "^3.1.1",
     "@raystack/shield": "workspace:^",
     "@size-limit/preset-small-lib": "^8.2.6",
     "@types/react": "^18.2.5",
@@ -49,13 +50,15 @@
     "prettier": "^2.5.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.45.2",
     "size-limit": "^8.2.6",
     "tsup": "^6.7.0",
     "typescript": "4.7",
+    "yup": "^1.2.0",
     "zustand": "^4.3.9"
   },
   "dependencies": {
-    "@raystack/apsara": "^0.10.1",
+    "@raystack/apsara": "^0.10.3",
     "axios": "^1.4.0"
   },
   "publishConfig": {

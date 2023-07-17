@@ -72,4 +72,10 @@ export default class Shield {
   ): Promise<AxiosResponse<{ organizations: Organization[] }>> => {
     return await this.instance.get(`/v1beta1/users/${userId}/organizations`);
   };
+
+  public createOrganisation = async (
+    data: any
+  ): Promise<AxiosResponse<{ organization: Organization }>> => {
+    return await this.instance.post(`/v1beta1/organizations`, data);
+  };
 }

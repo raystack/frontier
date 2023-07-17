@@ -11,6 +11,9 @@ export const tsup: Options = {
   skipNodeModulesBundle: true,
   globalName: "Shield",
   target: "es6",
+  banner: {
+    js: "'use client'",
+  },
   /**
    * Couple build options for UMD/iife build.
    *  - externalGlobalPlugin to use window.React instead of trying to bundle it.

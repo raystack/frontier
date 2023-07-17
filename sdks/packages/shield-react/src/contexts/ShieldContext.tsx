@@ -17,6 +17,7 @@ import React, {
 
 import Shield from "../shield";
 interface ShieldContextProviderProps {
+  config: ShieldClientOptions;
   client: Shield;
 
   organizations: Organization[];
@@ -32,8 +33,16 @@ interface ShieldContextProviderProps {
   setUser: Dispatch<SetStateAction<User | null>>;
 }
 
+const defaultConfig = {
+  endpoint: "http://localhost:8080",
+  redirectLogin: "http://localhost:3000",
+  redirectSignup: "http://localhost:3000/signup",
+  redirectMagicLinkVerify: "http://localhost:3000/magiclink-verify",
+};
+
 const initialValues: ShieldContextProviderProps = {
-  client: Shield.getOrCreateInstance({ endpoint: "http://localhost:8080" }),
+  config: defaultConfig,
+  client: Shield.getOrCreateInstance(defaultConfig),
 
   organizations: [],
   setOrganizations: () => undefined,
@@ -52,9 +61,13 @@ export const ShieldContext =
   createContext<ShieldContextProviderProps>(initialValues);
 ShieldContext.displayName = "ShieldContext ";
 
-export const ShieldContextProvider = (props: ShieldProviderProps) => {
-  const { children, initialState, ...options } = props;
-  const { shieldClient } = useShieldClient(options);
+export const ShieldContextProvider = ({
+  children,
+  config,
+  initialState,
+  ...options
+}: ShieldProviderProps) => {
+  const { shieldClient } = useShieldClient(config);
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -134,6 +147,7 @@ export const ShieldContextProvider = (props: ShieldProviderProps) => {
   return (
     <ShieldContext.Provider
       value={{
+        config: { ...defaultConfig, ...config },
         client: shieldClient,
         organizations,
         setOrganizations,

@@ -10,8 +10,17 @@ type ButtonProps = React.HTMLProps<HTMLButtonElement> & {
   children?: React.ReactNode;
 };
 
-export const OIDCButton = ({ children, type = "button", ...props }: ButtonProps) => (
-  <Button {...props} size="medium" style={styles.button}>
-    <Text>Sign in with {children}</Text>
+export const OIDCButton = ({
+  children,
+  type = "button",
+  onClick,
+}: ButtonProps) => (
+  <Button
+    size="medium"
+    variant="secondary"
+    style={styles.button}
+    onClick={onClick}
+  >
+    <Text>Continue with {children}</Text>
   </Button>
 );

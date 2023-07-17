@@ -49,7 +49,9 @@ export interface Role {
 }
 
 export interface ShieldClientOptions {
-  endpoint: string;
+  endpoint?: string;
+  redirectSignup?: string;
+  redirectLogin?: string;
 }
 
 export interface InitialState {
@@ -57,7 +59,7 @@ export interface InitialState {
 }
 
 export interface ShieldProviderProps {
-  endpoint: string;
+  config: ShieldClientOptions;
   children: React.ReactNode;
   initialState?: InitialState;
 }

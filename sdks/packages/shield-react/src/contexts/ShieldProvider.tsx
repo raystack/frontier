@@ -8,9 +8,13 @@ export const multipleShieldProvidersError =
   "Shield: You've added multiple <ShieldProvider> components in your React component tree. Wrap your components in a single <ShieldProvider>.";
 
 const ShieldProviderBase = (props: ShieldProviderProps) => {
-  const { children, initialState, ...options } = props;
+  const { children, initialState, config, ...options } = props;
   return (
-    <ShieldContextProvider initialState={initialState} {...options}>
+    <ShieldContextProvider
+      initialState={initialState}
+      config={config}
+      {...options}
+    >
       {children}
     </ShieldContextProvider>
   );

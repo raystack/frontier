@@ -12,15 +12,15 @@ const styles = {
   },
 };
 
-type SignedInProps = ComponentPropsWithRef<typeof Container> & {
+type SignupProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
 };
-export const SignedIn = ({
+export const Signup = ({
   logo,
-  title = "Login to Raypoint",
+  title = "Create your account",
   ...props
-}: SignedInProps) => {
+}: SignupProps) => {
   const { config } = useShield();
   const { client, strategies = [] } = useShield();
 
@@ -36,10 +36,11 @@ export const SignedIn = ({
 
   const mailotp = strategies.find((s) => s.name === "mailotp");
   const filteredOIDC = strategies.filter((s) => s.name !== "mailotp");
+
   return (
     <Container {...props}>
       <Header logo={logo} title={title} />
-      <Flex direction="column" style={{ width: "100%", gap: "var(--pd-16)" }}>
+      <Flex direction="column" style={{ width: "100%", gap: "8px" }}>
         {filteredOIDC.map((s, index) => {
           return (
             <OIDCButton key={index} onClick={() => clickHandler(s.name)}>
@@ -52,12 +53,12 @@ export const SignedIn = ({
       </Flex>
       <div style={styles.titleContainer}>
         <Text size={2}>
-          Don’t have an account?{" "}
+          Already have an account?{" "}
           <Link
-            href={config.redirectSignup}
+            href={config.redirectLogin}
             style={{ color: "var(--foreground-accent)" }}
           >
-            Signup
+            Login
           </Link>
         </Text>
       </div>
