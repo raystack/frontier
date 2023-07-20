@@ -4,6 +4,8 @@ version: 1
 log:
   # debug, info, warning, error, fatal - default 'info'
   level: debug
+  #  none(default), stdout, db
+  audit_events: none
 
 app:
   port: 8000

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/raystack/shield/core/audit"
 	"github.com/raystack/shield/core/authenticate"
 	"github.com/raystack/shield/core/authenticate/session"
 	"github.com/raystack/shield/core/deleter"
@@ -42,4 +43,5 @@ type Deps struct {
 	BootstrapService    *bootstrap.Service
 	InvitationService   *invitation.Service
 	ServiceUserService  *serviceuser.Service
+	AuditService        *audit.Service
 }

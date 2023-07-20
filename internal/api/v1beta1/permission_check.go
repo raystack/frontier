@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/shield/core/audit"
 	"github.com/raystack/shield/internal/bootstrap/schema"
 
 	"github.com/raystack/shield/core/relation"
@@ -43,11 +44,24 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 		}
 	}
 
+	logAuditForCheck(ctx, result, objectID, objectNamespace)
 	if !result {
 		return &shieldv1beta1.CheckResourcePermissionResponse{Status: false}, nil
 	}
-
 	return &shieldv1beta1.CheckResourcePermissionResponse{Status: true}, nil
+}
+
+func logAuditForCheck(ctx context.Context, result bool, objectID string, objectNamespace string) {
+	auditStatus := "success"
+	if !result {
+		auditStatus = "failure"
+	}
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).LogWithAttrs(audit.PermissionCheckedEvent, audit.Target{
+		ID:   objectID,
+		Type: objectNamespace,
+	}, map[string]string{
+		"status": auditStatus,
+	})
 }
 
 func (h Handler) IsAuthorized(ctx context.Context, objectNamespace, objectID, permission string) error {

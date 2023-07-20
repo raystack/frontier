@@ -114,6 +114,9 @@ const (
 	ShieldService_GetMetaSchema_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/GetMetaSchema"
 	ShieldService_UpdateMetaSchema_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/UpdateMetaSchema"
 	ShieldService_DeleteMetaSchema_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/DeleteMetaSchema"
+	ShieldService_ListOrganizationAuditLogs_FullMethodName     = "/raystack.shield.v1beta1.ShieldService/ListOrganizationAuditLogs"
+	ShieldService_CreateOrganizationAuditLogs_FullMethodName   = "/raystack.shield.v1beta1.ShieldService/CreateOrganizationAuditLogs"
+	ShieldService_GetOrganizationAuditLog_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/GetOrganizationAuditLog"
 )
 
 // ShieldServiceClient is the client API for ShieldService service.
@@ -229,6 +232,10 @@ type ShieldServiceClient interface {
 	GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error)
+	// Audit logs
+	ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error)
+	CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error)
+	GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error)
 }
 
 type shieldServiceClient struct {
@@ -1094,6 +1101,33 @@ func (c *shieldServiceClient) DeleteMetaSchema(ctx context.Context, in *DeleteMe
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error) {
+	out := new(ListOrganizationAuditLogsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationAuditLogs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error) {
+	out := new(CreateOrganizationAuditLogsResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateOrganizationAuditLogs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error) {
+	out := new(GetOrganizationAuditLogResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationAuditLog_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShieldServiceServer is the server API for ShieldService service.
 // All implementations must embed UnimplementedShieldServiceServer
 // for forward compatibility
@@ -1207,6 +1241,10 @@ type ShieldServiceServer interface {
 	GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error)
 	UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error)
 	DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error)
+	// Audit logs
+	ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error)
+	CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error)
+	GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error)
 	mustEmbedUnimplementedShieldServiceServer()
 }
 
@@ -1498,6 +1536,15 @@ func (UnimplementedShieldServiceServer) UpdateMetaSchema(context.Context, *Updat
 }
 func (UnimplementedShieldServiceServer) DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteMetaSchema not implemented")
+}
+func (UnimplementedShieldServiceServer) ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationAuditLogs not implemented")
+}
+func (UnimplementedShieldServiceServer) CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganizationAuditLogs not implemented")
+}
+func (UnimplementedShieldServiceServer) GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationAuditLog not implemented")
 }
 func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
 
@@ -3222,6 +3269,60 @@ func _ShieldService_DeleteMetaSchema_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationAuditLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListOrganizationAuditLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListOrganizationAuditLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListOrganizationAuditLogs(ctx, req.(*ListOrganizationAuditLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_CreateOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOrganizationAuditLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).CreateOrganizationAuditLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_CreateOrganizationAuditLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).CreateOrganizationAuditLogs(ctx, req.(*CreateOrganizationAuditLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetOrganizationAuditLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrganizationAuditLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetOrganizationAuditLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetOrganizationAuditLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetOrganizationAuditLog(ctx, req.(*GetOrganizationAuditLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShieldService_ServiceDesc is the grpc.ServiceDesc for ShieldService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3608,6 +3709,18 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMetaSchema",
 			Handler:    _ShieldService_DeleteMetaSchema_Handler,
+		},
+		{
+			MethodName: "ListOrganizationAuditLogs",
+			Handler:    _ShieldService_ListOrganizationAuditLogs_Handler,
+		},
+		{
+			MethodName: "CreateOrganizationAuditLogs",
+			Handler:    _ShieldService_CreateOrganizationAuditLogs_Handler,
+		},
+		{
+			MethodName: "GetOrganizationAuditLog",
+			Handler:    _ShieldService_GetOrganizationAuditLog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

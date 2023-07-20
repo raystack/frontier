@@ -192,16 +192,39 @@ CREATE TABLE IF NOT EXISTS invitations (
     created_at timestamptz NOT NULL DEFAULT NOW(),
     expires_at timestamptz DEFAULT (NOW() + INTERVAL '7 days')
 );
--- create state index
+DROP TABLE IF EXISTS auditlogs;
+CREATE TABLE IF NOT EXISTS auditlogs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  org_id UUID,
+  source TEXT NOT NULL,
+  action TEXT NOT NULL,
+  actor JSONB NOT NULL,
+  target JSONB NOT NULL,
+  metadata JSONB NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT NOW()
+);
+
+-- create index
 CREATE INDEX organizations_state_idx ON organizations(state);
 CREATE INDEX projects_state_idx ON projects(state);
 CREATE INDEX projects_org_id_idx ON projects(org_id);
+
 CREATE INDEX groups_state_idx ON groups(state);
 CREATE INDEX groups_org_id_idx ON groups(org_id);
 CREATE INDEX users_state_idx ON users(state);
+CREATE INDEX serviceusers_org_id_idx ON serviceusers(org_id);
+
 CREATE INDEX roles_state_idx ON roles(state);
+CREATE INDEX roles_org_id_idx ON roles(org_id);
+CREATE INDEX permissions_slug_idx ON permissions(slug);
+
 CREATE INDEX invitations_user_id_idx ON invitations(user_id);
+
 CREATE INDEX resources_principal_id_idx ON resources(principal_id);
 CREATE INDEX resources_principal_type_idx ON resources(principal_type);
 CREATE INDEX resources_project_id_idx ON resources(project_id);
-CREATE INDEX serviceusers_org_id_idx ON serviceusers(org_id);
+
+CREATE INDEX IF NOT EXISTS auditlogs_created_at_idx ON auditlogs (created_at);
+CREATE INDEX IF NOT EXISTS auditlogs_source_idx ON auditlogs (source);
+CREATE INDEX IF NOT EXISTS auditlogs_action_idx ON auditlogs (action);
+CREATE INDEX IF NOT EXISTS auditlogs_org_id_idx ON auditlogs (org_id);

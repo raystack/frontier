@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/shield/core/audit"
+
 	"golang.org/x/exp/slices"
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -352,11 +354,17 @@ func (s Service) getOrCreateUser(ctx context.Context, email, title string) (user
 	}
 
 	// register a new user
-	return s.userService.Create(ctx, user.User{
+	newUser, err := s.userService.Create(ctx, user.User{
 		Title: title,
 		Email: email,
 		Name:  str.GenerateUserSlug(email),
 	})
+	if err != nil {
+		return user.User{}, err
+	}
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+		Log(audit.UserCreatedEvent, audit.UserTarget(newUser.ID))
+	return newUser, nil
 }
 
 func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion) (Principal, error) {

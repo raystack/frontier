@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 // SpiceDB readable format is stored in predefined_schema.txt
@@ -65,6 +67,10 @@ const (
 	ServiceUserPrincipal = "app/serviceuser"
 	GroupPrincipal       = "app/group"
 	SuperUserPrincipal   = "app/superuser"
+)
+
+var (
+	PlatformOrgID = uuid.Nil
 )
 
 //go:embed base_schema.zed

@@ -3,6 +3,8 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/shield/core/audit"
+
 	"github.com/raystack/shield/pkg/str"
 
 	"github.com/pkg/errors"
@@ -139,6 +141,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.GroupCreatedEvent, audit.GroupTarget(newGroup.ID))
 	return &shieldv1beta1.CreateGroupResponse{Group: &shieldv1beta1.Group{
 		Id:        newGroup.ID,
 		Name:      newGroup.Name,
@@ -219,6 +222,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
 	return &shieldv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
 }
 

@@ -26,7 +26,7 @@ func mock1(t *testing.T) *mocks.Dialer {
 		"Content-Type: text/html; charset=UTF-8\r\n" +
 		"Content-Transfer-Encoding: quoted-printable\r\n" +
 		"\r\n" +
-		`here is the otp, use it: bnVqZ3`
+		`here is the otp, use it: 7GAPMQ`
 
 	mockDialer1 := &mocks.Dialer{}
 	mockDialer1.EXPECT().FromHeader().Return("shield@acme.org")
@@ -70,7 +70,7 @@ func TestMailOTP_SendMail(t *testing.T) {
 			args: args{
 				to: "test@acme.org",
 			},
-			want:    "bnVqZ3",
+			want:    "7GAPMQ",
 			wantErr: false,
 		},
 	}

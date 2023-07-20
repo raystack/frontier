@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/shield/core/audit"
 	"github.com/raystack/shield/pkg/utils"
 
 	"github.com/raystack/shield/internal/bootstrap/schema"
@@ -96,7 +97,6 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *shieldv1beta
 
 func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.CreateOrganizationRequest) (*shieldv1beta1.CreateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
-
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
@@ -133,6 +133,7 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, newOrg.ID).Log(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID))
 	return &shieldv1beta1.CreateOrganizationResponse{Organization: orgPB}, nil
 }
 
@@ -212,6 +213,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 		return nil, ErrInternalServer
 	}
 
+	audit.GetAuditor(ctx, updatedOrg.ID).Log(audit.OrgUpdatedEvent, audit.OrgTarget(updatedOrg.ID))
 	return &shieldv1beta1.UpdateOrganizationResponse{Organization: orgPB}, nil
 }
 
@@ -335,6 +337,10 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1
 
 func (h Handler) AddOrganizationUsers(ctx context.Context, request *shieldv1beta1.AddOrganizationUsersRequest) (*shieldv1beta1.AddOrganizationUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
+	for _, userID := range request.GetUserIds() {
+		audit.GetAuditor(ctx, request.GetId()).Log(audit.OrgMemberCreatedEvent, audit.UserTarget(userID))
+	}
+
 	if err := h.orgService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
@@ -348,6 +354,7 @@ func (h Handler) RemoveOrganizationUser(ctx context.Context, request *shieldv1be
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+	audit.GetAuditor(ctx, request.GetId()).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(request.GetUserId()))
 	return &shieldv1beta1.RemoveOrganizationUserResponse{}, nil
 }
 

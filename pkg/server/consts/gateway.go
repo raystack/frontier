@@ -11,6 +11,10 @@ func (c *contextKey) String() string { return "context value " + c.name }
 var (
 	// AuthenticatedPrincipalContextKey is context key that contains the principal object
 	AuthenticatedPrincipalContextKey = contextKey{name: "auth-principal"}
+
+	AuditActorContextKey    = contextKey{name: "audit-actor"}
+	AuditMetadataContextKey = contextKey{name: "audit-metadata"}
+	AuditServiceContextKey  = contextKey{name: "audit-service"}
 )
 
 const (

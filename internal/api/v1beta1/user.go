@@ -5,6 +5,7 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/raystack/shield/core/audit"
 	"github.com/raystack/shield/core/authenticate"
 	"github.com/raystack/shield/internal/bootstrap/schema"
 
@@ -46,6 +47,8 @@ type UserService interface {
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
+	auditor := audit.GetAuditor(ctx, request.GetOrgId())
+
 	var users []*shieldv1beta1.User
 	usersList, err := h.userService.List(ctx, user.Filter{
 		Limit:   request.GetPageSize(),
@@ -69,6 +72,7 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 		users = append(users, userPB)
 	}
 
+	auditor.Log(audit.UserListedEvent, audit.OrgTarget(request.GetOrgId()))
 	return &shieldv1beta1.ListUsersResponse{
 		Count: int32(len(users)),
 		Users: users,
@@ -179,6 +183,9 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
+
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+		Log(audit.UserCreatedEvent, audit.OrgTarget(schema.PlatformOrgID.String()))
 	return &shieldv1beta1.CreateUserResponse{User: transformedUser}, nil
 }
 
@@ -241,6 +248,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 
 func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRequest) (*shieldv1beta1.UpdateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
+	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
 	var updatedUser user.User
 
 	if strings.TrimSpace(request.GetId()) == "" {
@@ -316,11 +324,13 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, ErrInternalServer
 	}
 
+	auditor.Log(audit.UserUpdatedEvent, audit.OrgTarget(schema.PlatformOrgID.String()))
 	return &shieldv1beta1.UpdateUserResponse{User: userPB}, nil
 }
 
 func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.UpdateCurrentUserRequest) (*shieldv1beta1.UpdateCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
+	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
 
 	email, ok := authenticate.GetEmailFromContext(ctx)
 	if !ok {
@@ -376,6 +386,7 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		return nil, grpcInternalServerError
 	}
 
+	auditor.Log(audit.UserUpdatedEvent, audit.OrgTarget(schema.PlatformOrgID.String()))
 	return &shieldv1beta1.UpdateCurrentUserResponse{User: userPB}, nil
 }
 

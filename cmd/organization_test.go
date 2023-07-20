@@ -74,7 +74,7 @@ func TestClientOrganization(t *testing.T) {
 				cli := cmd.New(tt.cliConfig)
 
 				buf := new(bytes.Buffer)
-				cli.SetOutput(buf)
+				cli.SetOut(buf)
 				args := append([]string{"organization"}, tt.subCommands...)
 				cli.SetArgs(args)
 

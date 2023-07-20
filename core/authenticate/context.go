@@ -10,12 +10,17 @@ import (
 )
 
 // contextEmailKey should not be used in production
+// Deprecated
 type contextEmailKey struct{}
 
+// SetContextWithEmail sets email in context
+// Deprecated
 func SetContextWithEmail(ctx context.Context, email string) context.Context {
 	return context.WithValue(ctx, contextEmailKey{}, email)
 }
 
+// GetEmailFromContext returns email from context
+// Deprecated
 func GetEmailFromContext(ctx context.Context) (string, bool) {
 	email, ok := ctx.Value(contextEmailKey{}).(string)
 	if !utils.IsValidEmail(email) {

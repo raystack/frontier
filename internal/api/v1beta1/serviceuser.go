@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/raystack/shield/core/audit"
 	"github.com/raystack/shield/core/serviceuser"
 	"github.com/raystack/shield/pkg/metadata"
 	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
@@ -80,6 +81,8 @@ func (h Handler) CreateServiceUser(ctx context.Context, request *shieldv1beta1.C
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
+	audit.GetAuditor(ctx, request.GetOrgId()).
+		Log(audit.ServiceUserCreatedEvent, audit.ServiceUserTarget(svUser.ID))
 	return &shieldv1beta1.CreateServiceUserResponse{
 		Serviceuser: svUserPb,
 	}, nil
@@ -112,6 +115,8 @@ func (h Handler) DeleteServiceUser(ctx context.Context, request *shieldv1beta1.D
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, request.GetOrgId()).
+		Log(audit.ServiceUserDeletedEvent, audit.ServiceUserTarget(request.GetId()))
 	return &shieldv1beta1.DeleteServiceUserResponse{}, nil
 }
 

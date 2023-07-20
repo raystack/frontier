@@ -4,7 +4,7 @@ TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "1367a2527daeb2fc92e5d5f4d7c142b958879996"
+PROTON_COMMIT := "a194e19f9a458129e134f57e275fb34186b1e844"
 
 ui:
 	@echo " > generating ui build"
@@ -29,7 +29,7 @@ lint-fix:
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out -count 2
+	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out -count 2 -timeout 150s
 
 test-all: test e2e-smoke-test e2e-regression-test integration-test lint ## Run all tests
 

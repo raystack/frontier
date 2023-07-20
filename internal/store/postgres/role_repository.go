@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/google/uuid"
 
 	"database/sql"
@@ -70,7 +72,7 @@ func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role
 		return role.Role{}, role.ErrInvalidDetail
 	}
 	if len(orgID) == 0 {
-		orgID = uuid.Nil.String()
+		orgID = schema.PlatformOrgID.String()
 	}
 	query, params, err := r.buildListQuery(dialect).
 		Where(

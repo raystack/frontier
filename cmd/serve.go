@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/raystack/shield/core/audit"
 
 	"github.com/raystack/shield/core/serviceuser"
 
@@ -275,6 +278,18 @@ func buildAPIDependencies(
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, policyService, roleService, invitationService)
 
+	// we should default it with a stdout logger repository as postgres can start to bloat really fast
+	var auditRepository audit.Repository
+	switch cfg.Log.AuditEvents {
+	case "db":
+		auditRepository = postgres.NewAuditRepository(dbc)
+	case "stdout":
+		auditRepository = audit.NewWriteOnlyRepository(os.Stdout)
+	default:
+		auditRepository = audit.NewWriteOnlyRepository(io.Discard)
+	}
+	auditService := audit.NewService("shield", auditRepository)
+
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,
 		DisableUsersListing: cfg.App.DisableUsersListing,
@@ -295,6 +310,7 @@ func buildAPIDependencies(
 		BootstrapService:    bootstrapService,
 		InvitationService:   invitationService,
 		ServiceUserService:  serviceUserService,
+		AuditService:        auditService,
 	}
 	return dependencies, nil
 }

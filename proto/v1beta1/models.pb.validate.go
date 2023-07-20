@@ -3209,6 +3209,430 @@ var _ interface {
 	ErrorName() string
 } = JSONWebKeyValidationError{}
 
+// Validate checks the field values on AuditLogActor with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AuditLogActor) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuditLogActor with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AuditLogActorMultiError, or
+// nil if none found.
+func (m *AuditLogActor) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuditLogActor) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Type
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return AuditLogActorMultiError(errors)
+	}
+
+	return nil
+}
+
+// AuditLogActorMultiError is an error wrapping multiple validation errors
+// returned by AuditLogActor.ValidateAll() if the designated constraints
+// aren't met.
+type AuditLogActorMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuditLogActorMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuditLogActorMultiError) AllErrors() []error { return m }
+
+// AuditLogActorValidationError is the validation error returned by
+// AuditLogActor.Validate if the designated constraints aren't met.
+type AuditLogActorValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuditLogActorValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuditLogActorValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuditLogActorValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuditLogActorValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuditLogActorValidationError) ErrorName() string { return "AuditLogActorValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AuditLogActorValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuditLogActor.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuditLogActorValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuditLogActorValidationError{}
+
+// Validate checks the field values on AuditLogTarget with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AuditLogTarget) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuditLogTarget with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AuditLogTargetMultiError,
+// or nil if none found.
+func (m *AuditLogTarget) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuditLogTarget) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Type
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return AuditLogTargetMultiError(errors)
+	}
+
+	return nil
+}
+
+// AuditLogTargetMultiError is an error wrapping multiple validation errors
+// returned by AuditLogTarget.ValidateAll() if the designated constraints
+// aren't met.
+type AuditLogTargetMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuditLogTargetMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuditLogTargetMultiError) AllErrors() []error { return m }
+
+// AuditLogTargetValidationError is the validation error returned by
+// AuditLogTarget.Validate if the designated constraints aren't met.
+type AuditLogTargetValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuditLogTargetValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuditLogTargetValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuditLogTargetValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuditLogTargetValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuditLogTargetValidationError) ErrorName() string { return "AuditLogTargetValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AuditLogTargetValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuditLogTarget.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuditLogTargetValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuditLogTargetValidationError{}
+
+// Validate checks the field values on AuditLog with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AuditLog) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuditLog with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AuditLogMultiError, or nil
+// if none found.
+func (m *AuditLog) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuditLog) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if utf8.RuneCountInString(m.GetSource()) < 2 {
+		err := AuditLogValidationError{
+			field:  "Source",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetAction()) < 2 {
+		err := AuditLogValidationError{
+			field:  "Action",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetActor()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AuditLogValidationError{
+					field:  "Actor",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AuditLogValidationError{
+					field:  "Actor",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetActor()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AuditLogValidationError{
+				field:  "Actor",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetTarget()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AuditLogValidationError{
+					field:  "Target",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AuditLogValidationError{
+					field:  "Target",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTarget()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AuditLogValidationError{
+				field:  "Target",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Context
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AuditLogValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AuditLogValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AuditLogValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AuditLogMultiError(errors)
+	}
+
+	return nil
+}
+
+// AuditLogMultiError is an error wrapping multiple validation errors returned
+// by AuditLog.ValidateAll() if the designated constraints aren't met.
+type AuditLogMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuditLogMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuditLogMultiError) AllErrors() []error { return m }
+
+// AuditLogValidationError is the validation error returned by
+// AuditLog.Validate if the designated constraints aren't met.
+type AuditLogValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuditLogValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuditLogValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuditLogValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuditLogValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuditLogValidationError) ErrorName() string { return "AuditLogValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AuditLogValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuditLog.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuditLogValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuditLogValidationError{}
+
 // Validate checks the field values on RoleRequestBody with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
