@@ -2722,6 +2722,488 @@ var _ interface {
 	ErrorName() string
 } = GetOrganizationsByCurrentUserResponseValidationError{}
 
+// Validate checks the field values on GetProjectsByUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetProjectsByUserRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetProjectsByUserRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetProjectsByUserRequestMultiError, or nil if none found.
+func (m *GetProjectsByUserRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetProjectsByUserRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return GetProjectsByUserRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetProjectsByUserRequestMultiError is an error wrapping multiple validation
+// errors returned by GetProjectsByUserRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetProjectsByUserRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetProjectsByUserRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetProjectsByUserRequestMultiError) AllErrors() []error { return m }
+
+// GetProjectsByUserRequestValidationError is the validation error returned by
+// GetProjectsByUserRequest.Validate if the designated constraints aren't met.
+type GetProjectsByUserRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetProjectsByUserRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetProjectsByUserRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetProjectsByUserRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetProjectsByUserRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetProjectsByUserRequestValidationError) ErrorName() string {
+	return "GetProjectsByUserRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetProjectsByUserRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetProjectsByUserRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetProjectsByUserRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetProjectsByUserRequestValidationError{}
+
+// Validate checks the field values on GetProjectsByUserResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetProjectsByUserResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetProjectsByUserResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetProjectsByUserResponseMultiError, or nil if none found.
+func (m *GetProjectsByUserResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetProjectsByUserResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetProjects() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetProjectsByUserResponseValidationError{
+						field:  fmt.Sprintf("Projects[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetProjectsByUserResponseValidationError{
+						field:  fmt.Sprintf("Projects[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetProjectsByUserResponseValidationError{
+					field:  fmt.Sprintf("Projects[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetProjectsByUserResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetProjectsByUserResponseMultiError is an error wrapping multiple validation
+// errors returned by GetProjectsByUserResponse.ValidateAll() if the
+// designated constraints aren't met.
+type GetProjectsByUserResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetProjectsByUserResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetProjectsByUserResponseMultiError) AllErrors() []error { return m }
+
+// GetProjectsByUserResponseValidationError is the validation error returned by
+// GetProjectsByUserResponse.Validate if the designated constraints aren't met.
+type GetProjectsByUserResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetProjectsByUserResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetProjectsByUserResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetProjectsByUserResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetProjectsByUserResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetProjectsByUserResponseValidationError) ErrorName() string {
+	return "GetProjectsByUserResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetProjectsByUserResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetProjectsByUserResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetProjectsByUserResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetProjectsByUserResponseValidationError{}
+
+// Validate checks the field values on GetProjectsByCurrentUserRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetProjectsByCurrentUserRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetProjectsByCurrentUserRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetProjectsByCurrentUserRequestMultiError, or nil if none found.
+func (m *GetProjectsByCurrentUserRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetProjectsByCurrentUserRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return GetProjectsByCurrentUserRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetProjectsByCurrentUserRequestMultiError is an error wrapping multiple
+// validation errors returned by GetProjectsByCurrentUserRequest.ValidateAll()
+// if the designated constraints aren't met.
+type GetProjectsByCurrentUserRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetProjectsByCurrentUserRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetProjectsByCurrentUserRequestMultiError) AllErrors() []error { return m }
+
+// GetProjectsByCurrentUserRequestValidationError is the validation error
+// returned by GetProjectsByCurrentUserRequest.Validate if the designated
+// constraints aren't met.
+type GetProjectsByCurrentUserRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetProjectsByCurrentUserRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetProjectsByCurrentUserRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetProjectsByCurrentUserRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetProjectsByCurrentUserRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetProjectsByCurrentUserRequestValidationError) ErrorName() string {
+	return "GetProjectsByCurrentUserRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetProjectsByCurrentUserRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetProjectsByCurrentUserRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetProjectsByCurrentUserRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetProjectsByCurrentUserRequestValidationError{}
+
+// Validate checks the field values on GetProjectsByCurrentUserResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetProjectsByCurrentUserResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetProjectsByCurrentUserResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetProjectsByCurrentUserResponseMultiError, or nil if none found.
+func (m *GetProjectsByCurrentUserResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetProjectsByCurrentUserResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetProjects() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetProjectsByCurrentUserResponseValidationError{
+						field:  fmt.Sprintf("Projects[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetProjectsByCurrentUserResponseValidationError{
+						field:  fmt.Sprintf("Projects[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetProjectsByCurrentUserResponseValidationError{
+					field:  fmt.Sprintf("Projects[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetProjectsByCurrentUserResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetProjectsByCurrentUserResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetProjectsByCurrentUserResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetProjectsByCurrentUserResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetProjectsByCurrentUserResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetProjectsByCurrentUserResponseMultiError) AllErrors() []error { return m }
+
+// GetProjectsByCurrentUserResponseValidationError is the validation error
+// returned by GetProjectsByCurrentUserResponse.Validate if the designated
+// constraints aren't met.
+type GetProjectsByCurrentUserResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetProjectsByCurrentUserResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetProjectsByCurrentUserResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetProjectsByCurrentUserResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetProjectsByCurrentUserResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetProjectsByCurrentUserResponseValidationError) ErrorName() string {
+	return "GetProjectsByCurrentUserResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetProjectsByCurrentUserResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetProjectsByCurrentUserResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetProjectsByCurrentUserResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetProjectsByCurrentUserResponseValidationError{}
+
 // Validate checks the field values on EnableUserRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

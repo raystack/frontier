@@ -271,6 +271,61 @@ func (_c *ProjectService_List_Call) RunAndReturn(run func(context.Context, proje
 	return _c
 }
 
+// ListByUser provides a mock function with given fields: ctx, userID
+func (_m *ProjectService) ListByUser(ctx context.Context, userID string) ([]project.Project, error) {
+	ret := _m.Called(ctx, userID)
+
+	var r0 []project.Project
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]project.Project, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []project.Project); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]project.Project)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ProjectService_ListByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByUser'
+type ProjectService_ListByUser_Call struct {
+	*mock.Call
+}
+
+// ListByUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *ProjectService_Expecter) ListByUser(ctx interface{}, userID interface{}) *ProjectService_ListByUser_Call {
+	return &ProjectService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userID)}
+}
+
+func (_c *ProjectService_ListByUser_Call) Run(run func(ctx context.Context, userID string)) *ProjectService_ListByUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ProjectService_ListByUser_Call) Return(_a0 []project.Project, _a1 error) *ProjectService_ListByUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ProjectService_ListByUser_Call) RunAndReturn(run func(context.Context, string) ([]project.Project, error)) *ProjectService_ListByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListUsers provides a mock function with given fields: ctx, id, permissionFilter
 func (_m *ProjectService) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
 	ret := _m.Called(ctx, id, permissionFilter)

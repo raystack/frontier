@@ -113,27 +113,6 @@ func (s Service) ListByUser(ctx context.Context, userId string, flt Filter) ([]G
 	return s.repository.GetByIDs(ctx, subjectIDs, flt)
 }
 
-func (s Service) ListGroupUsers(ctx context.Context, groupID string) ([]user.User, error) {
-	subjectIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
-		Object: relation.Object{
-			Namespace: schema.GroupNamespace,
-			ID:        groupID,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-		},
-		RelationName: schema.MembershipPermission,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if len(subjectIDs) == 0 {
-		// no users
-		return nil, nil
-	}
-	return s.userService.GetByIDs(ctx, subjectIDs)
-}
-
 // AddMember adds a subject(user) to group as member
 func (s Service) AddMember(ctx context.Context, groupID, relationName string, principal authenticate.Principal) error {
 	rel := relation.Relation{

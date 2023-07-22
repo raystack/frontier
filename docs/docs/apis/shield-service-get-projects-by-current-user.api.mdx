@@ -1,21 +1,62 @@
 ---
-id: shield-service-delete-service-user
-title: "Delete service user"
-description: "Delete a service user permanently and all of its relations (keys, organizations, roles, etc)"
-sidebar_label: "Delete service user"
+id: shield-service-get-projects-by-current-user
+title: "Get my projects"
+description: "Get all projects the current user belongs to"
+sidebar_label: "Get my projects"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Delete a service user permanently and all of its relations (keys, organizations, roles, etc)",
-    "operationId": "ShieldService_DeleteServiceUser",
+    "description": "Get all projects the current user belongs to",
+    "operationId": "ShieldService_GetProjectsByCurrentUser",
     "responses":
       {
         "200":
           {
             "description": "A successful response.",
             "content":
-              { "application/json": { "schema": { "type": "object" } } },
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "projects":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      {
+                                        "id": { "type": "string" },
+                                        "name": { "type": "string" },
+                                        "title": { "type": "string" },
+                                        "orgId": { "type": "string" },
+                                        "metadata": { "type": "object" },
+                                        "createdAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the project was created.",
+                                          },
+                                        "updatedAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the project was last updated.",
+                                          },
+                                      },
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
           },
         "400":
           {
@@ -198,25 +239,9 @@ api:
               },
           },
       },
-    "parameters":
-      [
-        {
-          "name": "id",
-          "description": "The unique ID of the service user to delete.",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "orgId",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-        },
-      ],
-    "tags": ["ServiceUser"],
-    "method": "delete",
-    "path": "/v1beta1/serviceusers/{id}",
+    "tags": ["User"],
+    "method": "get",
+    "path": "/v1beta1/users/self/projects",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -256,37 +281,24 @@ api:
       },
     "postman":
       {
-        "name": "Delete service user",
+        "name": "Get my projects",
         "description":
           {
-            "content": "Delete a service user permanently and all of its relations (keys, organizations, roles, etc)",
+            "content": "Get all projects the current user belongs to",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "serviceusers", ":id"],
+            "path": ["v1beta1", "users", "self", "projects"],
             "host": ["{{baseUrl}}"],
-            "query": [{ "disabled": false, "key": "orgId", "value": "" }],
-            "variable":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "(Required) The unique ID of the service user to delete.",
-                      "type": "text/plain",
-                    },
-                  "type": "any",
-                  "value": "",
-                  "key": "id",
-                },
-              ],
+            "query": [],
+            "variable": [],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "DELETE",
+        "method": "GET",
       },
   }
-sidebar_class_name: "delete api-method"
+sidebar_class_name: "get api-method"
 info_path: apis/shield-administration-api
 custom_edit_url: null
 ---
@@ -300,19 +312,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Delete service user
+## Get my projects
 
-Delete a service user permanently and all of its relations (keys, organizations, roles, etc)
+Get all projects the current user belongs to
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to delete.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
-
-object
-
-</div></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>projects</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was last updated."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"projects\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"orgId\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 
