@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/raystack/shield/core/authenticate"
 
 	"github.com/raystack/shield/core/authenticate/token"
@@ -726,10 +728,10 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdateCurrentUser(t *testing.T) {
-	email := "user@raystack.org"
+	userID := uuid.New().String()
 	table := []struct {
 		title  string
-		setup  func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
+		setup  func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context
 		req    *shieldv1beta1.UpdateCurrentUserRequest
 		header string
 		want   *shieldv1beta1.UpdateCurrentUserResponse
@@ -737,6 +739,10 @@ func TestUpdateCurrentUser(t *testing.T) {
 	}{
 		{
 			title: "should return unauthenticated error if auth email header not exist",
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+				return ctx
+			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "abc user",
 				Email: "abcuser123@test.com",
@@ -751,16 +757,17 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return internal error if user service return some error",
-			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+					ID:    userID,
 					Title: "abc user",
-					Email: "user@raystack.org",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
 				}).Return(user.User{}, errors.New("some error"))
-				return authenticate.SetContextWithEmail(ctx, email)
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
+				return ctx
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "abc user",
@@ -775,53 +782,11 @@ func TestUpdateCurrentUser(t *testing.T) {
 			err:  grpcInternalServerError,
 		},
 		{
-			title: "should return not found error if user service return err not exist",
-			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByEmail(mock.AnythingOfType("*context.valueCtx"), user.User{
-					Title: "abc user",
-					Email: "user@raystack.org",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
-				}).Return(user.User{}, user.ErrNotExist)
-				return authenticate.SetContextWithEmail(ctx, email)
-			},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Title: "abc user",
-				Email: "user@raystack.org",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewStringValue("bar"),
-					},
-				},
-			}},
-			want: nil,
-			err:  grpcUserNotFoundError,
-		},
-		{
-			title: "should return bad request error if diff emails in header and body",
-			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				return authenticate.SetContextWithEmail(ctx, email)
-			},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Title: "abc user",
-				Email: "abcuser123@test.com",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewStringValue("bar"),
-					},
-				},
-			}},
-			want: nil,
-			err:  grpcBadBodyError,
-		},
-		{
 			title: "should return bad request error if empty request body",
-			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				return authenticate.SetContextWithEmail(ctx, email)
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
+				return ctx
 			},
 			req:  &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
 			want: nil,
@@ -829,9 +794,10 @@ func TestUpdateCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return success if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().UpdateByEmail(mock.Anything, mock.Anything).Return(
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
+				us.EXPECT().Update(mock.Anything, mock.Anything).Return(
 					user.User{
 						ID:    "user-id-1",
 						Title: "abc user",
@@ -842,7 +808,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
-				return authenticate.SetContextWithEmail(ctx, email)
+				return ctx
 			},
 			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Title: "abc user",
@@ -873,14 +839,15 @@ func TestUpdateCurrentUser(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
 			mockMetaSrv := new(mocks.MetaSchemaService)
+			mockAuthSrv := new(mocks.AuthnService)
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv, mockMetaSrv)
+				ctx = tt.setup(ctx, mockUserSrv, mockMetaSrv, mockAuthSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv, metaSchemaService: mockMetaSrv}
+			mockDep := Handler{userService: mockUserSrv, metaSchemaService: mockMetaSrv, authnService: mockAuthSrv}
 			resp, err := mockDep.UpdateCurrentUser(ctx, tt.req)
-			assert.EqualValues(t, resp, tt.want)
-			assert.EqualValues(t, err, tt.err)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.err, err)
 		})
 	}
 }

@@ -473,6 +473,62 @@ func (_c *UserService_List_Call) RunAndReturn(run func(context.Context, user.Fil
 	return _c
 }
 
+// ListByGroup provides a mock function with given fields: ctx, groupID, permissionFilter
+func (_m *UserService) ListByGroup(ctx context.Context, groupID string, permissionFilter string) ([]user.User, error) {
+	ret := _m.Called(ctx, groupID, permissionFilter)
+
+	var r0 []user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]user.User, error)); ok {
+		return rf(ctx, groupID, permissionFilter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
+		r0 = rf(ctx, groupID, permissionFilter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]user.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, groupID, permissionFilter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_ListByGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByGroup'
+type UserService_ListByGroup_Call struct {
+	*mock.Call
+}
+
+// ListByGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID string
+//   - permissionFilter string
+func (_e *UserService_Expecter) ListByGroup(ctx interface{}, groupID interface{}, permissionFilter interface{}) *UserService_ListByGroup_Call {
+	return &UserService_ListByGroup_Call{Call: _e.mock.On("ListByGroup", ctx, groupID, permissionFilter)}
+}
+
+func (_c *UserService_ListByGroup_Call) Run(run func(ctx context.Context, groupID string, permissionFilter string)) *UserService_ListByGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_ListByGroup_Call) Return(_a0 []user.User, _a1 error) *UserService_ListByGroup_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_ListByGroup_Call) RunAndReturn(run func(context.Context, string, string) ([]user.User, error)) *UserService_ListByGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListByOrg provides a mock function with given fields: ctx, orgID, permissionFilter
 func (_m *UserService) ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error) {
 	ret := _m.Called(ctx, orgID, permissionFilter)
@@ -578,59 +634,6 @@ func (_c *UserService_Update_Call) Return(_a0 user.User, _a1 error) *UserService
 }
 
 func (_c *UserService_Update_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *UserService_Update_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateByEmail provides a mock function with given fields: ctx, toUpdate
-func (_m *UserService) UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error) {
-	ret := _m.Called(ctx, toUpdate)
-
-	var r0 user.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, user.User) (user.User, error)); ok {
-		return rf(ctx, toUpdate)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, user.User) user.User); ok {
-		r0 = rf(ctx, toUpdate)
-	} else {
-		r0 = ret.Get(0).(user.User)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, user.User) error); ok {
-		r1 = rf(ctx, toUpdate)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserService_UpdateByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateByEmail'
-type UserService_UpdateByEmail_Call struct {
-	*mock.Call
-}
-
-// UpdateByEmail is a helper method to define mock.On call
-//   - ctx context.Context
-//   - toUpdate user.User
-func (_e *UserService_Expecter) UpdateByEmail(ctx interface{}, toUpdate interface{}) *UserService_UpdateByEmail_Call {
-	return &UserService_UpdateByEmail_Call{Call: _e.mock.On("UpdateByEmail", ctx, toUpdate)}
-}
-
-func (_c *UserService_UpdateByEmail_Call) Run(run func(ctx context.Context, toUpdate user.User)) *UserService_UpdateByEmail_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(user.User))
-	})
-	return _c
-}
-
-func (_c *UserService_UpdateByEmail_Call) Return(_a0 user.User, _a1 error) *UserService_UpdateByEmail_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *UserService_UpdateByEmail_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *UserService_UpdateByEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }

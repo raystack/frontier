@@ -308,7 +308,6 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 	})
-
 	s.Run("7. list all projects attached/filtered to an org", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
 			Id: "org-project-1",
@@ -336,6 +335,43 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(2, len(listResp.Projects))
+	})
+	s.Run("8. list all users who have access to a project", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+			Id: "org-project-1",
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "org-project-2-p1",
+				OrgId: existingOrg.Organization.GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &shieldv1beta1.CreateProjectRequest{
+			Body: &shieldv1beta1.ProjectRequestBody{
+				Name:  "org-project-2-p2",
+				OrgId: existingOrg.Organization.GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		listProjUsersResp, err := s.testBench.Client.ListProjectUsers(ctxOrgAdminAuth, &shieldv1beta1.ListProjectUsersRequest{
+			Id: "org-project-2-p1",
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(listProjUsersResp.Users))
+
+		listProjCurrentUsersResp, err := s.testBench.Client.GetProjectsByCurrentUser(ctxOrgAdminAuth, &shieldv1beta1.GetProjectsByCurrentUserRequest{})
+		s.Assert().NoError(err)
+		s.Assert().True(slices.ContainsFunc[*shieldv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *shieldv1beta1.Project) bool {
+			return p.Name == "org-project-2-p1"
+		}))
+		s.Assert().True(slices.ContainsFunc[*shieldv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *shieldv1beta1.Project) bool {
+			return p.Name == "org-project-2-p2"
+		}))
 	})
 }
 

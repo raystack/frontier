@@ -15,6 +15,7 @@ import (
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
+	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -65,6 +66,30 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 	return s.repository.List(ctx, f)
 }
 
+func (s Service) ListByUser(ctx context.Context, userID string) ([]Project, error) {
+	requestedUser, err := s.userService.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	projIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
+		Object: relation.Object{
+			Namespace: schema.ProjectNamespace,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.UserPrincipal,
+			ID:        requestedUser.ID,
+		},
+		RelationName: MemberPermission,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(projIDs) == 0 {
+		return []Project{}, nil
+	}
+	return s.GetByIDs(ctx, projIDs)
+}
+
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 	if utils.IsValidUUID(prj.ID) {
 		return s.repository.UpdateByID(ctx, prj)
@@ -72,21 +97,20 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 	return s.repository.UpdateByName(ctx, prj)
 }
 
-func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {
-	// TODO(discussion): can be done with create relations
-	return []user.User{}, nil
-}
-
 func (s Service) ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error) {
+	requestedProject, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
 		Object: relation.Object{
-			ID:        id,
+			ID:        requestedProject.ID,
 			Namespace: schema.ProjectNamespace,
 		},
 		Subject: relation.Subject{
-			Namespace:       schema.UserPrincipal,
-			SubRelationName: permissionFilter,
+			Namespace: schema.UserPrincipal,
 		},
+		RelationName: permissionFilter,
 	})
 	if err != nil {
 		return nil, err

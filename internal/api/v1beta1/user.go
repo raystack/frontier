@@ -37,8 +37,8 @@ type UserService interface {
 	Create(ctx context.Context, user user.User) (user.User, error)
 	List(ctx context.Context, flt user.Filter) ([]user.User, error)
 	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
+	ListByGroup(ctx context.Context, groupID string, permissionFilter string) ([]user.User, error)
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
-	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	Delete(ctx context.Context, id string) error
@@ -331,19 +331,16 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.UpdateCurrentUserRequest) (*shieldv1beta1.UpdateCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
-
-	email, ok := authenticate.GetEmailFromContext(ctx)
-	if !ok {
-		return nil, grpcUnauthenticated
-	}
-
-	email = strings.TrimSpace(email)
-	if email == "" {
-		logger.Error(ErrEmptyEmailID.Error())
-		return nil, grpcUnauthenticated
-	}
-
 	if request.GetBody() == nil {
+		return nil, grpcBadBodyError
+	}
+
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// if email in request body is different from the email in the header
+	if principal.User != nil && principal.User.Email != request.GetBody().GetEmail() {
 		return nil, grpcBadBodyError
 	}
 
@@ -357,14 +354,9 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
-	// if email in request body is different from the email in the header
-	if request.GetBody().GetEmail() != email {
-		return nil, grpcBadBodyError
-	}
-
-	updatedUser, err := h.userService.UpdateByEmail(ctx, user.User{
+	updatedUser, err := h.userService.Update(ctx, user.User{
+		ID:       principal.ID,
 		Title:    request.GetBody().GetTitle(),
-		Email:    email,
 		Name:     request.GetBody().GetName(),
 		Metadata: metaDataMap,
 	})
@@ -420,6 +412,38 @@ func (h Handler) ListUserGroups(ctx context.Context, request *shieldv1beta1.List
 	}, nil
 }
 
+func (h Handler) ListCurrentUserGroups(ctx context.Context, request *shieldv1beta1.ListCurrentUserGroupsRequest) (*shieldv1beta1.ListCurrentUserGroupsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var groups []*shieldv1beta1.Group
+	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, group.Filter{})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return nil, grpcGroupNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	for _, group := range groupsList {
+		groupPB, err := transformGroupToPB(group)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+
+		groups = append(groups, &groupPB)
+	}
+	return &shieldv1beta1.ListCurrentUserGroupsResponse{
+		Groups: groups,
+	}, nil
+}
+
 func (h Handler) GetOrganizationsByUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByUserRequest) (*shieldv1beta1.GetOrganizationsByUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
@@ -439,6 +463,75 @@ func (h Handler) GetOrganizationsByUser(ctx context.Context, request *shieldv1be
 		orgs = append(orgs, orgPB)
 	}
 	return &shieldv1beta1.GetOrganizationsByUserResponse{Organizations: orgs}, nil
+}
+
+func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByCurrentUserRequest) (*shieldv1beta1.GetOrganizationsByCurrentUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orgList, err := h.orgService.ListByUser(ctx, principal.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var orgs []*shieldv1beta1.Organization
+	for _, v := range orgList {
+		orgPB, err := transformOrgToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		orgs = append(orgs, orgPB)
+	}
+	return &shieldv1beta1.GetOrganizationsByCurrentUserResponse{Organizations: orgs}, nil
+}
+
+func (h Handler) GetProjectsByUser(ctx context.Context, request *shieldv1beta1.GetProjectsByUserRequest) (*shieldv1beta1.GetProjectsByUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	projList, err := h.projectService.ListByUser(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var projects []*shieldv1beta1.Project
+	for _, v := range projList {
+		projPB, err := transformProjectToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		projects = append(projects, projPB)
+	}
+	return &shieldv1beta1.GetProjectsByUserResponse{Projects: projects}, nil
+}
+
+func (h Handler) GetProjectsByCurrentUser(ctx context.Context, request *shieldv1beta1.GetProjectsByCurrentUserRequest) (*shieldv1beta1.GetProjectsByCurrentUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	projList, err := h.projectService.ListByUser(ctx, principal.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var projects []*shieldv1beta1.Project
+	for _, v := range projList {
+		projPB, err := transformProjectToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		projects = append(projects, projPB)
+	}
+	return &shieldv1beta1.GetProjectsByCurrentUserResponse{Projects: projects}, nil
 }
 
 func (h Handler) EnableUser(ctx context.Context, request *shieldv1beta1.EnableUserRequest) (*shieldv1beta1.EnableUserResponse, error) {
@@ -466,35 +559,6 @@ func (h Handler) DeleteUser(ctx context.Context, request *shieldv1beta1.DeleteUs
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &shieldv1beta1.DeleteUserResponse{}, nil
-}
-
-func (h Handler) ListCurrentUserGroups(ctx context.Context, request *shieldv1beta1.ListCurrentUserGroupsRequest) (*shieldv1beta1.ListCurrentUserGroupsResponse, error) {
-	// TODO
-	return &shieldv1beta1.ListCurrentUserGroupsResponse{}, grpcOperationUnsupported
-}
-
-func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *shieldv1beta1.GetOrganizationsByCurrentUserRequest) (*shieldv1beta1.GetOrganizationsByCurrentUserResponse, error) {
-	logger := grpczap.Extract(ctx)
-	princiapl, err := h.GetLoggedInPrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orgList, err := h.orgService.ListByUser(ctx, princiapl.ID)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-
-	var orgs []*shieldv1beta1.Organization
-	for _, v := range orgList {
-		orgPB, err := transformOrgToPB(v)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
-		}
-		orgs = append(orgs, orgPB)
-	}
-	return &shieldv1beta1.GetOrganizationsByCurrentUserResponse{Organizations: orgs}, nil
 }
 
 func transformUserToPB(usr user.User) (*shieldv1beta1.User, error) {

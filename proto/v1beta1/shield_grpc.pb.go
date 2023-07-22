@@ -32,6 +32,8 @@ const (
 	ShieldService_DeleteUser_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/DeleteUser"
 	ShieldService_GetOrganizationsByUser_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByUser"
 	ShieldService_GetOrganizationsByCurrentUser_FullMethodName = "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser"
+	ShieldService_GetProjectsByUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/GetProjectsByUser"
+	ShieldService_GetProjectsByCurrentUser_FullMethodName      = "/raystack.shield.v1beta1.ShieldService/GetProjectsByCurrentUser"
 	ShieldService_ListUserInvitations_FullMethodName           = "/raystack.shield.v1beta1.ShieldService/ListUserInvitations"
 	ShieldService_ListServiceUsers_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/ListServiceUsers"
 	ShieldService_CreateServiceUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/CreateServiceUser"
@@ -137,6 +139,8 @@ type ShieldServiceClient interface {
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error)
 	GetOrganizationsByCurrentUser(ctx context.Context, in *GetOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByCurrentUserResponse, error)
+	GetProjectsByUser(ctx context.Context, in *GetProjectsByUserRequest, opts ...grpc.CallOption) (*GetProjectsByUserResponse, error)
+	GetProjectsByCurrentUser(ctx context.Context, in *GetProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*GetProjectsByCurrentUserResponse, error)
 	ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error)
 	// ServieUser
 	ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error)
@@ -357,6 +361,24 @@ func (c *shieldServiceClient) GetOrganizationsByUser(ctx context.Context, in *Ge
 func (c *shieldServiceClient) GetOrganizationsByCurrentUser(ctx context.Context, in *GetOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByCurrentUserResponse, error) {
 	out := new(GetOrganizationsByCurrentUserResponse)
 	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationsByCurrentUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetProjectsByUser(ctx context.Context, in *GetProjectsByUserRequest, opts ...grpc.CallOption) (*GetProjectsByUserResponse, error) {
+	out := new(GetProjectsByUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetProjectsByUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) GetProjectsByCurrentUser(ctx context.Context, in *GetProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*GetProjectsByCurrentUserResponse, error) {
+	out := new(GetProjectsByCurrentUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_GetProjectsByCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1146,6 +1168,8 @@ type ShieldServiceServer interface {
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error)
 	GetOrganizationsByCurrentUser(context.Context, *GetOrganizationsByCurrentUserRequest) (*GetOrganizationsByCurrentUserResponse, error)
+	GetProjectsByUser(context.Context, *GetProjectsByUserRequest) (*GetProjectsByUserResponse, error)
+	GetProjectsByCurrentUser(context.Context, *GetProjectsByCurrentUserRequest) (*GetProjectsByCurrentUserResponse, error)
 	ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error)
 	// ServieUser
 	ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error)
@@ -1290,6 +1314,12 @@ func (UnimplementedShieldServiceServer) GetOrganizationsByUser(context.Context, 
 }
 func (UnimplementedShieldServiceServer) GetOrganizationsByCurrentUser(context.Context, *GetOrganizationsByCurrentUserRequest) (*GetOrganizationsByCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationsByCurrentUser not implemented")
+}
+func (UnimplementedShieldServiceServer) GetProjectsByUser(context.Context, *GetProjectsByUserRequest) (*GetProjectsByUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProjectsByUser not implemented")
+}
+func (UnimplementedShieldServiceServer) GetProjectsByCurrentUser(context.Context, *GetProjectsByCurrentUserRequest) (*GetProjectsByCurrentUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProjectsByCurrentUser not implemented")
 }
 func (UnimplementedShieldServiceServer) ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserInvitations not implemented")
@@ -1789,6 +1819,42 @@ func _ShieldService_GetOrganizationsByCurrentUser_Handler(srv interface{}, ctx c
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).GetOrganizationsByCurrentUser(ctx, req.(*GetOrganizationsByCurrentUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetProjectsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProjectsByUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetProjectsByUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetProjectsByUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetProjectsByUser(ctx, req.(*GetProjectsByUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_GetProjectsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProjectsByCurrentUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).GetProjectsByCurrentUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_GetProjectsByCurrentUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).GetProjectsByCurrentUser(ctx, req.(*GetProjectsByCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3381,6 +3447,14 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOrganizationsByCurrentUser",
 			Handler:    _ShieldService_GetOrganizationsByCurrentUser_Handler,
+		},
+		{
+			MethodName: "GetProjectsByUser",
+			Handler:    _ShieldService_GetProjectsByUser_Handler,
+		},
+		{
+			MethodName: "GetProjectsByCurrentUser",
+			Handler:    _ShieldService_GetProjectsByCurrentUser_Handler,
 		},
 		{
 			MethodName: "ListUserInvitations",

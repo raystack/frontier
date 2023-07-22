@@ -82,6 +82,7 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.shield.v1beta1.ShieldService/GetCurrentUser":                true,
 	"/raystack.shield.v1beta1.ShieldService/UpdateCurrentUser":             true,
 	"/raystack.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser": true,
+	"/raystack.shield.v1beta1.ShieldService/GetProjectsByCurrentUser":      true,
 	"/raystack.shield.v1beta1.ShieldService/GetServiceUserKey":             true,
 
 	"/raystack.shield.v1beta1.ShieldService/CreateOrganization": true,
@@ -144,8 +145,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
-	"/raystack.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return nil
+	"/raystack.shield.v1beta1.ShieldService/GetProjectsByUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		if err := handler.IsSuperUser(ctx); err == nil {
+			return nil
+		}
+		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
 
 	// serviceuser

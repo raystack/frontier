@@ -88,7 +88,8 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 
 	return &shieldv1beta1.AuthenticateResponse{
 		Endpoint: response.Flow.StartURL,
-		State:    response.State,
+		// TODO(kushsharma): we can also store the state in cookie and validate it on callback
+		State: response.State,
 	}, nil
 }
 

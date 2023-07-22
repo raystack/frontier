@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/raystack/shield/internal/bootstrap/schema"
+
 	"github.com/raystack/shield/core/relation"
 	"github.com/raystack/shield/pkg/metadata"
 )
@@ -18,6 +20,8 @@ const (
 	Enabled  State = "enabled"
 	Disabled State = "disabled"
 )
+
+var MemberPermission = schema.MembershipPermission
 
 type Repository interface {
 	Create(ctx context.Context, grp Group) (Group, error)

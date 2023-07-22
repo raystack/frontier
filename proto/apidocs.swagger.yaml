@@ -4986,6 +4986,47 @@ paths:
           type: string
       tags:
         - User
+  /v1beta1/users/{id}/projects:
+    get:
+      summary: Get user projects
+      description: Get all the projects a user belongs to.
+      operationId: ShieldService_GetProjectsByUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetProjectsByUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - User
   /v1beta1/users/self:
     get:
       summary: Get current user
@@ -5106,6 +5147,42 @@ paths:
           description: A successful response.
           schema:
             $ref: '#/definitions/v1beta1GetOrganizationsByCurrentUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Shield server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - User
+  /v1beta1/users/self/projects:
+    get:
+      summary: Get my projects
+      description: Get all projects the current user belongs to
+      operationId: ShieldService_GetProjectsByCurrentUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetProjectsByCurrentUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -5527,6 +5604,22 @@ definitions:
     properties:
       project:
         $ref: '#/definitions/v1beta1Project'
+  v1beta1GetProjectsByCurrentUserResponse:
+    type: object
+    properties:
+      projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Project'
+  v1beta1GetProjectsByUserResponse:
+    type: object
+    properties:
+      projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Project'
   v1beta1GetRelationResponse:
     type: object
     properties:
