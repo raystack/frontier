@@ -26,6 +26,9 @@ type Bucket interface {
 }
 
 func NewStore(ctx context.Context, storagePath, storageSecret string) (Bucket, error) {
+	if strings.TrimSpace(storagePath) == "" {
+		return memblob.OpenBucket(nil), nil
+	}
 	var errBadSecretURL = errors.Errorf(`unsupported storage config %s, possible schemes supported: "env:// file:// val://" for example: "val://username:password"`, storageSecret)
 	var errBadStorageURL = errors.Errorf("unsupported storage config %s", storagePath)
 

@@ -11,6 +11,10 @@ app:
   port: 8000
   grpc: 
     port: 8001
+    # optional tls config
+    # tls_cert_file: "temp/server-cert.pem"
+    # tls_key_file: "temp/server-key.pem"
+    # tls_client_ca_file: "temp/ca-cert.pem"
   metrics_port: 9000
   identity_proxy_header: X-Shield-Email
   # full path prefixed with scheme where resources config yaml files are kept

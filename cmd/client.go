@@ -4,24 +4,33 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+
 	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
-func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error) {
+func createConnection(ctx context.Context, host string, caCertFile string) (*grpc.ClientConn, error) {
+	creds := insecure.NewCredentials()
+	if caCertFile != "" {
+		tlsCreds, err := credentials.NewClientTLSFromFile(caCertFile, "")
+		if err != nil {
+			return nil, err
+		}
+		creds = tlsCreds
+	}
 	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(creds),
 		grpc.WithBlock(),
 	}
-
 	return grpc.DialContext(ctx, host, opts...)
 }
 
 func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
 	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
-	conn, err := createConnection(dialTimeoutCtx, host)
+	conn, err := createConnection(dialTimeoutCtx, host, "")
 	if err != nil {
 		dialCancel()
 		return nil, nil, err
@@ -37,7 +46,7 @@ func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 
 func createAdminClient(ctx context.Context, host string) (shieldv1beta1.AdminServiceClient, func(), error) {
 	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
-	conn, err := createConnection(dialTimeoutCtx, host)
+	conn, err := createConnection(dialTimeoutCtx, host, "")
 	if err != nil {
 		dialCancel()
 		return nil, nil, err
