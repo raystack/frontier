@@ -4,6 +4,6 @@ export type Group = {
   slug: string;
   backend: string;
   resoure_type: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };

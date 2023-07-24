@@ -22,17 +22,12 @@ export const getColumns: (
       accessorKey: "name",
       filterVariant: "text",
       cell: (info) => info.getValue(),
-    },
-    {
-      header: "Slug",
-      accessorKey: "slug",
-      filterVariant: "text",
-      cell: (info) => info.getValue(),
       footer: (props) => props.column.id,
     },
+
     {
       header: "Create At",
-      accessorKey: "createdAt",
+      accessorKey: "created_at",
 
       meta: {
         headerFilter: false,

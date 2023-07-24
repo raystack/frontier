@@ -31,7 +31,7 @@ export const getColumns: (users: User[]) => ColumnDef<User, any>[] = (
     },
     {
       header: "Create At",
-      accessorKey: "createdAt",
+      accessorKey: "created_at",
       meta: {
         headerFilter: false,
       },

@@ -3,36 +3,27 @@ import { useUser } from ".";
 
 export default function UserDetails() {
   const { user } = useUser();
-
   return (
     <Flex
       direction="column"
-      css={{
+      gap="large"
+      style={{
         width: "320px",
-        height: "100%",
-        padding: "$4",
+        height: "calc(100vh - 60px)",
+        borderLeft: "1px solid var(--border-base)",
+        padding: "var(--pd-16)",
       }}
     >
-      <Text css={{ fontSize: "14px" }}>{user?.name}</Text>
-      <Flex direction="column">
-        <Grid columns="2" css={{ width: "100%", paddingTop: "$4" }}>
-          <Text size={1} css={{ color: "$gray11" }}>
-            Email
-          </Text>
+      <Text size={4}>{user?.name}</Text>
+      <Flex direction="column" gap="large">
+        <Grid columns={2} gap="small">
+          <Text size={1}>Email</Text>
           <Text size={1}>{user?.email}</Text>
         </Grid>
-        <Grid columns="2" css={{ width: "100%", paddingTop: "$4" }}>
-          <Text
-            size={1}
-            css={{
-              color: "$gray11",
-              ...css.row,
-            }}
-          >
-            Created At
-          </Text>
-          <Text size={1} css={css.row}>
-            {new Date(user?.createdAt as Date).toLocaleString("en", {
+        <Grid columns={2} gap="small">
+          <Text size={1}>Created At</Text>
+          <Text size={1}>
+            {new Date(user?.created_at as Date).toLocaleString("en", {
               month: "long",
               day: "numeric",
               year: "numeric",
@@ -43,7 +34,3 @@ export default function UserDetails() {
     </Flex>
   );
 }
-
-const css = {
-  row: { height: "32px", display: "flex", alignItems: "center" },
-};

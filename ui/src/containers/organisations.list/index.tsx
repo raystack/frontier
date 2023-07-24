@@ -1,7 +1,6 @@
-import { EmptyState, Flex, Table } from "@raystack/apsara";
+import { DataTable, EmptyState } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
-import { tableStyle } from "~/styles";
 import { Organisation } from "~/types/organisation";
 import { fetcher, reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
@@ -15,33 +14,29 @@ export default function OrganisationList() {
 
   const organisationMapByName = reduceByKey(organizations ?? [], "id");
   return (
-    <Flex direction="row" css={{ height: "100%", width: "100%" }}>
-      <Table
-        css={tableStyle}
-        columns={getColumns(organizations)}
+    <>
+      <DataTable
         data={organizations ?? []}
-        noDataChildren={noDataChildren}
+        // @ts-ignore
+        columns={getColumns(organizations)}
+        emptyState={noDataChildren}
+        style={{ width: "100%" }}
       >
-        <Table.TopContainer>
+        <DataTable.Toolbar>
           <OrganizationsHeader />
-        </Table.TopContainer>
-        <Table.DetailContainer
-          css={{
-            borderLeft: "1px solid $gray4",
-            borderTop: "1px solid $gray4",
-          }}
-        >
-          {organisationId && (
-            <Outlet
-              context={{
-                organisation: organisationMapByName[organisationId],
-              }}
-            />
-          )}
-        </Table.DetailContainer>
-      </Table>
-      {!organisationId && <Outlet />}
-    </Flex>
+          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+        </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet
+            context={{
+              organisation: organisationId
+                ? organisationMapByName[organisationId]
+                : null,
+            }}
+          />
+        </DataTable.DetailContainer>
+      </DataTable>
+    </>
   );
 }
 

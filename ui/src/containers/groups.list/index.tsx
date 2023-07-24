@@ -1,7 +1,6 @@
-import { EmptyState, Flex, Table } from "@raystack/apsara";
+import { DataTable, EmptyState } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
-import { tableStyle } from "~/styles";
 import { Group } from "~/types/group";
 import { fetcher, reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
@@ -15,28 +14,25 @@ export default function GroupList() {
   let { groupId } = useParams();
 
   return (
-    <Flex direction="row" css={{ height: "100%", width: "100%" }}>
-      <Table
-        css={tableStyle}
-        columns={getColumns(groups)}
-        data={groups ?? []}
-        noDataChildren={noDataChildren}
-      >
-        <Table.TopContainer>
-          <GroupsHeader />
-        </Table.TopContainer>
-        <Table.DetailContainer
-          css={{
-            borderLeft: "1px solid $gray4",
-            borderTop: "1px solid $gray4",
+    <DataTable
+      data={groups ?? []}
+      // @ts-ignore
+      columns={getColumns(groups)}
+      emptyState={noDataChildren}
+      style={{ width: "100%" }}
+    >
+      <DataTable.Toolbar>
+        <GroupsHeader />
+        <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+      </DataTable.Toolbar>
+      <DataTable.DetailContainer>
+        <Outlet
+          context={{
+            group: groupId ? groupMapByName[groupId] : null,
           }}
-        >
-          <Outlet
-            context={{ group: groupId ? groupMapByName[groupId] : null }}
-          />
-        </Table.DetailContainer>
-      </Table>
-    </Flex>
+        />
+      </DataTable.DetailContainer>
+    </DataTable>
   );
 }
 

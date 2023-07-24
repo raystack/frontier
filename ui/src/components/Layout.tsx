@@ -1,6 +1,5 @@
-import { Box, Flex, styled } from "@raystack/apsara";
+import { Box, Flex } from "@raystack/apsara";
 import React from "react";
-import Resizable from "~/components/Resizable";
 
 type Props = {
   header?: React.ReactNode;
@@ -16,25 +15,17 @@ const RESIZABLE = {
   maxWidth: "330px",
   minHeight: "100%",
 };
-const ResizableContainer = styled(Resizable, {});
+
 export default function Layout({ header, children, sidebar }: Props) {
   return (
     <Box>
-      <Flex direction={"row"} css={containerStyle}>
-        <ResizableContainer
-          minWidth={RESIZABLE.minWidth}
-          maxWidth={RESIZABLE.maxWidth}
-          minHeight={RESIZABLE.minHeight}
-          defaultSize={{
-            width: RESIZABLE.width,
-            height: RESIZABLE.height,
-          }}
-        >
+      <Flex direction={"row"} style={containerStyle}>
+        <Flex direction="column" style={{ width: "250px" }}>
           {sidebar}
-        </ResizableContainer>
-        <Flex as={"main"} direction="column" css={mainContainerStyle}>
+        </Flex>
+        <Flex direction="column" style={{ flexGrow: 1, position: "relative" }}>
           {header}
-          <Flex css={contentContainerStyle}>{children}</Flex>
+          <Flex style={contentContainerStyle}>{children}</Flex>
         </Flex>
       </Flex>
     </Box>
@@ -49,10 +40,7 @@ const containerStyle = {
   alignItems: "stretch",
 };
 
-const mainContainerStyle = {
-  flexGrow: 1,
-  position: "relative",
-};
+
 
 const contentContainerStyle = {
   overflow: "auto",

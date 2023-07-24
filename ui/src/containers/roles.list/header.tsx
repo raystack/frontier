@@ -1,47 +1,17 @@
-import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
-
-import { Button, Flex, Table, Text, useTable } from "@raystack/apsara";
-import { useNavigate } from "react-router-dom";
+import { DataTable, Flex, Text, useTable } from "@raystack/apsara";
 
 export const RolesHeader = () => {
-  const navigate = useNavigate();
-  const { filterQuery = [], clearFilters } = useTable();
+  const { filteredColumns, table } = useTable();
+  const isFiltered = filteredColumns.length > 0;
 
   return (
     <>
-      <Flex
-        align="center"
-        justify="between"
-        css={{ width: "100%", padding: "$4 24px", fontSize: 12 }}
-      >
-        <Text size={4} css={{ fontWeight: "500" }}>
-          Roles
-        </Text>
-        <Flex align="center" direction="row" css={{ columnGap: "8px" }}>
-          {filterQuery.length ? (
-            <Button variant="secondary" onClick={clearFilters}>
-              <Flex align="center" css={{ paddingRight: "$2" }}>
-                Clear Filters
-              </Flex>
-              <Cross1Icon />
-            </Button>
-          ) : (
-            <Table.ColumnFilterSelection align="end">
-              <Button variant="secondary" outline>
-                <Flex align="center" css={{ paddingRight: "$2" }}>
-                  <PlusIcon />
-                </Flex>
-                Filter
-              </Button>
-            </Table.ColumnFilterSelection>
-          )}
-          <Table.TableColumnsFilter>
-            <Button variant="secondary">View</Button>
-          </Table.TableColumnsFilter>
-          <Table.TableGlobalSearch
-            css={{ height: "24px" }}
-            placeholder="Search all roles"
-          />
+      <Flex align="center" justify="between">
+        <Text style={{ fontSize: "14px", fontWeight: "500" }}>Roles</Text>
+        <Flex gap="small">
+          {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
+          <DataTable.ViewOptions />
+          <DataTable.GloabalSearch placeholder="Search roles..." />
         </Flex>
       </Flex>
     </>
