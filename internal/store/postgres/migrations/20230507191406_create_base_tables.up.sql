@@ -97,6 +97,7 @@ DROP TABLE IF EXISTS roles CASCADE;
 CREATE TABLE IF NOT EXISTS roles (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     org_id uuid NOT NULL,
+    title text,
     name text NOT NULL,
     permissions jsonb,
     metadata jsonb,

@@ -8,7 +8,7 @@ var (
 	ErrInvalidEmail     = errors.New("user email is invalid")
 	ErrConflict         = errors.New("user already exist")
 	ErrInvalidDetails   = errors.New("invalid user details (name|email)")
-	ErrMissingSlug      = errors.New("user slug is missing")
+	ErrMissingName      = errors.New("user name is missing")
 	ErrEmptyKey         = errors.New("empty key")
 	ErrKeyAlreadyExists = errors.New("key already exist")
 	ErrKeyDoesNotExists = errors.New("key does not exist")

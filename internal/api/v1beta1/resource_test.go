@@ -18,6 +18,7 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -100,6 +101,30 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 		want    *frontierv1beta1.CreateProjectResourceResponse
 		wantErr error
 	}{
+		{
+			name: "should return error if request body is nil",
+			request: &frontierv1beta1.CreateProjectResourceRequest{
+				ProjectId: testProjectID,
+				Body:      nil,
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if unable to build metadata map",
+			request: &frontierv1beta1.CreateProjectResourceRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.ResourceRequestBody{
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"1": {},
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
@@ -286,6 +311,30 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 		want    *frontierv1beta1.UpdateProjectResourceResponse
 		wantErr error
 	}{
+		{
+			name: "should return error if request body is nil",
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
+				ProjectId: testProjectID,
+				Body:      nil,
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if unable to build metadata map",
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
+				ProjectId: testProjectID,
+				Body: &frontierv1beta1.ResourceRequestBody{
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"1": {},
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
@@ -493,6 +542,69 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			}
 			mockDep := Handler{resourceService: mockResourceSrv, projectService: mockProjectSrv}
 			resp, err := mockDep.UpdateProjectResource(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListProjectResources(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService, ps *mocks.ProjectService)
+		request *frontierv1beta1.ListProjectResourcesRequest
+		want    *frontierv1beta1.ListProjectResourcesResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if resource service return error",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"),
+					resource.Filter{ProjectID: testProjectID}).Return(nil, errors.New("error"))
+			},
+			request: &frontierv1beta1.ListProjectResourcesRequest{
+				ProjectId: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return success if resource service return nil",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{ProjectID: testProjectID}).Return([]resource.Resource{}, nil)
+			},
+			request: &frontierv1beta1.ListProjectResourcesRequest{
+				ProjectId: testProjectID,
+			},
+			want: &frontierv1beta1.ListProjectResourcesResponse{
+				Resources: nil,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return success if resource service return resources",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{ProjectID: testProjectID}).Return([]resource.Resource{testResource}, nil)
+			},
+			request: &frontierv1beta1.ListProjectResourcesRequest{
+				ProjectId: testProjectID,
+			},
+			want: &frontierv1beta1.ListProjectResourcesResponse{
+				Resources: []*frontierv1beta1.Resource{testResourcePB},
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv, mockProjectSrv)
+			}
+			mockDep := Handler{resourceService: mockResourceSrv, projectService: mockProjectSrv}
+			resp, err := mockDep.ListProjectResources(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

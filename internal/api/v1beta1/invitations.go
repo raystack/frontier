@@ -2,17 +2,22 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/user"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var grpcInvitationNotFoundError = status.Error(codes.NotFound, "invitation not found")
+
+//go:generate mockery --name=InvitationService -r --case underscore --with-expecter --structname InvitationService --filename invitation_service.go --output=./mocks
 type InvitationService interface {
 	Get(ctx context.Context, id uuid.UUID) (invitation.Invitation, error)
 	List(ctx context.Context, filter invitation.Filter) ([]invitation.Invitation, error)
@@ -24,9 +29,20 @@ type InvitationService interface {
 
 func (h Handler) ListOrganizationInvitations(ctx context.Context, request *frontierv1beta1.ListOrganizationInvitationsRequest) (*frontierv1beta1.ListOrganizationInvitationsResponse, error) {
 	logger := grpczap.Extract(ctx)
+	userID := request.GetUserId()
+	if userID != "" && !isValidEmail(request.GetUserId()) {
+		logger.Error("invalid email")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid email")
+	}
+	orgID, err := uuid.Parse(request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyError
+	}
+
 	invite, err := h.invitationService.List(ctx, invitation.Filter{
-		OrgID:  request.GetOrgId(),
-		UserID: request.GetUserId(),
+		OrgID:  orgID.String(),
+		UserID: userID,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -48,6 +64,10 @@ func (h Handler) ListOrganizationInvitations(ctx context.Context, request *front
 
 func (h Handler) ListUserInvitations(ctx context.Context, request *frontierv1beta1.ListUserInvitationsRequest) (*frontierv1beta1.ListUserInvitationsResponse, error) {
 	logger := grpczap.Extract(ctx)
+	if !isValidEmail(request.GetId()) {
+		logger.Error("invalid email")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid email")
+	}
 	invite, err := h.invitationService.ListByUser(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
@@ -128,7 +148,14 @@ func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *fron
 
 	if err := h.invitationService.Accept(ctx, inviteID); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		switch {
+		case errors.Is(err, invitation.ErrNotFound):
+			return nil, grpcInvitationNotFoundError
+		case errors.Is(err, user.ErrNotExist):
+			return nil, grpcUserNotFoundError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 	return &frontierv1beta1.AcceptOrganizationInvitationResponse{}, nil
 }

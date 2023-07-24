@@ -217,6 +217,7 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 			Description: "should create an organization",
 			OrganizationToCreate: organization.Organization{
 				Name:     "new-org",
+				State:    organization.Enabled,
 				Metadata: metadata.Metadata{},
 			},
 			ExpectedOrganization: organization.Organization{
@@ -226,12 +227,18 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 			},
 		},
 		{
-			Description: "should return error if organization slug already exist",
+			Description: "should return error if organization name already exist",
 			OrganizationToCreate: organization.Organization{
 				Name:     "org-1",
 				Metadata: metadata.Metadata{},
 			},
 			ErrString: organization.ErrConflict.Error(),
+		},
+		{
+			Description: "should return error if organization name is empty",
+			OrganizationToCreate: organization.Organization{
+				Metadata: metadata.Metadata{},
+			},
 		},
 	}
 
@@ -254,6 +261,7 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 	type testCase struct {
 		Description           string
 		ExpectedOrganizations []organization.Organization
+		Filter                organization.Filter
 		ErrString             string
 	}
 
@@ -273,11 +281,18 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 				},
 			},
 		},
+		{
+			Description: "should return empty list and no error if no organizations found",
+			Filter: organization.Filter{
+				State: organization.Disabled,
+			},
+			ErrString: "",
+		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx, organization.Filter{})
+			got, err := s.repository.List(s.ctx, tc.Filter)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -402,6 +417,124 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 			}
 			if !cmp.Equal(got, tc.ExpectedOrganization, cmpopts.IgnoreFields(organization.Organization{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganization)
+			}
+		})
+	}
+}
+
+func (s *OrganizationRepositoryTestSuite) TestDelete() {
+	type testCase struct {
+		Description          string
+		OrganizationToDelete organization.Organization
+		ErrString            string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should delete a organization",
+			OrganizationToDelete: organization.Organization{
+				ID: s.orgs[0].ID,
+			},
+		},
+		{
+			Description: "should return error if organization not found",
+			OrganizationToDelete: organization.Organization{
+				ID: uuid.NewString(),
+			},
+			ErrString: organization.ErrNotExist.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.Delete(s.ctx, tc.OrganizationToDelete.ID)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			} else {
+				s.Assert().NoError(err)
+			}
+		})
+	}
+}
+
+func (s *OrganizationRepositoryTestSuite) TestSetState() {
+	type testCase struct {
+		Description string
+		OrgID       string
+		State       organization.State
+		Err         string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should set state to enabled",
+			OrgID:       s.orgs[0].ID,
+			State:       organization.Enabled,
+		},
+		{
+			Description: "should return error if organization not found",
+			OrgID:       uuid.NewString(),
+			State:       organization.Enabled,
+			Err:         organization.ErrNotExist.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.SetState(s.ctx, tc.OrgID, tc.State)
+			if tc.Err != "" {
+				if err.Error() != tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				}
+			} else {
+				s.Assert().NoError(err)
+			}
+		})
+	}
+}
+
+func (s *OrganizationRepositoryTestSuite) TestGetByIDs() {
+	type testCase struct {
+		Description           string
+		OrganizationIDs       []string
+		ExpectedOrganizations []organization.Organization
+		ExpectError           string
+	}
+
+	var testCases = []testCase{
+		{
+			Description:           "should return organizations",
+			OrganizationIDs:       []string{s.orgs[0].ID, s.orgs[1].ID},
+			ExpectedOrganizations: []organization.Organization{s.orgs[0], s.orgs[1]},
+			ExpectError:           "",
+		},
+		{
+			Description:           "should return no error and empty list if no organization not found",
+			OrganizationIDs:       []string{s.orgs[0].ID, uuid.NewString()},
+			ExpectedOrganizations: []organization.Organization{s.orgs[0]},
+			ExpectError:           "",
+		},
+		{
+			Description:     "should return error if organization id is empty",
+			OrganizationIDs: []string{},
+			ExpectError:     organization.ErrInvalidID.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetByIDs(s.ctx, tc.OrganizationIDs)
+			if tc.ExpectError != "" {
+				if err.Error() != tc.ExpectError {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ExpectError)
+				}
+			} else {
+				s.Assert().NoError(err)
+			}
+			if !cmp.Equal(got, tc.ExpectedOrganizations, cmpopts.IgnoreFields(organization.Organization{}, "Metadata", "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganizations)
 			}
 		})
 	}

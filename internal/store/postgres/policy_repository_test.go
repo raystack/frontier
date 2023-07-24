@@ -214,6 +214,7 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 		Description     string
 		ExpectedPolicys []policy.Policy
 		ErrString       string
+		flt             policy.Filter
 	}
 
 	var testCases = []testCase{
@@ -234,11 +235,22 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 				},
 			},
 		},
+		{
+			Description:     "should get all policies with filters for policy",
+			ExpectedPolicys: nil,
+			flt: policy.Filter{
+				RoleID:        s.roleID,
+				OrgID:         s.orgID,
+				PrincipalID:   s.userID,
+				PrincipalType: schema.UserPrincipal,
+				ProjectID:     uuid.NewString(),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx, policy.Filter{})
+			got, err := s.repository.List(s.ctx, tc.flt)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -295,6 +307,36 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 			}
 			if !cmp.Equal(got, tc.ExpectedPolicyID) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicyID)
+			}
+		})
+	}
+}
+
+func (s *PolicyRepositoryTestSuite) TestDelete() {
+	type testCase struct {
+		Description string
+		PolicyID    string
+		ErrString   string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should delete a policy",
+			PolicyID:    s.policyIDs[0],
+			ErrString:   "",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.Delete(s.ctx, tc.PolicyID)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
 			}
 		})
 	}

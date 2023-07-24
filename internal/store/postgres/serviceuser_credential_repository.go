@@ -10,7 +10,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/pkg/db"
@@ -115,7 +114,7 @@ func (s ServiceUserCredentialRepository) Create(ctx context.Context, credential 
 
 func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (serviceuser.Credential, error) {
 	if strings.TrimSpace(id) == "" {
-		return serviceuser.Credential{}, role.ErrInvalidID
+		return serviceuser.Credential{}, serviceuser.ErrInvalidKeyID
 	}
 
 	query, params, err := dialect.Select(
@@ -139,7 +138,7 @@ func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (se
 		return s.dbc.GetContext(ctx, &svUserCredentialModel, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return serviceuser.Credential{}, role.ErrNotExist
+			return serviceuser.Credential{}, serviceuser.ErrCredNotExist
 		}
 		return serviceuser.Credential{}, fmt.Errorf("%w: %s", dbErr, err)
 	}

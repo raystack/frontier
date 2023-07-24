@@ -34,6 +34,7 @@ func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.Select
 		goqu.I("r.id"),
 		goqu.I("r.org_id"),
 		goqu.I("r.name"),
+		goqu.I("r.title"),
 		goqu.I("r.permissions"),
 		goqu.I("r.state"),
 		goqu.I("r.metadata"),
@@ -119,13 +120,15 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error
 			"id":          goqu.L("$1"),
 			"org_id":      goqu.L("$2"),
 			"name":        goqu.L("$3"),
-			"permissions": goqu.L("$4"),
-			"state":       goqu.L("$5"),
-			"metadata":    goqu.L("$6"),
+			"title":       goqu.L("$4"),
+			"permissions": goqu.L("$5"),
+			"state":       goqu.L("$6"),
+			"metadata":    goqu.L("$7"),
 		}).OnConflict(goqu.DoUpdate("org_id, name", goqu.Record{
-		"permissions": goqu.L("$4"),
-		"state":       goqu.L("$5"),
-		"metadata":    goqu.L("$6"),
+		"title":       goqu.L("$4"),
+		"permissions": goqu.L("$5"),
+		"state":       goqu.L("$6"),
+		"metadata":    goqu.L("$7"),
 	})).Returning("id").ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", queryErr, err)
@@ -133,7 +136,7 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error
 
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, rl.Title, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -202,8 +205,9 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 		goqu.Record{
 			"name":        goqu.L("$2"),
 			"permissions": goqu.L("$3"),
-			"state":       goqu.L("$4"),
-			"metadata":    goqu.L("$5"),
+			"title":       goqu.L("$4"),
+			"state":       goqu.L("$5"),
+			"metadata":    goqu.L("$6"),
 			"updated_at":  goqu.L("now()"),
 		}).Where(
 		goqu.Ex{"id": goqu.L("$1")},
@@ -214,7 +218,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.Title, rl.State, marshaledMetadata).Scan(&roleID)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -237,16 +241,14 @@ func (r RoleRepository) Delete(ctx context.Context, id string) error {
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(&Role{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var roleModel Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&roleModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

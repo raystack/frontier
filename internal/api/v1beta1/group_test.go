@@ -162,8 +162,8 @@ func TestHandler_ListGroups(t *testing.T) {
 				groupService: mockGroupSvc,
 			}
 			got, err := h.ListGroups(context.Background(), tt.request)
-			assert.EqualValues(t, got, tt.want)
-			assert.EqualValues(t, err, tt.wantErr)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }

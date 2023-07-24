@@ -106,6 +106,7 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		Name:        request.GetBody().GetName(),
 		Permissions: request.GetBody().GetPermissions(),
+		Title:       request.GetBody().GetTitle(),
 		OrgID:       schema.PlatformOrgID.String(), // to create a platform wide role
 		Metadata:    metaDataMap,
 	})
@@ -157,6 +158,7 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1
 
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		Name:        request.GetBody().GetName(),
+		Title:       request.GetBody().GetTitle(),
 		Permissions: request.GetBody().GetPermissions(),
 		OrgID:       request.GetOrgId(),
 		Metadata:    metaDataMap,
@@ -236,6 +238,7 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 		ID:          request.GetId(),
 		OrgID:       request.GetOrgId(),
 		Name:        request.GetBody().GetName(),
+		Title:       request.GetBody().GetTitle(),
 		Permissions: request.GetBody().GetPermissions(),
 		Metadata:    metaDataMap,
 	})
@@ -319,8 +322,9 @@ func transformRoleToPB(from role.Role) (frontierv1beta1.Role, error) {
 	}
 
 	return frontierv1beta1.Role{
-		Id:   from.ID,
-		Name: from.Name,
+		Id:    from.ID,
+		Name:  from.Name,
+		Title: from.Title,
 
 		Permissions: from.Permissions,
 		OrgId:       from.OrgID,

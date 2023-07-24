@@ -8,10 +8,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/frontier/core/user"
-
-	"github.com/raystack/frontier/core/project"
-
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/db"
@@ -73,7 +69,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 
 func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]organization.Organization, error) {
 	if len(ids) == 0 {
-		return nil, project.ErrInvalidID
+		return nil, organization.ErrInvalidID
 	}
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
@@ -331,21 +327,19 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var orgModel Organization
 	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "SetState", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return organization.ErrNotExist
 		default:
 			return err
 		}
@@ -358,16 +352,14 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var orgModel Organization
 	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&orgModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

@@ -342,7 +342,7 @@ func (h Handler) AddOrganizationUsers(ctx context.Context, request *frontierv1be
 
 	if err := h.orgService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, grpcInternalServerError
 	}
 	return &frontierv1beta1.AddOrganizationUsersResponse{}, nil
 }
@@ -351,7 +351,7 @@ func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1
 	logger := grpczap.Extract(ctx)
 	if err := h.orgService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, grpcInternalServerError
 	}
 	audit.GetAuditor(ctx, request.GetId()).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(request.GetUserId()))
 	return &frontierv1beta1.RemoveOrganizationUserResponse{}, nil
@@ -361,7 +361,7 @@ func (h Handler) EnableOrganization(ctx context.Context, request *frontierv1beta
 	logger := grpczap.Extract(ctx)
 	if err := h.orgService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, grpcInternalServerError
 	}
 	return &frontierv1beta1.EnableOrganizationResponse{}, nil
 }
@@ -370,7 +370,7 @@ func (h Handler) DisableOrganization(ctx context.Context, request *frontierv1bet
 	logger := grpczap.Extract(ctx)
 	if err := h.orgService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, grpcInternalServerError
 	}
 	return &frontierv1beta1.DisableOrganizationResponse{}, nil
 }

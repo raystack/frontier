@@ -36,6 +36,7 @@
   {
     "org_id": "",
     "name": "editor",
+    "title": "Test Title",
     "permissions": [
       "user",
       "group"
@@ -63,6 +64,7 @@
   {
     "org_id": "",
     "name": "editor",
+    "title": "Test Title",
     "permissions": [
       "user",
       "group"
