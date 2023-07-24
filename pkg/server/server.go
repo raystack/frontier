@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/raystack/shield/pkg/server/consts"
@@ -35,7 +38,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -53,13 +55,22 @@ func Serve(
 	deps api.Deps,
 ) error {
 	httpMux := http.NewServeMux()
-
 	grpcDialCtx, grpcDialCancel := context.WithTimeout(ctx, grpcDialTimeout)
 	defer grpcDialCancel()
+
+	grpcGatewayClientCreds := insecure.NewCredentials()
+	if cfg.GRPC.TLSClientCAFile != "" {
+		tlsCreds, err := credentials.NewClientTLSFromFile(cfg.GRPC.TLSClientCAFile, "")
+		if err != nil {
+			return err
+		}
+		grpcGatewayClientCreds = tlsCreds
+	}
+	// initialize grpc gateway client
 	grpcConn, err := grpc.DialContext(
 		grpcDialCtx,
 		cfg.grpcAddr(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(grpcGatewayClientCreds),
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallRecvMsgSize(cfg.GRPC.MaxRecvMsgSize),
 			grpc.MaxCallSendMsgSize(cfg.GRPC.MaxSendMsgSize),
@@ -126,8 +137,16 @@ func Serve(
 		httpMux.Handle("/console/", http.StripPrefix("/console/", spaHandler))
 	}
 
-	grpcMiddlewares := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware, deps)
-	grpcServer := grpc.NewServer(grpcMiddlewares)
+	grpcMiddleware := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware, deps)
+	grpcServerOpts := []grpc.ServerOption{grpcMiddleware}
+	if cfg.GRPC.TLSCertFile != "" && cfg.GRPC.TLSKeyFile != "" {
+		creds, err := credentials.NewServerTLSFromFile(cfg.GRPC.TLSCertFile, cfg.GRPC.TLSKeyFile)
+		if err != nil {
+			return err
+		}
+		grpcServerOpts = append(grpcServerOpts, grpc.Creds(creds))
+	}
+	grpcServer := grpc.NewServer(grpcServerOpts...)
 	reflection.Register(grpcServer)
 	grpc_health_v1.RegisterHealthServer(grpcServer, health.NewHandler())
 

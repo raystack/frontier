@@ -83,10 +83,6 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}()
 
 	// load resource config
-	if cfg.App.ResourcesConfigPath == "" {
-		return errors.New("resource config path cannot be left empty")
-	}
-
 	resourceBlobFS, err := blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
 	if err != nil {
 		return err

@@ -13,9 +13,12 @@ import (
 )
 
 type GRPCConfig struct {
-	Port           int `mapstructure:"port" default:"8081"`
-	MaxRecvMsgSize int `mapstructure:"max_recv_msg_size" default:"33554432"`
-	MaxSendMsgSize int `mapstructure:"max_send_msg_size" default:"33554432"`
+	Port            int    `mapstructure:"port" default:"8081"`
+	MaxRecvMsgSize  int    `mapstructure:"max_recv_msg_size" default:"33554432"`
+	MaxSendMsgSize  int    `mapstructure:"max_send_msg_size" default:"33554432"`
+	TLSCertFile     string `mapstructure:"tls_cert_file" default:""`
+	TLSKeyFile      string `mapstructure:"tls_key_file" default:""`
+	TLSClientCAFile string `mapstructure:"tls_client_ca_file" default:""`
 }
 
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
