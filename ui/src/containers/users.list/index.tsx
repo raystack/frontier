@@ -1,7 +1,6 @@
-import { EmptyState, Flex, Table } from "@raystack/apsara";
+import { DataTable, EmptyState } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
-import { tableStyle } from "~/styles";
 import { User } from "~/types/user";
 import { fetcher, reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
@@ -14,32 +13,32 @@ export default function UserList() {
   let { userId } = useParams();
 
   const userMapByName = reduceByKey(users ?? [], "id");
-  console.log(userMapByName);
   return (
-    <Flex direction="row" css={{ height: "100%", width: "100%" }}>
-      <Table
-        css={tableStyle}
-        columns={getColumns(users)}
+    <>
+      <DataTable
         data={users ?? []}
-        noDataChildren={noDataChildren}
+        // @ts-ignore
+        columns={getColumns(users)}
+        emptyState={noDataChildren}
+        style={{
+          width: "100%",
+          maxHeight: "calc(100vh - 60px)",
+          overflow: "scroll",
+        }}
       >
-        <Table.TopContainer>
+        <DataTable.Toolbar>
           <UsersHeader />
-        </Table.TopContainer>
-        <Table.DetailContainer
-          css={{
-            borderLeft: "1px solid $gray4",
-            borderTop: "1px solid $gray4",
-          }}
-        >
+          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+        </DataTable.Toolbar>
+        <DataTable.DetailContainer>
           <Outlet
             context={{
               user: userId ? userMapByName[userId] : null,
             }}
           />
-        </Table.DetailContainer>
-      </Table>
-    </Flex>
+        </DataTable.DetailContainer>
+      </DataTable>
+    </>
   );
 }
 
@@ -53,4 +52,8 @@ export const noDataChildren = (
     <h3>0 user created</h3>
     <div className="pera">Try creating a new user.</div>
   </EmptyState>
+);
+
+export const TableDetailContainer = ({ children }: any) => (
+  <div>{children}</div>
 );

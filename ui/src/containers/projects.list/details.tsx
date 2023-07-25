@@ -1,8 +1,8 @@
 import { Dialog, Flex, Grid, Text } from "@raystack/apsara";
 import { ColumnDef } from "@tanstack/table-core";
 import useSWR from "swr";
-import { DialogHeader } from "~/components/dialog/header";
 import DialogTable from "~/components/DialogTable";
+import { DialogHeader } from "~/components/dialog/header";
 import { User } from "~/types/user";
 import { fetcher } from "~/utils/helper";
 import { useProject } from ".";
@@ -39,7 +39,7 @@ export default function ProjectDetails() {
     },
     {
       key: "Created At",
-      value: new Date(project?.createdAt as Date).toLocaleString("en", {
+      value: new Date(project?.created_at as Date).toLocaleString("en", {
         month: "long",
         day: "numeric",
         year: "numeric",
@@ -49,8 +49,8 @@ export default function ProjectDetails() {
       key: "Users",
       value: (
         <Dialog>
-          <Dialog.Trigger style={css.button}>{users.length}</Dialog.Trigger>
-          <Dialog.Content css={{ padding: 0, button: { my: "$2" } }}>
+          <Dialog.Trigger>{users.length}</Dialog.Trigger>
+          <Dialog.Content>
             <DialogTable
               columns={userColumns}
               data={users}
@@ -65,50 +65,23 @@ export default function ProjectDetails() {
   return (
     <Flex
       direction="column"
-      css={{
+      gap="large"
+      style={{
         width: "320px",
-        height: "100%",
-        padding: "$4",
+        height: "calc(100vh - 60px)",
+        borderLeft: "1px solid var(--border-base)",
+        padding: "var(--pd-16)",
       }}
     >
-      <Text css={{ fontSize: "14px" }}>{project?.name}</Text>
-      <Flex direction="column">
+      <Text size={4}>{project?.name}</Text>
+      <Flex direction="column" gap="large">
         {detailList.map((detailItem) => (
-          <Grid
-            columns="2"
-            css={{ width: "100%", paddingTop: "$4" }}
-            key={detailItem.key}
-          >
-            <Text
-              size={1}
-              css={{
-                color: "$gray11",
-                ...css.row,
-              }}
-            >
-              {detailItem.key}
-            </Text>
-            <Text size={1} css={css.row}>
-              {detailItem.value}
-            </Text>
+          <Grid columns={2} gap="small" key={detailItem.key}>
+            <Text size={1}>{detailItem.key}</Text>
+            <Text size={1}>{detailItem.value}</Text>
           </Grid>
         ))}
       </Flex>
     </Flex>
   );
 }
-
-const css = {
-  row: { height: "32px", display: "flex", alignItems: "center" },
-  button: {
-    background: "none",
-    color: "inherit",
-    border: "none",
-    padding: "0",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    height: "100%",
-    width: "100%",
-  },
-};

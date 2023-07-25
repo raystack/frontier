@@ -1,8 +1,8 @@
-import { Dialog, Flex, Grid, Text } from "@raystack/apsara";
+import { Button, Dialog, Flex, Grid, Text } from "@raystack/apsara";
 import { ColumnDef } from "@tanstack/table-core";
 import useSWR from "swr";
-import { DialogHeader } from "~/components/dialog/header";
 import DialogTable from "~/components/DialogTable";
+import { DialogHeader } from "~/components/dialog/header";
 import { User } from "~/types/user";
 import { fetcher } from "~/utils/helper";
 import { useOrganisation } from ".";
@@ -39,6 +39,7 @@ export const projectColumns: ColumnDef<User, any>[] = [
 
 export default function OrganisationDetails() {
   const { organisation } = useOrganisation();
+  console.log(organisation);
   const { data: usersData } = useSWR(
     `/v1beta1/organizations/${organisation?.id}/users`,
     fetcher
@@ -49,12 +50,12 @@ export default function OrganisationDetails() {
 
   const detailList: DetailsProps[] = [
     {
-      key: "Slug",
-      value: organisation?.slug,
+      key: "Name",
+      value: organisation?.name,
     },
     {
       key: "Created At",
-      value: new Date(organisation?.createdAt as Date).toLocaleString("en", {
+      value: new Date(organisation?.created_at as Date).toLocaleString("en", {
         month: "long",
         day: "numeric",
         year: "numeric",
@@ -64,8 +65,10 @@ export default function OrganisationDetails() {
       key: "Users",
       value: (
         <Dialog>
-          <Dialog.Trigger style={css.button}>{users.length}</Dialog.Trigger>
-          <Dialog.Content css={{ padding: 0, button: { my: "$2" } }}>
+          <Dialog.Trigger asChild>
+            <Button>{users.length}</Button>
+          </Dialog.Trigger>
+          <Dialog.Content>
             <DialogTable
               columns={userColumns}
               data={users}
@@ -79,8 +82,10 @@ export default function OrganisationDetails() {
       key: "Projects",
       value: (
         <Dialog>
-          <Dialog.Trigger style={css.button}>{projects.length}</Dialog.Trigger>
-          <Dialog.Content css={{ padding: 0, button: { my: "$2" } }}>
+          <Dialog.Trigger asChild>
+            <Button>{projects.length}</Button>
+          </Dialog.Trigger>
+          <Dialog.Content>
             <DialogTable
               columns={projectColumns}
               data={projects}
@@ -95,50 +100,23 @@ export default function OrganisationDetails() {
   return (
     <Flex
       direction="column"
-      css={{
+      gap="large"
+      style={{
         width: "320px",
-        height: "100%",
-        padding: "$4",
+        height: "calc(100vh - 60px)",
+        borderLeft: "1px solid var(--border-base)",
+        padding: "var(--pd-16)",
       }}
     >
-      <Text css={{ fontSize: "14px" }}>{organisation?.name}</Text>
-      <Flex direction="column">
+      <Text size={4}>{organisation?.name}</Text>
+      <Flex direction="column" gap="large">
         {detailList.map((detailItem) => (
-          <Grid
-            columns="2"
-            css={{ width: "100%", paddingTop: "$4" }}
-            key={detailItem.key}
-          >
-            <Text
-              size={1}
-              css={{
-                color: "$gray11",
-                ...css.row,
-              }}
-            >
-              {detailItem.key}
-            </Text>
-            <Text size={1} css={css.row}>
-              {detailItem.value}
-            </Text>
+          <Grid columns={2} gap="small" key={detailItem.key}>
+            <Text size={1}>{detailItem.key}</Text>
+            <Text size={1}>{detailItem.value}</Text>
           </Grid>
         ))}
       </Flex>
     </Flex>
   );
 }
-
-const css = {
-  row: { height: "32px", display: "flex", alignItems: "center" },
-  button: {
-    background: "none",
-    color: "inherit",
-    border: "none",
-    padding: "0",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    height: "100%",
-    width: "100%",
-  },
-};

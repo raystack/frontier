@@ -7,7 +7,7 @@ type SheetFooterProps = {
 };
 
 export function SheetFooter({ children, css }: SheetFooterProps) {
-  return <Flex css={{ ...styles.footer, ...css }}>{children}</Flex>;
+  return <Flex style={{ ...styles.footer, ...css }}>{children}</Flex>;
 }
 
 const styles = {

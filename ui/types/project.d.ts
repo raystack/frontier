@@ -3,6 +3,6 @@ export type Project = {
   name: string;
   slug: string;
   metadata: Record<string, string>;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 };

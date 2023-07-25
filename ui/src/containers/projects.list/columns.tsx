@@ -17,21 +17,21 @@ export const getColumns: (projects: Project[]) => ColumnDef<Project, any>[] = (
       },
     }),
     {
-      header: "Name",
-      accessorKey: "name",
+      header: "Title",
+      accessorKey: "title",
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },
     {
-      header: "Slug",
-      accessorKey: "slug",
+      header: "Name",
+      accessorKey: "name",
       filterVariant: "text",
       cell: (info) => info.getValue(),
       footer: (props) => props.column.id,
     },
     {
       header: "Create At",
-      accessorKey: "createdAt",
+      accessorKey: "created_at",
       meta: {
         headerFilter: false,
       },

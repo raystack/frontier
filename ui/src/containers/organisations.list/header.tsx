@@ -1,56 +1,36 @@
-import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
+import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, Flex, Table, Text, useTable } from "@raystack/apsara";
+import { Button, DataTable, Flex, Text, useTable } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 
 export const OrganizationsHeader = () => {
   const navigate = useNavigate();
-  const { filterQuery = [], clearFilters } = useTable();
+  const { filteredColumns, table } = useTable();
+  const isFiltered = filteredColumns.length > 0;
 
   return (
     <>
-      <Flex
-        align="center"
-        justify="between"
-        css={{ width: "100%", padding: "$4 24px", fontSize: 12 }}
-      >
-        <Text size={4} css={{ fontWeight: "500" }}>
+      <Flex align="center" justify="between">
+        <Text style={{ fontSize: "14px", fontWeight: "500" }}>
           Organisations
         </Text>
-        <Flex align="center" direction="row" css={{ columnGap: "8px" }}>
-          {filterQuery.length ? (
-            <Button variant="secondary" onClick={clearFilters}>
-              <Flex align="center" css={{ paddingRight: "$2" }}>
-                Clear Filters
-              </Flex>
-              <Cross1Icon />
-            </Button>
-          ) : (
-            <Table.ColumnFilterSelection align="end">
-              <Button variant="secondary" outline>
-                <Flex align="center" css={{ paddingRight: "$2" }}>
-                  <PlusIcon />
-                </Flex>
-                Filter
-              </Button>
-            </Table.ColumnFilterSelection>
-          )}
-          <Table.TableColumnsFilter>
-            <Button variant="secondary">View</Button>
-          </Table.TableColumnsFilter>
-          <Table.TableGlobalSearch
-            css={{ height: "24px" }}
-            placeholder="Search all organisations"
-          />
-
+        <Flex gap="small">
+          {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
+          <DataTable.ViewOptions />
+          <DataTable.GloabalSearch placeholder="Search organisations..." />
           <Button
             variant="secondary"
             onClick={() => navigate("/console/organisations/create")}
+            style={{ width: "100%" }}
           >
-            <Flex align="center" css={{ paddingRight: "$2" }}>
+            <Flex
+              direction="column"
+              align="center"
+              style={{ paddingRight: "var(--pd-4)" }}
+            >
               <PlusIcon />
             </Flex>
-            New organisation
+            new organisation
           </Button>
         </Flex>
       </Flex>

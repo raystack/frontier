@@ -44,7 +44,7 @@ export const getColumns: (groups: Group[]) => ColumnDef<Group, any>[] = (
     },
     {
       header: "Create At",
-      accessorKey: "createdAt",
+      accessorKey: "created_at",
       filterVariant: "text",
       meta: {
         headerFilter: false,
