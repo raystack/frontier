@@ -51,7 +51,7 @@ func Load(serverConfigFileFromFlag string) (*Shield, error) {
 
 	// override all config sources and prioritize one from file
 	if serverConfigFileFromFlag != "" {
-		options = []config.LoaderOption{config.WithFile(serverConfigFileFromFlag)}
+		options = append(options, config.WithFile(serverConfigFileFromFlag))
 	}
 
 	l := config.NewLoader(options...)

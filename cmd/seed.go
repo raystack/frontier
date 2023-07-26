@@ -33,7 +33,7 @@ var (
 )
 
 func SeedCommand(cliConfig *Config) *cli.Command {
-	var header string
+	var header, configFile string
 	cmd := &cli.Command{
 		Use:   "seed",
 		Short: "Seed the database with initial data",
@@ -49,7 +49,7 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 
 		RunE: func(cmd *cli.Command, args []string) error {
 			if header == "" {
-				appConfig, err := config.Load("")
+				appConfig, err := config.Load(configFile)
 				if err != nil {
 					panic(err)
 				}
@@ -87,7 +87,7 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 
 	bindFlagsFromClientConfig(cmd)
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>")
-
+	cmd.Flags().StringVarP(&configFile, "config", "c", "", "config file path")
 	return cmd
 }
 
