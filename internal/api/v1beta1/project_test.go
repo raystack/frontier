@@ -5,19 +5,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	"github.com/raystack/shield/pkg/errors"
-	"github.com/raystack/shield/pkg/metadata"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/metadata"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -60,8 +60,8 @@ func TestCreateProject(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(ctx context.Context, ps *mocks.ProjectService) context.Context
-		req   *shieldv1beta1.CreateProjectRequest
-		want  *shieldv1beta1.CreateProjectResponse
+		req   *frontierv1beta1.CreateProjectRequest
+		want  *frontierv1beta1.CreateProjectResponse
 		err   error
 	}{
 		{
@@ -75,7 +75,7 @@ func TestCreateProject(t *testing.T) {
 				}).Return(project.Project{}, user.ErrInvalidEmail)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+			req: &frontierv1beta1.CreateProjectRequest{Body: &frontierv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -96,7 +96,7 @@ func TestCreateProject(t *testing.T) {
 				}).Return(project.Project{}, errors.New("some error"))
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+			req: &frontierv1beta1.CreateProjectRequest{Body: &frontierv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -117,7 +117,7 @@ func TestCreateProject(t *testing.T) {
 				}).Return(project.Project{}, organization.ErrInvalidUUID)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+			req: &frontierv1beta1.CreateProjectRequest{Body: &frontierv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -138,7 +138,7 @@ func TestCreateProject(t *testing.T) {
 				}).Return(project.Project{}, organization.ErrInvalidUUID)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+			req: &frontierv1beta1.CreateProjectRequest{Body: &frontierv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -159,7 +159,7 @@ func TestCreateProject(t *testing.T) {
 				}).Return(project.Project{}, project.ErrConflict)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+			req: &frontierv1beta1.CreateProjectRequest{Body: &frontierv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -180,7 +180,7 @@ func TestCreateProject(t *testing.T) {
 				}).Return(project.Project{}, project.ErrInvalidDetail)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+			req: &frontierv1beta1.CreateProjectRequest{Body: &frontierv1beta1.ProjectRequestBody{
 				Name: "raystack-1",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -192,7 +192,7 @@ func TestCreateProject(t *testing.T) {
 		},
 		{
 			title: "should return success if project service return nil",
-			req: &shieldv1beta1.CreateProjectRequest{Body: &shieldv1beta1.ProjectRequestBody{
+			req: &frontierv1beta1.CreateProjectRequest{Body: &frontierv1beta1.ProjectRequestBody{
 				Name: testProjectMap[testProjectID].Name,
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -215,7 +215,7 @@ func TestCreateProject(t *testing.T) {
 				}, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			want: &shieldv1beta1.CreateProjectResponse{Project: &shieldv1beta1.Project{
+			want: &frontierv1beta1.CreateProjectResponse{Project: &frontierv1beta1.Project{
 				Id:   testProjectMap[testProjectID].ID,
 				Name: testProjectMap[testProjectID].Name,
 				Metadata: &structpb.Struct{
@@ -249,13 +249,13 @@ func TestListProjects(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(ps *mocks.ProjectService)
-		req   *shieldv1beta1.ListProjectsRequest
-		want  *shieldv1beta1.ListProjectsResponse
+		req   *frontierv1beta1.ListProjectsRequest
+		want  *frontierv1beta1.ListProjectsResponse
 		err   error
 	}{
 		{
 			title: "should return internal error if project service return some error",
-			req:   &shieldv1beta1.ListProjectsRequest{},
+			req:   &frontierv1beta1.ListProjectsRequest{},
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), project.Filter{}).Return([]project.Project{}, errors.New("some error"))
 			},
@@ -264,7 +264,7 @@ func TestListProjects(t *testing.T) {
 		},
 		{
 			title: "should return success if project return nil error",
-			req:   &shieldv1beta1.ListProjectsRequest{},
+			req:   &frontierv1beta1.ListProjectsRequest{},
 			setup: func(ps *mocks.ProjectService) {
 				var prjs []project.Project
 
@@ -274,7 +274,7 @@ func TestListProjects(t *testing.T) {
 
 				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), project.Filter{}).Return(prjs, nil)
 			},
-			want: &shieldv1beta1.ListProjectsResponse{Projects: []*shieldv1beta1.Project{
+			want: &frontierv1beta1.ListProjectsResponse{Projects: []*frontierv1beta1.Project{
 				{
 					Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
 					Name: "prj-1",
@@ -324,13 +324,13 @@ func TestGetProject(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(ps *mocks.ProjectService)
-		req   *shieldv1beta1.GetProjectRequest
-		want  *shieldv1beta1.GetProjectResponse
+		req   *frontierv1beta1.GetProjectRequest
+		want  *frontierv1beta1.GetProjectResponse
 		err   error
 	}{
 		{
 			title: "should return internal error if project service return some error",
-			req: &shieldv1beta1.GetProjectRequest{
+			req: &frontierv1beta1.GetProjectRequest{
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
@@ -340,7 +340,7 @@ func TestGetProject(t *testing.T) {
 		},
 		{
 			title: "should return not found error if project doesnt exist",
-			req: &shieldv1beta1.GetProjectRequest{
+			req: &frontierv1beta1.GetProjectRequest{
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
@@ -350,7 +350,7 @@ func TestGetProject(t *testing.T) {
 		},
 		{
 			title: "should return project not found if project id is not uuid",
-			req: &shieldv1beta1.GetProjectRequest{
+			req: &frontierv1beta1.GetProjectRequest{
 				Id: "some-id",
 			},
 			setup: func(ps *mocks.ProjectService) {
@@ -360,7 +360,7 @@ func TestGetProject(t *testing.T) {
 		},
 		{
 			title: "should return project not found if project id is empty",
-			req:   &shieldv1beta1.GetProjectRequest{},
+			req:   &frontierv1beta1.GetProjectRequest{},
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(project.Project{}, project.ErrInvalidUUID)
 			},
@@ -368,14 +368,14 @@ func TestGetProject(t *testing.T) {
 		},
 		{
 			title: "should return success if project service return nil error",
-			req: &shieldv1beta1.GetProjectRequest{
+			req: &frontierv1beta1.GetProjectRequest{
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someProjectID).Return(
 					testProjectMap[testProjectID], nil)
 			},
-			want: &shieldv1beta1.GetProjectResponse{Project: &shieldv1beta1.Project{
+			want: &frontierv1beta1.GetProjectResponse{Project: &frontierv1beta1.Project{
 				Id:    testProjectMap[testProjectID].ID,
 				Name:  testProjectMap[testProjectID].Name,
 				OrgId: testProjectMap[testProjectID].Organization.ID,
@@ -409,8 +409,8 @@ func TestHandler_UpdateProject(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(ps *mocks.ProjectService)
-		request *shieldv1beta1.UpdateProjectRequest
-		want    *shieldv1beta1.UpdateProjectResponse
+		request *frontierv1beta1.UpdateProjectRequest
+		want    *frontierv1beta1.UpdateProjectResponse
 		wantErr error
 	}{
 		{
@@ -418,9 +418,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -438,9 +438,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, organization.ErrInvalidUUID)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -458,9 +458,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -478,9 +478,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -498,9 +498,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrConflict)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -522,9 +522,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 					Metadata:     testProjectMap[testProjectID].Metadata,
 				}).Return(project.Project{}, project.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -546,9 +546,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 					Metadata:     testProjectMap[testProjectID].Metadata,
 				}).Return(project.Project{}, project.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -570,8 +570,8 @@ func TestHandler_UpdateProject(t *testing.T) {
 					Metadata:     testProjectMap[testProjectID].Metadata,
 				}).Return(project.Project{}, project.ErrInvalidID)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
-				Body: &shieldv1beta1.ProjectRequestBody{
+			request: &frontierv1beta1.UpdateProjectRequest{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -589,9 +589,9 @@ func TestHandler_UpdateProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(testProjectMap[testProjectID], nil)
 			},
-			request: &shieldv1beta1.UpdateProjectRequest{
+			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
-				Body: &shieldv1beta1.ProjectRequestBody{
+				Body: &frontierv1beta1.ProjectRequestBody{
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
 					Metadata: &structpb.Struct{
@@ -601,8 +601,8 @@ func TestHandler_UpdateProject(t *testing.T) {
 					},
 				},
 			},
-			want: &shieldv1beta1.UpdateProjectResponse{
-				Project: &shieldv1beta1.Project{
+			want: &frontierv1beta1.UpdateProjectResponse{
+				Project: &frontierv1beta1.Project{
 					Id:    testProjectMap[testProjectID].ID,
 					Name:  testProjectMap[testProjectID].Name,
 					OrgId: testProjectMap[testProjectID].Organization.ID,
@@ -636,8 +636,8 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(ps *mocks.ProjectService)
-		request *shieldv1beta1.ListProjectAdminsRequest
-		want    *shieldv1beta1.ListProjectAdminsResponse
+		request *frontierv1beta1.ListProjectAdminsRequest
+		want    *frontierv1beta1.ListProjectAdminsResponse
 		wantErr error
 	}{
 		{
@@ -645,7 +645,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.ListProjectAdminsRequest{
+			request: &frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
 			},
 			want:    nil,
@@ -656,7 +656,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, project.ErrNotExist)
 			},
-			request: &shieldv1beta1.ListProjectAdminsRequest{
+			request: &frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
 			},
 			want:    nil,
@@ -671,11 +671,11 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 				}
 				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return(testUserList, nil)
 			},
-			request: &shieldv1beta1.ListProjectAdminsRequest{
+			request: &frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
 			},
-			want: &shieldv1beta1.ListProjectAdminsResponse{
-				Users: []*shieldv1beta1.User{
+			want: &frontierv1beta1.ListProjectAdminsResponse{
+				Users: []*frontierv1beta1.User{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Title: "User 1",

@@ -7,16 +7,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/uuid"
 
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/role"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type RoleRepository struct {

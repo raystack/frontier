@@ -1,4 +1,4 @@
-module github.com/raystack/shield/examples/authn
+module github.com/raystack/frontier/examples/authn
 
 go 1.20
 

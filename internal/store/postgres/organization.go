@@ -6,7 +6,7 @@ import (
 
 	"database/sql"
 
-	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/frontier/core/organization"
 )
 
 type Organization struct {

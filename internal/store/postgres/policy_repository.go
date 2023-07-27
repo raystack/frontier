@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/policy"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type PolicyRepository struct {

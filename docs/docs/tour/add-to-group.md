@@ -1,6 +1,6 @@
 # Adding to a group
 
-In this part we'll learn to add `members` and `managers` to a group. For this, we'll be using relations API. Also, we have added two new users to shield `john.doe@raystack.org` and `doe.john@raystack.org`.
+In this part we'll learn to add `members` and `managers` to a group. For this, we'll be using relations API. Also, we have added two new users to frontier `john.doe@raystack.org` and `doe.john@raystack.org`.
 
 ## Add a Member to a Group
 

@@ -7,20 +7,20 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/core/authenticate/token"
+	"github.com/raystack/frontier/core/authenticate/token"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/pkg/errors"
+	"github.com/raystack/frontier/pkg/errors"
 
-	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/frontier/core/organization"
 
-	"github.com/raystack/shield/core/group"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -29,7 +29,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
 var (
@@ -55,8 +55,8 @@ func TestListUsers(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(us *mocks.UserService)
-		req   *shieldv1beta1.ListUsersRequest
-		want  *shieldv1beta1.ListUsersResponse
+		req   *frontierv1beta1.ListUsersRequest
+		want  *frontierv1beta1.ListUsersResponse
 		err   error
 	}{
 		{
@@ -64,7 +64,7 @@ func TestListUsers(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().List(mock.Anything, mock.Anything).Return([]user.User{}, errors.New("some error"))
 			},
-			req: &shieldv1beta1.ListUsersRequest{
+			req: &frontierv1beta1.ListUsersRequest{
 				PageSize: 50,
 				PageNum:  1,
 				Keyword:  "",
@@ -80,14 +80,14 @@ func TestListUsers(t *testing.T) {
 				}
 				us.EXPECT().List(mock.Anything, mock.Anything).Return(testUserList, nil)
 			},
-			req: &shieldv1beta1.ListUsersRequest{
+			req: &frontierv1beta1.ListUsersRequest{
 				PageSize: 50,
 				PageNum:  1,
 				Keyword:  "",
 			},
-			want: &shieldv1beta1.ListUsersResponse{
+			want: &frontierv1beta1.ListUsersResponse{
 				Count: 1,
-				Users: []*shieldv1beta1.User{
+				Users: []*frontierv1beta1.User{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Title: "User 1",
@@ -129,13 +129,13 @@ func TestCreateUser(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
-		req   *shieldv1beta1.CreateUserRequest
-		want  *shieldv1beta1.CreateUserResponse
+		req   *frontierv1beta1.CreateUserRequest
+		want  *frontierv1beta1.CreateUserResponse
 		err   error
 	}{
 		{
 			title: "should return unauthenticated error if no auth email header in context",
-			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title:    "some user",
 				Email:    "abc@test.com",
 				Metadata: &structpb.Struct{},
@@ -149,7 +149,7 @@ func TestCreateUser(t *testing.T) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "some user",
 				Email: "abc@test.com",
 				Metadata: &structpb.Struct{
@@ -170,7 +170,7 @@ func TestCreateUser(t *testing.T) {
 				}).Return(user.User{}, user.ErrInvalidEmail)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "some user",
 				Email: "",
 				Metadata: &structpb.Struct{
@@ -195,7 +195,7 @@ func TestCreateUser(t *testing.T) {
 				}).Return(user.User{}, user.ErrConflict)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title:    "some user",
 				Email:    "abc@test.com",
 				Name:     "user-slug",
@@ -223,7 +223,7 @@ func TestCreateUser(t *testing.T) {
 					}, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "some user",
 				Email: "  abc@test.com  ",
 				Name:  "user-slug",
@@ -233,7 +233,7 @@ func TestCreateUser(t *testing.T) {
 					},
 				},
 			}},
-			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
+			want: &frontierv1beta1.CreateUserResponse{User: &frontierv1beta1.User{
 				Id:    "new-abc",
 				Title: "some user",
 				Email: "abc@test.com",
@@ -267,7 +267,7 @@ func TestCreateUser(t *testing.T) {
 					}, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "some user",
 				Email: "abc@test.com",
 				Name:  "user-slug",
@@ -277,7 +277,7 @@ func TestCreateUser(t *testing.T) {
 					},
 				},
 			}},
-			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
+			want: &frontierv1beta1.CreateUserResponse{User: &frontierv1beta1.User{
 				Id:    "new-abc",
 				Title: "some user",
 				Email: "abc@test.com",
@@ -296,7 +296,7 @@ func TestCreateUser(t *testing.T) {
 
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
-			var resp *shieldv1beta1.CreateUserResponse
+			var resp *frontierv1beta1.CreateUserResponse
 			var err error
 
 			ctx := context.Background()
@@ -317,9 +317,9 @@ func TestGetUser(t *testing.T) {
 	randomID := utils.NewString()
 	table := []struct {
 		title string
-		req   *shieldv1beta1.GetUserRequest
+		req   *frontierv1beta1.GetUserRequest
 		setup func(us *mocks.UserService)
-		want  *shieldv1beta1.GetUserResponse
+		want  *frontierv1beta1.GetUserResponse
 		err   error
 	}{
 		{
@@ -327,7 +327,7 @@ func TestGetUser(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(user.User{}, user.ErrNotExist)
 			},
-			req: &shieldv1beta1.GetUserRequest{
+			req: &frontierv1beta1.GetUserRequest{
 				Id: randomID,
 			},
 			want: nil,
@@ -338,7 +338,7 @@ func TestGetUser(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
 			},
-			req: &shieldv1beta1.GetUserRequest{
+			req: &frontierv1beta1.GetUserRequest{
 				Id: "some-id",
 			},
 			want: nil,
@@ -349,7 +349,7 @@ func TestGetUser(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "").Return(user.User{}, user.ErrInvalidID)
 			},
-			req:  &shieldv1beta1.GetUserRequest{},
+			req:  &frontierv1beta1.GetUserRequest{},
 			want: nil,
 			err:  grpcUserNotFoundError,
 		},
@@ -368,10 +368,10 @@ func TestGetUser(t *testing.T) {
 						UpdatedAt: time.Time{},
 					}, nil)
 			},
-			req: &shieldv1beta1.GetUserRequest{
+			req: &frontierv1beta1.GetUserRequest{
 				Id: randomID,
 			},
-			want: &shieldv1beta1.GetUserResponse{User: &shieldv1beta1.User{
+			want: &frontierv1beta1.GetUserResponse{User: &frontierv1beta1.User{
 				Id:    randomID,
 				Title: "some user",
 				Email: "someuser@test.com",
@@ -407,7 +407,7 @@ func TestGetCurrentUser(t *testing.T) {
 		title  string
 		setup  func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context
 		header string
-		want   *shieldv1beta1.GetCurrentUserResponse
+		want   *frontierv1beta1.GetCurrentUserResponse
 		err    error
 	}{
 		{
@@ -456,7 +456,7 @@ func TestGetCurrentUser(t *testing.T) {
 					}, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			want: &shieldv1beta1.GetCurrentUserResponse{User: &shieldv1beta1.User{
+			want: &frontierv1beta1.GetCurrentUserResponse{User: &frontierv1beta1.User{
 				Id:    "user-id-1",
 				Title: "some user",
 				Email: "someuser@test.com",
@@ -501,9 +501,9 @@ func TestUpdateUser(t *testing.T) {
 	table := []struct {
 		title  string
 		setup  func(us *mocks.UserService, ms *mocks.MetaSchemaService)
-		req    *shieldv1beta1.UpdateUserRequest
+		req    *frontierv1beta1.UpdateUserRequest
 		header string
-		want   *shieldv1beta1.UpdateUserResponse
+		want   *frontierv1beta1.UpdateUserResponse
 		err    error
 	}{
 		{
@@ -519,9 +519,9 @@ func TestUpdateUser(t *testing.T) {
 					},
 				}).Return(user.User{}, errors.New("some error"))
 			},
-			req: &shieldv1beta1.UpdateUserRequest{
+			req: &frontierv1beta1.UpdateUserRequest{
 				Id: someID,
-				Body: &shieldv1beta1.UserRequestBody{
+				Body: &frontierv1beta1.UserRequestBody{
 					Title: "abc user",
 					Email: "user@raystack.org",
 					Metadata: &structpb.Struct{
@@ -545,8 +545,8 @@ func TestUpdateUser(t *testing.T) {
 					},
 				}).Return(user.User{}, user.ErrInvalidID)
 			},
-			req: &shieldv1beta1.UpdateUserRequest{
-				Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.UpdateUserRequest{
+				Body: &frontierv1beta1.UserRequestBody{
 					Title: "abc user",
 					Email: "user@raystack.org",
 					Metadata: &structpb.Struct{
@@ -571,9 +571,9 @@ func TestUpdateUser(t *testing.T) {
 					},
 				}).Return(user.User{}, user.ErrConflict)
 			},
-			req: &shieldv1beta1.UpdateUserRequest{
+			req: &frontierv1beta1.UpdateUserRequest{
 				Id: someID,
-				Body: &shieldv1beta1.UserRequestBody{
+				Body: &frontierv1beta1.UserRequestBody{
 					Title: "abc user",
 					Email: "user@raystack.org",
 					Metadata: &structpb.Struct{
@@ -597,9 +597,9 @@ func TestUpdateUser(t *testing.T) {
 					},
 				}).Return(user.User{}, user.ErrInvalidEmail)
 			},
-			req: &shieldv1beta1.UpdateUserRequest{
+			req: &frontierv1beta1.UpdateUserRequest{
 				Id: someID,
-				Body: &shieldv1beta1.UserRequestBody{
+				Body: &frontierv1beta1.UserRequestBody{
 					Title: "abc user",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -613,7 +613,7 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if empty request body",
-			req:   &shieldv1beta1.UpdateUserRequest{Id: someID, Body: nil},
+			req:   &frontierv1beta1.UpdateUserRequest{Id: someID, Body: nil},
 			want:  nil,
 			err:   grpcBadBodyError,
 		},
@@ -640,9 +640,9 @@ func TestUpdateUser(t *testing.T) {
 						UpdatedAt: time.Time{},
 					}, nil)
 			},
-			req: &shieldv1beta1.UpdateUserRequest{
+			req: &frontierv1beta1.UpdateUserRequest{
 				Id: someID,
-				Body: &shieldv1beta1.UserRequestBody{
+				Body: &frontierv1beta1.UserRequestBody{
 					Title: "abc user",
 					Email: "user@raystack.org",
 					Metadata: &structpb.Struct{
@@ -651,7 +651,7 @@ func TestUpdateUser(t *testing.T) {
 						},
 					},
 				}},
-			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
+			want: &frontierv1beta1.UpdateUserResponse{User: &frontierv1beta1.User{
 				Id:    someID,
 				Title: "abc user",
 				Email: "user@raystack.org",
@@ -686,9 +686,9 @@ func TestUpdateUser(t *testing.T) {
 						UpdatedAt: time.Time{},
 					}, nil)
 			},
-			req: &shieldv1beta1.UpdateUserRequest{
+			req: &frontierv1beta1.UpdateUserRequest{
 				Id: someID,
-				Body: &shieldv1beta1.UserRequestBody{
+				Body: &frontierv1beta1.UserRequestBody{
 					Email: "user@raystack.org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -696,7 +696,7 @@ func TestUpdateUser(t *testing.T) {
 						},
 					},
 				}},
-			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
+			want: &frontierv1beta1.UpdateUserResponse{User: &frontierv1beta1.User{
 				Id:    someID,
 				Email: "user@raystack.org",
 				Metadata: &structpb.Struct{
@@ -732,9 +732,9 @@ func TestUpdateCurrentUser(t *testing.T) {
 	table := []struct {
 		title  string
 		setup  func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context
-		req    *shieldv1beta1.UpdateCurrentUserRequest
+		req    *frontierv1beta1.UpdateCurrentUserRequest
 		header string
-		want   *shieldv1beta1.UpdateCurrentUserResponse
+		want   *frontierv1beta1.UpdateCurrentUserResponse
 		err    error
 	}{
 		{
@@ -743,7 +743,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
 				return ctx
 			},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.UpdateCurrentUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "abc user",
 				Email: "abcuser123@test.com",
 				Metadata: &structpb.Struct{
@@ -769,7 +769,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
 				return ctx
 			},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.UpdateCurrentUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "abc user",
 				Email: "user@raystack.org",
 				Metadata: &structpb.Struct{
@@ -788,7 +788,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
 				return ctx
 			},
-			req:  &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},
+			req:  &frontierv1beta1.UpdateCurrentUserRequest{Body: nil},
 			want: nil,
 			err:  grpcBadBodyError,
 		},
@@ -810,7 +810,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 					}, nil)
 				return ctx
 			},
-			req: &shieldv1beta1.UpdateCurrentUserRequest{Body: &shieldv1beta1.UserRequestBody{
+			req: &frontierv1beta1.UpdateCurrentUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "abc user",
 				Email: "user@raystack.org",
 				Metadata: &structpb.Struct{
@@ -819,7 +819,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 					},
 				},
 			}},
-			want: &shieldv1beta1.UpdateCurrentUserResponse{User: &shieldv1beta1.User{
+			want: &frontierv1beta1.UpdateCurrentUserResponse{User: &frontierv1beta1.User{
 				Id:    "user-id-1",
 				Title: "abc user",
 				Email: "user@raystack.org",
@@ -857,8 +857,8 @@ func TestHandler_ListUserGroups(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService)
-		request *shieldv1beta1.ListUserGroupsRequest
-		want    *shieldv1beta1.ListUserGroupsResponse
+		request *frontierv1beta1.ListUserGroupsRequest
+		want    *frontierv1beta1.ListUserGroupsResponse
 		wantErr error
 	}{
 		{
@@ -866,7 +866,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return([]group.Group{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.ListUserGroupsRequest{
+			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
 			},
 			want:    nil,
@@ -877,10 +877,10 @@ func TestHandler_ListUserGroups(t *testing.T) {
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return([]group.Group{}, nil)
 			},
-			request: &shieldv1beta1.ListUserGroupsRequest{
+			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
 			},
-			want:    &shieldv1beta1.ListUserGroupsResponse{},
+			want:    &frontierv1beta1.ListUserGroupsResponse{},
 			wantErr: nil,
 		},
 		// if user id empty, it would not go to this handler
@@ -893,11 +893,11 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				}
 				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return(testGroupList, nil)
 			},
-			request: &shieldv1beta1.ListUserGroupsRequest{
+			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
 			},
-			want: &shieldv1beta1.ListUserGroupsResponse{
-				Groups: []*shieldv1beta1.Group{
+			want: &frontierv1beta1.ListUserGroupsResponse{
+				Groups: []*frontierv1beta1.Group{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Name:  "group-1",

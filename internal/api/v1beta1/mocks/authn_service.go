@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	authenticate "github.com/raystack/shield/core/authenticate"
+	authenticate "github.com/raystack/frontier/core/authenticate"
 
 	jwk "github.com/lestrrat-go/jwx/v2/jwk"
 

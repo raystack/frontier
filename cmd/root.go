@@ -9,7 +9,7 @@ import (
 
 func New(cliConfig *Config) *cli.Command {
 	var cmd = &cli.Command{
-		Use:   "shield <command> <subcommand> [flags]",
+		Use:   "frontier <command> <subcommand> [flags]",
 		Short: "A cloud native role-based authorization server",
 		Long: heredoc.Doc(`
 			A cloud native role-based authorization server.`),
@@ -18,14 +18,14 @@ func New(cliConfig *Config) *cli.Command {
 		Annotations: map[string]string{
 			"group": "core",
 			"help:learn": heredoc.Doc(`
-				Use 'shield <command> <subcommand> --help' for info about a command.
-				Read the manual at https://raystack.github.io/shield/
+				Use 'frontier <command> <subcommand> --help' for info about a command.
+				Read the manual at https://raystack.github.io/frontier/
 			`),
 			"help:feedback": heredoc.Doc(`
-				Open an issue here https://github.com/raystack/shield/issues
+				Open an issue here https://github.com/raystack/frontier/issues
 			`),
 			"help:environment": heredoc.Doc(`
-				See 'shield help environment' for the list of supported environment variables.
+				See 'frontier help environment' for the list of supported environment variables.
 			`),
 		},
 	}
@@ -54,7 +54,7 @@ func New(cliConfig *Config) *cli.Command {
 
 	// Help topics
 	cmdx.SetHelp(cmd)
-	cmd.AddCommand(cmdx.SetCompletionCmd("shield"))
+	cmd.AddCommand(cmdx.SetCompletionCmd("frontier"))
 	cmd.AddCommand(cmdx.SetHelpTopicCmd("environment", envHelp))
 	cmd.AddCommand(cmdx.SetHelpTopicCmd("auth", authHelp))
 	cmd.AddCommand(cmdx.SetRefCmd(cmd))

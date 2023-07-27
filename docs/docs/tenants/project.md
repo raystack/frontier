@@ -3,11 +3,11 @@ import TabItem from '@theme/TabItem';
 
 # Project
 
-Projects in Shield are sub-resources within an organization. They allow for logical grouping of resources and users (including groups and service users). Each project can have its own set of permissions and access controls, enabling fine-grained control over resource allocation and user management.A single organization can contain multiple projects.
+Projects in Frontier are sub-resources within an organization. They allow for logical grouping of resources and users (including groups and service users). Each project can have its own set of permissions and access controls, enabling fine-grained control over resource allocation and user management.A single organization can contain multiple projects.
 
-Principals(user, groups, service users) can be assigned a pre-defined or a custom role at the project level if multiple resources in a project are to share the same role for a user. A Shield policy can be created for that Project namespace for enabling user to have same role for all the underlying resources. Say a user A has `app_project_viewer` role for both the applications say X and Y in a project.
+Principals(user, groups, service users) can be assigned a pre-defined or a custom role at the project level if multiple resources in a project are to share the same role for a user. A Frontier policy can be created for that Project namespace for enabling user to have same role for all the underlying resources. Say a user A has `app_project_viewer` role for both the applications say X and Y in a project.
 
-If fine-grained access is required, a Shield policy can be created to attach a principal to a particular resource along with the user role. This giving flexibility to manage user authorization to organization resources at minute levels. Using two different policies, the same user A can have `app_project_viewer` role for resource X and a `app_project_manager` role for application Y.
+If fine-grained access is required, a Frontier policy can be created to attach a principal to a particular resource along with the user role. This giving flexibility to manage user authorization to organization resources at minute levels. Using two different policies, the same user A can have `app_project_viewer` role for resource X and a `app_project_manager` role for application Y.
 
 ### Predefined Permissions and Roles at Project level
 
@@ -41,7 +41,7 @@ Caution should be exercised when deleting a project, as it cannot be undone. Del
 - List a project admins
 - Enable or disable a project
 
-A project in Shield looks like
+A project in Frontier looks like
 
 <Tabs groupId="model">
   <TabItem value="Model" label="Model" default>
@@ -49,7 +49,7 @@ A project in Shield looks like
 | Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **id**       | uuid   | Unique project identifier                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **name**     | string | The name of the project. This name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. <br/> _Example:"project-alpha"_                                                                                                                                                                                                                    |
+| **name**     | string | The name of the project. This name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores and must start with a letter. <br/> _Example:"project-alpha"_                                                                                                                                                                                                                  |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the project. Can also be left empty. <br/> _Example:"Project Alpha"_                                                                                                                                                                                                                                                                                       |
 | **orgId**    | uuid   | Unique Organization identifier to which the project belongs                                                                                                                                                                                                                                                                                                                                                                                     |
 | **metadata** | object | Metadata object for project that can hold key value pairs pre-defined in Project Metaschema. The metadata object can be used to store arbitrary information about the user such as label, description etc. By default the user metaschema contains labels and descriptions for the project. Update the same to add more fields to the user metadata object. <br/> _Example:{"label": {"key1": "value1"}, "description": "Project Description"}_ |
@@ -105,7 +105,7 @@ $ curl --location --request POST 'http://localhost:8000/v1beta1/projects'
   <TabItem value="CLI" label="CLI" default>
 
 ```bash
-$ shield project create --file project.yaml --header key:value
+$ frontier project create --file project.yaml --header key:value
 ```
 
   </TabItem>
@@ -125,7 +125,7 @@ $ curl --location --request GET 'http://localhost:8000/v1beta1/admin/projects'
   <TabItem value="CLI" label="CLI" default>
 
 ```bash
-$ shield project list
+$ frontier project list
 ```
 
   </TabItem>
@@ -145,7 +145,7 @@ $ curl --location --request GET 'http://localhost:8000/v1beta1/projects/457944c2
   <TabItem value="CLI" label="CLI" default>
 
 ```bash
-$ shield project view 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --metadata
+$ frontier project view 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --metadata
 ```
 
   </TabItem>
@@ -174,7 +174,7 @@ $ curl --location --request PUT 'http://localhost:8000/v1beta1/projects/457944c2
   <TabItem value="CLI" label="CLI" default>
   
 ```bash
-$ shield project edit 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --file=project.yaml````
+$ frontier project edit 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --file=project.yaml````
 ```
   </TabItem>
 </Tabs>

@@ -5,17 +5,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/core/group"
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	"github.com/raystack/shield/pkg/errors"
-	"github.com/raystack/shield/pkg/metadata"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/metadata"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -44,8 +44,8 @@ func TestHandler_ListGroups(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService)
-		request *shieldv1beta1.ListGroupsRequest
-		want    *shieldv1beta1.ListGroupsResponse
+		request *frontierv1beta1.ListGroupsRequest
+		want    *frontierv1beta1.ListGroupsResponse
 		wantErr error
 	}{
 		{
@@ -55,10 +55,10 @@ func TestHandler_ListGroups(t *testing.T) {
 					OrganizationID: "some-id",
 				}).Return([]group.Group{}, nil)
 			},
-			request: &shieldv1beta1.ListGroupsRequest{
+			request: &frontierv1beta1.ListGroupsRequest{
 				OrgId: "some-id",
 			},
-			want: &shieldv1beta1.ListGroupsResponse{
+			want: &frontierv1beta1.ListGroupsResponse{
 				Groups: nil,
 			},
 			wantErr: nil,
@@ -70,10 +70,10 @@ func TestHandler_ListGroups(t *testing.T) {
 					OrganizationID: randomID,
 				}).Return([]group.Group{}, nil)
 			},
-			request: &shieldv1beta1.ListGroupsRequest{
+			request: &frontierv1beta1.ListGroupsRequest{
 				OrgId: randomID,
 			},
-			want: &shieldv1beta1.ListGroupsResponse{
+			want: &frontierv1beta1.ListGroupsResponse{
 				Groups: nil,
 			},
 			wantErr: nil,
@@ -87,9 +87,9 @@ func TestHandler_ListGroups(t *testing.T) {
 				}
 				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{}).Return(testGroupList, nil)
 			},
-			request: &shieldv1beta1.ListGroupsRequest{},
-			want: &shieldv1beta1.ListGroupsResponse{
-				Groups: []*shieldv1beta1.Group{
+			request: &frontierv1beta1.ListGroupsRequest{},
+			want: &frontierv1beta1.ListGroupsResponse{
+				Groups: []*frontierv1beta1.Group{
 					{
 						Id:    testGroupID,
 						Name:  "group-1",
@@ -117,11 +117,11 @@ func TestHandler_ListGroups(t *testing.T) {
 					OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 				}).Return(testGroupList, nil)
 			},
-			request: &shieldv1beta1.ListGroupsRequest{
+			request: &frontierv1beta1.ListGroupsRequest{
 				OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 			},
-			want: &shieldv1beta1.ListGroupsResponse{
-				Groups: []*shieldv1beta1.Group{
+			want: &frontierv1beta1.ListGroupsResponse{
+				Groups: []*frontierv1beta1.Group{
 					{
 						Id:    testGroupID,
 						Name:  "group-1",
@@ -162,8 +162,8 @@ func TestHandler_CreateGroup(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
-		request *shieldv1beta1.CreateGroupRequest
-		want    *shieldv1beta1.CreateGroupResponse
+		request *frontierv1beta1.CreateGroupRequest
+		want    *frontierv1beta1.CreateGroupResponse
 		wantErr error
 	}{
 		{
@@ -177,9 +177,9 @@ func TestHandler_CreateGroup(t *testing.T) {
 
 				return ctx
 			},
-			request: &shieldv1beta1.CreateGroupRequest{
+			request: &frontierv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Metadata: &structpb.Struct{},
 				}},
 			want:    nil,
@@ -196,9 +196,9 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, errors.New("some error"))
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{
+			request: &frontierv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name:     "some-group",
 					Metadata: &structpb.Struct{},
 				}},
@@ -217,9 +217,9 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrConflict)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{
+			request: &frontierv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name:     "some-group",
 					Metadata: &structpb.Struct{},
 				}},
@@ -237,9 +237,9 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{
+			request: &frontierv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name:     "some-group",
 					Metadata: &structpb.Struct{},
 				}},
@@ -257,9 +257,9 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{
+			request: &frontierv1beta1.CreateGroupRequest{
 				OrgId: "some-org-id",
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name:     "some-group",
 					Metadata: &structpb.Struct{},
 				}},
@@ -278,9 +278,9 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}).Return(group.Group{}, organization.ErrNotExist)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{
+			request: &frontierv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name:     "some-group",
 					Metadata: &structpb.Struct{},
 				}},
@@ -289,7 +289,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name:    "should return bad request error if body is empty",
-			request: &shieldv1beta1.CreateGroupRequest{Body: nil},
+			request: &frontierv1beta1.CreateGroupRequest{Body: nil},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
@@ -309,14 +309,14 @@ func TestHandler_CreateGroup(t *testing.T) {
 				}, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateGroupRequest{
+			request: &frontierv1beta1.CreateGroupRequest{
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name:     "some-group",
 					Metadata: &structpb.Struct{},
 				}},
-			want: &shieldv1beta1.CreateGroupResponse{
-				Group: &shieldv1beta1.Group{
+			want: &frontierv1beta1.CreateGroupResponse{
+				Group: &frontierv1beta1.Group{
 					Id:    someGroupID,
 					Name:  "some-group",
 					OrgId: someOrgID,
@@ -356,8 +356,8 @@ func TestHandler_GetGroup(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService)
-		request *shieldv1beta1.GetGroupRequest
-		want    *shieldv1beta1.GetGroupResponse
+		request *frontierv1beta1.GetGroupRequest
+		want    *frontierv1beta1.GetGroupResponse
 		wantErr error
 	}{
 		{
@@ -365,7 +365,7 @@ func TestHandler_GetGroup(t *testing.T) {
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someGroupID).Return(group.Group{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetGroupRequest{Id: someGroupID},
+			request: &frontierv1beta1.GetGroupRequest{Id: someGroupID},
 			want:    nil,
 			wantErr: grpcInternalServerError,
 		},
@@ -374,7 +374,7 @@ func TestHandler_GetGroup(t *testing.T) {
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(group.Group{}, group.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetGroupRequest{},
+			request: &frontierv1beta1.GetGroupRequest{},
 			want:    nil,
 			wantErr: grpcGroupNotFoundErr,
 		},
@@ -383,7 +383,7 @@ func TestHandler_GetGroup(t *testing.T) {
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(group.Group{}, group.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetGroupRequest{},
+			request: &frontierv1beta1.GetGroupRequest{},
 			want:    nil,
 			wantErr: grpcGroupNotFoundErr,
 		},
@@ -392,9 +392,9 @@ func TestHandler_GetGroup(t *testing.T) {
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testGroupID).Return(testGroupMap[testGroupID], nil)
 			},
-			request: &shieldv1beta1.GetGroupRequest{Id: testGroupID},
-			want: &shieldv1beta1.GetGroupResponse{
-				Group: &shieldv1beta1.Group{
+			request: &frontierv1beta1.GetGroupRequest{Id: testGroupID},
+			want: &frontierv1beta1.GetGroupResponse{
+				Group: &frontierv1beta1.Group{
 					Id:    testGroupID,
 					Name:  "group-1",
 					OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -432,8 +432,8 @@ func TestHandler_UpdateGroup(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(gs *mocks.GroupService, ms *mocks.MetaSchemaService)
-		request *shieldv1beta1.UpdateGroupRequest
-		want    *shieldv1beta1.UpdateGroupResponse
+		request *frontierv1beta1.UpdateGroupRequest
+		want    *frontierv1beta1.UpdateGroupResponse
 		wantErr error
 	}{
 
@@ -449,10 +449,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
@@ -461,7 +461,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if body is empty",
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:   someGroupID,
 				Body: nil,
 			},
@@ -479,10 +479,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    "some-id",
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "some-id",
 				},
 			},
@@ -501,10 +501,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
@@ -521,9 +521,9 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata:       metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidID)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
@@ -542,10 +542,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrConflict)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
@@ -564,10 +564,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
@@ -586,10 +586,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, organization.ErrInvalidUUID)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
@@ -608,10 +608,10 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
@@ -629,9 +629,9 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id: someGroupID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: someOrgID,
 				},
 			},
@@ -656,15 +656,15 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Metadata: metadata.Metadata{},
 				}, nil)
 			},
-			request: &shieldv1beta1.UpdateGroupRequest{
+			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
 				OrgId: someOrgID,
-				Body: &shieldv1beta1.GroupRequestBody{
+				Body: &frontierv1beta1.GroupRequestBody{
 					Name: "new-group",
 				},
 			},
-			want: &shieldv1beta1.UpdateGroupResponse{
-				Group: &shieldv1beta1.Group{
+			want: &frontierv1beta1.UpdateGroupResponse{
+				Group: &frontierv1beta1.Group{
 					Id:    someGroupID,
 					Name:  "new-group",
 					OrgId: someOrgID,

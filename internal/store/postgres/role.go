@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/raystack/shield/core/role"
+	"github.com/raystack/frontier/core/role"
 )
 
 type Role struct {

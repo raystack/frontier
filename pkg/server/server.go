@@ -13,10 +13,10 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/raystack/shield/pkg/server/consts"
-	"github.com/raystack/shield/pkg/server/health"
+	"github.com/raystack/frontier/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/health"
 
-	"github.com/raystack/shield/pkg/server/interceptors"
+	"github.com/raystack/frontier/pkg/server/interceptors"
 
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -27,14 +27,14 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
+	"github.com/raystack/frontier/internal/api"
+	"github.com/raystack/frontier/internal/api/v1beta1"
+	"github.com/raystack/frontier/pkg/telemetry"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/frontier/ui"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/mux"
 	"github.com/raystack/salt/spa"
-	"github.com/raystack/shield/internal/api"
-	"github.com/raystack/shield/internal/api/v1beta1"
-	"github.com/raystack/shield/pkg/telemetry"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
-	"github.com/raystack/shield/ui"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -123,10 +123,10 @@ func Serve(
 	}
 
 	httpMux.Handle("/", rootHandler)
-	if err := shieldv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
+	if err := frontierv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
-	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
+	if err := frontierv1beta1.RegisterFrontierServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
 
@@ -187,7 +187,7 @@ func Serve(
 	return nil
 }
 
-// REVISIT: passing config.Shield as reference
+// REVISIT: passing config.Frontier as reference
 func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newrelic.Application,
 	sessionMiddleware *interceptors.Session, deps api.Deps) grpc.ServerOption {
 	recoveryFunc := func(p interface{}) (err error) {

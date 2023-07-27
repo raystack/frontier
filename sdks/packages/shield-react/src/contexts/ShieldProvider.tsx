@@ -1,28 +1,28 @@
-import { ShieldProviderProps } from "@raystack/shield";
+import { FrontierProviderProps } from "@raystack/frontier";
 import React from "react";
 
-import { ShieldContextProvider } from "./ShieldContext";
+import { FrontierContextProvider } from "./FrontierContext";
 import { withMaxAllowedInstancesGuard } from "./useMaxAllowedInstancesGuard";
 
-export const multipleShieldProvidersError =
-  "Shield: You've added multiple <ShieldProvider> components in your React component tree. Wrap your components in a single <ShieldProvider>.";
+export const multipleFrontierProvidersError =
+  "Frontier: You've added multiple <FrontierProvider> components in your React component tree. Wrap your components in a single <FrontierProvider>.";
 
-const ShieldProviderBase = (props: ShieldProviderProps) => {
+const FrontierProviderBase = (props: FrontierProviderProps) => {
   const { children, initialState, config, ...options } = props;
   return (
-    <ShieldContextProvider
+    <FrontierContextProvider
       initialState={initialState}
       config={config}
       {...options}
     >
       {children}
-    </ShieldContextProvider>
+    </FrontierContextProvider>
   );
 };
 
-export const ShieldProvider = withMaxAllowedInstancesGuard<ShieldProviderProps>(
-  ShieldProviderBase,
-  "ShieldProvider",
-  multipleShieldProvidersError
+export const FrontierProvider = withMaxAllowedInstancesGuard<FrontierProviderProps>(
+  FrontierProviderBase,
+  "FrontierProvider",
+  multipleFrontierProvidersError
 );
-ShieldProvider.displayName = "ShieldProvider";
+FrontierProvider.displayName = "FrontierProvider";

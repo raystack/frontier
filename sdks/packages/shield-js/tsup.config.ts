@@ -15,16 +15,16 @@ export default defineConfig(() => [
   {
     entry: { bundle: "src/index.ts" },
     format: ["iife"],
-    globalName: "shielddev",
+    globalName: "frontierdev",
     clean: false,
     minify: true,
     platform: "browser",
     dts: false,
-    name: "shield",
-    // esbuild `globalName` option generates `var shielddev = (() => {})()`
+    name: "frontier",
+    // esbuild `globalName` option generates `var frontierdev = (() => {})()`
     // and var is not guaranteed to assign to the global `window` object so we make sure to assign it
     footer: {
-      js: "window.__SHIELD__ = shielddev",
+      js: "window.__SHIELD__ = frontierdev",
     },
     outExtension({ format, options }) {
       return {
@@ -32,7 +32,7 @@ export default defineConfig(() => [
       };
     },
     esbuildOptions(options, ctx) {
-      options.entryNames = "shield";
+      options.entryNames = "frontier";
     },
   },
 ]);

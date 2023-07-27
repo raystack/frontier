@@ -1,4 +1,4 @@
-project_name: shield
+project_name: frontier
 
 release:
   prerelease: auto
@@ -8,20 +8,20 @@ before:
     - make test
 
 builds:
-  - id: "shield"
+  - id: "frontier"
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
-    binary: shield
+    binary: frontier
     main: ./main.go
     ldflags:
-      - -s -w -X github.com/raystack/shield/config.Version={{.Tag}}
-      - -X github.com/raystack/shield/config.BuildCommit={{.FullCommit}}
-      - -X github.com/raystack/shield/config.BuildDate={{.Date}}
+      - -s -w -X github.com/raystack/frontier/config.Version={{.Tag}}
+      - -X github.com/raystack/frontier/config.BuildCommit={{.FullCommit}}
+      - -X github.com/raystack/frontier/config.BuildDate={{.Date}}
     env:
       - CGO_ENABLED=0
 
 archives:
-  - id: "shield-archive"
+  - id: "frontier-archive"
     format: tar.gz
     name_template: >-
       {{ .ProjectName }}_
@@ -52,7 +52,7 @@ dockers:
   - goos: linux
     goarch: amd64
     ids:
-      - shield
+      - frontier
     dockerfile: Dockerfile
     image_templates:
       - "docker.io/raystack/{{.ProjectName}}:latest"
@@ -61,7 +61,7 @@ dockers:
   - goos: linux
     goarch: arm64
     ids:
-      - shield
+      - frontier
     dockerfile: Dockerfile
     image_templates:
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-arm64"
@@ -69,14 +69,14 @@ dockers:
 nfpms:
   - maintainer: Raystack
     description: Identity and authorization system
-    homepage: https://github.com/raystack/shield
+    homepage: https://github.com/raystack/frontier
     license: Apache 2.0
     formats:
       - deb
       - rpm
 
 scoops:
-  - homepage: "https://github.com/raystack/shield"
+  - homepage: "https://github.com/raystack/frontier"
     description: "Identity and authorization system"
     license: Apache 2.0
     bucket:
@@ -84,8 +84,8 @@ scoops:
       name: scoop-bucket
 
 brews:
-  - name: shield
-    homepage: "https://github.com/raystack/shield"
+  - name: frontier
+    homepage: "https://github.com/raystack/frontier"
     description: "Identity and authorization system"
     tap:
       owner: raystack
@@ -95,7 +95,7 @@ brews:
     dependencies:
       - name: git
     install: |-
-      bin.install "shield"
+      bin.install "frontier"
     commit_author:
       name: Ravi Suhag
       email: suhag.ravi@gmail.com

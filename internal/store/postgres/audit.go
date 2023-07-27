@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
-	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/frontier/core/audit"
 )
 
 type Audit struct {

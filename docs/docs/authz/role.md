@@ -3,9 +3,9 @@ import TabItem from '@theme/TabItem';
 
 # Roles
 
-A Role is a collection of permissions in Shield. Roles are typically associated with one or more policies, which specify the permissions granted to the users. When a user is assigned a role, they inherit the permissions defined within that role. This simplifies access management by allowing administrators to assign roles to users rather than individually assigning permissions.
+A Role is a collection of permissions in Frontier. Roles are typically associated with one or more policies, which specify the permissions granted to the users. When a user is assigned a role, they inherit the permissions defined within that role. This simplifies access management by allowing administrators to assign roles to users rather than individually assigning permissions.
 
-Roles in Shield is used to implement the [Role based acces control (RBAC)](../concepts/glossary.md#rbac)
+Roles in Frontier is used to implement the [Role based acces control (RBAC)](../concepts/glossary.md#rbac)
 
 ### Predefined Roles
 
@@ -19,11 +19,11 @@ Roles in Shield is used to implement the [Role based acces control (RBAC)](../co
 | **app_project_viewer**       | app_project_get                                                                                            | Allows retrieving or accessing a specific project.                                                              |
 | **app_group_owner**          | app_group_administer                                                                                       | Grants administrative privileges for managing the group.                                                        |
 
-Besides this a Shield Superuser can add custom roles at a particular namespace if required.
+Besides this a Frontier Superuser can add custom roles at a particular namespace if required.
 
 ### Deactivate and Reactivate a role
 
-In Shield, a role can be disabled when it needs to be temporarily or permanently deactivated. Disabling a role restricts users assigned to that role from exercising the permissions associated with it. A role can be disabled due to policy or regulatory compliance violations, temporary suspensions during investigations or disciplinary actions, or security concerns regarding potential compromise or misuse. If there are security concerns surrounding a role, such as suspected compromise or misuse, disabling the role immediately revokes the associated permissions, mitigating potential risks and safeguarding the system and its resources.
+In Frontier, a role can be disabled when it needs to be temporarily or permanently deactivated. Disabling a role restricts users assigned to that role from exercising the permissions associated with it. A role can be disabled due to policy or regulatory compliance violations, temporary suspensions during investigations or disciplinary actions, or security concerns regarding potential compromise or misuse. If there are security concerns surrounding a role, such as suspected compromise or misuse, disabling the role immediately revokes the associated permissions, mitigating potential risks and safeguarding the system and its resources.
 
 ### Deleting a role
 
@@ -33,21 +33,21 @@ Caution should be exercised when deleting a role, as it cannot be undone. Deleti
 
 ### Custom Roles and How to use the roles for access control
 
-In continuation of example from custom permissions in the previous page, let's see how the bird's eye view of how we will create custom roles and attach it to a principal in Shield.
+In continuation of example from custom permissions in the previous page, let's see how the bird's eye view of how we will create custom roles and attach it to a principal in Frontier.
 
-To start using Shield Roles, follow these steps:
+To start using Frontier Roles, follow these steps:
 
 1. **Define Roles**: Identify the different roles you need in your system. Think about the specific sets of permissions each role should have.<br/><br/> For example, you might have roles like **CartAdmin**, **CartManager** and **CartUser** each with different levels of access to our e-commerce shopping carts.
 
-2. **Create Custom Permissions**: If the predefined permissions in Shield do not meet your requirements, you can create [custom permissions](permission.md#custom-permissions). Custom permissions allow you to define granular access control tailored to your application's needs.
+2. **Create Custom Permissions**: If the predefined permissions in Frontier do not meet your requirements, you can create [custom permissions](permission.md#custom-permissions). Custom permissions allow you to define granular access control tailored to your application's needs.
 
 3. **Assign Permissions to Roles**: Once you have defined the roles and permissions, assign the appropriate permissions to each role. Consider the specific actions and resources each role should have access to. <br/><br/>For example, **CartManager** will have **potato_cart_update** and **potato_cart_get** permissions from the previous example for managing our e-commerce shopping cart.
 
 4. **Assign Roles to Users or Groups via Policy**: Finally, assign roles to individual users or groups. This determines the access rights and privileges for each user or group in your org. Users inherit the permissions associated with the roles they are assigned. We will read more on this in the next pages.
 
 :::note
-Shield superusers can create a custom role platform wide which mean this role will be visible in all the organizations in the Shield instance.
-Shield also provides flexibility to Org Admins to create a custom role specific to the organization.
+Frontier superusers can create a custom role platform wide which mean this role will be visible in all the organizations in the Frontier instance.
+Frontier also provides flexibility to Org Admins to create a custom role specific to the organization.
 :::
 
 ---
@@ -60,7 +60,7 @@ Shield also provides flexibility to Org Admins to create a custom role specific 
 | Field           | Type     | Description                                                                                                                                                                                                                                                                                         |
 | --------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **id**          | uuid     | Unique Role identifier                                                                                                                                                                                                                                                                              |
-| **name**        | string   | The name of the role. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> _Example:"app_organization_owner"_                                                                                                 |
+| **name**        | string   | The name of the role. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> _Example:"app_organization_owner"_                                                                                               |
 | **title**       | string   | The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty. <br/>_Example: "Organization Owner"_                                                                                                                                 |
 | **permissions** | string[] | List of permission slugs to be assigned to the role <br/> _Example: ["app_organization_administer"]_                                                                                                                                                                                                |
 | **metadata**    | object   | Metadata object for organizations that can hold key value pairs defined in Role Metaschema. The default Role Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields.<br/>_Example:{"labels": {"key": "value"}, "description": "Role description"}_ |
@@ -97,7 +97,7 @@ Some of these APIs require special privileges to access these endpoints and to a
 
 ### List Organization Roles
 
-To get a list of custom roles created under an organization with their associated permissions. Note the default roles avaliable across the Shield platform and inherited in every organizations wont be displayed with this
+To get a list of custom roles created under an organization with their associated permissions. Note the default roles avaliable across the Frontier platform and inherited in every organizations wont be displayed with this
 
 1. Using **`GET /v1beta1/organizations/:orgId/roles`** API. One can also filter with an optional parameter for role status
 
@@ -110,8 +110,8 @@ $ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/organizations/4d726cf5-52f6-46f1
 
 ### List Default Roles (Across Platform)
 
-To get the list of all the predefined roles in Shield use the **`GET /v1beta1/roles`** API. You can additionally filter the results with an optional parameter for role status.
-Note: these default roles are avaliable across all the organizations in Shield (platform wide).
+To get the list of all the predefined roles in Frontier use the **`GET /v1beta1/roles`** API. You can additionally filter the results with an optional parameter for role status.
+Note: these default roles are avaliable across all the organizations in Frontier (platform wide).
 
 ```bash
 $ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/roles?state=enabled' \

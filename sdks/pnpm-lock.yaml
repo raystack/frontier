@@ -24,7 +24,7 @@ importers:
         specifier: '4.7'
         version: 4.7.2
 
-  packages/shield-js:
+  packages/frontier-js:
     dependencies:
       '@types/react':
         specifier: ^18.2.5
@@ -58,7 +58,7 @@ importers:
         specifier: '4.7'
         version: 4.7.2
 
-  packages/shield-react:
+  packages/frontier-react:
     dependencies:
       '@raystack/apsara':
         specifier: ^0.10.3
@@ -70,9 +70,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.1.1
         version: 3.1.1(react-hook-form@7.45.2)
-      '@raystack/shield':
+      '@raystack/frontier':
         specifier: workspace:^
-        version: link:../shield-js
+        version: link:../frontier-js
       '@size-limit/preset-small-lib':
         specifier: ^8.2.6
         version: 8.2.6(size-limit@8.2.6)

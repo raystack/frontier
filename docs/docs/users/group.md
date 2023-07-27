@@ -12,7 +12,7 @@ import CodeBlock from '@theme/CodeBlock';
 - Remove a user from a group
 - Enable or disable a group
 
-A group in Shield looks like
+A group in Frontier looks like
 
 <Tabs groupId="model">
   <TabItem value="Model" label="Model" default>
@@ -20,7 +20,7 @@ A group in Shield looks like
 | Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **id**       | uuid   | Unique group identifier                                                                                                                                                                                                                                                                                                                                                                                    |
-| **name**     | string | The name of the group. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores.                                                                                                                                                                                                                                               |
+| **name**     | string | The name of the group. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.                                                                                                                                                                                                                                             |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the group. Can also be left empty.                                                                                                                                                                                                                                                                                    |
 | **metadata** | object | Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields. <br/>_Example:{"labels": {"key": "value"}, "description": "Group description"}_ |
 | **orgId**    | uuid   | The organization ID to which the group belongs to.                                                                                                                                                                                                                                                                                                                                                         |
@@ -47,11 +47,11 @@ A group in Shield looks like
 </TabItem>
 </Tabs>
 
-**Note:** group metadata values are validated using MetaSchemas in Shield [Read More](../reference/metaschemas.md)
+**Note:** group metadata values are validated using MetaSchemas in Frontier [Read More](../reference/metaschemas.md)
 
 ### Create an organization group
 
-1. Using `shield group create` CLI command
+1. Using `frontier group create` CLI command
 2. Calling to `POST /v1beta1/organizations/orgId/groups` API
 
 <Tabs groupId="api">
@@ -84,7 +84,7 @@ iii. Enter basic information for the group, and select **Add Group**
 
 ### List an organization groups
 
-1. Using `shield group list` CLI command
+1. Using `frontier group list` CLI command
 2. Calling to `GET /v1beta1/organizations/orgId/groups` API
 
 ### View an organization projects
@@ -124,7 +124,7 @@ Todo
   <TabItem value="CLI" label="CLI" default>
 <CodeBlock>
 
-`$ shield group create --file group.yaml --header key:value`
+`$ frontier group create --file group.yaml --header key:value`
 </CodeBlock>
 
   </TabItem>
@@ -142,7 +142,7 @@ Todo
   <TabItem value="CLI" label="CLI" default>
 <CodeBlock>
 
-`$ shield group list`
+`$ frontier group list`
 </CodeBlock>
 
   </TabItem>
@@ -160,7 +160,7 @@ Todo
   <TabItem value="CLI" label="CLI" default>
 <CodeBlock>
 
-`$ shield group view 2105beab-5d04-4fc5-b0ec-8d6f60b67ab2 --metadata`
+`$ frontier group view 2105beab-5d04-4fc5-b0ec-8d6f60b67ab2 --metadata`
 </CodeBlock>
 
   </TabItem>
@@ -188,7 +188,7 @@ Todo
   <TabItem value="CLI" label="CLI" default>
 <CodeBlock>
 
-`$ shield group edit 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --file=group.yaml`
+`$ frontier group edit 457944c2-2a4c-4e6f-b1f7-3e1e109fe94c --file=group.yaml`
 </CodeBlock>
 
   </TabItem>

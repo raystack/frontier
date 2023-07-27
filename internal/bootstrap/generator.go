@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	aznamespace "github.com/authzed/spicedb/pkg/namespace"
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
 	"github.com/authzed/spicedb/pkg/schemautil"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
 func ValidatePreparedAZSchema(ctx context.Context, azSchemaSource string) error {
 	// compile and validate generated schema
-	tenantName := "shield"
+	tenantName := "frontier"
 	updatedSchema, err := compiler.Compile(compiler.InputSchema{
 		Source:       "generated",
 		SchemaString: azSchemaSource,
@@ -45,7 +45,7 @@ func PrepareSchemaAsAZSource(authzedDefinitions []*azcore.NamespaceDefinition) (
 }
 
 func GetBaseAZSchema() []*azcore.NamespaceDefinition {
-	tenantName := "shield"
+	tenantName := "frontier"
 	compiledSchema, err := compiler.Compile(compiler.InputSchema{
 		Source:       "base_schema.zed",
 		SchemaString: schema.BaseSchemaZed,
@@ -57,7 +57,7 @@ func GetBaseAZSchema() []*azcore.NamespaceDefinition {
 	return compiledSchema.ObjectDefinitions
 }
 
-// BuildServiceDefinitionFromAZSchema converts authzed schema to shield service definition.
+// BuildServiceDefinitionFromAZSchema converts authzed schema to frontier service definition.
 // This conversion is lossy, and it only keeps list of permissions used in the schema per resource
 func BuildServiceDefinitionFromAZSchema(azDefinitions []*azcore.NamespaceDefinition, serviceFilter ...string) (schema.ServiceDefinition, error) {
 	resourcePermissions := []schema.ResourcePermission{}

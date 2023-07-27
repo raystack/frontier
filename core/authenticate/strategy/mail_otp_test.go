@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/pkg/mailer"
-	"github.com/raystack/shield/pkg/mailer/mocks"
+	"github.com/raystack/frontier/pkg/mailer"
+	"github.com/raystack/frontier/pkg/mailer/mocks"
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/mail.v2"
 )
@@ -19,7 +19,7 @@ func mock1(t *testing.T) *mocks.Dialer {
 	t.Helper()
 
 	wantMsg := "MIME-Version: 1.0\r\n" +
-		"From: shield@acme.org\r\n" +
+		"From: frontier@acme.org\r\n" +
 		"To: test@acme.org\r\n" +
 		"Subject: auth otp\r\n" +
 		"Date: " + mockDate.Format(time.RFC1123Z) + "\r\n" +
@@ -29,7 +29,7 @@ func mock1(t *testing.T) *mocks.Dialer {
 		`here is the otp, use it: 7GAPMQ`
 
 	mockDialer1 := &mocks.Dialer{}
-	mockDialer1.EXPECT().FromHeader().Return("shield@acme.org")
+	mockDialer1.EXPECT().FromHeader().Return("frontier@acme.org")
 	mockDialer1.On("DialAndSend", mock.MatchedBy(func(m *mail.Message) bool {
 		buf := new(bytes.Buffer)
 		_, err := m.WriteTo(buf)

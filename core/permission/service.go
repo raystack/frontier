@@ -3,7 +3,7 @@ package permission
 import (
 	"context"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 )
 
 type Service struct {

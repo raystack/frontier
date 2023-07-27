@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type NamespaceRepository struct {

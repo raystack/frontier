@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/raystack/shield/core/rule"
+	"github.com/raystack/frontier/core/rule"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 )

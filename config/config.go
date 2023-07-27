@@ -5,16 +5,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/raystack/shield/pkg/server"
+	"github.com/raystack/frontier/pkg/server"
 
+	"github.com/raystack/frontier/internal/proxy"
+	"github.com/raystack/frontier/internal/store/spicedb"
+	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/salt/config"
-	"github.com/raystack/shield/internal/proxy"
-	"github.com/raystack/shield/internal/store/spicedb"
-	"github.com/raystack/shield/pkg/db"
-	"github.com/raystack/shield/pkg/logger"
 )
 
-type Shield struct {
+type Frontier struct {
 	// configuration version
 	Version  int                  `yaml:"version"`
 	Proxy    proxy.ServicesConfig `yaml:"proxy"`
@@ -31,8 +31,8 @@ type NewRelic struct {
 	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
 }
 
-func Load(serverConfigFileFromFlag string) (*Shield, error) {
-	conf := &Shield{}
+func Load(serverConfigFileFromFlag string) (*Frontier, error) {
+	conf := &Frontier{}
 
 	var options []config.LoaderOption
 	options = append(options, config.WithName("config"))

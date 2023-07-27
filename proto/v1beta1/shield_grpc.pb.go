@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: raystack/shield/v1beta1/shield.proto
+// source: raystack/frontier/v1beta1/frontier.proto
 
-package shieldv1beta1
+package frontierv1beta1
 
 import (
 	context "context"
@@ -19,112 +19,112 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ShieldService_ListUsers_FullMethodName                     = "/raystack.shield.v1beta1.ShieldService/ListUsers"
-	ShieldService_CreateUser_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/CreateUser"
-	ShieldService_GetUser_FullMethodName                       = "/raystack.shield.v1beta1.ShieldService/GetUser"
-	ShieldService_ListUserGroups_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/ListUserGroups"
-	ShieldService_ListCurrentUserGroups_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/ListCurrentUserGroups"
-	ShieldService_GetCurrentUser_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/GetCurrentUser"
-	ShieldService_UpdateUser_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/UpdateUser"
-	ShieldService_UpdateCurrentUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/UpdateCurrentUser"
-	ShieldService_EnableUser_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/EnableUser"
-	ShieldService_DisableUser_FullMethodName                   = "/raystack.shield.v1beta1.ShieldService/DisableUser"
-	ShieldService_DeleteUser_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/DeleteUser"
-	ShieldService_GetOrganizationsByUser_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByUser"
-	ShieldService_GetOrganizationsByCurrentUser_FullMethodName = "/raystack.shield.v1beta1.ShieldService/GetOrganizationsByCurrentUser"
-	ShieldService_GetProjectsByUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/GetProjectsByUser"
-	ShieldService_GetProjectsByCurrentUser_FullMethodName      = "/raystack.shield.v1beta1.ShieldService/GetProjectsByCurrentUser"
-	ShieldService_ListUserInvitations_FullMethodName           = "/raystack.shield.v1beta1.ShieldService/ListUserInvitations"
-	ShieldService_ListServiceUsers_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/ListServiceUsers"
-	ShieldService_CreateServiceUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/CreateServiceUser"
-	ShieldService_GetServiceUser_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/GetServiceUser"
-	ShieldService_DeleteServiceUser_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/DeleteServiceUser"
-	ShieldService_CreateServiceUserKey_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/CreateServiceUserKey"
-	ShieldService_ListServiceUserKeys_FullMethodName           = "/raystack.shield.v1beta1.ShieldService/ListServiceUserKeys"
-	ShieldService_GetServiceUserKey_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/GetServiceUserKey"
-	ShieldService_DeleteServiceUserKey_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/DeleteServiceUserKey"
-	ShieldService_CreateServiceUserSecret_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/CreateServiceUserSecret"
-	ShieldService_ListServiceUserSecrets_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/ListServiceUserSecrets"
-	ShieldService_DeleteServiceUserSecret_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/DeleteServiceUserSecret"
-	ShieldService_ListOrganizationGroups_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/ListOrganizationGroups"
-	ShieldService_CreateGroup_FullMethodName                   = "/raystack.shield.v1beta1.ShieldService/CreateGroup"
-	ShieldService_GetGroup_FullMethodName                      = "/raystack.shield.v1beta1.ShieldService/GetGroup"
-	ShieldService_UpdateGroup_FullMethodName                   = "/raystack.shield.v1beta1.ShieldService/UpdateGroup"
-	ShieldService_ListGroupUsers_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/ListGroupUsers"
-	ShieldService_AddGroupUsers_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/AddGroupUsers"
-	ShieldService_RemoveGroupUser_FullMethodName               = "/raystack.shield.v1beta1.ShieldService/RemoveGroupUser"
-	ShieldService_EnableGroup_FullMethodName                   = "/raystack.shield.v1beta1.ShieldService/EnableGroup"
-	ShieldService_DisableGroup_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/DisableGroup"
-	ShieldService_DeleteGroup_FullMethodName                   = "/raystack.shield.v1beta1.ShieldService/DeleteGroup"
-	ShieldService_ListRoles_FullMethodName                     = "/raystack.shield.v1beta1.ShieldService/ListRoles"
-	ShieldService_ListOrganizationRoles_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/ListOrganizationRoles"
-	ShieldService_CreateOrganizationRole_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/CreateOrganizationRole"
-	ShieldService_GetOrganizationRole_FullMethodName           = "/raystack.shield.v1beta1.ShieldService/GetOrganizationRole"
-	ShieldService_UpdateOrganizationRole_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/UpdateOrganizationRole"
-	ShieldService_DeleteOrganizationRole_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/DeleteOrganizationRole"
-	ShieldService_ListOrganizations_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/ListOrganizations"
-	ShieldService_CreateOrganization_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/CreateOrganization"
-	ShieldService_GetOrganization_FullMethodName               = "/raystack.shield.v1beta1.ShieldService/GetOrganization"
-	ShieldService_UpdateOrganization_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/UpdateOrganization"
-	ShieldService_ListOrganizationProjects_FullMethodName      = "/raystack.shield.v1beta1.ShieldService/ListOrganizationProjects"
-	ShieldService_ListOrganizationAdmins_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/ListOrganizationAdmins"
-	ShieldService_ListOrganizationUsers_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/ListOrganizationUsers"
-	ShieldService_AddOrganizationUsers_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/AddOrganizationUsers"
-	ShieldService_RemoveOrganizationUser_FullMethodName        = "/raystack.shield.v1beta1.ShieldService/RemoveOrganizationUser"
-	ShieldService_ListOrganizationServiceUsers_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/ListOrganizationServiceUsers"
-	ShieldService_ListOrganizationInvitations_FullMethodName   = "/raystack.shield.v1beta1.ShieldService/ListOrganizationInvitations"
-	ShieldService_CreateOrganizationInvitation_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/CreateOrganizationInvitation"
-	ShieldService_GetOrganizationInvitation_FullMethodName     = "/raystack.shield.v1beta1.ShieldService/GetOrganizationInvitation"
-	ShieldService_AcceptOrganizationInvitation_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/AcceptOrganizationInvitation"
-	ShieldService_DeleteOrganizationInvitation_FullMethodName  = "/raystack.shield.v1beta1.ShieldService/DeleteOrganizationInvitation"
-	ShieldService_EnableOrganization_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/EnableOrganization"
-	ShieldService_DisableOrganization_FullMethodName           = "/raystack.shield.v1beta1.ShieldService/DisableOrganization"
-	ShieldService_DeleteOrganization_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/DeleteOrganization"
-	ShieldService_CreateProject_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/CreateProject"
-	ShieldService_GetProject_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/GetProject"
-	ShieldService_UpdateProject_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/UpdateProject"
-	ShieldService_ListProjectAdmins_FullMethodName             = "/raystack.shield.v1beta1.ShieldService/ListProjectAdmins"
-	ShieldService_ListProjectUsers_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/ListProjectUsers"
-	ShieldService_EnableProject_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/EnableProject"
-	ShieldService_DisableProject_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/DisableProject"
-	ShieldService_DeleteProject_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/DeleteProject"
-	ShieldService_CreatePolicy_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/CreatePolicy"
-	ShieldService_GetPolicy_FullMethodName                     = "/raystack.shield.v1beta1.ShieldService/GetPolicy"
-	ShieldService_UpdatePolicy_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/UpdatePolicy"
-	ShieldService_DeletePolicy_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/DeletePolicy"
-	ShieldService_CreateRelation_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/CreateRelation"
-	ShieldService_GetRelation_FullMethodName                   = "/raystack.shield.v1beta1.ShieldService/GetRelation"
-	ShieldService_DeleteRelation_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/DeleteRelation"
-	ShieldService_ListPermissions_FullMethodName               = "/raystack.shield.v1beta1.ShieldService/ListPermissions"
-	ShieldService_GetPermission_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/GetPermission"
-	ShieldService_ListNamespaces_FullMethodName                = "/raystack.shield.v1beta1.ShieldService/ListNamespaces"
-	ShieldService_GetNamespace_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/GetNamespace"
-	ShieldService_ListProjectResources_FullMethodName          = "/raystack.shield.v1beta1.ShieldService/ListProjectResources"
-	ShieldService_CreateProjectResource_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/CreateProjectResource"
-	ShieldService_GetProjectResource_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/GetProjectResource"
-	ShieldService_UpdateProjectResource_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/UpdateProjectResource"
-	ShieldService_DeleteProjectResource_FullMethodName         = "/raystack.shield.v1beta1.ShieldService/DeleteProjectResource"
-	ShieldService_CheckResourcePermission_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/CheckResourcePermission"
-	ShieldService_GetJWKs_FullMethodName                       = "/raystack.shield.v1beta1.ShieldService/GetJWKs"
-	ShieldService_ListAuthStrategies_FullMethodName            = "/raystack.shield.v1beta1.ShieldService/ListAuthStrategies"
-	ShieldService_Authenticate_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/Authenticate"
-	ShieldService_AuthCallback_FullMethodName                  = "/raystack.shield.v1beta1.ShieldService/AuthCallback"
-	ShieldService_AuthToken_FullMethodName                     = "/raystack.shield.v1beta1.ShieldService/AuthToken"
-	ShieldService_AuthLogout_FullMethodName                    = "/raystack.shield.v1beta1.ShieldService/AuthLogout"
-	ShieldService_ListMetaSchemas_FullMethodName               = "/raystack.shield.v1beta1.ShieldService/ListMetaSchemas"
-	ShieldService_CreateMetaSchema_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/CreateMetaSchema"
-	ShieldService_GetMetaSchema_FullMethodName                 = "/raystack.shield.v1beta1.ShieldService/GetMetaSchema"
-	ShieldService_UpdateMetaSchema_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/UpdateMetaSchema"
-	ShieldService_DeleteMetaSchema_FullMethodName              = "/raystack.shield.v1beta1.ShieldService/DeleteMetaSchema"
-	ShieldService_ListOrganizationAuditLogs_FullMethodName     = "/raystack.shield.v1beta1.ShieldService/ListOrganizationAuditLogs"
-	ShieldService_CreateOrganizationAuditLogs_FullMethodName   = "/raystack.shield.v1beta1.ShieldService/CreateOrganizationAuditLogs"
-	ShieldService_GetOrganizationAuditLog_FullMethodName       = "/raystack.shield.v1beta1.ShieldService/GetOrganizationAuditLog"
+	FrontierService_ListUsers_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/ListUsers"
+	FrontierService_CreateUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/CreateUser"
+	FrontierService_GetUser_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetUser"
+	FrontierService_ListUserGroups_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListUserGroups"
+	FrontierService_ListCurrentUserGroups_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserGroups"
+	FrontierService_GetCurrentUser_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetCurrentUser"
+	FrontierService_UpdateUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/UpdateUser"
+	FrontierService_UpdateCurrentUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUser"
+	FrontierService_EnableUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/EnableUser"
+	FrontierService_DisableUser_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DisableUser"
+	FrontierService_DeleteUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/DeleteUser"
+	FrontierService_GetOrganizationsByUser_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByUser"
+	FrontierService_GetOrganizationsByCurrentUser_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByCurrentUser"
+	FrontierService_GetProjectsByUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetProjectsByUser"
+	FrontierService_GetProjectsByCurrentUser_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/GetProjectsByCurrentUser"
+	FrontierService_ListUserInvitations_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListUserInvitations"
+	FrontierService_ListServiceUsers_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListServiceUsers"
+	FrontierService_CreateServiceUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUser"
+	FrontierService_GetServiceUser_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetServiceUser"
+	FrontierService_DeleteServiceUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUser"
+	FrontierService_CreateServiceUserKey_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserKey"
+	FrontierService_ListServiceUserKeys_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserKeys"
+	FrontierService_GetServiceUserKey_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey"
+	FrontierService_DeleteServiceUserKey_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserKey"
+	FrontierService_CreateServiceUserSecret_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserSecret"
+	FrontierService_ListServiceUserSecrets_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserSecrets"
+	FrontierService_DeleteServiceUserSecret_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserSecret"
+	FrontierService_ListOrganizationGroups_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationGroups"
+	FrontierService_CreateGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/CreateGroup"
+	FrontierService_GetGroup_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/GetGroup"
+	FrontierService_UpdateGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/UpdateGroup"
+	FrontierService_ListGroupUsers_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListGroupUsers"
+	FrontierService_AddGroupUsers_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/AddGroupUsers"
+	FrontierService_RemoveGroupUser_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/RemoveGroupUser"
+	FrontierService_EnableGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/EnableGroup"
+	FrontierService_DisableGroup_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/DisableGroup"
+	FrontierService_DeleteGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DeleteGroup"
+	FrontierService_ListRoles_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/ListRoles"
+	FrontierService_ListOrganizationRoles_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationRoles"
+	FrontierService_CreateOrganizationRole_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationRole"
+	FrontierService_GetOrganizationRole_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationRole"
+	FrontierService_UpdateOrganizationRole_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationRole"
+	FrontierService_DeleteOrganizationRole_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationRole"
+	FrontierService_ListOrganizations_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListOrganizations"
+	FrontierService_CreateOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/CreateOrganization"
+	FrontierService_GetOrganization_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/GetOrganization"
+	FrontierService_UpdateOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/UpdateOrganization"
+	FrontierService_ListOrganizationProjects_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationProjects"
+	FrontierService_ListOrganizationAdmins_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAdmins"
+	FrontierService_ListOrganizationUsers_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationUsers"
+	FrontierService_AddOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/AddOrganizationUsers"
+	FrontierService_RemoveOrganizationUser_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser"
+	FrontierService_ListOrganizationServiceUsers_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationServiceUsers"
+	FrontierService_ListOrganizationInvitations_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations"
+	FrontierService_CreateOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationInvitation"
+	FrontierService_GetOrganizationInvitation_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationInvitation"
+	FrontierService_AcceptOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/AcceptOrganizationInvitation"
+	FrontierService_DeleteOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationInvitation"
+	FrontierService_EnableOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/EnableOrganization"
+	FrontierService_DisableOrganization_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DisableOrganization"
+	FrontierService_DeleteOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganization"
+	FrontierService_CreateProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateProject"
+	FrontierService_GetProject_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/GetProject"
+	FrontierService_UpdateProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/UpdateProject"
+	FrontierService_ListProjectAdmins_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListProjectAdmins"
+	FrontierService_ListProjectUsers_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListProjectUsers"
+	FrontierService_EnableProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/EnableProject"
+	FrontierService_DisableProject_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/DisableProject"
+	FrontierService_DeleteProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/DeleteProject"
+	FrontierService_CreatePolicy_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreatePolicy"
+	FrontierService_GetPolicy_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetPolicy"
+	FrontierService_UpdatePolicy_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdatePolicy"
+	FrontierService_DeletePolicy_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/DeletePolicy"
+	FrontierService_CreateRelation_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/CreateRelation"
+	FrontierService_GetRelation_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/GetRelation"
+	FrontierService_DeleteRelation_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/DeleteRelation"
+	FrontierService_ListPermissions_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListPermissions"
+	FrontierService_GetPermission_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetPermission"
+	FrontierService_ListNamespaces_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListNamespaces"
+	FrontierService_GetNamespace_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/GetNamespace"
+	FrontierService_ListProjectResources_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListProjectResources"
+	FrontierService_CreateProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateProjectResource"
+	FrontierService_GetProjectResource_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/GetProjectResource"
+	FrontierService_UpdateProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/UpdateProjectResource"
+	FrontierService_DeleteProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/DeleteProjectResource"
+	FrontierService_CheckResourcePermission_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission"
+	FrontierService_GetJWKs_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
+	FrontierService_ListAuthStrategies_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
+	FrontierService_Authenticate_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/Authenticate"
+	FrontierService_AuthCallback_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/AuthCallback"
+	FrontierService_AuthToken_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/AuthToken"
+	FrontierService_AuthLogout_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/AuthLogout"
+	FrontierService_ListMetaSchemas_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas"
+	FrontierService_CreateMetaSchema_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateMetaSchema"
+	FrontierService_GetMetaSchema_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetMetaSchema"
+	FrontierService_UpdateMetaSchema_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/UpdateMetaSchema"
+	FrontierService_DeleteMetaSchema_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/DeleteMetaSchema"
+	FrontierService_ListOrganizationAuditLogs_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs"
+	FrontierService_CreateOrganizationAuditLogs_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs"
+	FrontierService_GetOrganizationAuditLog_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog"
 )
 
-// ShieldServiceClient is the client API for ShieldService service.
+// FrontierServiceClient is the client API for FrontierService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ShieldServiceClient interface {
+type FrontierServiceClient interface {
 	// Users
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
@@ -242,918 +242,918 @@ type ShieldServiceClient interface {
 	GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error)
 }
 
-type shieldServiceClient struct {
+type frontierServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewShieldServiceClient(cc grpc.ClientConnInterface) ShieldServiceClient {
-	return &shieldServiceClient{cc}
+func NewFrontierServiceClient(cc grpc.ClientConnInterface) FrontierServiceClient {
+	return &frontierServiceClient{cc}
 }
 
-func (c *shieldServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
+func (c *frontierServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
 	out := new(ListUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
+func (c *frontierServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
 	out := new(CreateUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
+func (c *frontierServiceClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
 	out := new(GetUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListUserGroups(ctx context.Context, in *ListUserGroupsRequest, opts ...grpc.CallOption) (*ListUserGroupsResponse, error) {
+func (c *frontierServiceClient) ListUserGroups(ctx context.Context, in *ListUserGroupsRequest, opts ...grpc.CallOption) (*ListUserGroupsResponse, error) {
 	out := new(ListUserGroupsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListUserGroups_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListUserGroups_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListCurrentUserGroups(ctx context.Context, in *ListCurrentUserGroupsRequest, opts ...grpc.CallOption) (*ListCurrentUserGroupsResponse, error) {
+func (c *frontierServiceClient) ListCurrentUserGroups(ctx context.Context, in *ListCurrentUserGroupsRequest, opts ...grpc.CallOption) (*ListCurrentUserGroupsResponse, error) {
 	out := new(ListCurrentUserGroupsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListCurrentUserGroups_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListCurrentUserGroups_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetCurrentUser(ctx context.Context, in *GetCurrentUserRequest, opts ...grpc.CallOption) (*GetCurrentUserResponse, error) {
+func (c *frontierServiceClient) GetCurrentUser(ctx context.Context, in *GetCurrentUserRequest, opts ...grpc.CallOption) (*GetCurrentUserResponse, error) {
 	out := new(GetCurrentUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetCurrentUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error) {
+func (c *frontierServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error) {
 	out := new(UpdateUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateCurrentUser(ctx context.Context, in *UpdateCurrentUserRequest, opts ...grpc.CallOption) (*UpdateCurrentUserResponse, error) {
+func (c *frontierServiceClient) UpdateCurrentUser(ctx context.Context, in *UpdateCurrentUserRequest, opts ...grpc.CallOption) (*UpdateCurrentUserResponse, error) {
 	out := new(UpdateCurrentUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateCurrentUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*EnableUserResponse, error) {
+func (c *frontierServiceClient) EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*EnableUserResponse, error) {
 	out := new(EnableUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_EnableUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_EnableUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*DisableUserResponse, error) {
+func (c *frontierServiceClient) DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*DisableUserResponse, error) {
 	out := new(DisableUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DisableUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DisableUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+func (c *frontierServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
 	out := new(DeleteUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error) {
+func (c *frontierServiceClient) GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error) {
 	out := new(GetOrganizationsByUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationsByUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationsByUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetOrganizationsByCurrentUser(ctx context.Context, in *GetOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByCurrentUserResponse, error) {
+func (c *frontierServiceClient) GetOrganizationsByCurrentUser(ctx context.Context, in *GetOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByCurrentUserResponse, error) {
 	out := new(GetOrganizationsByCurrentUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationsByCurrentUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationsByCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetProjectsByUser(ctx context.Context, in *GetProjectsByUserRequest, opts ...grpc.CallOption) (*GetProjectsByUserResponse, error) {
+func (c *frontierServiceClient) GetProjectsByUser(ctx context.Context, in *GetProjectsByUserRequest, opts ...grpc.CallOption) (*GetProjectsByUserResponse, error) {
 	out := new(GetProjectsByUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetProjectsByUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetProjectsByUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetProjectsByCurrentUser(ctx context.Context, in *GetProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*GetProjectsByCurrentUserResponse, error) {
+func (c *frontierServiceClient) GetProjectsByCurrentUser(ctx context.Context, in *GetProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*GetProjectsByCurrentUserResponse, error) {
 	out := new(GetProjectsByCurrentUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetProjectsByCurrentUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetProjectsByCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error) {
+func (c *frontierServiceClient) ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error) {
 	out := new(ListUserInvitationsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListUserInvitations_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListUserInvitations_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error) {
+func (c *frontierServiceClient) ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error) {
 	out := new(ListServiceUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListServiceUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListServiceUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error) {
+func (c *frontierServiceClient) CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error) {
 	out := new(CreateServiceUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateServiceUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetServiceUser(ctx context.Context, in *GetServiceUserRequest, opts ...grpc.CallOption) (*GetServiceUserResponse, error) {
+func (c *frontierServiceClient) GetServiceUser(ctx context.Context, in *GetServiceUserRequest, opts ...grpc.CallOption) (*GetServiceUserResponse, error) {
 	out := new(GetServiceUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetServiceUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetServiceUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteServiceUser(ctx context.Context, in *DeleteServiceUserRequest, opts ...grpc.CallOption) (*DeleteServiceUserResponse, error) {
+func (c *frontierServiceClient) DeleteServiceUser(ctx context.Context, in *DeleteServiceUserRequest, opts ...grpc.CallOption) (*DeleteServiceUserResponse, error) {
 	out := new(DeleteServiceUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteServiceUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateServiceUserKey(ctx context.Context, in *CreateServiceUserKeyRequest, opts ...grpc.CallOption) (*CreateServiceUserKeyResponse, error) {
+func (c *frontierServiceClient) CreateServiceUserKey(ctx context.Context, in *CreateServiceUserKeyRequest, opts ...grpc.CallOption) (*CreateServiceUserKeyResponse, error) {
 	out := new(CreateServiceUserKeyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateServiceUserKey_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUserKey_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListServiceUserKeys(ctx context.Context, in *ListServiceUserKeysRequest, opts ...grpc.CallOption) (*ListServiceUserKeysResponse, error) {
+func (c *frontierServiceClient) ListServiceUserKeys(ctx context.Context, in *ListServiceUserKeysRequest, opts ...grpc.CallOption) (*ListServiceUserKeysResponse, error) {
 	out := new(ListServiceUserKeysResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListServiceUserKeys_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserKeys_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetServiceUserKey(ctx context.Context, in *GetServiceUserKeyRequest, opts ...grpc.CallOption) (*GetServiceUserKeyResponse, error) {
+func (c *frontierServiceClient) GetServiceUserKey(ctx context.Context, in *GetServiceUserKeyRequest, opts ...grpc.CallOption) (*GetServiceUserKeyResponse, error) {
 	out := new(GetServiceUserKeyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetServiceUserKey_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetServiceUserKey_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteServiceUserKey(ctx context.Context, in *DeleteServiceUserKeyRequest, opts ...grpc.CallOption) (*DeleteServiceUserKeyResponse, error) {
+func (c *frontierServiceClient) DeleteServiceUserKey(ctx context.Context, in *DeleteServiceUserKeyRequest, opts ...grpc.CallOption) (*DeleteServiceUserKeyResponse, error) {
 	out := new(DeleteServiceUserKeyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteServiceUserKey_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserKey_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateServiceUserSecret(ctx context.Context, in *CreateServiceUserSecretRequest, opts ...grpc.CallOption) (*CreateServiceUserSecretResponse, error) {
+func (c *frontierServiceClient) CreateServiceUserSecret(ctx context.Context, in *CreateServiceUserSecretRequest, opts ...grpc.CallOption) (*CreateServiceUserSecretResponse, error) {
 	out := new(CreateServiceUserSecretResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateServiceUserSecret_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUserSecret_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListServiceUserSecrets(ctx context.Context, in *ListServiceUserSecretsRequest, opts ...grpc.CallOption) (*ListServiceUserSecretsResponse, error) {
+func (c *frontierServiceClient) ListServiceUserSecrets(ctx context.Context, in *ListServiceUserSecretsRequest, opts ...grpc.CallOption) (*ListServiceUserSecretsResponse, error) {
 	out := new(ListServiceUserSecretsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListServiceUserSecrets_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserSecrets_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteServiceUserSecret(ctx context.Context, in *DeleteServiceUserSecretRequest, opts ...grpc.CallOption) (*DeleteServiceUserSecretResponse, error) {
+func (c *frontierServiceClient) DeleteServiceUserSecret(ctx context.Context, in *DeleteServiceUserSecretRequest, opts ...grpc.CallOption) (*DeleteServiceUserSecretResponse, error) {
 	out := new(DeleteServiceUserSecretResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteServiceUserSecret_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserSecret_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationGroups(ctx context.Context, in *ListOrganizationGroupsRequest, opts ...grpc.CallOption) (*ListOrganizationGroupsResponse, error) {
+func (c *frontierServiceClient) ListOrganizationGroups(ctx context.Context, in *ListOrganizationGroupsRequest, opts ...grpc.CallOption) (*ListOrganizationGroupsResponse, error) {
 	out := new(ListOrganizationGroupsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationGroups_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationGroups_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error) {
+func (c *frontierServiceClient) CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error) {
 	out := new(CreateGroupResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateGroup_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupResponse, error) {
+func (c *frontierServiceClient) GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupResponse, error) {
 	out := new(GetGroupResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetGroup_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error) {
+func (c *frontierServiceClient) UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error) {
 	out := new(UpdateGroupResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateGroup_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListGroupUsers(ctx context.Context, in *ListGroupUsersRequest, opts ...grpc.CallOption) (*ListGroupUsersResponse, error) {
+func (c *frontierServiceClient) ListGroupUsers(ctx context.Context, in *ListGroupUsersRequest, opts ...grpc.CallOption) (*ListGroupUsersResponse, error) {
 	out := new(ListGroupUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListGroupUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListGroupUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) AddGroupUsers(ctx context.Context, in *AddGroupUsersRequest, opts ...grpc.CallOption) (*AddGroupUsersResponse, error) {
+func (c *frontierServiceClient) AddGroupUsers(ctx context.Context, in *AddGroupUsersRequest, opts ...grpc.CallOption) (*AddGroupUsersResponse, error) {
 	out := new(AddGroupUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_AddGroupUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_AddGroupUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) RemoveGroupUser(ctx context.Context, in *RemoveGroupUserRequest, opts ...grpc.CallOption) (*RemoveGroupUserResponse, error) {
+func (c *frontierServiceClient) RemoveGroupUser(ctx context.Context, in *RemoveGroupUserRequest, opts ...grpc.CallOption) (*RemoveGroupUserResponse, error) {
 	out := new(RemoveGroupUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_RemoveGroupUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_RemoveGroupUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) EnableGroup(ctx context.Context, in *EnableGroupRequest, opts ...grpc.CallOption) (*EnableGroupResponse, error) {
+func (c *frontierServiceClient) EnableGroup(ctx context.Context, in *EnableGroupRequest, opts ...grpc.CallOption) (*EnableGroupResponse, error) {
 	out := new(EnableGroupResponse)
-	err := c.cc.Invoke(ctx, ShieldService_EnableGroup_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_EnableGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DisableGroup(ctx context.Context, in *DisableGroupRequest, opts ...grpc.CallOption) (*DisableGroupResponse, error) {
+func (c *frontierServiceClient) DisableGroup(ctx context.Context, in *DisableGroupRequest, opts ...grpc.CallOption) (*DisableGroupResponse, error) {
 	out := new(DisableGroupResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DisableGroup_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DisableGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteGroup(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*DeleteGroupResponse, error) {
+func (c *frontierServiceClient) DeleteGroup(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*DeleteGroupResponse, error) {
 	out := new(DeleteGroupResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteGroup_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error) {
+func (c *frontierServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error) {
 	out := new(ListRolesResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListRoles_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListRoles_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*ListOrganizationRolesResponse, error) {
+func (c *frontierServiceClient) ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...grpc.CallOption) (*ListOrganizationRolesResponse, error) {
 	out := new(ListOrganizationRolesResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationRoles_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationRoles_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateOrganizationRole(ctx context.Context, in *CreateOrganizationRoleRequest, opts ...grpc.CallOption) (*CreateOrganizationRoleResponse, error) {
+func (c *frontierServiceClient) CreateOrganizationRole(ctx context.Context, in *CreateOrganizationRoleRequest, opts ...grpc.CallOption) (*CreateOrganizationRoleResponse, error) {
 	out := new(CreateOrganizationRoleResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateOrganizationRole_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateOrganizationRole_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetOrganizationRole(ctx context.Context, in *GetOrganizationRoleRequest, opts ...grpc.CallOption) (*GetOrganizationRoleResponse, error) {
+func (c *frontierServiceClient) GetOrganizationRole(ctx context.Context, in *GetOrganizationRoleRequest, opts ...grpc.CallOption) (*GetOrganizationRoleResponse, error) {
 	out := new(GetOrganizationRoleResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationRole_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationRole_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateOrganizationRole(ctx context.Context, in *UpdateOrganizationRoleRequest, opts ...grpc.CallOption) (*UpdateOrganizationRoleResponse, error) {
+func (c *frontierServiceClient) UpdateOrganizationRole(ctx context.Context, in *UpdateOrganizationRoleRequest, opts ...grpc.CallOption) (*UpdateOrganizationRoleResponse, error) {
 	out := new(UpdateOrganizationRoleResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateOrganizationRole_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateOrganizationRole_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteOrganizationRole(ctx context.Context, in *DeleteOrganizationRoleRequest, opts ...grpc.CallOption) (*DeleteOrganizationRoleResponse, error) {
+func (c *frontierServiceClient) DeleteOrganizationRole(ctx context.Context, in *DeleteOrganizationRoleRequest, opts ...grpc.CallOption) (*DeleteOrganizationRoleResponse, error) {
 	out := new(DeleteOrganizationRoleResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteOrganizationRole_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteOrganizationRole_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error) {
+func (c *frontierServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error) {
 	out := new(ListOrganizationsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizations_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizations_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
+func (c *frontierServiceClient) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
 	out := new(CreateOrganizationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateOrganization_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateOrganization_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetOrganization(ctx context.Context, in *GetOrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error) {
+func (c *frontierServiceClient) GetOrganization(ctx context.Context, in *GetOrganizationRequest, opts ...grpc.CallOption) (*GetOrganizationResponse, error) {
 	out := new(GetOrganizationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetOrganization_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganization_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*UpdateOrganizationResponse, error) {
+func (c *frontierServiceClient) UpdateOrganization(ctx context.Context, in *UpdateOrganizationRequest, opts ...grpc.CallOption) (*UpdateOrganizationResponse, error) {
 	out := new(UpdateOrganizationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateOrganization_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateOrganization_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error) {
+func (c *frontierServiceClient) ListOrganizationProjects(ctx context.Context, in *ListOrganizationProjectsRequest, opts ...grpc.CallOption) (*ListOrganizationProjectsResponse, error) {
 	out := new(ListOrganizationProjectsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationProjects_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationProjects_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationAdmins(ctx context.Context, in *ListOrganizationAdminsRequest, opts ...grpc.CallOption) (*ListOrganizationAdminsResponse, error) {
+func (c *frontierServiceClient) ListOrganizationAdmins(ctx context.Context, in *ListOrganizationAdminsRequest, opts ...grpc.CallOption) (*ListOrganizationAdminsResponse, error) {
 	out := new(ListOrganizationAdminsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationAdmins_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationAdmins_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error) {
+func (c *frontierServiceClient) ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error) {
 	out := new(ListOrganizationUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error) {
+func (c *frontierServiceClient) AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error) {
 	out := new(AddOrganizationUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_AddOrganizationUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_AddOrganizationUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error) {
+func (c *frontierServiceClient) RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error) {
 	out := new(RemoveOrganizationUserResponse)
-	err := c.cc.Invoke(ctx, ShieldService_RemoveOrganizationUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_RemoveOrganizationUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationServiceUsers(ctx context.Context, in *ListOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*ListOrganizationServiceUsersResponse, error) {
+func (c *frontierServiceClient) ListOrganizationServiceUsers(ctx context.Context, in *ListOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*ListOrganizationServiceUsersResponse, error) {
 	out := new(ListOrganizationServiceUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationServiceUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationServiceUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error) {
+func (c *frontierServiceClient) ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error) {
 	out := new(ListOrganizationInvitationsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationInvitations_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationInvitations_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateOrganizationInvitation(ctx context.Context, in *CreateOrganizationInvitationRequest, opts ...grpc.CallOption) (*CreateOrganizationInvitationResponse, error) {
+func (c *frontierServiceClient) CreateOrganizationInvitation(ctx context.Context, in *CreateOrganizationInvitationRequest, opts ...grpc.CallOption) (*CreateOrganizationInvitationResponse, error) {
 	out := new(CreateOrganizationInvitationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateOrganizationInvitation_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateOrganizationInvitation_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetOrganizationInvitation(ctx context.Context, in *GetOrganizationInvitationRequest, opts ...grpc.CallOption) (*GetOrganizationInvitationResponse, error) {
+func (c *frontierServiceClient) GetOrganizationInvitation(ctx context.Context, in *GetOrganizationInvitationRequest, opts ...grpc.CallOption) (*GetOrganizationInvitationResponse, error) {
 	out := new(GetOrganizationInvitationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationInvitation_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationInvitation_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) AcceptOrganizationInvitation(ctx context.Context, in *AcceptOrganizationInvitationRequest, opts ...grpc.CallOption) (*AcceptOrganizationInvitationResponse, error) {
+func (c *frontierServiceClient) AcceptOrganizationInvitation(ctx context.Context, in *AcceptOrganizationInvitationRequest, opts ...grpc.CallOption) (*AcceptOrganizationInvitationResponse, error) {
 	out := new(AcceptOrganizationInvitationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_AcceptOrganizationInvitation_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_AcceptOrganizationInvitation_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteOrganizationInvitation(ctx context.Context, in *DeleteOrganizationInvitationRequest, opts ...grpc.CallOption) (*DeleteOrganizationInvitationResponse, error) {
+func (c *frontierServiceClient) DeleteOrganizationInvitation(ctx context.Context, in *DeleteOrganizationInvitationRequest, opts ...grpc.CallOption) (*DeleteOrganizationInvitationResponse, error) {
 	out := new(DeleteOrganizationInvitationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteOrganizationInvitation_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteOrganizationInvitation_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error) {
+func (c *frontierServiceClient) EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error) {
 	out := new(EnableOrganizationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_EnableOrganization_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_EnableOrganization_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error) {
+func (c *frontierServiceClient) DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error) {
 	out := new(DisableOrganizationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DisableOrganization_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DisableOrganization_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error) {
+func (c *frontierServiceClient) DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error) {
 	out := new(DeleteOrganizationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteOrganization_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteOrganization_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error) {
+func (c *frontierServiceClient) CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error) {
 	out := new(CreateProjectResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateProject_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateProject_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error) {
+func (c *frontierServiceClient) GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error) {
 	out := new(GetProjectResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetProject_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetProject_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error) {
+func (c *frontierServiceClient) UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error) {
 	out := new(UpdateProjectResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateProject_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateProject_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListProjectAdmins(ctx context.Context, in *ListProjectAdminsRequest, opts ...grpc.CallOption) (*ListProjectAdminsResponse, error) {
+func (c *frontierServiceClient) ListProjectAdmins(ctx context.Context, in *ListProjectAdminsRequest, opts ...grpc.CallOption) (*ListProjectAdminsResponse, error) {
 	out := new(ListProjectAdminsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListProjectAdmins_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListProjectAdmins_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error) {
+func (c *frontierServiceClient) ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error) {
 	out := new(ListProjectUsersResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListProjectUsers_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListProjectUsers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error) {
+func (c *frontierServiceClient) EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error) {
 	out := new(EnableProjectResponse)
-	err := c.cc.Invoke(ctx, ShieldService_EnableProject_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_EnableProject_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DisableProject(ctx context.Context, in *DisableProjectRequest, opts ...grpc.CallOption) (*DisableProjectResponse, error) {
+func (c *frontierServiceClient) DisableProject(ctx context.Context, in *DisableProjectRequest, opts ...grpc.CallOption) (*DisableProjectResponse, error) {
 	out := new(DisableProjectResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DisableProject_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DisableProject_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error) {
+func (c *frontierServiceClient) DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error) {
 	out := new(DeleteProjectResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteProject_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteProject_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error) {
+func (c *frontierServiceClient) CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error) {
 	out := new(CreatePolicyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreatePolicy_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreatePolicy_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
+func (c *frontierServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
 	out := new(GetPolicyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetPolicy_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetPolicy_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error) {
+func (c *frontierServiceClient) UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error) {
 	out := new(UpdatePolicyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdatePolicy_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdatePolicy_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeletePolicy(ctx context.Context, in *DeletePolicyRequest, opts ...grpc.CallOption) (*DeletePolicyResponse, error) {
+func (c *frontierServiceClient) DeletePolicy(ctx context.Context, in *DeletePolicyRequest, opts ...grpc.CallOption) (*DeletePolicyResponse, error) {
 	out := new(DeletePolicyResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeletePolicy_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeletePolicy_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error) {
+func (c *frontierServiceClient) CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error) {
 	out := new(CreateRelationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateRelation_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateRelation_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error) {
+func (c *frontierServiceClient) GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error) {
 	out := new(GetRelationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetRelation_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetRelation_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteRelation(ctx context.Context, in *DeleteRelationRequest, opts ...grpc.CallOption) (*DeleteRelationResponse, error) {
+func (c *frontierServiceClient) DeleteRelation(ctx context.Context, in *DeleteRelationRequest, opts ...grpc.CallOption) (*DeleteRelationResponse, error) {
 	out := new(DeleteRelationResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteRelation_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteRelation_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
+func (c *frontierServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
 	out := new(ListPermissionsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListPermissions_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListPermissions_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*GetPermissionResponse, error) {
+func (c *frontierServiceClient) GetPermission(ctx context.Context, in *GetPermissionRequest, opts ...grpc.CallOption) (*GetPermissionResponse, error) {
 	out := new(GetPermissionResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetPermission_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetPermission_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
+func (c *frontierServiceClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
 	out := new(ListNamespacesResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListNamespaces_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListNamespaces_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error) {
+func (c *frontierServiceClient) GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*GetNamespaceResponse, error) {
 	out := new(GetNamespaceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetNamespace_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetNamespace_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListProjectResources(ctx context.Context, in *ListProjectResourcesRequest, opts ...grpc.CallOption) (*ListProjectResourcesResponse, error) {
+func (c *frontierServiceClient) ListProjectResources(ctx context.Context, in *ListProjectResourcesRequest, opts ...grpc.CallOption) (*ListProjectResourcesResponse, error) {
 	out := new(ListProjectResourcesResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListProjectResources_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListProjectResources_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateProjectResource(ctx context.Context, in *CreateProjectResourceRequest, opts ...grpc.CallOption) (*CreateProjectResourceResponse, error) {
+func (c *frontierServiceClient) CreateProjectResource(ctx context.Context, in *CreateProjectResourceRequest, opts ...grpc.CallOption) (*CreateProjectResourceResponse, error) {
 	out := new(CreateProjectResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateProjectResource_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetProjectResource(ctx context.Context, in *GetProjectResourceRequest, opts ...grpc.CallOption) (*GetProjectResourceResponse, error) {
+func (c *frontierServiceClient) GetProjectResource(ctx context.Context, in *GetProjectResourceRequest, opts ...grpc.CallOption) (*GetProjectResourceResponse, error) {
 	out := new(GetProjectResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetProjectResource_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateProjectResource(ctx context.Context, in *UpdateProjectResourceRequest, opts ...grpc.CallOption) (*UpdateProjectResourceResponse, error) {
+func (c *frontierServiceClient) UpdateProjectResource(ctx context.Context, in *UpdateProjectResourceRequest, opts ...grpc.CallOption) (*UpdateProjectResourceResponse, error) {
 	out := new(UpdateProjectResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateProjectResource_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteProjectResource(ctx context.Context, in *DeleteProjectResourceRequest, opts ...grpc.CallOption) (*DeleteProjectResourceResponse, error) {
+func (c *frontierServiceClient) DeleteProjectResource(ctx context.Context, in *DeleteProjectResourceRequest, opts ...grpc.CallOption) (*DeleteProjectResourceResponse, error) {
 	out := new(DeleteProjectResourceResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteProjectResource_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteProjectResource_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error) {
+func (c *frontierServiceClient) CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error) {
 	out := new(CheckResourcePermissionResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CheckResourcePermission_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CheckResourcePermission_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error) {
+func (c *frontierServiceClient) GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error) {
 	out := new(GetJWKsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetJWKs_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetJWKs_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error) {
+func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error) {
 	out := new(ListAuthStrategiesResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListAuthStrategies_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListAuthStrategies_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
+func (c *frontierServiceClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	out := new(AuthenticateResponse)
-	err := c.cc.Invoke(ctx, ShieldService_Authenticate_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_Authenticate_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error) {
+func (c *frontierServiceClient) AuthCallback(ctx context.Context, in *AuthCallbackRequest, opts ...grpc.CallOption) (*AuthCallbackResponse, error) {
 	out := new(AuthCallbackResponse)
-	err := c.cc.Invoke(ctx, ShieldService_AuthCallback_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_AuthCallback_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) AuthToken(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenResponse, error) {
+func (c *frontierServiceClient) AuthToken(ctx context.Context, in *AuthTokenRequest, opts ...grpc.CallOption) (*AuthTokenResponse, error) {
 	out := new(AuthTokenResponse)
-	err := c.cc.Invoke(ctx, ShieldService_AuthToken_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_AuthToken_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) AuthLogout(ctx context.Context, in *AuthLogoutRequest, opts ...grpc.CallOption) (*AuthLogoutResponse, error) {
+func (c *frontierServiceClient) AuthLogout(ctx context.Context, in *AuthLogoutRequest, opts ...grpc.CallOption) (*AuthLogoutResponse, error) {
 	out := new(AuthLogoutResponse)
-	err := c.cc.Invoke(ctx, ShieldService_AuthLogout_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_AuthLogout_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListMetaSchemas(ctx context.Context, in *ListMetaSchemasRequest, opts ...grpc.CallOption) (*ListMetaSchemasResponse, error) {
+func (c *frontierServiceClient) ListMetaSchemas(ctx context.Context, in *ListMetaSchemasRequest, opts ...grpc.CallOption) (*ListMetaSchemasResponse, error) {
 	out := new(ListMetaSchemasResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListMetaSchemas_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListMetaSchemas_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateMetaSchema(ctx context.Context, in *CreateMetaSchemaRequest, opts ...grpc.CallOption) (*CreateMetaSchemaResponse, error) {
+func (c *frontierServiceClient) CreateMetaSchema(ctx context.Context, in *CreateMetaSchemaRequest, opts ...grpc.CallOption) (*CreateMetaSchemaResponse, error) {
 	out := new(CreateMetaSchemaResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateMetaSchema_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateMetaSchema_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error) {
+func (c *frontierServiceClient) GetMetaSchema(ctx context.Context, in *GetMetaSchemaRequest, opts ...grpc.CallOption) (*GetMetaSchemaResponse, error) {
 	out := new(GetMetaSchemaResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetMetaSchema_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetMetaSchema_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error) {
+func (c *frontierServiceClient) UpdateMetaSchema(ctx context.Context, in *UpdateMetaSchemaRequest, opts ...grpc.CallOption) (*UpdateMetaSchemaResponse, error) {
 	out := new(UpdateMetaSchemaResponse)
-	err := c.cc.Invoke(ctx, ShieldService_UpdateMetaSchema_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateMetaSchema_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error) {
+func (c *frontierServiceClient) DeleteMetaSchema(ctx context.Context, in *DeleteMetaSchemaRequest, opts ...grpc.CallOption) (*DeleteMetaSchemaResponse, error) {
 	out := new(DeleteMetaSchemaResponse)
-	err := c.cc.Invoke(ctx, ShieldService_DeleteMetaSchema_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteMetaSchema_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error) {
+func (c *frontierServiceClient) ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error) {
 	out := new(ListOrganizationAuditLogsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_ListOrganizationAuditLogs_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationAuditLogs_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error) {
+func (c *frontierServiceClient) CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error) {
 	out := new(CreateOrganizationAuditLogsResponse)
-	err := c.cc.Invoke(ctx, ShieldService_CreateOrganizationAuditLogs_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_CreateOrganizationAuditLogs_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldServiceClient) GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error) {
+func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error) {
 	out := new(GetOrganizationAuditLogResponse)
-	err := c.cc.Invoke(ctx, ShieldService_GetOrganizationAuditLog_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationAuditLog_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ShieldServiceServer is the server API for ShieldService service.
-// All implementations must embed UnimplementedShieldServiceServer
+// FrontierServiceServer is the server API for FrontierService service.
+// All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
-type ShieldServiceServer interface {
+type FrontierServiceServer interface {
 	// Users
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
@@ -1269,2534 +1269,2534 @@ type ShieldServiceServer interface {
 	ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error)
 	CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error)
 	GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error)
-	mustEmbedUnimplementedShieldServiceServer()
+	mustEmbedUnimplementedFrontierServiceServer()
 }
 
-// UnimplementedShieldServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedShieldServiceServer struct {
+// UnimplementedFrontierServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedFrontierServiceServer struct {
 }
 
-func (UnimplementedShieldServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedShieldServiceServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
+func (UnimplementedFrontierServiceServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedShieldServiceServer) ListUserGroups(context.Context, *ListUserGroupsRequest) (*ListUserGroupsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListUserGroups(context.Context, *ListUserGroupsRequest) (*ListUserGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserGroups not implemented")
 }
-func (UnimplementedShieldServiceServer) ListCurrentUserGroups(context.Context, *ListCurrentUserGroupsRequest) (*ListCurrentUserGroupsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListCurrentUserGroups(context.Context, *ListCurrentUserGroupsRequest) (*ListCurrentUserGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCurrentUserGroups not implemented")
 }
-func (UnimplementedShieldServiceServer) GetCurrentUser(context.Context, *GetCurrentUserRequest) (*GetCurrentUserResponse, error) {
+func (UnimplementedFrontierServiceServer) GetCurrentUser(context.Context, *GetCurrentUserRequest) (*GetCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentUser not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateCurrentUser(context.Context, *UpdateCurrentUserRequest) (*UpdateCurrentUserResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateCurrentUser(context.Context, *UpdateCurrentUserRequest) (*UpdateCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCurrentUser not implemented")
 }
-func (UnimplementedShieldServiceServer) EnableUser(context.Context, *EnableUserRequest) (*EnableUserResponse, error) {
+func (UnimplementedFrontierServiceServer) EnableUser(context.Context, *EnableUserRequest) (*EnableUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableUser not implemented")
 }
-func (UnimplementedShieldServiceServer) DisableUser(context.Context, *DisableUserRequest) (*DisableUserResponse, error) {
+func (UnimplementedFrontierServiceServer) DisableUser(context.Context, *DisableUserRequest) (*DisableUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisableUser not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
-func (UnimplementedShieldServiceServer) GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error) {
+func (UnimplementedFrontierServiceServer) GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationsByUser not implemented")
 }
-func (UnimplementedShieldServiceServer) GetOrganizationsByCurrentUser(context.Context, *GetOrganizationsByCurrentUserRequest) (*GetOrganizationsByCurrentUserResponse, error) {
+func (UnimplementedFrontierServiceServer) GetOrganizationsByCurrentUser(context.Context, *GetOrganizationsByCurrentUserRequest) (*GetOrganizationsByCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationsByCurrentUser not implemented")
 }
-func (UnimplementedShieldServiceServer) GetProjectsByUser(context.Context, *GetProjectsByUserRequest) (*GetProjectsByUserResponse, error) {
+func (UnimplementedFrontierServiceServer) GetProjectsByUser(context.Context, *GetProjectsByUserRequest) (*GetProjectsByUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProjectsByUser not implemented")
 }
-func (UnimplementedShieldServiceServer) GetProjectsByCurrentUser(context.Context, *GetProjectsByCurrentUserRequest) (*GetProjectsByCurrentUserResponse, error) {
+func (UnimplementedFrontierServiceServer) GetProjectsByCurrentUser(context.Context, *GetProjectsByCurrentUserRequest) (*GetProjectsByCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProjectsByCurrentUser not implemented")
 }
-func (UnimplementedShieldServiceServer) ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserInvitations not implemented")
 }
-func (UnimplementedShieldServiceServer) ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUser not implemented")
 }
-func (UnimplementedShieldServiceServer) GetServiceUser(context.Context, *GetServiceUserRequest) (*GetServiceUserResponse, error) {
+func (UnimplementedFrontierServiceServer) GetServiceUser(context.Context, *GetServiceUserRequest) (*GetServiceUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetServiceUser not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteServiceUser(context.Context, *DeleteServiceUserRequest) (*DeleteServiceUserResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteServiceUser(context.Context, *DeleteServiceUserRequest) (*DeleteServiceUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUser not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateServiceUserKey(context.Context, *CreateServiceUserKeyRequest) (*CreateServiceUserKeyResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateServiceUserKey(context.Context, *CreateServiceUserKeyRequest) (*CreateServiceUserKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserKey not implemented")
 }
-func (UnimplementedShieldServiceServer) ListServiceUserKeys(context.Context, *ListServiceUserKeysRequest) (*ListServiceUserKeysResponse, error) {
+func (UnimplementedFrontierServiceServer) ListServiceUserKeys(context.Context, *ListServiceUserKeysRequest) (*ListServiceUserKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserKeys not implemented")
 }
-func (UnimplementedShieldServiceServer) GetServiceUserKey(context.Context, *GetServiceUserKeyRequest) (*GetServiceUserKeyResponse, error) {
+func (UnimplementedFrontierServiceServer) GetServiceUserKey(context.Context, *GetServiceUserKeyRequest) (*GetServiceUserKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetServiceUserKey not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteServiceUserKey(context.Context, *DeleteServiceUserKeyRequest) (*DeleteServiceUserKeyResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteServiceUserKey(context.Context, *DeleteServiceUserKeyRequest) (*DeleteServiceUserKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserKey not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateServiceUserSecret(context.Context, *CreateServiceUserSecretRequest) (*CreateServiceUserSecretResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateServiceUserSecret(context.Context, *CreateServiceUserSecretRequest) (*CreateServiceUserSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserSecret not implemented")
 }
-func (UnimplementedShieldServiceServer) ListServiceUserSecrets(context.Context, *ListServiceUserSecretsRequest) (*ListServiceUserSecretsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListServiceUserSecrets(context.Context, *ListServiceUserSecretsRequest) (*ListServiceUserSecretsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserSecrets not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteServiceUserSecret(context.Context, *DeleteServiceUserSecretRequest) (*DeleteServiceUserSecretResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteServiceUserSecret(context.Context, *DeleteServiceUserSecretRequest) (*DeleteServiceUserSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserSecret not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationGroups not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGroup not implemented")
 }
-func (UnimplementedShieldServiceServer) GetGroup(context.Context, *GetGroupRequest) (*GetGroupResponse, error) {
+func (UnimplementedFrontierServiceServer) GetGroup(context.Context, *GetGroupRequest) (*GetGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGroup not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateGroup not implemented")
 }
-func (UnimplementedShieldServiceServer) ListGroupUsers(context.Context, *ListGroupUsersRequest) (*ListGroupUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) ListGroupUsers(context.Context, *ListGroupUsersRequest) (*ListGroupUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGroupUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) AddGroupUsers(context.Context, *AddGroupUsersRequest) (*AddGroupUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) AddGroupUsers(context.Context, *AddGroupUsersRequest) (*AddGroupUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddGroupUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) RemoveGroupUser(context.Context, *RemoveGroupUserRequest) (*RemoveGroupUserResponse, error) {
+func (UnimplementedFrontierServiceServer) RemoveGroupUser(context.Context, *RemoveGroupUserRequest) (*RemoveGroupUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveGroupUser not implemented")
 }
-func (UnimplementedShieldServiceServer) EnableGroup(context.Context, *EnableGroupRequest) (*EnableGroupResponse, error) {
+func (UnimplementedFrontierServiceServer) EnableGroup(context.Context, *EnableGroupRequest) (*EnableGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableGroup not implemented")
 }
-func (UnimplementedShieldServiceServer) DisableGroup(context.Context, *DisableGroupRequest) (*DisableGroupResponse, error) {
+func (UnimplementedFrontierServiceServer) DisableGroup(context.Context, *DisableGroupRequest) (*DisableGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisableGroup not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteGroup not implemented")
 }
-func (UnimplementedShieldServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
+func (UnimplementedFrontierServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRoles not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationRoles not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateOrganizationRole(context.Context, *CreateOrganizationRoleRequest) (*CreateOrganizationRoleResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateOrganizationRole(context.Context, *CreateOrganizationRoleRequest) (*CreateOrganizationRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganizationRole not implemented")
 }
-func (UnimplementedShieldServiceServer) GetOrganizationRole(context.Context, *GetOrganizationRoleRequest) (*GetOrganizationRoleResponse, error) {
+func (UnimplementedFrontierServiceServer) GetOrganizationRole(context.Context, *GetOrganizationRoleRequest) (*GetOrganizationRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationRole not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateOrganizationRole(context.Context, *UpdateOrganizationRoleRequest) (*UpdateOrganizationRoleResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateOrganizationRole(context.Context, *UpdateOrganizationRoleRequest) (*UpdateOrganizationRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrganizationRole not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteOrganizationRole(context.Context, *DeleteOrganizationRoleRequest) (*DeleteOrganizationRoleResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteOrganizationRole(context.Context, *DeleteOrganizationRoleRequest) (*DeleteOrganizationRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrganizationRole not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizations not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganization not implemented")
 }
-func (UnimplementedShieldServiceServer) GetOrganization(context.Context, *GetOrganizationRequest) (*GetOrganizationResponse, error) {
+func (UnimplementedFrontierServiceServer) GetOrganization(context.Context, *GetOrganizationRequest) (*GetOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganization not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateOrganization(context.Context, *UpdateOrganizationRequest) (*UpdateOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrganization not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationProjects(context.Context, *ListOrganizationProjectsRequest) (*ListOrganizationProjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationProjects not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationAdmins(context.Context, *ListOrganizationAdminsRequest) (*ListOrganizationAdminsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationAdmins(context.Context, *ListOrganizationAdminsRequest) (*ListOrganizationAdminsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationAdmins not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddOrganizationUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error) {
+func (UnimplementedFrontierServiceServer) RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationUser not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationServiceUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationInvitations not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateOrganizationInvitation(context.Context, *CreateOrganizationInvitationRequest) (*CreateOrganizationInvitationResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateOrganizationInvitation(context.Context, *CreateOrganizationInvitationRequest) (*CreateOrganizationInvitationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganizationInvitation not implemented")
 }
-func (UnimplementedShieldServiceServer) GetOrganizationInvitation(context.Context, *GetOrganizationInvitationRequest) (*GetOrganizationInvitationResponse, error) {
+func (UnimplementedFrontierServiceServer) GetOrganizationInvitation(context.Context, *GetOrganizationInvitationRequest) (*GetOrganizationInvitationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationInvitation not implemented")
 }
-func (UnimplementedShieldServiceServer) AcceptOrganizationInvitation(context.Context, *AcceptOrganizationInvitationRequest) (*AcceptOrganizationInvitationResponse, error) {
+func (UnimplementedFrontierServiceServer) AcceptOrganizationInvitation(context.Context, *AcceptOrganizationInvitationRequest) (*AcceptOrganizationInvitationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AcceptOrganizationInvitation not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteOrganizationInvitation(context.Context, *DeleteOrganizationInvitationRequest) (*DeleteOrganizationInvitationResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteOrganizationInvitation(context.Context, *DeleteOrganizationInvitationRequest) (*DeleteOrganizationInvitationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrganizationInvitation not implemented")
 }
-func (UnimplementedShieldServiceServer) EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error) {
+func (UnimplementedFrontierServiceServer) EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableOrganization not implemented")
 }
-func (UnimplementedShieldServiceServer) DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error) {
+func (UnimplementedFrontierServiceServer) DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisableOrganization not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrganization not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProject not implemented")
 }
-func (UnimplementedShieldServiceServer) GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error) {
+func (UnimplementedFrontierServiceServer) GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProject not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProject not implemented")
 }
-func (UnimplementedShieldServiceServer) ListProjectAdmins(context.Context, *ListProjectAdminsRequest) (*ListProjectAdminsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListProjectAdmins(context.Context, *ListProjectAdminsRequest) (*ListProjectAdminsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjectAdmins not implemented")
 }
-func (UnimplementedShieldServiceServer) ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error) {
+func (UnimplementedFrontierServiceServer) ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjectUsers not implemented")
 }
-func (UnimplementedShieldServiceServer) EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error) {
+func (UnimplementedFrontierServiceServer) EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableProject not implemented")
 }
-func (UnimplementedShieldServiceServer) DisableProject(context.Context, *DisableProjectRequest) (*DisableProjectResponse, error) {
+func (UnimplementedFrontierServiceServer) DisableProject(context.Context, *DisableProjectRequest) (*DisableProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisableProject not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProject not implemented")
 }
-func (UnimplementedShieldServiceServer) CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error) {
+func (UnimplementedFrontierServiceServer) CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePolicy not implemented")
 }
-func (UnimplementedShieldServiceServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
+func (UnimplementedFrontierServiceServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicy not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePolicy not implemented")
 }
-func (UnimplementedShieldServiceServer) DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error) {
+func (UnimplementedFrontierServiceServer) DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePolicy not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRelation not implemented")
 }
-func (UnimplementedShieldServiceServer) GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error) {
+func (UnimplementedFrontierServiceServer) GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRelation not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteRelation(context.Context, *DeleteRelationRequest) (*DeleteRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRelation not implemented")
 }
-func (UnimplementedShieldServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPermissions not implemented")
 }
-func (UnimplementedShieldServiceServer) GetPermission(context.Context, *GetPermissionRequest) (*GetPermissionResponse, error) {
+func (UnimplementedFrontierServiceServer) GetPermission(context.Context, *GetPermissionRequest) (*GetPermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPermission not implemented")
 }
-func (UnimplementedShieldServiceServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
+func (UnimplementedFrontierServiceServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
 }
-func (UnimplementedShieldServiceServer) GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error) {
+func (UnimplementedFrontierServiceServer) GetNamespace(context.Context, *GetNamespaceRequest) (*GetNamespaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNamespace not implemented")
 }
-func (UnimplementedShieldServiceServer) ListProjectResources(context.Context, *ListProjectResourcesRequest) (*ListProjectResourcesResponse, error) {
+func (UnimplementedFrontierServiceServer) ListProjectResources(context.Context, *ListProjectResourcesRequest) (*ListProjectResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjectResources not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateProjectResource(context.Context, *CreateProjectResourceRequest) (*CreateProjectResourceResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateProjectResource(context.Context, *CreateProjectResourceRequest) (*CreateProjectResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProjectResource not implemented")
 }
-func (UnimplementedShieldServiceServer) GetProjectResource(context.Context, *GetProjectResourceRequest) (*GetProjectResourceResponse, error) {
+func (UnimplementedFrontierServiceServer) GetProjectResource(context.Context, *GetProjectResourceRequest) (*GetProjectResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProjectResource not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateProjectResource(context.Context, *UpdateProjectResourceRequest) (*UpdateProjectResourceResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateProjectResource(context.Context, *UpdateProjectResourceRequest) (*UpdateProjectResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProjectResource not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteProjectResource(context.Context, *DeleteProjectResourceRequest) (*DeleteProjectResourceResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteProjectResource(context.Context, *DeleteProjectResourceRequest) (*DeleteProjectResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProjectResource not implemented")
 }
-func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
+func (UnimplementedFrontierServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
 }
-func (UnimplementedShieldServiceServer) GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error) {
+func (UnimplementedFrontierServiceServer) GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJWKs not implemented")
 }
-func (UnimplementedShieldServiceServer) ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error) {
+func (UnimplementedFrontierServiceServer) ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuthStrategies not implemented")
 }
-func (UnimplementedShieldServiceServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
+func (UnimplementedFrontierServiceServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
 }
-func (UnimplementedShieldServiceServer) AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error) {
+func (UnimplementedFrontierServiceServer) AuthCallback(context.Context, *AuthCallbackRequest) (*AuthCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthCallback not implemented")
 }
-func (UnimplementedShieldServiceServer) AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error) {
+func (UnimplementedFrontierServiceServer) AuthToken(context.Context, *AuthTokenRequest) (*AuthTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthToken not implemented")
 }
-func (UnimplementedShieldServiceServer) AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error) {
+func (UnimplementedFrontierServiceServer) AuthLogout(context.Context, *AuthLogoutRequest) (*AuthLogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthLogout not implemented")
 }
-func (UnimplementedShieldServiceServer) ListMetaSchemas(context.Context, *ListMetaSchemasRequest) (*ListMetaSchemasResponse, error) {
+func (UnimplementedFrontierServiceServer) ListMetaSchemas(context.Context, *ListMetaSchemasRequest) (*ListMetaSchemasResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListMetaSchemas not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateMetaSchema(context.Context, *CreateMetaSchemaRequest) (*CreateMetaSchemaResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateMetaSchema(context.Context, *CreateMetaSchemaRequest) (*CreateMetaSchemaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateMetaSchema not implemented")
 }
-func (UnimplementedShieldServiceServer) GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error) {
+func (UnimplementedFrontierServiceServer) GetMetaSchema(context.Context, *GetMetaSchemaRequest) (*GetMetaSchemaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetaSchema not implemented")
 }
-func (UnimplementedShieldServiceServer) UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error) {
+func (UnimplementedFrontierServiceServer) UpdateMetaSchema(context.Context, *UpdateMetaSchemaRequest) (*UpdateMetaSchemaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetaSchema not implemented")
 }
-func (UnimplementedShieldServiceServer) DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error) {
+func (UnimplementedFrontierServiceServer) DeleteMetaSchema(context.Context, *DeleteMetaSchemaRequest) (*DeleteMetaSchemaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteMetaSchema not implemented")
 }
-func (UnimplementedShieldServiceServer) ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error) {
+func (UnimplementedFrontierServiceServer) ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationAuditLogs not implemented")
 }
-func (UnimplementedShieldServiceServer) CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error) {
+func (UnimplementedFrontierServiceServer) CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganizationAuditLogs not implemented")
 }
-func (UnimplementedShieldServiceServer) GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error) {
+func (UnimplementedFrontierServiceServer) GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationAuditLog not implemented")
 }
-func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
+func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
-// UnsafeShieldServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ShieldServiceServer will
+// UnsafeFrontierServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to FrontierServiceServer will
 // result in compilation errors.
-type UnsafeShieldServiceServer interface {
-	mustEmbedUnimplementedShieldServiceServer()
+type UnsafeFrontierServiceServer interface {
+	mustEmbedUnimplementedFrontierServiceServer()
 }
 
-func RegisterShieldServiceServer(s grpc.ServiceRegistrar, srv ShieldServiceServer) {
-	s.RegisterService(&ShieldService_ServiceDesc, srv)
+func RegisterFrontierServiceServer(s grpc.ServiceRegistrar, srv FrontierServiceServer) {
+	s.RegisterService(&FrontierService_ServiceDesc, srv)
 }
 
-func _ShieldService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListUsers(ctx, in)
+		return srv.(FrontierServiceServer).ListUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListUsers_FullMethodName,
+		FullMethod: FrontierService_ListUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
+		return srv.(FrontierServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateUser(ctx, in)
+		return srv.(FrontierServiceServer).CreateUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateUser_FullMethodName,
+		FullMethod: FrontierService_CreateUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
+		return srv.(FrontierServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetUser(ctx, in)
+		return srv.(FrontierServiceServer).GetUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetUser_FullMethodName,
+		FullMethod: FrontierService_GetUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetUser(ctx, req.(*GetUserRequest))
+		return srv.(FrontierServiceServer).GetUser(ctx, req.(*GetUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListUserGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListUserGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListUserGroupsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListUserGroups(ctx, in)
+		return srv.(FrontierServiceServer).ListUserGroups(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListUserGroups_FullMethodName,
+		FullMethod: FrontierService_ListUserGroups_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListUserGroups(ctx, req.(*ListUserGroupsRequest))
+		return srv.(FrontierServiceServer).ListUserGroups(ctx, req.(*ListUserGroupsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListCurrentUserGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListCurrentUserGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCurrentUserGroupsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListCurrentUserGroups(ctx, in)
+		return srv.(FrontierServiceServer).ListCurrentUserGroups(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListCurrentUserGroups_FullMethodName,
+		FullMethod: FrontierService_ListCurrentUserGroups_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListCurrentUserGroups(ctx, req.(*ListCurrentUserGroupsRequest))
+		return srv.(FrontierServiceServer).ListCurrentUserGroups(ctx, req.(*ListCurrentUserGroupsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCurrentUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetCurrentUser(ctx, in)
+		return srv.(FrontierServiceServer).GetCurrentUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetCurrentUser_FullMethodName,
+		FullMethod: FrontierService_GetCurrentUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetCurrentUser(ctx, req.(*GetCurrentUserRequest))
+		return srv.(FrontierServiceServer).GetCurrentUser(ctx, req.(*GetCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateUser(ctx, in)
+		return srv.(FrontierServiceServer).UpdateUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateUser_FullMethodName,
+		FullMethod: FrontierService_UpdateUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
+		return srv.(FrontierServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateCurrentUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateCurrentUser(ctx, in)
+		return srv.(FrontierServiceServer).UpdateCurrentUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateCurrentUser_FullMethodName,
+		FullMethod: FrontierService_UpdateCurrentUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateCurrentUser(ctx, req.(*UpdateCurrentUserRequest))
+		return srv.(FrontierServiceServer).UpdateCurrentUser(ctx, req.(*UpdateCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_EnableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_EnableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).EnableUser(ctx, in)
+		return srv.(FrontierServiceServer).EnableUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_EnableUser_FullMethodName,
+		FullMethod: FrontierService_EnableUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).EnableUser(ctx, req.(*EnableUserRequest))
+		return srv.(FrontierServiceServer).EnableUser(ctx, req.(*EnableUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DisableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DisableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DisableUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DisableUser(ctx, in)
+		return srv.(FrontierServiceServer).DisableUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DisableUser_FullMethodName,
+		FullMethod: FrontierService_DisableUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DisableUser(ctx, req.(*DisableUserRequest))
+		return srv.(FrontierServiceServer).DisableUser(ctx, req.(*DisableUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteUser(ctx, in)
+		return srv.(FrontierServiceServer).DeleteUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteUser_FullMethodName,
+		FullMethod: FrontierService_DeleteUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+		return srv.(FrontierServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetOrganizationsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetOrganizationsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationsByUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetOrganizationsByUser(ctx, in)
+		return srv.(FrontierServiceServer).GetOrganizationsByUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetOrganizationsByUser_FullMethodName,
+		FullMethod: FrontierService_GetOrganizationsByUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetOrganizationsByUser(ctx, req.(*GetOrganizationsByUserRequest))
+		return srv.(FrontierServiceServer).GetOrganizationsByUser(ctx, req.(*GetOrganizationsByUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetOrganizationsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetOrganizationsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationsByCurrentUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetOrganizationsByCurrentUser(ctx, in)
+		return srv.(FrontierServiceServer).GetOrganizationsByCurrentUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetOrganizationsByCurrentUser_FullMethodName,
+		FullMethod: FrontierService_GetOrganizationsByCurrentUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetOrganizationsByCurrentUser(ctx, req.(*GetOrganizationsByCurrentUserRequest))
+		return srv.(FrontierServiceServer).GetOrganizationsByCurrentUser(ctx, req.(*GetOrganizationsByCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetProjectsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetProjectsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProjectsByUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetProjectsByUser(ctx, in)
+		return srv.(FrontierServiceServer).GetProjectsByUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetProjectsByUser_FullMethodName,
+		FullMethod: FrontierService_GetProjectsByUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetProjectsByUser(ctx, req.(*GetProjectsByUserRequest))
+		return srv.(FrontierServiceServer).GetProjectsByUser(ctx, req.(*GetProjectsByUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetProjectsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetProjectsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProjectsByCurrentUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetProjectsByCurrentUser(ctx, in)
+		return srv.(FrontierServiceServer).GetProjectsByCurrentUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetProjectsByCurrentUser_FullMethodName,
+		FullMethod: FrontierService_GetProjectsByCurrentUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetProjectsByCurrentUser(ctx, req.(*GetProjectsByCurrentUserRequest))
+		return srv.(FrontierServiceServer).GetProjectsByCurrentUser(ctx, req.(*GetProjectsByCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListUserInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListUserInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListUserInvitationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListUserInvitations(ctx, in)
+		return srv.(FrontierServiceServer).ListUserInvitations(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListUserInvitations_FullMethodName,
+		FullMethod: FrontierService_ListUserInvitations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListUserInvitations(ctx, req.(*ListUserInvitationsRequest))
+		return srv.(FrontierServiceServer).ListUserInvitations(ctx, req.(*ListUserInvitationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListServiceUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListServiceUsers(ctx, in)
+		return srv.(FrontierServiceServer).ListServiceUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListServiceUsers_FullMethodName,
+		FullMethod: FrontierService_ListServiceUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListServiceUsers(ctx, req.(*ListServiceUsersRequest))
+		return srv.(FrontierServiceServer).ListServiceUsers(ctx, req.(*ListServiceUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateServiceUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateServiceUser(ctx, in)
+		return srv.(FrontierServiceServer).CreateServiceUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateServiceUser_FullMethodName,
+		FullMethod: FrontierService_CreateServiceUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateServiceUser(ctx, req.(*CreateServiceUserRequest))
+		return srv.(FrontierServiceServer).CreateServiceUser(ctx, req.(*CreateServiceUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetServiceUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetServiceUser(ctx, in)
+		return srv.(FrontierServiceServer).GetServiceUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetServiceUser_FullMethodName,
+		FullMethod: FrontierService_GetServiceUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetServiceUser(ctx, req.(*GetServiceUserRequest))
+		return srv.(FrontierServiceServer).GetServiceUser(ctx, req.(*GetServiceUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteServiceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteServiceUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteServiceUser(ctx, in)
+		return srv.(FrontierServiceServer).DeleteServiceUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteServiceUser_FullMethodName,
+		FullMethod: FrontierService_DeleteServiceUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteServiceUser(ctx, req.(*DeleteServiceUserRequest))
+		return srv.(FrontierServiceServer).DeleteServiceUser(ctx, req.(*DeleteServiceUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateServiceUserKeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateServiceUserKey(ctx, in)
+		return srv.(FrontierServiceServer).CreateServiceUserKey(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateServiceUserKey_FullMethodName,
+		FullMethod: FrontierService_CreateServiceUserKey_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateServiceUserKey(ctx, req.(*CreateServiceUserKeyRequest))
+		return srv.(FrontierServiceServer).CreateServiceUserKey(ctx, req.(*CreateServiceUserKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListServiceUserKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListServiceUserKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListServiceUserKeysRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListServiceUserKeys(ctx, in)
+		return srv.(FrontierServiceServer).ListServiceUserKeys(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListServiceUserKeys_FullMethodName,
+		FullMethod: FrontierService_ListServiceUserKeys_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListServiceUserKeys(ctx, req.(*ListServiceUserKeysRequest))
+		return srv.(FrontierServiceServer).ListServiceUserKeys(ctx, req.(*ListServiceUserKeysRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetServiceUserKeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetServiceUserKey(ctx, in)
+		return srv.(FrontierServiceServer).GetServiceUserKey(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetServiceUserKey_FullMethodName,
+		FullMethod: FrontierService_GetServiceUserKey_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetServiceUserKey(ctx, req.(*GetServiceUserKeyRequest))
+		return srv.(FrontierServiceServer).GetServiceUserKey(ctx, req.(*GetServiceUserKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteServiceUserKeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteServiceUserKey(ctx, in)
+		return srv.(FrontierServiceServer).DeleteServiceUserKey(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteServiceUserKey_FullMethodName,
+		FullMethod: FrontierService_DeleteServiceUserKey_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteServiceUserKey(ctx, req.(*DeleteServiceUserKeyRequest))
+		return srv.(FrontierServiceServer).DeleteServiceUserKey(ctx, req.(*DeleteServiceUserKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateServiceUserSecretRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateServiceUserSecret(ctx, in)
+		return srv.(FrontierServiceServer).CreateServiceUserSecret(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateServiceUserSecret_FullMethodName,
+		FullMethod: FrontierService_CreateServiceUserSecret_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateServiceUserSecret(ctx, req.(*CreateServiceUserSecretRequest))
+		return srv.(FrontierServiceServer).CreateServiceUserSecret(ctx, req.(*CreateServiceUserSecretRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListServiceUserSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListServiceUserSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListServiceUserSecretsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListServiceUserSecrets(ctx, in)
+		return srv.(FrontierServiceServer).ListServiceUserSecrets(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListServiceUserSecrets_FullMethodName,
+		FullMethod: FrontierService_ListServiceUserSecrets_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListServiceUserSecrets(ctx, req.(*ListServiceUserSecretsRequest))
+		return srv.(FrontierServiceServer).ListServiceUserSecrets(ctx, req.(*ListServiceUserSecretsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteServiceUserSecretRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteServiceUserSecret(ctx, in)
+		return srv.(FrontierServiceServer).DeleteServiceUserSecret(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteServiceUserSecret_FullMethodName,
+		FullMethod: FrontierService_DeleteServiceUserSecret_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteServiceUserSecret(ctx, req.(*DeleteServiceUserSecretRequest))
+		return srv.(FrontierServiceServer).DeleteServiceUserSecret(ctx, req.(*DeleteServiceUserSecretRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationGroupsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationGroups(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationGroups(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationGroups_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationGroups_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationGroups(ctx, req.(*ListOrganizationGroupsRequest))
+		return srv.(FrontierServiceServer).ListOrganizationGroups(ctx, req.(*ListOrganizationGroupsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateGroup(ctx, in)
+		return srv.(FrontierServiceServer).CreateGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateGroup_FullMethodName,
+		FullMethod: FrontierService_CreateGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateGroup(ctx, req.(*CreateGroupRequest))
+		return srv.(FrontierServiceServer).CreateGroup(ctx, req.(*CreateGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetGroup(ctx, in)
+		return srv.(FrontierServiceServer).GetGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetGroup_FullMethodName,
+		FullMethod: FrontierService_GetGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetGroup(ctx, req.(*GetGroupRequest))
+		return srv.(FrontierServiceServer).GetGroup(ctx, req.(*GetGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateGroup(ctx, in)
+		return srv.(FrontierServiceServer).UpdateGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateGroup_FullMethodName,
+		FullMethod: FrontierService_UpdateGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateGroup(ctx, req.(*UpdateGroupRequest))
+		return srv.(FrontierServiceServer).UpdateGroup(ctx, req.(*UpdateGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListGroupUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListGroupUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListGroupUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListGroupUsers(ctx, in)
+		return srv.(FrontierServiceServer).ListGroupUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListGroupUsers_FullMethodName,
+		FullMethod: FrontierService_ListGroupUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListGroupUsers(ctx, req.(*ListGroupUsersRequest))
+		return srv.(FrontierServiceServer).ListGroupUsers(ctx, req.(*ListGroupUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_AddGroupUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_AddGroupUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddGroupUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).AddGroupUsers(ctx, in)
+		return srv.(FrontierServiceServer).AddGroupUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_AddGroupUsers_FullMethodName,
+		FullMethod: FrontierService_AddGroupUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).AddGroupUsers(ctx, req.(*AddGroupUsersRequest))
+		return srv.(FrontierServiceServer).AddGroupUsers(ctx, req.(*AddGroupUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_RemoveGroupUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_RemoveGroupUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveGroupUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).RemoveGroupUser(ctx, in)
+		return srv.(FrontierServiceServer).RemoveGroupUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_RemoveGroupUser_FullMethodName,
+		FullMethod: FrontierService_RemoveGroupUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).RemoveGroupUser(ctx, req.(*RemoveGroupUserRequest))
+		return srv.(FrontierServiceServer).RemoveGroupUser(ctx, req.(*RemoveGroupUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_EnableGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_EnableGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).EnableGroup(ctx, in)
+		return srv.(FrontierServiceServer).EnableGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_EnableGroup_FullMethodName,
+		FullMethod: FrontierService_EnableGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).EnableGroup(ctx, req.(*EnableGroupRequest))
+		return srv.(FrontierServiceServer).EnableGroup(ctx, req.(*EnableGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DisableGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DisableGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DisableGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DisableGroup(ctx, in)
+		return srv.(FrontierServiceServer).DisableGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DisableGroup_FullMethodName,
+		FullMethod: FrontierService_DisableGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DisableGroup(ctx, req.(*DisableGroupRequest))
+		return srv.(FrontierServiceServer).DisableGroup(ctx, req.(*DisableGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteGroup(ctx, in)
+		return srv.(FrontierServiceServer).DeleteGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteGroup_FullMethodName,
+		FullMethod: FrontierService_DeleteGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteGroup(ctx, req.(*DeleteGroupRequest))
+		return srv.(FrontierServiceServer).DeleteGroup(ctx, req.(*DeleteGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListRolesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListRoles(ctx, in)
+		return srv.(FrontierServiceServer).ListRoles(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListRoles_FullMethodName,
+		FullMethod: FrontierService_ListRoles_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListRoles(ctx, req.(*ListRolesRequest))
+		return srv.(FrontierServiceServer).ListRoles(ctx, req.(*ListRolesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationRolesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationRoles(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationRoles(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationRoles_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationRoles_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationRoles(ctx, req.(*ListOrganizationRolesRequest))
+		return srv.(FrontierServiceServer).ListOrganizationRoles(ctx, req.(*ListOrganizationRolesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOrganizationRoleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateOrganizationRole(ctx, in)
+		return srv.(FrontierServiceServer).CreateOrganizationRole(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateOrganizationRole_FullMethodName,
+		FullMethod: FrontierService_CreateOrganizationRole_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateOrganizationRole(ctx, req.(*CreateOrganizationRoleRequest))
+		return srv.(FrontierServiceServer).CreateOrganizationRole(ctx, req.(*CreateOrganizationRoleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationRoleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetOrganizationRole(ctx, in)
+		return srv.(FrontierServiceServer).GetOrganizationRole(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetOrganizationRole_FullMethodName,
+		FullMethod: FrontierService_GetOrganizationRole_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetOrganizationRole(ctx, req.(*GetOrganizationRoleRequest))
+		return srv.(FrontierServiceServer).GetOrganizationRole(ctx, req.(*GetOrganizationRoleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateOrganizationRoleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateOrganizationRole(ctx, in)
+		return srv.(FrontierServiceServer).UpdateOrganizationRole(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateOrganizationRole_FullMethodName,
+		FullMethod: FrontierService_UpdateOrganizationRole_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateOrganizationRole(ctx, req.(*UpdateOrganizationRoleRequest))
+		return srv.(FrontierServiceServer).UpdateOrganizationRole(ctx, req.(*UpdateOrganizationRoleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteOrganizationRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteOrganizationRoleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteOrganizationRole(ctx, in)
+		return srv.(FrontierServiceServer).DeleteOrganizationRole(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteOrganizationRole_FullMethodName,
+		FullMethod: FrontierService_DeleteOrganizationRole_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteOrganizationRole(ctx, req.(*DeleteOrganizationRoleRequest))
+		return srv.(FrontierServiceServer).DeleteOrganizationRole(ctx, req.(*DeleteOrganizationRoleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizations(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizations(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizations_FullMethodName,
+		FullMethod: FrontierService_ListOrganizations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizations(ctx, req.(*ListOrganizationsRequest))
+		return srv.(FrontierServiceServer).ListOrganizations(ctx, req.(*ListOrganizationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateOrganization(ctx, in)
+		return srv.(FrontierServiceServer).CreateOrganization(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateOrganization_FullMethodName,
+		FullMethod: FrontierService_CreateOrganization_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateOrganization(ctx, req.(*CreateOrganizationRequest))
+		return srv.(FrontierServiceServer).CreateOrganization(ctx, req.(*CreateOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetOrganization(ctx, in)
+		return srv.(FrontierServiceServer).GetOrganization(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetOrganization_FullMethodName,
+		FullMethod: FrontierService_GetOrganization_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetOrganization(ctx, req.(*GetOrganizationRequest))
+		return srv.(FrontierServiceServer).GetOrganization(ctx, req.(*GetOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateOrganization(ctx, in)
+		return srv.(FrontierServiceServer).UpdateOrganization(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateOrganization_FullMethodName,
+		FullMethod: FrontierService_UpdateOrganization_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateOrganization(ctx, req.(*UpdateOrganizationRequest))
+		return srv.(FrontierServiceServer).UpdateOrganization(ctx, req.(*UpdateOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationProjectsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationProjects(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationProjects_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationProjects_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationProjects(ctx, req.(*ListOrganizationProjectsRequest))
+		return srv.(FrontierServiceServer).ListOrganizationProjects(ctx, req.(*ListOrganizationProjectsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationAdmins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationAdmins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationAdminsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationAdmins(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationAdmins(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationAdmins_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationAdmins_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationAdmins(ctx, req.(*ListOrganizationAdminsRequest))
+		return srv.(FrontierServiceServer).ListOrganizationAdmins(ctx, req.(*ListOrganizationAdminsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationUsers(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationUsers_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationUsers(ctx, req.(*ListOrganizationUsersRequest))
+		return srv.(FrontierServiceServer).ListOrganizationUsers(ctx, req.(*ListOrganizationUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_AddOrganizationUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_AddOrganizationUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddOrganizationUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).AddOrganizationUsers(ctx, in)
+		return srv.(FrontierServiceServer).AddOrganizationUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_AddOrganizationUsers_FullMethodName,
+		FullMethod: FrontierService_AddOrganizationUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).AddOrganizationUsers(ctx, req.(*AddOrganizationUsersRequest))
+		return srv.(FrontierServiceServer).AddOrganizationUsers(ctx, req.(*AddOrganizationUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_RemoveOrganizationUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_RemoveOrganizationUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveOrganizationUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).RemoveOrganizationUser(ctx, in)
+		return srv.(FrontierServiceServer).RemoveOrganizationUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_RemoveOrganizationUser_FullMethodName,
+		FullMethod: FrontierService_RemoveOrganizationUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).RemoveOrganizationUser(ctx, req.(*RemoveOrganizationUserRequest))
+		return srv.(FrontierServiceServer).RemoveOrganizationUser(ctx, req.(*RemoveOrganizationUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationServiceUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationServiceUsers(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationServiceUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationServiceUsers_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationServiceUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationServiceUsers(ctx, req.(*ListOrganizationServiceUsersRequest))
+		return srv.(FrontierServiceServer).ListOrganizationServiceUsers(ctx, req.(*ListOrganizationServiceUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationInvitationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationInvitations(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationInvitations(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationInvitations_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationInvitations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationInvitations(ctx, req.(*ListOrganizationInvitationsRequest))
+		return srv.(FrontierServiceServer).ListOrganizationInvitations(ctx, req.(*ListOrganizationInvitationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOrganizationInvitationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateOrganizationInvitation(ctx, in)
+		return srv.(FrontierServiceServer).CreateOrganizationInvitation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateOrganizationInvitation_FullMethodName,
+		FullMethod: FrontierService_CreateOrganizationInvitation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateOrganizationInvitation(ctx, req.(*CreateOrganizationInvitationRequest))
+		return srv.(FrontierServiceServer).CreateOrganizationInvitation(ctx, req.(*CreateOrganizationInvitationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationInvitationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetOrganizationInvitation(ctx, in)
+		return srv.(FrontierServiceServer).GetOrganizationInvitation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetOrganizationInvitation_FullMethodName,
+		FullMethod: FrontierService_GetOrganizationInvitation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetOrganizationInvitation(ctx, req.(*GetOrganizationInvitationRequest))
+		return srv.(FrontierServiceServer).GetOrganizationInvitation(ctx, req.(*GetOrganizationInvitationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_AcceptOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_AcceptOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AcceptOrganizationInvitationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).AcceptOrganizationInvitation(ctx, in)
+		return srv.(FrontierServiceServer).AcceptOrganizationInvitation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_AcceptOrganizationInvitation_FullMethodName,
+		FullMethod: FrontierService_AcceptOrganizationInvitation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).AcceptOrganizationInvitation(ctx, req.(*AcceptOrganizationInvitationRequest))
+		return srv.(FrontierServiceServer).AcceptOrganizationInvitation(ctx, req.(*AcceptOrganizationInvitationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteOrganizationInvitation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteOrganizationInvitationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteOrganizationInvitation(ctx, in)
+		return srv.(FrontierServiceServer).DeleteOrganizationInvitation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteOrganizationInvitation_FullMethodName,
+		FullMethod: FrontierService_DeleteOrganizationInvitation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteOrganizationInvitation(ctx, req.(*DeleteOrganizationInvitationRequest))
+		return srv.(FrontierServiceServer).DeleteOrganizationInvitation(ctx, req.(*DeleteOrganizationInvitationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_EnableOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_EnableOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).EnableOrganization(ctx, in)
+		return srv.(FrontierServiceServer).EnableOrganization(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_EnableOrganization_FullMethodName,
+		FullMethod: FrontierService_EnableOrganization_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).EnableOrganization(ctx, req.(*EnableOrganizationRequest))
+		return srv.(FrontierServiceServer).EnableOrganization(ctx, req.(*EnableOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DisableOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DisableOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DisableOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DisableOrganization(ctx, in)
+		return srv.(FrontierServiceServer).DisableOrganization(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DisableOrganization_FullMethodName,
+		FullMethod: FrontierService_DisableOrganization_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DisableOrganization(ctx, req.(*DisableOrganizationRequest))
+		return srv.(FrontierServiceServer).DisableOrganization(ctx, req.(*DisableOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteOrganizationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteOrganization(ctx, in)
+		return srv.(FrontierServiceServer).DeleteOrganization(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteOrganization_FullMethodName,
+		FullMethod: FrontierService_DeleteOrganization_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteOrganization(ctx, req.(*DeleteOrganizationRequest))
+		return srv.(FrontierServiceServer).DeleteOrganization(ctx, req.(*DeleteOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateProjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateProject(ctx, in)
+		return srv.(FrontierServiceServer).CreateProject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateProject_FullMethodName,
+		FullMethod: FrontierService_CreateProject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateProject(ctx, req.(*CreateProjectRequest))
+		return srv.(FrontierServiceServer).CreateProject(ctx, req.(*CreateProjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetProject(ctx, in)
+		return srv.(FrontierServiceServer).GetProject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetProject_FullMethodName,
+		FullMethod: FrontierService_GetProject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetProject(ctx, req.(*GetProjectRequest))
+		return srv.(FrontierServiceServer).GetProject(ctx, req.(*GetProjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateProjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateProject(ctx, in)
+		return srv.(FrontierServiceServer).UpdateProject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateProject_FullMethodName,
+		FullMethod: FrontierService_UpdateProject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateProject(ctx, req.(*UpdateProjectRequest))
+		return srv.(FrontierServiceServer).UpdateProject(ctx, req.(*UpdateProjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListProjectAdmins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListProjectAdmins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProjectAdminsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListProjectAdmins(ctx, in)
+		return srv.(FrontierServiceServer).ListProjectAdmins(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListProjectAdmins_FullMethodName,
+		FullMethod: FrontierService_ListProjectAdmins_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListProjectAdmins(ctx, req.(*ListProjectAdminsRequest))
+		return srv.(FrontierServiceServer).ListProjectAdmins(ctx, req.(*ListProjectAdminsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListProjectUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListProjectUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProjectUsersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListProjectUsers(ctx, in)
+		return srv.(FrontierServiceServer).ListProjectUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListProjectUsers_FullMethodName,
+		FullMethod: FrontierService_ListProjectUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListProjectUsers(ctx, req.(*ListProjectUsersRequest))
+		return srv.(FrontierServiceServer).ListProjectUsers(ctx, req.(*ListProjectUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_EnableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_EnableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableProjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).EnableProject(ctx, in)
+		return srv.(FrontierServiceServer).EnableProject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_EnableProject_FullMethodName,
+		FullMethod: FrontierService_EnableProject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).EnableProject(ctx, req.(*EnableProjectRequest))
+		return srv.(FrontierServiceServer).EnableProject(ctx, req.(*EnableProjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DisableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DisableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DisableProjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DisableProject(ctx, in)
+		return srv.(FrontierServiceServer).DisableProject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DisableProject_FullMethodName,
+		FullMethod: FrontierService_DisableProject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DisableProject(ctx, req.(*DisableProjectRequest))
+		return srv.(FrontierServiceServer).DisableProject(ctx, req.(*DisableProjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteProjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteProject(ctx, in)
+		return srv.(FrontierServiceServer).DeleteProject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteProject_FullMethodName,
+		FullMethod: FrontierService_DeleteProject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteProject(ctx, req.(*DeleteProjectRequest))
+		return srv.(FrontierServiceServer).DeleteProject(ctx, req.(*DeleteProjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreatePolicyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreatePolicy(ctx, in)
+		return srv.(FrontierServiceServer).CreatePolicy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreatePolicy_FullMethodName,
+		FullMethod: FrontierService_CreatePolicy_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreatePolicy(ctx, req.(*CreatePolicyRequest))
+		return srv.(FrontierServiceServer).CreatePolicy(ctx, req.(*CreatePolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPolicyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetPolicy(ctx, in)
+		return srv.(FrontierServiceServer).GetPolicy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetPolicy_FullMethodName,
+		FullMethod: FrontierService_GetPolicy_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetPolicy(ctx, req.(*GetPolicyRequest))
+		return srv.(FrontierServiceServer).GetPolicy(ctx, req.(*GetPolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdatePolicyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdatePolicy(ctx, in)
+		return srv.(FrontierServiceServer).UpdatePolicy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdatePolicy_FullMethodName,
+		FullMethod: FrontierService_UpdatePolicy_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdatePolicy(ctx, req.(*UpdatePolicyRequest))
+		return srv.(FrontierServiceServer).UpdatePolicy(ctx, req.(*UpdatePolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeletePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeletePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeletePolicyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeletePolicy(ctx, in)
+		return srv.(FrontierServiceServer).DeletePolicy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeletePolicy_FullMethodName,
+		FullMethod: FrontierService_DeletePolicy_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeletePolicy(ctx, req.(*DeletePolicyRequest))
+		return srv.(FrontierServiceServer).DeletePolicy(ctx, req.(*DeletePolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRelationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateRelation(ctx, in)
+		return srv.(FrontierServiceServer).CreateRelation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateRelation_FullMethodName,
+		FullMethod: FrontierService_CreateRelation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateRelation(ctx, req.(*CreateRelationRequest))
+		return srv.(FrontierServiceServer).CreateRelation(ctx, req.(*CreateRelationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRelationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetRelation(ctx, in)
+		return srv.(FrontierServiceServer).GetRelation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetRelation_FullMethodName,
+		FullMethod: FrontierService_GetRelation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetRelation(ctx, req.(*GetRelationRequest))
+		return srv.(FrontierServiceServer).GetRelation(ctx, req.(*GetRelationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteRelationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteRelation(ctx, in)
+		return srv.(FrontierServiceServer).DeleteRelation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteRelation_FullMethodName,
+		FullMethod: FrontierService_DeleteRelation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteRelation(ctx, req.(*DeleteRelationRequest))
+		return srv.(FrontierServiceServer).DeleteRelation(ctx, req.(*DeleteRelationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListPermissionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListPermissions(ctx, in)
+		return srv.(FrontierServiceServer).ListPermissions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListPermissions_FullMethodName,
+		FullMethod: FrontierService_ListPermissions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListPermissions(ctx, req.(*ListPermissionsRequest))
+		return srv.(FrontierServiceServer).ListPermissions(ctx, req.(*ListPermissionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPermissionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetPermission(ctx, in)
+		return srv.(FrontierServiceServer).GetPermission(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetPermission_FullMethodName,
+		FullMethod: FrontierService_GetPermission_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetPermission(ctx, req.(*GetPermissionRequest))
+		return srv.(FrontierServiceServer).GetPermission(ctx, req.(*GetPermissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNamespacesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListNamespaces(ctx, in)
+		return srv.(FrontierServiceServer).ListNamespaces(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListNamespaces_FullMethodName,
+		FullMethod: FrontierService_ListNamespaces_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListNamespaces(ctx, req.(*ListNamespacesRequest))
+		return srv.(FrontierServiceServer).ListNamespaces(ctx, req.(*ListNamespacesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetNamespaceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetNamespace(ctx, in)
+		return srv.(FrontierServiceServer).GetNamespace(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetNamespace_FullMethodName,
+		FullMethod: FrontierService_GetNamespace_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetNamespace(ctx, req.(*GetNamespaceRequest))
+		return srv.(FrontierServiceServer).GetNamespace(ctx, req.(*GetNamespaceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListProjectResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListProjectResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProjectResourcesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListProjectResources(ctx, in)
+		return srv.(FrontierServiceServer).ListProjectResources(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListProjectResources_FullMethodName,
+		FullMethod: FrontierService_ListProjectResources_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListProjectResources(ctx, req.(*ListProjectResourcesRequest))
+		return srv.(FrontierServiceServer).ListProjectResources(ctx, req.(*ListProjectResourcesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateProjectResource(ctx, in)
+		return srv.(FrontierServiceServer).CreateProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateProjectResource_FullMethodName,
+		FullMethod: FrontierService_CreateProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateProjectResource(ctx, req.(*CreateProjectResourceRequest))
+		return srv.(FrontierServiceServer).CreateProjectResource(ctx, req.(*CreateProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetProjectResource(ctx, in)
+		return srv.(FrontierServiceServer).GetProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetProjectResource_FullMethodName,
+		FullMethod: FrontierService_GetProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetProjectResource(ctx, req.(*GetProjectResourceRequest))
+		return srv.(FrontierServiceServer).GetProjectResource(ctx, req.(*GetProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateProjectResource(ctx, in)
+		return srv.(FrontierServiceServer).UpdateProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateProjectResource_FullMethodName,
+		FullMethod: FrontierService_UpdateProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateProjectResource(ctx, req.(*UpdateProjectResourceRequest))
+		return srv.(FrontierServiceServer).UpdateProjectResource(ctx, req.(*UpdateProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteProjectResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteProjectResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteProjectResource(ctx, in)
+		return srv.(FrontierServiceServer).DeleteProjectResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteProjectResource_FullMethodName,
+		FullMethod: FrontierService_DeleteProjectResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteProjectResource(ctx, req.(*DeleteProjectResourceRequest))
+		return srv.(FrontierServiceServer).DeleteProjectResource(ctx, req.(*DeleteProjectResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CheckResourcePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CheckResourcePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckResourcePermissionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CheckResourcePermission(ctx, in)
+		return srv.(FrontierServiceServer).CheckResourcePermission(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CheckResourcePermission_FullMethodName,
+		FullMethod: FrontierService_CheckResourcePermission_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CheckResourcePermission(ctx, req.(*CheckResourcePermissionRequest))
+		return srv.(FrontierServiceServer).CheckResourcePermission(ctx, req.(*CheckResourcePermissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetJWKs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetJWKs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetJWKsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetJWKs(ctx, in)
+		return srv.(FrontierServiceServer).GetJWKs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetJWKs_FullMethodName,
+		FullMethod: FrontierService_GetJWKs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetJWKs(ctx, req.(*GetJWKsRequest))
+		return srv.(FrontierServiceServer).GetJWKs(ctx, req.(*GetJWKsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListAuthStrategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListAuthStrategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAuthStrategiesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListAuthStrategies(ctx, in)
+		return srv.(FrontierServiceServer).ListAuthStrategies(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListAuthStrategies_FullMethodName,
+		FullMethod: FrontierService_ListAuthStrategies_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListAuthStrategies(ctx, req.(*ListAuthStrategiesRequest))
+		return srv.(FrontierServiceServer).ListAuthStrategies(ctx, req.(*ListAuthStrategiesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthenticateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).Authenticate(ctx, in)
+		return srv.(FrontierServiceServer).Authenticate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_Authenticate_FullMethodName,
+		FullMethod: FrontierService_Authenticate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).Authenticate(ctx, req.(*AuthenticateRequest))
+		return srv.(FrontierServiceServer).Authenticate(ctx, req.(*AuthenticateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_AuthCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_AuthCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthCallbackRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).AuthCallback(ctx, in)
+		return srv.(FrontierServiceServer).AuthCallback(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_AuthCallback_FullMethodName,
+		FullMethod: FrontierService_AuthCallback_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).AuthCallback(ctx, req.(*AuthCallbackRequest))
+		return srv.(FrontierServiceServer).AuthCallback(ctx, req.(*AuthCallbackRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_AuthToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_AuthToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthTokenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).AuthToken(ctx, in)
+		return srv.(FrontierServiceServer).AuthToken(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_AuthToken_FullMethodName,
+		FullMethod: FrontierService_AuthToken_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).AuthToken(ctx, req.(*AuthTokenRequest))
+		return srv.(FrontierServiceServer).AuthToken(ctx, req.(*AuthTokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_AuthLogout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_AuthLogout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthLogoutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).AuthLogout(ctx, in)
+		return srv.(FrontierServiceServer).AuthLogout(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_AuthLogout_FullMethodName,
+		FullMethod: FrontierService_AuthLogout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).AuthLogout(ctx, req.(*AuthLogoutRequest))
+		return srv.(FrontierServiceServer).AuthLogout(ctx, req.(*AuthLogoutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListMetaSchemas_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListMetaSchemas_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListMetaSchemasRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListMetaSchemas(ctx, in)
+		return srv.(FrontierServiceServer).ListMetaSchemas(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListMetaSchemas_FullMethodName,
+		FullMethod: FrontierService_ListMetaSchemas_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListMetaSchemas(ctx, req.(*ListMetaSchemasRequest))
+		return srv.(FrontierServiceServer).ListMetaSchemas(ctx, req.(*ListMetaSchemasRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateMetaSchemaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateMetaSchema(ctx, in)
+		return srv.(FrontierServiceServer).CreateMetaSchema(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateMetaSchema_FullMethodName,
+		FullMethod: FrontierService_CreateMetaSchema_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateMetaSchema(ctx, req.(*CreateMetaSchemaRequest))
+		return srv.(FrontierServiceServer).CreateMetaSchema(ctx, req.(*CreateMetaSchemaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMetaSchemaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetMetaSchema(ctx, in)
+		return srv.(FrontierServiceServer).GetMetaSchema(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetMetaSchema_FullMethodName,
+		FullMethod: FrontierService_GetMetaSchema_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetMetaSchema(ctx, req.(*GetMetaSchemaRequest))
+		return srv.(FrontierServiceServer).GetMetaSchema(ctx, req.(*GetMetaSchemaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_UpdateMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_UpdateMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateMetaSchemaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).UpdateMetaSchema(ctx, in)
+		return srv.(FrontierServiceServer).UpdateMetaSchema(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_UpdateMetaSchema_FullMethodName,
+		FullMethod: FrontierService_UpdateMetaSchema_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).UpdateMetaSchema(ctx, req.(*UpdateMetaSchemaRequest))
+		return srv.(FrontierServiceServer).UpdateMetaSchema(ctx, req.(*UpdateMetaSchemaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_DeleteMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_DeleteMetaSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteMetaSchemaRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).DeleteMetaSchema(ctx, in)
+		return srv.(FrontierServiceServer).DeleteMetaSchema(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_DeleteMetaSchema_FullMethodName,
+		FullMethod: FrontierService_DeleteMetaSchema_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).DeleteMetaSchema(ctx, req.(*DeleteMetaSchemaRequest))
+		return srv.(FrontierServiceServer).DeleteMetaSchema(ctx, req.(*DeleteMetaSchemaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_ListOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_ListOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListOrganizationAuditLogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).ListOrganizationAuditLogs(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationAuditLogs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_ListOrganizationAuditLogs_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationAuditLogs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).ListOrganizationAuditLogs(ctx, req.(*ListOrganizationAuditLogsRequest))
+		return srv.(FrontierServiceServer).ListOrganizationAuditLogs(ctx, req.(*ListOrganizationAuditLogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_CreateOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_CreateOrganizationAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOrganizationAuditLogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).CreateOrganizationAuditLogs(ctx, in)
+		return srv.(FrontierServiceServer).CreateOrganizationAuditLogs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_CreateOrganizationAuditLogs_FullMethodName,
+		FullMethod: FrontierService_CreateOrganizationAuditLogs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).CreateOrganizationAuditLogs(ctx, req.(*CreateOrganizationAuditLogsRequest))
+		return srv.(FrontierServiceServer).CreateOrganizationAuditLogs(ctx, req.(*CreateOrganizationAuditLogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldService_GetOrganizationAuditLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FrontierService_GetOrganizationAuditLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrganizationAuditLogRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldServiceServer).GetOrganizationAuditLog(ctx, in)
+		return srv.(FrontierServiceServer).GetOrganizationAuditLog(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldService_GetOrganizationAuditLog_FullMethodName,
+		FullMethod: FrontierService_GetOrganizationAuditLog_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldServiceServer).GetOrganizationAuditLog(ctx, req.(*GetOrganizationAuditLogRequest))
+		return srv.(FrontierServiceServer).GetOrganizationAuditLog(ctx, req.(*GetOrganizationAuditLogRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ShieldService_ServiceDesc is the grpc.ServiceDesc for ShieldService service.
+// FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ShieldService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "raystack.shield.v1beta1.ShieldService",
-	HandlerType: (*ShieldServiceServer)(nil),
+var FrontierService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "raystack.frontier.v1beta1.FrontierService",
+	HandlerType: (*FrontierServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ListUsers",
-			Handler:    _ShieldService_ListUsers_Handler,
+			Handler:    _FrontierService_ListUsers_Handler,
 		},
 		{
 			MethodName: "CreateUser",
-			Handler:    _ShieldService_CreateUser_Handler,
+			Handler:    _FrontierService_CreateUser_Handler,
 		},
 		{
 			MethodName: "GetUser",
-			Handler:    _ShieldService_GetUser_Handler,
+			Handler:    _FrontierService_GetUser_Handler,
 		},
 		{
 			MethodName: "ListUserGroups",
-			Handler:    _ShieldService_ListUserGroups_Handler,
+			Handler:    _FrontierService_ListUserGroups_Handler,
 		},
 		{
 			MethodName: "ListCurrentUserGroups",
-			Handler:    _ShieldService_ListCurrentUserGroups_Handler,
+			Handler:    _FrontierService_ListCurrentUserGroups_Handler,
 		},
 		{
 			MethodName: "GetCurrentUser",
-			Handler:    _ShieldService_GetCurrentUser_Handler,
+			Handler:    _FrontierService_GetCurrentUser_Handler,
 		},
 		{
 			MethodName: "UpdateUser",
-			Handler:    _ShieldService_UpdateUser_Handler,
+			Handler:    _FrontierService_UpdateUser_Handler,
 		},
 		{
 			MethodName: "UpdateCurrentUser",
-			Handler:    _ShieldService_UpdateCurrentUser_Handler,
+			Handler:    _FrontierService_UpdateCurrentUser_Handler,
 		},
 		{
 			MethodName: "EnableUser",
-			Handler:    _ShieldService_EnableUser_Handler,
+			Handler:    _FrontierService_EnableUser_Handler,
 		},
 		{
 			MethodName: "DisableUser",
-			Handler:    _ShieldService_DisableUser_Handler,
+			Handler:    _FrontierService_DisableUser_Handler,
 		},
 		{
 			MethodName: "DeleteUser",
-			Handler:    _ShieldService_DeleteUser_Handler,
+			Handler:    _FrontierService_DeleteUser_Handler,
 		},
 		{
 			MethodName: "GetOrganizationsByUser",
-			Handler:    _ShieldService_GetOrganizationsByUser_Handler,
+			Handler:    _FrontierService_GetOrganizationsByUser_Handler,
 		},
 		{
 			MethodName: "GetOrganizationsByCurrentUser",
-			Handler:    _ShieldService_GetOrganizationsByCurrentUser_Handler,
+			Handler:    _FrontierService_GetOrganizationsByCurrentUser_Handler,
 		},
 		{
 			MethodName: "GetProjectsByUser",
-			Handler:    _ShieldService_GetProjectsByUser_Handler,
+			Handler:    _FrontierService_GetProjectsByUser_Handler,
 		},
 		{
 			MethodName: "GetProjectsByCurrentUser",
-			Handler:    _ShieldService_GetProjectsByCurrentUser_Handler,
+			Handler:    _FrontierService_GetProjectsByCurrentUser_Handler,
 		},
 		{
 			MethodName: "ListUserInvitations",
-			Handler:    _ShieldService_ListUserInvitations_Handler,
+			Handler:    _FrontierService_ListUserInvitations_Handler,
 		},
 		{
 			MethodName: "ListServiceUsers",
-			Handler:    _ShieldService_ListServiceUsers_Handler,
+			Handler:    _FrontierService_ListServiceUsers_Handler,
 		},
 		{
 			MethodName: "CreateServiceUser",
-			Handler:    _ShieldService_CreateServiceUser_Handler,
+			Handler:    _FrontierService_CreateServiceUser_Handler,
 		},
 		{
 			MethodName: "GetServiceUser",
-			Handler:    _ShieldService_GetServiceUser_Handler,
+			Handler:    _FrontierService_GetServiceUser_Handler,
 		},
 		{
 			MethodName: "DeleteServiceUser",
-			Handler:    _ShieldService_DeleteServiceUser_Handler,
+			Handler:    _FrontierService_DeleteServiceUser_Handler,
 		},
 		{
 			MethodName: "CreateServiceUserKey",
-			Handler:    _ShieldService_CreateServiceUserKey_Handler,
+			Handler:    _FrontierService_CreateServiceUserKey_Handler,
 		},
 		{
 			MethodName: "ListServiceUserKeys",
-			Handler:    _ShieldService_ListServiceUserKeys_Handler,
+			Handler:    _FrontierService_ListServiceUserKeys_Handler,
 		},
 		{
 			MethodName: "GetServiceUserKey",
-			Handler:    _ShieldService_GetServiceUserKey_Handler,
+			Handler:    _FrontierService_GetServiceUserKey_Handler,
 		},
 		{
 			MethodName: "DeleteServiceUserKey",
-			Handler:    _ShieldService_DeleteServiceUserKey_Handler,
+			Handler:    _FrontierService_DeleteServiceUserKey_Handler,
 		},
 		{
 			MethodName: "CreateServiceUserSecret",
-			Handler:    _ShieldService_CreateServiceUserSecret_Handler,
+			Handler:    _FrontierService_CreateServiceUserSecret_Handler,
 		},
 		{
 			MethodName: "ListServiceUserSecrets",
-			Handler:    _ShieldService_ListServiceUserSecrets_Handler,
+			Handler:    _FrontierService_ListServiceUserSecrets_Handler,
 		},
 		{
 			MethodName: "DeleteServiceUserSecret",
-			Handler:    _ShieldService_DeleteServiceUserSecret_Handler,
+			Handler:    _FrontierService_DeleteServiceUserSecret_Handler,
 		},
 		{
 			MethodName: "ListOrganizationGroups",
-			Handler:    _ShieldService_ListOrganizationGroups_Handler,
+			Handler:    _FrontierService_ListOrganizationGroups_Handler,
 		},
 		{
 			MethodName: "CreateGroup",
-			Handler:    _ShieldService_CreateGroup_Handler,
+			Handler:    _FrontierService_CreateGroup_Handler,
 		},
 		{
 			MethodName: "GetGroup",
-			Handler:    _ShieldService_GetGroup_Handler,
+			Handler:    _FrontierService_GetGroup_Handler,
 		},
 		{
 			MethodName: "UpdateGroup",
-			Handler:    _ShieldService_UpdateGroup_Handler,
+			Handler:    _FrontierService_UpdateGroup_Handler,
 		},
 		{
 			MethodName: "ListGroupUsers",
-			Handler:    _ShieldService_ListGroupUsers_Handler,
+			Handler:    _FrontierService_ListGroupUsers_Handler,
 		},
 		{
 			MethodName: "AddGroupUsers",
-			Handler:    _ShieldService_AddGroupUsers_Handler,
+			Handler:    _FrontierService_AddGroupUsers_Handler,
 		},
 		{
 			MethodName: "RemoveGroupUser",
-			Handler:    _ShieldService_RemoveGroupUser_Handler,
+			Handler:    _FrontierService_RemoveGroupUser_Handler,
 		},
 		{
 			MethodName: "EnableGroup",
-			Handler:    _ShieldService_EnableGroup_Handler,
+			Handler:    _FrontierService_EnableGroup_Handler,
 		},
 		{
 			MethodName: "DisableGroup",
-			Handler:    _ShieldService_DisableGroup_Handler,
+			Handler:    _FrontierService_DisableGroup_Handler,
 		},
 		{
 			MethodName: "DeleteGroup",
-			Handler:    _ShieldService_DeleteGroup_Handler,
+			Handler:    _FrontierService_DeleteGroup_Handler,
 		},
 		{
 			MethodName: "ListRoles",
-			Handler:    _ShieldService_ListRoles_Handler,
+			Handler:    _FrontierService_ListRoles_Handler,
 		},
 		{
 			MethodName: "ListOrganizationRoles",
-			Handler:    _ShieldService_ListOrganizationRoles_Handler,
+			Handler:    _FrontierService_ListOrganizationRoles_Handler,
 		},
 		{
 			MethodName: "CreateOrganizationRole",
-			Handler:    _ShieldService_CreateOrganizationRole_Handler,
+			Handler:    _FrontierService_CreateOrganizationRole_Handler,
 		},
 		{
 			MethodName: "GetOrganizationRole",
-			Handler:    _ShieldService_GetOrganizationRole_Handler,
+			Handler:    _FrontierService_GetOrganizationRole_Handler,
 		},
 		{
 			MethodName: "UpdateOrganizationRole",
-			Handler:    _ShieldService_UpdateOrganizationRole_Handler,
+			Handler:    _FrontierService_UpdateOrganizationRole_Handler,
 		},
 		{
 			MethodName: "DeleteOrganizationRole",
-			Handler:    _ShieldService_DeleteOrganizationRole_Handler,
+			Handler:    _FrontierService_DeleteOrganizationRole_Handler,
 		},
 		{
 			MethodName: "ListOrganizations",
-			Handler:    _ShieldService_ListOrganizations_Handler,
+			Handler:    _FrontierService_ListOrganizations_Handler,
 		},
 		{
 			MethodName: "CreateOrganization",
-			Handler:    _ShieldService_CreateOrganization_Handler,
+			Handler:    _FrontierService_CreateOrganization_Handler,
 		},
 		{
 			MethodName: "GetOrganization",
-			Handler:    _ShieldService_GetOrganization_Handler,
+			Handler:    _FrontierService_GetOrganization_Handler,
 		},
 		{
 			MethodName: "UpdateOrganization",
-			Handler:    _ShieldService_UpdateOrganization_Handler,
+			Handler:    _FrontierService_UpdateOrganization_Handler,
 		},
 		{
 			MethodName: "ListOrganizationProjects",
-			Handler:    _ShieldService_ListOrganizationProjects_Handler,
+			Handler:    _FrontierService_ListOrganizationProjects_Handler,
 		},
 		{
 			MethodName: "ListOrganizationAdmins",
-			Handler:    _ShieldService_ListOrganizationAdmins_Handler,
+			Handler:    _FrontierService_ListOrganizationAdmins_Handler,
 		},
 		{
 			MethodName: "ListOrganizationUsers",
-			Handler:    _ShieldService_ListOrganizationUsers_Handler,
+			Handler:    _FrontierService_ListOrganizationUsers_Handler,
 		},
 		{
 			MethodName: "AddOrganizationUsers",
-			Handler:    _ShieldService_AddOrganizationUsers_Handler,
+			Handler:    _FrontierService_AddOrganizationUsers_Handler,
 		},
 		{
 			MethodName: "RemoveOrganizationUser",
-			Handler:    _ShieldService_RemoveOrganizationUser_Handler,
+			Handler:    _FrontierService_RemoveOrganizationUser_Handler,
 		},
 		{
 			MethodName: "ListOrganizationServiceUsers",
-			Handler:    _ShieldService_ListOrganizationServiceUsers_Handler,
+			Handler:    _FrontierService_ListOrganizationServiceUsers_Handler,
 		},
 		{
 			MethodName: "ListOrganizationInvitations",
-			Handler:    _ShieldService_ListOrganizationInvitations_Handler,
+			Handler:    _FrontierService_ListOrganizationInvitations_Handler,
 		},
 		{
 			MethodName: "CreateOrganizationInvitation",
-			Handler:    _ShieldService_CreateOrganizationInvitation_Handler,
+			Handler:    _FrontierService_CreateOrganizationInvitation_Handler,
 		},
 		{
 			MethodName: "GetOrganizationInvitation",
-			Handler:    _ShieldService_GetOrganizationInvitation_Handler,
+			Handler:    _FrontierService_GetOrganizationInvitation_Handler,
 		},
 		{
 			MethodName: "AcceptOrganizationInvitation",
-			Handler:    _ShieldService_AcceptOrganizationInvitation_Handler,
+			Handler:    _FrontierService_AcceptOrganizationInvitation_Handler,
 		},
 		{
 			MethodName: "DeleteOrganizationInvitation",
-			Handler:    _ShieldService_DeleteOrganizationInvitation_Handler,
+			Handler:    _FrontierService_DeleteOrganizationInvitation_Handler,
 		},
 		{
 			MethodName: "EnableOrganization",
-			Handler:    _ShieldService_EnableOrganization_Handler,
+			Handler:    _FrontierService_EnableOrganization_Handler,
 		},
 		{
 			MethodName: "DisableOrganization",
-			Handler:    _ShieldService_DisableOrganization_Handler,
+			Handler:    _FrontierService_DisableOrganization_Handler,
 		},
 		{
 			MethodName: "DeleteOrganization",
-			Handler:    _ShieldService_DeleteOrganization_Handler,
+			Handler:    _FrontierService_DeleteOrganization_Handler,
 		},
 		{
 			MethodName: "CreateProject",
-			Handler:    _ShieldService_CreateProject_Handler,
+			Handler:    _FrontierService_CreateProject_Handler,
 		},
 		{
 			MethodName: "GetProject",
-			Handler:    _ShieldService_GetProject_Handler,
+			Handler:    _FrontierService_GetProject_Handler,
 		},
 		{
 			MethodName: "UpdateProject",
-			Handler:    _ShieldService_UpdateProject_Handler,
+			Handler:    _FrontierService_UpdateProject_Handler,
 		},
 		{
 			MethodName: "ListProjectAdmins",
-			Handler:    _ShieldService_ListProjectAdmins_Handler,
+			Handler:    _FrontierService_ListProjectAdmins_Handler,
 		},
 		{
 			MethodName: "ListProjectUsers",
-			Handler:    _ShieldService_ListProjectUsers_Handler,
+			Handler:    _FrontierService_ListProjectUsers_Handler,
 		},
 		{
 			MethodName: "EnableProject",
-			Handler:    _ShieldService_EnableProject_Handler,
+			Handler:    _FrontierService_EnableProject_Handler,
 		},
 		{
 			MethodName: "DisableProject",
-			Handler:    _ShieldService_DisableProject_Handler,
+			Handler:    _FrontierService_DisableProject_Handler,
 		},
 		{
 			MethodName: "DeleteProject",
-			Handler:    _ShieldService_DeleteProject_Handler,
+			Handler:    _FrontierService_DeleteProject_Handler,
 		},
 		{
 			MethodName: "CreatePolicy",
-			Handler:    _ShieldService_CreatePolicy_Handler,
+			Handler:    _FrontierService_CreatePolicy_Handler,
 		},
 		{
 			MethodName: "GetPolicy",
-			Handler:    _ShieldService_GetPolicy_Handler,
+			Handler:    _FrontierService_GetPolicy_Handler,
 		},
 		{
 			MethodName: "UpdatePolicy",
-			Handler:    _ShieldService_UpdatePolicy_Handler,
+			Handler:    _FrontierService_UpdatePolicy_Handler,
 		},
 		{
 			MethodName: "DeletePolicy",
-			Handler:    _ShieldService_DeletePolicy_Handler,
+			Handler:    _FrontierService_DeletePolicy_Handler,
 		},
 		{
 			MethodName: "CreateRelation",
-			Handler:    _ShieldService_CreateRelation_Handler,
+			Handler:    _FrontierService_CreateRelation_Handler,
 		},
 		{
 			MethodName: "GetRelation",
-			Handler:    _ShieldService_GetRelation_Handler,
+			Handler:    _FrontierService_GetRelation_Handler,
 		},
 		{
 			MethodName: "DeleteRelation",
-			Handler:    _ShieldService_DeleteRelation_Handler,
+			Handler:    _FrontierService_DeleteRelation_Handler,
 		},
 		{
 			MethodName: "ListPermissions",
-			Handler:    _ShieldService_ListPermissions_Handler,
+			Handler:    _FrontierService_ListPermissions_Handler,
 		},
 		{
 			MethodName: "GetPermission",
-			Handler:    _ShieldService_GetPermission_Handler,
+			Handler:    _FrontierService_GetPermission_Handler,
 		},
 		{
 			MethodName: "ListNamespaces",
-			Handler:    _ShieldService_ListNamespaces_Handler,
+			Handler:    _FrontierService_ListNamespaces_Handler,
 		},
 		{
 			MethodName: "GetNamespace",
-			Handler:    _ShieldService_GetNamespace_Handler,
+			Handler:    _FrontierService_GetNamespace_Handler,
 		},
 		{
 			MethodName: "ListProjectResources",
-			Handler:    _ShieldService_ListProjectResources_Handler,
+			Handler:    _FrontierService_ListProjectResources_Handler,
 		},
 		{
 			MethodName: "CreateProjectResource",
-			Handler:    _ShieldService_CreateProjectResource_Handler,
+			Handler:    _FrontierService_CreateProjectResource_Handler,
 		},
 		{
 			MethodName: "GetProjectResource",
-			Handler:    _ShieldService_GetProjectResource_Handler,
+			Handler:    _FrontierService_GetProjectResource_Handler,
 		},
 		{
 			MethodName: "UpdateProjectResource",
-			Handler:    _ShieldService_UpdateProjectResource_Handler,
+			Handler:    _FrontierService_UpdateProjectResource_Handler,
 		},
 		{
 			MethodName: "DeleteProjectResource",
-			Handler:    _ShieldService_DeleteProjectResource_Handler,
+			Handler:    _FrontierService_DeleteProjectResource_Handler,
 		},
 		{
 			MethodName: "CheckResourcePermission",
-			Handler:    _ShieldService_CheckResourcePermission_Handler,
+			Handler:    _FrontierService_CheckResourcePermission_Handler,
 		},
 		{
 			MethodName: "GetJWKs",
-			Handler:    _ShieldService_GetJWKs_Handler,
+			Handler:    _FrontierService_GetJWKs_Handler,
 		},
 		{
 			MethodName: "ListAuthStrategies",
-			Handler:    _ShieldService_ListAuthStrategies_Handler,
+			Handler:    _FrontierService_ListAuthStrategies_Handler,
 		},
 		{
 			MethodName: "Authenticate",
-			Handler:    _ShieldService_Authenticate_Handler,
+			Handler:    _FrontierService_Authenticate_Handler,
 		},
 		{
 			MethodName: "AuthCallback",
-			Handler:    _ShieldService_AuthCallback_Handler,
+			Handler:    _FrontierService_AuthCallback_Handler,
 		},
 		{
 			MethodName: "AuthToken",
-			Handler:    _ShieldService_AuthToken_Handler,
+			Handler:    _FrontierService_AuthToken_Handler,
 		},
 		{
 			MethodName: "AuthLogout",
-			Handler:    _ShieldService_AuthLogout_Handler,
+			Handler:    _FrontierService_AuthLogout_Handler,
 		},
 		{
 			MethodName: "ListMetaSchemas",
-			Handler:    _ShieldService_ListMetaSchemas_Handler,
+			Handler:    _FrontierService_ListMetaSchemas_Handler,
 		},
 		{
 			MethodName: "CreateMetaSchema",
-			Handler:    _ShieldService_CreateMetaSchema_Handler,
+			Handler:    _FrontierService_CreateMetaSchema_Handler,
 		},
 		{
 			MethodName: "GetMetaSchema",
-			Handler:    _ShieldService_GetMetaSchema_Handler,
+			Handler:    _FrontierService_GetMetaSchema_Handler,
 		},
 		{
 			MethodName: "UpdateMetaSchema",
-			Handler:    _ShieldService_UpdateMetaSchema_Handler,
+			Handler:    _FrontierService_UpdateMetaSchema_Handler,
 		},
 		{
 			MethodName: "DeleteMetaSchema",
-			Handler:    _ShieldService_DeleteMetaSchema_Handler,
+			Handler:    _FrontierService_DeleteMetaSchema_Handler,
 		},
 		{
 			MethodName: "ListOrganizationAuditLogs",
-			Handler:    _ShieldService_ListOrganizationAuditLogs_Handler,
+			Handler:    _FrontierService_ListOrganizationAuditLogs_Handler,
 		},
 		{
 			MethodName: "CreateOrganizationAuditLogs",
-			Handler:    _ShieldService_CreateOrganizationAuditLogs_Handler,
+			Handler:    _FrontierService_CreateOrganizationAuditLogs_Handler,
 		},
 		{
 			MethodName: "GetOrganizationAuditLog",
-			Handler:    _ShieldService_GetOrganizationAuditLog_Handler,
+			Handler:    _FrontierService_GetOrganizationAuditLog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "raystack/shield/v1beta1/shield.proto",
+	Metadata: "raystack/frontier/v1beta1/frontier.proto",
 }

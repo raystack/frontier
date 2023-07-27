@@ -5,7 +5,7 @@ import { Button, Flex, InputField, Text, TextField } from "@raystack/apsara";
 import React, { ComponentPropsWithRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import * as yup from "yup";
-import { useShield } from "../contexts/ShieldContext";
+import { useFrontier } from "../contexts/FrontierContext";
 import { Container } from "./Container";
 
 const styles = {
@@ -46,7 +46,7 @@ export const CreateOrganization = ({
     resolver: yupResolver(schema),
   });
 
-  const { client } = useShield();
+  const { client } = useFrontier();
 
   async function onSubmit(data: any) {
     const {

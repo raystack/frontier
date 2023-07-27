@@ -5,24 +5,24 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/core/rule"
+	"github.com/raystack/frontier/internal/api/v1beta1"
+	"github.com/raystack/frontier/internal/proxy"
+	"github.com/raystack/frontier/internal/proxy/hook"
+	authz_hook "github.com/raystack/frontier/internal/proxy/hook/authz"
+	"github.com/raystack/frontier/internal/proxy/middleware/attributes"
+	"github.com/raystack/frontier/internal/proxy/middleware/authz"
+	"github.com/raystack/frontier/internal/proxy/middleware/basic_auth"
+	"github.com/raystack/frontier/internal/proxy/middleware/observability"
+	"github.com/raystack/frontier/internal/proxy/middleware/prefix"
+	"github.com/raystack/frontier/internal/proxy/middleware/rulematch"
+	"github.com/raystack/frontier/internal/store/blob"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/core/rule"
-	"github.com/raystack/shield/internal/api/v1beta1"
-	"github.com/raystack/shield/internal/proxy"
-	"github.com/raystack/shield/internal/proxy/hook"
-	authz_hook "github.com/raystack/shield/internal/proxy/hook/authz"
-	"github.com/raystack/shield/internal/proxy/middleware/attributes"
-	"github.com/raystack/shield/internal/proxy/middleware/authz"
-	"github.com/raystack/shield/internal/proxy/middleware/basic_auth"
-	"github.com/raystack/shield/internal/proxy/middleware/observability"
-	"github.com/raystack/shield/internal/proxy/middleware/prefix"
-	"github.com/raystack/shield/internal/proxy/middleware/rulematch"
-	"github.com/raystack/shield/internal/store/blob"
 )
 
 func serveProxies(
@@ -70,7 +70,7 @@ func serveProxies(
 
 		cps := proxy.Serve(ctx, logger, svcConfig, middlewarePipeline)
 		cleanUpProxies = append(cleanUpProxies, cps)
-		logger.Info("[shield] proxy is up")
+		logger.Info("[frontier] proxy is up")
 	}
 	return cleanUpBlobs, cleanUpProxies, nil
 }

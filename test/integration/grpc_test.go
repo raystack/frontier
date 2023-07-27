@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/rule"
-	"github.com/raystack/shield/internal/proxy"
-	"github.com/raystack/shield/internal/proxy/hook"
-	"github.com/raystack/shield/internal/store/blob"
-	"github.com/raystack/shield/test/integration/fixtures/helloworld"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/rule"
+	"github.com/raystack/frontier/internal/proxy"
+	"github.com/raystack/frontier/internal/proxy/hook"
+	"github.com/raystack/frontier/internal/store/blob"
+	"github.com/raystack/frontier/test/integration/fixtures/helloworld"
 
 	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/assert"
@@ -94,13 +94,13 @@ func TestGRPCProxyHelloWorld(t *testing.T) {
 		defer conn.Close()
 		client := helloworld.NewGreeterClient(conn)
 		resp, err := client.SayHello(context.Background(), &helloworld.HelloRequest{
-			Name: "shield",
+			Name: "frontier",
 		})
 		if err != nil {
 			t.Error(err)
 			assert.Nil(t, err)
 		}
-		assert.Equal(t, "Hello shield", resp.Message)
+		assert.Equal(t, "Hello frontier", resp.Message)
 	})
 	t.Run("stream call with basic rpc credential", func(t *testing.T) {
 		conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", grpcProxyPort),
@@ -195,13 +195,13 @@ func BenchmarkGRPCProxyHelloWorld(b *testing.B) {
 		client := helloworld.NewGreeterClient(conn)
 		for i := 0; i < b.N; i++ {
 			resp, err := client.SayHello(context.Background(), &helloworld.HelloRequest{
-				Name: "shield",
+				Name: "frontier",
 			})
 			if err != nil {
 				b.Error(err)
 				assert.Nil(b, err)
 			}
-			assert.Equal(b, "Hello shield", resp.Message)
+			assert.Equal(b, "Hello frontier", resp.Message)
 		}
 	})
 }

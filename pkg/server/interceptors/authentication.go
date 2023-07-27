@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/frontier/core/audit"
 
-	"github.com/raystack/shield/pkg/server/health"
+	"github.com/raystack/frontier/pkg/server/health"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/internal/api/v1beta1"
+	"github.com/raystack/frontier/internal/api/v1beta1"
 	"google.golang.org/grpc"
 )
 
@@ -45,19 +45,19 @@ func UnaryAuthenticationCheck() grpc.UnaryServerInterceptor {
 
 // authenticationSkipList stores path to skip authentication, by default its enabled for all requests
 var authenticationSkipList = map[string]bool{
-	"/raystack.shield.v1beta1.ShieldService/GetJWKs":            true,
-	"/raystack.shield.v1beta1.ShieldService/GetServiceUserKey":  true,
-	"/raystack.shield.v1beta1.ShieldService/ListUsers":          true,
-	"/raystack.shield.v1beta1.ShieldService/ListOrganizations":  true,
-	"/raystack.shield.v1beta1.ShieldService/ListPermissions":    true,
-	"/raystack.shield.v1beta1.ShieldService/GetPermission":      true,
-	"/raystack.shield.v1beta1.ShieldService/ListNamespaces":     true,
-	"/raystack.shield.v1beta1.ShieldService/GetNamespace":       true,
-	"/raystack.shield.v1beta1.ShieldService/ListAuthStrategies": true,
-	"/raystack.shield.v1beta1.ShieldService/Authenticate":       true,
-	"/raystack.shield.v1beta1.ShieldService/AuthCallback":       true,
-	"/raystack.shield.v1beta1.ShieldService/AuthToken":          true,
-	"/raystack.shield.v1beta1.ShieldService/AuthLogout":         true,
-	"/raystack.shield.v1beta1.ShieldService/ListMetaSchemas":    true,
-	"/raystack.shield.v1beta1.ShieldService/GetMetaSchema":      true,
+	"/raystack.frontier.v1beta1.FrontierService/GetJWKs":            true,
+	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey":  true,
+	"/raystack.frontier.v1beta1.FrontierService/ListUsers":          true,
+	"/raystack.frontier.v1beta1.FrontierService/ListOrganizations":  true,
+	"/raystack.frontier.v1beta1.FrontierService/ListPermissions":    true,
+	"/raystack.frontier.v1beta1.FrontierService/GetPermission":      true,
+	"/raystack.frontier.v1beta1.FrontierService/ListNamespaces":     true,
+	"/raystack.frontier.v1beta1.FrontierService/GetNamespace":       true,
+	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies": true,
+	"/raystack.frontier.v1beta1.FrontierService/Authenticate":       true,
+	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":       true,
+	"/raystack.frontier.v1beta1.FrontierService/AuthToken":          true,
+	"/raystack.frontier.v1beta1.FrontierService/AuthLogout":         true,
+	"/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas":    true,
+	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":      true,
 }

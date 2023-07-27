@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/resource"
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"

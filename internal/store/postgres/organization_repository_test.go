@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/ory/dockertest"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/internal/store/postgres"
-	"github.com/raystack/shield/pkg/db"
-	"github.com/raystack/shield/pkg/metadata"
 	"github.com/stretchr/testify/suite"
 )
 

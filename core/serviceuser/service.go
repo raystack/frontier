@@ -12,9 +12,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/internal/bootstrap/schema"
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/utils"
 )
 
 type Repository interface {

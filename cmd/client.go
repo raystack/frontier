@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
@@ -28,7 +28,7 @@ func createConnection(ctx context.Context, host string, caCertFile string) (*grp
 	return grpc.DialContext(ctx, host, opts...)
 }
 
-func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
+func createClient(ctx context.Context, host string) (frontierv1beta1.FrontierServiceClient, func(), error) {
 	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
 	conn, err := createConnection(dialTimeoutCtx, host, "")
 	if err != nil {
@@ -40,11 +40,11 @@ func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 		conn.Close()
 	}
 
-	client := shieldv1beta1.NewShieldServiceClient(conn)
+	client := frontierv1beta1.NewFrontierServiceClient(conn)
 	return client, cancel, nil
 }
 
-func createAdminClient(ctx context.Context, host string) (shieldv1beta1.AdminServiceClient, func(), error) {
+func createAdminClient(ctx context.Context, host string) (frontierv1beta1.AdminServiceClient, func(), error) {
 	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
 	conn, err := createConnection(dialTimeoutCtx, host, "")
 	if err != nil {
@@ -56,7 +56,7 @@ func createAdminClient(ctx context.Context, host string) (shieldv1beta1.AdminSer
 		conn.Close()
 	}
 
-	client := shieldv1beta1.NewAdminServiceClient(conn)
+	client := frontierv1beta1.NewAdminServiceClient(conn)
 	return client, cancel, nil
 }
 
@@ -88,5 +88,5 @@ func overrideClientConfigHost(cmd *cobra.Command, cliConfig *Config) error {
 }
 
 func bindFlagsFromClientConfig(cmd *cobra.Command) {
-	cmd.PersistentFlags().StringP("host", "h", "", "Shield API service to connect to")
+	cmd.PersistentFlags().StringP("host", "h", "", "Frontier API service to connect to")
 }

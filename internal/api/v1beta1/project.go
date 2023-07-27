@@ -3,21 +3,21 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/frontier/core/audit"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/pkg/errors"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/metadata"
 
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/project"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
@@ -36,11 +36,11 @@ type ProjectService interface {
 
 func (h Handler) ListProjects(
 	ctx context.Context,
-	request *shieldv1beta1.ListProjectsRequest,
-) (*shieldv1beta1.ListProjectsResponse, error) {
+	request *frontierv1beta1.ListProjectsRequest,
+) (*frontierv1beta1.ListProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var projects []*shieldv1beta1.Project
+	var projects []*frontierv1beta1.Project
 	projectList, err := h.projectService.List(ctx, project.Filter{
 		State: project.State(request.GetState()),
 		OrgID: request.GetOrgId(),
@@ -60,13 +60,13 @@ func (h Handler) ListProjects(
 		projects = append(projects, projectPB)
 	}
 
-	return &shieldv1beta1.ListProjectsResponse{Projects: projects}, nil
+	return &frontierv1beta1.ListProjectsResponse{Projects: projects}, nil
 }
 
 func (h Handler) CreateProject(
 	ctx context.Context,
-	request *shieldv1beta1.CreateProjectRequest,
-) (*shieldv1beta1.CreateProjectResponse, error) {
+	request *frontierv1beta1.CreateProjectRequest,
+) (*frontierv1beta1.CreateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, request.GetBody().GetOrgId())
 
@@ -107,13 +107,13 @@ func (h Handler) CreateProject(
 		return nil, grpcInternalServerError
 	}
 	auditor.Log(audit.ProjectCreatedEvent, audit.ProjectTarget(newProject.ID))
-	return &shieldv1beta1.CreateProjectResponse{Project: projectPB}, nil
+	return &frontierv1beta1.CreateProjectResponse{Project: projectPB}, nil
 }
 
 func (h Handler) GetProject(
 	ctx context.Context,
-	request *shieldv1beta1.GetProjectRequest,
-) (*shieldv1beta1.GetProjectResponse, error) {
+	request *frontierv1beta1.GetProjectRequest,
+) (*frontierv1beta1.GetProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedProject, err := h.projectService.Get(ctx, request.GetId())
@@ -133,13 +133,13 @@ func (h Handler) GetProject(
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetProjectResponse{Project: projectPB}, nil
+	return &frontierv1beta1.GetProjectResponse{Project: projectPB}, nil
 }
 
 func (h Handler) UpdateProject(
 	ctx context.Context,
-	request *shieldv1beta1.UpdateProjectRequest,
-) (*shieldv1beta1.UpdateProjectResponse, error) {
+	request *frontierv1beta1.UpdateProjectRequest,
+) (*frontierv1beta1.UpdateProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, request.GetBody().GetOrgId())
 	if request.GetBody() == nil {
@@ -181,13 +181,13 @@ func (h Handler) UpdateProject(
 	}
 
 	auditor.Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
-	return &shieldv1beta1.UpdateProjectResponse{Project: projectPB}, nil
+	return &frontierv1beta1.UpdateProjectResponse{Project: projectPB}, nil
 }
 
 func (h Handler) ListProjectAdmins(
 	ctx context.Context,
-	request *shieldv1beta1.ListProjectAdminsRequest,
-) (*shieldv1beta1.ListProjectAdminsResponse, error) {
+	request *frontierv1beta1.ListProjectAdminsRequest,
+) (*frontierv1beta1.ListProjectAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	users, err := h.projectService.ListUsers(ctx, request.GetId(), project.AdminPermission)
@@ -201,7 +201,7 @@ func (h Handler) ListProjectAdmins(
 		}
 	}
 
-	var transformedAdmins []*shieldv1beta1.User
+	var transformedAdmins []*frontierv1beta1.User
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
@@ -212,13 +212,13 @@ func (h Handler) ListProjectAdmins(
 		transformedAdmins = append(transformedAdmins, u)
 	}
 
-	return &shieldv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
+	return &frontierv1beta1.ListProjectAdminsResponse{Users: transformedAdmins}, nil
 }
 
 func (h Handler) ListProjectUsers(
 	ctx context.Context,
-	request *shieldv1beta1.ListProjectUsersRequest,
-) (*shieldv1beta1.ListProjectUsersResponse, error) {
+	request *frontierv1beta1.ListProjectUsersRequest,
+) (*frontierv1beta1.ListProjectUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	permissionFilter := project.MemberPermission
@@ -237,7 +237,7 @@ func (h Handler) ListProjectUsers(
 		}
 	}
 
-	var transformedUsers []*shieldv1beta1.User
+	var transformedUsers []*frontierv1beta1.User
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
@@ -248,34 +248,34 @@ func (h Handler) ListProjectUsers(
 		transformedUsers = append(transformedUsers, u)
 	}
 
-	return &shieldv1beta1.ListProjectUsersResponse{Users: transformedUsers}, nil
+	return &frontierv1beta1.ListProjectUsersResponse{Users: transformedUsers}, nil
 }
 
-func (h Handler) EnableProject(ctx context.Context, request *shieldv1beta1.EnableProjectRequest) (*shieldv1beta1.EnableProjectResponse, error) {
+func (h Handler) EnableProject(ctx context.Context, request *frontierv1beta1.EnableProjectRequest) (*frontierv1beta1.EnableProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.EnableProjectResponse{}, nil
+	return &frontierv1beta1.EnableProjectResponse{}, nil
 }
 
-func (h Handler) DisableProject(ctx context.Context, request *shieldv1beta1.DisableProjectRequest) (*shieldv1beta1.DisableProjectResponse, error) {
+func (h Handler) DisableProject(ctx context.Context, request *frontierv1beta1.DisableProjectRequest) (*frontierv1beta1.DisableProjectResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.DisableProjectResponse{}, nil
+	return &frontierv1beta1.DisableProjectResponse{}, nil
 }
 
-func transformProjectToPB(prj project.Project) (*shieldv1beta1.Project, error) {
+func transformProjectToPB(prj project.Project) (*frontierv1beta1.Project, error) {
 	metaData, err := prj.Metadata.ToStructPB()
 	if err != nil {
 		return nil, err
 	}
 
-	return &shieldv1beta1.Project{
+	return &frontierv1beta1.Project{
 		Id:        prj.ID,
 		Name:      prj.Name,
 		Title:     prj.Title,

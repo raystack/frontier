@@ -7,31 +7,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/frontier/core/audit"
 
 	"golang.org/x/exp/slices"
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
-	shieldsession "github.com/raystack/shield/core/authenticate/session"
-	"github.com/raystack/shield/core/serviceuser"
-	"github.com/raystack/shield/internal/bootstrap/schema"
-	"github.com/raystack/shield/pkg/errors"
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/errors"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
-	"github.com/raystack/shield/core/authenticate/token"
+	"github.com/raystack/frontier/core/authenticate/token"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/pkg/mailer"
+	"github.com/raystack/frontier/pkg/mailer"
 
 	"github.com/raystack/salt/log"
 
 	"github.com/google/uuid"
-	"github.com/raystack/shield/core/authenticate/strategy"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/pkg/str"
+	"github.com/raystack/frontier/core/authenticate/strategy"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/str"
 	"github.com/robfig/cron/v3"
 )
 
@@ -68,7 +68,7 @@ type FlowRepository interface {
 }
 
 type SessionService interface {
-	ExtractFromContext(ctx context.Context) (*shieldsession.Session, error)
+	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
 }
 
 type Service struct {
@@ -395,7 +395,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 				User: &currentUser,
 			}, nil
 		}
-		if err != nil && !errors.Is(err, shieldsession.ErrNoSession) {
+		if err != nil && !errors.Is(err, frontiersession.ErrNoSession) {
 			return Principal{}, err
 		}
 	}
@@ -412,7 +412,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 			//check type of jwt
 			if val, ok := insecureJWT.Get(token.GeneratedClaimKey); ok {
 				if claimVal, ok := val.(string); ok && claimVal == token.GeneratedClaimValue {
-					// extract user from token if present as its created by shield
+					// extract user from token if present as its created by frontier
 					userID, _, err := s.internalTokenService.Parse(ctx, []byte(userToken))
 					if err == nil && utils.IsValidUUID(userID) {
 						// userID is a valid uuid

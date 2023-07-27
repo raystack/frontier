@@ -20,7 +20,7 @@ type TokenConfig struct {
 
 	// Issuer uniquely identifies the service that issued the token
 	// a good example could be fully qualified domain name
-	Issuer string `yaml:"iss" mapstructure:"iss" default:"shield"`
+	Issuer string `yaml:"iss" mapstructure:"iss" default:"frontier"`
 
 	// Validity is the duration for which the token is valid
 	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"1h"`
@@ -39,7 +39,7 @@ type OIDCConfig struct {
 }
 
 type MailOTPConfig struct {
-	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Shield Login OTP"`
+	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Frontier Login OTP"`
 	Body     string        `yaml:"body" mapstructure:"body" default:"Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."`
 	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
 }

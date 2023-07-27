@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/internal/bootstrap/schema"
-	"github.com/raystack/shield/pkg/errors"
-	"github.com/raystack/shield/pkg/str"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/str"
 )
 
 type RelationService interface {

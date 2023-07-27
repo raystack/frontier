@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	policy "github.com/raystack/shield/core/policy"
+	policy "github.com/raystack/frontier/core/policy"
 	mock "github.com/stretchr/testify/mock"
 )
 

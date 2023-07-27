@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: raystack/shield/v1beta1/admin.proto
+// source: raystack/frontier/v1beta1/admin.proto
 
-package shieldv1beta1
+package frontierv1beta1
 
 import (
 	context "context"
@@ -19,18 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AdminService_ListAllUsers_FullMethodName         = "/raystack.shield.v1beta1.AdminService/ListAllUsers"
-	AdminService_ListGroups_FullMethodName           = "/raystack.shield.v1beta1.AdminService/ListGroups"
-	AdminService_ListAllOrganizations_FullMethodName = "/raystack.shield.v1beta1.AdminService/ListAllOrganizations"
-	AdminService_ListProjects_FullMethodName         = "/raystack.shield.v1beta1.AdminService/ListProjects"
-	AdminService_ListRelations_FullMethodName        = "/raystack.shield.v1beta1.AdminService/ListRelations"
-	AdminService_ListResources_FullMethodName        = "/raystack.shield.v1beta1.AdminService/ListResources"
-	AdminService_ListPolicies_FullMethodName         = "/raystack.shield.v1beta1.AdminService/ListPolicies"
-	AdminService_CreateRole_FullMethodName           = "/raystack.shield.v1beta1.AdminService/CreateRole"
-	AdminService_DeleteRole_FullMethodName           = "/raystack.shield.v1beta1.AdminService/DeleteRole"
-	AdminService_CreatePermission_FullMethodName     = "/raystack.shield.v1beta1.AdminService/CreatePermission"
-	AdminService_UpdatePermission_FullMethodName     = "/raystack.shield.v1beta1.AdminService/UpdatePermission"
-	AdminService_DeletePermission_FullMethodName     = "/raystack.shield.v1beta1.AdminService/DeletePermission"
+	AdminService_ListAllUsers_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
+	AdminService_ListGroups_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListGroups"
+	AdminService_ListAllOrganizations_FullMethodName = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
+	AdminService_ListProjects_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ListProjects"
+	AdminService_ListRelations_FullMethodName        = "/raystack.frontier.v1beta1.AdminService/ListRelations"
+	AdminService_ListResources_FullMethodName        = "/raystack.frontier.v1beta1.AdminService/ListResources"
+	AdminService_ListPolicies_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ListPolicies"
+	AdminService_CreateRole_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/CreateRole"
+	AdminService_DeleteRole_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/DeleteRole"
+	AdminService_CreatePermission_FullMethodName     = "/raystack.frontier.v1beta1.AdminService/CreatePermission"
+	AdminService_UpdatePermission_FullMethodName     = "/raystack.frontier.v1beta1.AdminService/UpdatePermission"
+	AdminService_DeletePermission_FullMethodName     = "/raystack.frontier.v1beta1.AdminService/DeletePermission"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -477,7 +477,7 @@ func _AdminService_DeletePermission_Handler(srv interface{}, ctx context.Context
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AdminService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "raystack.shield.v1beta1.AdminService",
+	ServiceName: "raystack.frontier.v1beta1.AdminService",
 	HandlerType: (*AdminServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -530,5 +530,5 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "raystack/shield/v1beta1/admin.proto",
+	Metadata: "raystack/frontier/v1beta1/admin.proto",
 }

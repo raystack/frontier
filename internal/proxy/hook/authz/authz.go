@@ -6,23 +6,23 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/mitchellh/mapstructure"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/internal/proxy/hook"
+	"github.com/raystack/frontier/internal/proxy/middleware"
+	"github.com/raystack/frontier/pkg/body_extractor"
+	"github.com/raystack/frontier/pkg/telemetry"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/internal/proxy/hook"
-	"github.com/raystack/shield/internal/proxy/middleware"
-	"github.com/raystack/shield/pkg/body_extractor"
-	"github.com/raystack/shield/pkg/telemetry"
 )
 
 type ResourceService interface {

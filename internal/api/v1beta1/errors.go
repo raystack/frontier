@@ -1,7 +1,7 @@
 package v1beta1
 
 import (
-	"github.com/raystack/shield/pkg/errors"
+	"github.com/raystack/frontier/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

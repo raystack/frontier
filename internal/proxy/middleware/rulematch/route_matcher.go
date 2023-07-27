@@ -3,8 +3,8 @@ package rulematch
 import (
 	"net/http"
 
-	"github.com/raystack/shield/core/rule"
-	"github.com/raystack/shield/internal/proxy/middleware"
+	"github.com/raystack/frontier/core/rule"
+	"github.com/raystack/frontier/internal/proxy/middleware"
 
 	"github.com/gorilla/mux"
 )

@@ -11,11 +11,11 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/pkg/errors"
+	"github.com/raystack/frontier/core/metaschema"
+	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/internal/store/postgres/migrations"
+	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/core/metaschema"
-	"github.com/raystack/shield/internal/store/postgres"
-	"github.com/raystack/shield/internal/store/postgres/migrations"
-	"github.com/raystack/shield/pkg/db"
 )
 
 func RunMigrations(logger log.Logger, config db.Config) error {

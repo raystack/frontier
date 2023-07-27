@@ -1,43 +1,43 @@
 rules:
   - backends:
-    - name: some_post
-      methods: ["POST"]
-      target: "http://127.0.0.1:13877/"
-      frontends:
-        - name: basic_auth_1
-          path: "/helloworld.Greeter/StreamExample"
-          method: "POST"
-          middlewares:
-            - name: basic_auth
-              config:
-                users:
-                  - user: user
-                    password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0
-        #        hooks:
-        #          - name: authz
-        #            config:
-        #              action: some_action
-        #              attributes:
-        #                project_resp:
-        #                  index: "1"
-        #                  type: grpc_payload
+      - name: some_post
+        methods: ["POST"]
+        target: "http://127.0.0.1:13877/"
+        frontends:
+          - name: basic_auth_1
+            path: "/helloworld.Greeter/StreamExample"
+            method: "POST"
+            middlewares:
+              - name: basic_auth
+                config:
+                  users:
+                    - user: user
+                      password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0
+          #        hooks:
+          #          - name: authz
+          #            config:
+          #              action: some_action
+          #              attributes:
+          #                project_resp:
+          #                  index: "1"
+          #                  type: grpc_payload
 
-        - name: basic_auth_2
-          path: "/helloworld.Greeter/SayHello"
-          method: "POST"
-          middlewares:
-            - name: basic_auth
-              config:
-                users:
-                  - user: user
-                    password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0
-                    capabilities: [ "hello:shield" ]
-                scope:
-                  action: "hello:{{.name}}"
-                  attributes:
-                    name:
-                      type: grpc_payload
-                      index: "1"
+          - name: basic_auth_2
+            path: "/helloworld.Greeter/SayHello"
+            method: "POST"
+            middlewares:
+              - name: basic_auth
+                config:
+                  users:
+                    - user: user
+                      password: $apr1$RfxoV6GP$.GsGgD580H5FOuUfTzKZh0
+                      capabilities: ["hello:frontier"]
+                  scope:
+                    action: "hello:{{.name}}"
+                    attributes:
+                      name:
+                        type: grpc_payload
+                        index: "1"
 #        hooks:
 #          - name: authz
 #            config:

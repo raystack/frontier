@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/salt/log"
-	shieldsession "github.com/raystack/shield/core/authenticate/session"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type SessionRepository struct {
@@ -32,7 +32,7 @@ func NewSessionRepository(logger log.Logger, dbc *db.Client) *SessionRepository 
 	}
 }
 
-func (s *SessionRepository) Set(ctx context.Context, session *shieldsession.Session) error {
+func (s *SessionRepository) Set(ctx context.Context, session *frontiersession.Session) error {
 	userID, err := uuid.Parse(session.UserID)
 	if err != nil {
 		return fmt.Errorf("error parsing user id: %w", err)
@@ -67,7 +67,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *shieldsession.Sess
 	return nil
 }
 
-func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*shieldsession.Session, error) {
+func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontiersession.Session, error) {
 	var session Session
 	query, params, err := dialect.From(TABLE_SESSIONS).Where(
 		goqu.Ex{
@@ -83,7 +83,7 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*shieldsessi
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, fmt.Errorf("%s: %w", dbErr.Error(), shieldsession.ErrNoSession)
+			return nil, fmt.Errorf("%s: %w", dbErr.Error(), frontiersession.ErrNoSession)
 		default:
 			return nil, fmt.Errorf("%s: %w", dbErr.Error(), err)
 		}
@@ -109,7 +109,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			err = checkPostgresError(err)
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
-				return fmt.Errorf("%w: %s", dbErr, shieldsession.ErrNoSession)
+				return fmt.Errorf("%w: %s", dbErr, frontiersession.ErrNoSession)
 			default:
 				return fmt.Errorf("%w: %s", dbErr, err)
 			}
@@ -119,7 +119,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			return nil
 		}
 
-		return shieldsession.ErrDeletingSession
+		return frontiersession.ErrDeletingSession
 	})
 }
 

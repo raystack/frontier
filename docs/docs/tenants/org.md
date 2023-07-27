@@ -3,17 +3,18 @@ import TabItem from '@theme/TabItem';
 
 # Organization
 
-## Overview 
+## Overview
 
-An Organization in Shield is a top-level resource. Each Project, Group, User, and Audit logs (coming soon) belongs to an Organization. There can be multiple tenants in each Shield deployement and an Organization will usually represent one of your tenant.
+An Organization in Frontier is a top-level resource. Each Project, Group, User, and Audit logs (coming soon) belongs to an Organization. There can be multiple tenants in each Frontier deployement and an Organization will usually represent one of your tenant.
 
 An Organization serves as a container for users, groups, projects and resources. Each organization can have its own set of admins and access control policies. Users from one organization are seperated from others.
 
-An Organization slug is must be unique in the entire Shield deployment. No two organization can have same the slug. Whenever a user creates an Organization, one is assigned the role of the Organization Admin by default.
+An Organization slug is must be unique in the entire Frontier deployment. No two organization can have same the slug. Whenever a user creates an Organization, one is assigned the role of the Organization Admin by default.
 
 Users are shared between organizations: Any user may belong to multiple organizations and will be able to use the same identity to navigate between organizations.
 
 ---
+
 ### Permissions and Roles at Organization level
 
 | **Role**                     | **Permissions**                                  | **Description**                                                                                                                     |
@@ -25,6 +26,7 @@ Users are shared between organizations: Any user may belong to multiple organiza
 Besides this an Organization Owner can add custom permissions and roles at the organization level.
 
 ---
+
 ### Deactivating an Organization
 
 Disabling an organization suspends its access to IAM services and restricts its ability to perform IAM-related actions. This can be done for various reasons, such as temporary suspension of services, organizational restructuring, or security considerations.
@@ -32,6 +34,7 @@ Disabling an organization suspends its access to IAM services and restricts its 
 Enabling or disabling an organization helps administrators manage the access and privileges of the organization's members and controls their interaction with IAM services and resources.
 
 ---
+
 ### Deleting an Organization
 
 :::danger
@@ -42,7 +45,7 @@ Caution should be exercised when deleting an organization, as it cannot be undon
 
 ## Managing Organization
 
-An Organization in Shield is a top-level resource. Each Project, Group, User, and Audit logs (coming soon) belongs to an Organization. There can be multiple tenants in each Shield deployement and an Organization will usually represent one of your tenant.
+An Organization in Frontier is a top-level resource. Each Project, Group, User, and Audit logs (coming soon) belongs to an Organization. There can be multiple tenants in each Frontier deployement and an Organization will usually represent one of your tenant.
 
 <Tabs groupId="model">
   <TabItem value="Model" label="Model" default>
@@ -50,7 +53,7 @@ An Organization in Shield is a top-level resource. Each Project, Group, User, an
 | Field        | Type   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
 | **id**       | uuid   | Unique Organization identifier                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| **name**     | string | The name of the organization. The name must be unique within the entire Shield instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> _Example:"shield-org1-acme"_                                                                                                                                                                                                                                               |
+| **name**     | string | The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/> _Example:"frontier-org1-acme"_                                                                                                                                                                                                                                           |
 | **title**    | string | The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty. <br/>_Example: "Acme Inc"_                                                                                                                                                                                                                                                                                           |     |
 | **metadata** | object | Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields.<br/>_Example:{"labels": {"key": "value"}, "description": "Organization description"}_ |
 
@@ -75,7 +78,7 @@ An Organization in Shield is a top-level resource. Each Project, Group, User, an
 </TabItem>
 </Tabs>
 
-**Note:** Organization metadata values are validated using MetaSchemas in Shield [Read More](../reference/metaschemas.md)
+**Note:** Organization metadata values are validated using MetaSchemas in Frontier [Read More](../reference/metaschemas.md)
 
 :::tip
 Some of these APIs require special privileges to access these endpoints and to authorize these requests, users may need a Client ID/Secret or an Access token to proceed. Read [**Authorization for APIs**](../reference/api-auth.md) to learn more.
@@ -83,13 +86,13 @@ Some of these APIs require special privileges to access these endpoints and to a
 
 ### Create an Organization
 
-Any (human) user can create an Organization in Shield. The user must exist in Shield before procceding to create an Organization. This user will be assigned the role of **Organization Admin** once the action is completed successful and will contain all the necessary permissions to manage the org.
+Any (human) user can create an Organization in Frontier. The user must exist in Frontier before procceding to create an Organization. This user will be assigned the role of **Organization Admin** once the action is completed successful and will contain all the necessary permissions to manage the org.
 
 **Required Authorization:** User request just needs to be authenticated and no particular roles/permission are required to proceed.
 
-You can create organizations using either the Admin Portal, Shield Command Line Interface or via the HTTP APIs.
+You can create organizations using either the Admin Portal, Frontier Command Line Interface or via the HTTP APIs.
 
-1. Using `shield organization create` CLI command
+1. Using `frontier organization create` CLI command
 2. Calling to `POST /v1beta1/organizations` API
 
 <Tabs groupId="api">
@@ -111,7 +114,7 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations' \
 <TabItem value="cli" label="CLI" default>
 
 ```bash
-$ shield organization create --file=<path to the organization.json file>
+$ frontier organization create --file=<path to the organization.json file>
 ```
 
   </TabItem>
@@ -123,11 +126,12 @@ $ shield organization create --file=<path to the organization.json file>
    3. Enter basic information for your organization, and select **Add Organization**.
 
 ---
+
 ### Add Users to an Organization
 
-Add users to an organization. A user must exists in Shield before adding it to an org. This request will fail if the user doesn't exists. This API accepts a list of comma seperated (human) user IDs to be added to the organization. In case a user is already a member of the organization, no action will be taken for that particular user.
+Add users to an organization. A user must exists in Frontier before adding it to an org. This request will fail if the user doesn't exists. This API accepts a list of comma seperated (human) user IDs to be added to the organization. In case a user is already a member of the organization, no action will be taken for that particular user.
 
-**Required Authorization** : A user/service account with the role `Organization Admin` or `Organization Manager` is authorized to take this action. Also any user being assigned with custom role with `update` permission at `app/organization` namespace can also perform this action. 
+**Required Authorization** : A user/service account with the role `Organization Admin` or `Organization Manager` is authorized to take this action. Also any user being assigned with custom role with `update` permission at `app/organization` namespace can also perform this action.
 
 1. Using the **`POST /v1beta1/organizations/:id/users`** API
 
@@ -142,12 +146,14 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/:id/users' \
   ]
 }'
 ```
+
 ---
+
 ### Invite user to an Organization
 
-Invite user with email to an organization and optionally to the groups within that Org. A user must exists in Shield before sending the invitation otherwise the request will fail. Invitations expire in 7 days.
+Invite user with email to an organization and optionally to the groups within that Org. A user must exists in Frontier before sending the invitation otherwise the request will fail. Invitations expire in 7 days.
 
-**Required Authorization** : A user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `invitationcreate` permission at `app/organization` namespace can also perform this action. 
+**Required Authorization** : A user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `invitationcreate` permission at `app/organization` namespace can also perform this action.
 
 1. Using **`POST /v1beta1/organizations/:orgId/invitations`** API
 
@@ -164,38 +170,44 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitation
   ]
 }'
 ```
+
 ---
+
 ### List pending invitations
 
-This API can be used to list all the pending invitations queued for an organization which the user haven't take any action on. Once the user accepts an invitation or rejects it, the invitation is deleted from the Shield database. 
+This API can be used to list all the pending invitations queued for an organization which the user haven't take any action on. Once the user accepts an invitation or rejects it, the invitation is deleted from the Frontier database.
 
-**Required Authorization** : A user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `invitationlist` or `invitationcreate` permission at the `app/organization` namespace can also perform this action. 
+**Required Authorization** : A user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `invitationlist` or `invitationcreate` permission at the `app/organization` namespace can also perform this action.
 
 1. Using **`GET /v1beta1/organizations/:orgId/invitations`** API
 
 ```bash
 $ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitations' \
 -H 'Accept: application/json' \
--H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ='
 ```
+
 ---
+
 ### Delete pending invitations
 
 Delete a pending invitation queued for an organization.
 
-**Required Authorization** : Any user/service account with the role `Organization Admin` is authorized to take this action. Also the user for whom the invite was created can delete the invite. Any user being assigned with custom role with `invitationcreate` permission at the `app/organization` namespace for that particular organization can also perform this action. 
+**Required Authorization** : Any user/service account with the role `Organization Admin` is authorized to take this action. Also the user for whom the invite was created can delete the invite. Any user being assigned with custom role with `invitationcreate` permission at the `app/organization` namespace for that particular organization can also perform this action.
 
 1. Using **`DELETE /v1beta1/organizations/:orgId/invitations/:id`** API
 
 ```bash
 $ curl -L -X DELETE 'http://127.0.0.1:7400/v1beta1/organizations/:orgId/invitations/:id' \
 -H 'Accept: application/json' \
--H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ='
 ```
+
 ---
+
 ### View an organization users
 
-This API only returns a list of human users in an Organization. For listing service users of the Org refer this [API](../apis/shield-service-list-service-users.api.mdx)
+This API only returns a list of human users in an Organization. For listing service users of the Org refer this [API](../apis/frontier-service-list-service-users.api.mdx)
 
 **Required Authorization** : Any user/service user with `get` permission at Organization level can perform this action. Meaning all the Organization users/service users with role `Organization Admin` , `Organization Manager` or an `Organization Viewer` can list the org users.
 
@@ -204,12 +216,14 @@ This API only returns a list of human users in an Organization. For listing serv
 ```bash
 curl -L -X GET 'http://127.0.0.1:7400/v1beta1/organizations/:id/users' \
 -H 'Accept: application/json' \
--H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ='
 ```
+
 ---
+
 ### Create custom role for an Organization
 
-**Required Authorization** : Any user/service user with the role `Organization Admin` is authorized to take this action. Also any user being assigned a custom role with `rolemanage` permission at the `app/organization` namespace can also perform this action. 
+**Required Authorization** : Any user/service user with the role `Organization Admin` is authorized to take this action. Also any user being assigned a custom role with `rolemanage` permission at the `app/organization` namespace can also perform this action.
 
 1. Using the **`POST /v1beta1/permissions`** API. <br/>**Note:** Specify the namespace **`app/organization`** to create a org level custom permission
 
@@ -229,12 +243,14 @@ $ curl -L -X POST 'http://127.0.0.1:7400/v1beta1/organizations/92f69c3a-334b-4f2
   "title": "Organization Member"
 }'
 ```
+
 ---
+
 ### Enable or disable an Organization
 
 Sets the state of the organization as disabled. The existing users in the org will not be able to access any organization resources when the org is disabled.
 
-**Required Authorization** : Any user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `delete` permission at the `app/organization` namespace can also perform this action. 
+**Required Authorization** : Any user/service account with the role `Organization Admin` is authorized to take this action. Also any user being assigned with custom role with `delete` permission at the `app/organization` namespace can also perform this action.
 
 1. Using **`POST /v1beta1/organizations/:id/disable`** API
 
@@ -249,16 +265,17 @@ $ curl --location 'http://localhost:7400/v1beta1/organizations/adf997e8-59d1-446
 To Enable the Org again send the request on **`POST /v1beta1/organizations/:id/enable`** API in same way as described above
 
 ---
+
 ### Remove Organization User
 
-Removes a user from the organization. The user will be removed from all the groups inside the Organization ans will lose all the access to underlying projects and resources, the user will not be deleted from the Shield instance.
+Removes a user from the organization. The user will be removed from all the groups inside the Organization ans will lose all the access to underlying projects and resources, the user will not be deleted from the Frontier instance.
 
-**Required Authorization** : A user/service account with the role `Organization Admin` or `Organization Manager` is authorized to take this action. Also any user being assigned with custom role with `update` permission at `app/organization` namespace can also perform this action. 
+**Required Authorization** : A user/service account with the role `Organization Admin` or `Organization Manager` is authorized to take this action. Also any user being assigned with custom role with `update` permission at `app/organization` namespace can also perform this action.
 
 1. Calling to **`DELETE {HOST}/v1beta1/organizations/:id/users/:userId`** API
 
 ```bash
 $ curl -L -X DELETE 'http://127.0.0.1:7400/v1beta1/organizations/:id/users/:userId' \
 -H 'Accept: application/json' \
--H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ=' 
+-H 'Authorization: Basic dGVzdC1jbGllbnQtaWQ6dGVzdC1zZWNyZXQ='
 ```

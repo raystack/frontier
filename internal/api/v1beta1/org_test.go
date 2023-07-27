@@ -6,18 +6,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	"github.com/raystack/shield/pkg/errors"
-	"github.com/raystack/shield/pkg/metadata"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/metadata"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
@@ -47,7 +47,7 @@ func TestListOrganizations(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(os *mocks.OrganizationService)
-		want  *shieldv1beta1.ListOrganizationsResponse
+		want  *frontierv1beta1.ListOrganizationsResponse
 		err   error
 	}{
 		{
@@ -66,7 +66,7 @@ func TestListOrganizations(t *testing.T) {
 				}
 				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), organization.Filter{}).Return(testOrgList, nil)
 			},
-			want: &shieldv1beta1.ListOrganizationsResponse{Organizations: []*shieldv1beta1.Organization{
+			want: &frontierv1beta1.ListOrganizationsResponse{Organizations: []*frontierv1beta1.Organization{
 				{
 					Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 					Name: "org-1",
@@ -104,8 +104,8 @@ func TestCreateOrganization(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context
-		req   *shieldv1beta1.CreateOrganizationRequest
-		want  *shieldv1beta1.CreateOrganizationResponse
+		req   *frontierv1beta1.CreateOrganizationRequest
+		want  *frontierv1beta1.CreateOrganizationResponse
 		err   error
 	}{
 		{
@@ -118,7 +118,7 @@ func TestCreateOrganization(t *testing.T) {
 				}).Return(organization.Organization{}, user.ErrInvalidEmail)
 				return ctx
 			},
-			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
 				Name:     "some-org",
 				Metadata: &structpb.Struct{},
 			}},
@@ -135,7 +135,7 @@ func TestCreateOrganization(t *testing.T) {
 				}).Return(organization.Organization{}, errors.New("some error"))
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
 				Name:     "abc",
 				Metadata: &structpb.Struct{},
 			}},
@@ -152,7 +152,7 @@ func TestCreateOrganization(t *testing.T) {
 				}).Return(organization.Organization{}, organization.ErrInvalidDetail)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
 				Name:     "abc",
 				Metadata: &structpb.Struct{},
 			}},
@@ -169,7 +169,7 @@ func TestCreateOrganization(t *testing.T) {
 				}).Return(organization.Organization{}, organization.ErrConflict)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
 				Name:     "abc",
 				Metadata: &structpb.Struct{},
 			}},
@@ -178,7 +178,7 @@ func TestCreateOrganization(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if metadata is not parsable",
-			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "some-org",
 				Name:  "abc",
 				Metadata: &structpb.Struct{
@@ -208,7 +208,7 @@ func TestCreateOrganization(t *testing.T) {
 				}, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			req: &shieldv1beta1.CreateOrganizationRequest{Body: &shieldv1beta1.OrganizationRequestBody{
+			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "some-org",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
@@ -216,7 +216,7 @@ func TestCreateOrganization(t *testing.T) {
 					},
 				},
 			}},
-			want: &shieldv1beta1.CreateOrganizationResponse{Organization: &shieldv1beta1.Organization{
+			want: &frontierv1beta1.CreateOrganizationResponse{Organization: &frontierv1beta1.Organization{
 				Id:   "new-abc",
 				Name: "some-org",
 				Metadata: &structpb.Struct{
@@ -251,8 +251,8 @@ func TestHandler_GetOrganization(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(os *mocks.OrganizationService)
-		request *shieldv1beta1.GetOrganizationRequest
-		want    *shieldv1beta1.GetOrganizationResponse
+		request *frontierv1beta1.GetOrganizationRequest
+		want    *frontierv1beta1.GetOrganizationResponse
 		wantErr error
 	}{
 
@@ -261,7 +261,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(organization.Organization{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetOrganizationRequest{
+			request: &frontierv1beta1.GetOrganizationRequest{
 				Id: someOrgID,
 			},
 			want:    nil,
@@ -272,7 +272,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetOrganizationRequest{
+			request: &frontierv1beta1.GetOrganizationRequest{
 				Id: someOrgID,
 			},
 			want:    nil,
@@ -283,7 +283,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(organization.Organization{}, organization.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetOrganizationRequest{},
+			request: &frontierv1beta1.GetOrganizationRequest{},
 			want:    nil,
 			wantErr: grpcOrgNotFoundErr,
 		},
@@ -292,11 +292,11 @@ func TestHandler_GetOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "9f256f86-31a3-11ec-8d3d-0242ac130003").Return(testOrgMap["9f256f86-31a3-11ec-8d3d-0242ac130003"], nil)
 			},
-			request: &shieldv1beta1.GetOrganizationRequest{
+			request: &frontierv1beta1.GetOrganizationRequest{
 				Id: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 			},
-			want: &shieldv1beta1.GetOrganizationResponse{
-				Organization: &shieldv1beta1.Organization{
+			want: &frontierv1beta1.GetOrganizationResponse{
+				Organization: &frontierv1beta1.Organization{
 					Id:   "9f256f86-31a3-11ec-8d3d-0242ac130003",
 					Name: "org-1",
 					Metadata: &structpb.Struct{
@@ -333,8 +333,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService)
-		request *shieldv1beta1.UpdateOrganizationRequest
-		want    *shieldv1beta1.UpdateOrganizationResponse
+		request *frontierv1beta1.UpdateOrganizationRequest
+		want    *frontierv1beta1.UpdateOrganizationResponse
 		wantErr error
 	}{
 		{
@@ -351,9 +351,9 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					Name: "new-org",
 				}).Return(organization.Organization{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.UpdateOrganizationRequest{
+			request: &frontierv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
-				Body: &shieldv1beta1.OrganizationRequestBody{
+				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -381,9 +381,9 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					Name: "new-org",
 				}).Return(organization.Organization{}, organization.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRequest{
+			request: &frontierv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
-				Body: &shieldv1beta1.OrganizationRequestBody{
+				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -410,8 +410,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					},
 				}).Return(organization.Organization{}, organization.ErrInvalidID)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRequest{
-				Body: &shieldv1beta1.OrganizationRequestBody{
+			request: &frontierv1beta1.UpdateOrganizationRequest{
+				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -439,9 +439,9 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					Name: "new-org",
 				}).Return(organization.Organization{}, organization.ErrConflict)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRequest{
+			request: &frontierv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
-				Body: &shieldv1beta1.OrganizationRequestBody{
+				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -477,9 +477,9 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					Name: "new-org",
 				}, nil)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRequest{
+			request: &frontierv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
-				Body: &shieldv1beta1.OrganizationRequestBody{
+				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -490,8 +490,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					},
 				},
 			},
-			want: &shieldv1beta1.UpdateOrganizationResponse{
-				Organization: &shieldv1beta1.Organization{
+			want: &frontierv1beta1.UpdateOrganizationResponse{
+				Organization: &frontierv1beta1.Organization{
 					Id:   someOrgID,
 					Name: "new-org",
 					Metadata: &structpb.Struct{
@@ -528,8 +528,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					},
 				}, nil)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRequest{
-				Body: &shieldv1beta1.OrganizationRequestBody{
+			request: &frontierv1beta1.UpdateOrganizationRequest{
+				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -540,8 +540,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 					},
 				},
 			},
-			want: &shieldv1beta1.UpdateOrganizationResponse{
-				Organization: &shieldv1beta1.Organization{
+			want: &frontierv1beta1.UpdateOrganizationResponse{
+				Organization: &frontierv1beta1.Organization{
 					Id:   someOrgID,
 					Name: "new-org",
 					Metadata: &structpb.Struct{
@@ -579,8 +579,8 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(us *mocks.UserService)
-		request *shieldv1beta1.ListOrganizationAdminsRequest
-		want    *shieldv1beta1.ListOrganizationAdminsResponse
+		request *frontierv1beta1.ListOrganizationAdminsRequest
+		want    *frontierv1beta1.ListOrganizationAdminsResponse
 		wantErr error
 	}{
 		{
@@ -588,7 +588,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return([]user.User{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.ListOrganizationAdminsRequest{
+			request: &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
 			},
 			want:    nil,
@@ -599,10 +599,10 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 			setup: func(us *mocks.UserService) {
 				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return([]user.User{}, nil)
 			},
-			request: &shieldv1beta1.ListOrganizationAdminsRequest{
+			request: &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
 			},
-			want:    &shieldv1beta1.ListOrganizationAdminsResponse{},
+			want:    &frontierv1beta1.ListOrganizationAdminsResponse{},
 			wantErr: nil,
 		},
 		{
@@ -614,11 +614,11 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				}
 				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return(testUserList, nil)
 			},
-			request: &shieldv1beta1.ListOrganizationAdminsRequest{
+			request: &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
 			},
-			want: &shieldv1beta1.ListOrganizationAdminsResponse{
-				Users: []*shieldv1beta1.User{
+			want: &frontierv1beta1.ListOrganizationAdminsResponse{
+				Users: []*frontierv1beta1.User{
 					{
 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Title: "User 1",

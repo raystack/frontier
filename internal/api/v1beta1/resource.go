@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/frontier/core/relation"
 
 	"google.golang.org/protobuf/types/known/structpb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/pkg/metadata"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/metadata"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -31,9 +31,9 @@ type ResourceService interface {
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
 
-func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListResourcesRequest) (*shieldv1beta1.ListResourcesResponse, error) {
+func (h Handler) ListResources(ctx context.Context, request *frontierv1beta1.ListResourcesRequest) (*frontierv1beta1.ListResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var resources []*shieldv1beta1.Resource
+	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetNamespace())
 	filters := resource.Filter{
 		NamespaceID: namespaceID,
@@ -54,15 +54,15 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 		resources = append(resources, resourcePB)
 	}
 
-	return &shieldv1beta1.ListResourcesResponse{
+	return &frontierv1beta1.ListResourcesResponse{
 		Resources: resources,
 	}, nil
 }
 
-func (h Handler) ListProjectResources(ctx context.Context, request *shieldv1beta1.ListProjectResourcesRequest) (*shieldv1beta1.ListProjectResourcesResponse, error) {
+func (h Handler) ListProjectResources(ctx context.Context, request *frontierv1beta1.ListProjectResourcesRequest) (*frontierv1beta1.ListProjectResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var resources []*shieldv1beta1.Resource
+	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetNamespace())
 	filters := resource.Filter{
 		NamespaceID: namespaceID,
@@ -83,12 +83,12 @@ func (h Handler) ListProjectResources(ctx context.Context, request *shieldv1beta
 		resources = append(resources, resourcePB)
 	}
 
-	return &shieldv1beta1.ListProjectResourcesResponse{
+	return &frontierv1beta1.ListProjectResourcesResponse{
 		Resources: resources,
 	}, nil
 }
 
-func (h Handler) CreateProjectResource(ctx context.Context, request *shieldv1beta1.CreateProjectResourceRequest) (*shieldv1beta1.CreateProjectResourceResponse, error) {
+func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1beta1.CreateProjectResourceRequest) (*frontierv1beta1.CreateProjectResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
@@ -139,12 +139,12 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *shieldv1bet
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.CreateProjectResourceResponse{
+	return &frontierv1beta1.CreateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
 }
 
-func (h Handler) GetProjectResource(ctx context.Context, request *shieldv1beta1.GetProjectResourceRequest) (*shieldv1beta1.GetProjectResourceResponse, error) {
+func (h Handler) GetProjectResource(ctx context.Context, request *frontierv1beta1.GetProjectResourceRequest) (*frontierv1beta1.GetProjectResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedResource, err := h.resourceService.Get(ctx, request.GetId())
@@ -166,12 +166,12 @@ func (h Handler) GetProjectResource(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetProjectResourceResponse{
+	return &frontierv1beta1.GetProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
 }
 
-func (h Handler) UpdateProjectResource(ctx context.Context, request *shieldv1beta1.UpdateProjectResourceRequest) (*shieldv1beta1.UpdateProjectResourceResponse, error) {
+func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1beta1.UpdateProjectResourceRequest) (*frontierv1beta1.UpdateProjectResourceResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
@@ -226,17 +226,17 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *shieldv1bet
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.UpdateProjectResourceResponse{
+	return &frontierv1beta1.UpdateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
 }
 
-func (h Handler) DeleteProjectResource(ctx context.Context, in *shieldv1beta1.DeleteProjectResourceRequest) (*shieldv1beta1.DeleteProjectResourceResponse, error) {
+func (h Handler) DeleteProjectResource(ctx context.Context, in *frontierv1beta1.DeleteProjectResourceRequest) (*frontierv1beta1.DeleteProjectResourceResponse, error) {
 	//TODO implement me
 	return nil, grpcOperationUnsupported
 }
 
-func transformResourceToPB(from resource.Resource) (*shieldv1beta1.Resource, error) {
+func transformResourceToPB(from resource.Resource) (*frontierv1beta1.Resource, error) {
 	var metadata *structpb.Struct
 	var err error
 	if len(from.Metadata) > 0 {
@@ -246,7 +246,7 @@ func transformResourceToPB(from resource.Resource) (*shieldv1beta1.Resource, err
 		}
 	}
 
-	return &shieldv1beta1.Resource{
+	return &frontierv1beta1.Resource{
 		Id:        from.ID,
 		Urn:       from.URN,
 		Name:      from.Name,

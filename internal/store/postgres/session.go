@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/raystack/shield/core/authenticate/session"
+	"github.com/raystack/frontier/core/authenticate/session"
 
 	"github.com/google/uuid"
 )

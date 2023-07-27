@@ -4,8 +4,8 @@ import (
 	"context"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/audit"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/audit"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -16,10 +16,10 @@ type AuditService interface {
 	Create(ctx context.Context, log *audit.Log) error
 }
 
-func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *shieldv1beta1.ListOrganizationAuditLogsRequest) (*shieldv1beta1.ListOrganizationAuditLogsResponse, error) {
+func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *frontierv1beta1.ListOrganizationAuditLogsRequest) (*frontierv1beta1.ListOrganizationAuditLogsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var logs []*shieldv1beta1.AuditLog
+	var logs []*frontierv1beta1.AuditLog
 	logList, err := h.auditService.List(ctx, audit.Filter{
 		OrgID:     request.GetOrgId(),
 		Source:    request.GetSource(),
@@ -35,12 +35,12 @@ func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *shieldv
 		logs = append(logs, transformAuditLogToPB(v))
 	}
 
-	return &shieldv1beta1.ListOrganizationAuditLogsResponse{
+	return &frontierv1beta1.ListOrganizationAuditLogsResponse{
 		Logs: logs,
 	}, nil
 }
 
-func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *shieldv1beta1.CreateOrganizationAuditLogsRequest) (*shieldv1beta1.CreateOrganizationAuditLogsResponse, error) {
+func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *frontierv1beta1.CreateOrganizationAuditLogsRequest) (*frontierv1beta1.CreateOrganizationAuditLogsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	for _, log := range request.GetLogs() {
@@ -65,10 +65,10 @@ func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *shiel
 			return nil, err
 		}
 	}
-	return &shieldv1beta1.CreateOrganizationAuditLogsResponse{}, nil
+	return &frontierv1beta1.CreateOrganizationAuditLogsResponse{}, nil
 }
 
-func (h Handler) GetOrganizationAuditLog(ctx context.Context, request *shieldv1beta1.GetOrganizationAuditLogRequest) (*shieldv1beta1.GetOrganizationAuditLogResponse, error) {
+func (h Handler) GetOrganizationAuditLog(ctx context.Context, request *frontierv1beta1.GetOrganizationAuditLogRequest) (*frontierv1beta1.GetOrganizationAuditLogResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	log, err := h.auditService.GetByID(ctx, request.GetId())
@@ -77,22 +77,22 @@ func (h Handler) GetOrganizationAuditLog(ctx context.Context, request *shieldv1b
 		return nil, err
 	}
 
-	return &shieldv1beta1.GetOrganizationAuditLogResponse{
+	return &frontierv1beta1.GetOrganizationAuditLogResponse{
 		Log: transformAuditLogToPB(log),
 	}, nil
 }
 
-func transformAuditLogToPB(log audit.Log) *shieldv1beta1.AuditLog {
-	return &shieldv1beta1.AuditLog{
+func transformAuditLogToPB(log audit.Log) *frontierv1beta1.AuditLog {
+	return &frontierv1beta1.AuditLog{
 		Id:        log.ID,
 		Source:    log.Source,
 		Action:    log.Action,
 		CreatedAt: timestamppb.New(log.CreatedAt),
-		Actor: &shieldv1beta1.AuditLogActor{
+		Actor: &frontierv1beta1.AuditLogActor{
 			Id:   log.Actor.ID,
 			Name: log.Actor.Name,
 		},
-		Target: &shieldv1beta1.AuditLogTarget{
+		Target: &frontierv1beta1.AuditLogTarget{
 			Id:   log.Target.ID,
 			Name: log.Target.Name,
 		},

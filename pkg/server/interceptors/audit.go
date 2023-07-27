@@ -3,7 +3,7 @@ package interceptors
 import (
 	"context"
 
-	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/frontier/core/audit"
 	"google.golang.org/grpc"
 )
 

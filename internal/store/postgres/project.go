@@ -6,8 +6,8 @@ import (
 
 	"database/sql"
 
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/project"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 )
 
 type Project struct {

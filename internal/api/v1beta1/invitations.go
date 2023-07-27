@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/invitation"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/invitation"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -23,7 +23,7 @@ type InvitationService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-func (h Handler) ListOrganizationInvitations(ctx context.Context, request *shieldv1beta1.ListOrganizationInvitationsRequest) (*shieldv1beta1.ListOrganizationInvitationsResponse, error) {
+func (h Handler) ListOrganizationInvitations(ctx context.Context, request *frontierv1beta1.ListOrganizationInvitationsRequest) (*frontierv1beta1.ListOrganizationInvitationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	invite, err := h.invitationService.List(ctx, invitation.Filter{
 		OrgID:  request.GetOrgId(),
@@ -33,7 +33,7 @@ func (h Handler) ListOrganizationInvitations(ctx context.Context, request *shiel
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	var pbinvs []*shieldv1beta1.Invitation
+	var pbinvs []*frontierv1beta1.Invitation
 	for _, inv := range invite {
 		pbInv, err := transformInvitationToPB(inv)
 		if err != nil {
@@ -42,19 +42,19 @@ func (h Handler) ListOrganizationInvitations(ctx context.Context, request *shiel
 		}
 		pbinvs = append(pbinvs, pbInv)
 	}
-	return &shieldv1beta1.ListOrganizationInvitationsResponse{
+	return &frontierv1beta1.ListOrganizationInvitationsResponse{
 		Invitations: pbinvs,
 	}, nil
 }
 
-func (h Handler) ListUserInvitations(ctx context.Context, request *shieldv1beta1.ListUserInvitationsRequest) (*shieldv1beta1.ListUserInvitationsResponse, error) {
+func (h Handler) ListUserInvitations(ctx context.Context, request *frontierv1beta1.ListUserInvitationsRequest) (*frontierv1beta1.ListUserInvitationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	invite, err := h.invitationService.ListByUser(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	var pbinvs []*shieldv1beta1.Invitation
+	var pbinvs []*frontierv1beta1.Invitation
 	for _, inv := range invite {
 		pbInv, err := transformInvitationToPB(inv)
 		if err != nil {
@@ -63,12 +63,12 @@ func (h Handler) ListUserInvitations(ctx context.Context, request *shieldv1beta1
 		}
 		pbinvs = append(pbinvs, pbInv)
 	}
-	return &shieldv1beta1.ListUserInvitationsResponse{
+	return &frontierv1beta1.ListUserInvitationsResponse{
 		Invitations: pbinvs,
 	}, nil
 }
 
-func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *shieldv1beta1.CreateOrganizationInvitationRequest) (*shieldv1beta1.CreateOrganizationInvitationResponse, error) {
+func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *frontierv1beta1.CreateOrganizationInvitationRequest) (*frontierv1beta1.CreateOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if !isValidEmail(request.GetUserId()) {
 		logger.Error("invalid email")
@@ -90,12 +90,12 @@ func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *shie
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.CreateOrganizationInvitationResponse{
+	return &frontierv1beta1.CreateOrganizationInvitationResponse{
 		Invitation: pbInv,
 	}, nil
 }
 
-func (h Handler) GetOrganizationInvitation(ctx context.Context, request *shieldv1beta1.GetOrganizationInvitationRequest) (*shieldv1beta1.GetOrganizationInvitationResponse, error) {
+func (h Handler) GetOrganizationInvitation(ctx context.Context, request *frontierv1beta1.GetOrganizationInvitationRequest) (*frontierv1beta1.GetOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	inviteID, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -114,12 +114,12 @@ func (h Handler) GetOrganizationInvitation(ctx context.Context, request *shieldv
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.GetOrganizationInvitationResponse{
+	return &frontierv1beta1.GetOrganizationInvitationResponse{
 		Invitation: pbInv,
 	}, nil
 }
 
-func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *shieldv1beta1.AcceptOrganizationInvitationRequest) (*shieldv1beta1.AcceptOrganizationInvitationResponse, error) {
+func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *frontierv1beta1.AcceptOrganizationInvitationRequest) (*frontierv1beta1.AcceptOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	inviteID, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -131,10 +131,10 @@ func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *shie
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.AcceptOrganizationInvitationResponse{}, nil
+	return &frontierv1beta1.AcceptOrganizationInvitationResponse{}, nil
 }
 
-func (h Handler) DeleteOrganizationInvitation(ctx context.Context, request *shieldv1beta1.DeleteOrganizationInvitationRequest) (*shieldv1beta1.DeleteOrganizationInvitationResponse, error) {
+func (h Handler) DeleteOrganizationInvitation(ctx context.Context, request *frontierv1beta1.DeleteOrganizationInvitationRequest) (*frontierv1beta1.DeleteOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	inviteID, err := uuid.Parse(request.GetId())
 	if err != nil {
@@ -146,16 +146,16 @@ func (h Handler) DeleteOrganizationInvitation(ctx context.Context, request *shie
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.DeleteOrganizationInvitationResponse{}, nil
+	return &frontierv1beta1.DeleteOrganizationInvitationResponse{}, nil
 }
 
-func transformInvitationToPB(inv invitation.Invitation) (*shieldv1beta1.Invitation, error) {
+func transformInvitationToPB(inv invitation.Invitation) (*frontierv1beta1.Invitation, error) {
 	metaData, err := inv.Metadata.ToStructPB()
 	if err != nil {
 		return nil, err
 	}
 
-	return &shieldv1beta1.Invitation{
+	return &frontierv1beta1.Invitation{
 		Id:        inv.ID.String(),
 		UserId:    inv.UserID,
 		OrgId:     inv.OrgID,

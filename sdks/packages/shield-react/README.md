@@ -1,47 +1,47 @@
-# shield-react
+# frontier-react
 
-Shield React SDK allows you to implement authentication in your [React](https://reactjs.org/) application quickly using Magic links and social sign-in. It also allows you to access the
+Frontier React SDK allows you to implement authentication in your [React](https://reactjs.org/) application quickly using Magic links and social sign-in. It also allows you to access the
 SignIn, SignUp, user profile, Workspace creation, Workspace Profile etc. components.
 
-Here is a quick guide on getting started with `@raystack/shield-react` package.
+Here is a quick guide on getting started with `@raystack/frontier-react` package.
 
 ## Step 1 - Create Instance
 
-Get Shield URL by instantiating [Shield instance](https://github.com/odpf/shield)
+Get Frontier URL by instantiating [Frontier instance](https://github.com/odpf/frontier)
 .
 
 ## Step 2 - Install package
 
-Install `@raystack/shield-react` library
+Install `@raystack/frontier-react` library
 
 ```sh
-npm i --save @raystack/shield-react
+npm i --save @raystack/frontier-react
 OR
-yarn add @raystack/shield-react
+yarn add @raystack/frontier-react
 ```
 
-## Step 3 - Configure Provider and use Shield Components
+## Step 3 - Configure Provider and use Frontier Components
 
-Shield comes with [react context](https://reactjs.org/docs/context.html) which serves as `Provider` component for the application
+Frontier comes with [react context](https://reactjs.org/docs/context.html) which serves as `Provider` component for the application
 
 ```jsx
-import { ShieldProvider, Shield, useShield } from "@raystack/shield-react";
+import { FrontierProvider, Frontier, useFrontier } from "@raystack/frontier-react";
 
 const App = () => {
   return (
-    <ShieldProvider
+    <FrontierProvider
       config={{
-        shieldUrl: "http://localhost:8080",
+        frontierUrl: "http://localhost:8080",
         redirectURL: window.location.origin,
       }}
     >
       <SignIn />
-    </ShieldProvider>
+    </FrontierProvider>
   );
 };
 
 const Profile = () => {
-  const { user } = useShield();
+  const { user } = useFrontier();
   if (user) {
     return <div>{user.email}</div>;
   }
@@ -53,7 +53,7 @@ const Profile = () => {
 
 ### Local Development
 
-The recommended workflow is to run react shield in one terminal:
+The recommended workflow is to run react frontier in one terminal:
 
 ```bash
 npm start # or yarn start
@@ -61,7 +61,7 @@ npm start # or yarn start
 
 This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
 
-Then run any example package which use shield-react:
+Then run any example package which use frontier-react:
 
 ### Example package
 

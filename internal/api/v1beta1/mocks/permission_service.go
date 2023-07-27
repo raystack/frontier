@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	permission "github.com/raystack/shield/core/permission"
+	permission "github.com/raystack/frontier/core/permission"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -1,10 +1,10 @@
 # Configuration
 
-Shield binary contains both the CLI client and the server. Each has it's own configuration in order to run. Server configuration contains information such as database credentials, spicedb connection, proxy, log severity, etc. while CLI client configuration only has configuration about which server to connect.
+Frontier binary contains both the CLI client and the server. Each has it's own configuration in order to run. Server configuration contains information such as database credentials, spicedb connection, proxy, log severity, etc. while CLI client configuration only has configuration about which server to connect.
 
 ## Server Setup
 
-There are several approaches to setup Shield Server
+There are several approaches to setup Frontier Server
 
 1. [Using the CLI](#using-the-cli)
 2. [Using the Docker](#using-the-docker)
@@ -22,7 +22,7 @@ There are several approaches to setup Shield Server
 Create a config file with the following command
 
 ```bash
-$ shield server init
+$ frontier server init
 ```
 
 Alternatively you can [use `--config` flag](#using---config-flag) to customize to config file location.You can also [use environment variables](#using-environment-variable) to provide the server configuration.
@@ -51,7 +51,7 @@ app:
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
   # local storage file "file:///tmp/resources_config"
-  # GCS Bucket "gs://shield/resources_config"
+  # GCS Bucket "gs://frontier/resources_config"
   resources_config_path: file:///tmp/resources_config
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
   disable_orgs_listing: false
@@ -59,9 +59,9 @@ app:
   disable_users_listing: false
   # cors_origin is origin value from where we want to allow cors
   cors_origin: http://localhost:3000
-  # configuration to allow authentication in shield
+  # configuration to allow authentication in frontier
   authentication:
-    # to use shield as session store
+    # to use frontier as session store
     session:
       # both of them should be 32 chars long
       # hash helps identify if the value is tempered with
@@ -71,16 +71,16 @@ app:
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
-      # generate key file via "./shield server keygen"
+      # generate key file via "./frontier server keygen"
       # if not specified, access tokens will be disabled
       # example: /opt/rsa
       rsa_path: ""
       # issuer claim to be added to the jwt
-      iss: "http://localhost.shield"
+      iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
     mail_otp:
-      subject: "Shield - Login Link"
+      subject: "Frontier - Login Link"
       # body is a go template with `Otp` as a variable
       body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
       validity: "1h"
@@ -103,7 +103,7 @@ app:
       from: "username@acme.org"
 db:
   driver: postgres
-  url: postgres://shield:@localhost:5432/shield?sslmode=disable
+  url: postgres://frontier:@localhost:5432/frontier?sslmode=disable
   max_query_timeout: 500ms
 
 spicedb:
@@ -127,9 +127,9 @@ All the server configurations can be passed as environment variables using under
 LOG_LEVEL=debug
 APP_PORT=8000
 APP_GRPC_PORT=8001
-APP_IDENTITY_PROXY_HEADER=X-Shield-Email
+APP_IDENTITY_PROXY_HEADER=X-Frontier-Email
 DB_DRIVER=postgres
-DB_URL=postgres://shield:@localhost:5432/shield?sslmode=disable
+DB_URL=postgres://frontier:@localhost:5432/frontier?sslmode=disable
 DB_MAX_QUERY_TIMEOUT=500ms
 SPICEDB_HOST=spicedb.localhost
 SPICEDB_PRE_SHARED_KEY=randomkey
@@ -157,32 +157,32 @@ Database migration is required during the first server initialization. In additi
 To initialize the database schema, Run Migrations with the following command:
 
 ```bash
-$ shield server migrate
+$ frontier server migrate
 ```
 
-To run the Shield server use command:
+To run the Frontier server use command:
 
 ```bash
-$ shield server start
+$ frontier server start
 ```
 
 #### Using `--config` flag
 
 ```bash
-$ shield server migrate --config=<path-to-file>
+$ frontier server migrate --config=<path-to-file>
 ```
 
 ```bash
-$ shield server start --config=<path-to-file>
+$ frontier server start --config=<path-to-file>
 ```
 
 ## Using the Docker
 
-To run the Shield server using Docker, you need to have Docker installed on your system. You can find the installation instructions [here](https://docs.docker.com/get-docker/).
+To run the Frontier server using Docker, you need to have Docker installed on your system. You can find the installation instructions [here](https://docs.docker.com/get-docker/).
 
 You can choose to set the configuration using environment variables or a config file. The environment variables will override the config file.
 
-If you use Docker to build shield, then configuring networking requires extra steps. Following is one of doing it by running postgres and spicedb inside with `docker-compose` first.
+If you use Docker to build frontier, then configuring networking requires extra steps. Following is one of doing it by running postgres and spicedb inside with `docker-compose` first.
 
 Go to the root of this project and run `docker-compose`.
 
@@ -190,19 +190,19 @@ Go to the root of this project and run `docker-compose`.
 $ docker-compose up
 ```
 
-Once postgres and spicedb has been ready, we can run Shield by passing in the config of postgres and elasticsearch defined in `docker-compose.yaml` file.
+Once postgres and spicedb has been ready, we can run Frontier by passing in the config of postgres and elasticsearch defined in `docker-compose.yaml` file.
 
 ### Using config file
 
-Alternatively you can use the `shield.yaml` config file defined [above](#using-config-file) and run the following command.
+Alternatively you can use the `frontier.yaml` config file defined [above](#using-config-file) and run the following command.
 
 ```bash
 $ docker run -d \
     --restart=always \
     -p 7400:7400 \
-    -v $(pwd)/shield.yaml:/shield.yaml \
-    --name shield-server \
-    raystack/shield:<version> \
+    -v $(pwd)/frontier.yaml:/frontier.yaml \
+    --name frontier-server \
+    raystack/frontier:<version> \
     server start -c /config.yaml
 ```
 
@@ -217,8 +217,8 @@ $ docker run -d \
     --restart=always \
     -p 7400:7400 \
     --env-file .env \
-    --name shield-server \
-    raystack/shield:<version> \
+    --name frontier-server \
+    raystack/frontier:<version> \
     server start
 ```
 
@@ -226,7 +226,7 @@ $ docker run -d \
 
 ### Pre-requisites for Helm chart
 
-Shield can be installed in Kubernetes using the Helm chart from https://github.com/raystack/charts.
+Frontier can be installed in Kubernetes using the Helm chart from https://github.com/raystack/charts.
 
 Ensure that the following requirements are met:
 
@@ -249,14 +249,14 @@ helm repo update
 
 ### Setup helm values
 
-The following table lists the configurable parameters of the Shield chart and their default values.
+The following table lists the configurable parameters of the Frontier chart and their default values.
 
-See full helm values guide [here](https://github.com/raystack/charts/tree/main/stable/shield#values) and [values.yaml](https://github.com/raystack/charts/blob/main/stable/shield/values.yaml) file
+See full helm values guide [here](https://github.com/raystack/charts/tree/main/stable/frontier#values) and [values.yaml](https://github.com/raystack/charts/blob/main/stable/frontier/values.yaml) file
 
 Install it with the helm command line:
 
 ```bash
-helm install my-release -f values.yaml raystack/shield
+helm install my-release -f values.yaml raystack/frontier
 ```
 
 ## Client Initialisation
@@ -264,12 +264,12 @@ helm install my-release -f values.yaml raystack/shield
 Add a client configurations file with the following command:
 
 ```bash
-shield config init
+frontier config init
 ```
 
-Open the config file and edit the gRPC host for Shield CLI
+Open the config file and edit the gRPC host for Frontier CLI
 
-```yml title="shield.yaml"
+```yml title="frontier.yaml"
 client:
   host: localhost:8081
 ```
@@ -277,17 +277,17 @@ client:
 List the client configurations with the following command:
 
 ```bash
-shield config list
+frontier config list
 ```
 
 #### Required Header/Metadata in API
 
-In the current version, all HTTP & gRPC APIs in Shield requires an identity header/metadata in the request. The header key is configurable but the default name is `X-Shield-Email`.
+In the current version, all HTTP & gRPC APIs in Frontier requires an identity header/metadata in the request. The header key is configurable but the default name is `X-Frontier-Email`.
 
 If everything goes well, you should see something like this:
 
 ```bash
-2023-05-17T00:02:54.324+0530    info    shield starting {"version": "v0.5.1"}
+2023-05-17T00:02:54.324+0530    info    frontier starting {"version": "v0.5.1"}
 2023-05-17T00:02:54.331+0530    debug   resource config cache refreshed {"resource_config_count": 0}
 2023-05-17T00:02:54.333+0530    info    Connected to spiceDB: localhost:50051
 2023-05-17T00:02:54.339+0530    info    metaschemas loaded      {"count": 4}

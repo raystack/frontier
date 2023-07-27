@@ -9,13 +9,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type ResourceRepository struct {

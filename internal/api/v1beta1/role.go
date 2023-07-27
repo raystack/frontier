@@ -4,22 +4,22 @@ import (
 	"context"
 	"errors"
 
-	"github.com/raystack/shield/core/audit"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/frontier/core/permission"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/role"
-	"github.com/raystack/shield/pkg/metadata"
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
 var grpcRoleNotFoundErr = status.Errorf(codes.NotFound, "role doesn't exist")
@@ -33,9 +33,9 @@ type RoleService interface {
 	Delete(ctx context.Context, id string) error
 }
 
-func (h Handler) ListOrganizationRoles(ctx context.Context, request *shieldv1beta1.ListOrganizationRolesRequest) (*shieldv1beta1.ListOrganizationRolesResponse, error) {
+func (h Handler) ListOrganizationRoles(ctx context.Context, request *frontierv1beta1.ListOrganizationRolesRequest) (*frontierv1beta1.ListOrganizationRolesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var roles []*shieldv1beta1.Role
+	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
 		OrgID: request.GetOrgId(),
@@ -55,12 +55,12 @@ func (h Handler) ListOrganizationRoles(ctx context.Context, request *shieldv1bet
 		roles = append(roles, &rolePB)
 	}
 
-	return &shieldv1beta1.ListOrganizationRolesResponse{Roles: roles}, nil
+	return &frontierv1beta1.ListOrganizationRolesResponse{Roles: roles}, nil
 }
 
-func (h Handler) ListRoles(ctx context.Context, request *shieldv1beta1.ListRolesRequest) (*shieldv1beta1.ListRolesResponse, error) {
+func (h Handler) ListRoles(ctx context.Context, request *frontierv1beta1.ListRolesRequest) (*frontierv1beta1.ListRolesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var roles []*shieldv1beta1.Role
+	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
 		OrgID: schema.PlatformOrgID.String(),
@@ -80,10 +80,10 @@ func (h Handler) ListRoles(ctx context.Context, request *shieldv1beta1.ListRoles
 		roles = append(roles, &rolePB)
 	}
 
-	return &shieldv1beta1.ListRolesResponse{Roles: roles}, nil
+	return &frontierv1beta1.ListRolesResponse{Roles: roles}, nil
 }
 
-func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRoleRequest) (*shieldv1beta1.CreateRoleResponse, error) {
+func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.CreateRoleRequest) (*frontierv1beta1.CreateRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.GetBody() == nil {
@@ -136,10 +136,10 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 		Type: schema.RoleNamespace,
 		Name: newRole.Name,
 	})
-	return &shieldv1beta1.CreateRoleResponse{Role: &rolePB}, nil
+	return &frontierv1beta1.CreateRoleResponse{Role: &rolePB}, nil
 }
 
-func (h Handler) CreateOrganizationRole(ctx context.Context, request *shieldv1beta1.CreateOrganizationRoleRequest) (*shieldv1beta1.CreateOrganizationRoleResponse, error) {
+func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1beta1.CreateOrganizationRoleRequest) (*frontierv1beta1.CreateOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) {
 		return nil, grpcBadBodyError
@@ -188,10 +188,10 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *shieldv1be
 		Type: schema.RoleNamespace,
 		Name: newRole.Name,
 	})
-	return &shieldv1beta1.CreateOrganizationRoleResponse{Role: &rolePB}, nil
+	return &frontierv1beta1.CreateOrganizationRoleResponse{Role: &rolePB}, nil
 }
 
-func (h Handler) GetOrganizationRole(ctx context.Context, request *shieldv1beta1.GetOrganizationRoleRequest) (*shieldv1beta1.GetOrganizationRoleResponse, error) {
+func (h Handler) GetOrganizationRole(ctx context.Context, request *frontierv1beta1.GetOrganizationRoleRequest) (*frontierv1beta1.GetOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedRole, err := h.roleService.Get(ctx, request.GetId())
@@ -211,10 +211,10 @@ func (h Handler) GetOrganizationRole(ctx context.Context, request *shieldv1beta1
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetOrganizationRoleResponse{Role: &rolePB}, nil
+	return &frontierv1beta1.GetOrganizationRoleResponse{Role: &rolePB}, nil
 }
 
-func (h Handler) UpdateOrganizationRole(ctx context.Context, request *shieldv1beta1.UpdateOrganizationRoleRequest) (*shieldv1beta1.UpdateOrganizationRoleResponse, error) {
+func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1beta1.UpdateOrganizationRoleRequest) (*frontierv1beta1.UpdateOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) {
 		return nil, grpcBadBodyError
@@ -266,10 +266,10 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *shieldv1be
 		Type: schema.RoleNamespace,
 		Name: updatedRole.Name,
 	})
-	return &shieldv1beta1.UpdateOrganizationRoleResponse{Role: &rolePB}, nil
+	return &frontierv1beta1.UpdateOrganizationRoleResponse{Role: &rolePB}, nil
 }
 
-func (h Handler) DeleteRole(ctx context.Context, request *shieldv1beta1.DeleteRoleRequest) (*shieldv1beta1.DeleteRoleResponse, error) {
+func (h Handler) DeleteRole(ctx context.Context, request *frontierv1beta1.DeleteRoleRequest) (*frontierv1beta1.DeleteRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetId()) {
 		return nil, grpcBadBodyError
@@ -286,10 +286,10 @@ func (h Handler) DeleteRole(ctx context.Context, request *shieldv1beta1.DeleteRo
 		}
 	}
 
-	return &shieldv1beta1.DeleteRoleResponse{}, nil
+	return &frontierv1beta1.DeleteRoleResponse{}, nil
 }
 
-func (h Handler) DeleteOrganizationRole(ctx context.Context, request *shieldv1beta1.DeleteOrganizationRoleRequest) (*shieldv1beta1.DeleteOrganizationRoleResponse, error) {
+func (h Handler) DeleteOrganizationRole(ctx context.Context, request *frontierv1beta1.DeleteOrganizationRoleRequest) (*frontierv1beta1.DeleteOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) || utils.IsNullUUID(request.GetId()) {
 		return nil, grpcBadBodyError
@@ -310,16 +310,16 @@ func (h Handler) DeleteOrganizationRole(ctx context.Context, request *shieldv1be
 		ID:   request.GetId(),
 		Type: schema.RoleNamespace,
 	})
-	return &shieldv1beta1.DeleteOrganizationRoleResponse{}, nil
+	return &frontierv1beta1.DeleteOrganizationRoleResponse{}, nil
 }
 
-func transformRoleToPB(from role.Role) (shieldv1beta1.Role, error) {
+func transformRoleToPB(from role.Role) (frontierv1beta1.Role, error) {
 	metaData, err := from.Metadata.ToStructPB()
 	if err != nil {
-		return shieldv1beta1.Role{}, err
+		return frontierv1beta1.Role{}, err
 	}
 
-	return shieldv1beta1.Role{
+	return frontierv1beta1.Role{
 		Id:   from.ID,
 		Name: from.Name,
 

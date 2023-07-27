@@ -3,20 +3,20 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/frontier/core/audit"
 
-	"github.com/raystack/shield/pkg/str"
+	"github.com/raystack/frontier/pkg/str"
 
 	"github.com/pkg/errors"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/raystack/shield/core/group"
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/user"
+	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/user"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -41,10 +41,10 @@ var (
 	grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
 )
 
-func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
+func (h Handler) ListGroups(ctx context.Context, request *frontierv1beta1.ListGroupsRequest) (*frontierv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var groups []*shieldv1beta1.Group
+	var groups []*frontierv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
 		OrganizationID: request.GetOrgId(),
 		State:          group.State(request.GetState()),
@@ -64,13 +64,13 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 		groups = append(groups, &groupPB)
 	}
 
-	return &shieldv1beta1.ListGroupsResponse{Groups: groups}, nil
+	return &frontierv1beta1.ListGroupsResponse{Groups: groups}, nil
 }
 
-func (h Handler) ListOrganizationGroups(ctx context.Context, request *shieldv1beta1.ListOrganizationGroupsRequest) (*shieldv1beta1.ListOrganizationGroupsResponse, error) {
+func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1beta1.ListOrganizationGroupsRequest) (*frontierv1beta1.ListOrganizationGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var groups []*shieldv1beta1.Group
+	var groups []*frontierv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
 		OrganizationID: request.GetOrgId(),
 		State:          group.State(request.GetState()),
@@ -90,10 +90,10 @@ func (h Handler) ListOrganizationGroups(ctx context.Context, request *shieldv1be
 		groups = append(groups, &groupPB)
 	}
 
-	return &shieldv1beta1.ListOrganizationGroupsResponse{Groups: groups}, nil
+	return &frontierv1beta1.ListOrganizationGroupsResponse{Groups: groups}, nil
 }
 
-func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateGroupRequest) (*shieldv1beta1.CreateGroupResponse, error) {
+func (h Handler) CreateGroup(ctx context.Context, request *frontierv1beta1.CreateGroupRequest) (*frontierv1beta1.CreateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
@@ -141,7 +141,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	}
 
 	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.GroupCreatedEvent, audit.GroupTarget(newGroup.ID))
-	return &shieldv1beta1.CreateGroupResponse{Group: &shieldv1beta1.Group{
+	return &frontierv1beta1.CreateGroupResponse{Group: &frontierv1beta1.Group{
 		Id:        newGroup.ID,
 		Name:      newGroup.Name,
 		OrgId:     newGroup.OrganizationID,
@@ -151,7 +151,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	}}, nil
 }
 
-func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRequest) (*shieldv1beta1.GetGroupResponse, error) {
+func (h Handler) GetGroup(ctx context.Context, request *frontierv1beta1.GetGroupRequest) (*frontierv1beta1.GetGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedGroup, err := h.groupService.Get(ctx, request.GetId())
@@ -171,10 +171,10 @@ func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRe
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetGroupResponse{Group: &groupPB}, nil
+	return &frontierv1beta1.GetGroupResponse{Group: &groupPB}, nil
 }
 
-func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateGroupRequest) (*shieldv1beta1.UpdateGroupResponse, error) {
+func (h Handler) UpdateGroup(ctx context.Context, request *frontierv1beta1.UpdateGroupRequest) (*frontierv1beta1.UpdateGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.GetBody() == nil {
@@ -222,10 +222,10 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	}
 
 	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
-	return &shieldv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
+	return &frontierv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
 }
 
-func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.ListGroupUsersRequest) (*shieldv1beta1.ListGroupUsersResponse, error) {
+func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.ListGroupUsersRequest) (*frontierv1beta1.ListGroupUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
@@ -234,7 +234,7 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.List
 		return nil, grpcInternalServerError
 	}
 
-	var userPBs []*shieldv1beta1.User
+	var userPBs []*frontierv1beta1.User
 	for _, user := range users {
 		userPb, err := transformUserToPB(user)
 		if err != nil {
@@ -244,63 +244,63 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *shieldv1beta1.List
 
 		userPBs = append(userPBs, userPb)
 	}
-	return &shieldv1beta1.ListGroupUsersResponse{
+	return &frontierv1beta1.ListGroupUsersResponse{
 		Users: userPBs,
 	}, nil
 }
 
-func (h Handler) AddGroupUsers(ctx context.Context, request *shieldv1beta1.AddGroupUsersRequest) (*shieldv1beta1.AddGroupUsersResponse, error) {
+func (h Handler) AddGroupUsers(ctx context.Context, request *frontierv1beta1.AddGroupUsersRequest) (*frontierv1beta1.AddGroupUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.AddGroupUsersResponse{}, nil
+	return &frontierv1beta1.AddGroupUsersResponse{}, nil
 }
 
-func (h Handler) RemoveGroupUser(ctx context.Context, request *shieldv1beta1.RemoveGroupUserRequest) (*shieldv1beta1.RemoveGroupUserResponse, error) {
+func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.RemoveGroupUserRequest) (*frontierv1beta1.RemoveGroupUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.RemoveGroupUserResponse{}, nil
+	return &frontierv1beta1.RemoveGroupUserResponse{}, nil
 }
 
-func (h Handler) EnableGroup(ctx context.Context, request *shieldv1beta1.EnableGroupRequest) (*shieldv1beta1.EnableGroupResponse, error) {
+func (h Handler) EnableGroup(ctx context.Context, request *frontierv1beta1.EnableGroupRequest) (*frontierv1beta1.EnableGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.EnableGroupResponse{}, nil
+	return &frontierv1beta1.EnableGroupResponse{}, nil
 }
 
-func (h Handler) DisableGroup(ctx context.Context, request *shieldv1beta1.DisableGroupRequest) (*shieldv1beta1.DisableGroupResponse, error) {
+func (h Handler) DisableGroup(ctx context.Context, request *frontierv1beta1.DisableGroupRequest) (*frontierv1beta1.DisableGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.DisableGroupResponse{}, nil
+	return &frontierv1beta1.DisableGroupResponse{}, nil
 }
 
-func (h Handler) DeleteGroup(ctx context.Context, request *shieldv1beta1.DeleteGroupRequest) (*shieldv1beta1.DeleteGroupResponse, error) {
+func (h Handler) DeleteGroup(ctx context.Context, request *frontierv1beta1.DeleteGroupRequest) (*frontierv1beta1.DeleteGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.Delete(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.DeleteGroupResponse{}, nil
+	return &frontierv1beta1.DeleteGroupResponse{}, nil
 }
 
-func transformGroupToPB(grp group.Group) (shieldv1beta1.Group, error) {
+func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
 	metaData, err := grp.Metadata.ToStructPB()
 	if err != nil {
-		return shieldv1beta1.Group{}, err
+		return frontierv1beta1.Group{}, err
 	}
 
-	return shieldv1beta1.Group{
+	return frontierv1beta1.Group{
 		Id:        grp.ID,
 		Name:      grp.Name,
 		OrgId:     grp.OrganizationID,

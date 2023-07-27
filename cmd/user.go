@@ -6,10 +6,10 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/pkg/file"
+	"github.com/raystack/frontier/pkg/str"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	"github.com/raystack/shield/pkg/file"
-	"github.com/raystack/shield/pkg/str"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -22,10 +22,10 @@ func UserCommand(cliConfig *Config) *cli.Command {
 			Work with users.
 		`),
 		Example: heredoc.Doc(`
-			$ shield user create
-			$ shield user edit
-			$ shield user view
-			$ shield user list
+			$ frontier user create
+			$ frontier user edit
+			$ frontier user view
+			$ frontier user list
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -51,7 +51,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 		Short: "Upsert an user",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield user create --file=<user-body>
+			$ frontier user create --file=<user-body>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -60,7 +60,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.UserRequestBody
+			var reqBody frontierv1beta1.UserRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -81,7 +81,7 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.CreateUser(setCtxHeader(ctx, header), &shieldv1beta1.CreateUserRequest{
+			res, err := client.CreateUser(setCtxHeader(ctx, header), &frontierv1beta1.CreateUserRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -110,8 +110,8 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 		Short: "Edit an user",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield user edit <user-id> --file=<user-body>
-			$ shield user edit <user-slug> --file=<user-body>
+			$ frontier user edit <user-id> --file=<user-body>
+			$ frontier user edit <user-slug> --file=<user-body>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -120,7 +120,7 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.UserRequestBody
+			var reqBody frontierv1beta1.UserRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -138,7 +138,7 @@ func editUserCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			userID := args[0]
-			_, err = client.UpdateUser(ctx, &shieldv1beta1.UpdateUserRequest{
+			_, err = client.UpdateUser(ctx, &frontierv1beta1.UpdateUserRequest{
 				Id:   userID,
 				Body: &reqBody,
 			})
@@ -166,8 +166,8 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 		Short: "View an user",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield user view <user-id>
-			$ shield user view <user-slug>
+			$ frontier user view <user-id>
+			$ frontier user view <user-slug>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -184,7 +184,7 @@ func viewUserCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			userID := args[0]
-			res, err := client.GetUser(ctx, &shieldv1beta1.GetUserRequest{
+			res, err := client.GetUser(ctx, &frontierv1beta1.GetUserRequest{
 				Id: userID,
 			})
 			if err != nil {
@@ -233,7 +233,7 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 		Short: "List all users",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield user list
+			$ frontier user list
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -249,7 +249,7 @@ func listUserCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
+			res, err := client.ListUsers(ctx, &frontierv1beta1.ListUsersRequest{})
 			if err != nil {
 				return err
 			}

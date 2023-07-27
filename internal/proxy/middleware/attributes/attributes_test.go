@@ -13,11 +13,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/rule"
+	"github.com/raystack/frontier/internal/proxy/middleware"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/rule"
-	"github.com/raystack/shield/internal/proxy/middleware"
 )
 
 var testPermissionAttributesMap = map[string]any{
@@ -92,7 +92,7 @@ func TestExtractMiddleware(t *testing.T) {
 				Config: map[string]interface{}{
 					"attributes": map[string]any{
 						"project": map[string]any{
-							"key":    "X-Shield-Project",
+							"key":    "X-Frontier-Project",
 							"source": "request",
 							"type":   "header",
 						},
@@ -106,7 +106,7 @@ func TestExtractMiddleware(t *testing.T) {
 							"value": "firehose",
 						},
 						"team": map[string]any{
-							"key":    "X-Shield-Group",
+							"key":    "X-Frontier-Group",
 							"source": "request",
 							"type":   "header",
 						},
@@ -137,9 +137,9 @@ func TestExtractMiddleware(t *testing.T) {
 			req: &http.Request{
 				Method: "POST",
 				Header: map[string][]string{
-					"X-Shield-Project": {"85be2dfe-7b13-42aa-96f8-f040afb0bbb3"},
-					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
-					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
+					"X-Frontier-Project": {"85be2dfe-7b13-42aa-96f8-f040afb0bbb3"},
+					"X-Auth-Email":       {"nihar.b.interns@aux.gojek.com"},
+					"X-Frontier-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
 				},
 				Body: ioutil.NopCloser(bytes.NewBuffer(postBody)),
 			},
@@ -163,9 +163,9 @@ func TestExtractMiddleware(t *testing.T) {
 			req: &http.Request{
 				Method: "POST",
 				Header: map[string][]string{
-					"X-Shield-Project": {"a5ae3dfe-7b13-42aa-96f8-f040afb0bbb3"},
-					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
-					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
+					"X-Frontier-Project": {"a5ae3dfe-7b13-42aa-96f8-f040afb0bbb3"},
+					"X-Auth-Email":       {"nihar.b.interns@aux.gojek.com"},
+					"X-Frontier-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
 				},
 				Body: ioutil.NopCloser(bytes.NewBuffer(postBody)),
 			},

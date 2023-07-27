@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 type State string

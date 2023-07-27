@@ -10,9 +10,9 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/raystack/shield/core/audit"
-	"github.com/raystack/shield/core/group"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type AuditRepository struct {

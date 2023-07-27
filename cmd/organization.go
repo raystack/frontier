@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/pkg/file"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	"github.com/raystack/shield/pkg/file"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -20,10 +20,10 @@ func OrganizationCommand(cliConfig *Config) *cli.Command {
 			Work with organizations.
 		`),
 		Example: heredoc.Doc(`
-			$ shield organization create
-			$ shield organization edit
-			$ shield organization view
-			$ shield organization list
+			$ frontier organization create
+			$ frontier organization edit
+			$ frontier organization view
+			$ frontier organization list
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -50,7 +50,7 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 		Short: "Upsert an organization",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield organization create --file=<organization-body> --header=<key>:<value>
+			$ frontier organization create --file=<organization-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -59,7 +59,7 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.OrganizationRequestBody
+			var reqBody frontierv1beta1.OrganizationRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -76,7 +76,7 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
+			res, err := client.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -105,7 +105,7 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 		Short: "Edit an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield organization edit <organization-id> --file=<organization-body>
+			$ frontier organization edit <organization-id> --file=<organization-body>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -114,7 +114,7 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.OrganizationRequestBody
+			var reqBody frontierv1beta1.OrganizationRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -131,7 +131,7 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			organizationID := args[0]
-			_, err = client.UpdateOrganization(cmd.Context(), &shieldv1beta1.UpdateOrganizationRequest{
+			_, err = client.UpdateOrganization(cmd.Context(), &frontierv1beta1.UpdateOrganizationRequest{
 				Id:   organizationID,
 				Body: &reqBody,
 			})
@@ -159,7 +159,7 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 		Short: "View an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield organization view <organization-id>
+			$ frontier organization view <organization-id>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -175,7 +175,7 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.GetOrganization(cmd.Context(), &shieldv1beta1.GetOrganizationRequest{
+			res, err := client.GetOrganization(cmd.Context(), &frontierv1beta1.GetOrganizationRequest{
 				Id: organizationID,
 			})
 			if err != nil {
@@ -227,7 +227,7 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 		Short: "List all organizations",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield organization list
+			$ frontier organization list
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -242,7 +242,7 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListOrganizations(cmd.Context(), &shieldv1beta1.ListOrganizationsRequest{})
+			res, err := client.ListOrganizations(cmd.Context(), &frontierv1beta1.ListOrganizationsRequest{})
 			if err != nil {
 				return err
 			}
@@ -281,7 +281,7 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 		Short: "list admins of an organization",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield organization admlist <organization-id>
+			$ frontier organization admlist <organization-id>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -297,7 +297,7 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			organizationID := args[0]
-			res, err := client.ListOrganizationAdmins(cmd.Context(), &shieldv1beta1.ListOrganizationAdminsRequest{
+			res, err := client.ListOrganizationAdmins(cmd.Context(), &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: organizationID,
 			})
 			if err != nil {

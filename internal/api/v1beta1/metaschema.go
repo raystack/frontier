@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/metaschema"
-	"github.com/raystack/shield/pkg/metadata"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/metaschema"
+	"github.com/raystack/frontier/pkg/metadata"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -34,9 +34,9 @@ type MetaSchemaService interface {
 	Validate(schema metadata.Metadata, data string) error
 }
 
-func (h Handler) ListMetaSchemas(ctx context.Context, request *shieldv1beta1.ListMetaSchemasRequest) (*shieldv1beta1.ListMetaSchemasResponse, error) {
+func (h Handler) ListMetaSchemas(ctx context.Context, request *frontierv1beta1.ListMetaSchemasRequest) (*frontierv1beta1.ListMetaSchemasResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var metaschemas []*shieldv1beta1.MetaSchema
+	var metaschemas []*frontierv1beta1.MetaSchema
 
 	metaschemasList, err := h.metaSchemaService.List(ctx)
 	if err != nil {
@@ -49,10 +49,10 @@ func (h Handler) ListMetaSchemas(ctx context.Context, request *shieldv1beta1.Lis
 		metaschemas = append(metaschemas, &metaschemaPB)
 	}
 
-	return &shieldv1beta1.ListMetaSchemasResponse{Metaschemas: metaschemas}, nil
+	return &frontierv1beta1.ListMetaSchemasResponse{Metaschemas: metaschemas}, nil
 }
 
-func (h Handler) CreateMetaSchema(ctx context.Context, request *shieldv1beta1.CreateMetaSchemaRequest) (*shieldv1beta1.CreateMetaSchemaResponse, error) {
+func (h Handler) CreateMetaSchema(ctx context.Context, request *frontierv1beta1.CreateMetaSchemaRequest) (*frontierv1beta1.CreateMetaSchemaResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.GetBody() == nil {
@@ -78,10 +78,10 @@ func (h Handler) CreateMetaSchema(ctx context.Context, request *shieldv1beta1.Cr
 	}
 
 	metaschemaPB := transformMetaSchemaToPB(newMetaSchema)
-	return &shieldv1beta1.CreateMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
+	return &frontierv1beta1.CreateMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
 }
 
-func (h Handler) GetMetaSchema(ctx context.Context, request *shieldv1beta1.GetMetaSchemaRequest) (*shieldv1beta1.GetMetaSchemaResponse, error) {
+func (h Handler) GetMetaSchema(ctx context.Context, request *frontierv1beta1.GetMetaSchemaRequest) (*frontierv1beta1.GetMetaSchemaResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	id := request.GetId()
@@ -102,10 +102,10 @@ func (h Handler) GetMetaSchema(ctx context.Context, request *shieldv1beta1.GetMe
 
 	metaschemaPB := transformMetaSchemaToPB(fetchedMetaSchema)
 
-	return &shieldv1beta1.GetMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
+	return &frontierv1beta1.GetMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
 }
 
-func (h Handler) UpdateMetaSchema(ctx context.Context, request *shieldv1beta1.UpdateMetaSchemaRequest) (*shieldv1beta1.UpdateMetaSchemaResponse, error) {
+func (h Handler) UpdateMetaSchema(ctx context.Context, request *frontierv1beta1.UpdateMetaSchemaRequest) (*frontierv1beta1.UpdateMetaSchemaResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	id := request.GetId()
@@ -136,10 +136,10 @@ func (h Handler) UpdateMetaSchema(ctx context.Context, request *shieldv1beta1.Up
 	}
 
 	metaschemaPB := transformMetaSchemaToPB(updateMetaSchema)
-	return &shieldv1beta1.UpdateMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
+	return &frontierv1beta1.UpdateMetaSchemaResponse{Metaschema: &metaschemaPB}, nil
 }
 
-func (h Handler) DeleteMetaSchema(ctx context.Context, request *shieldv1beta1.DeleteMetaSchemaRequest) (*shieldv1beta1.DeleteMetaSchemaResponse, error) {
+func (h Handler) DeleteMetaSchema(ctx context.Context, request *frontierv1beta1.DeleteMetaSchemaRequest) (*frontierv1beta1.DeleteMetaSchemaResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	id := request.GetId()
@@ -159,11 +159,11 @@ func (h Handler) DeleteMetaSchema(ctx context.Context, request *shieldv1beta1.De
 		}
 	}
 
-	return &shieldv1beta1.DeleteMetaSchemaResponse{}, nil
+	return &frontierv1beta1.DeleteMetaSchemaResponse{}, nil
 }
 
-func transformMetaSchemaToPB(from metaschema.MetaSchema) shieldv1beta1.MetaSchema {
-	return shieldv1beta1.MetaSchema{
+func transformMetaSchemaToPB(from metaschema.MetaSchema) frontierv1beta1.MetaSchema {
+	return frontierv1beta1.MetaSchema{
 		Id:        from.ID,
 		Name:      from.Name,
 		Schema:    from.Schema,

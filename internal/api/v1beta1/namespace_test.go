@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
@@ -44,8 +44,8 @@ func TestListNamespaces(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(ns *mocks.NamespaceService)
-		req   *shieldv1beta1.ListNamespacesRequest
-		want  *shieldv1beta1.ListNamespacesResponse
+		req   *frontierv1beta1.ListNamespacesRequest
+		want  *frontierv1beta1.ListNamespacesResponse
 		err   error
 	}{
 		{
@@ -68,7 +68,7 @@ func TestListNamespaces(t *testing.T) {
 				})
 				ns.EXPECT().List(mock.Anything).Return(testNSList, nil)
 			},
-			want: &shieldv1beta1.ListNamespacesResponse{Namespaces: []*shieldv1beta1.Namespace{
+			want: &frontierv1beta1.ListNamespacesResponse{Namespaces: []*frontierv1beta1.Namespace{
 				{
 					Id:        "org",
 					Name:      "Org",
@@ -111,8 +111,8 @@ func TestHandler_GetNamespace(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(as *mocks.NamespaceService)
-		request *shieldv1beta1.GetNamespaceRequest
-		want    *shieldv1beta1.GetNamespaceResponse
+		request *frontierv1beta1.GetNamespaceRequest
+		want    *frontierv1beta1.GetNamespaceResponse
 		wantErr error
 	}{
 		{
@@ -120,7 +120,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 			setup: func(ns *mocks.NamespaceService) {
 				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetNamespaceRequest{
+			request: &frontierv1beta1.GetNamespaceRequest{
 				Id: testNSID,
 			},
 			want:    nil,
@@ -131,7 +131,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 			setup: func(ns *mocks.NamespaceService) {
 				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(namespace.Namespace{}, namespace.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetNamespaceRequest{},
+			request: &frontierv1beta1.GetNamespaceRequest{},
 			want:    nil,
 			wantErr: grpcNamespaceNotFoundErr,
 		},
@@ -140,7 +140,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 			setup: func(ns *mocks.NamespaceService) {
 				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{}, namespace.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetNamespaceRequest{
+			request: &frontierv1beta1.GetNamespaceRequest{
 				Id: testNSID,
 			},
 			want:    nil,
@@ -154,11 +154,11 @@ func TestHandler_GetNamespace(t *testing.T) {
 					Name: testNSMap[testNSID].Name,
 				}, nil)
 			},
-			request: &shieldv1beta1.GetNamespaceRequest{
+			request: &frontierv1beta1.GetNamespaceRequest{
 				Id: testNSID,
 			},
-			want: &shieldv1beta1.GetNamespaceResponse{
-				Namespace: &shieldv1beta1.Namespace{
+			want: &frontierv1beta1.GetNamespaceResponse{
+				Namespace: &frontierv1beta1.Namespace{
 					Id:        testNSMap[testNSID].ID,
 					Name:      testNSMap[testNSID].Name,
 					CreatedAt: timestamppb.New(time.Time{}),

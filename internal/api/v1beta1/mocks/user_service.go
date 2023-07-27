@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	user "github.com/raystack/shield/core/user"
+	user "github.com/raystack/frontier/core/user"
 	mock "github.com/stretchr/testify/mock"
 )
 

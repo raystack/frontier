@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	namespace "github.com/raystack/shield/core/namespace"
+	namespace "github.com/raystack/frontier/core/namespace"
 	mock "github.com/stretchr/testify/mock"
 )
 

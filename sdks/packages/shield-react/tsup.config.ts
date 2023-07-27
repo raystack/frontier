@@ -9,7 +9,7 @@ export const tsup: Options = {
   external: ["react", "react-dom"],
   format: ["cjs", "esm", "iife"],
   skipNodeModulesBundle: true,
-  globalName: "Shield",
+  globalName: "Frontier",
   target: "es6",
   banner: {
     js: "'use client'",

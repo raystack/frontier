@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/frontier/core/permission"
 )
 
 type Permission struct {

@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -19,8 +19,8 @@ func NamespaceCommand(cliConfig *Config) *cli.Command {
 			Work with namespaces.
 		`),
 		Example: heredoc.Doc(`
-			$ shield namespace list
-			$ shield namespace view
+			$ frontier namespace list
+			$ frontier namespace view
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -42,7 +42,7 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 		Short: "View a namespace",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield namespace view <namespace-id>
+			$ frontier namespace view <namespace-id>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -58,7 +58,7 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			namespaceID := args[0]
-			res, err := client.GetNamespace(cmd.Context(), &shieldv1beta1.GetNamespaceRequest{
+			res, err := client.GetNamespace(cmd.Context(), &frontierv1beta1.GetNamespaceRequest{
 				Id: namespaceID,
 			})
 			if err != nil {
@@ -95,7 +95,7 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 		Short: "List all namespaces",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield namespace list
+			$ frontier namespace list
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -110,7 +110,7 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListNamespaces(cmd.Context(), &shieldv1beta1.ListNamespacesRequest{})
+			res, err := client.ListNamespaces(cmd.Context(), &frontierv1beta1.ListNamespacesRequest{})
 			if err != nil {
 				return err
 			}

@@ -7,7 +7,7 @@ import (
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/frontier/core/relation"
 )
 
 type RelationRepository struct {

@@ -177,7 +177,7 @@ func buildPayloadProto(query string, queries []Query) (*desc.MessageDescriptor, 
 		return val, nil
 	}
 
-	builderMsg := builder.NewMessage("shield")
+	builderMsg := builder.NewMessage("frontier")
 	fieldName := "_"
 	var lastBuilderMsg *builder.MessageBuilder
 	for queryListIndex := len(queries) - 1; queryListIndex > 0; queryListIndex-- {

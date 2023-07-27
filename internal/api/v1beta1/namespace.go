@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/namespace"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/namespace"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -23,9 +23,9 @@ type NamespaceService interface {
 
 var grpcNamespaceNotFoundErr = status.Errorf(codes.NotFound, "namespace doesn't exist")
 
-func (h Handler) ListNamespaces(ctx context.Context, request *shieldv1beta1.ListNamespacesRequest) (*shieldv1beta1.ListNamespacesResponse, error) {
+func (h Handler) ListNamespaces(ctx context.Context, request *frontierv1beta1.ListNamespacesRequest) (*frontierv1beta1.ListNamespacesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var namespaces []*shieldv1beta1.Namespace
+	var namespaces []*frontierv1beta1.Namespace
 
 	nsList, err := h.namespaceService.List(ctx)
 	if err != nil {
@@ -43,10 +43,10 @@ func (h Handler) ListNamespaces(ctx context.Context, request *shieldv1beta1.List
 		namespaces = append(namespaces, &nsPB)
 	}
 
-	return &shieldv1beta1.ListNamespacesResponse{Namespaces: namespaces}, nil
+	return &frontierv1beta1.ListNamespacesResponse{Namespaces: namespaces}, nil
 }
 
-func (h Handler) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNamespaceRequest) (*shieldv1beta1.GetNamespaceResponse, error) {
+func (h Handler) GetNamespace(ctx context.Context, request *frontierv1beta1.GetNamespaceRequest) (*frontierv1beta1.GetNamespaceResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedNS, err := h.namespaceService.Get(ctx, request.GetId())
@@ -67,11 +67,11 @@ func (h Handler) GetNamespace(ctx context.Context, request *shieldv1beta1.GetNam
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetNamespaceResponse{Namespace: &nsPB}, nil
+	return &frontierv1beta1.GetNamespaceResponse{Namespace: &nsPB}, nil
 }
 
-func transformNamespaceToPB(ns namespace.Namespace) (shieldv1beta1.Namespace, error) {
-	return shieldv1beta1.Namespace{
+func transformNamespaceToPB(ns namespace.Namespace) (frontierv1beta1.Namespace, error) {
+	return frontierv1beta1.Namespace{
 		Id:        ns.ID,
 		Name:      ns.Name,
 		CreatedAt: timestamppb.New(ns.CreatedAt),

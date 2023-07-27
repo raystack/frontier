@@ -3,28 +3,28 @@ import TabItem from '@theme/TabItem';
 
 # Permissions
 
-Permissions determine what operations are allowed on a resource. In Shield, permissions are represented in the form of `service.resource.verb`, for example, `potato.cart.list`.
+Permissions determine what operations are allowed on a resource. In Frontier, permissions are represented in the form of `service.resource.verb`, for example, `potato.cart.list`.
 
 Permissions often correspond one-to-one with API methods. That is, each service has an associated set of permissions for each API method that it exposes. The caller of that method needs those permissions to call that method. For example, if you want to create a new project you must have the projecr create permission.
 
 You don't grant permissions to users directly. Instead, you identify roles that contain the appropriate permissions, and then grant those roles to the user.
 
-Shield comes with predefined permissions which allow users to perform common operations on IAM resources itself. For example managing organisation, assigning roles to users.
+Frontier comes with predefined permissions which allow users to perform common operations on IAM resources itself. For example managing organisation, assigning roles to users.
 
-Permissions in Shield are attached to a logical partition called Namespace.
+Permissions in Frontier are attached to a logical partition called Namespace.
 
 #### Namespace
 
-A Namespace in Shield is a logical container or partitioning mechanism that helps organize and manage resources and access control policies. It is used to group related entities and define the scope of authorization within a system. With the namespaces we compartmentalize and control access to different parts of the application or system, allowing more granular authorization and improved security.
+A Namespace in Frontier is a logical container or partitioning mechanism that helps organize and manage resources and access control policies. It is used to group related entities and define the scope of authorization within a system. With the namespaces we compartmentalize and control access to different parts of the application or system, allowing more granular authorization and improved security.
 
-Each namespace can have its own set of permissions, roles, and access control policies, enabling fine-grained control over who can access what resources within the defined scope. For example, the namespace `app/organization` in Shield contains permissions related to managing organizations. These permissions could include `create` `update` `delete` `get` and so on.
+Each namespace can have its own set of permissions, roles, and access control policies, enabling fine-grained control over who can access what resources within the defined scope. For example, the namespace `app/organization` in Frontier contains permissions related to managing organizations. These permissions could include `create` `update` `delete` `get` and so on.
 
 ### Predefined Org Permissions
 
-Includes a list of Shield's predefined permissions at the organization level.
+Includes a list of Frontier's predefined permissions at the organization level.
 
 :::info
-Shield allows inheritance of permissions for a hierarchical structure, where higher-level permissions grant access to lower-level entities. In this case, granting permissions at the organization level automatically extends those permissions to the projects, resources, and groups within that org.
+Frontier allows inheritance of permissions for a hierarchical structure, where higher-level permissions grant access to lower-level entities. In this case, granting permissions at the organization level automatically extends those permissions to the projects, resources, and groups within that org.
 :::
 
 | **Permission Name**                       | **Permission Title**                 | **Description**                                                                  |
@@ -44,7 +44,7 @@ Shield allows inheritance of permissions for a hierarchical structure, where hig
 
 ### Predefined Project Permissions
 
-Includes a list of Shield's predefined permissions at the project level.
+Includes a list of Frontier's predefined permissions at the project level.
 
 | **Permission Name**              | **Permission Title**        | **Description**                                                             |
 | -------------------------------- | --------------------------- | --------------------------------------------------------------------------- |
@@ -57,7 +57,7 @@ Includes a list of Shield's predefined permissions at the project level.
 
 ### Predefined Group Permissions
 
-Contains a list of Shield's predefined permissions at the group level.
+Contains a list of Frontier's predefined permissions at the group level.
 
 | **Permission Name**          | **Permission Title**   | **Description**                                          |
 | ---------------------------- | ---------------------- | -------------------------------------------------------- |
@@ -67,19 +67,19 @@ Contains a list of Shield's predefined permissions at the group level.
 | **_`app.group.get`_**        | **`Group Get`**        | Allows retrieving or accessing a specific group.         |
 
 :::note
-Permissions in Shield follow a hierarchical structure, where higher-level permissions include the capabilities of lower-level permissions. For example, a higher-level permission like **adminiter** includes all the capabilities of a lower-level permission like **get**.
+Permissions in Frontier follow a hierarchical structure, where higher-level permissions include the capabilities of lower-level permissions. For example, a higher-level permission like **adminiter** includes all the capabilities of a lower-level permission like **get**.
 :::
 
 ---
 
 ### Custom Permissions
 
-Shield allow the its platform administrators (Superusers) to create permissions to meet specific authorization requirements beyond the predefined set of permissions. Custom permissions allow for more granular control over access to resources and actions within an application or system. They enable organizations to define and enforce fine-grained access policies tailored to their unique needs.
+Frontier allow the its platform administrators (Superusers) to create permissions to meet specific authorization requirements beyond the predefined set of permissions. Custom permissions allow for more granular control over access to resources and actions within an application or system. They enable organizations to define and enforce fine-grained access policies tailored to their unique needs.
 
-When creating custom permissions, administrators typically define the name and scope (namespace) of the permission. The name should be descriptive and indicative of the action or resource it governs. The scope determines where the permission applies, such as the platform(making it available across all the organizations in Shield), organization, project or group.
+When creating custom permissions, administrators typically define the name and scope (namespace) of the permission. The name should be descriptive and indicative of the action or resource it governs. The scope determines where the permission applies, such as the platform(making it available across all the organizations in Frontier), organization, project or group.
 
 :::note
-The permissions can either be created dynamically when the Shield is running, or can either be provided in the server configurations.
+The permissions can either be created dynamically when the Frontier is running, or can either be provided in the server configurations.
 :::
 
 For example, let's say you have an e-commerce application where users can manage their shopping carts. To control access to cart-related actions, you can create custom permissions in the **potato/cart** namespace.
@@ -92,10 +92,10 @@ Sample custom permission requirements:
 | **update**          | Cart Update          | potato/cart   | Allows updating the contents of the shopping cart.         |
 | **get**             | Cart Get             | potato/cart   | Enables retrieving the details of the shopping cart.       |
 
-This is how the [resource config file](https://github.com/raystack/shield/blob/7cae6bf86e99fe96650c6dcd4e8207cb916b8184/test/e2e/smoke/testdata/resource/potato.yaml#L4) will look like
+This is how the [resource config file](https://github.com/raystack/frontier/blob/7cae6bf86e99fe96650c6dcd4e8207cb916b8184/test/e2e/smoke/testdata/resource/potato.yaml#L4) will look like
 
 :::info
-While creating permissions, it is important to note that the namespace is appended to the permission name to generate a permission slug. For instance, the **delete** permission name will be appended with namespace **potato/cart**, to generate the final permission slug as **potato_cart_delete** in Shield. This naming convention is used to ensure uniqueness and organization of permissions within Shield. While creating a role, we pass the list of these permission slugs being binded to that role.
+While creating permissions, it is important to note that the namespace is appended to the permission name to generate a permission slug. For instance, the **delete** permission name will be appended with namespace **potato/cart**, to generate the final permission slug as **potato_cart_delete** in Frontier. This naming convention is used to ensure uniqueness and organization of permissions within Frontier. While creating a role, we pass the list of these permission slugs being binded to that role.
 :::
 
 ## Managing Permission

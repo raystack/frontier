@@ -3,10 +3,10 @@ package authenticate
 import (
 	"context"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/raystack/shield/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/consts"
 )
 
 // contextEmailKey should not be used in production

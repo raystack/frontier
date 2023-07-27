@@ -8,8 +8,8 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raystack/shield/config"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/config"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -38,10 +38,10 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 		Use:   "seed",
 		Short: "Seed the database with initial data",
 		Args:  cli.NoArgs,
-		Long:  "This command can be used to create an organization structure with predefined groups, projects, and resources. It bootstarps these data in the Shield db, making it easier to get started.",
+		Long:  "This command can be used to create an organization structure with predefined groups, projects, and resources. It bootstarps these data in the Frontier db, making it easier to get started.",
 		Example: heredoc.Doc(`
-			$ shield seed
-			$ shield seed --header=X-Shield-Email
+			$ frontier seed
+			$ frontier seed --header=X-Frontier-Email
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -54,7 +54,7 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 					panic(err)
 				}
 				if appConfig.App.IdentityProxyHeader == "" {
-					return errors.New("identity proxy header missing in server config, pass key in the header flag \nexample: shield seed -H X-Shield-Email")
+					return errors.New("identity proxy header missing in server config, pass key in the header flag \nexample: frontier seed -H X-Frontier-Email")
 				}
 				header = appConfig.App.IdentityProxyHeader
 			}
@@ -80,7 +80,7 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 			if err := bootstrapData(ctx, client); err != nil {
 				return fmt.Errorf("failed to bootstrap data: %w", err)
 			}
-			fmt.Println("initialized sample data in shield successfully")
+			fmt.Println("initialized sample data in frontier successfully")
 			return nil
 		},
 	}
@@ -92,13 +92,13 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 }
 
 // create sample platform wide custom permissions and roles
-func createCustomRolesAndPermissions(ctx context.Context, client shieldv1beta1.AdminServiceClient) error {
-	var permissionBodies []*shieldv1beta1.PermissionRequestBody
+func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1.AdminServiceClient) error {
+	var permissionBodies []*frontierv1beta1.PermissionRequestBody
 	if err := json.Unmarshal(mockCustomPermissions, &permissionBodies); err != nil {
 		return fmt.Errorf("failed to unmarshal custom permissions: %w", err)
 	}
 
-	if _, err := client.CreatePermission(ctx, &shieldv1beta1.CreatePermissionRequest{
+	if _, err := client.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
 		Bodies: permissionBodies,
 	}); err != nil {
 		return fmt.Errorf("failed to create custom permission: %w", err)
@@ -111,16 +111,16 @@ func createCustomRolesAndPermissions(ctx context.Context, client shieldv1beta1.A
 	}
 	fmt.Println(str)
 
-	var roles []*shieldv1beta1.RoleRequestBody
+	var roles []*frontierv1beta1.RoleRequestBody
 	if err := json.Unmarshal(mockCustomRoles, &roles); err != nil {
 		return fmt.Errorf("failed to unmarshal custom roles: %w", err)
 	}
 
 	str = "created custom roles :"
-	var roleResp *shieldv1beta1.CreateRoleResponse
+	var roleResp *frontierv1beta1.CreateRoleResponse
 	var err error
 	for _, role := range roles {
-		if roleResp, err = client.CreateRole(ctx, &shieldv1beta1.CreateRoleRequest{
+		if roleResp, err = client.CreateRole(ctx, &frontierv1beta1.CreateRoleRequest{
 			Body: role,
 		}); err != nil {
 			return fmt.Errorf("failed to create custom role: %w", err)
@@ -133,23 +133,23 @@ func createCustomRolesAndPermissions(ctx context.Context, client shieldv1beta1.A
 	return nil
 }
 
-func bootstrapData(ctx context.Context, client shieldv1beta1.ShieldServiceClient) error {
-	var userBodies []*shieldv1beta1.UserRequestBody
+func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceClient) error {
+	var userBodies []*frontierv1beta1.UserRequestBody
 	if err := json.Unmarshal(mockHumanUser, &userBodies); err != nil {
 		return fmt.Errorf("failed to unmarshal user body: %w", err)
 	}
 
-	var orgBodies []*shieldv1beta1.OrganizationRequestBody
+	var orgBodies []*frontierv1beta1.OrganizationRequestBody
 	if err := json.Unmarshal(mockOrganizations, &orgBodies); err != nil {
 		return fmt.Errorf("error unmarshaling JSON: %w", err)
 	}
 
-	var projBodies []*shieldv1beta1.ProjectRequestBody
+	var projBodies []*frontierv1beta1.ProjectRequestBody
 	if err := json.Unmarshal(mockProjects, &projBodies); err != nil {
 		return fmt.Errorf("failed to unmarshal project body: %w", err)
 	}
 
-	var resourceBodies []*shieldv1beta1.ResourceRequestBody
+	var resourceBodies []*frontierv1beta1.ResourceRequestBody
 	if err := json.Unmarshal(mockResource, &resourceBodies); err != nil {
 		return fmt.Errorf("failed to unmarshal resource body: %w", err)
 	}
@@ -158,16 +158,16 @@ func bootstrapData(ctx context.Context, client shieldv1beta1.ShieldServiceClient
 
 	var i = 0
 	for _, orgBody := range orgBodies {
-		userResp, err := client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
+		userResp, err := client.CreateUser(ctx, &frontierv1beta1.CreateUserRequest{
 			Body: userBodies[i],
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create sample user: %w", err)
 		}
 
-		fmt.Printf("created user with email %s in shield\n", userResp.User.Email)
+		fmt.Printf("created user with email %s in frontier\n", userResp.User.Email)
 
-		orgResp, err := client.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
+		orgResp, err := client.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
 			Body: orgBody,
 		})
 		if err != nil {
@@ -176,8 +176,8 @@ func bootstrapData(ctx context.Context, client shieldv1beta1.ShieldServiceClient
 		fmt.Printf("created organization name %s with user %s as the org admin \n", orgResp.Organization.Name, sampleSeedEmail)
 
 		// create service user for an org
-		serviceUserResp, err := client.CreateServiceUser(ctx, &shieldv1beta1.CreateServiceUserRequest{
-			Body:  &shieldv1beta1.ServiceUserRequestBody{Title: "sample service user"},
+		serviceUserResp, err := client.CreateServiceUser(ctx, &frontierv1beta1.CreateServiceUserRequest{
+			Body:  &frontierv1beta1.ServiceUserRequestBody{Title: "sample service user"},
 			OrgId: orgResp.Organization.Id,
 		})
 		if err != nil {
@@ -189,7 +189,7 @@ func bootstrapData(ctx context.Context, client shieldv1beta1.ShieldServiceClient
 		// create project inside org
 		projBodies[i].OrgId = orgResp.Organization.Id
 
-		projResp, err := client.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
+		projResp, err := client.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
 			Body: projBodies[i],
 		})
 		if err != nil {
@@ -201,7 +201,7 @@ func bootstrapData(ctx context.Context, client shieldv1beta1.ShieldServiceClient
 		// create resource inside project
 		resourceBodies[i].Principal = userResp.User.Id
 
-		resrcResp, err := client.CreateProjectResource(ctx, &shieldv1beta1.CreateProjectResourceRequest{
+		resrcResp, err := client.CreateProjectResource(ctx, &frontierv1beta1.CreateProjectResourceRequest{
 			ProjectId: projResp.Project.Id,
 			Body:      resourceBodies[i],
 		})
@@ -214,8 +214,8 @@ func bootstrapData(ctx context.Context, client shieldv1beta1.ShieldServiceClient
 		//create sample policy
 		resource := fmt.Sprintf("%s:%s", samplePolicyNamespace[i], resrcResp.Resource.Id)
 		user := fmt.Sprintf("%s:%s", "app/user", userResp.User.Id)
-		policyResp, err := client.CreatePolicy(ctx, &shieldv1beta1.CreatePolicyRequest{
-			Body: &shieldv1beta1.PolicyRequestBody{
+		policyResp, err := client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    samplePolicyRole[i],
 				Resource:  resource,
 				Principal: user,

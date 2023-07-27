@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	group "github.com/raystack/shield/core/group"
+	group "github.com/raystack/frontier/core/group"
 	mock "github.com/stretchr/testify/mock"
 )
 

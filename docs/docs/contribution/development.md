@@ -12,7 +12,7 @@
 Clone the repo
 
 ```
-git clone git@github.com:raystack/shield.git
+git clone git@github.com:raystack/frontier.git
 ```
 
 Install all the golang dependencies
@@ -21,13 +21,13 @@ Install all the golang dependencies
 make install
 ```
 
-Optional: build shield admin ui
+Optional: build frontier admin ui
 
 ```
 make ui
 ```
 
-Build shield binary file
+Build frontier binary file
 
 ```
 make build
@@ -37,19 +37,19 @@ Init config
 
 ```
 cp internal/server/config.yaml config.yaml
-./shield config init
+./frontier config init
 ```
 
 Run database migrations
 
 ```
-./shield server migrate -c config.yaml
+./frontier server migrate -c config.yaml
 ```
 
-Start shield server
+Start frontier server
 
 ```
-./shield server start -c config.yaml
+./frontier server start -c config.yaml
 ```
 
 ## Running tests

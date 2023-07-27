@@ -1,15 +1,15 @@
 # Creating an organization
 
-Before creating a new organization, let's create an organization admin user. Note, the metadata in the user body is validated using the default MetaSchemas defined in Shield. These metadata schema validations can always be changed or disabled. For more details read MetaSchema Guides.
+Before creating a new organization, let's create an organization admin user. Note, the metadata in the user body is validated using the default MetaSchemas defined in Frontier. These metadata schema validations can always be changed or disabled. For more details read MetaSchema Guides.
 
-## User creation in Shield
+## User creation in Frontier
 
 ```sh
 curl --location --request POST 'http://localhost:8000/v1beta1/users'
 --header 'Content-Type: application/json'
---header 'X-Shield-Email: admin@raystack.org'
+--header 'X-Frontier-Email: admin@raystack.org'
 --data-raw '{
-    "name": "Shield Org Admin",
+    "name": "Frontier Org Admin",
     "email": "admin@raystack.org",
     "metadata": {
         "label": {
@@ -27,7 +27,7 @@ Expected response for the user created is of type.
 {
     "user": {
         "id": "2fd7f306-61db-4198-9623-6f5f1809df11",
-        "name": "Shield Org Admin",
+        "name": "Frontier Org Admin",
         "slug": "admin_raystack_io",
         "email": "admin@raystack.org",
         "metadata": {
@@ -44,12 +44,12 @@ Expected response for the user created is of type.
 
 From now onwards, we can use the above user to perform all the admin operations. Let's begin with organization creation.
 
-## Organization creation in Shield
+## Organization creation in Frontier
 
 ```sh
 curl --location --request POST 'http://localhost:8000/v1beta1/organizations'
 --header 'Content-Type: application/json'
---header 'X-Shield-Email: admin@raystack.org'
+--header 'X-Frontier-Email: admin@raystack.org'
 --data-raw '{
     "name": "Raystack",
     "slug": "raystack",

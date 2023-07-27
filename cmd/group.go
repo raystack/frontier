@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/pkg/file"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	"github.com/raystack/shield/pkg/file"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -20,10 +20,10 @@ func GroupCommand(cliConfig *Config) *cli.Command {
 			Work with groups.
 		`),
 		Example: heredoc.Doc(`
-			$ shield group create
-			$ shield group edit
-			$ shield group view
-			$ shield group list
+			$ frontier group create
+			$ frontier group edit
+			$ frontier group view
+			$ frontier group list
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -49,7 +49,7 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 		Short: "Upsert a group",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield group create --file=<group-body> --header=<key>:<value>
+			$ frontier group create --file=<group-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -58,7 +58,7 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.GroupRequestBody
+			var reqBody frontierv1beta1.GroupRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -74,7 +74,7 @@ func createGroupCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.CreateGroup(setCtxHeader(cmd.Context(), header), &shieldv1beta1.CreateGroupRequest{
+			res, err := client.CreateGroup(setCtxHeader(cmd.Context(), header), &frontierv1beta1.CreateGroupRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -103,7 +103,7 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 		Short: "Edit a group",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield group edit <group-id> --file=<group-body>
+			$ frontier group edit <group-id> --file=<group-body>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -112,7 +112,7 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.GroupRequestBody
+			var reqBody frontierv1beta1.GroupRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -129,7 +129,7 @@ func editGroupCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			groupID := args[0]
-			_, err = client.UpdateGroup(cmd.Context(), &shieldv1beta1.UpdateGroupRequest{
+			_, err = client.UpdateGroup(cmd.Context(), &frontierv1beta1.UpdateGroupRequest{
 				Id:   groupID,
 				Body: &reqBody,
 			})
@@ -157,7 +157,7 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 		Short: "View a group",
 		Args:  cli.ExactArgs(2),
 		Example: heredoc.Doc(`
-			$ shield group view <org-id> <group-id>
+			$ frontier group view <org-id> <group-id>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -174,7 +174,7 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 
 			orgID := args[0]
 			groupID := args[1]
-			res, err := client.GetGroup(cmd.Context(), &shieldv1beta1.GetGroupRequest{
+			res, err := client.GetGroup(cmd.Context(), &frontierv1beta1.GetGroupRequest{
 				Id:    groupID,
 				OrgId: orgID,
 			})
@@ -228,7 +228,7 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 		Short: "List all groups",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield group list <orgid>
+			$ frontier group list <orgid>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -243,7 +243,7 @@ func listGroupCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListOrganizationGroups(cmd.Context(), &shieldv1beta1.ListOrganizationGroupsRequest{
+			res, err := client.ListOrganizationGroups(cmd.Context(), &frontierv1beta1.ListOrganizationGroupsRequest{
 				OrgId: args[0],
 			})
 			if err != nil {

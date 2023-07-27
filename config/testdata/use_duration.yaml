@@ -1,7 +1,7 @@
 version: 1
 
 db:
-  url: postgres://shield:@localhost:5432/shield?sslmode=disable
+  url: postgres://frontier:@localhost:5432/frontier?sslmode=disable
   max_query_timeout: 500ms
   conn_max_life_time: 10ms
   max_idle_conns: 10

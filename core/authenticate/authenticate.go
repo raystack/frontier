@@ -3,10 +3,10 @@ package authenticate
 import (
 	"time"
 
-	"github.com/raystack/shield/core/serviceuser"
-	"github.com/raystack/shield/core/user"
+	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/core/user"
 
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 
 	"github.com/google/uuid"
 )

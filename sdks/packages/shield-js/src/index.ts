@@ -1,2 +1,2 @@
 export * from "./types";
-export class Shield {}
+export class Frontier {}

@@ -10,15 +10,15 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
-	"github.com/raystack/shield/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/authenticate"
-	shieldsession "github.com/raystack/shield/core/authenticate/session"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/pkg/errors"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/authenticate"
+	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/errors"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -39,15 +39,15 @@ type AuthnService interface {
 
 //go:generate mockery --name=SessionService -r --case underscore --with-expecter --structname SessionService --filename session_service.go --output=./mocks
 type SessionService interface {
-	ExtractFromContext(ctx context.Context) (*shieldsession.Session, error)
-	Create(ctx context.Context, userID string) (*shieldsession.Session, error)
+	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
+	Create(ctx context.Context, userID string) (*frontiersession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
 	InitSessions(ctx context.Context) error
 	Close()
 }
 
-func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.AuthenticateRequest) (*shieldv1beta1.AuthenticateResponse, error) {
+func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	// check if user is already logged in
@@ -62,8 +62,8 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 				return nil, status.Error(codes.Internal, err.Error())
 			}
 		}
-		return &shieldv1beta1.AuthenticateResponse{}, nil
-	} else if err != nil && !errors.Is(err, shieldsession.ErrNoSession) {
+		return &frontierv1beta1.AuthenticateResponse{}, nil
+	} else if err != nil && !errors.Is(err, frontiersession.ErrNoSession) {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -86,14 +86,14 @@ func (h Handler) Authenticate(ctx context.Context, request *shieldv1beta1.Authen
 		}
 	}
 
-	return &shieldv1beta1.AuthenticateResponse{
+	return &frontierv1beta1.AuthenticateResponse{
 		Endpoint: response.Flow.StartURL,
 		// TODO(kushsharma): we can also store the state in cookie and validate it on callback
 		State: response.State,
 	}, nil
 }
 
-func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCallbackRequest) (*shieldv1beta1.AuthCallbackResponse, error) {
+func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.AuthCallbackRequest) (*frontierv1beta1.AuthCallbackResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	// handle callback
@@ -126,10 +126,10 @@ func (h Handler) AuthCallback(ctx context.Context, request *shieldv1beta1.AuthCa
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-	return &shieldv1beta1.AuthCallbackResponse{}, nil
+	return &frontierv1beta1.AuthCallbackResponse{}, nil
 }
 
-func (h Handler) AuthLogout(ctx context.Context, request *shieldv1beta1.AuthLogoutRequest) (*shieldv1beta1.AuthLogoutResponse, error) {
+func (h Handler) AuthLogout(ctx context.Context, request *frontierv1beta1.AuthLogoutRequest) (*frontierv1beta1.AuthLogoutResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	// delete user session if exists
@@ -145,21 +145,21 @@ func (h Handler) AuthLogout(ctx context.Context, request *shieldv1beta1.AuthLogo
 	if err := deleteCookieHeaders(ctx); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.AuthLogoutResponse{}, nil
+	return &frontierv1beta1.AuthLogoutResponse{}, nil
 }
 
-func (h Handler) ListAuthStrategies(ctx context.Context, request *shieldv1beta1.ListAuthStrategiesRequest) (*shieldv1beta1.ListAuthStrategiesResponse, error) {
-	var pbstrategy []*shieldv1beta1.AuthStrategy
+func (h Handler) ListAuthStrategies(ctx context.Context, request *frontierv1beta1.ListAuthStrategiesRequest) (*frontierv1beta1.ListAuthStrategiesResponse, error) {
+	var pbstrategy []*frontierv1beta1.AuthStrategy
 	for _, strategy := range h.authnService.SupportedStrategies() {
-		pbstrategy = append(pbstrategy, &shieldv1beta1.AuthStrategy{
+		pbstrategy = append(pbstrategy, &frontierv1beta1.AuthStrategy{
 			Name:   strategy,
 			Params: nil,
 		})
 	}
-	return &shieldv1beta1.ListAuthStrategiesResponse{Strategies: pbstrategy}, nil
+	return &frontierv1beta1.ListAuthStrategiesResponse{Strategies: pbstrategy}, nil
 }
 
-func (h Handler) GetJWKs(ctx context.Context, request *shieldv1beta1.GetJWKsRequest) (*shieldv1beta1.GetJWKsResponse, error) {
+func (h Handler) GetJWKs(ctx context.Context, request *frontierv1beta1.GetJWKsRequest) (*frontierv1beta1.GetJWKsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	keySet := h.authnService.JWKs(ctx)
 	jwks, err := toJSONWebKey(keySet)
@@ -167,12 +167,12 @@ func (h Handler) GetJWKs(ctx context.Context, request *shieldv1beta1.GetJWKsRequ
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	return &shieldv1beta1.GetJWKsResponse{
+	return &frontierv1beta1.GetJWKsResponse{
 		Keys: jwks.Keys,
 	}, nil
 }
 
-func (h Handler) AuthToken(ctx context.Context, request *shieldv1beta1.AuthTokenRequest) (*shieldv1beta1.AuthTokenResponse, error) {
+func (h Handler) AuthToken(ctx context.Context, request *frontierv1beta1.AuthTokenRequest) (*frontierv1beta1.AuthTokenResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	// if values are passed in body instead of headers, populate them in context
@@ -208,7 +208,7 @@ func (h Handler) AuthToken(ctx context.Context, request *shieldv1beta1.AuthToken
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &shieldv1beta1.AuthTokenResponse{
+	return &frontierv1beta1.AuthTokenResponse{
 		AccessToken: string(token),
 		TokenType:   "Bearer",
 	}, nil
@@ -276,12 +276,12 @@ func setUserContextTokenInHeaders(ctx context.Context, userToken string) error {
 }
 
 type JsonWebKeySet struct {
-	Keys []*shieldv1beta1.JSONWebKey `json:"keys"`
+	Keys []*frontierv1beta1.JSONWebKey `json:"keys"`
 }
 
 func toJSONWebKey(keySet jwk.Set) (*JsonWebKeySet, error) {
 	jwks := &JsonWebKeySet{
-		Keys: []*shieldv1beta1.JSONWebKey{},
+		Keys: []*frontierv1beta1.JSONWebKey{},
 	}
 	keySetJson, err := json.Marshal(keySet)
 	if err != nil {

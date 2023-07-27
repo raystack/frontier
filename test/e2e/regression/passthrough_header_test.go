@@ -8,14 +8,14 @@ import (
 	"path"
 	"testing"
 
-	"github.com/raystack/shield/core/authenticate"
-	"github.com/raystack/shield/pkg/server"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/pkg/server"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/pkg/logger"
-	"github.com/raystack/shield/test/e2e/testbench"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/pkg/logger"
+	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -36,7 +36,7 @@ func (s *PassthroughEmailRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.apiPort = apiPort
 
-	appConfig := &config.Shield{
+	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
@@ -56,7 +56,7 @@ func (s *PassthroughEmailRegressionTestSuite) SetupSuite() {
 				},
 				Token: authenticate.TokenConfig{
 					RSAPath: "testdata/jwks.json",
-					Issuer:  "shield",
+					Issuer:  "frontier",
 				},
 			},
 		},
@@ -77,11 +77,11 @@ func (s *PassthroughEmailRegressionTestSuite) TestWithoutHeader() {
 	}))
 	s.Run("1. passing no context header should fail", func() {
 		ctx := context.Background()
-		_, err := s.testBench.Client.GetCurrentUser(ctx, &shieldv1beta1.GetCurrentUserRequest{})
+		_, err := s.testBench.Client.GetCurrentUser(ctx, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().Error(err)
 	})
 	s.Run("2. passing context with header should fail if not configured", func() {
-		_, err := s.testBench.Client.GetCurrentUser(ctxOrgAdminAuth, &shieldv1beta1.GetCurrentUserRequest{})
+		_, err := s.testBench.Client.GetCurrentUser(ctxOrgAdminAuth, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().Error(err)
 	})
 	s.Run("3. passing context with header should fail if not configured", func() {

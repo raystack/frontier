@@ -3,13 +3,13 @@ package server
 import (
 	"fmt"
 
-	"github.com/raystack/shield/pkg/mailer"
+	"github.com/raystack/frontier/pkg/mailer"
 
-	"github.com/raystack/shield/internal/bootstrap"
+	"github.com/raystack/frontier/internal/bootstrap"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/pkg/telemetry"
+	"github.com/raystack/frontier/pkg/telemetry"
 )
 
 type GRPCConfig struct {
@@ -41,7 +41,7 @@ type Config struct {
 	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:""`
 
 	// Header which will have user_id
-	UserIDHeader string `yaml:"user_id_header" mapstructure:"user_id_header" default:"X-Shield-User-Id"`
+	UserIDHeader string `yaml:"user_id_header" mapstructure:"user_id_header" default:"X-Frontier-User-Id"`
 
 	// ResourcesPath is a directory path where resources is defined
 	// that this service should implement

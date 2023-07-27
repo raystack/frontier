@@ -7,15 +7,15 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/frontier/core/permission"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/ory/dockertest"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/internal/store/postgres"
-	"github.com/raystack/shield/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
 

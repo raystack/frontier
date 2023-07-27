@@ -1,14 +1,14 @@
 package v1beta1
 
 import (
-	"github.com/raystack/shield/internal/api"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/internal/api"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc"
 )
 
 type Handler struct {
-	shieldv1beta1.UnimplementedShieldServiceServer
-	shieldv1beta1.UnimplementedAdminServiceServer
+	frontierv1beta1.UnimplementedFrontierServiceServer
+	frontierv1beta1.UnimplementedAdminServiceServer
 
 	DisableOrgsListing  bool
 	DisableUsersListing bool
@@ -57,7 +57,7 @@ func Register(s *grpc.Server, deps api.Deps) error {
 		serviceUserService:  deps.ServiceUserService,
 		auditService:        deps.AuditService,
 	}
-	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
-	s.RegisterService(&shieldv1beta1.AdminService_ServiceDesc, handler)
+	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
+	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)
 	return nil
 }

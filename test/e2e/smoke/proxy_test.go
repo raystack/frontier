@@ -15,21 +15,21 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	"github.com/raystack/shield/pkg/server"
+	"github.com/raystack/frontier/pkg/server"
 
 	"github.com/google/uuid"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	_ "embed"
 
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/internal/proxy"
-	"github.com/raystack/shield/internal/store/spicedb"
-	"github.com/raystack/shield/pkg/db"
-	"github.com/raystack/shield/pkg/logger"
-	"github.com/raystack/shield/test/e2e/testbench"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/internal/proxy"
+	"github.com/raystack/frontier/internal/store/spicedb"
+	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/logger"
+	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -39,7 +39,7 @@ var ruleTemplate string
 type ProxySmokeTestSuite struct {
 	suite.Suite
 
-	sClient   shieldv1beta1.ShieldServiceClient
+	sClient   frontierv1beta1.FrontierServiceClient
 	proxyPort int
 	orgID     string
 	projID    string
@@ -60,14 +60,14 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	grpcPort, err := testbench.GetFreePort()
 	s.Assert().NoError(err)
 
-	ruleDir, err := os.MkdirTemp("", "shield_rules_")
+	ruleDir, err := os.MkdirTemp("", "frontier_rules_")
 	s.Assert().NoError(err)
-	ruleFile, err := os.CreateTemp(ruleDir, "shield_rule_*.yml")
+	ruleFile, err := os.CreateTemp(ruleDir, "frontier_rule_*.yml")
 	s.Assert().NoError(err)
 	ruleTmpl, err := template.New("rule").Parse(ruleTemplate)
 	s.Assert().NoError(err)
 
-	appConfig := &config.Shield{
+	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "fatal",
 		},
@@ -95,7 +95,7 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 		},
 		DB: db.Config{
 			Driver:              "postgres",
-			URL:                 "postgres://shield:12345@localhost:5432/shield?sslmode=disable",
+			URL:                 "postgres://frontier:12345@localhost:5432/frontier?sslmode=disable",
 			MaxIdleConns:        10,
 			MaxOpenConns:        10,
 			ConnMaxLifeTime:     time.Millisecond * 10,
@@ -104,7 +104,7 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 		SpiceDB: spicedb.Config{
 			Host:            "localhost",
 			Port:            "50051",
-			PreSharedKey:    "shield",
+			PreSharedKey:    "frontier",
 			FullyConsistent: true,
 		},
 	}
@@ -129,13 +129,13 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	s.Assert().NoError(err)
 	appConfig.SpiceDB.Port = spiceDBPort
 
-	// setup pg for shield
-	_, connStringExternal, pgResource, err := testbench.StartPG(network, pool, "shield")
+	// setup pg for frontier
+	_, connStringExternal, pgResource, err := testbench.StartPG(network, pool, "frontier")
 	s.Assert().NoError(err)
 	appConfig.DB.URL = connStringExternal
 
 	// run migrations
-	err = testbench.MigrateShield(logger, appConfig)
+	err = testbench.MigrateFrontier(logger, appConfig)
 	s.Assert().NoError(err)
 
 	// echo server for proxy
@@ -148,9 +148,9 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	})
 	s.Assert().NoError(err)
 
-	testbench.StartShield(logger, appConfig)
+	testbench.StartFrontier(logger, appConfig)
 
-	// let shield start
+	// let frontier start
 	time.Sleep(time.Second * 3)
 
 	// create fixtures
@@ -174,7 +174,7 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	err = testbench.BootstrapOrganizations(ctx, sClient, testbench.OrgAdminEmail)
 	s.Assert().NoError(err)
 
-	orgResp, err := sClient.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
+	orgResp, err := sClient.ListOrganizations(ctx, &frontierv1beta1.ListOrganizationsRequest{})
 	s.Assert().NoError(err)
 	s.Assert().NotEqual(0, len(orgResp.Organizations))
 	s.orgID = orgResp.Organizations[0].GetId()
@@ -185,14 +185,14 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
-	projResp, err := sClient.ListOrganizationProjects(ctx, &shieldv1beta1.ListOrganizationProjectsRequest{
+	projResp, err := sClient.ListOrganizationProjects(ctx, &frontierv1beta1.ListOrganizationProjectsRequest{
 		Id: s.orgID,
 	})
 	s.Assert().NoError(err)
 	s.Assert().NotEqual(0, len(projResp.Projects))
 	s.projID = projResp.Projects[0].GetId()
 
-	listUsers, err := sClient.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
+	listUsers, err := sClient.ListUsers(ctx, &frontierv1beta1.ListUsersRequest{})
 	s.Assert().NoError(err)
 	s.userID = listUsers.Users[0].Id
 }
@@ -202,7 +202,7 @@ func (s *ProxySmokeTestSuite) TearDownSuite() {
 	s.Assert().NoError(err)
 	proc.Signal(os.Interrupt)
 
-	// let shield finish
+	// let frontier finish
 	time.Sleep(time.Second * 1)
 
 	err = s.close()
@@ -226,23 +226,23 @@ func (s *ProxySmokeTestSuite) TestProxyToEchoServer() {
 		defer res.Body.Close()
 		s.Assert().Equal(200, res.StatusCode)
 	})
-	s.Run("resource created on echo server should persist in shieldDB", func() {
+	s.Run("resource created on echo server should persist in frontierDB", func() {
 		url := fmt.Sprintf("http://localhost:%d/api/resource", s.proxyPort)
 		req, err := http.NewRequest(http.MethodPost, url, nil)
 		s.Require().NoError(err)
 
 		req.Header.Set(testbench.IdentityHeader, testbench.OrgAdminEmail)
-		req.Header.Set("X-Shield-Project", s.projID)
-		req.Header.Set("X-Shield-User", s.userID)
-		req.Header.Set("X-Shield-Name", "test-resource")
-		req.Header.Set("X-Shield-Resource-Type", "cart")
+		req.Header.Set("X-Frontier-Project", s.projID)
+		req.Header.Set("X-Frontier-User", s.userID)
+		req.Header.Set("X-Frontier-Name", "test-resource")
+		req.Header.Set("X-Frontier-Resource-Type", "cart")
 
 		res, err := http.DefaultClient.Do(req)
 		s.Require().NoError(err)
 
 		defer res.Body.Close()
 
-		resourceResp, err := s.sClient.ListProjectResources(ctx, &shieldv1beta1.ListProjectResourcesRequest{
+		resourceResp, err := s.sClient.ListProjectResources(ctx, &frontierv1beta1.ListProjectResourcesRequest{
 			ProjectId: s.projID,
 		})
 		s.Assert().NoError(err)

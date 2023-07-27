@@ -1,4 +1,4 @@
-module github.com/raystack/shield
+module github.com/raystack/frontier
 
 go 1.20
 

@@ -10,10 +10,10 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/raystack/shield/core/role"
+	"github.com/raystack/frontier/core/role"
 
-	"github.com/raystack/shield/core/serviceuser"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type ServiceUserCredentialRepository struct {

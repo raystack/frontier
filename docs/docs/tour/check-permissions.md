@@ -1,8 +1,8 @@
 # Checking permissions in SpiceDB
 
-In this part of the tour, we'll learn how can we use Shield's permission checking system. Through this we are going to verify all the relations we have created till now.
+In this part of the tour, we'll learn how can we use Frontier's permission checking system. Through this we are going to verify all the relations we have created till now.
 
-We can  either use the check API or `zed` tool. In this tour we will be using the `zed` tool.
+We can either use the check API or `zed` tool. In this tour we will be using the `zed` tool.
 
 ## 1 Check the owner of the organization
 
@@ -17,7 +17,7 @@ true
 ## 2 Check the organization of the project
 
 ```sh
-shield % zed permission check project:1b89026b-6713-4327-9d7e-ed03345da288 organization organization:4eb3c3b4-962b-4b45-b55b-4c07d3810ca8
+frontier % zed permission check project:1b89026b-6713-4327-9d7e-ed03345da288 organization organization:4eb3c3b4-962b-4b45-b55b-4c07d3810ca8
 ```
 
 ```sh
@@ -76,4 +76,3 @@ zed permission check entropy/firehose:28105b9a-1717-47cf-a5d9-49249b6638df owner
 ```sh
 true
 ```
-
