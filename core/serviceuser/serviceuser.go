@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 const (
@@ -36,7 +36,7 @@ type Credential struct {
 	// ID is the unique identifier of the credential.
 	// This is also used as kid in JWT, the spec doesn't
 	// state how the kid should be generated as anyway this token
-	// is owned by shield, and we are in control of key generation
+	// is owned by frontier, and we are in control of key generation
 	// any arbitrary string can be used as kid as long as its unique
 	ID            string
 	ServiceUserID string

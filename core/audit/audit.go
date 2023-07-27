@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
 var (

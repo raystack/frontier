@@ -4,21 +4,21 @@ import (
 	"context"
 	"errors"
 
-	"github.com/raystack/shield/core/audit"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/policy"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/policy"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
 //go:generate mockery --name=PolicyService -r --case underscore --with-expecter --structname PolicyService --filename policy_service.go --output=./mocks
@@ -31,9 +31,9 @@ type PolicyService interface {
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
 
-func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPoliciesRequest) (*shieldv1beta1.ListPoliciesResponse, error) {
+func (h Handler) ListPolicies(ctx context.Context, request *frontierv1beta1.ListPoliciesRequest) (*frontierv1beta1.ListPoliciesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var policies []*shieldv1beta1.Policy
+	var policies []*frontierv1beta1.Policy
 
 	policyList, err := h.policyService.List(ctx, policy.Filter{
 		OrgID:       request.GetOrgId(),
@@ -56,10 +56,10 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 		policies = append(policies, policyPB)
 	}
 
-	return &shieldv1beta1.ListPoliciesResponse{Policies: policies}, nil
+	return &frontierv1beta1.ListPoliciesResponse{Policies: policies}, nil
 }
 
-func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.CreatePolicyRequest) (*shieldv1beta1.CreatePolicyResponse, error) {
+func (h Handler) CreatePolicy(ctx context.Context, request *frontierv1beta1.CreatePolicyRequest) (*frontierv1beta1.CreatePolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	var metaDataMap metadata.Metadata
@@ -114,10 +114,10 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 			"principal_id":   newPolicy.PrincipalID,
 			"principal_type": newPolicy.PrincipalType,
 		})
-	return &shieldv1beta1.CreatePolicyResponse{Policy: policyPB}, nil
+	return &frontierv1beta1.CreatePolicyResponse{Policy: policyPB}, nil
 }
 
-func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicyRequest) (*shieldv1beta1.GetPolicyResponse, error) {
+func (h Handler) GetPolicy(ctx context.Context, request *frontierv1beta1.GetPolicyRequest) (*frontierv1beta1.GetPolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedPolicy, err := h.policyService.Get(ctx, request.GetId())
@@ -139,15 +139,15 @@ func (h Handler) GetPolicy(ctx context.Context, request *shieldv1beta1.GetPolicy
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetPolicyResponse{Policy: policyPB}, nil
+	return &frontierv1beta1.GetPolicyResponse{Policy: policyPB}, nil
 }
 
-func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.UpdatePolicyRequest) (*shieldv1beta1.UpdatePolicyResponse, error) {
+func (h Handler) UpdatePolicy(ctx context.Context, request *frontierv1beta1.UpdatePolicyRequest) (*frontierv1beta1.UpdatePolicyResponse, error) {
 	// not implemented
-	return &shieldv1beta1.UpdatePolicyResponse{}, status.Errorf(codes.Unimplemented, "unsupported at the moment")
+	return &frontierv1beta1.UpdatePolicyResponse{}, status.Errorf(codes.Unimplemented, "unsupported at the moment")
 }
 
-func (h Handler) DeletePolicy(ctx context.Context, request *shieldv1beta1.DeletePolicyRequest) (*shieldv1beta1.DeletePolicyResponse, error) {
+func (h Handler) DeletePolicy(ctx context.Context, request *frontierv1beta1.DeletePolicyRequest) (*frontierv1beta1.DeletePolicyResponse, error) {
 	logger := grpczap.Extract(ctx)
 	err := h.policyService.Delete(ctx, request.GetId())
 	if err != nil {
@@ -171,10 +171,10 @@ func (h Handler) DeletePolicy(ctx context.Context, request *shieldv1beta1.Delete
 		ID:   request.GetId(),
 		Type: "app/policy",
 	})
-	return &shieldv1beta1.DeletePolicyResponse{}, nil
+	return &frontierv1beta1.DeletePolicyResponse{}, nil
 }
 
-func transformPolicyToPB(policy policy.Policy) (*shieldv1beta1.Policy, error) {
+func transformPolicyToPB(policy policy.Policy) (*frontierv1beta1.Policy, error) {
 	var metadata *structpb.Struct
 	var err error
 	if len(policy.Metadata) > 0 {
@@ -184,7 +184,7 @@ func transformPolicyToPB(policy policy.Policy) (*shieldv1beta1.Policy, error) {
 		}
 	}
 
-	pbPol := &shieldv1beta1.Policy{
+	pbPol := &frontierv1beta1.Policy{
 		Id:        policy.ID,
 		RoleId:    policy.RoleID,
 		Resource:  schema.JoinNamespaceAndResourceID(policy.ResourceType, policy.ResourceID),

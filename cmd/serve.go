@@ -11,48 +11,48 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/raystack/shield/core/audit"
+	"github.com/raystack/frontier/core/audit"
 
-	"github.com/raystack/shield/core/serviceuser"
+	"github.com/raystack/frontier/core/serviceuser"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/raystack/shield/core/authenticate/token"
+	"github.com/raystack/frontier/core/authenticate/token"
 
-	"github.com/raystack/shield/pkg/server"
+	"github.com/raystack/frontier/pkg/server"
 
-	"github.com/raystack/shield/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/consts"
 
-	"github.com/raystack/shield/core/invitation"
+	"github.com/raystack/frontier/core/invitation"
 
-	"github.com/raystack/shield/pkg/mailer"
+	"github.com/raystack/frontier/pkg/mailer"
 
-	"github.com/raystack/shield/core/permission"
-	"github.com/raystack/shield/internal/bootstrap"
+	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/internal/bootstrap"
 
-	"github.com/raystack/shield/core/deleter"
+	"github.com/raystack/frontier/core/deleter"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
-	"github.com/raystack/shield/core/authenticate"
-	"github.com/raystack/shield/core/authenticate/session"
-	"github.com/raystack/shield/core/metaschema"
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/metaschema"
 
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/core/group"
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/policy"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/core/role"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/internal/api"
-	"github.com/raystack/shield/internal/store/blob"
-	"github.com/raystack/shield/internal/store/postgres"
-	"github.com/raystack/shield/internal/store/spicedb"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/core/group"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/api"
+	"github.com/raystack/frontier/internal/store/blob"
+	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/internal/store/spicedb"
+	"github.com/raystack/frontier/pkg/db"
 
 	"github.com/pkg/profile"
 	"github.com/raystack/salt/log"
@@ -63,8 +63,8 @@ var (
 	ruleCacheRefreshDelay = time.Minute * 2
 )
 
-func StartServer(logger *log.Zap, cfg *config.Shield) error {
-	logger.Info("shield starting", "version", config.Version)
+func StartServer(logger *log.Zap, cfg *config.Frontier) error {
+	logger.Info("frontier starting", "version", config.Version)
 	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}
@@ -181,7 +181,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 
 func buildAPIDependencies(
 	logger log.Logger,
-	cfg *config.Shield,
+	cfg *config.Frontier,
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
@@ -284,7 +284,7 @@ func buildAPIDependencies(
 	default:
 		auditRepository = audit.NewWriteOnlyRepository(io.Discard)
 	}
-	auditService := audit.NewService("shield", auditRepository)
+	auditService := audit.NewService("frontier", auditRepository)
 
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,

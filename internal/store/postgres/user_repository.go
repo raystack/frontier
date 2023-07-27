@@ -8,14 +8,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type UserRepository struct {

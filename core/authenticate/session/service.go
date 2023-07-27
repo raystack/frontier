@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/raystack/shield/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/google/uuid"
 	"github.com/raystack/salt/log"

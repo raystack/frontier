@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.30.0
 // 	protoc        (unknown)
-// source: raystack/shield/v1beta1/models.proto
+// source: raystack/frontier/v1beta1/models.proto
 
-package shieldv1beta1
+package frontierv1beta1
 
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
@@ -44,7 +44,7 @@ type User struct {
 func (x *User) Reset() {
 	*x = User{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[0]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -57,7 +57,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[0]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -70,7 +70,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{0}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *User) GetId() string {
@@ -146,7 +146,7 @@ type ServiceUser struct {
 func (x *ServiceUser) Reset() {
 	*x = ServiceUser{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[1]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -159,7 +159,7 @@ func (x *ServiceUser) String() string {
 func (*ServiceUser) ProtoMessage() {}
 
 func (x *ServiceUser) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[1]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -172,7 +172,7 @@ func (x *ServiceUser) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceUser.ProtoReflect.Descriptor instead.
 func (*ServiceUser) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{1}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ServiceUser) GetId() string {
@@ -241,7 +241,7 @@ type Group struct {
 func (x *Group) Reset() {
 	*x = Group{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[2]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -254,7 +254,7 @@ func (x *Group) String() string {
 func (*Group) ProtoMessage() {}
 
 func (x *Group) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[2]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -267,7 +267,7 @@ func (x *Group) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Group.ProtoReflect.Descriptor instead.
 func (*Group) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{2}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Group) GetId() string {
@@ -338,7 +338,7 @@ type Role struct {
 func (x *Role) Reset() {
 	*x = Role{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[3]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -351,7 +351,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[3]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -364,7 +364,7 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{3}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Role) GetId() string {
@@ -446,7 +446,7 @@ type Organization struct {
 func (x *Organization) Reset() {
 	*x = Organization{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[4]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -459,7 +459,7 @@ func (x *Organization) String() string {
 func (*Organization) ProtoMessage() {}
 
 func (x *Organization) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[4]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -472,7 +472,7 @@ func (x *Organization) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Organization.ProtoReflect.Descriptor instead.
 func (*Organization) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{4}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Organization) GetId() string {
@@ -534,7 +534,7 @@ type Project struct {
 func (x *Project) Reset() {
 	*x = Project{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[5]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -547,7 +547,7 @@ func (x *Project) String() string {
 func (*Project) ProtoMessage() {}
 
 func (x *Project) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[5]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -560,7 +560,7 @@ func (x *Project) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Project.ProtoReflect.Descriptor instead.
 func (*Project) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{5}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Project) GetId() string {
@@ -632,7 +632,7 @@ type Policy struct {
 func (x *Policy) Reset() {
 	*x = Policy{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[6]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -645,7 +645,7 @@ func (x *Policy) String() string {
 func (*Policy) ProtoMessage() {}
 
 func (x *Policy) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[6]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -658,7 +658,7 @@ func (x *Policy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Policy.ProtoReflect.Descriptor instead.
 func (*Policy) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{6}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Policy) GetId() string {
@@ -736,7 +736,7 @@ type Relation struct {
 func (x *Relation) Reset() {
 	*x = Relation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[7]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -749,7 +749,7 @@ func (x *Relation) String() string {
 func (*Relation) ProtoMessage() {}
 
 func (x *Relation) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[7]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -762,7 +762,7 @@ func (x *Relation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Relation.ProtoReflect.Descriptor instead.
 func (*Relation) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{7}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Relation) GetId() string {
@@ -820,12 +820,12 @@ type Permission struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Deprecated: Marked as deprecated in raystack/shield/v1beta1/models.proto.
+	// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/models.proto.
 	Name      string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Title     string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	// Deprecated: Marked as deprecated in raystack/shield/v1beta1/models.proto.
+	// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/models.proto.
 	Namespace string           `protobuf:"bytes,6,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	Metadata  *structpb.Struct `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Key       string           `protobuf:"bytes,8,opt,name=key,proto3" json:"key,omitempty"`
@@ -834,7 +834,7 @@ type Permission struct {
 func (x *Permission) Reset() {
 	*x = Permission{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[8]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -847,7 +847,7 @@ func (x *Permission) String() string {
 func (*Permission) ProtoMessage() {}
 
 func (x *Permission) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[8]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -860,7 +860,7 @@ func (x *Permission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Permission.ProtoReflect.Descriptor instead.
 func (*Permission) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{8}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Permission) GetId() string {
@@ -870,7 +870,7 @@ func (x *Permission) GetId() string {
 	return ""
 }
 
-// Deprecated: Marked as deprecated in raystack/shield/v1beta1/models.proto.
+// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/models.proto.
 func (x *Permission) GetName() string {
 	if x != nil {
 		return x.Name
@@ -899,7 +899,7 @@ func (x *Permission) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// Deprecated: Marked as deprecated in raystack/shield/v1beta1/models.proto.
+// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/models.proto.
 func (x *Permission) GetNamespace() string {
 	if x != nil {
 		return x.Namespace
@@ -937,7 +937,7 @@ type Namespace struct {
 func (x *Namespace) Reset() {
 	*x = Namespace{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[9]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -950,7 +950,7 @@ func (x *Namespace) String() string {
 func (*Namespace) ProtoMessage() {}
 
 func (x *Namespace) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[9]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -963,7 +963,7 @@ func (x *Namespace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Namespace.ProtoReflect.Descriptor instead.
 func (*Namespace) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{9}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Namespace) GetId() string {
@@ -1020,7 +1020,7 @@ type Resource struct {
 func (x *Resource) Reset() {
 	*x = Resource{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[10]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1033,7 +1033,7 @@ func (x *Resource) String() string {
 func (*Resource) ProtoMessage() {}
 
 func (x *Resource) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[10]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1046,7 +1046,7 @@ func (x *Resource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Resource.ProtoReflect.Descriptor instead.
 func (*Resource) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{10}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Resource) GetId() string {
@@ -1127,7 +1127,7 @@ type MetaSchema struct {
 func (x *MetaSchema) Reset() {
 	*x = MetaSchema{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[11]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1140,7 +1140,7 @@ func (x *MetaSchema) String() string {
 func (*MetaSchema) ProtoMessage() {}
 
 func (x *MetaSchema) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[11]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1153,7 +1153,7 @@ func (x *MetaSchema) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetaSchema.ProtoReflect.Descriptor instead.
 func (*MetaSchema) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{11}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *MetaSchema) GetId() string {
@@ -1208,7 +1208,7 @@ type Invitation struct {
 func (x *Invitation) Reset() {
 	*x = Invitation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[12]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1221,7 +1221,7 @@ func (x *Invitation) String() string {
 func (*Invitation) ProtoMessage() {}
 
 func (x *Invitation) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[12]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1234,7 +1234,7 @@ func (x *Invitation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Invitation.ProtoReflect.Descriptor instead.
 func (*Invitation) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{12}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Invitation) GetId() string {
@@ -1301,7 +1301,7 @@ type ServiceUserKey struct {
 func (x *ServiceUserKey) Reset() {
 	*x = ServiceUserKey{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[13]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1314,7 +1314,7 @@ func (x *ServiceUserKey) String() string {
 func (*ServiceUserKey) ProtoMessage() {}
 
 func (x *ServiceUserKey) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[13]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1327,7 +1327,7 @@ func (x *ServiceUserKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceUserKey.ProtoReflect.Descriptor instead.
 func (*ServiceUserKey) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{13}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ServiceUserKey) GetId() string {
@@ -1380,7 +1380,7 @@ type KeyCredential struct {
 func (x *KeyCredential) Reset() {
 	*x = KeyCredential{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[14]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1393,7 +1393,7 @@ func (x *KeyCredential) String() string {
 func (*KeyCredential) ProtoMessage() {}
 
 func (x *KeyCredential) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[14]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1406,7 +1406,7 @@ func (x *KeyCredential) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeyCredential.ProtoReflect.Descriptor instead.
 func (*KeyCredential) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{14}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *KeyCredential) GetType() string {
@@ -1453,7 +1453,7 @@ type SecretCredential struct {
 func (x *SecretCredential) Reset() {
 	*x = SecretCredential{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[15]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1466,7 +1466,7 @@ func (x *SecretCredential) String() string {
 func (*SecretCredential) ProtoMessage() {}
 
 func (x *SecretCredential) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[15]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1479,7 +1479,7 @@ func (x *SecretCredential) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecretCredential.ProtoReflect.Descriptor instead.
 func (*SecretCredential) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{15}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *SecretCredential) GetId() string {
@@ -1539,7 +1539,7 @@ type JSONWebKey struct {
 func (x *JSONWebKey) Reset() {
 	*x = JSONWebKey{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[16]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1552,7 +1552,7 @@ func (x *JSONWebKey) String() string {
 func (*JSONWebKey) ProtoMessage() {}
 
 func (x *JSONWebKey) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[16]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1565,7 +1565,7 @@ func (x *JSONWebKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JSONWebKey.ProtoReflect.Descriptor instead.
 func (*JSONWebKey) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{16}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *JSONWebKey) GetKty() string {
@@ -1644,7 +1644,7 @@ type AuditLogActor struct {
 func (x *AuditLogActor) Reset() {
 	*x = AuditLogActor{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[17]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1657,7 +1657,7 @@ func (x *AuditLogActor) String() string {
 func (*AuditLogActor) ProtoMessage() {}
 
 func (x *AuditLogActor) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[17]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1670,7 +1670,7 @@ func (x *AuditLogActor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditLogActor.ProtoReflect.Descriptor instead.
 func (*AuditLogActor) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{17}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AuditLogActor) GetId() string {
@@ -1707,7 +1707,7 @@ type AuditLogTarget struct {
 func (x *AuditLogTarget) Reset() {
 	*x = AuditLogTarget{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[18]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1720,7 +1720,7 @@ func (x *AuditLogTarget) String() string {
 func (*AuditLogTarget) ProtoMessage() {}
 
 func (x *AuditLogTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[18]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1733,7 +1733,7 @@ func (x *AuditLogTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditLogTarget.ProtoReflect.Descriptor instead.
 func (*AuditLogTarget) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{18}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AuditLogTarget) GetId() string {
@@ -1780,7 +1780,7 @@ type AuditLog struct {
 func (x *AuditLog) Reset() {
 	*x = AuditLog{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[19]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1793,7 +1793,7 @@ func (x *AuditLog) String() string {
 func (*AuditLog) ProtoMessage() {}
 
 func (x *AuditLog) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[19]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1806,7 +1806,7 @@ func (x *AuditLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditLog.ProtoReflect.Descriptor instead.
 func (*AuditLog) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{19}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AuditLog) GetId() string {
@@ -1872,7 +1872,7 @@ type RoleRequestBody struct {
 func (x *RoleRequestBody) Reset() {
 	*x = RoleRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[20]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1885,7 +1885,7 @@ func (x *RoleRequestBody) String() string {
 func (*RoleRequestBody) ProtoMessage() {}
 
 func (x *RoleRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_models_proto_msgTypes[20]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1898,7 +1898,7 @@ func (x *RoleRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleRequestBody.ProtoReflect.Descriptor instead.
 func (*RoleRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_models_proto_rawDescGZIP(), []int{20}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *RoleRequestBody) GetName() string {
@@ -1929,9 +1929,9 @@ func (x *RoleRequestBody) GetTitle() string {
 	return ""
 }
 
-var File_raystack_shield_v1beta1_models_proto protoreflect.FileDescriptor
+var File_raystack_frontier_v1beta1_models_proto protoreflect.FileDescriptor
 
-var file_raystack_shield_v1beta1_models_proto_rawDesc = []byte{
+var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x0a, 0x24, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2f, 0x73, 0x68, 0x69, 0x65, 0x6c,
 	0x64, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x73,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x17, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
@@ -2475,89 +2475,89 @@ var file_raystack_shield_v1beta1_models_proto_rawDesc = []byte{
 }
 
 var (
-	file_raystack_shield_v1beta1_models_proto_rawDescOnce sync.Once
-	file_raystack_shield_v1beta1_models_proto_rawDescData = file_raystack_shield_v1beta1_models_proto_rawDesc
+	file_raystack_frontier_v1beta1_models_proto_rawDescOnce sync.Once
+	file_raystack_frontier_v1beta1_models_proto_rawDescData = file_raystack_frontier_v1beta1_models_proto_rawDesc
 )
 
-func file_raystack_shield_v1beta1_models_proto_rawDescGZIP() []byte {
-	file_raystack_shield_v1beta1_models_proto_rawDescOnce.Do(func() {
-		file_raystack_shield_v1beta1_models_proto_rawDescData = protoimpl.X.CompressGZIP(file_raystack_shield_v1beta1_models_proto_rawDescData)
+func file_raystack_frontier_v1beta1_models_proto_rawDescGZIP() []byte {
+	file_raystack_frontier_v1beta1_models_proto_rawDescOnce.Do(func() {
+		file_raystack_frontier_v1beta1_models_proto_rawDescData = protoimpl.X.CompressGZIP(file_raystack_frontier_v1beta1_models_proto_rawDescData)
 	})
-	return file_raystack_shield_v1beta1_models_proto_rawDescData
+	return file_raystack_frontier_v1beta1_models_proto_rawDescData
 }
 
-var file_raystack_shield_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
-var file_raystack_shield_v1beta1_models_proto_goTypes = []interface{}{
-	(*User)(nil),                  // 0: raystack.shield.v1beta1.User
-	(*ServiceUser)(nil),           // 1: raystack.shield.v1beta1.ServiceUser
-	(*Group)(nil),                 // 2: raystack.shield.v1beta1.Group
-	(*Role)(nil),                  // 3: raystack.shield.v1beta1.Role
-	(*Organization)(nil),          // 4: raystack.shield.v1beta1.Organization
-	(*Project)(nil),               // 5: raystack.shield.v1beta1.Project
-	(*Policy)(nil),                // 6: raystack.shield.v1beta1.Policy
-	(*Relation)(nil),              // 7: raystack.shield.v1beta1.Relation
-	(*Permission)(nil),            // 8: raystack.shield.v1beta1.Permission
-	(*Namespace)(nil),             // 9: raystack.shield.v1beta1.Namespace
-	(*Resource)(nil),              // 10: raystack.shield.v1beta1.Resource
-	(*MetaSchema)(nil),            // 11: raystack.shield.v1beta1.MetaSchema
-	(*Invitation)(nil),            // 12: raystack.shield.v1beta1.Invitation
-	(*ServiceUserKey)(nil),        // 13: raystack.shield.v1beta1.ServiceUserKey
-	(*KeyCredential)(nil),         // 14: raystack.shield.v1beta1.KeyCredential
-	(*SecretCredential)(nil),      // 15: raystack.shield.v1beta1.SecretCredential
-	(*JSONWebKey)(nil),            // 16: raystack.shield.v1beta1.JSONWebKey
-	(*AuditLogActor)(nil),         // 17: raystack.shield.v1beta1.AuditLogActor
-	(*AuditLogTarget)(nil),        // 18: raystack.shield.v1beta1.AuditLogTarget
-	(*AuditLog)(nil),              // 19: raystack.shield.v1beta1.AuditLog
-	(*RoleRequestBody)(nil),       // 20: raystack.shield.v1beta1.RoleRequestBody
-	nil,                           // 21: raystack.shield.v1beta1.AuditLog.ContextEntry
+var file_raystack_frontier_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_raystack_frontier_v1beta1_models_proto_goTypes = []interface{}{
+	(*User)(nil),                  // 0: raystack.frontier.v1beta1.User
+	(*ServiceUser)(nil),           // 1: raystack.frontier.v1beta1.ServiceUser
+	(*Group)(nil),                 // 2: raystack.frontier.v1beta1.Group
+	(*Role)(nil),                  // 3: raystack.frontier.v1beta1.Role
+	(*Organization)(nil),          // 4: raystack.frontier.v1beta1.Organization
+	(*Project)(nil),               // 5: raystack.frontier.v1beta1.Project
+	(*Policy)(nil),                // 6: raystack.frontier.v1beta1.Policy
+	(*Relation)(nil),              // 7: raystack.frontier.v1beta1.Relation
+	(*Permission)(nil),            // 8: raystack.frontier.v1beta1.Permission
+	(*Namespace)(nil),             // 9: raystack.frontier.v1beta1.Namespace
+	(*Resource)(nil),              // 10: raystack.frontier.v1beta1.Resource
+	(*MetaSchema)(nil),            // 11: raystack.frontier.v1beta1.MetaSchema
+	(*Invitation)(nil),            // 12: raystack.frontier.v1beta1.Invitation
+	(*ServiceUserKey)(nil),        // 13: raystack.frontier.v1beta1.ServiceUserKey
+	(*KeyCredential)(nil),         // 14: raystack.frontier.v1beta1.KeyCredential
+	(*SecretCredential)(nil),      // 15: raystack.frontier.v1beta1.SecretCredential
+	(*JSONWebKey)(nil),            // 16: raystack.frontier.v1beta1.JSONWebKey
+	(*AuditLogActor)(nil),         // 17: raystack.frontier.v1beta1.AuditLogActor
+	(*AuditLogTarget)(nil),        // 18: raystack.frontier.v1beta1.AuditLogTarget
+	(*AuditLog)(nil),              // 19: raystack.frontier.v1beta1.AuditLog
+	(*RoleRequestBody)(nil),       // 20: raystack.frontier.v1beta1.RoleRequestBody
+	nil,                           // 21: raystack.frontier.v1beta1.AuditLog.ContextEntry
 	(*structpb.Struct)(nil),       // 22: google.protobuf.Struct
 	(*timestamppb.Timestamp)(nil), // 23: google.protobuf.Timestamp
 }
-var file_raystack_shield_v1beta1_models_proto_depIdxs = []int32{
-	22, // 0: raystack.shield.v1beta1.User.metadata:type_name -> google.protobuf.Struct
-	23, // 1: raystack.shield.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
-	23, // 2: raystack.shield.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 3: raystack.shield.v1beta1.ServiceUser.metadata:type_name -> google.protobuf.Struct
-	23, // 4: raystack.shield.v1beta1.ServiceUser.created_at:type_name -> google.protobuf.Timestamp
-	23, // 5: raystack.shield.v1beta1.ServiceUser.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 6: raystack.shield.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
-	23, // 7: raystack.shield.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
-	23, // 8: raystack.shield.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 9: raystack.shield.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
-	23, // 10: raystack.shield.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
-	23, // 11: raystack.shield.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 12: raystack.shield.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
-	23, // 13: raystack.shield.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
-	23, // 14: raystack.shield.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 15: raystack.shield.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
-	23, // 16: raystack.shield.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
-	23, // 17: raystack.shield.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
-	23, // 18: raystack.shield.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
-	23, // 19: raystack.shield.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 20: raystack.shield.v1beta1.Policy.metadata:type_name -> google.protobuf.Struct
-	23, // 21: raystack.shield.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
-	23, // 22: raystack.shield.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
-	23, // 23: raystack.shield.v1beta1.Permission.created_at:type_name -> google.protobuf.Timestamp
-	23, // 24: raystack.shield.v1beta1.Permission.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 25: raystack.shield.v1beta1.Permission.metadata:type_name -> google.protobuf.Struct
-	22, // 26: raystack.shield.v1beta1.Namespace.metadata:type_name -> google.protobuf.Struct
-	23, // 27: raystack.shield.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
-	23, // 28: raystack.shield.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
-	23, // 29: raystack.shield.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
-	23, // 30: raystack.shield.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 31: raystack.shield.v1beta1.Resource.metadata:type_name -> google.protobuf.Struct
-	23, // 32: raystack.shield.v1beta1.MetaSchema.created_at:type_name -> google.protobuf.Timestamp
-	23, // 33: raystack.shield.v1beta1.MetaSchema.updated_at:type_name -> google.protobuf.Timestamp
-	22, // 34: raystack.shield.v1beta1.Invitation.metadata:type_name -> google.protobuf.Struct
-	23, // 35: raystack.shield.v1beta1.Invitation.created_at:type_name -> google.protobuf.Timestamp
-	23, // 36: raystack.shield.v1beta1.Invitation.expires_at:type_name -> google.protobuf.Timestamp
-	23, // 37: raystack.shield.v1beta1.ServiceUserKey.created_at:type_name -> google.protobuf.Timestamp
-	23, // 38: raystack.shield.v1beta1.SecretCredential.created_at:type_name -> google.protobuf.Timestamp
-	17, // 39: raystack.shield.v1beta1.AuditLog.actor:type_name -> raystack.shield.v1beta1.AuditLogActor
-	18, // 40: raystack.shield.v1beta1.AuditLog.target:type_name -> raystack.shield.v1beta1.AuditLogTarget
-	21, // 41: raystack.shield.v1beta1.AuditLog.context:type_name -> raystack.shield.v1beta1.AuditLog.ContextEntry
-	23, // 42: raystack.shield.v1beta1.AuditLog.created_at:type_name -> google.protobuf.Timestamp
-	22, // 43: raystack.shield.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
+var file_raystack_frontier_v1beta1_models_proto_depIdxs = []int32{
+	22, // 0: raystack.frontier.v1beta1.User.metadata:type_name -> google.protobuf.Struct
+	23, // 1: raystack.frontier.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
+	23, // 2: raystack.frontier.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 3: raystack.frontier.v1beta1.ServiceUser.metadata:type_name -> google.protobuf.Struct
+	23, // 4: raystack.frontier.v1beta1.ServiceUser.created_at:type_name -> google.protobuf.Timestamp
+	23, // 5: raystack.frontier.v1beta1.ServiceUser.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 6: raystack.frontier.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
+	23, // 7: raystack.frontier.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
+	23, // 8: raystack.frontier.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 9: raystack.frontier.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
+	23, // 10: raystack.frontier.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
+	23, // 11: raystack.frontier.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 12: raystack.frontier.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
+	23, // 13: raystack.frontier.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
+	23, // 14: raystack.frontier.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 15: raystack.frontier.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
+	23, // 16: raystack.frontier.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
+	23, // 17: raystack.frontier.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
+	23, // 18: raystack.frontier.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
+	23, // 19: raystack.frontier.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 20: raystack.frontier.v1beta1.Policy.metadata:type_name -> google.protobuf.Struct
+	23, // 21: raystack.frontier.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
+	23, // 22: raystack.frontier.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
+	23, // 23: raystack.frontier.v1beta1.Permission.created_at:type_name -> google.protobuf.Timestamp
+	23, // 24: raystack.frontier.v1beta1.Permission.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 25: raystack.frontier.v1beta1.Permission.metadata:type_name -> google.protobuf.Struct
+	22, // 26: raystack.frontier.v1beta1.Namespace.metadata:type_name -> google.protobuf.Struct
+	23, // 27: raystack.frontier.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
+	23, // 28: raystack.frontier.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
+	23, // 29: raystack.frontier.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
+	23, // 30: raystack.frontier.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 31: raystack.frontier.v1beta1.Resource.metadata:type_name -> google.protobuf.Struct
+	23, // 32: raystack.frontier.v1beta1.MetaSchema.created_at:type_name -> google.protobuf.Timestamp
+	23, // 33: raystack.frontier.v1beta1.MetaSchema.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 34: raystack.frontier.v1beta1.Invitation.metadata:type_name -> google.protobuf.Struct
+	23, // 35: raystack.frontier.v1beta1.Invitation.created_at:type_name -> google.protobuf.Timestamp
+	23, // 36: raystack.frontier.v1beta1.Invitation.expires_at:type_name -> google.protobuf.Timestamp
+	23, // 37: raystack.frontier.v1beta1.ServiceUserKey.created_at:type_name -> google.protobuf.Timestamp
+	23, // 38: raystack.frontier.v1beta1.SecretCredential.created_at:type_name -> google.protobuf.Timestamp
+	17, // 39: raystack.frontier.v1beta1.AuditLog.actor:type_name -> raystack.frontier.v1beta1.AuditLogActor
+	18, // 40: raystack.frontier.v1beta1.AuditLog.target:type_name -> raystack.frontier.v1beta1.AuditLogTarget
+	21, // 41: raystack.frontier.v1beta1.AuditLog.context:type_name -> raystack.frontier.v1beta1.AuditLog.ContextEntry
+	23, // 42: raystack.frontier.v1beta1.AuditLog.created_at:type_name -> google.protobuf.Timestamp
+	22, // 43: raystack.frontier.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
 	44, // [44:44] is the sub-list for method output_type
 	44, // [44:44] is the sub-list for method input_type
 	44, // [44:44] is the sub-list for extension type_name
@@ -2565,13 +2565,13 @@ var file_raystack_shield_v1beta1_models_proto_depIdxs = []int32{
 	0,  // [0:44] is the sub-list for field type_name
 }
 
-func init() { file_raystack_shield_v1beta1_models_proto_init() }
-func file_raystack_shield_v1beta1_models_proto_init() {
-	if File_raystack_shield_v1beta1_models_proto != nil {
+func init() { file_raystack_frontier_v1beta1_models_proto_init() }
+func file_raystack_frontier_v1beta1_models_proto_init() {
+	if File_raystack_frontier_v1beta1_models_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_raystack_shield_v1beta1_models_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*User); i {
 			case 0:
 				return &v.state
@@ -2583,7 +2583,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ServiceUser); i {
 			case 0:
 				return &v.state
@@ -2595,7 +2595,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Group); i {
 			case 0:
 				return &v.state
@@ -2607,7 +2607,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Role); i {
 			case 0:
 				return &v.state
@@ -2619,7 +2619,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Organization); i {
 			case 0:
 				return &v.state
@@ -2631,7 +2631,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Project); i {
 			case 0:
 				return &v.state
@@ -2643,7 +2643,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Policy); i {
 			case 0:
 				return &v.state
@@ -2655,7 +2655,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Relation); i {
 			case 0:
 				return &v.state
@@ -2667,7 +2667,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Permission); i {
 			case 0:
 				return &v.state
@@ -2679,7 +2679,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Namespace); i {
 			case 0:
 				return &v.state
@@ -2691,7 +2691,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Resource); i {
 			case 0:
 				return &v.state
@@ -2703,7 +2703,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MetaSchema); i {
 			case 0:
 				return &v.state
@@ -2715,7 +2715,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Invitation); i {
 			case 0:
 				return &v.state
@@ -2727,7 +2727,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ServiceUserKey); i {
 			case 0:
 				return &v.state
@@ -2739,7 +2739,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*KeyCredential); i {
 			case 0:
 				return &v.state
@@ -2751,7 +2751,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SecretCredential); i {
 			case 0:
 				return &v.state
@@ -2763,7 +2763,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*JSONWebKey); i {
 			case 0:
 				return &v.state
@@ -2775,7 +2775,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuditLogActor); i {
 			case 0:
 				return &v.state
@@ -2787,7 +2787,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuditLogTarget); i {
 			case 0:
 				return &v.state
@@ -2799,7 +2799,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuditLog); i {
 			case 0:
 				return &v.state
@@ -2811,7 +2811,7 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_models_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RoleRequestBody); i {
 			case 0:
 				return &v.state
@@ -2828,18 +2828,18 @@ func file_raystack_shield_v1beta1_models_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_raystack_shield_v1beta1_models_proto_rawDesc,
+			RawDescriptor: file_raystack_frontier_v1beta1_models_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_raystack_shield_v1beta1_models_proto_goTypes,
-		DependencyIndexes: file_raystack_shield_v1beta1_models_proto_depIdxs,
-		MessageInfos:      file_raystack_shield_v1beta1_models_proto_msgTypes,
+		GoTypes:           file_raystack_frontier_v1beta1_models_proto_goTypes,
+		DependencyIndexes: file_raystack_frontier_v1beta1_models_proto_depIdxs,
+		MessageInfos:      file_raystack_frontier_v1beta1_models_proto_msgTypes,
 	}.Build()
-	File_raystack_shield_v1beta1_models_proto = out.File
-	file_raystack_shield_v1beta1_models_proto_rawDesc = nil
-	file_raystack_shield_v1beta1_models_proto_goTypes = nil
-	file_raystack_shield_v1beta1_models_proto_depIdxs = nil
+	File_raystack_frontier_v1beta1_models_proto = out.File
+	file_raystack_frontier_v1beta1_models_proto_rawDesc = nil
+	file_raystack_frontier_v1beta1_models_proto_goTypes = nil
+	file_raystack_frontier_v1beta1_models_proto_depIdxs = nil
 }

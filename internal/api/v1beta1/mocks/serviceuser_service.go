@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	serviceuser "github.com/raystack/shield/core/serviceuser"
+	serviceuser "github.com/raystack/frontier/core/serviceuser"
 	mock "github.com/stretchr/testify/mock"
 )
 

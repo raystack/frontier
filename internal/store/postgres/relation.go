@@ -5,7 +5,7 @@ import (
 
 	"database/sql"
 
-	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/frontier/core/relation"
 )
 
 type Relation struct {

@@ -7,7 +7,7 @@ import (
 )
 
 // Metadata is a structure to store dynamic values in
-// shield. it could be use as an additional information
+// frontier. it could be use as an additional information
 // of a specific entity
 type Metadata map[string]any
 

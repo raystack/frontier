@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/raystack/shield/internal/proxy/hook"
+	"github.com/raystack/frontier/internal/proxy/hook"
 
 	"github.com/raystack/salt/log"
 	"go.uber.org/zap"

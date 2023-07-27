@@ -9,20 +9,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/core/rule"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	"github.com/raystack/shield/internal/proxy/hook"
-	shieldlogger "github.com/raystack/shield/pkg/logger"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/core/rule"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/internal/proxy/hook"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 )
 
 var testPermissionAttributesMap = map[string]any{
@@ -113,13 +113,13 @@ func TestServeHook(t *testing.T) {
 	mockRelationService := mocks.RelationService{}
 	mockResourceService := mocks.ResourceService{}
 
-	logger := shieldlogger.InitLogger(shieldlogger.Config{
+	logger := frontierlogger.InitLogger(frontierlogger.Config{
 		Level:  "fatal",
 		Format: "json",
 	})
 
 	rootHook := hook.New()
-	a := New(logger, rootHook, rootHook, &mockResourceService, &mockRelationService, "X-Shield-Email")
+	a := New(logger, rootHook, rootHook, &mockResourceService, &mockRelationService, "X-Frontier-Email")
 
 	t.Run("should return InternalServerError when non-nil error is sent", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
@@ -261,7 +261,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
+		response.Request.Header.Set("X-Frontier-Email", "user@raystack.org")
 
 		resp, err := a.ServeHook(response, nil)
 
@@ -315,7 +315,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
+		response.Request.Header.Set("X-Frontier-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -409,7 +409,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
+		response.Request.Header.Set("X-Frontier-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -510,7 +510,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
+		response.Request.Header.Set("X-Frontier-Email", "user@raystack.org")
 
 		rsc := resource.Resource{
 			Name:        "bar",
@@ -607,7 +607,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
+		response.Request.Header.Set("X-Frontier-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -704,7 +704,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@raystack.org")
+		response.Request.Header.Set("X-Frontier-Email", "user@raystack.org")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/raystack/shield/cmd"
+	"github.com/raystack/frontier/cmd"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 )

@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/pkg/file"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	"github.com/raystack/shield/pkg/file"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -20,10 +20,10 @@ func ProjectCommand(cliConfig *Config) *cli.Command {
 			Work with projects.
 		`),
 		Example: heredoc.Doc(`
-			$ shield project create
-			$ shield project edit
-			$ shield project view
-			$ shield project list
+			$ frontier project create
+			$ frontier project edit
+			$ frontier project view
+			$ frontier project list
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -49,7 +49,7 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 		Short: "Upsert a project",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield project create --file=<project-body> --header=<key>:<value>
+			$ frontier project create --file=<project-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
@@ -58,7 +58,7 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.ProjectRequestBody
+			var reqBody frontierv1beta1.ProjectRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -75,7 +75,7 @@ func createProjectCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
+			res, err := client.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -104,7 +104,7 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 		Short: "Edit a project",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield project edit <project-id> --file=<project-body>
+			$ frontier project edit <project-id> --file=<project-body>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
@@ -113,7 +113,7 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.ProjectRequestBody
+			var reqBody frontierv1beta1.ProjectRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -130,7 +130,7 @@ func editProjectCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			projectID := args[0]
-			_, err = client.UpdateProject(cmd.Context(), &shieldv1beta1.UpdateProjectRequest{
+			_, err = client.UpdateProject(cmd.Context(), &frontierv1beta1.UpdateProjectRequest{
 				Id:   projectID,
 				Body: &reqBody,
 			})
@@ -158,7 +158,7 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 		Short: "View a project",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield project view <project-id>
+			$ frontier project view <project-id>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
@@ -174,7 +174,7 @@ func viewProjectCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			projectID := args[0]
-			res, err := client.GetProject(cmd.Context(), &shieldv1beta1.GetProjectRequest{
+			res, err := client.GetProject(cmd.Context(), &frontierv1beta1.GetProjectRequest{
 				Id: projectID,
 			})
 			if err != nil {
@@ -227,7 +227,7 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 		Short: "List all projects",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield project list <orgid>
+			$ frontier project list <orgid>
 		`),
 		Annotations: map[string]string{
 			"project:core": "true",
@@ -242,7 +242,7 @@ func listProjectCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListOrganizationProjects(cmd.Context(), &shieldv1beta1.ListOrganizationProjectsRequest{
+			res, err := client.ListOrganizationProjects(cmd.Context(), &frontierv1beta1.ListOrganizationProjectsRequest{
 				Id: args[0],
 			})
 			if err != nil {

@@ -6,7 +6,7 @@ import (
 
 	"database/sql"
 
-	"github.com/raystack/shield/core/namespace"
+	"github.com/raystack/frontier/core/namespace"
 )
 
 type Namespace struct {

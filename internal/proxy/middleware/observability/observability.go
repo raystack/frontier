@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/raystack/shield/internal/proxy/middleware"
+	"github.com/raystack/frontier/internal/proxy/middleware"
 
 	"github.com/raystack/salt/log"
 	"github.com/rs/xid"

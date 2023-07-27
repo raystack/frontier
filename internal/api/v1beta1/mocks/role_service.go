@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	role "github.com/raystack/shield/core/role"
+	role "github.com/raystack/frontier/core/role"
 	mock "github.com/stretchr/testify/mock"
 )
 

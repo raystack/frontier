@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/relation"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/relation"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -30,9 +30,9 @@ var (
 	ErrNamespaceSplitNotation = errors.New("subject/object should be provided as 'namespace:uuid'")
 )
 
-func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListRelationsRequest) (*shieldv1beta1.ListRelationsResponse, error) {
+func (h Handler) ListRelations(ctx context.Context, request *frontierv1beta1.ListRelationsRequest) (*frontierv1beta1.ListRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var relations []*shieldv1beta1.Relation
+	var relations []*frontierv1beta1.Relation
 	relationsList, err := h.relationService.List(ctx)
 	if err != nil {
 		logger.Error(err.Error())
@@ -49,12 +49,12 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 		relations = append(relations, relationPB)
 	}
 
-	return &shieldv1beta1.ListRelationsResponse{
+	return &frontierv1beta1.ListRelationsResponse{
 		Relations: relations,
 	}, nil
 }
 
-func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRelationRequest) (*shieldv1beta1.CreateRelationResponse, error) {
+func (h Handler) CreateRelation(ctx context.Context, request *frontierv1beta1.CreateRelationRequest) (*frontierv1beta1.CreateRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
@@ -111,12 +111,12 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.CreateRelationResponse{
+	return &frontierv1beta1.CreateRelationResponse{
 		Relation: relationPB,
 	}, nil
 }
 
-func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRelationRequest) (*shieldv1beta1.GetRelationResponse, error) {
+func (h Handler) GetRelation(ctx context.Context, request *frontierv1beta1.GetRelationRequest) (*frontierv1beta1.GetRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedRelation, err := h.relationService.Get(ctx, request.GetId())
@@ -138,12 +138,12 @@ func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRela
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetRelationResponse{
+	return &frontierv1beta1.GetRelationResponse{
 		Relation: relationPB,
 	}, nil
 }
 
-func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.DeleteRelationRequest) (*shieldv1beta1.DeleteRelationResponse, error) {
+func (h Handler) DeleteRelation(ctx context.Context, request *frontierv1beta1.DeleteRelationRequest) (*frontierv1beta1.DeleteRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	subjectNamespace, subjectID, err := schema.SplitNamespaceAndResourceID(request.GetSubject())
@@ -178,11 +178,11 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 		}
 	}
 
-	return &shieldv1beta1.DeleteRelationResponse{}, nil
+	return &frontierv1beta1.DeleteRelationResponse{}, nil
 }
 
-func transformRelationV2ToPB(relation relation.Relation) (*shieldv1beta1.Relation, error) {
-	rel := &shieldv1beta1.Relation{
+func transformRelationV2ToPB(relation relation.Relation) (*frontierv1beta1.Relation, error) {
+	rel := &frontierv1beta1.Relation{
 		Id:                 relation.ID,
 		Object:             schema.JoinNamespaceAndResourceID(relation.Object.Namespace, relation.Object.ID),
 		Subject:            schema.JoinNamespaceAndResourceID(relation.Subject.Namespace, relation.Subject.ID),

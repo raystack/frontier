@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

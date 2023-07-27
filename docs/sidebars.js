@@ -101,7 +101,7 @@ module.exports = {
       label: "APIs",
       link: {
         type: "doc",
-        id: "apis/shield-administration-api",
+        id: "apis/frontier-administration-api",
       },
       items: [
         require("./docs/apis/sidebar.js")

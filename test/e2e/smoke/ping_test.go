@@ -8,12 +8,12 @@ import (
 	"path"
 	"testing"
 
-	"github.com/raystack/shield/pkg/server"
+	"github.com/raystack/frontier/pkg/server"
 
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/internal/proxy"
-	"github.com/raystack/shield/pkg/logger"
-	"github.com/raystack/shield/test/e2e/testbench"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/internal/proxy"
+	"github.com/raystack/frontier/pkg/logger"
+	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -43,7 +43,7 @@ func (s *PingSmokeTestSuite) SetupSuite() {
 	s.Assert().NoError(err)
 	s.proxyPort = proxyPort
 
-	appConfig := &config.Shield{
+	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "fatal",
 		},
@@ -85,7 +85,7 @@ func (s *PingSmokeTestSuite) TearDownSuite() {
 }
 
 func (s *PingSmokeTestSuite) TestPing() {
-	s.Run("should be able to ping shield", func() {
+	s.Run("should be able to ping frontier", func() {
 		url := fmt.Sprintf("http://localhost:%d/ping", s.apiPort)
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		s.Require().NoError(err)

@@ -7,16 +7,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/frontier/core/relation"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/raystack/salt/log"
 
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/internal/proxy/middleware"
-	"github.com/raystack/shield/pkg/body_extractor"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/internal/proxy/middleware"
+	"github.com/raystack/frontier/pkg/body_extractor"
 )
 
 type ResourceService interface {

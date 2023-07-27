@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 type Repository interface {

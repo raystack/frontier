@@ -6,10 +6,10 @@ import (
 
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/permission"
-	"github.com/raystack/shield/core/role"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
 var (
@@ -237,7 +237,7 @@ func (s Service) migrateServiceDefinitionToDB(ctx context.Context, appServiceDef
 // migrateAZDefinitionsToDB will ensure wll the namespaces are already created in database which will be used
 // throughout the application
 func (s Service) migrateAZDefinitionsToDB(ctx context.Context, azDefinitions []*azcore.NamespaceDefinition) error {
-	// iterate over all az definitions and convert shield namespace
+	// iterate over all az definitions and convert frontier namespace
 	for _, azDef := range azDefinitions {
 		// create namespace if needed
 		_, err := s.namespaceService.Upsert(ctx, namespace.Namespace{

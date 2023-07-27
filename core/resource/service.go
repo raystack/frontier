@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
 type RelationService interface {

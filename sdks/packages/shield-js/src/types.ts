@@ -48,7 +48,7 @@ export interface Role {
   types: string[];
 }
 
-export interface ShieldClientOptions {
+export interface FrontierClientOptions {
   endpoint?: string;
   redirectSignup?: string;
   redirectLogin?: string;
@@ -58,8 +58,8 @@ export interface InitialState {
   sessionId?: string | null;
 }
 
-export interface ShieldProviderProps {
-  config: ShieldClientOptions;
+export interface FrontierProviderProps {
+  config: FrontierClientOptions;
   children: React.ReactNode;
   initialState?: InitialState;
 }

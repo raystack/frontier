@@ -1,6 +1,6 @@
 # Admin Portal
 
-The Admin Portal provides the Shield administrators with a centralized interface for managing the Raystack/Shield platform. This README will guide you through the installation, setup, and usage of the Admin Portal.
+The Admin Portal provides the Frontier administrators with a centralized interface for managing the Raystack/Frontier platform. This README will guide you through the installation, setup, and usage of the Admin Portal.
 
 ### Features
 
@@ -10,25 +10,25 @@ _Many of these features are still in development and represents an exhautive lis
 - Tenant (organization) management for multi-tenancy support
 - User authentication and access control
 - User management with role-based access control
-- Roles and permission management for fine-tuning Shield's behavior
+- Roles and permission management for fine-tuning Frontier's behavior
 - Integration with external authentication identity providers/ configure Magic Links/ OTP based sign-ups
 - Domain Verification for Organizations
 - Audit Logs for monitoring and much more...
 
 ### Starting the Admin Portal
 
-> Make sure you have the Shield server up and running. For details refer [installations](./installation.md) and [configurations](./configurations.md)
+> Make sure you have the Frontier server up and running. For details refer [installations](./installation.md) and [configurations](./configurations.md)
 
-Change the current working directory to ui in Shield
+Change the current working directory to ui in Frontier
 
 ```bash
 $ cd ui
 ```
 
-Create a **.env** file or export **`SHILD_API_URL`** environment variable for communication with the Shield server.
+Create a **.env** file or export **`SHILD_API_URL`** environment variable for communication with the Frontier server.
 
 ```bash title=.env
-# provide the shield server url
+# provide the frontier server url
 SHILD_API_URL=http://localhost:8000
 ```
 

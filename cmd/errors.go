@@ -8,23 +8,23 @@ import (
 
 var (
 	ErrClientConfigNotFound = errors.New(heredoc.Doc(`
-		Shield client config not found.
+		Frontier client config not found.
 
-		Run "shield config init" to initialize a new client config or
-		Run "shield help environment" for more information.
+		Run "frontier config init" to initialize a new client config or
+		Run "frontier help environment" for more information.
 	`))
 	ErrClientConfigHostNotFound = errors.New(heredoc.Doc(`
-		Shield client config "host" not found.
+		Frontier client config "host" not found.
 
-		Pass shield server host with "--host" flag or 
-		set host in shield config.
+		Pass frontier server host with "--host" flag or 
+		set host in frontier config.
 
-		Run "shield config <subcommand>" or
-		"shield help environment" for more information.
+		Run "frontier config <subcommand>" or
+		"frontier help environment" for more information.
 	`))
 	ErrClientNotAuthorized = errors.New(heredoc.Doc(`
-		Shield auth error. Shield requires an auth header.
+		Frontier auth error. Frontier requires an auth header.
 		
-		Run "shield help auth" for more information.
+		Run "frontier help auth" for more information.
 	`))
 )

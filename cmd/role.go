@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/pkg/file"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	"github.com/raystack/shield/pkg/file"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -21,10 +21,10 @@ func RoleCommand(cliConfig *Config) *cli.Command {
 			Work with roles.
 		`),
 		Example: heredoc.Doc(`
-			$ shield role create
-			$ shield role edit
-			$ shield role view
-			$ shield role list
+			$ frontier role create
+			$ frontier role edit
+			$ frontier role view
+			$ frontier role list
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -50,7 +50,7 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 		Short: "Upsert a role",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield role create --file=<role-body> --header=<key>:<value>
+			$ frontier role create --file=<role-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"role:core": "true",
@@ -59,7 +59,7 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.RoleRequestBody
+			var reqBody frontierv1beta1.RoleRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -77,7 +77,7 @@ func createRoleCommand(cliConfig *Config) *cli.Command {
 
 			ctx := setCtxHeader(cmd.Context(), header)
 
-			res, err := client.CreateOrganizationRole(ctx, &shieldv1beta1.CreateOrganizationRoleRequest{
+			res, err := client.CreateOrganizationRole(ctx, &frontierv1beta1.CreateOrganizationRoleRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -106,7 +106,7 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 		Short: "Edit a role",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield role edit <role-id> --file=<role-body>
+			$ frontier role edit <role-id> --file=<role-body>
 		`),
 		Annotations: map[string]string{
 			"role:core": "true",
@@ -115,7 +115,7 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.RoleRequestBody
+			var reqBody frontierv1beta1.RoleRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -132,7 +132,7 @@ func editRoleCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			roleID := args[0]
-			_, err = client.UpdateOrganizationRole(cmd.Context(), &shieldv1beta1.UpdateOrganizationRoleRequest{
+			_, err = client.UpdateOrganizationRole(cmd.Context(), &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:   roleID,
 				Body: &reqBody,
 			})
@@ -160,7 +160,7 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 		Short: "View a role",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield role view <role-id>
+			$ frontier role view <role-id>
 		`),
 		Annotations: map[string]string{
 			"role:core": "true",
@@ -176,7 +176,7 @@ func viewRoleCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			roleID := args[0]
-			res, err := client.GetOrganizationRole(cmd.Context(), &shieldv1beta1.GetOrganizationRoleRequest{
+			res, err := client.GetOrganizationRole(cmd.Context(), &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: roleID,
 			})
 			if err != nil {
@@ -230,7 +230,7 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 		Short: "List all roles",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield role list
+			$ frontier role list
 		`),
 		Annotations: map[string]string{
 			"role:core": "true",
@@ -245,7 +245,7 @@ func listRoleCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListRoles(cmd.Context(), &shieldv1beta1.ListRolesRequest{})
+			res, err := client.ListRoles(cmd.Context(), &frontierv1beta1.ListRolesRequest{})
 			if err != nil {
 				return err
 			}

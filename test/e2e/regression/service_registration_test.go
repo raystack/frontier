@@ -6,15 +6,15 @@ import (
 	"path"
 	"testing"
 
-	"github.com/raystack/shield/pkg/server"
+	"github.com/raystack/frontier/pkg/server"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/pkg/logger"
-	"github.com/raystack/shield/test/e2e/testbench"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/pkg/logger"
+	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -33,7 +33,7 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 	grpcPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 
-	appConfig := &config.Shield{
+	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
@@ -71,8 +71,8 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 	}))
 
 	s.Run("1. register a new service with custom permissions", func() {
-		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &shieldv1beta1.CreatePermissionRequest{
-			Bodies: []*shieldv1beta1.PermissionRequestBody{
+		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Name:      "get",
 					Namespace: "database/instance",
@@ -97,7 +97,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(3, len(createPermResp.GetPermissions()))
 
-		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &shieldv1beta1.ListPermissionsRequest{})
+		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listPermResp.GetPermissions())
 		// check if list contains newly created permissions
@@ -108,8 +108,8 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		s.Assert().GreaterOrEqual(len(listPermResp.GetPermissions()), len(createPermResp.GetPermissions()))
 	})
 	s.Run("2. registering a new service should not remove existing permissions", func() {
-		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &shieldv1beta1.CreatePermissionRequest{
-			Bodies: []*shieldv1beta1.PermissionRequestBody{
+		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
 					Name:      "update",
 					Namespace: "database/alert",
@@ -129,7 +129,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(2, len(createPermResp.GetPermissions()))
 
-		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &shieldv1beta1.ListPermissionsRequest{})
+		listPermResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listPermResp.GetPermissions())
 		// check if list contains newly created permissions

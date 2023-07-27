@@ -9,19 +9,19 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/raystack/shield/pkg/logger"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/pkg/logger"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	"github.com/google/uuid"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/internal/store/spicedb"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/internal/store/spicedb"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 const (
-	preSharedKey         = "shield"
+	preSharedKey         = "frontier"
 	waitContainerTimeout = 60 * time.Second
 )
 
@@ -33,12 +33,12 @@ type TestBench struct {
 	Pool        *dockertest.Pool
 	Network     *docker.Network
 	Resources   []*dockertest.Resource
-	Client      shieldv1beta1.ShieldServiceClient
-	AdminClient shieldv1beta1.AdminServiceClient
+	Client      frontierv1beta1.FrontierServiceClient
+	AdminClient frontierv1beta1.AdminServiceClient
 	close       func() error
 }
 
-func Init(appConfig *config.Shield) (*TestBench, error) {
+func Init(appConfig *config.Frontier) (*TestBench, error) {
 	var (
 		err    error
 		logger = logger.InitLogger(appConfig.Log)
@@ -58,7 +58,7 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 		return nil, err
 	}
 
-	_, connMainPGExternal, pgResource, err := StartPG(te.Network, te.Pool, "shield")
+	_, connMainPGExternal, pgResource, err := StartPG(te.Network, te.Pool, "frontier")
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 		FullyConsistent: true,
 	}
 
-	if err = MigrateShield(logger, appConfig); err != nil {
+	if err = MigrateFrontier(logger, appConfig); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +93,7 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 		return errors.Join(err1, err2)
 	}
 
-	StartShield(logger, appConfig)
+	StartFrontier(logger, appConfig)
 
 	// create fixtures
 	sClient, sClose, err := CreateClient(context.Background(), net.JoinHostPort(appConfig.App.Host, strconv.Itoa(appConfig.App.GRPC.Port)))
@@ -116,7 +116,7 @@ func Init(appConfig *config.Shield) (*TestBench, error) {
 		return errors.Join(err1, err2, err3, err4)
 	}
 
-	// let shield start
+	// let frontier start
 	time.Sleep(time.Second * 2)
 	return te, nil
 }

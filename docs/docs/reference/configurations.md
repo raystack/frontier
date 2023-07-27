@@ -22,11 +22,11 @@ app:
     tls_key_file: "temp/server-key.pem"
     tls_client_ca_file: "temp/ca-cert.pem"
   metrics_port: 9000
-  identity_proxy_header: X-Shield-Email
+  identity_proxy_header: X-Frontier-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
   # local storage file "file:///tmp/resources_config"
-  # GCS Bucket "gs://shield/resources_config"
+  # GCS Bucket "gs://frontier/resources_config"
   resources_config_path: file:///tmp/resources_config\
   # secret required to access resources config
   # e.g.:
@@ -41,9 +41,9 @@ app:
   disable_users_listing: false
   # cors_origin is origin value from where we want to allow cors
   cors_origin: http://localhost:3000
-  # configuration to allow authentication in shield
+  # configuration to allow authentication in frontier
   authentication:
-    # to use shield as session store
+    # to use frontier as session store
     session:
       # both of them should be 32 chars long
       # hash helps identify if the value is tempered with
@@ -53,12 +53,12 @@ app:
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
-      # generate key file via "./shield server keygen"
+      # generate key file via "./frontier server keygen"
       # if not specified, access tokens will be disabled
       # example: /opt/rsa
       rsa_path: ""
       # issuer claim to be added to the jwt
-      iss: "http://localhost.shield"
+      iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
     # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
@@ -72,7 +72,7 @@ app:
         # validity of the verification duration
         validity: "10m"
     mail_otp:
-      subject: "Shield - Login Link"
+      subject: "Frontier - Login Link"
       # body is a go template with `Otp` as a variable
       body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
       validity: "1h"
@@ -95,7 +95,7 @@ app:
       from: "username@acme.org"
 db:
   driver: postgres
-  url: postgres://shield:@localhost:5432/shield?sslmode=disable
+  url: postgres://frontier:@localhost:5432/frontier?sslmode=disable
   max_query_timeout: 500ms
 
 spicedb:
@@ -109,46 +109,46 @@ spicedb:
 
 </details>
 
-This page contains reference for all the application configurations for Shield.
+This page contains reference for all the application configurations for Frontier.
 
 ### Version
 
-| **Field**   | **Type** | **Description**                                  | **Required** |
-| ----------- | -------- | ------------------------------------------------ | ------------ |
-| **version** | `int`    | Version number of the Shield configuration file. | No           |
+| **Field**   | **Type** | **Description**                                    | **Required** |
+| ----------- | -------- | -------------------------------------------------- | ------------ |
+| **version** | `int`    | Version number of the Frontier configuration file. | No           |
 
 ### Logging Configuration
 
-| **Field**            | **Type** | **Description**                                                                            | **Required** |
-|----------------------| -------- |--------------------------------------------------------------------------------------------| ------------ |
-| **log.level**        | `string` | Logging level for Shield. Possible values **`debug`, `info`, `warning`, `error`, `fatal`** | No           |
-| **log.audit_events** | `string` | Audit level for Shield. Possible values **`none`, `stdout`, `db`**                         | No           |
+| **Field**            | **Type** | **Description**                                                                              | **Required** |
+| -------------------- | -------- | -------------------------------------------------------------------------------------------- | ------------ |
+| **log.level**        | `string` | Logging level for Frontier. Possible values **`debug`, `info`, `warning`, `error`, `fatal`** | No           |
+| **log.audit_events** | `string` | Audit level for Frontier. Possible values **`none`, `stdout`, `db`**                         | No           |
 
 ### App Configuration
 
-| **Field**                            | **Description**                                                                  | **Example** | **Required** |
-| ------------------------------------ | -------------------------------------------------------------------------------- | ----------- | ------------ |
-| **app.port**                         | Port number for HTTP communication.                                              | 8000        | Yes          |
-| **app.grpc_port**                    | Port number for gRPC communication.                                              | 8001        | Yes          |
-| **app.metrics_port**                 | Port number for metrics reporting.                                               | 9000        | Yes          |
-| **app.host**                         | Host address for the Shield application.                                         | 127.0.0.1   | Yes          |
-| **app.identity_proxy_header**        | Header key used for identity proxy.                                              |             |              |
-| **app.resources_config_path**        | Full path prefixed with the scheme where resources config YAML files are stored.<br/>Either new resources can be added dynamically via the apis, or can be passed in this YAML file |             | No           |
-| **app.resources_config_path_secret** | Secret required to access resources config.                                      |             | No           |
-| **app.disable_orgs_listing**         | If set to true, disallows non-admin APIs to list all organizations.              |             | No           |
-| **app.disable_users_listing**        | If set to true, disallows non-admin APIs to list all users.                      |             | No           |
-| **app.cors_origin**                  | Origin value from where CORS is allowed.                                         |             | Yes(for Admin UI)|
+| **Field**                            | **Description**                                                                                                                                                                     | **Example** | **Required**      |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ----------------- |
+| **app.port**                         | Port number for HTTP communication.                                                                                                                                                 | 8000        | Yes               |
+| **app.grpc_port**                    | Port number for gRPC communication.                                                                                                                                                 | 8001        | Yes               |
+| **app.metrics_port**                 | Port number for metrics reporting.                                                                                                                                                  | 9000        | Yes               |
+| **app.host**                         | Host address for the Frontier application.                                                                                                                                          | 127.0.0.1   | Yes               |
+| **app.identity_proxy_header**        | Header key used for identity proxy.                                                                                                                                                 |             |                   |
+| **app.resources_config_path**        | Full path prefixed with the scheme where resources config YAML files are stored.<br/>Either new resources can be added dynamically via the apis, or can be passed in this YAML file |             | No                |
+| **app.resources_config_path_secret** | Secret required to access resources config.                                                                                                                                         |             | No                |
+| **app.disable_orgs_listing**         | If set to true, disallows non-admin APIs to list all organizations.                                                                                                                 |             | No                |
+| **app.disable_users_listing**        | If set to true, disallows non-admin APIs to list all users.                                                                                                                         |             | No                |
+| **app.cors_origin**                  | Origin value from where CORS is allowed.                                                                                                                                            |             | Yes(for Admin UI) |
 
 ### Authentication Configurations
 
-Configuration to allow authentication in Shield.
+Configuration to allow authentication in Frontier.
 
 | **Field**                                               | **Description**                                    | **Required** | **Example**                                   |
 | ------------------------------------------------------- | -------------------------------------------------- | ------------ | --------------------------------------------- |
 | **app.authentication.session.hash_secret_key**          | Secret key for session hashing.                    | Yes          | "hash-secret-should-be-32-chars--"            |
 | **app.authentication.session.block_secret_key**         | Secret key for session encryption.                 | Yes          | "block-secret-should-be-32-chars-"            |
 | **app.authentication.token.rsa_path**                   | Path to the RSA key file for token authentication. | Yes          | "./temp/rsa"                                  |
-| **app.authentication.token.iss**                        | Issuer URL for token authentication.               | Yes          | "http://localhost.shield"                     |
+| **app.authentication.token.iss**                        | Issuer URL for token authentication.               | Yes          | "http://localhost.frontier"                   |
 | **app.authentication.oidc_callback_host**               | External host used for OIDC redirect URI.          | Yes          | "http://localhost:8000/v1beta1/auth/callback" |
 | **app.authentication.oidc_config.google.client_id**     | Google client ID for OIDC authentication.          | No           | "xxxxx.apps.googleusercontent.com"            |
 | **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.      | No           | "xxxxx"                                       |

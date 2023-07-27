@@ -10,7 +10,7 @@ export type NavigationItemsTypes = {
   icon?: React.ReactNode;
 };
 
-const BRAND_NAME = "Shield";
+const BRAND_NAME = "Frontier";
 const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Dashboard",

@@ -1,11 +1,11 @@
 import {
   Group,
   Organization,
-  ShieldClientOptions,
-  ShieldProviderProps,
+  FrontierClientOptions,
+  FrontierProviderProps,
   Strategy,
   User,
-} from "@raystack/shield";
+} from "@raystack/frontier";
 import React, {
   createContext,
   Dispatch,
@@ -15,10 +15,10 @@ import React, {
   useState,
 } from "react";
 
-import Shield from "../shield";
-interface ShieldContextProviderProps {
-  config: ShieldClientOptions;
-  client: Shield;
+import Frontier from "../frontier";
+interface FrontierContextProviderProps {
+  config: FrontierClientOptions;
+  client: Frontier;
 
   organizations: Organization[];
   setOrganizations: Dispatch<SetStateAction<Organization[]>>;
@@ -40,9 +40,9 @@ const defaultConfig = {
   redirectMagicLinkVerify: "http://localhost:3000/magiclink-verify",
 };
 
-const initialValues: ShieldContextProviderProps = {
+const initialValues: FrontierContextProviderProps = {
   config: defaultConfig,
-  client: Shield.getOrCreateInstance(defaultConfig),
+  client: Frontier.getOrCreateInstance(defaultConfig),
 
   organizations: [],
   setOrganizations: () => undefined,
@@ -57,17 +57,17 @@ const initialValues: ShieldContextProviderProps = {
   setUser: () => undefined,
 };
 
-export const ShieldContext =
-  createContext<ShieldContextProviderProps>(initialValues);
-ShieldContext.displayName = "ShieldContext ";
+export const FrontierContext =
+  createContext<FrontierContextProviderProps>(initialValues);
+FrontierContext.displayName = "FrontierContext ";
 
-export const ShieldContextProvider = ({
+export const FrontierContextProvider = ({
   children,
   config,
   initialState,
   ...options
-}: ShieldProviderProps) => {
-  const { shieldClient } = useShieldClient(config);
+}: FrontierProviderProps) => {
+  const { frontierClient } = useFrontierClient(config);
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -75,80 +75,80 @@ export const ShieldContextProvider = ({
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    async function getShieldInformation() {
+    async function getFrontierInformation() {
       try {
         const {
           data: { strategies },
-        } = await shieldClient.getAuthAtrategies();
+        } = await frontierClient.getAuthAtrategies();
         setStrategies(strategies);
       } catch (error) {
         console.error(
-          "shield:sdk:: There is problem with fetching auth strategies"
+          "frontier:sdk:: There is problem with fetching auth strategies"
         );
       }
     }
-    getShieldInformation();
+    getFrontierInformation();
   }, []);
 
   useEffect(() => {
-    async function getShieldCurrentUser() {
+    async function getFrontierCurrentUser() {
       try {
         const {
           data: { user },
-        } = await shieldClient.getCurrentUser();
+        } = await frontierClient.getCurrentUser();
         setUser(user);
       } catch (error) {
         console.error(
-          "shield:sdk:: There is problem with fetching current user information"
+          "frontier:sdk:: There is problem with fetching current user information"
         );
       }
     }
-    getShieldCurrentUser();
+    getFrontierCurrentUser();
   }, []);
 
   useEffect(() => {
-    async function getShieldCurrentUserGroups(userId: string) {
+    async function getFrontierCurrentUserGroups(userId: string) {
       try {
         const {
           data: { groups },
-        } = await shieldClient.getUserGroups(userId);
+        } = await frontierClient.getUserGroups(userId);
         setGroups(groups);
       } catch (error) {
         console.error(
-          "shield:sdk:: There is problem with fetching user groups information"
+          "frontier:sdk:: There is problem with fetching user groups information"
         );
       }
     }
 
     if (user) {
-      getShieldCurrentUserGroups(user.id);
+      getFrontierCurrentUserGroups(user.id);
     }
   }, [user]);
 
   useEffect(() => {
-    async function getShieldCurrentUserOrganizations(userId: string) {
+    async function getFrontierCurrentUserOrganizations(userId: string) {
       try {
         const {
           data: { organizations },
-        } = await shieldClient.getUserOrganisations(userId);
+        } = await frontierClient.getUserOrganisations(userId);
         setOrganizations(organizations);
       } catch (error) {
         console.error(
-          "shield:sdk:: There is problem with fetching user current organizations"
+          "frontier:sdk:: There is problem with fetching user current organizations"
         );
       }
     }
 
     if (user) {
-      getShieldCurrentUserOrganizations(user.id);
+      getFrontierCurrentUserOrganizations(user.id);
     }
   }, [user]);
 
   return (
-    <ShieldContext.Provider
+    <FrontierContext.Provider
       value={{
         config: { ...defaultConfig, ...config },
-        client: shieldClient,
+        client: frontierClient,
         organizations,
         setOrganizations,
         groups,
@@ -160,20 +160,20 @@ export const ShieldContextProvider = ({
       }}
     >
       {children}
-    </ShieldContext.Provider>
+    </FrontierContext.Provider>
   );
 };
 
-export const useShieldClient = (options: ShieldClientOptions) => {
-  const shieldClient = React.useMemo(
-    () => Shield.getOrCreateInstance(options),
+export const useFrontierClient = (options: FrontierClientOptions) => {
+  const frontierClient = React.useMemo(
+    () => Frontier.getOrCreateInstance(options),
     []
   );
 
-  return { shieldClient };
+  return { frontierClient };
 };
 
-export function useShield() {
-  const context = useContext<ShieldContextProviderProps>(ShieldContext);
-  return context ? context : (initialValues as ShieldContextProviderProps);
+export function useFrontier() {
+  const context = useContext<FrontierContextProviderProps>(FrontierContext);
+  return context ? context : (initialValues as FrontierContextProviderProps);
 }

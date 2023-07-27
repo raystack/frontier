@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/core/authenticate"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -32,7 +32,7 @@ var (
 		PrincipalID:   testUserID,
 		PrincipalType: schema.UserPrincipal,
 	}
-	testResourcePB = &shieldv1beta1.Resource{
+	testResourcePB = &frontierv1beta1.Resource{
 		Id:        testResource.ID,
 		Name:      testResource.Name,
 		Urn:       testResource.URN,
@@ -48,8 +48,8 @@ func TestHandler_ListResources(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.ResourceService)
-		request *shieldv1beta1.ListResourcesRequest
-		want    *shieldv1beta1.ListResourcesResponse
+		request *frontierv1beta1.ListResourcesRequest
+		want    *frontierv1beta1.ListResourcesResponse
 		wantErr error
 	}{
 		{
@@ -57,7 +57,7 @@ func TestHandler_ListResources(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return([]resource.Resource{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.ListResourcesRequest{},
+			request: &frontierv1beta1.ListResourcesRequest{},
 			want:    nil,
 			wantErr: grpcInternalServerError,
 		},
@@ -68,9 +68,9 @@ func TestHandler_ListResources(t *testing.T) {
 					testResource,
 				}, nil)
 			},
-			request: &shieldv1beta1.ListResourcesRequest{},
-			want: &shieldv1beta1.ListResourcesResponse{
-				Resources: []*shieldv1beta1.Resource{
+			request: &frontierv1beta1.ListResourcesRequest{},
+			want: &frontierv1beta1.ListResourcesResponse{
+				Resources: []*frontierv1beta1.Resource{
 					testResourcePB,
 				},
 			},
@@ -96,8 +96,8 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context
-		request *shieldv1beta1.CreateProjectResourceRequest
-		want    *shieldv1beta1.CreateProjectResourceResponse
+		request *frontierv1beta1.CreateProjectResourceRequest
+		want    *frontierv1beta1.CreateProjectResourceResponse
 		wantErr error
 	}{
 		{
@@ -112,9 +112,9 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, errors.New("some error"))
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateProjectResourceRequest{
+			request: &frontierv1beta1.CreateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -134,9 +134,9 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateProjectResourceRequest{
+			request: &frontierv1beta1.CreateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -169,15 +169,15 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 				}).Return(testResource, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
-			request: &shieldv1beta1.CreateProjectResourceRequest{
+			request: &frontierv1beta1.CreateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
 				},
 			},
-			want: &shieldv1beta1.CreateProjectResourceResponse{
+			want: &frontierv1beta1.CreateProjectResourceResponse{
 				Resource: testResourcePB,
 			},
 			wantErr: nil,
@@ -204,8 +204,8 @@ func TestHandler_GetProjectResource(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.ResourceService)
-		request *shieldv1beta1.GetProjectResourceRequest
-		want    *shieldv1beta1.GetProjectResourceResponse
+		request *frontierv1beta1.GetProjectResourceRequest
+		want    *frontierv1beta1.GetProjectResourceResponse
 		wantErr error
 	}{
 		{
@@ -213,7 +213,7 @@ func TestHandler_GetProjectResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ID).Return(resource.Resource{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetProjectResourceRequest{
+			request: &frontierv1beta1.GetProjectResourceRequest{
 				Id: testResource.ID,
 			},
 			want:    nil,
@@ -224,7 +224,7 @@ func TestHandler_GetProjectResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(resource.Resource{}, resource.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetProjectResourceRequest{},
+			request: &frontierv1beta1.GetProjectResourceRequest{},
 			want:    nil,
 			wantErr: grpcResourceNotFoundErr,
 		},
@@ -233,7 +233,7 @@ func TestHandler_GetProjectResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(resource.Resource{}, resource.ErrInvalidUUID)
 			},
-			request: &shieldv1beta1.GetProjectResourceRequest{
+			request: &frontierv1beta1.GetProjectResourceRequest{
 				Id: "some-id",
 			},
 			want:    nil,
@@ -244,7 +244,7 @@ func TestHandler_GetProjectResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ID).Return(resource.Resource{}, resource.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetProjectResourceRequest{
+			request: &frontierv1beta1.GetProjectResourceRequest{
 				Id: testResource.ID,
 			},
 			want:    nil,
@@ -255,10 +255,10 @@ func TestHandler_GetProjectResource(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ID).Return(testResource, nil)
 			},
-			request: &shieldv1beta1.GetProjectResourceRequest{
+			request: &frontierv1beta1.GetProjectResourceRequest{
 				Id: testResource.ID,
 			},
-			want: &shieldv1beta1.GetProjectResourceResponse{
+			want: &frontierv1beta1.GetProjectResourceResponse{
 				Resource: testResourcePB,
 			},
 			wantErr: nil,
@@ -282,8 +282,8 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.ResourceService, ps *mocks.ProjectService)
-		request *shieldv1beta1.UpdateProjectResourceRequest
-		want    *shieldv1beta1.UpdateProjectResourceResponse
+		request *frontierv1beta1.UpdateProjectResourceRequest
+		want    *frontierv1beta1.UpdateProjectResourceResponse
 		wantErr error
 	}{
 		{
@@ -302,10 +302,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 					NamespaceID:   testResource.NamespaceID,
 				}).Return(resource.Resource{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.UpdateProjectResourceRequest{
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				Id:        testResourceID,
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -330,9 +330,9 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrInvalidID)
 			},
-			request: &shieldv1beta1.UpdateProjectResourceRequest{
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -357,10 +357,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateProjectResourceRequest{
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				Id:        testResourceID,
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -385,10 +385,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrInvalidUUID)
 			},
-			request: &shieldv1beta1.UpdateProjectResourceRequest{
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				Id:        "some-id",
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -413,10 +413,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 					PrincipalType: testResource.PrincipalType,
 				}).Return(resource.Resource{}, resource.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateProjectResourceRequest{
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				Id:        testResourceID,
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -441,10 +441,10 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 					NamespaceID:   testResource.NamespaceID,
 				}).Return(resource.Resource{}, resource.ErrConflict)
 			},
-			request: &shieldv1beta1.UpdateProjectResourceRequest{
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				Id:        testResourceID,
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
@@ -469,16 +469,16 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 					PrincipalType: testResource.PrincipalType,
 				}).Return(testResource, nil)
 			},
-			request: &shieldv1beta1.UpdateProjectResourceRequest{
+			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				Id:        testResourceID,
 				ProjectId: testResource.ProjectID,
-				Body: &shieldv1beta1.ResourceRequestBody{
+				Body: &frontierv1beta1.ResourceRequestBody{
 					Name:      testResource.Name,
 					Namespace: testResource.NamespaceID,
 					Principal: testUserID,
 				},
 			},
-			want: &shieldv1beta1.UpdateProjectResourceResponse{
+			want: &frontierv1beta1.UpdateProjectResourceResponse{
 				Resource: testResourcePB,
 			},
 			wantErr: nil,

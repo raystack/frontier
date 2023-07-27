@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	rule "github.com/raystack/shield/core/rule"
+	rule "github.com/raystack/frontier/core/rule"
 	mock "github.com/stretchr/testify/mock"
 )
 

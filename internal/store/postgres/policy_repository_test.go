@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -15,9 +15,9 @@ import (
 	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/raystack/shield/core/policy"
-	"github.com/raystack/shield/internal/store/postgres"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type PolicyRepositoryTestSuite struct {

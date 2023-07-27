@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 var (
@@ -20,7 +20,7 @@ const (
 <br>
 <div>
 Thanks,<br>
-Team Shield
+Team Frontier
 </div>`
 )
 

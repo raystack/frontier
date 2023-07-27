@@ -4,7 +4,7 @@ import CodeBlock from '@theme/CodeBlock';
 
 # Manage Resources
 
-A resource in Shield looks like
+A resource in Frontier looks like
 
 <Tabs groupId="model">
   <TabItem value="Model" label="Model" default>
@@ -66,7 +66,7 @@ A resource in Shield looks like
 
 ### Create resources
 
-There are two ways to create a resource in the shield,
+There are two ways to create a resource in the frontier,
 
 #### API Interface
 
@@ -76,7 +76,7 @@ There are two ways to create a resource in the shield,
     {`$ curl --location --request POST 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources'
 --header 'Content-Type: application/json'
 --header 'Accept: application/json'
---header 'X-Shield-Email: admin@raystack.org'
+--header 'X-Frontier-Email: admin@raystack.org'
 --data-raw '{
   "name": "test-resource-beta",
   "projectId": "1b89026b-6713-4327-9d7e-ed03345da288",

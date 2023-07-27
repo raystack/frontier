@@ -15,31 +15,31 @@ import (
 )
 
 const (
-	shieldRouteListConn    = "/v1beta1/auth"
-	shieldRegister         = "/v1beta1/auth/register"
-	shieldRegisterCallback = "/v1beta1/auth/callback"
-	shieldLogout           = "/v1beta1/auth/logout"
-	shieldAccessToken      = "/v1beta1/auth/token"
-	shieldUserProfile      = "/v1beta1/users/self" // protected endpoint
-	jwksPath               = "/.well-known/jwks.json"
+	frontierRouteListConn    = "/v1beta1/auth"
+	frontierRegister         = "/v1beta1/auth/register"
+	frontierRegisterCallback = "/v1beta1/auth/callback"
+	frontierLogout           = "/v1beta1/auth/logout"
+	frontierAccessToken      = "/v1beta1/auth/token"
+	frontierUserProfile      = "/v1beta1/users/self" // protected endpoint
+	jwksPath                 = "/.well-known/jwks.json"
 
 	mailotpStrategy = "mailotp"
 )
 
 var (
-	// shieldHost which is running locally and configured with oidc parameters
+	// frontierHost which is running locally and configured with oidc parameters
 	// it should have client id, secret, issuer and an oidc callback endpoint
-	// for this example we are using ourselves as a frontend to shield backend
-	shieldHost = "http://localhost:7400"
-	appHost    = "localhost:8888"
+	// for this example we are using ourselves as a frontend to frontier backend
+	frontierHost = "http://localhost:7400"
+	appHost      = "localhost:8888"
 
 	returnAfterAuthURL = url.QueryEscape("http://" + appHost + "/profile")
 )
 
 func main() {
-	flag.StringVar(&shieldHost, "shieldhost", shieldHost, "shield host endpoint, e.g. http://localhost:7400")
+	flag.StringVar(&frontierHost, "frontierhost", frontierHost, "frontier host endpoint, e.g. http://localhost:7400")
 	flag.StringVar(&appHost, "apphost", appHost, "app host, e.g. localhost:8888")
-	flag.StringVar(&returnAfterAuthURL, "returnto", returnAfterAuthURL, "where should shield return the call after successful auth, e.g. http://localhost:8888/profile")
+	flag.StringVar(&returnAfterAuthURL, "returnto", returnAfterAuthURL, "where should frontier return the call after successful auth, e.g. http://localhost:8888/profile")
 	flag.Parse()
 
 	r := gin.Default()
@@ -82,16 +82,16 @@ func home() func(ctx *gin.Context) {
 
 func login() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		shieldResp, err := http.Get(shieldHost + shieldRouteListConn)
+		frontierResp, err := http.Get(frontierHost + frontierRouteListConn)
 		if err != nil {
 			ctx.Error(err)
 			return
 		}
-		if shieldResp.StatusCode != http.StatusOK {
-			ctx.Error(fmt.Errorf("shield returned status code %d", shieldResp.StatusCode))
+		if frontierResp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("frontier returned status code %d", frontierResp.StatusCode))
 			return
 		}
-		defer shieldResp.Body.Close()
+		defer frontierResp.Body.Close()
 
 		type Response struct {
 			Strategies []struct {
@@ -100,7 +100,7 @@ func login() func(ctx *gin.Context) {
 			} `json:"strategies"`
 		}
 		var response Response
-		if err = json.NewDecoder(shieldResp.Body).Decode(&response); err != nil {
+		if err = json.NewDecoder(frontierResp.Body).Decode(&response); err != nil {
 			ctx.Error(err)
 			return
 		}
@@ -139,23 +139,23 @@ func oauth() func(ctx *gin.Context) {
 		if len(authStrategy) == 0 {
 			ctx.Redirect(http.StatusSeeOther, "/login")
 		}
-		shieldURL, _ := url.JoinPath(shieldHost, shieldRegister, authStrategy)
-		shieldResp, err := http.Get(shieldURL)
+		frontierURL, _ := url.JoinPath(frontierHost, frontierRegister, authStrategy)
+		frontierResp, err := http.Get(frontierURL)
 		if err != nil {
 			ctx.Error(err)
 			return
 		}
-		if shieldResp.StatusCode != http.StatusOK {
-			ctx.Error(fmt.Errorf("shield returned status code %d", shieldResp.StatusCode))
+		if frontierResp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("frontier returned status code %d", frontierResp.StatusCode))
 			return
 		}
-		defer shieldResp.Body.Close()
+		defer frontierResp.Body.Close()
 
 		type Response struct {
 			Endpoint string `json:"endpoint"`
 		}
 		var response Response
-		if err = json.NewDecoder(shieldResp.Body).Decode(&response); err != nil {
+		if err = json.NewDecoder(frontierResp.Body).Decode(&response); err != nil {
 			ctx.Error(err)
 			return
 		}
@@ -169,24 +169,24 @@ func mailauth() func(ctx *gin.Context) {
 		if len(userEmail) == 0 {
 			ctx.Redirect(http.StatusSeeOther, "/login")
 		}
-		shieldURL, _ := url.JoinPath(shieldHost, shieldRegister, mailotpStrategy)
-		shieldResp, err := http.Get(shieldURL + "?email=" + userEmail)
+		frontierURL, _ := url.JoinPath(frontierHost, frontierRegister, mailotpStrategy)
+		frontierResp, err := http.Get(frontierURL + "?email=" + userEmail)
 		if err != nil {
 			ctx.Error(err)
 			return
 		}
-		if shieldResp.StatusCode != http.StatusOK {
-			ctx.Error(fmt.Errorf("shield returned status code %d", shieldResp.StatusCode))
+		if frontierResp.StatusCode != http.StatusOK {
+			ctx.Error(fmt.Errorf("frontier returned status code %d", frontierResp.StatusCode))
 			return
 		}
-		defer shieldResp.Body.Close()
+		defer frontierResp.Body.Close()
 
 		type Response struct {
 			Endpoint string `json:"endpoint"`
 			State    string `json:"state"`
 		}
 		var response Response
-		if err = json.NewDecoder(shieldResp.Body).Decode(&response); err != nil {
+		if err = json.NewDecoder(frontierResp.Body).Decode(&response); err != nil {
 			ctx.Error(err)
 			return
 		}
@@ -210,8 +210,8 @@ func mailauth() func(ctx *gin.Context) {
 
 func callback() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		// build a pass through request to shield
-		req, err := http.NewRequest(http.MethodGet, shieldHost+shieldRegisterCallback, nil)
+		// build a pass through request to frontier
+		req, err := http.NewRequest(http.MethodGet, frontierHost+frontierRegisterCallback, nil)
 		if err != nil {
 			ctx.Error(err)
 			return
@@ -223,10 +223,10 @@ func callback() func(ctx *gin.Context) {
 			return
 		}
 		if resp.StatusCode != http.StatusOK {
-			ctx.Error(fmt.Errorf("shield returned status code %d", resp.StatusCode))
+			ctx.Error(fmt.Errorf("frontier returned status code %d", resp.StatusCode))
 			respBody, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
-			ctx.Error(fmt.Errorf("shield returned %s", string(respBody)))
+			ctx.Error(fmt.Errorf("frontier returned %s", string(respBody)))
 			return
 		}
 		// clone response headers for cookie
@@ -275,8 +275,8 @@ func token() func(ctx *gin.Context) {
 			return
 		}
 
-		// build a pass through request to shield
-		req, err := http.NewRequest(http.MethodPost, shieldHost+shieldAccessToken, bodyBuf)
+		// build a pass through request to frontier
+		req, err := http.NewRequest(http.MethodPost, frontierHost+frontierAccessToken, bodyBuf)
 		if err != nil {
 			ctx.Error(err)
 			return
@@ -287,17 +287,17 @@ func token() func(ctx *gin.Context) {
 			return
 		}
 		if resp.StatusCode != http.StatusOK {
-			ctx.Error(fmt.Errorf("shield returned status code %d", resp.StatusCode))
+			ctx.Error(fmt.Errorf("frontier returned status code %d", resp.StatusCode))
 			respBody, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
-			ctx.Error(fmt.Errorf("shield returned %s", string(respBody)))
+			ctx.Error(fmt.Errorf("frontier returned %s", string(respBody)))
 			return
 		}
 
 		// render token
 		tokenHTML := "Access token is disabled by auth server"
 
-		// get access token from shield
+		// get access token from frontier
 		var tokenResp struct {
 			AccessToken string `json:"access_token"`
 			TokenType   string `json:"token_type"`
@@ -307,11 +307,11 @@ func token() func(ctx *gin.Context) {
 			return
 		}
 
-		// parse & verify jwt with shield public keys if provided
+		// parse & verify jwt with frontier public keys if provided
 		if tokenResp.AccessToken != "" {
 			jwks, err := jwk.Fetch(
 				ctx,
-				shieldHost+jwksPath,
+				frontierHost+jwksPath,
 			)
 			if err != nil {
 				ctx.Error(fmt.Errorf("failed to fetch JWK: %s", err))
@@ -345,7 +345,7 @@ func token() func(ctx *gin.Context) {
 
 func logout() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		req, err := http.NewRequest(http.MethodGet, shieldHost+shieldLogout, nil)
+		req, err := http.NewRequest(http.MethodGet, frontierHost+frontierLogout, nil)
 		if err != nil {
 			ctx.Error(err)
 			return
@@ -372,7 +372,7 @@ func logout() func(ctx *gin.Context) {
 
 func profile() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
-		req, err := http.NewRequest(http.MethodGet, shieldHost+shieldUserProfile, nil)
+		req, err := http.NewRequest(http.MethodGet, frontierHost+frontierUserProfile, nil)
 		if err != nil {
 			ctx.Error(err)
 			return

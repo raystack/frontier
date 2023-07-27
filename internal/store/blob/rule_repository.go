@@ -14,7 +14,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/raystack/shield/core/rule"
+	"github.com/raystack/frontier/core/rule"
 	"gocloud.dev/blob"
 )
 

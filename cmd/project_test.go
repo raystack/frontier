@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/raystack/shield/cmd"
+	"github.com/raystack/frontier/cmd"
 	"github.com/stretchr/testify/assert"
 )
 

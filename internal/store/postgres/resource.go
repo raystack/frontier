@@ -6,7 +6,7 @@ import (
 
 	"database/sql"
 
-	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/frontier/core/resource"
 )
 
 type Resource struct {

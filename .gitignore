@@ -7,7 +7,7 @@ proxies/*.yaml
 proxies/*.yml
 .temp
 temp
-shield
+frontier
 config.yaml
 config.yml
 coverage.txt

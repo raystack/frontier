@@ -33,10 +33,10 @@ func Serve(
 			logger.Fatal("failed to serve", "err", err)
 		}
 
-		logger.Info("[shield] proxy stopped", "service", cfg.Name)
+		logger.Info("[frontier] proxy stopped", "service", cfg.Name)
 	}(ctx, logger, cfg)
 
-	logger.Info("[shield] proxy ready", "service", cfg.Name)
+	logger.Info("[frontier] proxy ready", "service", cfg.Name)
 	return proxySrv.Shutdown
 }
 

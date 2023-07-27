@@ -3,14 +3,14 @@ package mailer
 import (
 	"crypto/tls"
 
-	"github.com/raystack/shield/pkg/mailer/mocks"
+	"github.com/raystack/frontier/pkg/mailer/mocks"
 	"github.com/stretchr/testify/mock"
 
 	"gopkg.in/mail.v2"
 )
 
 const (
-	defaultFromHeader = "shield@raystack.org"
+	defaultFromHeader = "frontier@raystack.org"
 )
 
 //go:generate mockery --name=Dialer -r --case underscore --with-expecter --structname Dialer --filename dialer.go --output=./mocks

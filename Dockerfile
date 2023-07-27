@@ -1,7 +1,7 @@
 FROM alpine:3.17
 
-COPY shield /usr/bin/shield
+COPY frontier /usr/bin/frontier
 
 EXPOSE 8080
 EXPOSE 5556
-ENTRYPOINT ["shield"]
+ENTRYPOINT ["frontier"]

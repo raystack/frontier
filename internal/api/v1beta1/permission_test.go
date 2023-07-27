@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/uuid"
 
-	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/frontier/core/permission"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
@@ -53,8 +53,8 @@ func TestListPermissions(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(as *mocks.PermissionService)
-		req   *shieldv1beta1.ListPermissionsRequest
-		want  *shieldv1beta1.ListPermissionsResponse
+		req   *frontierv1beta1.ListPermissionsRequest
+		want  *frontierv1beta1.ListPermissionsResponse
 		err   error
 	}{
 		{
@@ -74,7 +74,7 @@ func TestListPermissions(t *testing.T) {
 				}
 				as.EXPECT().List(mock.Anything, permission.Filter{}).Return(testPermissionList, nil)
 			},
-			want: &shieldv1beta1.ListPermissionsResponse{Permissions: []*shieldv1beta1.Permission{
+			want: &frontierv1beta1.ListPermissionsResponse{Permissions: []*frontierv1beta1.Permission{
 				{
 					Id:        testPermissions[0].ID,
 					Name:      testPermissions[0].Name,
@@ -117,8 +117,8 @@ func TestCreatePermission(t *testing.T) {
 	table := []struct {
 		title string
 		setup func(as *mocks.PermissionService, bs *mocks.BootstrapService)
-		req   *shieldv1beta1.CreatePermissionRequest
-		want  *shieldv1beta1.CreatePermissionResponse
+		req   *frontierv1beta1.CreatePermissionRequest
+		want  *frontierv1beta1.CreatePermissionResponse
 		err   error
 	}{
 		{
@@ -134,8 +134,8 @@ func TestCreatePermission(t *testing.T) {
 					},
 				}).Return(errors.New("some error"))
 			},
-			req: &shieldv1beta1.CreatePermissionRequest{
-				Bodies: []*shieldv1beta1.PermissionRequestBody{
+			req: &frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
 						Name:      testPermissions[testPermissionIdx].Name,
 						Namespace: testPermissions[testPermissionIdx].NamespaceID,
@@ -148,8 +148,8 @@ func TestCreatePermission(t *testing.T) {
 		{
 			title: "should return bad request error if namespace id is empty",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
-			req: &shieldv1beta1.CreatePermissionRequest{
-				Bodies: []*shieldv1beta1.PermissionRequestBody{
+			req: &frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
 						Name: testPermissions[testPermissionIdx].Name,
 					},
@@ -162,8 +162,8 @@ func TestCreatePermission(t *testing.T) {
 			title: "should return bad request error if if name is empty",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
 			},
-			req: &shieldv1beta1.CreatePermissionRequest{
-				Bodies: []*shieldv1beta1.PermissionRequestBody{
+			req: &frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
 						Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					},
@@ -205,8 +205,8 @@ func TestCreatePermission(t *testing.T) {
 					},
 				}, nil)
 			},
-			req: &shieldv1beta1.CreatePermissionRequest{
-				Bodies: []*shieldv1beta1.PermissionRequestBody{
+			req: &frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
 						Name:      testPermissions[testPermissionIdx].Name + "0",
 						Namespace: testPermissions[testPermissionIdx].NamespaceID,
@@ -217,7 +217,7 @@ func TestCreatePermission(t *testing.T) {
 					},
 				},
 			},
-			want: &shieldv1beta1.CreatePermissionResponse{Permissions: []*shieldv1beta1.Permission{
+			want: &frontierv1beta1.CreatePermissionResponse{Permissions: []*frontierv1beta1.Permission{
 				{
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name + "0",
@@ -256,14 +256,14 @@ func TestCreatePermission(t *testing.T) {
 					},
 				}, nil)
 			},
-			req: &shieldv1beta1.CreatePermissionRequest{
-				Bodies: []*shieldv1beta1.PermissionRequestBody{
+			req: &frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
 						Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
 					},
 				},
 			},
-			want: &shieldv1beta1.CreatePermissionResponse{Permissions: []*shieldv1beta1.Permission{
+			want: &frontierv1beta1.CreatePermissionResponse{Permissions: []*frontierv1beta1.Permission{
 				{
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name + "0",
@@ -294,8 +294,8 @@ func TestHandler_GetPermission(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(as *mocks.PermissionService)
-		request *shieldv1beta1.GetPermissionRequest
-		want    *shieldv1beta1.GetPermissionResponse
+		request *frontierv1beta1.GetPermissionRequest
+		want    *frontierv1beta1.GetPermissionResponse
 		wantErr error
 	}{
 		{
@@ -303,7 +303,7 @@ func TestHandler_GetPermission(t *testing.T) {
 			setup: func(as *mocks.PermissionService) {
 				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetPermissionRequest{
+			request: &frontierv1beta1.GetPermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 			},
 			want:    nil,
@@ -314,7 +314,7 @@ func TestHandler_GetPermission(t *testing.T) {
 			setup: func(as *mocks.PermissionService) {
 				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, permission.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetPermissionRequest{
+			request: &frontierv1beta1.GetPermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 			},
 			want:    nil,
@@ -325,7 +325,7 @@ func TestHandler_GetPermission(t *testing.T) {
 			setup: func(as *mocks.PermissionService) {
 				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(permission.Permission{}, permission.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetPermissionRequest{},
+			request: &frontierv1beta1.GetPermissionRequest{},
 			want:    nil,
 			wantErr: grpcPermissionNotFoundErr,
 		},
@@ -335,11 +335,11 @@ func TestHandler_GetPermission(t *testing.T) {
 				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"),
 					testPermissions[testPermissionIdx].ID).Return(testPermissions[testPermissionIdx], nil)
 			},
-			request: &shieldv1beta1.GetPermissionRequest{
+			request: &frontierv1beta1.GetPermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 			},
-			want: &shieldv1beta1.GetPermissionResponse{
-				Permission: &shieldv1beta1.Permission{
+			want: &frontierv1beta1.GetPermissionResponse{
+				Permission: &frontierv1beta1.Permission{
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
@@ -367,8 +367,8 @@ func TestHandler_UpdatePermission(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(as *mocks.PermissionService)
-		request *shieldv1beta1.UpdatePermissionRequest
-		want    *shieldv1beta1.UpdatePermissionResponse
+		request *frontierv1beta1.UpdatePermissionRequest
+		want    *frontierv1beta1.UpdatePermissionResponse
 		wantErr error
 	}{
 		{
@@ -380,9 +380,9 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
 				}).Return(permission.Permission{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.UpdatePermissionRequest{
+			request: &frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
-				Body: &shieldv1beta1.PermissionRequestBody{
+				Body: &frontierv1beta1.PermissionRequestBody{
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
@@ -398,9 +398,9 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, permission.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdatePermissionRequest{
+			request: &frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
-				Body: &shieldv1beta1.PermissionRequestBody{
+				Body: &frontierv1beta1.PermissionRequestBody{
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
@@ -415,8 +415,8 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, permission.ErrInvalidID)
 			},
-			request: &shieldv1beta1.UpdatePermissionRequest{
-				Body: &shieldv1beta1.PermissionRequestBody{
+			request: &frontierv1beta1.UpdatePermissionRequest{
+				Body: &frontierv1beta1.PermissionRequestBody{
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
@@ -432,9 +432,9 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, namespace.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdatePermissionRequest{
+			request: &frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
-				Body: &shieldv1beta1.PermissionRequestBody{
+				Body: &frontierv1beta1.PermissionRequestBody{
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
@@ -449,9 +449,9 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					ID:          testPermissions[testPermissionIdx].ID,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, permission.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdatePermissionRequest{
+			request: &frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
-				Body: &shieldv1beta1.PermissionRequestBody{
+				Body: &frontierv1beta1.PermissionRequestBody{
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
@@ -467,15 +467,15 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
 				}).Return(testPermissions[testPermissionIdx], nil)
 			},
-			request: &shieldv1beta1.UpdatePermissionRequest{
+			request: &frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
-				Body: &shieldv1beta1.PermissionRequestBody{
+				Body: &frontierv1beta1.PermissionRequestBody{
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			},
-			want: &shieldv1beta1.UpdatePermissionResponse{
-				Permission: &shieldv1beta1.Permission{
+			want: &frontierv1beta1.UpdatePermissionResponse{
+				Permission: &frontierv1beta1.Permission{
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,

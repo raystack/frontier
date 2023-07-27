@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/raystack/shield/core/invitation"
+	"github.com/raystack/frontier/core/invitation"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/pkg/db"
 )
 
 type InvitationRepository struct {

@@ -1,16 +1,16 @@
 package testbench
 
 import (
+	"github.com/raystack/frontier/cmd"
+	"github.com/raystack/frontier/config"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/cmd"
-	"github.com/raystack/shield/config"
 )
 
-func MigrateShield(logger *log.Zap, appConfig *config.Shield) error {
+func MigrateFrontier(logger *log.Zap, appConfig *config.Frontier) error {
 	return cmd.RunMigrations(logger, appConfig.DB)
 }
 
-func StartShield(logger *log.Zap, appConfig *config.Shield) {
+func StartFrontier(logger *log.Zap, appConfig *config.Frontier) {
 	go func() {
 		if err := cmd.StartServer(logger, appConfig); err != nil {
 			logger.Fatal("err starting", "err", err)

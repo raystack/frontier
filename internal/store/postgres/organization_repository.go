@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/shield/core/user"
+	"github.com/raystack/frontier/core/user"
 
-	"github.com/raystack/shield/core/project"
+	"github.com/raystack/frontier/core/project"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 type OrganizationRepository struct {

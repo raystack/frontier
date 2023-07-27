@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raystack/shield/internal/store/spicedb"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/internal/store/spicedb"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 func TestLoad(t *testing.T) {
@@ -16,7 +16,7 @@ func TestLoad(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *Shield
+		want    *Frontier
 		wantErr bool
 	}{
 		{
@@ -24,10 +24,10 @@ func TestLoad(t *testing.T) {
 			args: args{
 				serverConfigFileFromFlag: "testdata/use_duration.yaml",
 			},
-			want: &Shield{
+			want: &Frontier{
 				Version: 1,
 				DB: db.Config{
-					URL:                 "postgres://shield:@localhost:5432/shield?sslmode=disable",
+					URL:                 "postgres://frontier:@localhost:5432/frontier?sslmode=disable",
 					MaxIdleConns:        10,
 					MaxOpenConns:        10,
 					ConnMaxLifeTime:     time.Duration(10) * time.Millisecond,

@@ -1,12 +1,12 @@
 {
-  "name": "@raystack/shield",
+  "name": "@raystack/frontier",
   "version": "0.0.1",
-  "description": "A js library for shield",
+  "description": "A js library for frontier",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "unpkg": "dist/shield.min.js",
+  "unpkg": "dist/frontier.min.js",
   "files": [
     "dist",
     "README.md"

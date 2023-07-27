@@ -5,16 +5,16 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/raystack/shield/core/permission"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/core/resource"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
 var (
@@ -31,7 +31,7 @@ var (
 		RelationName: "relation1",
 	}
 
-	testRelationPB = &shieldv1beta1.Relation{
+	testRelationPB = &frontierv1beta1.Relation{
 		Id:       "relation-id-1",
 		Object:   schema.JoinNamespaceAndResourceID("ns2", "object-id"),
 		Subject:  schema.JoinNamespaceAndResourceID("ns1", "subject-id"),
@@ -43,7 +43,7 @@ func TestHandler_ListRelations(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RelationService)
-		want    *shieldv1beta1.ListRelationsResponse
+		want    *frontierv1beta1.ListRelationsResponse
 		wantErr error
 	}{
 		{
@@ -61,8 +61,8 @@ func TestHandler_ListRelations(t *testing.T) {
 					testRelationV2,
 				}, nil)
 			},
-			want: &shieldv1beta1.ListRelationsResponse{
-				Relations: []*shieldv1beta1.Relation{
+			want: &frontierv1beta1.ListRelationsResponse{
+				Relations: []*frontierv1beta1.Relation{
 					testRelationPB,
 				},
 			},
@@ -76,7 +76,7 @@ func TestHandler_ListRelations(t *testing.T) {
 				tt.setup(mockRelationSrv)
 			}
 			mockDep := Handler{relationService: mockRelationSrv}
-			resp, err := mockDep.ListRelations(context.Background(), &shieldv1beta1.ListRelationsRequest{})
+			resp, err := mockDep.ListRelations(context.Background(), &frontierv1beta1.ListRelationsRequest{})
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -87,8 +87,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RelationService, res *mocks.ResourceService)
-		request *shieldv1beta1.CreateRelationRequest
-		want    *shieldv1beta1.CreateRelationResponse
+		request *frontierv1beta1.CreateRelationRequest
+		want    *frontierv1beta1.CreateRelationResponse
 		wantErr error
 	}{
 		{
@@ -106,8 +106,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 					},
 				}).Return(relation.Relation{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.CreateRelationRequest{
-				Body: &shieldv1beta1.RelationRequestBody{
+			request: &frontierv1beta1.CreateRelationRequest{
+				Body: &frontierv1beta1.RelationRequestBody{
 					Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 					Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					Relation: testRelationV2.Subject.SubRelationName,
@@ -136,8 +136,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 					},
 				}).Return(relation.Relation{}, relation.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.CreateRelationRequest{
-				Body: &shieldv1beta1.RelationRequestBody{
+			request: &frontierv1beta1.CreateRelationRequest{
+				Body: &frontierv1beta1.RelationRequestBody{
 					Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 					Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					Relation: testRelationV2.Subject.SubRelationName,
@@ -166,14 +166,14 @@ func TestHandler_CreateRelation(t *testing.T) {
 					},
 				}).Return(testRelationV2, nil)
 			},
-			request: &shieldv1beta1.CreateRelationRequest{
-				Body: &shieldv1beta1.RelationRequestBody{
+			request: &frontierv1beta1.CreateRelationRequest{
+				Body: &frontierv1beta1.RelationRequestBody{
 					Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 					Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 					Relation: testRelationV2.Subject.SubRelationName,
 				},
 			},
-			want: &shieldv1beta1.CreateRelationResponse{
+			want: &frontierv1beta1.CreateRelationResponse{
 				Relation: testRelationPB,
 			},
 			wantErr: nil,
@@ -199,8 +199,8 @@ func TestHandler_GetRelation(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RelationService)
-		request *shieldv1beta1.GetRelationRequest
-		want    *shieldv1beta1.GetRelationResponse
+		request *frontierv1beta1.GetRelationRequest
+		want    *frontierv1beta1.GetRelationResponse
 		wantErr error
 	}{
 		{
@@ -208,7 +208,7 @@ func TestHandler_GetRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.Relation{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetRelationRequest{
+			request: &frontierv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
 			},
 			want:    nil,
@@ -219,7 +219,7 @@ func TestHandler_GetRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(relation.Relation{}, relation.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetRelationRequest{},
+			request: &frontierv1beta1.GetRelationRequest{},
 			want:    nil,
 			wantErr: grpcRelationNotFoundErr,
 		},
@@ -228,7 +228,7 @@ func TestHandler_GetRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(relation.Relation{}, relation.ErrInvalidUUID)
 			},
-			request: &shieldv1beta1.GetRelationRequest{
+			request: &frontierv1beta1.GetRelationRequest{
 				Id: "some-id",
 			},
 			want:    nil,
@@ -239,7 +239,7 @@ func TestHandler_GetRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.Relation{}, relation.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetRelationRequest{
+			request: &frontierv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
 			},
 			want:    nil,
@@ -250,10 +250,10 @@ func TestHandler_GetRelation(t *testing.T) {
 			setup: func(rs *mocks.RelationService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(testRelationV2, nil)
 			},
-			request: &shieldv1beta1.GetRelationRequest{
+			request: &frontierv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
 			},
-			want: &shieldv1beta1.GetRelationResponse{
+			want: &frontierv1beta1.GetRelationResponse{
 				Relation: testRelationPB,
 			},
 			wantErr: nil,
@@ -277,8 +277,8 @@ func TestHandler_DeleteRelation(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RelationService, res *mocks.ResourceService)
-		request *shieldv1beta1.DeleteRelationRequest
-		want    *shieldv1beta1.DeleteRelationResponse
+		request *frontierv1beta1.DeleteRelationRequest
+		want    *frontierv1beta1.DeleteRelationResponse
 		wantErr error
 	}{
 		{
@@ -301,12 +301,12 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					},
 				}).Return(nil)
 			},
-			request: &shieldv1beta1.DeleteRelationRequest{
+			request: &frontierv1beta1.DeleteRelationRequest{
 				Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 				Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 				Relation: testRelationV2.Subject.SubRelationName,
 			},
-			want:    &shieldv1beta1.DeleteRelationResponse{},
+			want:    &frontierv1beta1.DeleteRelationResponse{},
 			wantErr: nil,
 		},
 		{
@@ -329,12 +329,12 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					},
 				}).Return(nil)
 			},
-			request: &shieldv1beta1.DeleteRelationRequest{
+			request: &frontierv1beta1.DeleteRelationRequest{
 				Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 				Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 				Relation: testRelationV2.Subject.SubRelationName,
 			},
-			want:    &shieldv1beta1.DeleteRelationResponse{},
+			want:    &frontierv1beta1.DeleteRelationResponse{},
 			wantErr: nil,
 		},
 	}

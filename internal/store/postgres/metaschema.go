@@ -3,7 +3,7 @@ package postgres
 import (
 	"time"
 
-	"github.com/raystack/shield/core/metaschema"
+	"github.com/raystack/frontier/core/metaschema"
 )
 
 type MetaSchema struct {

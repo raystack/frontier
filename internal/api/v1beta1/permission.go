@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/frontier/core/permission"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/shield/core/namespace"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/namespace"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,7 +33,7 @@ type BootstrapService interface {
 
 var grpcPermissionNotFoundErr = status.Errorf(codes.NotFound, "permission doesn't exist")
 
-func (h Handler) ListPermissions(ctx context.Context, request *shieldv1beta1.ListPermissionsRequest) (*shieldv1beta1.ListPermissionsResponse, error) {
+func (h Handler) ListPermissions(ctx context.Context, request *frontierv1beta1.ListPermissionsRequest) (*frontierv1beta1.ListPermissionsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	actionsList, err := h.permissionService.List(ctx, permission.Filter{})
@@ -42,7 +42,7 @@ func (h Handler) ListPermissions(ctx context.Context, request *shieldv1beta1.Lis
 		return nil, grpcInternalServerError
 	}
 
-	var perms []*shieldv1beta1.Permission
+	var perms []*frontierv1beta1.Permission
 	for _, act := range actionsList {
 		actPB, err := transformPermissionToPB(act)
 		if err != nil {
@@ -51,10 +51,10 @@ func (h Handler) ListPermissions(ctx context.Context, request *shieldv1beta1.Lis
 		}
 		perms = append(perms, actPB)
 	}
-	return &shieldv1beta1.ListPermissionsResponse{Permissions: perms}, nil
+	return &frontierv1beta1.ListPermissionsResponse{Permissions: perms}, nil
 }
 
-func (h Handler) CreatePermission(ctx context.Context, request *shieldv1beta1.CreatePermissionRequest) (*shieldv1beta1.CreatePermissionResponse, error) {
+func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.CreatePermissionRequest) (*frontierv1beta1.CreatePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var err error
 
@@ -108,7 +108,7 @@ func (h Handler) CreatePermission(ctx context.Context, request *shieldv1beta1.Cr
 		return nil, grpcInternalServerError
 	}
 
-	var pbPerms []*shieldv1beta1.Permission
+	var pbPerms []*frontierv1beta1.Permission
 	for _, perm := range permList {
 		permPB, err := transformPermissionToPB(perm)
 		if err != nil {
@@ -117,10 +117,10 @@ func (h Handler) CreatePermission(ctx context.Context, request *shieldv1beta1.Cr
 		}
 		pbPerms = append(pbPerms, permPB)
 	}
-	return &shieldv1beta1.CreatePermissionResponse{Permissions: pbPerms}, nil
+	return &frontierv1beta1.CreatePermissionResponse{Permissions: pbPerms}, nil
 }
 
-func (h Handler) GetPermission(ctx context.Context, request *shieldv1beta1.GetPermissionRequest) (*shieldv1beta1.GetPermissionResponse, error) {
+func (h Handler) GetPermission(ctx context.Context, request *frontierv1beta1.GetPermissionRequest) (*frontierv1beta1.GetPermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedPermission, err := h.permissionService.Get(ctx, request.GetId())
@@ -140,11 +140,11 @@ func (h Handler) GetPermission(ctx context.Context, request *shieldv1beta1.GetPe
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.GetPermissionResponse{Permission: permissionPB}, nil
+	return &frontierv1beta1.GetPermissionResponse{Permission: permissionPB}, nil
 }
 
 // UpdatePermission should only be used to update permission metadata at the moment
-func (h Handler) UpdatePermission(ctx context.Context, request *shieldv1beta1.UpdatePermissionRequest) (*shieldv1beta1.UpdatePermissionResponse, error) {
+func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.UpdatePermissionRequest) (*frontierv1beta1.UpdatePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	var metaDataMap metadata.Metadata
@@ -187,10 +187,10 @@ func (h Handler) UpdatePermission(ctx context.Context, request *shieldv1beta1.Up
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.UpdatePermissionResponse{Permission: actionPB}, nil
+	return &frontierv1beta1.UpdatePermissionResponse{Permission: actionPB}, nil
 }
 
-func transformPermissionToPB(perm permission.Permission) (*shieldv1beta1.Permission, error) {
+func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permission, error) {
 	var metadata *structpb.Struct
 	var err error
 	if len(perm.Metadata) > 0 {
@@ -200,7 +200,7 @@ func transformPermissionToPB(perm permission.Permission) (*shieldv1beta1.Permiss
 		}
 	}
 
-	return &shieldv1beta1.Permission{
+	return &frontierv1beta1.Permission{
 		Id:        perm.ID,
 		Key:       schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name),
 		Name:      perm.Name,

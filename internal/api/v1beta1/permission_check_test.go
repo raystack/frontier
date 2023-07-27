@@ -5,23 +5,23 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/frontier/core/relation"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
 func TestHandler_CheckResourcePermission(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(res *mocks.ResourceService)
-		request *shieldv1beta1.CheckResourcePermissionRequest
-		want    *shieldv1beta1.CheckResourcePermissionResponse
+		request *frontierv1beta1.CheckResourcePermissionRequest
+		want    *frontierv1beta1.CheckResourcePermissionResponse
 		wantErr error
 	}{
 		{
@@ -32,7 +32,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 					Namespace: testRelationV2.Object.Namespace,
 				}, schema.UpdatePermission).Return(false, errors.New("some error"))
 			},
-			request: &shieldv1beta1.CheckResourcePermissionRequest{
+			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
 				ObjectNamespace: testRelationV2.Object.Namespace,
 				Permission:      schema.UpdatePermission,
@@ -48,12 +48,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 					Namespace: testRelationV2.Object.Namespace,
 				}, schema.UpdatePermission).Return(true, nil)
 			},
-			request: &shieldv1beta1.CheckResourcePermissionRequest{
+			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
 				ObjectNamespace: testRelationV2.Object.Namespace,
 				Permission:      schema.UpdatePermission,
 			},
-			want: &shieldv1beta1.CheckResourcePermissionResponse{
+			want: &frontierv1beta1.CheckResourcePermissionResponse{
 				Status: true,
 			},
 			wantErr: nil,
@@ -66,12 +66,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 					Namespace: testRelationV2.Object.Namespace,
 				}, schema.UpdatePermission).Return(false, nil)
 			},
-			request: &shieldv1beta1.CheckResourcePermissionRequest{
+			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
 				ObjectNamespace: testRelationV2.Object.Namespace,
 				Permission:      schema.UpdatePermission,
 			},
-			want: &shieldv1beta1.CheckResourcePermissionResponse{
+			want: &frontierv1beta1.CheckResourcePermissionResponse{
 				Status: false,
 			},
 			wantErr: nil,

@@ -4,15 +4,15 @@ services:
   pg:
     image: postgres:13
     environment:
-      - POSTGRES_DB=shield
-      - POSTGRES_USER=shield
+      - POSTGRES_DB=frontier
+      - POSTGRES_USER=frontier
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./temp/pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U shield" ]
+      test: [ "CMD-SHELL", "pg_isready -U frontier" ]
       interval: 30s
       timeout: 30s
       retries: 3
@@ -33,7 +33,7 @@ services:
       timeout: 30s
       retries: 3
 
-#  shield-migrate:
+#  frontier-migrate:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile.dev
@@ -44,12 +44,12 @@ services:
 #        condition: service_healthy
 #    environment:
 #      - SHIELD_DB_DRIVER=postgres
-#      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+#      - SHIELD_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
 #      - SHIELD_SPICEDB_PORT=50051
 #      - SHIELD_SPICEDB_HOST=spicedb
-#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield
+#      - SHIELD_SPICEDB_PRE_SHARED_KEY=frontier
 #
-#  shield:
+#  frontier:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile.dev
@@ -60,14 +60,14 @@ services:
 #    depends_on:
 #      pg:
 #        condition: service_healthy
-#      shield-migrate:
+#      frontier-migrate:
 #        condition: service_completed_successfully
 #    environment:
 #      - SHIELD_DB_DRIVER=postgres
-#      - SHIELD_DB_URL=postgres://shield:@pg:5432/shield?sslmode=disable
+#      - SHIELD_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
 #      - SHIELD_SPICEDB_PORT=50051
 #      - SHIELD_SPICEDB_HOST=spicedb
-#      - SHIELD_SPICEDB_PRE_SHARED_KEY=shield
+#      - SHIELD_SPICEDB_PRE_SHARED_KEY=frontier
 #      - SHIELD_APP_RESOURCES_CONFIG_PATH=file:///opt
 
   spicedb-migration:
@@ -84,7 +84,7 @@ services:
       - "8082:8080"
       - "50051:50051"
     command:
-      serve --grpc-preshared-key "shield" --datastore-engine postgres
+      serve --grpc-preshared-key "frontier" --datastore-engine postgres
       --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
     restart: on-failure
     depends_on:

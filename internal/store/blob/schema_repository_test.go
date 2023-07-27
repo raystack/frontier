@@ -5,7 +5,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/stretchr/testify/assert"
 )

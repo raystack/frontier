@@ -7,9 +7,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/raystack/shield/internal/proxy/middleware"
-	"github.com/raystack/shield/pkg/body_extractor"
-	"github.com/raystack/shield/pkg/httputil"
+	"github.com/raystack/frontier/internal/proxy/middleware"
+	"github.com/raystack/frontier/pkg/body_extractor"
+	"github.com/raystack/frontier/pkg/httputil"
 
 	goauth "github.com/abbot/go-http-auth"
 	"github.com/mitchellh/mapstructure"
@@ -85,7 +85,7 @@ func (w *BasicAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		w.notAllowed(rw)
 		return
 	}
-	authenticator := goauth.NewBasicAuthenticator("shield", func(user, realm string) string {
+	authenticator := goauth.NewBasicAuthenticator("frontier", func(user, realm string) string {
 		for _, credential := range conf.Users {
 			if credential.User == user {
 				return credential.Password
@@ -207,7 +207,7 @@ func (w BasicAuth) matchAction(cap, action string) bool {
 
 func CompileString(input string, context map[string]interface{}) (string, error) {
 	// note: template can be cached
-	tmpl, err := template.New("shield_engine").Parse(input)
+	tmpl, err := template.New("frontier_engine").Parse(input)
 	if err != nil {
 		return "", err
 	}

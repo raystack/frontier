@@ -5,16 +5,16 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/raystack/shield/core/invitation"
+	"github.com/raystack/frontier/core/invitation"
 
-	"github.com/raystack/shield/core/policy"
-	"github.com/raystack/shield/core/role"
+	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/role"
 
-	"github.com/raystack/shield/core/group"
+	"github.com/raystack/frontier/core/group"
 
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/core/resource"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/resource"
 )
 
 type ProjectService interface {

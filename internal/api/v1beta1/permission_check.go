@@ -4,21 +4,21 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/raystack/shield/core/audit"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/relation"
+	"github.com/raystack/frontier/core/relation"
 
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/pkg/errors"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/errors"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
+func (h Handler) CheckResourcePermission(ctx context.Context, req *frontierv1beta1.CheckResourcePermissionRequest) (*frontierv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.GetResource())
 	if len(req.GetResource()) == 0 || err != nil {
@@ -46,9 +46,9 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 
 	logAuditForCheck(ctx, result, objectID, objectNamespace)
 	if !result {
-		return &shieldv1beta1.CheckResourcePermissionResponse{Status: false}, nil
+		return &frontierv1beta1.CheckResourcePermissionResponse{Status: false}, nil
 	}
-	return &shieldv1beta1.CheckResourcePermissionResponse{Status: true}, nil
+	return &frontierv1beta1.CheckResourcePermissionResponse{Status: true}, nil
 }
 
 func logAuditForCheck(ctx context.Context, result bool, objectID string, objectNamespace string) {

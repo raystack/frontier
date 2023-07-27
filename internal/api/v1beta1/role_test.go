@@ -8,11 +8,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/core/role"
-	"github.com/raystack/shield/internal/api/v1beta1/mocks"
-	"github.com/raystack/shield/pkg/metadata"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/pkg/metadata"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -41,8 +41,8 @@ func TestHandler_ListOrganizationRoles(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService)
-		request *shieldv1beta1.ListOrganizationRolesRequest
-		want    *shieldv1beta1.ListOrganizationRolesResponse
+		request *frontierv1beta1.ListOrganizationRolesRequest
+		want    *frontierv1beta1.ListOrganizationRolesResponse
 		wantErr error
 	}{
 		{
@@ -62,8 +62,8 @@ func TestHandler_ListOrganizationRoles(t *testing.T) {
 				}
 				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), role.Filter{}).Return(testRolesList, nil)
 			},
-			want: &shieldv1beta1.ListOrganizationRolesResponse{
-				Roles: []*shieldv1beta1.Role{
+			want: &frontierv1beta1.ListOrganizationRolesResponse{
+				Roles: []*frontierv1beta1.Role{
 					{
 						Id:          testRoleMap[testRoleID].ID,
 						Name:        testRoleMap[testRoleID].Name,
@@ -100,8 +100,8 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService, ms *mocks.MetaSchemaService)
-		request *shieldv1beta1.CreateOrganizationRoleRequest
-		want    *shieldv1beta1.CreateOrganizationRoleResponse
+		request *frontierv1beta1.CreateOrganizationRoleRequest
+		want    *frontierv1beta1.CreateOrganizationRoleResponse
 		wantErr error
 	}{
 		{
@@ -115,9 +115,9 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+			request: &frontierv1beta1.CreateOrganizationRoleRequest{
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -141,9 +141,9 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, namespace.ErrNotExist)
 			},
-			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+			request: &frontierv1beta1.CreateOrganizationRoleRequest{
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -166,9 +166,9 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+			request: &frontierv1beta1.CreateOrganizationRoleRequest{
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -190,9 +190,9 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidID)
-			}, request: &shieldv1beta1.CreateOrganizationRoleRequest{
+			}, request: &frontierv1beta1.CreateOrganizationRoleRequest{
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -216,9 +216,9 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(testRoleMap[testRoleID], nil)
 			},
-			request: &shieldv1beta1.CreateOrganizationRoleRequest{
+			request: &frontierv1beta1.CreateOrganizationRoleRequest{
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -228,8 +228,8 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					},
 				},
 			},
-			want: &shieldv1beta1.CreateOrganizationRoleResponse{
-				Role: &shieldv1beta1.Role{
+			want: &frontierv1beta1.CreateOrganizationRoleResponse{
+				Role: &frontierv1beta1.Role{
 					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
@@ -268,8 +268,8 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService)
-		request *shieldv1beta1.GetOrganizationRoleRequest
-		want    *shieldv1beta1.GetOrganizationRoleResponse
+		request *frontierv1beta1.GetOrganizationRoleRequest
+		want    *frontierv1beta1.GetOrganizationRoleResponse
 		wantErr error
 	}{
 		{
@@ -277,7 +277,7 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.GetOrganizationRoleRequest{
+			request: &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
 			},
 			want:    nil,
@@ -288,7 +288,7 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, role.ErrNotExist)
 			},
-			request: &shieldv1beta1.GetOrganizationRoleRequest{
+			request: &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
 			},
 			want:    nil,
@@ -299,7 +299,7 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(role.Role{}, role.ErrInvalidID)
 			},
-			request: &shieldv1beta1.GetOrganizationRoleRequest{},
+			request: &frontierv1beta1.GetOrganizationRoleRequest{},
 			want:    nil,
 			wantErr: grpcRoleNotFoundErr,
 		},
@@ -308,11 +308,11 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 			setup: func(rs *mocks.RoleService) {
 				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(testRoleMap[testRoleID], nil)
 			},
-			request: &shieldv1beta1.GetOrganizationRoleRequest{
+			request: &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
 			},
-			want: &shieldv1beta1.GetOrganizationRoleResponse{
-				Role: &shieldv1beta1.Role{
+			want: &frontierv1beta1.GetOrganizationRoleResponse{
+				Role: &frontierv1beta1.Role{
 					Id:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
@@ -347,8 +347,8 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.RoleService, ms *mocks.MetaSchemaService)
-		request *shieldv1beta1.UpdateOrganizationRoleRequest
-		want    *shieldv1beta1.UpdateOrganizationRoleResponse
+		request *frontierv1beta1.UpdateOrganizationRoleRequest
+		want    *frontierv1beta1.UpdateOrganizationRoleResponse
 		wantErr error
 	}{
 		{
@@ -363,10 +363,10 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, errors.New("some error"))
 			},
-			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
+			request: &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -391,10 +391,10 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrNotExist)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
+			request: &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -419,10 +419,10 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidID)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
+			request: &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -446,10 +446,10 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
+			request: &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
@@ -473,10 +473,10 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrInvalidDetail)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
+			request: &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{
@@ -501,10 +501,10 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 					Metadata:    testRoleMap[testRoleID].Metadata,
 				}).Return(role.Role{}, role.ErrConflict)
 			},
-			request: &shieldv1beta1.UpdateOrganizationRoleRequest{
+			request: &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
 				OrgId: testRoleMap[testRoleID].OrgID,
-				Body: &shieldv1beta1.RoleRequestBody{
+				Body: &frontierv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					Metadata: &structpb.Struct{

@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
-	"github.com/raystack/shield/internal/bootstrap"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
@@ -34,7 +34,7 @@ func TestCompileSchema(t *testing.T) {
 }
 
 func TestAddServiceToSchema(t *testing.T) {
-	tenantName := "shield"
+	tenantName := "frontier"
 	existingSchema, err := compiler.Compile(compiler.InputSchema{
 		Source:       "base_schema.zed",
 		SchemaString: schema.BaseSchemaZed,

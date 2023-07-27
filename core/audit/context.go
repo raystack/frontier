@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/raystack/shield/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/consts"
 )
 
 // GetService returns the audit service from the context if set

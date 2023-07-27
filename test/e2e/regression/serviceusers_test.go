@@ -11,18 +11,18 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/raystack/shield/internal/bootstrap/schema"
-	"github.com/raystack/shield/pkg/server/consts"
-	"github.com/raystack/shield/pkg/utils"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/utils"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/raystack/shield/core/authenticate"
-	"github.com/raystack/shield/pkg/server"
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/pkg/server"
 
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/pkg/logger"
-	"github.com/raystack/shield/test/e2e/testbench"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/pkg/logger"
+	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -43,7 +43,7 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.apiPort = apiPort
 
-	appConfig := &config.Shield{
+	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
@@ -64,7 +64,7 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 				},
 				Token: authenticate.TokenConfig{
 					RSAPath: "testdata/jwks.json",
-					Issuer:  "shield",
+					Issuer:  "frontier",
 				},
 			},
 		},
@@ -101,24 +101,24 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		HMACSHA256(password)
 	*/
 	sampleHMACJwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.kXSdJhhUKTJemgs8O0rfIJmUaxoSIDdClL_OPmaC7Eo"
-	var svUserKey *shieldv1beta1.KeyCredential
+	var svUserKey *frontierv1beta1.KeyCredential
 	var svKeyToken []byte
 	s.Run("1. create a service user in an org and generate a key", func() {
 		ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			testbench.IdentityHeader: testbench.OrgAdminEmail,
 		}))
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
 		})
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserRequest{
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserKeyResp, err := s.testBench.Client.CreateServiceUserKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserKeyRequest{
+		createServiceUserKeyResp, err := s.testBench.Client.CreateServiceUserKey(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserKeyRequest{
 			Id: createServiceUserResp.GetServiceuser().GetId(),
 		})
 		s.Assert().NoError(err)
@@ -141,7 +141,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 			"Authorization": "Bearer " + string(svKeyToken),
 		}))
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &shieldv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 		s.Assert().Equal(svUserKey.GetPrincipalId(), getCurrentUserResp.GetServiceuser().GetId())
@@ -151,7 +151,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 			consts.UserTokenRequestKey: string(svKeyToken),
 		}))
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &shieldv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 		s.Assert().Equal(svUserKey.GetPrincipalId(), getCurrentUserResp.GetServiceuser().GetId())
@@ -160,7 +160,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			consts.UserTokenRequestKey: sampleHMACJwt,
 		}))
-		_, err := s.testBench.Client.GetCurrentUser(ctx, &shieldv1beta1.GetCurrentUserRequest{})
+		_, err := s.testBench.Client.GetCurrentUser(ctx, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().Error(err)
 	})
 	s.Run("5. fetch current profile and pass additional headers via rest", func() {
@@ -174,8 +174,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().NotNil(currentUserResp.Body)
 	})
 	s.Run("6. service user should be able to create an organization with full permission", func() {
-		_, err := s.testBench.Client.CreateOrganization(context.Background(), &shieldv1beta1.CreateOrganizationRequest{
-			Body: &shieldv1beta1.OrganizationRequestBody{
+		_, err := s.testBench.Client.CreateOrganization(context.Background(), &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-su-test-1",
 			},
 		})
@@ -184,15 +184,15 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			"Authorization": "Bearer " + string(svKeyToken),
 		}))
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxWithKey, &shieldv1beta1.CreateOrganizationRequest{
-			Body: &shieldv1beta1.OrganizationRequestBody{
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxWithKey, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
 				Name: "org-su-test-1",
 			},
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createOrgResp)
 
-		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &shieldv1beta1.CheckResourcePermissionRequest{
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        createOrgResp.Organization.Id,
 			ObjectNamespace: "organization",
 			Permission:      schema.UpdatePermission,
@@ -204,13 +204,13 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			"Authorization": "Bearer " + string(svKeyToken),
 		}))
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxWithKey, &shieldv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxWithKey, &frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
 		})
 		s.Assert().NoError(err)
 
 		// by default it should not have any permission
-		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &shieldv1beta1.CheckResourcePermissionRequest{
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.Organization.Id),
 			Permission: schema.UpdatePermission,
 		})
@@ -218,8 +218,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().False(checkPermResp.Status)
 
 		// assign role
-		_, err = s.testBench.Client.CreatePolicy(ctxWithKey, &shieldv1beta1.CreatePolicyRequest{
-			Body: &shieldv1beta1.PolicyRequestBody{
+		_, err = s.testBench.Client.CreatePolicy(ctxWithKey, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    "app_organization_manager",
 				Resource:  schema.JoinNamespaceAndResourceID("organization", existingOrg.Organization.Id),
 				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, svUserKey.GetPrincipalId()),
@@ -227,7 +227,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		})
 		s.Assert().NoError(err)
 
-		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &shieldv1beta1.CheckResourcePermissionRequest{
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        existingOrg.Organization.Id,
 			ObjectNamespace: "organization",
 			Permission:      schema.UpdatePermission,
@@ -239,18 +239,18 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			testbench.IdentityHeader: testbench.OrgAdminEmail,
 		}))
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
 		})
 		s.Assert().NoError(err)
 
 		// create another service user
-		createServiceUser2Resp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserRequest{
+		createServiceUser2Resp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUser2Resp)
-		createServiceUser2KeyResp, err := s.testBench.Client.CreateServiceUserKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserKeyRequest{
+		createServiceUser2KeyResp, err := s.testBench.Client.CreateServiceUserKey(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserKeyRequest{
 			Id: createServiceUser2Resp.GetServiceuser().GetId(),
 		})
 		s.Assert().NoError(err)
@@ -271,7 +271,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		}))
 
 		// by default it should not have any permission
-		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey2, &shieldv1beta1.CheckResourcePermissionRequest{
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey2, &frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, svUserKey.GetPrincipalId()),
 			Permission: schema.ManagePermission,
 		})
@@ -281,24 +281,24 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
-	var svUserSecret *shieldv1beta1.SecretCredential
+	var svUserSecret *frontierv1beta1.SecretCredential
 	var svKeySecret string
 	s.Run("1. create a service user in an org and generate a secret", func() {
 		ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			testbench.IdentityHeader: testbench.OrgAdminEmail,
 		}))
-		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &shieldv1beta1.GetOrganizationRequest{
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
 		})
 		s.Assert().NoError(err)
 
-		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserRequest{
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
-		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceUserSecretRequest{
+		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
 			Id: createServiceUserResp.GetServiceuser().GetId(),
 		})
 		s.Assert().NoError(err)
@@ -313,7 +313,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 			"Authorization": "Basic " + svKeySecret,
 		}))
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &shieldv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 	})
@@ -321,7 +321,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			"Authorization": "Basic randomsecret",
 		}))
-		_, err := s.testBench.Client.GetCurrentUser(ctx, &shieldv1beta1.GetCurrentUserRequest{})
+		_, err := s.testBench.Client.GetCurrentUser(ctx, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().Error(err)
 	})
 }

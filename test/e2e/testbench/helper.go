@@ -7,7 +7,7 @@ import (
 	"errors"
 	"net"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -26,7 +26,7 @@ var (
 
 const (
 	OrgAdminEmail  = "admin1-group1-org1@raystack.org"
-	IdentityHeader = "X-Shield-Email"
+	IdentityHeader = "X-Frontier-Email"
 )
 
 func GetFreePort() (int, error) {
@@ -52,26 +52,26 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 	return grpc.DialContext(ctx, host, opts...)
 }
 
-func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func() error, error) {
+func CreateClient(ctx context.Context, host string) (frontierv1beta1.FrontierServiceClient, func() error, error) {
 	conn, err := createConnection(ctx, host)
 	if err != nil {
 		return nil, nil, err
 	}
-	client := shieldv1beta1.NewShieldServiceClient(conn)
+	client := frontierv1beta1.NewFrontierServiceClient(conn)
 	return client, conn.Close, nil
 }
 
-func CreateAdminClient(ctx context.Context, host string) (shieldv1beta1.AdminServiceClient, func() error, error) {
+func CreateAdminClient(ctx context.Context, host string) (frontierv1beta1.AdminServiceClient, func() error, error) {
 	conn, err := createConnection(ctx, host)
 	if err != nil {
 		return nil, nil, err
 	}
-	client := shieldv1beta1.NewAdminServiceClient(conn)
+	client := frontierv1beta1.NewAdminServiceClient(conn)
 	return client, conn.Close, nil
 }
 
-func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	var data []*shieldv1beta1.UserRequestBody
+func BootstrapUsers(ctx context.Context, cl frontierv1beta1.FrontierServiceClient, creatorEmail string) error {
+	var data []*frontierv1beta1.UserRequestBody
 	if err := json.Unmarshal(mockUserFixture, &data); err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
-		if _, err := cl.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
+		if _, err := cl.CreateUser(ctx, &frontierv1beta1.CreateUserRequest{
 			Body: d,
 		}); err != nil {
 			return err
@@ -88,7 +88,7 @@ func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	// validate
-	uRes, err := cl.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
+	uRes, err := cl.ListUsers(ctx, &frontierv1beta1.ListUsersRequest{})
 	if err != nil {
 		return err
 	}
@@ -99,8 +99,8 @@ func BootstrapUsers(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	return nil
 }
 
-func BootstrapOrganizations(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	var data []*shieldv1beta1.OrganizationRequestBody
+func BootstrapOrganizations(ctx context.Context, cl frontierv1beta1.FrontierServiceClient, creatorEmail string) error {
+	var data []*frontierv1beta1.OrganizationRequestBody
 	if err := json.Unmarshal(mockOrganizationFixture, &data); err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func BootstrapOrganizations(ctx context.Context, cl shieldv1beta1.ShieldServiceC
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
-		if _, err := cl.CreateOrganization(ctx, &shieldv1beta1.CreateOrganizationRequest{
+		if _, err := cl.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
 			Body: d,
 		}); err != nil {
 			return err
@@ -117,7 +117,7 @@ func BootstrapOrganizations(ctx context.Context, cl shieldv1beta1.ShieldServiceC
 	}
 
 	// validate
-	uRes, err := cl.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
+	uRes, err := cl.ListOrganizations(ctx, &frontierv1beta1.ListOrganizationsRequest{})
 	if err != nil {
 		return err
 	}
@@ -127,8 +127,8 @@ func BootstrapOrganizations(ctx context.Context, cl shieldv1beta1.ShieldServiceC
 	return nil
 }
 
-func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	orgResp, err := cl.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
+func BootstrapProject(ctx context.Context, cl frontierv1beta1.FrontierServiceClient, creatorEmail string) error {
+	orgResp, err := cl.ListOrganizations(ctx, &frontierv1beta1.ListOrganizationsRequest{})
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 		return errors.New("no organization found")
 	}
 
-	var data []*shieldv1beta1.ProjectRequestBody
+	var data []*frontierv1beta1.ProjectRequestBody
 	if err = json.Unmarshal(mockProjectFixture, &data); err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
-		if _, err := cl.CreateProject(ctx, &shieldv1beta1.CreateProjectRequest{
+		if _, err := cl.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
 			Body: d,
 		}); err != nil {
 			return err
@@ -155,7 +155,7 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	}
 
 	// validate
-	uRes, err := cl.ListOrganizationProjects(ctx, &shieldv1beta1.ListOrganizationProjectsRequest{
+	uRes, err := cl.ListOrganizationProjects(ctx, &frontierv1beta1.ListOrganizationProjectsRequest{
 		Id: orgResp.GetOrganizations()[0].GetId(),
 	})
 	if err != nil {
@@ -167,8 +167,8 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	return nil
 }
 
-func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
-	orgResp, err := cl.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
+func BootstrapGroup(ctx context.Context, cl frontierv1beta1.FrontierServiceClient, creatorEmail string) error {
+	orgResp, err := cl.ListOrganizations(ctx, &frontierv1beta1.ListOrganizationsRequest{})
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 		return errors.New("no organization found")
 	}
 
-	var data []*shieldv1beta1.GroupRequestBody
+	var data []*frontierv1beta1.GroupRequestBody
 	if err = json.Unmarshal(mockGroupFixture, &data); err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
-		if _, err := cl.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
+		if _, err := cl.CreateGroup(ctx, &frontierv1beta1.CreateGroupRequest{
 			Body:  d,
 			OrgId: orgResp.GetOrganizations()[0].GetId(),
 		}); err != nil {
@@ -195,7 +195,7 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	}
 
 	// validate
-	uRes, err := cl.ListOrganizationGroups(ctx, &shieldv1beta1.ListOrganizationGroupsRequest{
+	uRes, err := cl.ListOrganizationGroups(ctx, &frontierv1beta1.ListOrganizationGroupsRequest{
 		OrgId: orgResp.GetOrganizations()[0].GetId(),
 	})
 	if err != nil {

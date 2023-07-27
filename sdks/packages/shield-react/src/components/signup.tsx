@@ -1,6 +1,6 @@
 import { Flex, Link, Text } from "@raystack/apsara";
 import React, { ComponentPropsWithRef, useCallback } from "react";
-import { useShield } from "../contexts/ShieldContext";
+import { useFrontier } from "../contexts/FrontierContext";
 import { Container } from "./Container";
 import { Header } from "./Header";
 import { MagicLink } from "./magiclink";
@@ -21,8 +21,8 @@ export const Signup = ({
   title = "Create your account",
   ...props
 }: SignupProps) => {
-  const { config } = useShield();
-  const { client, strategies = [] } = useShield();
+  const { config } = useFrontier();
+  const { client, strategies = [] } = useFrontier();
 
   const clickHandler = useCallback(
     async (name: string) => {

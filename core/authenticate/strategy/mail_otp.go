@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/raystack/shield/pkg/mailer"
+	"github.com/raystack/frontier/pkg/mailer"
 	"gopkg.in/mail.v2"
 )
 

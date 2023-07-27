@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/pkg/file"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	"github.com/raystack/shield/pkg/file"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -20,10 +20,10 @@ func PermissionCommand(cliConfig *Config) *cli.Command {
 			Work with permissions.
 		`),
 		Example: heredoc.Doc(`
-			$ shield permission create
-			$ shield permission edit
-			$ shield permission view
-			$ shield permission list
+			$ frontier permission create
+			$ frontier permission edit
+			$ frontier permission view
+			$ frontier permission list
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -49,7 +49,7 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 		Short: "Upsert a permission",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield permission create --file=<action-body> --header=<key>:<value>
+			$ frontier permission create --file=<action-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"action:core": "true",
@@ -58,7 +58,7 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.PermissionRequestBody
+			var reqBody frontierv1beta1.PermissionRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -75,8 +75,8 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			ctx := setCtxHeader(cmd.Context(), header)
-			res, err := client.CreatePermission(ctx, &shieldv1beta1.CreatePermissionRequest{
-				Bodies: []*shieldv1beta1.PermissionRequestBody{&reqBody},
+			res, err := client.CreatePermission(ctx, &frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{&reqBody},
 			})
 			if err != nil {
 				return err
@@ -104,7 +104,7 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 		Short: "Edit a permission",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield permission edit <action-id> --file=<action-body>
+			$ frontier permission edit <action-id> --file=<action-body>
 		`),
 		Annotations: map[string]string{
 			"action:core": "true",
@@ -113,7 +113,7 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.PermissionRequestBody
+			var reqBody frontierv1beta1.PermissionRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -130,7 +130,7 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			permissionID := args[0]
-			_, err = client.UpdatePermission(cmd.Context(), &shieldv1beta1.UpdatePermissionRequest{
+			_, err = client.UpdatePermission(cmd.Context(), &frontierv1beta1.UpdatePermissionRequest{
 				Id:   permissionID,
 				Body: &reqBody,
 			})
@@ -156,7 +156,7 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 		Short: "View a permission",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield permission view <action-id>
+			$ frontier permission view <action-id>
 		`),
 		Annotations: map[string]string{
 			"action:core": "true",
@@ -172,7 +172,7 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			permissionID := args[0]
-			res, err := client.GetPermission(cmd.Context(), &shieldv1beta1.GetPermissionRequest{
+			res, err := client.GetPermission(cmd.Context(), &frontierv1beta1.GetPermissionRequest{
 				Id: permissionID,
 			})
 			if err != nil {
@@ -206,7 +206,7 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 		Short: "List all permissions",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield permission list
+			$ frontier permission list
 		`),
 		Annotations: map[string]string{
 			"action:core": "true",
@@ -221,7 +221,7 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 			}
 			defer cancel()
 
-			res, err := client.ListPermissions(cmd.Context(), &shieldv1beta1.ListPermissionsRequest{})
+			res, err := client.ListPermissions(cmd.Context(), &frontierv1beta1.ListPermissionsRequest{})
 			if err != nil {
 				return err
 			}

@@ -3,26 +3,26 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/raystack/shield/core/audit"
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/project"
+	"github.com/raystack/frontier/core/project"
 
 	"github.com/pkg/errors"
-	"github.com/raystack/shield/core/user"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/metadata"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/raystack/shield/core/organization"
+	"github.com/raystack/frontier/core/organization"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
 var grpcOrgNotFoundErr = status.Errorf(codes.NotFound, "org doesn't exist")
@@ -40,9 +40,9 @@ type OrganizationService interface {
 	Disable(ctx context.Context, id string) error
 }
 
-func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.ListOrganizationsRequest) (*shieldv1beta1.ListOrganizationsResponse, error) {
+func (h Handler) ListOrganizations(ctx context.Context, request *frontierv1beta1.ListOrganizationsRequest) (*frontierv1beta1.ListOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var orgs []*shieldv1beta1.Organization
+	var orgs []*frontierv1beta1.Organization
 	orgList, err := h.orgService.List(ctx, organization.Filter{
 		State:  organization.State(request.GetState()),
 		UserID: request.GetUserId(),
@@ -62,15 +62,15 @@ func (h Handler) ListOrganizations(ctx context.Context, request *shieldv1beta1.L
 		orgs = append(orgs, orgPB)
 	}
 
-	return &shieldv1beta1.ListOrganizationsResponse{
+	return &frontierv1beta1.ListOrganizationsResponse{
 		Organizations: orgs,
 	}, nil
 }
 
-func (h Handler) ListAllOrganizations(ctx context.Context, request *shieldv1beta1.ListAllOrganizationsRequest) (*shieldv1beta1.ListAllOrganizationsResponse, error) {
+func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1beta1.ListAllOrganizationsRequest) (*frontierv1beta1.ListAllOrganizationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var orgs []*shieldv1beta1.Organization
+	var orgs []*frontierv1beta1.Organization
 	orgList, err := h.orgService.List(ctx, organization.Filter{
 		State:  organization.State(request.GetState()),
 		UserID: request.GetUserId(),
@@ -90,12 +90,12 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *shieldv1beta
 		orgs = append(orgs, orgPB)
 	}
 
-	return &shieldv1beta1.ListAllOrganizationsResponse{
+	return &frontierv1beta1.ListAllOrganizationsResponse{
 		Organizations: orgs,
 	}, nil
 }
 
-func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.CreateOrganizationRequest) (*shieldv1beta1.CreateOrganizationResponse, error) {
+func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta1.CreateOrganizationRequest) (*frontierv1beta1.CreateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
@@ -134,10 +134,10 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 	}
 
 	audit.GetAuditor(ctx, newOrg.ID).Log(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID))
-	return &shieldv1beta1.CreateOrganizationResponse{Organization: orgPB}, nil
+	return &frontierv1beta1.CreateOrganizationResponse{Organization: orgPB}, nil
 }
 
-func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.GetOrganizationRequest) (*shieldv1beta1.GetOrganizationResponse, error) {
+func (h Handler) GetOrganization(ctx context.Context, request *frontierv1beta1.GetOrganizationRequest) (*frontierv1beta1.GetOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	fetchedOrg, err := h.orgService.Get(ctx, request.GetId())
@@ -159,12 +159,12 @@ func (h Handler) GetOrganization(ctx context.Context, request *shieldv1beta1.Get
 		return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
 	}
 
-	return &shieldv1beta1.GetOrganizationResponse{
+	return &frontierv1beta1.GetOrganizationResponse{
 		Organization: orgPB,
 	}, nil
 }
 
-func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.UpdateOrganizationRequest) (*shieldv1beta1.UpdateOrganizationResponse, error) {
+func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta1.UpdateOrganizationRequest) (*frontierv1beta1.UpdateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.GetBody() == nil {
@@ -214,10 +214,10 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 	}
 
 	audit.GetAuditor(ctx, updatedOrg.ID).Log(audit.OrgUpdatedEvent, audit.OrgTarget(updatedOrg.ID))
-	return &shieldv1beta1.UpdateOrganizationResponse{Organization: orgPB}, nil
+	return &frontierv1beta1.UpdateOrganizationResponse{Organization: orgPB}, nil
 }
 
-func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1beta1.ListOrganizationAdminsRequest) (*shieldv1beta1.ListOrganizationAdminsResponse, error) {
+func (h Handler) ListOrganizationAdmins(ctx context.Context, request *frontierv1beta1.ListOrganizationAdminsRequest) (*frontierv1beta1.ListOrganizationAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	admins, err := h.userService.ListByOrg(ctx, request.GetId(), organization.AdminPermission)
@@ -231,7 +231,7 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 		}
 	}
 
-	var adminsPB []*shieldv1beta1.User
+	var adminsPB []*frontierv1beta1.User
 	for _, user := range admins {
 		u, err := transformUserToPB(user)
 		if err != nil {
@@ -242,10 +242,10 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *shieldv1be
 		adminsPB = append(adminsPB, u)
 	}
 
-	return &shieldv1beta1.ListOrganizationAdminsResponse{Users: adminsPB}, nil
+	return &frontierv1beta1.ListOrganizationAdminsResponse{Users: adminsPB}, nil
 }
 
-func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1beta1.ListOrganizationUsersRequest) (*shieldv1beta1.ListOrganizationUsersResponse, error) {
+func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1beta1.ListOrganizationUsersRequest) (*frontierv1beta1.ListOrganizationUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	permissionFilter := schema.MembershipPermission
@@ -264,7 +264,7 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1bet
 		}
 	}
 
-	var usersPB []*shieldv1beta1.User
+	var usersPB []*frontierv1beta1.User
 	for _, rel := range users {
 		u, err := transformUserToPB(rel)
 		if err != nil {
@@ -275,10 +275,10 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *shieldv1bet
 		usersPB = append(usersPB, u)
 	}
 
-	return &shieldv1beta1.ListOrganizationUsersResponse{Users: usersPB}, nil
+	return &frontierv1beta1.ListOrganizationUsersResponse{Users: usersPB}, nil
 }
 
-func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *shieldv1beta1.ListOrganizationServiceUsersRequest) (*shieldv1beta1.ListOrganizationServiceUsersResponse, error) {
+func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *frontierv1beta1.ListOrganizationServiceUsersRequest) (*frontierv1beta1.ListOrganizationServiceUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	users, err := h.serviceUserService.ListByOrg(ctx, request.GetId())
@@ -292,7 +292,7 @@ func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *shie
 		}
 	}
 
-	var usersPB []*shieldv1beta1.ServiceUser
+	var usersPB []*frontierv1beta1.ServiceUser
 	for _, rel := range users {
 		u, err := transformServiceUserToPB(rel)
 		if err != nil {
@@ -302,10 +302,10 @@ func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *shie
 
 		usersPB = append(usersPB, u)
 	}
-	return &shieldv1beta1.ListOrganizationServiceUsersResponse{Serviceusers: usersPB}, nil
+	return &frontierv1beta1.ListOrganizationServiceUsersResponse{Serviceusers: usersPB}, nil
 }
 
-func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1beta1.ListOrganizationProjectsRequest) (*shieldv1beta1.ListOrganizationProjectsResponse, error) {
+func (h Handler) ListOrganizationProjects(ctx context.Context, request *frontierv1beta1.ListOrganizationProjectsRequest) (*frontierv1beta1.ListOrganizationProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	projects, err := h.projectService.List(ctx, project.Filter{
@@ -321,7 +321,7 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1
 		}
 	}
 
-	var projectPB []*shieldv1beta1.Project
+	var projectPB []*frontierv1beta1.Project
 	for _, rel := range projects {
 		u, err := transformProjectToPB(rel)
 		if err != nil {
@@ -332,10 +332,10 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *shieldv1
 		projectPB = append(projectPB, u)
 	}
 
-	return &shieldv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}, nil
+	return &frontierv1beta1.ListOrganizationProjectsResponse{Projects: projectPB}, nil
 }
 
-func (h Handler) AddOrganizationUsers(ctx context.Context, request *shieldv1beta1.AddOrganizationUsersRequest) (*shieldv1beta1.AddOrganizationUsersResponse, error) {
+func (h Handler) AddOrganizationUsers(ctx context.Context, request *frontierv1beta1.AddOrganizationUsersRequest) (*frontierv1beta1.AddOrganizationUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	for _, userID := range request.GetUserIds() {
 		audit.GetAuditor(ctx, request.GetId()).Log(audit.OrgMemberCreatedEvent, audit.UserTarget(userID))
@@ -345,44 +345,44 @@ func (h Handler) AddOrganizationUsers(ctx context.Context, request *shieldv1beta
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.AddOrganizationUsersResponse{}, nil
+	return &frontierv1beta1.AddOrganizationUsersResponse{}, nil
 }
 
-func (h Handler) RemoveOrganizationUser(ctx context.Context, request *shieldv1beta1.RemoveOrganizationUserRequest) (*shieldv1beta1.RemoveOrganizationUserResponse, error) {
+func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1beta1.RemoveOrganizationUserRequest) (*frontierv1beta1.RemoveOrganizationUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.orgService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	audit.GetAuditor(ctx, request.GetId()).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(request.GetUserId()))
-	return &shieldv1beta1.RemoveOrganizationUserResponse{}, nil
+	return &frontierv1beta1.RemoveOrganizationUserResponse{}, nil
 }
 
-func (h Handler) EnableOrganization(ctx context.Context, request *shieldv1beta1.EnableOrganizationRequest) (*shieldv1beta1.EnableOrganizationResponse, error) {
+func (h Handler) EnableOrganization(ctx context.Context, request *frontierv1beta1.EnableOrganizationRequest) (*frontierv1beta1.EnableOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.orgService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.EnableOrganizationResponse{}, nil
+	return &frontierv1beta1.EnableOrganizationResponse{}, nil
 }
 
-func (h Handler) DisableOrganization(ctx context.Context, request *shieldv1beta1.DisableOrganizationRequest) (*shieldv1beta1.DisableOrganizationResponse, error) {
+func (h Handler) DisableOrganization(ctx context.Context, request *frontierv1beta1.DisableOrganizationRequest) (*frontierv1beta1.DisableOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if err := h.orgService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &shieldv1beta1.DisableOrganizationResponse{}, nil
+	return &frontierv1beta1.DisableOrganizationResponse{}, nil
 }
 
-func transformOrgToPB(org organization.Organization) (*shieldv1beta1.Organization, error) {
+func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organization, error) {
 	metaData, err := org.Metadata.ToStructPB()
 	if err != nil {
 		return nil, err
 	}
 
-	return &shieldv1beta1.Organization{
+	return &frontierv1beta1.Organization{
 		Id:        org.ID,
 		Name:      org.Name,
 		Title:     org.Title,

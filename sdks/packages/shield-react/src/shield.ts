@@ -1,26 +1,26 @@
 import {
   Group,
   Organization,
-  ShieldClientOptions,
+  FrontierClientOptions,
   Strategy,
   User,
-} from "@raystack/shield";
+} from "@raystack/frontier";
 import type { AxiosInstance, AxiosResponse } from "axios";
 import axios from "axios";
 
-export default class Shield {
+export default class Frontier {
   protected readonly instance: AxiosInstance;
-  private readonly options: ShieldClientOptions;
-  private static classInstance?: Shield;
+  private readonly options: FrontierClientOptions;
+  private static classInstance?: Frontier;
 
-  static getOrCreateInstance(options: ShieldClientOptions) {
+  static getOrCreateInstance(options: FrontierClientOptions) {
     if (!this.classInstance) {
-      return new Shield(options);
+      return new Frontier(options);
     }
     return this.classInstance;
   }
 
-  constructor(options: ShieldClientOptions) {
+  constructor(options: FrontierClientOptions) {
     this.options = options;
     this.instance = axios.create({
       baseURL: options.endpoint,

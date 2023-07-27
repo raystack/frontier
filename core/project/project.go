@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/shield/core/organization"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 type State string

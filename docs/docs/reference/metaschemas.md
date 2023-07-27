@@ -3,21 +3,21 @@ import TabItem from "@theme/TabItem";
 
 # MetaSchemas
 
-MetaSchemas in Shield are default JSON-schemas designed to validate metadata that is included in the body of a resource. These schemas provide a standard way of describing the expected structure and content of metadata, which can be used to ensure consistency and accuracy of metadata across different resources.
+MetaSchemas in Frontier are default JSON-schemas designed to validate metadata that is included in the body of a resource. These schemas provide a standard way of describing the expected structure and content of metadata, which can be used to ensure consistency and accuracy of metadata across different resources.
 
 ## Why MetaSchemas?
 
-Metadata is an essential component of many resources, including user profiles, organization descriptions, group memberships, and project details in Shield. However, the structure and content of metadata can vary widely between different resources, making it challenging to validate and compare metadata across resources.
+Metadata is an essential component of many resources, including user profiles, organization descriptions, group memberships, and project details in Frontier. However, the structure and content of metadata can vary widely between different resources, making it challenging to validate and compare metadata across resources.
 
-Metaschemas address this challenge by providing a standardized way of describing the expected structure and content of metadata. With the help of this, Shield users can ensure that metadata is consistently structured and accurately represents the information it is intended to convey.
+Metaschemas address this challenge by providing a standardized way of describing the expected structure and content of metadata. With the help of this, Frontier users can ensure that metadata is consistently structured and accurately represents the information it is intended to convey.
 
 ## How Metaschemas Work!!
 
 Metaschemas are based on the JSON schema format, typically including properties that describe the expected structure and content of metadata, such as data types, formats, required fields, and allowed values. Additionally it include properties that provide context about the metadata, such as a description of the metadata, a version number, and authorship information.
 
-For the ease of users of Shield, we populate the Shield database with default MetaSchemas for Users, Group, Organisation and Roles in Shield during the database migrations.
+For the ease of users of Frontier, we populate the Frontier database with default MetaSchemas for Users, Group, Organisation and Roles in Frontier during the database migrations.
 
-One can easily updated these Schemas using the Shield MetaSchema APIs.
+One can easily updated these Schemas using the Frontier MetaSchema APIs.
 
 ## Example MetaSchema
 
@@ -73,8 +73,8 @@ A sample user MetaSchema is given below, and the second tab shows an example use
 </TabItem>
 </Tabs>
 
-**Note:** The default user, organization, group and project MetaSchemas are in this [repository](https://github.com/raystack/shield/tree/feat/json-schema-validation/internal/store/postgres/metaschemas)
+**Note:** The default user, organization, group and project MetaSchemas are in this [repository](https://github.com/raystack/frontier/tree/feat/json-schema-validation/internal/store/postgres/metaschemas)
 
 ## Disabling MetaSchemas
 
-In a Shield instance if one wants to diable the MetaSchema validation in either of users, group, organization or roles metadata. It is recommended to updated the MetaSchema's **`additionalProperties`** field value to **`true`**. Shield provides APIs to manipulate these schemas at the endpoint **`/v1beta1/meta/schemas`**. See the [API Reference](../apis/shield-service-create-meta-schema.api.mdx) for more details.
+In a Frontier instance if one wants to diable the MetaSchema validation in either of users, group, organization or roles metadata. It is recommended to updated the MetaSchema's **`additionalProperties`** field value to **`true`**. Frontier provides APIs to manipulate these schemas at the endpoint **`/v1beta1/meta/schemas`**. See the [API Reference](../apis/frontier-service-create-meta-schema.api.mdx) for more details.

@@ -3,10 +3,10 @@ package policy
 import (
 	"context"
 
-	"github.com/raystack/shield/core/role"
+	"github.com/raystack/frontier/core/role"
 
-	"github.com/raystack/shield/core/relation"
-	"github.com/raystack/shield/internal/bootstrap/schema"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
 type RelationService interface {

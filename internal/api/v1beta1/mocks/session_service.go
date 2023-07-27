@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	session "github.com/raystack/shield/core/authenticate/session"
+	session "github.com/raystack/frontier/core/authenticate/session"
 	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"

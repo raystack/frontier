@@ -1,6 +1,6 @@
 import { Button, Separator, Text, TextField } from "@raystack/apsara";
 import React, { useCallback, useState } from "react";
-import { useShield } from "../contexts/ShieldContext";
+import { useFrontier } from "../contexts/FrontierContext";
 
 const styles = {
   container: {
@@ -20,7 +20,7 @@ type MagicLinkProps = {
   children?: React.ReactNode;
 };
 export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
-  const { client, config } = useShield();
+  const { client, config } = useFrontier();
   const [visiable, setVisiable] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");

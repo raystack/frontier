@@ -12,12 +12,12 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 
 	"github.com/oauth2-proxy/mockoidc"
-	"github.com/raystack/shield/config"
-	"github.com/raystack/shield/core/authenticate"
-	"github.com/raystack/shield/pkg/logger"
-	"github.com/raystack/shield/pkg/server"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
-	"github.com/raystack/shield/test/e2e/testbench"
+	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/pkg/logger"
+	"github.com/raystack/frontier/pkg/server"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -48,7 +48,7 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 
 	// mock callback host
 
-	appConfig := &config.Shield{
+	appConfig := &config.Frontier{
 		Log: logger.Config{
 			Level: "error",
 		},
@@ -68,7 +68,7 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 				},
 				Token: authenticate.TokenConfig{
 					RSAPath: "testdata/jwks.json",
-					Issuer:  "shield",
+					Issuer:  "frontier",
 				},
 				OIDCConfig: map[string]authenticate.OIDCConfig{
 					"mock": {
@@ -96,13 +96,13 @@ func (s *AuthenticationRegressionTestSuite) TearDownSuite() {
 func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 	ctx := context.Background()
 	s.Run("1. return authenticate strategies of oidc", func() {
-		authStrategyResp, err := s.testBench.Client.ListAuthStrategies(ctx, &shieldv1beta1.ListAuthStrategiesRequest{})
+		authStrategyResp, err := s.testBench.Client.ListAuthStrategies(ctx, &frontierv1beta1.ListAuthStrategiesRequest{})
 		s.Assert().NoError(err)
 		s.Assert().Equal("mock", authStrategyResp.GetStrategies()[0].GetName())
 	})
 	s.Run("2. authenticate a user successfully using oidc and create a session via cookies", func() {
 		// start registration flow
-		authResp, err := s.testBench.Client.Authenticate(ctx, &shieldv1beta1.AuthenticateRequest{
+		authResp, err := s.testBench.Client.Authenticate(ctx, &frontierv1beta1.AuthenticateRequest{
 			StrategyName: "mock",
 			Redirect:     false,
 			ReturnTo:     "",
@@ -143,7 +143,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(http.StatusOK, endpointRes.StatusCode)
 
-		// callback to shield and get valid cookies
+		// callback to frontier and get valid cookies
 		authCallbackFinalResp, err := http.Get(fmt.Sprintf("http://localhost:%d/v1beta1/auth/callback?code=%s&state=%s",
 			s.apiPort, mockAuth0Code, parsedEndpoint.Query().Get("state")))
 		s.Assert().NoError(err)
@@ -158,7 +158,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(http.StatusOK, userResp.StatusCode)
 
-		user := &shieldv1beta1.GetCurrentUserResponse{}
+		user := &frontierv1beta1.GetCurrentUserResponse{}
 		s.Assert().NoError(jsonpb.Unmarshal(userResp.Body, user))
 		s.Assert().Equal(mockoidc.DefaultUser().Email, user.GetUser().Email)
 	})

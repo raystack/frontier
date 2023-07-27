@@ -1,8 +1,8 @@
-# Shield as a proxy
+# Frontier as a proxy
 
-Untill now, we were using Shield's admin APIs. Those were responsible for managing Shield's entities. Next, we are use Shield as a proxy.
+Untill now, we were using Frontier's admin APIs. Those were responsible for managing Frontier's entities. Next, we are use Frontier as a proxy.
 
-We had attached the backend service `entropy` to Shield earlier, and now we are going to create a `firehose` resource in it.
+We had attached the backend service `entropy` to Frontier earlier, and now we are going to create a `firehose` resource in it.
 Before, going ahead have a look at the configuration file below. Detailed explaining on this configuration file would be in resources/concepts.
 
 ```sh
@@ -30,18 +30,18 @@ rules:
                       key: firehose.name
                       type: json_payload
                     project:
-                      key: X-Shield-Project
+                      key: X-Frontier-Project
                       type: header
                       source: request
                     organization:
-                      key: X-Shield-Org
+                      key: X-Frontier-Org
                       type: header
                       source: request
                     resource_type:
                       value: "firehose"
                       type: constant
                     group_attribute:
-                      key: X-Shield-Group
+                      key: X-Frontier-Group
                       type: header
                       source: request
                   relations:
@@ -55,12 +55,12 @@ Let's make the following request.
 ```sh
 curl --location --request POST 'http://localhost:5556/api/firehoses'
 --header 'Content-Type: application/json'
---header 'X-Shield-Email: admin@raystack.org'
---header 'X-Shield-Org: 4eb3c3b4-962b-4b45-b55b-4c07d3810ca8'
---header 'X-Shield-Project: 1b89026b-6713-4327-9d7e-ed03345da288'
---header 'X-Shield-Group: 86e2f95d-92c7-4c59-8fed-b7686cccbf4f'
+--header 'X-Frontier-Email: admin@raystack.org'
+--header 'X-Frontier-Org: 4eb3c3b4-962b-4b45-b55b-4c07d3810ca8'
+--header 'X-Frontier-Project: 1b89026b-6713-4327-9d7e-ed03345da288'
+--header 'X-Frontier-Group: 86e2f95d-92c7-4c59-8fed-b7686cccbf4f'
 --data-raw '{
-    "created_by": "Shield Org Admin",
+    "created_by": "Frontier Org Admin",
     "configuration": {
         "SOURCE_KAFKA_CONSUMER_CONFIG_AUTO_COMMIT_ENABLE": false,
         "SOURCE_KAFKA_CONSUMER_CONFIG_FETCH_MIN_BYTES": "1",
@@ -90,9 +90,9 @@ curl --location --request POST 'http://localhost:5556/api/firehoses'
 
 Now this request will produce a series of events.
 
-- It will hit Shield(proxy) at `/api/firehoses` path, since there are no middleware the request shall be forwarded to the backend.
+- It will hit Frontier(proxy) at `/api/firehoses` path, since there are no middleware the request shall be forwarded to the backend.
   We expect that a resource will be created in `entropy` and we'll get a response.
-- Now, hooks will be engaged. We only have a single `authz` hook, which creates a resource inside Shield. It will use resource name, org, project and type from either of request, response or as a constant, to create a resource.
+- Now, hooks will be engaged. We only have a single `authz` hook, which creates a resource inside Frontier. It will use resource name, org, project and type from either of request, response or as a constant, to create a resource.
 - By deafult, no relation is created for this resource, but we can confire this. Here, we have configured to add the group with `owner` role.
 
 We'll get a firehose object sent by `entropy` as a response, though we don't have interest in that.
@@ -102,7 +102,7 @@ We'll get a firehose object sent by `entropy` as a response, though we don't hav
 {
     "firehose": {
         "replicas": 2,
-        "created_by": "Shield Org Admin",
+        "created_by": "Frontier Org Admin",
         "title": "test-firehose-creation-xxxxx",
         "group_id": "5ea18244-8e7a-xxxx-xxxx-ddf4b3fe3698",
         "team": "data_engineering",

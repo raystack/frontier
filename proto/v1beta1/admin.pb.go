@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.30.0
 // 	protoc        (unknown)
-// source: raystack/shield/v1beta1/admin.proto
+// source: raystack/frontier/v1beta1/admin.proto
 
-package shieldv1beta1
+package frontierv1beta1
 
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
@@ -40,7 +40,7 @@ type ListAllUsersRequest struct {
 func (x *ListAllUsersRequest) Reset() {
 	*x = ListAllUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[0]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -53,7 +53,7 @@ func (x *ListAllUsersRequest) String() string {
 func (*ListAllUsersRequest) ProtoMessage() {}
 
 func (x *ListAllUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[0]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -66,7 +66,7 @@ func (x *ListAllUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListAllUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{0}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ListAllUsersRequest) GetPageSize() int32 {
@@ -123,7 +123,7 @@ type ListAllUsersResponse struct {
 func (x *ListAllUsersResponse) Reset() {
 	*x = ListAllUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[1]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -136,7 +136,7 @@ func (x *ListAllUsersResponse) String() string {
 func (*ListAllUsersResponse) ProtoMessage() {}
 
 func (x *ListAllUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[1]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -149,7 +149,7 @@ func (x *ListAllUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListAllUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{1}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ListAllUsersResponse) GetCount() int32 {
@@ -178,7 +178,7 @@ type ListGroupsRequest struct {
 func (x *ListGroupsRequest) Reset() {
 	*x = ListGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[2]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -191,7 +191,7 @@ func (x *ListGroupsRequest) String() string {
 func (*ListGroupsRequest) ProtoMessage() {}
 
 func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[2]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -204,7 +204,7 @@ func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{2}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ListGroupsRequest) GetOrgId() string {
@@ -232,7 +232,7 @@ type ListGroupsResponse struct {
 func (x *ListGroupsResponse) Reset() {
 	*x = ListGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[3]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -245,7 +245,7 @@ func (x *ListGroupsResponse) String() string {
 func (*ListGroupsResponse) ProtoMessage() {}
 
 func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[3]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -258,7 +258,7 @@ func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{3}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ListGroupsResponse) GetGroups() []*Group {
@@ -280,7 +280,7 @@ type ListAllOrganizationsRequest struct {
 func (x *ListAllOrganizationsRequest) Reset() {
 	*x = ListAllOrganizationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[4]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -293,7 +293,7 @@ func (x *ListAllOrganizationsRequest) String() string {
 func (*ListAllOrganizationsRequest) ProtoMessage() {}
 
 func (x *ListAllOrganizationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[4]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -306,7 +306,7 @@ func (x *ListAllOrganizationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllOrganizationsRequest.ProtoReflect.Descriptor instead.
 func (*ListAllOrganizationsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{4}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListAllOrganizationsRequest) GetUserId() string {
@@ -334,7 +334,7 @@ type ListAllOrganizationsResponse struct {
 func (x *ListAllOrganizationsResponse) Reset() {
 	*x = ListAllOrganizationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[5]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -347,7 +347,7 @@ func (x *ListAllOrganizationsResponse) String() string {
 func (*ListAllOrganizationsResponse) ProtoMessage() {}
 
 func (x *ListAllOrganizationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[5]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -360,7 +360,7 @@ func (x *ListAllOrganizationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllOrganizationsResponse.ProtoReflect.Descriptor instead.
 func (*ListAllOrganizationsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{5}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListAllOrganizationsResponse) GetOrganizations() []*Organization {
@@ -382,7 +382,7 @@ type ListProjectsRequest struct {
 func (x *ListProjectsRequest) Reset() {
 	*x = ListProjectsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[6]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -395,7 +395,7 @@ func (x *ListProjectsRequest) String() string {
 func (*ListProjectsRequest) ProtoMessage() {}
 
 func (x *ListProjectsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[6]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -408,7 +408,7 @@ func (x *ListProjectsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{6}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListProjectsRequest) GetOrgId() string {
@@ -436,7 +436,7 @@ type ListProjectsResponse struct {
 func (x *ListProjectsResponse) Reset() {
 	*x = ListProjectsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[7]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -449,7 +449,7 @@ func (x *ListProjectsResponse) String() string {
 func (*ListProjectsResponse) ProtoMessage() {}
 
 func (x *ListProjectsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[7]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -462,7 +462,7 @@ func (x *ListProjectsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{7}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListProjectsResponse) GetProjects() []*Project {
@@ -481,7 +481,7 @@ type ListRelationsRequest struct {
 func (x *ListRelationsRequest) Reset() {
 	*x = ListRelationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[8]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -494,7 +494,7 @@ func (x *ListRelationsRequest) String() string {
 func (*ListRelationsRequest) ProtoMessage() {}
 
 func (x *ListRelationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[8]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -507,7 +507,7 @@ func (x *ListRelationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRelationsRequest.ProtoReflect.Descriptor instead.
 func (*ListRelationsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{8}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{8}
 }
 
 type ListRelationsResponse struct {
@@ -521,7 +521,7 @@ type ListRelationsResponse struct {
 func (x *ListRelationsResponse) Reset() {
 	*x = ListRelationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[9]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -534,7 +534,7 @@ func (x *ListRelationsResponse) String() string {
 func (*ListRelationsResponse) ProtoMessage() {}
 
 func (x *ListRelationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[9]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -547,7 +547,7 @@ func (x *ListRelationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRelationsResponse.ProtoReflect.Descriptor instead.
 func (*ListRelationsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{9}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListRelationsResponse) GetRelations() []*Relation {
@@ -571,7 +571,7 @@ type ListResourcesRequest struct {
 func (x *ListResourcesRequest) Reset() {
 	*x = ListResourcesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[10]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -584,7 +584,7 @@ func (x *ListResourcesRequest) String() string {
 func (*ListResourcesRequest) ProtoMessage() {}
 
 func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[10]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -597,7 +597,7 @@ func (x *ListResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{10}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListResourcesRequest) GetUserId() string {
@@ -639,7 +639,7 @@ type ListResourcesResponse struct {
 func (x *ListResourcesResponse) Reset() {
 	*x = ListResourcesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[11]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -652,7 +652,7 @@ func (x *ListResourcesResponse) String() string {
 func (*ListResourcesResponse) ProtoMessage() {}
 
 func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[11]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -665,7 +665,7 @@ func (x *ListResourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResourcesResponse.ProtoReflect.Descriptor instead.
 func (*ListResourcesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{11}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListResourcesResponse) GetResources() []*Resource {
@@ -690,7 +690,7 @@ type ListPoliciesRequest struct {
 func (x *ListPoliciesRequest) Reset() {
 	*x = ListPoliciesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[12]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -703,7 +703,7 @@ func (x *ListPoliciesRequest) String() string {
 func (*ListPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[12]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -716,7 +716,7 @@ func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{12}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListPoliciesRequest) GetOrgId() string {
@@ -765,7 +765,7 @@ type ListPoliciesResponse struct {
 func (x *ListPoliciesResponse) Reset() {
 	*x = ListPoliciesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[13]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -778,7 +778,7 @@ func (x *ListPoliciesResponse) String() string {
 func (*ListPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[13]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -791,7 +791,7 @@ func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{13}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListPoliciesResponse) GetPolicies() []*Policy {
@@ -812,7 +812,7 @@ type CreateRoleRequest struct {
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[14]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -825,7 +825,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[14]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -838,7 +838,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{14}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreateRoleRequest) GetBody() *RoleRequestBody {
@@ -859,7 +859,7 @@ type CreateRoleResponse struct {
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[15]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -872,7 +872,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[15]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -885,7 +885,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{15}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateRoleResponse) GetRole() *Role {
@@ -906,7 +906,7 @@ type DeleteRoleRequest struct {
 func (x *DeleteRoleRequest) Reset() {
 	*x = DeleteRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[16]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -919,7 +919,7 @@ func (x *DeleteRoleRequest) String() string {
 func (*DeleteRoleRequest) ProtoMessage() {}
 
 func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[16]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -932,7 +932,7 @@ func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{16}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *DeleteRoleRequest) GetId() string {
@@ -951,7 +951,7 @@ type DeleteRoleResponse struct {
 func (x *DeleteRoleResponse) Reset() {
 	*x = DeleteRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[17]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -964,7 +964,7 @@ func (x *DeleteRoleResponse) String() string {
 func (*DeleteRoleResponse) ProtoMessage() {}
 
 func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[17]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -977,7 +977,7 @@ func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{17}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{17}
 }
 
 type PermissionRequestBody struct {
@@ -985,11 +985,11 @@ type PermissionRequestBody struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Deprecated: Marked as deprecated in raystack/shield/v1beta1/admin.proto.
+	// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/admin.proto.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// namespace should be in service/resource format
 	//
-	// Deprecated: Marked as deprecated in raystack/shield/v1beta1/admin.proto.
+	// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/admin.proto.
 	Namespace string           `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	Metadata  *structpb.Struct `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Title     string           `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
@@ -999,7 +999,7 @@ type PermissionRequestBody struct {
 func (x *PermissionRequestBody) Reset() {
 	*x = PermissionRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[18]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1012,7 +1012,7 @@ func (x *PermissionRequestBody) String() string {
 func (*PermissionRequestBody) ProtoMessage() {}
 
 func (x *PermissionRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[18]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1025,10 +1025,10 @@ func (x *PermissionRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionRequestBody.ProtoReflect.Descriptor instead.
 func (*PermissionRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{18}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{18}
 }
 
-// Deprecated: Marked as deprecated in raystack/shield/v1beta1/admin.proto.
+// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/admin.proto.
 func (x *PermissionRequestBody) GetName() string {
 	if x != nil {
 		return x.Name
@@ -1036,7 +1036,7 @@ func (x *PermissionRequestBody) GetName() string {
 	return ""
 }
 
-// Deprecated: Marked as deprecated in raystack/shield/v1beta1/admin.proto.
+// Deprecated: Marked as deprecated in raystack/frontier/v1beta1/admin.proto.
 func (x *PermissionRequestBody) GetNamespace() string {
 	if x != nil {
 		return x.Namespace
@@ -1076,7 +1076,7 @@ type CreatePermissionRequest struct {
 func (x *CreatePermissionRequest) Reset() {
 	*x = CreatePermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[19]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1089,7 +1089,7 @@ func (x *CreatePermissionRequest) String() string {
 func (*CreatePermissionRequest) ProtoMessage() {}
 
 func (x *CreatePermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[19]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1102,7 +1102,7 @@ func (x *CreatePermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePermissionRequest.ProtoReflect.Descriptor instead.
 func (*CreatePermissionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{19}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CreatePermissionRequest) GetBodies() []*PermissionRequestBody {
@@ -1123,7 +1123,7 @@ type CreatePermissionResponse struct {
 func (x *CreatePermissionResponse) Reset() {
 	*x = CreatePermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[20]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1136,7 +1136,7 @@ func (x *CreatePermissionResponse) String() string {
 func (*CreatePermissionResponse) ProtoMessage() {}
 
 func (x *CreatePermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[20]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1149,7 +1149,7 @@ func (x *CreatePermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePermissionResponse.ProtoReflect.Descriptor instead.
 func (*CreatePermissionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{20}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreatePermissionResponse) GetPermissions() []*Permission {
@@ -1171,7 +1171,7 @@ type UpdatePermissionRequest struct {
 func (x *UpdatePermissionRequest) Reset() {
 	*x = UpdatePermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[21]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1184,7 +1184,7 @@ func (x *UpdatePermissionRequest) String() string {
 func (*UpdatePermissionRequest) ProtoMessage() {}
 
 func (x *UpdatePermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[21]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1197,7 +1197,7 @@ func (x *UpdatePermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePermissionRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePermissionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{21}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdatePermissionRequest) GetId() string {
@@ -1225,7 +1225,7 @@ type UpdatePermissionResponse struct {
 func (x *UpdatePermissionResponse) Reset() {
 	*x = UpdatePermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[22]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1238,7 +1238,7 @@ func (x *UpdatePermissionResponse) String() string {
 func (*UpdatePermissionResponse) ProtoMessage() {}
 
 func (x *UpdatePermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[22]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1251,7 +1251,7 @@ func (x *UpdatePermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePermissionResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePermissionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{22}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdatePermissionResponse) GetPermission() *Permission {
@@ -1272,7 +1272,7 @@ type DeletePermissionRequest struct {
 func (x *DeletePermissionRequest) Reset() {
 	*x = DeletePermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[23]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1285,7 +1285,7 @@ func (x *DeletePermissionRequest) String() string {
 func (*DeletePermissionRequest) ProtoMessage() {}
 
 func (x *DeletePermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[23]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1298,7 +1298,7 @@ func (x *DeletePermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePermissionRequest.ProtoReflect.Descriptor instead.
 func (*DeletePermissionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{23}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *DeletePermissionRequest) GetId() string {
@@ -1317,7 +1317,7 @@ type DeletePermissionResponse struct {
 func (x *DeletePermissionResponse) Reset() {
 	*x = DeletePermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[24]
+		mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1330,7 +1330,7 @@ func (x *DeletePermissionResponse) String() string {
 func (*DeletePermissionResponse) ProtoMessage() {}
 
 func (x *DeletePermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_shield_v1beta1_admin_proto_msgTypes[24]
+	mi := &file_raystack_frontier_v1beta1_admin_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1343,12 +1343,12 @@ func (x *DeletePermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePermissionResponse.ProtoReflect.Descriptor instead.
 func (*DeletePermissionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_shield_v1beta1_admin_proto_rawDescGZIP(), []int{24}
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP(), []int{24}
 }
 
-var File_raystack_shield_v1beta1_admin_proto protoreflect.FileDescriptor
+var File_raystack_frontier_v1beta1_admin_proto protoreflect.FileDescriptor
 
-var file_raystack_shield_v1beta1_admin_proto_rawDesc = []byte{
+var file_raystack_frontier_v1beta1_admin_proto_rawDesc = []byte{
 	0x0a, 0x23, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2f, 0x73, 0x68, 0x69, 0x65, 0x6c,
 	0x64, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x17, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
@@ -1939,95 +1939,95 @@ var file_raystack_shield_v1beta1_admin_proto_rawDesc = []byte{
 }
 
 var (
-	file_raystack_shield_v1beta1_admin_proto_rawDescOnce sync.Once
-	file_raystack_shield_v1beta1_admin_proto_rawDescData = file_raystack_shield_v1beta1_admin_proto_rawDesc
+	file_raystack_frontier_v1beta1_admin_proto_rawDescOnce sync.Once
+	file_raystack_frontier_v1beta1_admin_proto_rawDescData = file_raystack_frontier_v1beta1_admin_proto_rawDesc
 )
 
-func file_raystack_shield_v1beta1_admin_proto_rawDescGZIP() []byte {
-	file_raystack_shield_v1beta1_admin_proto_rawDescOnce.Do(func() {
-		file_raystack_shield_v1beta1_admin_proto_rawDescData = protoimpl.X.CompressGZIP(file_raystack_shield_v1beta1_admin_proto_rawDescData)
+func file_raystack_frontier_v1beta1_admin_proto_rawDescGZIP() []byte {
+	file_raystack_frontier_v1beta1_admin_proto_rawDescOnce.Do(func() {
+		file_raystack_frontier_v1beta1_admin_proto_rawDescData = protoimpl.X.CompressGZIP(file_raystack_frontier_v1beta1_admin_proto_rawDescData)
 	})
-	return file_raystack_shield_v1beta1_admin_proto_rawDescData
+	return file_raystack_frontier_v1beta1_admin_proto_rawDescData
 }
 
-var file_raystack_shield_v1beta1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
-var file_raystack_shield_v1beta1_admin_proto_goTypes = []interface{}{
-	(*ListAllUsersRequest)(nil),          // 0: raystack.shield.v1beta1.ListAllUsersRequest
-	(*ListAllUsersResponse)(nil),         // 1: raystack.shield.v1beta1.ListAllUsersResponse
-	(*ListGroupsRequest)(nil),            // 2: raystack.shield.v1beta1.ListGroupsRequest
-	(*ListGroupsResponse)(nil),           // 3: raystack.shield.v1beta1.ListGroupsResponse
-	(*ListAllOrganizationsRequest)(nil),  // 4: raystack.shield.v1beta1.ListAllOrganizationsRequest
-	(*ListAllOrganizationsResponse)(nil), // 5: raystack.shield.v1beta1.ListAllOrganizationsResponse
-	(*ListProjectsRequest)(nil),          // 6: raystack.shield.v1beta1.ListProjectsRequest
-	(*ListProjectsResponse)(nil),         // 7: raystack.shield.v1beta1.ListProjectsResponse
-	(*ListRelationsRequest)(nil),         // 8: raystack.shield.v1beta1.ListRelationsRequest
-	(*ListRelationsResponse)(nil),        // 9: raystack.shield.v1beta1.ListRelationsResponse
-	(*ListResourcesRequest)(nil),         // 10: raystack.shield.v1beta1.ListResourcesRequest
-	(*ListResourcesResponse)(nil),        // 11: raystack.shield.v1beta1.ListResourcesResponse
-	(*ListPoliciesRequest)(nil),          // 12: raystack.shield.v1beta1.ListPoliciesRequest
-	(*ListPoliciesResponse)(nil),         // 13: raystack.shield.v1beta1.ListPoliciesResponse
-	(*CreateRoleRequest)(nil),            // 14: raystack.shield.v1beta1.CreateRoleRequest
-	(*CreateRoleResponse)(nil),           // 15: raystack.shield.v1beta1.CreateRoleResponse
-	(*DeleteRoleRequest)(nil),            // 16: raystack.shield.v1beta1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil),           // 17: raystack.shield.v1beta1.DeleteRoleResponse
-	(*PermissionRequestBody)(nil),        // 18: raystack.shield.v1beta1.PermissionRequestBody
-	(*CreatePermissionRequest)(nil),      // 19: raystack.shield.v1beta1.CreatePermissionRequest
-	(*CreatePermissionResponse)(nil),     // 20: raystack.shield.v1beta1.CreatePermissionResponse
-	(*UpdatePermissionRequest)(nil),      // 21: raystack.shield.v1beta1.UpdatePermissionRequest
-	(*UpdatePermissionResponse)(nil),     // 22: raystack.shield.v1beta1.UpdatePermissionResponse
-	(*DeletePermissionRequest)(nil),      // 23: raystack.shield.v1beta1.DeletePermissionRequest
-	(*DeletePermissionResponse)(nil),     // 24: raystack.shield.v1beta1.DeletePermissionResponse
-	(*User)(nil),                         // 25: raystack.shield.v1beta1.User
-	(*Group)(nil),                        // 26: raystack.shield.v1beta1.Group
-	(*Organization)(nil),                 // 27: raystack.shield.v1beta1.Organization
-	(*Project)(nil),                      // 28: raystack.shield.v1beta1.Project
-	(*Relation)(nil),                     // 29: raystack.shield.v1beta1.Relation
-	(*Resource)(nil),                     // 30: raystack.shield.v1beta1.Resource
-	(*Policy)(nil),                       // 31: raystack.shield.v1beta1.Policy
-	(*RoleRequestBody)(nil),              // 32: raystack.shield.v1beta1.RoleRequestBody
-	(*Role)(nil),                         // 33: raystack.shield.v1beta1.Role
+var file_raystack_frontier_v1beta1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_raystack_frontier_v1beta1_admin_proto_goTypes = []interface{}{
+	(*ListAllUsersRequest)(nil),          // 0: raystack.frontier.v1beta1.ListAllUsersRequest
+	(*ListAllUsersResponse)(nil),         // 1: raystack.frontier.v1beta1.ListAllUsersResponse
+	(*ListGroupsRequest)(nil),            // 2: raystack.frontier.v1beta1.ListGroupsRequest
+	(*ListGroupsResponse)(nil),           // 3: raystack.frontier.v1beta1.ListGroupsResponse
+	(*ListAllOrganizationsRequest)(nil),  // 4: raystack.frontier.v1beta1.ListAllOrganizationsRequest
+	(*ListAllOrganizationsResponse)(nil), // 5: raystack.frontier.v1beta1.ListAllOrganizationsResponse
+	(*ListProjectsRequest)(nil),          // 6: raystack.frontier.v1beta1.ListProjectsRequest
+	(*ListProjectsResponse)(nil),         // 7: raystack.frontier.v1beta1.ListProjectsResponse
+	(*ListRelationsRequest)(nil),         // 8: raystack.frontier.v1beta1.ListRelationsRequest
+	(*ListRelationsResponse)(nil),        // 9: raystack.frontier.v1beta1.ListRelationsResponse
+	(*ListResourcesRequest)(nil),         // 10: raystack.frontier.v1beta1.ListResourcesRequest
+	(*ListResourcesResponse)(nil),        // 11: raystack.frontier.v1beta1.ListResourcesResponse
+	(*ListPoliciesRequest)(nil),          // 12: raystack.frontier.v1beta1.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),         // 13: raystack.frontier.v1beta1.ListPoliciesResponse
+	(*CreateRoleRequest)(nil),            // 14: raystack.frontier.v1beta1.CreateRoleRequest
+	(*CreateRoleResponse)(nil),           // 15: raystack.frontier.v1beta1.CreateRoleResponse
+	(*DeleteRoleRequest)(nil),            // 16: raystack.frontier.v1beta1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),           // 17: raystack.frontier.v1beta1.DeleteRoleResponse
+	(*PermissionRequestBody)(nil),        // 18: raystack.frontier.v1beta1.PermissionRequestBody
+	(*CreatePermissionRequest)(nil),      // 19: raystack.frontier.v1beta1.CreatePermissionRequest
+	(*CreatePermissionResponse)(nil),     // 20: raystack.frontier.v1beta1.CreatePermissionResponse
+	(*UpdatePermissionRequest)(nil),      // 21: raystack.frontier.v1beta1.UpdatePermissionRequest
+	(*UpdatePermissionResponse)(nil),     // 22: raystack.frontier.v1beta1.UpdatePermissionResponse
+	(*DeletePermissionRequest)(nil),      // 23: raystack.frontier.v1beta1.DeletePermissionRequest
+	(*DeletePermissionResponse)(nil),     // 24: raystack.frontier.v1beta1.DeletePermissionResponse
+	(*User)(nil),                         // 25: raystack.frontier.v1beta1.User
+	(*Group)(nil),                        // 26: raystack.frontier.v1beta1.Group
+	(*Organization)(nil),                 // 27: raystack.frontier.v1beta1.Organization
+	(*Project)(nil),                      // 28: raystack.frontier.v1beta1.Project
+	(*Relation)(nil),                     // 29: raystack.frontier.v1beta1.Relation
+	(*Resource)(nil),                     // 30: raystack.frontier.v1beta1.Resource
+	(*Policy)(nil),                       // 31: raystack.frontier.v1beta1.Policy
+	(*RoleRequestBody)(nil),              // 32: raystack.frontier.v1beta1.RoleRequestBody
+	(*Role)(nil),                         // 33: raystack.frontier.v1beta1.Role
 	(*structpb.Struct)(nil),              // 34: google.protobuf.Struct
-	(*Permission)(nil),                   // 35: raystack.shield.v1beta1.Permission
+	(*Permission)(nil),                   // 35: raystack.frontier.v1beta1.Permission
 }
-var file_raystack_shield_v1beta1_admin_proto_depIdxs = []int32{
-	25, // 0: raystack.shield.v1beta1.ListAllUsersResponse.users:type_name -> raystack.shield.v1beta1.User
-	26, // 1: raystack.shield.v1beta1.ListGroupsResponse.groups:type_name -> raystack.shield.v1beta1.Group
-	27, // 2: raystack.shield.v1beta1.ListAllOrganizationsResponse.organizations:type_name -> raystack.shield.v1beta1.Organization
-	28, // 3: raystack.shield.v1beta1.ListProjectsResponse.projects:type_name -> raystack.shield.v1beta1.Project
-	29, // 4: raystack.shield.v1beta1.ListRelationsResponse.relations:type_name -> raystack.shield.v1beta1.Relation
-	30, // 5: raystack.shield.v1beta1.ListResourcesResponse.resources:type_name -> raystack.shield.v1beta1.Resource
-	31, // 6: raystack.shield.v1beta1.ListPoliciesResponse.policies:type_name -> raystack.shield.v1beta1.Policy
-	32, // 7: raystack.shield.v1beta1.CreateRoleRequest.body:type_name -> raystack.shield.v1beta1.RoleRequestBody
-	33, // 8: raystack.shield.v1beta1.CreateRoleResponse.role:type_name -> raystack.shield.v1beta1.Role
-	34, // 9: raystack.shield.v1beta1.PermissionRequestBody.metadata:type_name -> google.protobuf.Struct
-	18, // 10: raystack.shield.v1beta1.CreatePermissionRequest.bodies:type_name -> raystack.shield.v1beta1.PermissionRequestBody
-	35, // 11: raystack.shield.v1beta1.CreatePermissionResponse.permissions:type_name -> raystack.shield.v1beta1.Permission
-	18, // 12: raystack.shield.v1beta1.UpdatePermissionRequest.body:type_name -> raystack.shield.v1beta1.PermissionRequestBody
-	35, // 13: raystack.shield.v1beta1.UpdatePermissionResponse.permission:type_name -> raystack.shield.v1beta1.Permission
-	0,  // 14: raystack.shield.v1beta1.AdminService.ListAllUsers:input_type -> raystack.shield.v1beta1.ListAllUsersRequest
-	2,  // 15: raystack.shield.v1beta1.AdminService.ListGroups:input_type -> raystack.shield.v1beta1.ListGroupsRequest
-	4,  // 16: raystack.shield.v1beta1.AdminService.ListAllOrganizations:input_type -> raystack.shield.v1beta1.ListAllOrganizationsRequest
-	6,  // 17: raystack.shield.v1beta1.AdminService.ListProjects:input_type -> raystack.shield.v1beta1.ListProjectsRequest
-	8,  // 18: raystack.shield.v1beta1.AdminService.ListRelations:input_type -> raystack.shield.v1beta1.ListRelationsRequest
-	10, // 19: raystack.shield.v1beta1.AdminService.ListResources:input_type -> raystack.shield.v1beta1.ListResourcesRequest
-	12, // 20: raystack.shield.v1beta1.AdminService.ListPolicies:input_type -> raystack.shield.v1beta1.ListPoliciesRequest
-	14, // 21: raystack.shield.v1beta1.AdminService.CreateRole:input_type -> raystack.shield.v1beta1.CreateRoleRequest
-	16, // 22: raystack.shield.v1beta1.AdminService.DeleteRole:input_type -> raystack.shield.v1beta1.DeleteRoleRequest
-	19, // 23: raystack.shield.v1beta1.AdminService.CreatePermission:input_type -> raystack.shield.v1beta1.CreatePermissionRequest
-	21, // 24: raystack.shield.v1beta1.AdminService.UpdatePermission:input_type -> raystack.shield.v1beta1.UpdatePermissionRequest
-	23, // 25: raystack.shield.v1beta1.AdminService.DeletePermission:input_type -> raystack.shield.v1beta1.DeletePermissionRequest
-	1,  // 26: raystack.shield.v1beta1.AdminService.ListAllUsers:output_type -> raystack.shield.v1beta1.ListAllUsersResponse
-	3,  // 27: raystack.shield.v1beta1.AdminService.ListGroups:output_type -> raystack.shield.v1beta1.ListGroupsResponse
-	5,  // 28: raystack.shield.v1beta1.AdminService.ListAllOrganizations:output_type -> raystack.shield.v1beta1.ListAllOrganizationsResponse
-	7,  // 29: raystack.shield.v1beta1.AdminService.ListProjects:output_type -> raystack.shield.v1beta1.ListProjectsResponse
-	9,  // 30: raystack.shield.v1beta1.AdminService.ListRelations:output_type -> raystack.shield.v1beta1.ListRelationsResponse
-	11, // 31: raystack.shield.v1beta1.AdminService.ListResources:output_type -> raystack.shield.v1beta1.ListResourcesResponse
-	13, // 32: raystack.shield.v1beta1.AdminService.ListPolicies:output_type -> raystack.shield.v1beta1.ListPoliciesResponse
-	15, // 33: raystack.shield.v1beta1.AdminService.CreateRole:output_type -> raystack.shield.v1beta1.CreateRoleResponse
-	17, // 34: raystack.shield.v1beta1.AdminService.DeleteRole:output_type -> raystack.shield.v1beta1.DeleteRoleResponse
-	20, // 35: raystack.shield.v1beta1.AdminService.CreatePermission:output_type -> raystack.shield.v1beta1.CreatePermissionResponse
-	22, // 36: raystack.shield.v1beta1.AdminService.UpdatePermission:output_type -> raystack.shield.v1beta1.UpdatePermissionResponse
-	24, // 37: raystack.shield.v1beta1.AdminService.DeletePermission:output_type -> raystack.shield.v1beta1.DeletePermissionResponse
+var file_raystack_frontier_v1beta1_admin_proto_depIdxs = []int32{
+	25, // 0: raystack.frontier.v1beta1.ListAllUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	26, // 1: raystack.frontier.v1beta1.ListGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	27, // 2: raystack.frontier.v1beta1.ListAllOrganizationsResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	28, // 3: raystack.frontier.v1beta1.ListProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	29, // 4: raystack.frontier.v1beta1.ListRelationsResponse.relations:type_name -> raystack.frontier.v1beta1.Relation
+	30, // 5: raystack.frontier.v1beta1.ListResourcesResponse.resources:type_name -> raystack.frontier.v1beta1.Resource
+	31, // 6: raystack.frontier.v1beta1.ListPoliciesResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
+	32, // 7: raystack.frontier.v1beta1.CreateRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
+	33, // 8: raystack.frontier.v1beta1.CreateRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
+	34, // 9: raystack.frontier.v1beta1.PermissionRequestBody.metadata:type_name -> google.protobuf.Struct
+	18, // 10: raystack.frontier.v1beta1.CreatePermissionRequest.bodies:type_name -> raystack.frontier.v1beta1.PermissionRequestBody
+	35, // 11: raystack.frontier.v1beta1.CreatePermissionResponse.permissions:type_name -> raystack.frontier.v1beta1.Permission
+	18, // 12: raystack.frontier.v1beta1.UpdatePermissionRequest.body:type_name -> raystack.frontier.v1beta1.PermissionRequestBody
+	35, // 13: raystack.frontier.v1beta1.UpdatePermissionResponse.permission:type_name -> raystack.frontier.v1beta1.Permission
+	0,  // 14: raystack.frontier.v1beta1.AdminService.ListAllUsers:input_type -> raystack.frontier.v1beta1.ListAllUsersRequest
+	2,  // 15: raystack.frontier.v1beta1.AdminService.ListGroups:input_type -> raystack.frontier.v1beta1.ListGroupsRequest
+	4,  // 16: raystack.frontier.v1beta1.AdminService.ListAllOrganizations:input_type -> raystack.frontier.v1beta1.ListAllOrganizationsRequest
+	6,  // 17: raystack.frontier.v1beta1.AdminService.ListProjects:input_type -> raystack.frontier.v1beta1.ListProjectsRequest
+	8,  // 18: raystack.frontier.v1beta1.AdminService.ListRelations:input_type -> raystack.frontier.v1beta1.ListRelationsRequest
+	10, // 19: raystack.frontier.v1beta1.AdminService.ListResources:input_type -> raystack.frontier.v1beta1.ListResourcesRequest
+	12, // 20: raystack.frontier.v1beta1.AdminService.ListPolicies:input_type -> raystack.frontier.v1beta1.ListPoliciesRequest
+	14, // 21: raystack.frontier.v1beta1.AdminService.CreateRole:input_type -> raystack.frontier.v1beta1.CreateRoleRequest
+	16, // 22: raystack.frontier.v1beta1.AdminService.DeleteRole:input_type -> raystack.frontier.v1beta1.DeleteRoleRequest
+	19, // 23: raystack.frontier.v1beta1.AdminService.CreatePermission:input_type -> raystack.frontier.v1beta1.CreatePermissionRequest
+	21, // 24: raystack.frontier.v1beta1.AdminService.UpdatePermission:input_type -> raystack.frontier.v1beta1.UpdatePermissionRequest
+	23, // 25: raystack.frontier.v1beta1.AdminService.DeletePermission:input_type -> raystack.frontier.v1beta1.DeletePermissionRequest
+	1,  // 26: raystack.frontier.v1beta1.AdminService.ListAllUsers:output_type -> raystack.frontier.v1beta1.ListAllUsersResponse
+	3,  // 27: raystack.frontier.v1beta1.AdminService.ListGroups:output_type -> raystack.frontier.v1beta1.ListGroupsResponse
+	5,  // 28: raystack.frontier.v1beta1.AdminService.ListAllOrganizations:output_type -> raystack.frontier.v1beta1.ListAllOrganizationsResponse
+	7,  // 29: raystack.frontier.v1beta1.AdminService.ListProjects:output_type -> raystack.frontier.v1beta1.ListProjectsResponse
+	9,  // 30: raystack.frontier.v1beta1.AdminService.ListRelations:output_type -> raystack.frontier.v1beta1.ListRelationsResponse
+	11, // 31: raystack.frontier.v1beta1.AdminService.ListResources:output_type -> raystack.frontier.v1beta1.ListResourcesResponse
+	13, // 32: raystack.frontier.v1beta1.AdminService.ListPolicies:output_type -> raystack.frontier.v1beta1.ListPoliciesResponse
+	15, // 33: raystack.frontier.v1beta1.AdminService.CreateRole:output_type -> raystack.frontier.v1beta1.CreateRoleResponse
+	17, // 34: raystack.frontier.v1beta1.AdminService.DeleteRole:output_type -> raystack.frontier.v1beta1.DeleteRoleResponse
+	20, // 35: raystack.frontier.v1beta1.AdminService.CreatePermission:output_type -> raystack.frontier.v1beta1.CreatePermissionResponse
+	22, // 36: raystack.frontier.v1beta1.AdminService.UpdatePermission:output_type -> raystack.frontier.v1beta1.UpdatePermissionResponse
+	24, // 37: raystack.frontier.v1beta1.AdminService.DeletePermission:output_type -> raystack.frontier.v1beta1.DeletePermissionResponse
 	26, // [26:38] is the sub-list for method output_type
 	14, // [14:26] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
@@ -2035,14 +2035,14 @@ var file_raystack_shield_v1beta1_admin_proto_depIdxs = []int32{
 	0,  // [0:14] is the sub-list for field type_name
 }
 
-func init() { file_raystack_shield_v1beta1_admin_proto_init() }
-func file_raystack_shield_v1beta1_admin_proto_init() {
-	if File_raystack_shield_v1beta1_admin_proto != nil {
+func init() { file_raystack_frontier_v1beta1_admin_proto_init() }
+func file_raystack_frontier_v1beta1_admin_proto_init() {
+	if File_raystack_frontier_v1beta1_admin_proto != nil {
 		return
 	}
-	file_raystack_shield_v1beta1_models_proto_init()
+	file_raystack_frontier_v1beta1_models_proto_init()
 	if !protoimpl.UnsafeEnabled {
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAllUsersRequest); i {
 			case 0:
 				return &v.state
@@ -2054,7 +2054,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAllUsersResponse); i {
 			case 0:
 				return &v.state
@@ -2066,7 +2066,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupsRequest); i {
 			case 0:
 				return &v.state
@@ -2078,7 +2078,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupsResponse); i {
 			case 0:
 				return &v.state
@@ -2090,7 +2090,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAllOrganizationsRequest); i {
 			case 0:
 				return &v.state
@@ -2102,7 +2102,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAllOrganizationsResponse); i {
 			case 0:
 				return &v.state
@@ -2114,7 +2114,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsRequest); i {
 			case 0:
 				return &v.state
@@ -2126,7 +2126,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsResponse); i {
 			case 0:
 				return &v.state
@@ -2138,7 +2138,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRelationsRequest); i {
 			case 0:
 				return &v.state
@@ -2150,7 +2150,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRelationsResponse); i {
 			case 0:
 				return &v.state
@@ -2162,7 +2162,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListResourcesRequest); i {
 			case 0:
 				return &v.state
@@ -2174,7 +2174,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListResourcesResponse); i {
 			case 0:
 				return &v.state
@@ -2186,7 +2186,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPoliciesRequest); i {
 			case 0:
 				return &v.state
@@ -2198,7 +2198,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPoliciesResponse); i {
 			case 0:
 				return &v.state
@@ -2210,7 +2210,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRoleRequest); i {
 			case 0:
 				return &v.state
@@ -2222,7 +2222,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRoleResponse); i {
 			case 0:
 				return &v.state
@@ -2234,7 +2234,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteRoleRequest); i {
 			case 0:
 				return &v.state
@@ -2246,7 +2246,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteRoleResponse); i {
 			case 0:
 				return &v.state
@@ -2258,7 +2258,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PermissionRequestBody); i {
 			case 0:
 				return &v.state
@@ -2270,7 +2270,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePermissionRequest); i {
 			case 0:
 				return &v.state
@@ -2282,7 +2282,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePermissionResponse); i {
 			case 0:
 				return &v.state
@@ -2294,7 +2294,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdatePermissionRequest); i {
 			case 0:
 				return &v.state
@@ -2306,7 +2306,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdatePermissionResponse); i {
 			case 0:
 				return &v.state
@@ -2318,7 +2318,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeletePermissionRequest); i {
 			case 0:
 				return &v.state
@@ -2330,7 +2330,7 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_shield_v1beta1_admin_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_admin_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeletePermissionResponse); i {
 			case 0:
 				return &v.state
@@ -2347,18 +2347,18 @@ func file_raystack_shield_v1beta1_admin_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_raystack_shield_v1beta1_admin_proto_rawDesc,
+			RawDescriptor: file_raystack_frontier_v1beta1_admin_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_raystack_shield_v1beta1_admin_proto_goTypes,
-		DependencyIndexes: file_raystack_shield_v1beta1_admin_proto_depIdxs,
-		MessageInfos:      file_raystack_shield_v1beta1_admin_proto_msgTypes,
+		GoTypes:           file_raystack_frontier_v1beta1_admin_proto_goTypes,
+		DependencyIndexes: file_raystack_frontier_v1beta1_admin_proto_depIdxs,
+		MessageInfos:      file_raystack_frontier_v1beta1_admin_proto_msgTypes,
 	}.Build()
-	File_raystack_shield_v1beta1_admin_proto = out.File
-	file_raystack_shield_v1beta1_admin_proto_rawDesc = nil
-	file_raystack_shield_v1beta1_admin_proto_goTypes = nil
-	file_raystack_shield_v1beta1_admin_proto_depIdxs = nil
+	File_raystack_frontier_v1beta1_admin_proto = out.File
+	file_raystack_frontier_v1beta1_admin_proto_rawDesc = nil
+	file_raystack_frontier_v1beta1_admin_proto_goTypes = nil
+	file_raystack_frontier_v1beta1_admin_proto_depIdxs = nil
 }

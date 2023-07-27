@@ -5,8 +5,8 @@ package mocks
 import (
 	context "context"
 
-	metaschema "github.com/raystack/shield/core/metaschema"
-	metadata "github.com/raystack/shield/pkg/metadata"
+	metaschema "github.com/raystack/frontier/core/metaschema"
+	metadata "github.com/raystack/frontier/pkg/metadata"
 
 	mock "github.com/stretchr/testify/mock"
 )

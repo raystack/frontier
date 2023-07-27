@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/pkg/file"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/printer"
-	"github.com/raystack/shield/pkg/file"
-	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 
@@ -20,9 +20,9 @@ func PolicyCommand(cliConfig *Config) *cli.Command {
 			Work with policies.
 		`),
 		Example: heredoc.Doc(`
-			$ shield policy create
-			$ shield policy edit
-			$ shield policy view
+			$ frontier policy create
+			$ frontier policy edit
+			$ frontier policy view
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -47,7 +47,7 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 		Short: "Upsert a policy",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield policy create --file=<policy-body> --header=<key>:<value>
+			$ frontier policy create --file=<policy-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"policy:core": "true",
@@ -56,7 +56,7 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.PolicyRequestBody
+			var reqBody frontierv1beta1.PolicyRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -73,7 +73,7 @@ func createPolicyCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			ctx := setCtxHeader(cmd.Context(), header)
-			_, err = client.CreatePolicy(ctx, &shieldv1beta1.CreatePolicyRequest{
+			_, err = client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{
 				Body: &reqBody,
 			})
 			if err != nil {
@@ -102,7 +102,7 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 		Short: "Edit a policy",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield policy edit <policy-id> --file=<policy-body>
+			$ frontier policy edit <policy-id> --file=<policy-body>
 		`),
 		Annotations: map[string]string{
 			"policy:core": "true",
@@ -111,7 +111,7 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			var reqBody shieldv1beta1.PolicyRequestBody
+			var reqBody frontierv1beta1.PolicyRequestBody
 			if err := file.Parse(filePath, &reqBody); err != nil {
 				return err
 			}
@@ -128,7 +128,7 @@ func editPolicyCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			policyID := args[0]
-			_, err = client.UpdatePolicy(cmd.Context(), &shieldv1beta1.UpdatePolicyRequest{
+			_, err = client.UpdatePolicy(cmd.Context(), &frontierv1beta1.UpdatePolicyRequest{
 				Id:   policyID,
 				Body: &reqBody,
 			})
@@ -154,7 +154,7 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 		Short: "View a policy",
 		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ shield policy view <policy-id>
+			$ frontier policy view <policy-id>
 		`),
 		Annotations: map[string]string{
 			"policy:core": "true",
@@ -170,7 +170,7 @@ func viewPolicyCommand(cliConfig *Config) *cli.Command {
 			defer cancel()
 
 			policyID := args[0]
-			res, err := client.GetPolicy(cmd.Context(), &shieldv1beta1.GetPolicyRequest{
+			res, err := client.GetPolicy(cmd.Context(), &frontierv1beta1.GetPolicyRequest{
 				Id: policyID,
 			})
 			if err != nil {

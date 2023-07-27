@@ -9,8 +9,8 @@ import (
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/internal/store/spicedb"
 )
 
 const (

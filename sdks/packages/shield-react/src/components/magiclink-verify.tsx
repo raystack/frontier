@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useShield } from "../contexts/ShieldContext";
+import { useFrontier } from "../contexts/FrontierContext";
 import { Container } from "./Container";
 import { Header } from "./Header";
 import { hasWindow } from "./helper";
@@ -29,7 +29,7 @@ export const MagicLinkVerify = ({
   ...props
 }: MagicLinkVerifyProps) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const { client, config, strategies = [] } = useShield();
+  const { client, config, strategies = [] } = useFrontier();
   const [visiable, setVisiable] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [emailParam, setEmailParam] = useState<string>("");

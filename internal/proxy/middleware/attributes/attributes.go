@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/raystack/shield/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/mitchellh/mapstructure"
 
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/internal/proxy/middleware"
+	"github.com/raystack/frontier/pkg/body_extractor"
 	"github.com/raystack/salt/log"
-	"github.com/raystack/shield/core/project"
-	"github.com/raystack/shield/internal/proxy/middleware"
-	"github.com/raystack/shield/pkg/body_extractor"
 )
 
 type Attributes struct {

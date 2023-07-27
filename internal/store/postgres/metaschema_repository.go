@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/raystack/shield/core/metaschema"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/metaschema"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 var (

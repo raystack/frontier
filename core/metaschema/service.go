@@ -3,10 +3,10 @@ package metaschema
 import (
 	"context"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/pkg/errors"
-	"github.com/raystack/shield/pkg/metadata"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/xeipuuv/gojsonschema"
 )
 

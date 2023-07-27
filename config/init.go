@@ -13,8 +13,8 @@ import (
 	_ "embed"
 
 	"github.com/mcuadros/go-defaults"
-	"github.com/raystack/shield/internal/proxy"
-	"github.com/raystack/shield/pkg/file"
+	"github.com/raystack/frontier/internal/proxy"
+	"github.com/raystack/frontier/pkg/file"
 	"gopkg.in/yaml.v2"
 )
 
@@ -29,7 +29,7 @@ func Init(resourcesURL, rulesURL, configFile string) error {
 		return errors.New("config file already exists")
 	}
 
-	cfg := &Shield{}
+	cfg := &Frontier{}
 
 	defaults.SetDefaults(cfg)
 

@@ -4,7 +4,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 // With JSDoc @type annotations, IDEs can provide config autocompletion
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 (module.exports = {
-  title: 'Shield',
+  title: 'Frontier',
   tagline: 'Identity and authorization for your APIs',
   url: 'https://raystack.github.io/',
   baseUrl: '/',
@@ -12,7 +12,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'Raystack',
-  projectName: 'shield',
+  projectName: 'frontier',
 
   presets: [
     [
@@ -24,7 +24,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/raystack/shield/edit/master/docs/',
+          editUrl: 'https://github.com/raystack/frontier/edit/master/docs/',
           sidebarCollapsed: true,
           breadcrumbs: false,
           docLayoutComponent: "@theme/DocPage",
@@ -74,8 +74,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
         },
       },
       navbar: {
-        title: 'Shield',
-        logo: { src: 'img/shield.svg', },
+        title: 'Frontier',
+        logo: { src: 'img/frontier.svg', },
         hideOnScroll: true,
         items: [
           {
@@ -91,7 +91,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
             className: 'header-slack-link',
           },
           {
-            href: 'https://github.com/raystack/shield',
+            href: 'https://github.com/raystack/frontier',
             className: 'navbar-item-github',
             position: 'right',
           },
@@ -107,7 +107,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
       },
       announcementBar: {
         id: 'star-repo',
-        content: '⭐️ If you like Shield, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/raystack/shield">GitHub</a>! ⭐',
+        content: '⭐️ If you like Frontier, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/raystack/frontier">GitHub</a>! ⭐',
         backgroundColor: '#222',
         textColor: '#eee',
         isCloseable: true,

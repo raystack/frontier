@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/raystack/shield/core/group"
+	"github.com/raystack/frontier/core/group"
 )
 
 type Group struct {

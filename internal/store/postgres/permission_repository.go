@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/raystack/shield/core/permission"
+	"github.com/raystack/frontier/core/permission"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/raystack/shield/core/namespace"
-	"github.com/raystack/shield/pkg/db"
+	"github.com/raystack/frontier/core/namespace"
+	"github.com/raystack/frontier/pkg/db"
 )
 
 var (

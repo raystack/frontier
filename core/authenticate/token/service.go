@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -30,7 +30,7 @@ type Service struct {
 }
 
 // NewService creates a new token service
-// generate keys used for rsa via shield cli "shield server keygen"
+// generate keys used for rsa via frontier cli "frontier server keygen"
 func NewService(keySet jwk.Set, issuer string, validity time.Duration) Service {
 	publicKeySet := jwk.NewSet()
 	if keySet != nil {
@@ -65,7 +65,7 @@ func (s Service) Build(subjectID string, metadata map[string]string) ([]byte, er
 		return nil, errors.New("missing rsa key to generate token")
 	}
 
-	// shield generated token has an extra custom claim
+	// frontier generated token has an extra custom claim
 	// used to identify which public key to use to verify the token
 	metadata[GeneratedClaimKey] = GeneratedClaimValue
 	return utils.BuildToken(rsaKey, s.issuer, subjectID, s.validity, metadata)

@@ -1,10 +1,10 @@
 GOVERSION := $(shell go version | cut -d ' ' -f 3 | cut -d '.' -f 2)
-NAME=github.com/raystack/shield
+NAME=github.com/raystack/frontier
 TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "7a4fd9e7a6e557aec52f9dafe0c26fa099e54b0b"
+PROTON_COMMIT := "6b20a5b1ce9ef3934c816bf9aee38484d8fcc592"
 
 ui:
 	@echo " > generating ui build"
@@ -16,7 +16,7 @@ install:
 	@go get -d github.com/vektra/mockery/v2@v2.13.1
 
 build:
-	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/config.Version=${VERSION}" -o shield .
+	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/config.Version=${VERSION}" -o frontier .
 
 generate: ## run all go generate in the code base (including generating mock files)
 	go generate ./...
@@ -47,7 +47,7 @@ integration-test:
 	go test -v -race ./test/integration
 
 benchmark: ## Run benchmarks
-	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/raystack/shield/test/integration
+	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/raystack/frontier/test/integration
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.txt
@@ -58,8 +58,8 @@ clean :
 proto: ## Generate the protobuf files
 	@echo " > generating protobuf from raystack/proton"
 	@echo " > [info] make sure correct version of dependencies are installed using 'make install'"
-	@buf generate https://github.com/raystack/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path raystack/shield
-	@cp -R proto/raystack/shield/* proto/ && rm -Rf proto/raystack
+	@buf generate https://github.com/raystack/proton/archive/${PROTON_COMMIT}.zip#strip_components=1 --template buf.gen.yaml --path raystack/frontier
+	@cp -R proto/raystack/frontier/* proto/ && rm -Rf proto/raystack
 	@echo " > protobuf compilation finished"
 
 clean-doc:

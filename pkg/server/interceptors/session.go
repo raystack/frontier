@@ -11,7 +11,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/raystack/shield/pkg/server/consts"
+	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"

@@ -12,7 +12,7 @@ COPY . .
 RUN make build
 
 FROM alpine:3.17
-COPY --from=builder /go/src/app/shield /usr/bin/
+COPY --from=builder /go/src/app/frontier /usr/bin/
 RUN apk update
 RUN apk add ca-certificates
 
@@ -20,4 +20,4 @@ RUN apk add ca-certificates
 # don't work well with musl libc that alpine uses
 RUN apk add libc6-compat
 
-ENTRYPOINT ["shield", "server"]
+ENTRYPOINT ["frontier", "server"]

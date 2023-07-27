@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/raystack/shield/internal/proxy/middleware"
-	"github.com/raystack/shield/pkg/httputil"
+	"github.com/raystack/frontier/internal/proxy/middleware"
+	"github.com/raystack/frontier/pkg/httputil"
 )
 
 var ctxRequestErrorKey = struct{}{}
@@ -46,7 +46,7 @@ func (h Director) Direct(req *http.Request) {
 		// explicitly disable User-Agent so it's not set to default value
 		req.Header.Set(httputil.HeaderUserAgent, "")
 	}
-	req.Header.Set("proxy-by", "shield")
+	req.Header.Set("proxy-by", "frontier")
 }
 
 func joinURLPath(a, b *url.URL) (path, rawpath string) {

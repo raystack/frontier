@@ -1,6 +1,6 @@
 import { Flex, Text } from "@raystack/apsara";
 import React, { ComponentPropsWithRef } from "react";
-import { useShield } from "../contexts/ShieldContext";
+import { useFrontier } from "../contexts/FrontierContext";
 
 const styles = {
   container: {
@@ -33,7 +33,7 @@ type HeaderProps = ComponentPropsWithRef<"div"> & {
 };
 
 export const Header = ({ title, logo }: HeaderProps) => {
-  const { config } = useShield();
+  const { config } = useFrontier();
 
   return (
     <Flex

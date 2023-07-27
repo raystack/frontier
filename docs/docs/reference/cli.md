@@ -1,244 +1,244 @@
 # CLI
 
-## `shield auth`
+## `frontier auth`
 
-Auth configs that need to be used with shield
+Auth configs that need to be used with frontier
 
-## `shield completion [bash|zsh|fish|powershell]`
+## `frontier completion [bash|zsh|fish|powershell]`
 
 Generate shell completion scripts
 
-## `shield config <command>`
+## `frontier config <command>`
 
 Manage client configurations
 
-### `shield config init`
+### `frontier config init`
 
 Initialize a new client configuration
 
-### `shield config list`
+### `frontier config list`
 
 List client configuration settings
 
-## `shield environment`
+## `frontier environment`
 
 List of supported environment variables
 
-## `shield group`
+## `frontier group`
 
 Manage groups
 
-### `shield group create [flags]`
+### `frontier group create [flags]`
 
 Upsert a group
 
 ```
 -f, --file string     Path to the group body file
 -H, --header string   Header <key>:<value>
-````
+```
 
-### `shield group edit [flags]`
+### `frontier group edit [flags]`
 
 Edit a group
 
 ```
 -f, --file string   Path to the group body file
-````
+```
 
-### `shield group list`
+### `frontier group list`
 
 List all groups
 
-### `shield group view [flags]`
+### `frontier group view [flags]`
 
 View a group
 
 ```
 -m, --metadata   Set this flag to see metadata
-````
+```
 
-## `shield namespace`
+## `frontier namespace`
 
 Manage namespaces
 
-### `shield namespace list`
+### `frontier namespace list`
 
 List all namespaces
 
-### `shield namespace view`
+### `frontier namespace view`
 
 View a namespace
 
-## `shield organization`
+## `frontier organization`
 
 Manage organizations
 
-### `shield organization admlist`
+### `frontier organization admlist`
 
 list admins of an organization
 
-### `shield organization create [flags]`
+### `frontier organization create [flags]`
 
 Upsert an organization
 
 ```
 -f, --file string     Path to the organization body file
 -H, --header string   Header <key>:<value>
-````
+```
 
-### `shield organization edit [flags]`
+### `frontier organization edit [flags]`
 
 Edit an organization
 
 ```
 -f, --file string   Path to the organization body file
-````
+```
 
-### `shield organization list`
+### `frontier organization list`
 
 List all organizations
 
-### `shield organization view [flags]`
+### `frontier organization view [flags]`
 
 View an organization
 
 ```
 -m, --metadata   Set this flag to see metadata
-````
+```
 
-## `shield permission`
+## `frontier permission`
 
 Manage permissions
 
-### `shield permission create [flags]`
+### `frontier permission create [flags]`
 
 Upsert a permission
 
 ```
 -f, --file string     Path to the permission body file
 -H, --header string   Header <key>:<value>
-````
+```
 
-### `shield permission edit [flags]`
+### `frontier permission edit [flags]`
 
 Edit a permission
 
 ```
 -f, --file string   Path to the permission body file
-````
+```
 
-### `shield permission list`
+### `frontier permission list`
 
 List all permissions
 
-### `shield permission view`
+### `frontier permission view`
 
 View a permission
 
-## `shield policy`
+## `frontier policy`
 
 Manage policies
 
-### `shield policy create [flags]`
+### `frontier policy create [flags]`
 
 Upsert a policy
 
 ```
 -f, --file string     Path to the policy body file
 -H, --header string   Header <key>:<value>
-````
+```
 
-### `shield policy edit [flags]`
+### `frontier policy edit [flags]`
 
 Edit a policy
 
 ```
 -f, --file string   Path to the policy body file
-````
+```
 
-### `shield policy view`
+### `frontier policy view`
 
 View a policy
 
-## `shield project`
+## `frontier project`
 
 Manage projects
 
-### `shield project create [flags]`
+### `frontier project create [flags]`
 
 Upsert a project
 
 ```
 -f, --file string     Path to the project body file
 -H, --header string   Header <key>:<value>
-````
+```
 
-### `shield project edit [flags]`
+### `frontier project edit [flags]`
 
 Edit a project
 
 ```
 -f, --file string   Path to the project body file
-````
+```
 
-### `shield project list`
+### `frontier project list`
 
 List all projects
 
-### `shield project view [flags]`
+### `frontier project view [flags]`
 
 View a project
 
 ```
 -m, --metadata   Set this flag to see metadata
-````
+```
 
-## `shield role`
+## `frontier role`
 
 Manage roles
 
-### `shield role create [flags]`
+### `frontier role create [flags]`
 
 Upsert a role
 
 ```
 -f, --file string     Path to the role body file
 -H, --header string   Header <key>:<value>
-````
+```
 
-### `shield role edit [flags]`
+### `frontier role edit [flags]`
 
 Edit a role
 
 ```
 -f, --file string   Path to the role body file
-````
+```
 
-### `shield role list`
+### `frontier role list`
 
 List all roles
 
-### `shield role view [flags]`
+### `frontier role view [flags]`
 
 View a role
 
 ```
 -m, --metadata   Set this flag to see metadata
-````
+```
 
-## `shield seed [flags]`
+## `frontier seed [flags]`
 
 Seed the database with initial data
 
 ```
 -H, --header string   Header <key>
-````
+```
 
-## `shield server`
+## `frontier server`
 
 Server management
 
-### `shield server init [flags]`
+### `frontier server init [flags]`
 
 Initialize server
 
@@ -247,83 +247,82 @@ Initialize server
 -r, --resources string   URL path of resources. Full path prefixed with scheme where resources config yaml files are kept
                          e.g.:
                          local storage file "file:///tmp/resources_config"
-                         GCS Bucket "gs://shield-bucket-example"
+                         GCS Bucket "gs://frontier-bucket-example"
                          (default: file://{pwd}/resources_config)
-                         
+
 -u, --rule string        URL path of rules. Full path prefixed with scheme where ruleset yaml files are kept
                          e.g.:
                          local storage file "file:///tmp/rules"
-                         GCS Bucket "gs://shield-bucket-example"
+                         GCS Bucket "gs://frontier-bucket-example"
                          (default: file://{pwd}/rules)
-                         
-````
 
-### `shield server keygen [flags]`
+```
+
+### `frontier server keygen [flags]`
 
 Generate 2 rsa keys as jwks for auth token generation
 
 ```
 -k, --keys int   num of keys to generate (default 2)
-````
+```
 
-### `shield server migrate [flags]`
+### `frontier server migrate [flags]`
 
 Run DB Schema Migrations
 
 ```
 -c, --config string   config file path
-````
+```
 
-### `shield server migrate-rollback [flags]`
+### `frontier server migrate-rollback [flags]`
 
 Run DB Schema Migrations Rollback to last state
 
 ```
 -c, --config string   config file path
-````
+```
 
-### `shield server start [flags]`
+### `frontier server start [flags]`
 
 Start server and proxy default on port 8080
 
 ```
 -c, --config string   config file path
-````
+```
 
-## `shield user`
+## `frontier user`
 
 Manage users
 
-### `shield user create [flags]`
+### `frontier user create [flags]`
 
 Upsert an user
 
 ```
 -f, --file string     Path to the user body file
 -H, --header string   Header <key>:<value>
-````
+```
 
-### `shield user edit [flags]`
+### `frontier user edit [flags]`
 
 Edit an user
 
 ```
 -f, --file string   Path to the user body file
-````
+```
 
-### `shield user list`
+### `frontier user list`
 
 List all users
 
-### `shield user view [flags]`
+### `frontier user view [flags]`
 
 View an user
 
 ```
 -m, --metadata   Set this flag to see metadata
-````
+```
 
-## `shield version`
+## `frontier version`
 
 Print version information
-

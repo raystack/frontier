@@ -30,7 +30,7 @@ jobs:
         with:
           push: true
           file: "./Dockerfile.dev"
-          tags: raystack/shield:dev
+          tags: raystack/frontier:dev
   releaser:
     runs-on: ubuntu-latest
     steps:

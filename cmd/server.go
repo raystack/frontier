@@ -6,11 +6,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/raystack/shield/pkg/utils"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/raystack/shield/config"
-	shieldlogger "github.com/raystack/shield/pkg/logger"
+	"github.com/raystack/frontier/config"
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )
@@ -22,14 +22,14 @@ func ServerCommand() *cobra.Command {
 		Short:   "Server management",
 		Long:    "Server management commands.",
 		Example: heredoc.Doc(`
-			$ shield server init
-			$ shield server start
-			$ shield server start -c ./config.yaml
-			$ shield server migrate
-			$ shield server migrate -c ./config.yaml
-			$ shield server migrate-rollback
-			$ shield server migrate-rollback -c ./config.yaml
-			$ shield server keygen
+			$ frontier server init
+			$ frontier server start
+			$ frontier server start -c ./config.yaml
+			$ frontier server migrate
+			$ frontier server migrate -c ./config.yaml
+			$ frontier server migrate-rollback
+			$ frontier server migrate-rollback -c ./config.yaml
+			$ frontier server keygen
 		`),
 	}
 
@@ -51,10 +51,10 @@ func serverInitCommand() *cobra.Command {
 		Use:   "init",
 		Short: "Initialize server",
 		Long: heredoc.Doc(`
-			Initializing server. Creating a sample of shield server config.
+			Initializing server. Creating a sample of frontier server config.
 			Default: ./config.yaml
 		`),
-		Example: "shield server init",
+		Example: "frontier server init",
 		RunE: func(cmd *cli.Command, args []string) error {
 			cwd, err := os.Getwd()
 			if err != nil {
@@ -84,14 +84,14 @@ func serverInitCommand() *cobra.Command {
 		URL path of resources. Full path prefixed with scheme where resources config yaml files are kept
 		e.g.:
 		local storage file "file:///tmp/resources_config"
-		GCS Bucket "gs://shield-bucket-example"
+		GCS Bucket "gs://frontier-bucket-example"
 		(default: file://{pwd}/resources_config)
 	`))
 	c.Flags().StringVarP(&rulesURL, "rule", "u", "", heredoc.Doc(`
 		URL path of rules. Full path prefixed with scheme where ruleset yaml files are kept
 		e.g.:
 		local storage file "file:///tmp/rules"
-		GCS Bucket "gs://shield-bucket-example"
+		GCS Bucket "gs://frontier-bucket-example"
 		(default: file://{pwd}/rules)
 	`))
 
@@ -104,13 +104,13 @@ func serverStartCommand() *cobra.Command {
 	c := &cli.Command{
 		Use:     "start",
 		Short:   "Start server and proxy default on port 8080",
-		Example: "shield server start",
+		Example: "frontier server start",
 		RunE: func(cmd *cli.Command, args []string) error {
 			appConfig, err := config.Load(configFile)
 			if err != nil {
 				panic(err)
 			}
-			logger := shieldlogger.InitLogger(appConfig.Log)
+			logger := frontierlogger.InitLogger(appConfig.Log)
 
 			if err = StartServer(logger, appConfig); err != nil {
 				logger.Error("error starting server", "error", err)
@@ -130,22 +130,22 @@ func serverMigrateCommand() *cobra.Command {
 	c := &cli.Command{
 		Use:     "migrate",
 		Short:   "Run DB Schema Migrations",
-		Example: "shield server migrate",
+		Example: "frontier server migrate",
 		RunE: func(c *cli.Command, args []string) error {
 			appConfig, err := config.Load(configFile)
 			if err != nil {
 				panic(err)
 			}
 
-			logger := shieldlogger.InitLogger(appConfig.Log)
-			logger.Info("shield is migrating", "version", config.Version)
+			logger := frontierlogger.InitLogger(appConfig.Log)
+			logger.Info("frontier is migrating", "version", config.Version)
 
 			if err = RunMigrations(logger, appConfig.DB); err != nil {
 				logger.Error("error running migrations", "error", err)
 				return err
 			}
 
-			logger.Info("shield migration complete")
+			logger.Info("frontier migration complete")
 			return nil
 		},
 	}
@@ -160,21 +160,21 @@ func serverMigrateRollbackCommand() *cobra.Command {
 	c := &cli.Command{
 		Use:     "migrate-rollback",
 		Short:   "Run DB Schema Migrations Rollback to last state",
-		Example: "shield migrate-rollback",
+		Example: "frontier migrate-rollback",
 		RunE: func(c *cli.Command, args []string) error {
 			appConfig, err := config.Load(configFile)
 			if err != nil {
 				panic(err)
 			}
-			logger := shieldlogger.InitLogger(appConfig.Log)
-			logger.Info("shield is migrating", "version", config.Version)
+			logger := frontierlogger.InitLogger(appConfig.Log)
+			logger.Info("frontier is migrating", "version", config.Version)
 
 			if err = RunRollback(logger, appConfig.DB); err != nil {
 				logger.Error("error running migrations rollback", "error", err)
 				return err
 			}
 
-			logger.Info("shield migration rollback complete")
+			logger.Info("frontier migration rollback complete")
 			return nil
 		},
 	}
@@ -188,7 +188,7 @@ func serverGenRSACommand() *cobra.Command {
 	c := &cli.Command{
 		Use:     "keygen",
 		Short:   "Generate 2 rsa keys as jwks for auth token generation",
-		Example: "shield server keygen",
+		Example: "frontier server keygen",
 		RunE: func(c *cli.Command, args []string) error {
 			keySet, err := utils.CreateJWKs(numOfKeys)
 			if err != nil {

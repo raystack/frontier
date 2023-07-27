@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/raystack/shield/core/serviceuser"
+	"github.com/raystack/frontier/core/serviceuser"
 )
 
 type ServiceUser struct {

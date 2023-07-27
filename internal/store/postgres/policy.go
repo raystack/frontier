@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/raystack/shield/core/policy"
+	"github.com/raystack/frontier/core/policy"
 )
 
 type Policy struct {
