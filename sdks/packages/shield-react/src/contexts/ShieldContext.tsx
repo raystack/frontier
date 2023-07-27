@@ -1,37 +1,78 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import Shield from "../shield";
 import {
   Group,
+  Organization,
   ShieldClientOptions,
   ShieldProviderProps,
+  Strategy,
   User,
-} from "../types";
-import { Organization } from "../types/organization";
-import { GroupContext } from "./GroupContext";
-import { OrganizationContext } from "./OrganizationContext";
+} from "@raystack/shield";
+import React, {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-import type { Strategy } from "./StrategyContext";
-import { StrategyContext } from "./StrategyContext";
-import { UserContext } from "./UserContext";
-
-type ShieldContextProviderProps = {
+import Shield from "../shield";
+interface ShieldContextProviderProps {
+  config: ShieldClientOptions;
   client: Shield;
+
+  organizations: Organization[];
+  setOrganizations: Dispatch<SetStateAction<Organization[]>>;
+
+  groups: Group[];
+  setGroups: Dispatch<SetStateAction<Group[]>>;
+
+  strategies: Strategy[];
+  setStrategies: Dispatch<SetStateAction<Strategy[]>>;
+
+  user: User | null;
+  setUser: Dispatch<SetStateAction<User | null>>;
+}
+
+const defaultConfig = {
+  endpoint: "http://localhost:8080",
+  redirectLogin: "http://localhost:3000",
+  redirectSignup: "http://localhost:3000/signup",
+  redirectMagicLinkVerify: "http://localhost:3000/magiclink-verify",
 };
+
 const initialValues: ShieldContextProviderProps = {
-  client: Shield.getOrCreateInstance({ endpoint: "" }),
+  config: defaultConfig,
+  client: Shield.getOrCreateInstance(defaultConfig),
+
+  organizations: [],
+  setOrganizations: () => undefined,
+
+  groups: [],
+  setGroups: () => undefined,
+
+  strategies: [],
+  setStrategies: () => undefined,
+
+  user: null,
+  setUser: () => undefined,
 };
 
 export const ShieldContext =
   createContext<ShieldContextProviderProps>(initialValues);
 ShieldContext.displayName = "ShieldContext ";
 
-export const ShieldContextProvider = (props: ShieldProviderProps) => {
-  const { children, initialState, ...options } = props;
-  const { shieldClient } = useShieldClient(options);
+export const ShieldContextProvider = ({
+  children,
+  config,
+  initialState,
+  ...options
+}: ShieldProviderProps) => {
+  const { shieldClient } = useShieldClient(config);
+
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
 
   useEffect(() => {
     async function getShieldInformation() {
@@ -39,17 +80,6 @@ export const ShieldContextProvider = (props: ShieldProviderProps) => {
         const {
           data: { strategies },
         } = await shieldClient.getAuthAtrategies();
-
-        // const strategiesPromises = strategies.map(async (s) => {
-        //   const {
-        //     data: { endpoint },
-        //   } = await shieldClient.getAuthStrategyEndpoint(s.name);
-        //   return {
-        //     ...s,
-        //     endpoint,
-        //   };
-        // });
-        // const response = await Promise.all(strategiesPromises);
         setStrategies(strategies);
       } catch (error) {
         console.error(
@@ -115,16 +145,21 @@ export const ShieldContextProvider = (props: ShieldProviderProps) => {
   }, [user]);
 
   return (
-    <ShieldContext.Provider value={{ client: shieldClient }}>
-      <StrategyContext.Provider value={{ strategies }}>
-        <OrganizationContext.Provider value={{ organizations }}>
-          <GroupContext.Provider value={{ groups }}>
-            <UserContext.Provider value={{ user }}>
-              {children}
-            </UserContext.Provider>
-          </GroupContext.Provider>
-        </OrganizationContext.Provider>
-      </StrategyContext.Provider>
+    <ShieldContext.Provider
+      value={{
+        config: { ...defaultConfig, ...config },
+        client: shieldClient,
+        organizations,
+        setOrganizations,
+        groups,
+        setGroups,
+        strategies,
+        setStrategies,
+        user,
+        setUser,
+      }}
+    >
+      {children}
     </ShieldContext.Provider>
   );
 };
@@ -138,7 +173,7 @@ export const useShieldClient = (options: ShieldClientOptions) => {
   return { shieldClient };
 };
 
-export function useShieldContext() {
+export function useShield() {
   const context = useContext<ShieldContextProviderProps>(ShieldContext);
   return context ? context : (initialValues as ShieldContextProviderProps);
 }

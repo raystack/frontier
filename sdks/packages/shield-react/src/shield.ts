@@ -1,8 +1,12 @@
+import {
+  Group,
+  Organization,
+  ShieldClientOptions,
+  Strategy,
+  User,
+} from "@raystack/shield";
 import type { AxiosInstance, AxiosResponse } from "axios";
 import axios from "axios";
-import type { Strategy } from "./contexts/StrategyContext";
-import type { Group, ShieldClientOptions, User } from "./types";
-import { Organization } from "./types/organization";
 
 export default class Shield {
   protected readonly instance: AxiosInstance;
@@ -67,5 +71,11 @@ export default class Shield {
     userId: string
   ): Promise<AxiosResponse<{ organizations: Organization[] }>> => {
     return await this.instance.get(`/v1beta1/users/${userId}/organizations`);
+  };
+
+  public createOrganisation = async (
+    data: any
+  ): Promise<AxiosResponse<{ organization: Organization }>> => {
+    return await this.instance.post(`/v1beta1/organizations`, data);
   };
 }
