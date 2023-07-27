@@ -2,8 +2,8 @@
 
 ![build workflow](https://github.com/raystack/frontier/actions/workflows/test.yml/badge.svg)
 ![package workflow](https://github.com/raystack/frontier/actions/workflows/release.yml/badge.svg)
-[![License](https://img.frontiers.io/badge/License-Apache%202.0-blue.svg?logo=apache)](LICENSE)
-[![Version](https://img.frontiers.io/github/v/release/raystack/frontier?logo=semantic-release)](Version)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/raystack/frontier?logo=semantic-release)](Version)
 [![Coverage Status](https://coveralls.io/repos/github/raystack/frontier/badge.svg?branch=main)](https://coveralls.io/github/raystack/frontier?branch=main)
 
 Frontier is an identity and access management tool designed to help organizations secure their systems and data. With Frontier, you can manage user authentication and authorization across all your applications and services, ensuring that only authorized users have access to your valuable resources.
