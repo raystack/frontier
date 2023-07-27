@@ -43,11 +43,11 @@ services:
 #      pg:
 #        condition: service_healthy
 #    environment:
-#      - SHIELD_DB_DRIVER=postgres
-#      - SHIELD_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
-#      - SHIELD_SPICEDB_PORT=50051
-#      - SHIELD_SPICEDB_HOST=spicedb
-#      - SHIELD_SPICEDB_PRE_SHARED_KEY=frontier
+#      - FRONTIER_DB_DRIVER=postgres
+#      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
+#      - FRONTIER_SPICEDB_PORT=50051
+#      - FRONTIER_SPICEDB_HOST=spicedb
+#      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
 #
 #  frontier:
 #    build:
@@ -63,12 +63,12 @@ services:
 #      frontier-migrate:
 #        condition: service_completed_successfully
 #    environment:
-#      - SHIELD_DB_DRIVER=postgres
-#      - SHIELD_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
-#      - SHIELD_SPICEDB_PORT=50051
-#      - SHIELD_SPICEDB_HOST=spicedb
-#      - SHIELD_SPICEDB_PRE_SHARED_KEY=frontier
-#      - SHIELD_APP_RESOURCES_CONFIG_PATH=file:///opt
+#      - FRONTIER_DB_DRIVER=postgres
+#      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
+#      - FRONTIER_SPICEDB_PORT=50051
+#      - FRONTIER_SPICEDB_HOST=spicedb
+#      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
+#      - FRONTIER_APP_RESOURCES_CONFIG_PATH=file:///opt
 
   spicedb-migration:
     image: quay.io/authzed/spicedb:v1.19.1

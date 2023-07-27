@@ -63,10 +63,10 @@ To run the docker image with minimum configurations:
 
 ```sh
 $ docker run -p 8080:8080 \
-  -e SHIELD_DB_DRIVER=postgres \
-  -e SHIELD_DB_URL=postgres://frontier:@localhost:5432/frontier?sslmode=disable \
-  -e SHIELD_SPICEDB_HOST=spicedb.localhost:50051 \
-  -e SHIELD_SPICEDB_PRE_SHARED_KEY=randomkey
+  -e FRONTIER_DB_DRIVER=postgres \
+  -e FRONTIER_DB_URL=postgres://frontier:@localhost:5432/frontier?sslmode=disable \
+  -e FRONTIER_SPICEDB_HOST=spicedb.localhost:50051 \
+  -e FRONTIER_SPICEDB_PRE_SHARED_KEY=randomkey
   -v .config:.config
   raystack/frontier server start
 ```

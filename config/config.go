@@ -37,7 +37,7 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 	var options []config.LoaderOption
 	options = append(options, config.WithName("config"))
 	options = append(options, config.WithEnvKeyReplacer(".", "_"))
-	options = append(options, config.WithEnvPrefix("SHIELD"))
+	options = append(options, config.WithEnvPrefix("FRONTIER"))
 	if p, err := os.Getwd(); err == nil {
 		options = append(options, config.WithPath(p))
 	}

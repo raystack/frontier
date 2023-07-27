@@ -65,7 +65,7 @@ var (
 
 func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	logger.Info("frontier starting", "version", config.Version)
-	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
+	if profiling := os.Getenv("FRONTIER_PROFILE"); profiling == "true" || profiling == "1" {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}
 
