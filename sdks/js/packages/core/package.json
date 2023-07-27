@@ -1,0 +1,91 @@
+{
+  "name": "@raystack/frontier",
+  "version": "0.0.0",
+  "description": "A js library for frontier",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "react/dist/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch src",
+    "size": "size-limit",
+    "lint": "eslint \"./**/*.ts*\"",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "author": "pyadav9678@gmail.com",
+  "license": "Apache-2.0",
+  "lint-staged": {
+    "*.{json,md,html,js,jsx,ts,tsx}": [
+      "prettier --write"
+    ]
+  },
+  "size-limit": [
+    {
+      "path": "dist/index.js",
+      "limit": "200 KB"
+    }
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "module": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./react/dist/index.d.ts",
+      "import": "./react/dist/index.mjs",
+      "module": "./react/dist/index.mjs",
+      "require": "./react/dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "@raystack/frontier-tsconfig": "workspace:^",
+    "@size-limit/preset-small-lib": "^8.2.6",
+    "@types/node": "^20.4.5",
+    "@types/react": "^18.2.5",
+    "@types/react-dom": "^18.2.7",
+    "esbuild-plugin-external-global": "^1.0.1",
+    "eslint": "^7.32.0",
+    "eslint-config-frontier": "workspace:^",
+    "np": "^7.7.0",
+    "prettier": "^2.5.1",
+    "size-limit": "^8.2.6",
+    "tsup": "^6.7.0",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.1.1",
+    "@raystack/apsara": "^0.10.5",
+    "axios": "^1.4.0",
+    "react-hook-form": "^7.45.2",
+    "yup": "^1.2.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

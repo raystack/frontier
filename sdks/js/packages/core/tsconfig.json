@@ -1,0 +1,5 @@
+{
+  "extends": "@raystack/frontier-tsconfig/react-library.json",
+  "include": ["."],
+  "exclude": ["dist", "dist", "node_modules"]
+}
