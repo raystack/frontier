@@ -29,6 +29,7 @@ type TokenConfig struct {
 type SessionConfig struct {
 	HashSecretKey  string `mapstructure:"hash_secret_key" yaml:"hash_secret_key" default:"hash-secret-should-be-32-chars--"`
 	BlockSecretKey string `mapstructure:"block_secret_key" yaml:"block_secret_key" default:"block-secret-should-be-32-chars-"`
+	Domain         string `mapstructure:"domain" yaml:"domain" default:""`
 }
 
 type OIDCConfig struct {
