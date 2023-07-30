@@ -103,12 +103,12 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 	pool.MaxWait = 60 * time.Second
 
 	pgConfig := db.Config{
-		Driver:              "pgx",
-		URL:                 fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", pg_uname, pg_passwd, pg_port, pg_dbname),
-		MaxIdleConns:        10,
-		MaxOpenConns:        10,
-		ConnMaxLifeTime:     time.Millisecond * 100,
-		MaxQueryTimeoutInMS: time.Millisecond * 100,
+		Driver:          "pgx",
+		URL:             fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", pg_uname, pg_passwd, pg_port, pg_dbname),
+		MaxIdleConns:    10,
+		MaxOpenConns:    10,
+		ConnMaxLifeTime: time.Millisecond * 100,
+		MaxQueryTimeout: time.Millisecond * 100,
 	}
 	var pgClient *db.Client
 	if err = pool.Retry(func() error {

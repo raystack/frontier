@@ -63,8 +63,9 @@ app:
       iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
-    # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
-    oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
+    # public facing host used for oidc redirect uri and mail link redirection
+    # e.g. http://localhost:7400/v1beta1/auth/callback
+    callback_host: http://localhost:8000/v1beta1/auth/callback
     # oidc auth server configs
     oidc_config:
       google:
@@ -145,16 +146,16 @@ This page contains reference for all the application configurations for Frontier
 
 Configuration to allow authentication in Frontier.
 
-| **Field**                                               | **Description**                                    | **Required** | **Example**                                   |
-| ------------------------------------------------------- | -------------------------------------------------- | ------------ | --------------------------------------------- |
-| **app.authentication.session.hash_secret_key**          | Secret key for session hashing.                    | Yes          | "hash-secret-should-be-32-chars--"            |
-| **app.authentication.session.block_secret_key**         | Secret key for session encryption.                 | Yes          | "block-secret-should-be-32-chars-"            |
-| **app.authentication.token.rsa_path**                   | Path to the RSA key file for token authentication. | Yes          | "./temp/rsa"                                  |
-| **app.authentication.token.iss**                        | Issuer URL for token authentication.               | Yes          | "http://localhost.frontier"                   |
-| **app.authentication.oidc_callback_host**               | External host used for OIDC redirect URI.          | Yes          | "http://localhost:8000/v1beta1/auth/callback" |
-| **app.authentication.oidc_config.google.client_id**     | Google client ID for OIDC authentication.          | No           | "xxxxx.apps.googleusercontent.com"            |
-| **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.      | No           | "xxxxx"                                       |
-| **app.authentication.oidc_config.google.issuer_url**    | Google issuer URL for OIDC authentication.         | No           | "https://accounts.google.com"                 |
+| **Field**                                          | **Description**                                     | **Required** | **Example**                                   |
+| -------------------------------------------------- |-----------------------------------------------------| ------------ | --------------------------------------------- |
+| **app.authentication.session.hash_secret_key**     | Secret key for session hashing.                     | Yes          | "hash-secret-should-be-32-chars--"            |
+| **app.authentication.session.block_secret_key**    | Secret key for session encryption.                  | Yes          | "block-secret-should-be-32-chars-"            |
+| **app.authentication.token.rsa_path**              | Path to the RSA key file for token authentication.  | Yes          | "./temp/rsa"                                  |
+| **app.authentication.token.iss**                   | Issuer URL for token authentication.                | Yes          | "http://localhost.frontier"                   |
+| **app.authentication.callback_host**               | External host used for OIDC/Mail link redirect URI. | Yes          | "http://localhost:8000/v1beta1/auth/callback" |
+| **app.authentication.oidc_config.google.client_id** | Google client ID for OIDC authentication.           | No           | "xxxxx.apps.googleusercontent.com"            |
+| **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.       | No           | "xxxxx"                                       |
+| **app.authentication.oidc_config.google.issuer_url** | Google issuer URL for OIDC authentication.          | No           | "https://accounts.google.com"                 |
 
 ### Admin Configurations
 

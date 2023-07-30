@@ -60,5 +60,16 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 			return nil, err
 		}
 	}
+
+	// post config load hooks for backward compatibility
+	conf = postLoad(conf)
+
 	return conf, nil
+}
+
+func postLoad(conf *Frontier) *Frontier {
+	if conf.App.Authentication.OIDCCallbackHost != "" && conf.App.Authentication.CallbackHost == "" {
+		conf.App.Authentication.CallbackHost = conf.App.Authentication.OIDCCallbackHost
+	}
+	return conf
 }

@@ -29,7 +29,7 @@ Follow the steps below to configure OIDC authentication via an external IDP:
    - Add the following OIDC-related configurations under **`app.authentication`** section:
 
    ```yaml
-   oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
+   callback_host: http://localhost:8000/v1beta1/auth/callback
    oidc_config:
      google:
        client_id: "xxxxx.apps.googleusercontent.com"
@@ -39,7 +39,7 @@ Follow the steps below to configure OIDC authentication via an external IDP:
 
    - Replace **xxxxx.apps.googleusercontent.com** with your Google Client ID.
    - Replace **xxxxx** with your Google Client Secret.
-   - Ensure that **oidc_callback_host** matches the **callback URL** you determined in step 1.
+   - Ensure that **callback_host** matches the **callback URL** you determined in step 1.
    - Update **issuer_url** if you're using a different IDP.
 
    :::tip Tip

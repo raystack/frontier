@@ -27,11 +27,12 @@ func TestLoad(t *testing.T) {
 			want: &Frontier{
 				Version: 1,
 				DB: db.Config{
-					URL:                 "postgres://frontier:@localhost:5432/frontier?sslmode=disable",
-					MaxIdleConns:        10,
-					MaxOpenConns:        10,
-					ConnMaxLifeTime:     time.Duration(10) * time.Millisecond,
-					MaxQueryTimeoutInMS: time.Duration(500) * time.Millisecond,
+					Driver:          "postgres",
+					URL:             "postgres://frontier:@localhost:5432/frontier?sslmode=disable",
+					MaxIdleConns:    10,
+					MaxOpenConns:    10,
+					ConnMaxLifeTime: time.Duration(10) * time.Millisecond,
+					MaxQueryTimeout: time.Duration(500) * time.Millisecond,
 				},
 				SpiceDB: spicedb.Config{
 					Host:         "spicedb.localhost",

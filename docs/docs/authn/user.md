@@ -52,8 +52,8 @@ Or if frontier server is running behind a proxy server, you need to specify the 
 then forward the request to Frontier server at `/v1beta1/auth/callback`.
 
 This callback url is used by the third party provider to redirect the user back to the Frontier server after successful
-authentication. Same config needs to be specified in the `oidc_callback_host` field of the `config.yaml` file.
-`oidc_callback_host` is required to generate the login URL for the third party provider that initiates the authentication
+authentication. Same config needs to be specified in the `callback_host` field of the `config.yaml` file.
+`callback_host` is required to generate the login URL for the third party provider that initiates the authentication
 flow.
 
 ```yaml
@@ -83,8 +83,9 @@ app:
       iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
-    # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
-    oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
+    # public facing host used for oidc redirect uri and mail link redirection
+    # e.g. http://localhost:7400/v1beta1/auth/callback
+    callback_host: http://localhost:8000/v1beta1/auth/callback
     # oidc auth server configs
     oidc_config:
       google:

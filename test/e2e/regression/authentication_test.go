@@ -77,7 +77,7 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 						IssuerUrl:    s.mockOIDCServer.Issuer(),
 					},
 				},
-				OIDCCallbackHost: fmt.Sprintf("http://localhost:%d/callback", s.callbackPort),
+				CallbackHost: fmt.Sprintf("http://localhost:%d/callback", s.callbackPort),
 			},
 		},
 	}
