@@ -89,7 +89,7 @@ func Serve(
 			[]byte(cfg.Authentication.Session.BlockSecretKey),
 		)
 	}
-	sessionMiddleware := interceptors.NewSession(sessionCookieCutter)
+	sessionMiddleware := interceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session.Domain)
 
 	var grpcGatewayServerInterceptors []runtime.ServeMuxOption
 	grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,

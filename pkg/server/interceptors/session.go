@@ -23,9 +23,10 @@ type Session struct {
 	// TODO(kushsharma): server should be able to rotate encryption keys of codec
 	// use secure cookie EncodeMulti/DecodeMulti
 	cookieCodec securecookie.Codec
+	domain      string
 }
 
-func NewSession(cookieCutter securecookie.Codec) *Session {
+func NewSession(cookieCutter securecookie.Codec, domain string) *Session {
 	return &Session{
 		// could be nil if not configured by user
 		cookieCodec: cookieCutter,
@@ -53,6 +54,7 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 			// put session id in request cookies
 			if encoded, err := h.cookieCodec.Encode(consts.SessionRequestKey, sessionIDFromGateway); err == nil {
 				http.SetCookie(w, &http.Cookie{
+					Domain:   h.domain,
 					Name:     consts.SessionRequestKey,
 					Value:    encoded,
 					Path:     "/",
@@ -74,6 +76,7 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 
 		// clear session from request
 		http.SetCookie(w, &http.Cookie{
+			Domain:   h.domain,
 			Name:     consts.SessionRequestKey,
 			Value:    "",
 			Path:     "/",

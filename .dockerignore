@@ -7,3 +7,6 @@ test
 .idea/
 temp/
 vendor/
+config.yml
+coverage.out
+resource_config

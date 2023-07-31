@@ -44,6 +44,8 @@ app:
       hash_secret_key: "hash-secret-should-be-32-chars--"
       # block helps in encryption
       block_secret_key: "block-secret-should-be-32-chars-"
+      # domain used for setting cookies, if not set defaults to request origin host
+      domain: ""
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
