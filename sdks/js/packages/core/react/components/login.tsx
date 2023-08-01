@@ -25,13 +25,11 @@ export const SignedIn = ({
   const { client, strategies = [] } = useFrontier();
 
   const clickHandler = useCallback(
-    async (name: string) => {
-      const {
-        data: { endpoint }
-      } = await client.getAuthStrategyEndpoint(name);
-      window.location.href = endpoint;
+    async (name?: string) => {
+      if (!name) return;
+      if (!client) return;
+      await client.frontierServiceAuthenticate(name, { redirect: true });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [strategies]
   );
 

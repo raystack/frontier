@@ -25,11 +25,15 @@ export const Signup = ({
   const { client, strategies = [] } = useFrontier();
 
   const clickHandler = useCallback(
-    async (name: string) => {
+    async (name?: string) => {
+      if (!name) return;
+      if (!client) return;
+
       const {
         data: { endpoint }
-      } = await client.getAuthStrategyEndpoint(name);
-      window.location.href = endpoint;
+      } = await client.frontierServiceAuthenticate(name, {
+        redirect: true
+      });
     },
     [strategies]
   );

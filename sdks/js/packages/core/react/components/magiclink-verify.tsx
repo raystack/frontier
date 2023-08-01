@@ -56,7 +56,13 @@ export const MagicLinkVerify = ({
   const OTPVerifyClickHandler = useCallback(async () => {
     setLoading(true);
     try {
-      await client.verifyMagicLinkAuthStrategyEndpoint(otp, stateParam!);
+      if (!client) return;
+
+      await client.frontierServiceAuthCallback({
+        strategyName: 'mailotp',
+        code: otp,
+        state: stateParam
+      });
 
       const searchParams = new URLSearchParams(
         hasWindow() ? window.location.search : ``
