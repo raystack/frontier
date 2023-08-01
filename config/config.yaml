@@ -57,8 +57,9 @@ app:
       iss: "http://localhost.shield"
       # validity of the token
       validity: "1h"
-    # external host used for oidc redirect uri, e.g. http://localhost:8000/v1beta1/auth/callback
-    oidc_callback_host: http://localhost:8000/v1beta1/auth/callback
+    # public facing host used for oidc redirect uri and mail link redirection
+    # e.g. http://localhost:7400/v1beta1/auth/callback
+    callback_host: http://localhost:8000/v1beta1/auth/callback
     # oidc auth server configs
     oidc_config:
       google:
@@ -70,8 +71,13 @@ app:
     mail_otp:
       subject: "Shield - Login Link"
       # body is a go template with `Otp` as a variable
-      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
-      validity: "1h"
+      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 15 minutes."
+      validity: 15m
+    mail_link:
+      subject: "Frontier Login - One time link"
+      # body is a go template with `Otp` as a variable
+      body: "Click on the following link or copy/paste the url in browser to login.<br><h2><a href='{{.Link}}' target='_blank'>Login</a></h2><br>Address: {{.Link}} <br>This link will expire in 15 minutes."
+      validity: 15m
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers

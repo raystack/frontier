@@ -69,12 +69,12 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 	}
 
 	appConfig.DB = db.Config{
-		Driver:              "postgres",
-		URL:                 connMainPGExternal,
-		MaxIdleConns:        10,
-		MaxOpenConns:        10,
-		ConnMaxLifeTime:     time.Millisecond * 100,
-		MaxQueryTimeoutInMS: time.Millisecond * 100,
+		Driver:          "postgres",
+		URL:             connMainPGExternal,
+		MaxIdleConns:    10,
+		MaxOpenConns:    10,
+		ConnMaxLifeTime: time.Millisecond * 100,
+		MaxQueryTimeout: time.Millisecond * 100,
 	}
 	appConfig.SpiceDB = spicedb.Config{
 		Host:            "localhost",

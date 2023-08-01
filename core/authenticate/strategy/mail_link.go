@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/raystack/frontier/pkg/mailer"
@@ -12,25 +12,22 @@ import (
 )
 
 const (
-	MailOTPAuthMethod string = "mailotp"
+	MailLinkAuthMethod string = "maillink"
 )
 
-var (
-	otpLetterRunes = []rune("ABCDEFGHJKMNPQRSTWXYZ23456789")
-	otpLen         = 6
-)
-
-// MailOTP sends a mail with a one time password to user's email id
-// and verifies the OTP. On successful verification, it creates a session
-type MailOTP struct {
+// MailLink sends a mail with a one time password link to user's email id.
+// On successful verification, it creates a session
+type MailLink struct {
 	dialer  mailer.Dialer
 	subject string
 	body    string
 	Now     func() time.Time
+	host    string
 }
 
-func NewMailOTP(d mailer.Dialer, subject, body string) *MailOTP {
-	return &MailOTP{
+func NewMailLink(d mailer.Dialer, host, subject, body string) *MailLink {
+	return &MailLink{
+		host:    host,
 		dialer:  d,
 		subject: subject,
 		body:    body,
@@ -41,15 +38,17 @@ func NewMailOTP(d mailer.Dialer, subject, body string) *MailOTP {
 }
 
 // SendMail sends a mail with a one time password embedded link to user's email id
-func (m MailOTP) SendMail(to string) (string, error) {
+func (m MailLink) SendMail(id, to string) (string, error) {
 	otp := GenerateNonceFromLetters(otpLen, otpLetterRunes)
 	t, err := template.New("body").Parse(m.body)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse email template: %w", err)
 	}
 	var tpl bytes.Buffer
+
+	link := fmt.Sprintf("%s?strategy_name=%s&code=%s&state=%s", strings.TrimRight(m.host, "/"), MailLinkAuthMethod, otp, id)
 	err = t.Execute(&tpl, map[string]string{
-		"Otp": otp,
+		"Link": link,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to parse email template: %w", err)
@@ -63,12 +62,4 @@ func (m MailOTP) SendMail(to string) (string, error) {
 	msg.SetBody("text/html", tpl.String())
 	msg.SetDateHeader("Date", m.Now())
 	return otp, m.dialer.DialAndSend(msg)
-}
-
-func GenerateNonceFromLetters(length int, letterRunes []rune) string {
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
 }

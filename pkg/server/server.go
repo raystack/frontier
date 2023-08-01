@@ -177,7 +177,7 @@ func Serve(
 			MaxHeaderBytes: 1 << 20,
 		}),
 		mux.WithGRPCTarget(fmt.Sprintf(":%d", cfg.GRPC.Port), grpcServer),
-		mux.WithGracePeriod(5*time.Second),
+		mux.WithGracePeriod(10*time.Second),
 	); !errors.Is(err, context.Canceled) {
 		logger.Error("mux serve error", "err", err)
 		return nil

@@ -36,9 +36,8 @@ import (
 )
 
 const (
-	// TODO(kushsharma): should we expose this in config?
 	defaultFlowExp = time.Minute * 10
-	maxOTPAttempt  = 5
+	maxOTPAttempt  = 3
 	otpAttemptKey  = "attempt"
 )
 
@@ -111,7 +110,7 @@ func (s Service) SupportedStrategies() []string {
 		strategies = append(strategies, name)
 	}
 	if s.mailDialer != nil {
-		strategies = append(strategies, MailOTPAuthMethod.String())
+		strategies = append(strategies, MailOTPAuthMethod.String(), MailLinkAuthMethod.String())
 	}
 	return strategies
 }
@@ -129,7 +128,7 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 	}
 
 	if request.Method == MailOTPAuthMethod.String() {
-		mailLinkStrat := strategy.NewMailLink(s.mailDialer, s.config.MailOTP.Subject, s.config.MailOTP.Body)
+		mailLinkStrat := strategy.NewMailOTP(s.mailDialer, s.config.MailOTP.Subject, s.config.MailOTP.Body)
 		nonce, err := mailLinkStrat.SendMail(request.Email)
 		if err != nil {
 			return nil, err
@@ -148,13 +147,32 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 			State: flow.ID.String(),
 		}, nil
 	}
+	if request.Method == MailLinkAuthMethod.String() {
+		mailLinkStrat := strategy.NewMailLink(s.mailDialer, s.config.CallbackHost, s.config.MailLink.Subject, s.config.MailLink.Body)
+		nonce, err := mailLinkStrat.SendMail(flow.ID.String(), request.Email)
+		if err != nil {
+			return nil, err
+		}
+
+		flow.Nonce = nonce
+		if s.config.MailLink.Validity != 0 {
+			flow.ExpiresAt = flow.CreatedAt.Add(s.config.MailLink.Validity)
+		}
+		flow.Email = strings.ToLower(request.Email)
+		if err = s.flowRepo.Set(ctx, flow); err != nil {
+			return nil, err
+		}
+		return &RegistrationStartResponse{
+			Flow: flow,
+		}, nil
+	}
 
 	// check for oidc flow
 	if oidcConfig, ok := s.config.OIDCConfig[request.Method]; ok {
 		idp, err := strategy.NewRelyingPartyOIDC(
 			oidcConfig.ClientID,
 			oidcConfig.ClientSecret,
-			s.config.OIDCCallbackHost).
+			s.config.CallbackHost).
 			Init(ctx, oidcConfig.IssuerUrl)
 		if err != nil {
 			return nil, err
@@ -186,8 +204,8 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 }
 
 func (s Service) FinishFlow(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
-	if request.Method == MailOTPAuthMethod.String() {
-		response, err := s.applyMail(ctx, request)
+	if request.Method == MailOTPAuthMethod.String() || request.Method == MailLinkAuthMethod.String() {
+		response, err := s.applyMailOTP(ctx, request)
 		if err != nil && !errors.Is(err, ErrStrategyNotApplicable) {
 			return nil, err
 		}
@@ -207,10 +225,10 @@ func (s Service) FinishFlow(ctx context.Context, request RegistrationFinishReque
 	return nil, ErrUnsupportedMethod
 }
 
-// applyMail actions when user submitted otp from the email
-// user can be considered as verified if correct
+// applyMailOTP actions when user submitted otp from the email
+// user can be considered as verified if code is valid
 // create a new user if required
-func (s Service) applyMail(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
+func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
 	if len(request.Code) == 0 {
 		return nil, ErrStrategyNotApplicable
 	}
@@ -289,7 +307,7 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 	idp, err := strategy.NewRelyingPartyOIDC(
 		oidcConfig.ClientID,
 		oidcConfig.ClientSecret,
-		s.config.OIDCCallbackHost).
+		s.config.CallbackHost).
 		Init(ctx, oidcConfig.IssuerUrl)
 	if err != nil {
 		return nil, err

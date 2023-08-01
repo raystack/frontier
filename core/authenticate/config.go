@@ -3,13 +3,18 @@ package authenticate
 import "time"
 
 type Config struct {
-	// OIDCCallbackHost is external host used for oidc redirect uri
-	OIDCCallbackHost string `yaml:"oidc_callback_host" mapstructure:"oidc_callback_host"`
+	// CallbackHost is external host used for redirect uri
+	CallbackHost string `yaml:"callback_host" mapstructure:"callback_host" default:"http://localhost:7400/v1beta1/auth/callback"`
+
+	// OIDCCallbackHost is external host used for redirect uri
+	// Deprecated: use CallbackHost instead
+	OIDCCallbackHost string `yaml:"oidc_callback_host" mapstructure:"oidc_callback_host" default:"http://localhost:7400/v1beta1/auth/oidc/callback"`
 
 	OIDCConfig map[string]OIDCConfig `yaml:"oidc_config" mapstructure:"oidc_config"`
 	Session    SessionConfig         `yaml:"session" mapstructure:"session"`
 	Token      TokenConfig           `yaml:"token" mapstructure:"token"`
 	MailOTP    MailOTPConfig         `yaml:"mail_otp" mapstructure:"mail_otp"`
+	MailLink   MailLinkConfig        `yaml:"mail_link" mapstructure:"mail_link"`
 }
 
 type TokenConfig struct {
@@ -40,7 +45,13 @@ type OIDCConfig struct {
 }
 
 type MailOTPConfig struct {
-	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Frontier Login OTP"`
-	Body     string        `yaml:"body" mapstructure:"body" default:"Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."`
+	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Frontier Login - OTP"`
+	Body     string        `yaml:"body" mapstructure:"body" default:"Please copy/paste the One Time Password in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."`
+	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
+}
+
+type MailLinkConfig struct {
+	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Frontier Login - One time link"`
+	Body     string        `yaml:"body" mapstructure:"body" default:"Click on the following link or copy/paste the url in browser to login.<h3><a href='{{.Link}}' target='_blank'>Login</a></h3>Address: {{.Link}} <br>This link will expire in 10 minutes."`
 	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
 }

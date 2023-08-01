@@ -3,6 +3,8 @@ package authenticate
 import (
 	"time"
 
+	"github.com/raystack/frontier/core/authenticate/strategy"
+
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 
@@ -14,7 +16,8 @@ import (
 type AuthMethod string
 
 const (
-	MailOTPAuthMethod AuthMethod = "mailotp"
+	MailOTPAuthMethod  = AuthMethod(strategy.MailOTPAuthMethod)
+	MailLinkAuthMethod = AuthMethod(strategy.MailLinkAuthMethod)
 )
 
 func (m AuthMethod) String() string {

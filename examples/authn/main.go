@@ -23,7 +23,8 @@ const (
 	frontierUserProfile      = "/v1beta1/users/self" // protected endpoint
 	jwksPath                 = "/.well-known/jwks.json"
 
-	mailotpStrategy = "mailotp"
+	mailotpStrategy  = "mailotp"
+	maillinkStrategy = "maillink"
 )
 
 var (
@@ -107,12 +108,14 @@ func login() func(ctx *gin.Context) {
 
 		content := `<div><h3>Supported Providers:</h3>`
 		for _, strategy := range response.Strategies {
-			if strategy.Name == mailotpStrategy {
+			if strategy.Name == mailotpStrategy || strategy.Name == maillinkStrategy {
 				content += `<article>`
-				content += `<form action="/mailauth" method="get">`
 				content += `<div>` + strategy.Name + `</div>`
-				content += `Email: <input type="text" name="email" placeholder="email">`
+				content += `<form action="/mailauth" method="get">`
+				content += `<label for="email">Email address</label>`
+				content += `<input type="text" id="email" name="email" placeholder="email">`
 				content += `<input type="submit" value="Submit">`
+				content += `<input type="hidden" name="strategy" value="` + strategy.Name + `">`
 				content += `</form>`
 				content += `</article>`
 			} else {
@@ -169,7 +172,11 @@ func mailauth() func(ctx *gin.Context) {
 		if len(userEmail) == 0 {
 			ctx.Redirect(http.StatusSeeOther, "/login")
 		}
-		frontierURL, _ := url.JoinPath(frontierHost, frontierRegister, mailotpStrategy)
+		authStrategy := ctx.Query("strategy")
+		if len(authStrategy) == 0 {
+			ctx.Redirect(http.StatusSeeOther, "/login")
+		}
+		frontierURL, _ := url.JoinPath(frontierHost, frontierRegister, authStrategy)
 		frontierResp, err := http.Get(frontierURL + "?email=" + userEmail)
 		if err != nil {
 			ctx.Error(err)

@@ -232,6 +232,7 @@ func buildAPIDependencies(
 			cfg.App.Mailer.SMTPInsecure,
 			cfg.App.Mailer.Headers,
 		)
+		logger.Info("mailer enabled", "host", cfg.App.Mailer.SMTPHost, "port", cfg.App.Mailer.SMTPPort)
 	}
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService)

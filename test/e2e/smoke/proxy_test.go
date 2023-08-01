@@ -94,12 +94,12 @@ func (s *ProxySmokeTestSuite) SetupSuite() {
 			},
 		},
 		DB: db.Config{
-			Driver:              "postgres",
-			URL:                 "postgres://frontier:12345@localhost:5432/frontier?sslmode=disable",
-			MaxIdleConns:        10,
-			MaxOpenConns:        10,
-			ConnMaxLifeTime:     time.Millisecond * 10,
-			MaxQueryTimeoutInMS: time.Millisecond * 100,
+			Driver:          "postgres",
+			URL:             "postgres://frontier:12345@localhost:5432/frontier?sslmode=disable",
+			MaxIdleConns:    10,
+			MaxOpenConns:    10,
+			ConnMaxLifeTime: time.Millisecond * 10,
+			MaxQueryTimeout: time.Millisecond * 100,
 		},
 		SpiceDB: spicedb.Config{
 			Host:            "localhost",
