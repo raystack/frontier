@@ -68,7 +68,7 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 }
 
 func postLoad(conf *Frontier) *Frontier {
-	if conf.App.Authentication.OIDCCallbackHost != "" && conf.App.Authentication.CallbackHost == "" {
+	if conf.App.Authentication.OIDCCallbackHost != "" {
 		conf.App.Authentication.CallbackHost = conf.App.Authentication.OIDCCallbackHost
 	}
 	return conf
