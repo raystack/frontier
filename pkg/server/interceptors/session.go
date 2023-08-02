@@ -30,6 +30,7 @@ func NewSession(cookieCutter securecookie.Codec, domain string) *Session {
 	return &Session{
 		// could be nil if not configured by user
 		cookieCodec: cookieCutter,
+		domain:      domain,
 	}
 }
 
