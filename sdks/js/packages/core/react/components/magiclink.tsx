@@ -29,10 +29,16 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
   const magicLinkClickHandler = useCallback(async () => {
     setLoading(true);
     try {
+      if (!client) return;
+
       const {
-        data: { state }
-      } = await client.getMagicLinkAuthStrategyEndpoint(email);
+        data: { state = '' }
+      } = await client.frontierServiceAuthenticate('mailotp', {
+        email
+      });
+
       const searchParams = new URLSearchParams({ state, email });
+
       // @ts-ignore
       window.location = `${
         config.redirectMagicLinkVerify

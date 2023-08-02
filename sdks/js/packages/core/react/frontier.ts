@@ -1,82 +1,21 @@
-import type { AxiosInstance, AxiosResponse } from 'axios';
-import axios from 'axios';
+import { V1Beta1 } from '../client/V1Beta1';
+import { FrontierClient } from '../src';
 
-import {
-  FrontierClientOptions,
-  Group,
-  Organization,
-  Strategy,
-  User
-} from '../shared/types';
-
+// Create a class to hold the singleton instance
 export default class Frontier {
-  protected readonly instance: AxiosInstance;
-  private readonly options: FrontierClientOptions;
-  private static classInstance?: Frontier;
+  private static instance: V1Beta1 | null = null;
 
-  static getOrCreateInstance(options: FrontierClientOptions) {
-    if (!this.classInstance) {
-      return new Frontier(options);
+  private constructor() {}
+
+  public static getInstance({ endpoint }: any): V1Beta1 {
+    if (!Frontier.instance) {
+      Frontier.instance = new FrontierClient({
+        baseUrl: endpoint,
+        baseApiParams: {
+          credentials: 'include'
+        }
+      });
     }
-    return this.classInstance;
+    return Frontier.instance;
   }
-
-  constructor(options: FrontierClientOptions) {
-    this.options = options;
-    this.instance = axios.create({
-      baseURL: options.endpoint,
-      withCredentials: true
-    });
-  }
-
-  public getAuthAtrategies = async (): Promise<
-    AxiosResponse<{ strategies: Strategy[] }>
-  > => {
-    return await this.instance.get('/v1beta1/auth');
-  };
-
-  public getAuthStrategyEndpoint = async (
-    strategy: string
-  ): Promise<AxiosResponse<{ endpoint: string }>> => {
-    return await this.instance.get(`/v1beta1/auth/register/${strategy}`);
-  };
-
-  public getMagicLinkAuthStrategyEndpoint = async (
-    email: string
-  ): Promise<AxiosResponse<{ state: string }>> => {
-    return await this.instance.get(
-      `/v1beta1/auth/register/mailotp?email=${email}`
-    );
-  };
-
-  public verifyMagicLinkAuthStrategyEndpoint = async (
-    code: string,
-    state: string
-  ): Promise<AxiosResponse<{ state: string }>> => {
-    return await this.instance.get(
-      `/v1beta1/auth/callback?strategy_name=mailotp&code=${code}&state=${state}`
-    );
-  };
-
-  public getCurrentUser = async (): Promise<AxiosResponse<{ user: User }>> => {
-    return await this.instance.get('/v1beta1/users/self');
-  };
-
-  public getUserGroups = async (
-    userId: string
-  ): Promise<AxiosResponse<{ groups: Group[] }>> => {
-    return await this.instance.get(`/v1beta1/users/${userId}/groups`);
-  };
-
-  public getUserOrganisations = async (
-    userId: string
-  ): Promise<AxiosResponse<{ organizations: Organization[] }>> => {
-    return await this.instance.get(`/v1beta1/users/${userId}/organizations`);
-  };
-
-  public createOrganisation = async (
-    data: any
-  ): Promise<AxiosResponse<{ organization: Organization }>> => {
-    return await this.instance.post(`/v1beta1/organizations`, data);
-  };
 }

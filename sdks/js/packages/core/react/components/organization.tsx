@@ -49,9 +49,11 @@ export const CreateOrganization = ({
   const { client } = useFrontier();
 
   async function onSubmit(data: any) {
+    if (!client) return;
+
     const {
       data: { organization }
-    } = await client.createOrganisation(data);
+    } = await client.frontierServiceCreateOrganization(data);
     // @ts-ignore
     window.location = `${window.location.origin}/${organization.name}`;
   }

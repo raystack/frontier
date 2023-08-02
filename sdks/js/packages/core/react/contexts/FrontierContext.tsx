@@ -9,29 +9,32 @@ import React, {
 
 import {
   FrontierClientOptions,
-  FrontierProviderProps,
-  Group,
-  Organization,
-  Strategy,
-  User
+  FrontierProviderProps
 } from '../../shared/types';
 
+import { V1Beta1 } from '../../client/V1Beta1';
+import {
+  V1Beta1AuthStrategy,
+  V1Beta1Group,
+  V1Beta1Organization,
+  V1Beta1User
+} from '../../client/data-contracts';
 import Frontier from '../frontier';
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
-  client: Frontier;
+  client: V1Beta1<unknown> | undefined;
 
-  organizations: Organization[];
-  setOrganizations: Dispatch<SetStateAction<Organization[]>>;
+  organizations: V1Beta1Organization[];
+  setOrganizations: Dispatch<SetStateAction<V1Beta1Organization[]>>;
 
-  groups: Group[];
-  setGroups: Dispatch<SetStateAction<Group[]>>;
+  groups: V1Beta1Group[];
+  setGroups: Dispatch<SetStateAction<V1Beta1Group[]>>;
 
-  strategies: Strategy[];
-  setStrategies: Dispatch<SetStateAction<Strategy[]>>;
+  strategies: V1Beta1AuthStrategy[];
+  setStrategies: Dispatch<SetStateAction<V1Beta1AuthStrategy[]>>;
 
-  user: User | null;
-  setUser: Dispatch<SetStateAction<User | null>>;
+  user: V1Beta1User | undefined;
+  setUser: Dispatch<SetStateAction<V1Beta1User | undefined>>;
 }
 
 const defaultConfig = {
@@ -43,7 +46,7 @@ const defaultConfig = {
 
 const initialValues: FrontierContextProviderProps = {
   config: defaultConfig,
-  client: Frontier.getOrCreateInstance(defaultConfig),
+  client: undefined,
 
   organizations: [],
   setOrganizations: () => undefined,
@@ -54,7 +57,7 @@ const initialValues: FrontierContextProviderProps = {
   strategies: [],
   setStrategies: () => undefined,
 
-  user: null,
+  user: undefined,
   setUser: () => undefined
 };
 
@@ -70,17 +73,17 @@ export const FrontierContextProvider = ({
 }: FrontierProviderProps) => {
   const { frontierClient } = useFrontierClient(config);
 
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
+  const [groups, setGroups] = useState<V1Beta1Group[]>([]);
+  const [strategies, setStrategies] = useState<V1Beta1AuthStrategy[]>([]);
+  const [user, setUser] = useState<V1Beta1User>();
 
   useEffect(() => {
     async function getFrontierInformation() {
       try {
         const {
-          data: { strategies }
-        } = await frontierClient.getAuthAtrategies();
+          data: { strategies = [] }
+        } = await frontierClient.frontierServiceListAuthStrategies();
         setStrategies(strategies);
       } catch (error) {
         console.error(
@@ -96,7 +99,7 @@ export const FrontierContextProvider = ({
       try {
         const {
           data: { user }
-        } = await frontierClient.getCurrentUser();
+        } = await frontierClient.frontierServiceGetCurrentUser();
         setUser(user);
       } catch (error) {
         console.error(
@@ -111,8 +114,8 @@ export const FrontierContextProvider = ({
     async function getFrontierCurrentUserGroups(userId: string) {
       try {
         const {
-          data: { groups }
-        } = await frontierClient.getUserGroups(userId);
+          data: { groups = [] }
+        } = await frontierClient.frontierServiceListUserGroups(userId);
         setGroups(groups);
       } catch (error) {
         console.error(
@@ -121,7 +124,7 @@ export const FrontierContextProvider = ({
       }
     }
 
-    if (user) {
+    if (user?.id) {
       getFrontierCurrentUserGroups(user.id);
     }
   }, [user]);
@@ -130,8 +133,8 @@ export const FrontierContextProvider = ({
     async function getFrontierCurrentUserOrganizations(userId: string) {
       try {
         const {
-          data: { organizations }
-        } = await frontierClient.getUserOrganisations(userId);
+          data: { organizations = [] }
+        } = await frontierClient.frontierServiceGetOrganizationsByUser(userId);
         setOrganizations(organizations);
       } catch (error) {
         console.error(
@@ -140,7 +143,7 @@ export const FrontierContextProvider = ({
       }
     }
 
-    if (user) {
+    if (user?.id) {
       getFrontierCurrentUserOrganizations(user.id);
     }
   }, [user]);
@@ -167,7 +170,7 @@ export const FrontierContextProvider = ({
 
 export const useFrontierClient = (options: FrontierClientOptions) => {
   const frontierClient = React.useMemo(
-    () => Frontier.getOrCreateInstance(options),
+    () => Frontier.getInstance({ endpoint: options.endpoint }),
     []
   );
 
