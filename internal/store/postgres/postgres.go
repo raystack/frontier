@@ -37,6 +37,7 @@ const (
 	TABLE_SERVICEUSER            = "serviceusers"
 	TABLE_SERVICEUSERCREDENTIALS = "serviceuser_credentials"
 	TABLE_AUDITLOGS              = "auditlogs"
+	TABLE_DOMAINS                = "domains"
 )
 
 func checkPostgresError(err error) error {

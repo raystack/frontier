@@ -1,14 +1,14 @@
 ---
-id: frontier-service-create-organization-invitation
-title: "Invite user"
-description: "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days"
-sidebar_label: "Invite user"
+id: frontier-service-list-organizations-by-domain
+title: "List orgs by domain"
+description: "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership   have been verified."
+sidebar_label: "List orgs by domain"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days",
-    "operationId": "FrontierService_CreateOrganizationInvitation",
+    "description": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership   have been verified.",
+    "operationId": "FrontierService_ListOrganizationsByDomain",
     "responses":
       {
         "200":
@@ -23,55 +23,32 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "invitation":
+                            "organizations":
                               {
-                                "type": "object",
-                                "properties":
+                                "type": "array",
+                                "items":
                                   {
-                                    "id":
+                                    "type": "object",
+                                    "properties":
                                       {
-                                        "type": "string",
-                                        "example": "k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "description": "The unique invitation identifier.",
-                                      },
-                                    "userId":
-                                      {
-                                        "type": "string",
-                                        "example": "john.doe@raystack.org",
-                                        "description": "The user email of the invited user.",
-                                      },
-                                    "orgId":
-                                      {
-                                        "type": "string",
-                                        "example": "b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "description": "The organization id to which the user is invited.",
-                                      },
-                                    "groupIds":
-                                      {
-                                        "type": "array",
-                                        "example": "c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "items": { "type": "string" },
-                                        "description": "The list of group ids to which the user is invited.",
-                                      },
-                                    "metadata":
-                                      {
-                                        "type": "object",
-                                        "example": { "key": "value" },
-                                        "description": "The metadata of the invitation.",
-                                      },
-                                    "createdAt":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time when the invitation was created.",
-                                      },
-                                    "expiresAt":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time when the invitation expires.",
+                                        "id": { "type": "string" },
+                                        "name": { "type": "string" },
+                                        "title": { "type": "string" },
+                                        "metadata": { "type": "object" },
+                                        "createdAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the organization was created.",
+                                          },
+                                        "updatedAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the organization was last updated.",
+                                          },
                                       },
                                   },
                               },
@@ -264,45 +241,16 @@ api:
     "parameters":
       [
         {
-          "name": "orgId",
-          "description": "unique id of the organization to which user is invited",
+          "name": "domainId",
+          "description": "domain id or domain name to be used to list all the organizations that have this domain whitelisted",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
-    "requestBody":
-      {
-        "content":
-          {
-            "application/json":
-              {
-                "schema":
-                  {
-                    "type": "object",
-                    "properties":
-                      {
-                        "userId":
-                          {
-                            "type": "string",
-                            "description": "user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified",
-                          },
-                        "groupIds":
-                          {
-                            "type": "array",
-                            "items": { "type": "string" },
-                            "description": "list of group ids to which user needs to be added as a member.",
-                          },
-                      },
-                    "required": ["userId"],
-                  },
-              },
-          },
-        "required": true,
-      },
     "tags": ["Organization"],
-    "method": "post",
-    "path": "/v1beta1/organizations/{orgId}/invitations",
+    "method": "get",
+    "path": "/v1beta1/organizations/domains/{domainId}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -323,7 +271,6 @@ api:
             "flows": { "undefined": { "scopes": {} } },
           },
       },
-    "jsonRequestBodyExample": { "userId": "string", "groupIds": ["string"] },
     "info":
       {
         "title": "Frontier Administration API",
@@ -343,15 +290,15 @@ api:
       },
     "postman":
       {
-        "name": "Invite user",
+        "name": "List orgs by domain",
         "description":
           {
-            "content": "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days",
+            "content": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership   have been verified.",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", ":orgId", "invitations"],
+            "path": ["v1beta1", "organizations", "domains", ":domainId"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -360,30 +307,20 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) unique id of the organization to which user is invited",
+                      "content": "(Required) domain id or domain name to be used to list all the organizations that have this domain whitelisted",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
-                  "key": "orgId",
+                  "key": "domainId",
                 },
               ],
           },
-        "header":
-          [
-            { "key": "Content-Type", "value": "application/json" },
-            { "key": "Accept", "value": "application/json" },
-          ],
-        "method": "POST",
-        "body":
-          {
-            "mode": "raw",
-            "raw": '""',
-            "options": { "raw": { "language": "json" } },
-          },
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "method": "GET",
       },
   }
-sidebar_class_name: "post api-method"
+sidebar_class_name: "get api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -397,15 +334,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Invite user
+## List orgs by domain
 
-Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days
+Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"unique id of the organization to which user is invited","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"userId"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified"}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"},"description":"list of group ids to which user needs to be added as a member."}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"domainId","description":"domain id or domain name to be used to list all the organizations that have this domain whitelisted","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>invitation</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The unique invitation identifier."}}></SchemaItem><SchemaItem collapsible={false} name={"userId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"john.doe@raystack.org","description":"The user email of the invited user."}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The organization id to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","example":"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","items":{"type":"string"},"description":"The list of group ids to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","example":{"key":"value"},"description":"The metadata of the invitation."}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation was created."}}></SchemaItem><SchemaItem collapsible={false} name={"expiresAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation expires."}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"invitation\": {\n    \"id\": \"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"userId\": \"john.doe@raystack.org\",\n    \"orgId\": \"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"groupIds\": \"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"metadata\": {\n      \"key\": \"value\"\n    },\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"expiresAt\": \"2023-06-07T05:39:56.961Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>organizations</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was last updated."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"organizations\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

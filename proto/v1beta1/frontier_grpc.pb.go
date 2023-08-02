@@ -77,6 +77,13 @@ const (
 	FrontierService_GetOrganizationInvitation_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationInvitation"
 	FrontierService_AcceptOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/AcceptOrganizationInvitation"
 	FrontierService_DeleteOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationInvitation"
+	FrontierService_ListOrganizationDomains_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationDomains"
+	FrontierService_AddOrganizationDomain_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/AddOrganizationDomain"
+	FrontierService_RemoveOrganizationDomain_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationDomain"
+	FrontierService_GetOrganizationDomain_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationDomain"
+	FrontierService_VerifyOrgDomain_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/VerifyOrgDomain"
+	FrontierService_ListOrganizationsByDomain_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByDomain"
+	FrontierService_JoinOrganization_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/JoinOrganization"
 	FrontierService_EnableOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/EnableOrganization"
 	FrontierService_DisableOrganization_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DisableOrganization"
 	FrontierService_DeleteOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganization"
@@ -188,6 +195,13 @@ type FrontierServiceClient interface {
 	GetOrganizationInvitation(ctx context.Context, in *GetOrganizationInvitationRequest, opts ...grpc.CallOption) (*GetOrganizationInvitationResponse, error)
 	AcceptOrganizationInvitation(ctx context.Context, in *AcceptOrganizationInvitationRequest, opts ...grpc.CallOption) (*AcceptOrganizationInvitationResponse, error)
 	DeleteOrganizationInvitation(ctx context.Context, in *DeleteOrganizationInvitationRequest, opts ...grpc.CallOption) (*DeleteOrganizationInvitationResponse, error)
+	ListOrganizationDomains(ctx context.Context, in *ListOrganizationDomainsRequest, opts ...grpc.CallOption) (*ListOrganizationDomainsResponse, error)
+	AddOrganizationDomain(ctx context.Context, in *AddOrganizationDomainRequest, opts ...grpc.CallOption) (*AddOrganizationDomainResponse, error)
+	RemoveOrganizationDomain(ctx context.Context, in *RemoveOrganizationDomainRequest, opts ...grpc.CallOption) (*RemoveOrganizationDomainResponse, error)
+	GetOrganizationDomain(ctx context.Context, in *GetOrganizationDomainRequest, opts ...grpc.CallOption) (*GetOrganizationDomainResponse, error)
+	VerifyOrgDomain(ctx context.Context, in *VerifyOrgDomainRequest, opts ...grpc.CallOption) (*VerifyOrgDomainResponse, error)
+	ListOrganizationsByDomain(ctx context.Context, in *ListOrganizationsByDomainRequest, opts ...grpc.CallOption) (*ListOrganizationsByDomainResponse, error)
+	JoinOrganization(ctx context.Context, in *JoinOrganizationRequest, opts ...grpc.CallOption) (*JoinOrganizationResponse, error)
 	EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error)
 	DisableOrganization(ctx context.Context, in *DisableOrganizationRequest, opts ...grpc.CallOption) (*DisableOrganizationResponse, error)
 	DeleteOrganization(ctx context.Context, in *DeleteOrganizationRequest, opts ...grpc.CallOption) (*DeleteOrganizationResponse, error)
@@ -772,6 +786,69 @@ func (c *frontierServiceClient) DeleteOrganizationInvitation(ctx context.Context
 	return out, nil
 }
 
+func (c *frontierServiceClient) ListOrganizationDomains(ctx context.Context, in *ListOrganizationDomainsRequest, opts ...grpc.CallOption) (*ListOrganizationDomainsResponse, error) {
+	out := new(ListOrganizationDomainsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationDomains_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) AddOrganizationDomain(ctx context.Context, in *AddOrganizationDomainRequest, opts ...grpc.CallOption) (*AddOrganizationDomainResponse, error) {
+	out := new(AddOrganizationDomainResponse)
+	err := c.cc.Invoke(ctx, FrontierService_AddOrganizationDomain_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) RemoveOrganizationDomain(ctx context.Context, in *RemoveOrganizationDomainRequest, opts ...grpc.CallOption) (*RemoveOrganizationDomainResponse, error) {
+	out := new(RemoveOrganizationDomainResponse)
+	err := c.cc.Invoke(ctx, FrontierService_RemoveOrganizationDomain_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) GetOrganizationDomain(ctx context.Context, in *GetOrganizationDomainRequest, opts ...grpc.CallOption) (*GetOrganizationDomainResponse, error) {
+	out := new(GetOrganizationDomainResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationDomain_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) VerifyOrgDomain(ctx context.Context, in *VerifyOrgDomainRequest, opts ...grpc.CallOption) (*VerifyOrgDomainResponse, error) {
+	out := new(VerifyOrgDomainResponse)
+	err := c.cc.Invoke(ctx, FrontierService_VerifyOrgDomain_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListOrganizationsByDomain(ctx context.Context, in *ListOrganizationsByDomainRequest, opts ...grpc.CallOption) (*ListOrganizationsByDomainResponse, error) {
+	out := new(ListOrganizationsByDomainResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationsByDomain_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) JoinOrganization(ctx context.Context, in *JoinOrganizationRequest, opts ...grpc.CallOption) (*JoinOrganizationResponse, error) {
+	out := new(JoinOrganizationResponse)
+	err := c.cc.Invoke(ctx, FrontierService_JoinOrganization_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) EnableOrganization(ctx context.Context, in *EnableOrganizationRequest, opts ...grpc.CallOption) (*EnableOrganizationResponse, error) {
 	out := new(EnableOrganizationResponse)
 	err := c.cc.Invoke(ctx, FrontierService_EnableOrganization_FullMethodName, in, out, opts...)
@@ -1217,6 +1294,13 @@ type FrontierServiceServer interface {
 	GetOrganizationInvitation(context.Context, *GetOrganizationInvitationRequest) (*GetOrganizationInvitationResponse, error)
 	AcceptOrganizationInvitation(context.Context, *AcceptOrganizationInvitationRequest) (*AcceptOrganizationInvitationResponse, error)
 	DeleteOrganizationInvitation(context.Context, *DeleteOrganizationInvitationRequest) (*DeleteOrganizationInvitationResponse, error)
+	ListOrganizationDomains(context.Context, *ListOrganizationDomainsRequest) (*ListOrganizationDomainsResponse, error)
+	AddOrganizationDomain(context.Context, *AddOrganizationDomainRequest) (*AddOrganizationDomainResponse, error)
+	RemoveOrganizationDomain(context.Context, *RemoveOrganizationDomainRequest) (*RemoveOrganizationDomainResponse, error)
+	GetOrganizationDomain(context.Context, *GetOrganizationDomainRequest) (*GetOrganizationDomainResponse, error)
+	VerifyOrgDomain(context.Context, *VerifyOrgDomainRequest) (*VerifyOrgDomainResponse, error)
+	ListOrganizationsByDomain(context.Context, *ListOrganizationsByDomainRequest) (*ListOrganizationsByDomainResponse, error)
+	JoinOrganization(context.Context, *JoinOrganizationRequest) (*JoinOrganizationResponse, error)
 	EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error)
 	DisableOrganization(context.Context, *DisableOrganizationRequest) (*DisableOrganizationResponse, error)
 	DeleteOrganization(context.Context, *DeleteOrganizationRequest) (*DeleteOrganizationResponse, error)
@@ -1449,6 +1533,27 @@ func (UnimplementedFrontierServiceServer) AcceptOrganizationInvitation(context.C
 }
 func (UnimplementedFrontierServiceServer) DeleteOrganizationInvitation(context.Context, *DeleteOrganizationInvitationRequest) (*DeleteOrganizationInvitationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOrganizationInvitation not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListOrganizationDomains(context.Context, *ListOrganizationDomainsRequest) (*ListOrganizationDomainsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationDomains not implemented")
+}
+func (UnimplementedFrontierServiceServer) AddOrganizationDomain(context.Context, *AddOrganizationDomainRequest) (*AddOrganizationDomainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddOrganizationDomain not implemented")
+}
+func (UnimplementedFrontierServiceServer) RemoveOrganizationDomain(context.Context, *RemoveOrganizationDomainRequest) (*RemoveOrganizationDomainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationDomain not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetOrganizationDomain(context.Context, *GetOrganizationDomainRequest) (*GetOrganizationDomainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationDomain not implemented")
+}
+func (UnimplementedFrontierServiceServer) VerifyOrgDomain(context.Context, *VerifyOrgDomainRequest) (*VerifyOrgDomainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyOrgDomain not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListOrganizationsByDomain(context.Context, *ListOrganizationsByDomainRequest) (*ListOrganizationsByDomainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationsByDomain not implemented")
+}
+func (UnimplementedFrontierServiceServer) JoinOrganization(context.Context, *JoinOrganizationRequest) (*JoinOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinOrganization not implemented")
 }
 func (UnimplementedFrontierServiceServer) EnableOrganization(context.Context, *EnableOrganizationRequest) (*EnableOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableOrganization not implemented")
@@ -2633,6 +2738,132 @@ func _FrontierService_DeleteOrganizationInvitation_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ListOrganizationDomains_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationDomainsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListOrganizationDomains(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListOrganizationDomains_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListOrganizationDomains(ctx, req.(*ListOrganizationDomainsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_AddOrganizationDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrganizationDomainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).AddOrganizationDomain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_AddOrganizationDomain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).AddOrganizationDomain(ctx, req.(*AddOrganizationDomainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_RemoveOrganizationDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveOrganizationDomainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).RemoveOrganizationDomain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_RemoveOrganizationDomain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).RemoveOrganizationDomain(ctx, req.(*RemoveOrganizationDomainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_GetOrganizationDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrganizationDomainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetOrganizationDomain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetOrganizationDomain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetOrganizationDomain(ctx, req.(*GetOrganizationDomainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_VerifyOrgDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyOrgDomainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).VerifyOrgDomain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_VerifyOrgDomain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).VerifyOrgDomain(ctx, req.(*VerifyOrgDomainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListOrganizationsByDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationsByDomainRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListOrganizationsByDomain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListOrganizationsByDomain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListOrganizationsByDomain(ctx, req.(*ListOrganizationsByDomainRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_JoinOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).JoinOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_JoinOrganization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).JoinOrganization(ctx, req.(*JoinOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_EnableOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableOrganizationRequest)
 	if err := dec(in); err != nil {
@@ -3627,6 +3858,34 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteOrganizationInvitation",
 			Handler:    _FrontierService_DeleteOrganizationInvitation_Handler,
+		},
+		{
+			MethodName: "ListOrganizationDomains",
+			Handler:    _FrontierService_ListOrganizationDomains_Handler,
+		},
+		{
+			MethodName: "AddOrganizationDomain",
+			Handler:    _FrontierService_AddOrganizationDomain_Handler,
+		},
+		{
+			MethodName: "RemoveOrganizationDomain",
+			Handler:    _FrontierService_RemoveOrganizationDomain_Handler,
+		},
+		{
+			MethodName: "GetOrganizationDomain",
+			Handler:    _FrontierService_GetOrganizationDomain_Handler,
+		},
+		{
+			MethodName: "VerifyOrgDomain",
+			Handler:    _FrontierService_VerifyOrgDomain_Handler,
+		},
+		{
+			MethodName: "ListOrganizationsByDomain",
+			Handler:    _FrontierService_ListOrganizationsByDomain_Handler,
+		},
+		{
+			MethodName: "JoinOrganization",
+			Handler:    _FrontierService_JoinOrganization_Handler,
 		},
 		{
 			MethodName: "EnableOrganization",

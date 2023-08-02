@@ -1,0 +1,119 @@
+package v1beta1
+
+import (
+	"context"
+
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/raystack/frontier/core/domain"
+	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+var (
+	grpcDomainNotFoundErr = status.Errorf(codes.NotFound, "domain whitelist request doesn't exist")
+)
+
+type DomainService interface {
+	Get(ctx context.Context, id string) (domain.Domain, error)
+	List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error)
+	Delete(ctx context.Context, id string) error
+	Create(ctx context.Context, toCreate domain.Domain) (domain.Domain, error)
+	VerifyDomain(ctx context.Context, id string) (domain.Domain, error)
+}
+
+func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1beta1.AddOrganizationDomainRequest) (*frontierv1beta1.AddOrganizationDomainResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetOrgId() == "" || request.GetDomain() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	domain, err := h.domainService.Create(ctx, domain.Domain{
+		OrgID: request.GetOrgId(),
+		Name:  request.GetDomain(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	domainPB := transformDomainToPB(domain)
+	return &frontierv1beta1.AddOrganizationDomainResponse{Domain: &domainPB}, nil
+}
+
+func (h Handler) RemoveOrganizationDomain(ctx context.Context, request *frontierv1beta1.RemoveOrganizationDomainRequest) (*frontierv1beta1.RemoveOrganizationDomainResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetId() == "" || request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	if err := h.domainService.Delete(ctx, request.GetId()); err != nil {
+		logger.Error(err.Error())
+		switch err {
+		case domain.ErrNotExist:
+			return nil, grpcDomainNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &frontierv1beta1.RemoveOrganizationDomainResponse{}, nil
+}
+
+func (h Handler) GetOrganizationDomain(ctx context.Context, request *frontierv1beta1.GetOrganizationDomainRequest) (*frontierv1beta1.GetOrganizationDomainResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetId() == "" || request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	domainResp, err := h.domainService.Get(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch err {
+		case domain.ErrNotExist:
+			return nil, grpcDomainNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	domainPB := transformDomainToPB(domainResp)
+	return &frontierv1beta1.GetOrganizationDomainResponse{Domain: &domainPB}, nil
+}
+
+func (h Handler) VerifyOrgDomain(ctx context.Context, request *frontierv1beta1.VerifyOrgDomainRequest) (*frontierv1beta1.VerifyOrgDomainResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetId() == "" || request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	domainResp, err := h.domainService.VerifyDomain(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch err {
+		case domain.ErrNotExist:
+			return nil, grpcDomainNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &frontierv1beta1.VerifyOrgDomainResponse{Verified: domainResp.Verified}, nil
+}
+
+func transformDomainToPB(from domain.Domain) frontierv1beta1.Domain {
+	return frontierv1beta1.Domain{
+		Id:         from.ID,
+		Name:       from.Name,
+		OrgId:      from.OrgID,
+		Token:      from.Token,
+		Verified:   from.Verified,
+		CreatedAt:  timestamppb.New(from.CreatedAt),
+		VerifiedAt: timestamppb.New(from.VerifiedAt),
+	}
+}

@@ -1,14 +1,14 @@
 ---
-id: frontier-service-create-organization-invitation
-title: "Invite user"
-description: "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days"
-sidebar_label: "Invite user"
+id: frontier-service-get-organization-domain
+title: "Get org domain"
+description: "Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID"
+sidebar_label: "Get org domain"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days",
-    "operationId": "FrontierService_CreateOrganizationInvitation",
+    "description": "Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID",
+    "operationId": "FrontierService_GetOrganizationDomain",
     "responses":
       {
         "200":
@@ -23,7 +23,7 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "invitation":
+                            "domain":
                               {
                                 "type": "object",
                                 "properties":
@@ -31,47 +31,46 @@ api:
                                     "id":
                                       {
                                         "type": "string",
-                                        "example": "k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "description": "The unique invitation identifier.",
+                                        "example": "943e4567-e89b-12d3-a456-426655440000",
+                                        "description": "The domain id",
                                       },
-                                    "userId":
+                                    "name":
                                       {
                                         "type": "string",
-                                        "example": "john.doe@raystack.org",
-                                        "description": "The user email of the invited user.",
+                                        "example": "raystack.org",
+                                        "description": "The domain name",
                                       },
                                     "orgId":
                                       {
                                         "type": "string",
-                                        "example": "b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "description": "The organization id to which the user is invited.",
+                                        "example": "123e4567-e89b-12d3-a456-426655440000",
+                                        "description": "The organization id",
                                       },
-                                    "groupIds":
+                                    "token":
                                       {
-                                        "type": "array",
-                                        "example": "c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "items": { "type": "string" },
-                                        "description": "The list of group ids to which the user is invited.",
+                                        "type": "string",
+                                        "example": "_frontier-challenge:1234567890123456",
+                                        "description": "The dns TXT record token to verify the domain",
                                       },
-                                    "metadata":
+                                    "verified":
                                       {
-                                        "type": "object",
-                                        "example": { "key": "value" },
-                                        "description": "The metadata of the invitation.",
+                                        "type": "boolean",
+                                        "example": true,
+                                        "description": "true if the domain is verified, false otherwise",
                                       },
                                     "createdAt":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time when the invitation was created.",
+                                        "description": "The time the domain whitelist request was created",
                                       },
-                                    "expiresAt":
+                                    "verifiedAt":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time when the invitation expires.",
+                                        "description": "The time the org domain was verified",
                                       },
                                   },
                               },
@@ -265,44 +264,22 @@ api:
       [
         {
           "name": "orgId",
-          "description": "unique id of the organization to which user is invited",
+          "description": "unique id of the organization for which whitelisted domain is to be retrieved",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "id",
+          "description": "unique id of the domain to be retrieved",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
-    "requestBody":
-      {
-        "content":
-          {
-            "application/json":
-              {
-                "schema":
-                  {
-                    "type": "object",
-                    "properties":
-                      {
-                        "userId":
-                          {
-                            "type": "string",
-                            "description": "user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified",
-                          },
-                        "groupIds":
-                          {
-                            "type": "array",
-                            "items": { "type": "string" },
-                            "description": "list of group ids to which user needs to be added as a member.",
-                          },
-                      },
-                    "required": ["userId"],
-                  },
-              },
-          },
-        "required": true,
-      },
     "tags": ["Organization"],
-    "method": "post",
-    "path": "/v1beta1/organizations/{orgId}/invitations",
+    "method": "get",
+    "path": "/v1beta1/organizations/{orgId}/domains/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -323,7 +300,6 @@ api:
             "flows": { "undefined": { "scopes": {} } },
           },
       },
-    "jsonRequestBodyExample": { "userId": "string", "groupIds": ["string"] },
     "info":
       {
         "title": "Frontier Administration API",
@@ -343,15 +319,15 @@ api:
       },
     "postman":
       {
-        "name": "Invite user",
+        "name": "Get org domain",
         "description":
           {
-            "content": "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days",
+            "content": "Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", ":orgId", "invitations"],
+            "path": ["v1beta1", "organizations", ":orgId", "domains", ":id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -360,30 +336,31 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) unique id of the organization to which user is invited",
+                      "content": "(Required) unique id of the organization for which whitelisted domain is to be retrieved",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
                   "key": "orgId",
                 },
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "(Required) unique id of the domain to be retrieved",
+                      "type": "text/plain",
+                    },
+                  "type": "any",
+                  "value": "",
+                  "key": "id",
+                },
               ],
           },
-        "header":
-          [
-            { "key": "Content-Type", "value": "application/json" },
-            { "key": "Accept", "value": "application/json" },
-          ],
-        "method": "POST",
-        "body":
-          {
-            "mode": "raw",
-            "raw": '""',
-            "options": { "raw": { "language": "json" } },
-          },
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "method": "GET",
       },
   }
-sidebar_class_name: "post api-method"
+sidebar_class_name: "get api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -397,15 +374,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Invite user
+## Get org domain
 
-Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days
+Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"unique id of the organization to which user is invited","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"userId"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified"}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"},"description":"list of group ids to which user needs to be added as a member."}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"unique id of the organization for which whitelisted domain is to be retrieved","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"unique id of the domain to be retrieved","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>invitation</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The unique invitation identifier."}}></SchemaItem><SchemaItem collapsible={false} name={"userId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"john.doe@raystack.org","description":"The user email of the invited user."}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The organization id to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","example":"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","items":{"type":"string"},"description":"The list of group ids to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","example":{"key":"value"},"description":"The metadata of the invitation."}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation was created."}}></SchemaItem><SchemaItem collapsible={false} name={"expiresAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation expires."}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"invitation\": {\n    \"id\": \"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"userId\": \"john.doe@raystack.org\",\n    \"orgId\": \"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"groupIds\": \"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"metadata\": {\n      \"key\": \"value\"\n    },\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"expiresAt\": \"2023-06-07T05:39:56.961Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>domain</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"943e4567-e89b-12d3-a456-426655440000","description":"The domain id"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"raystack.org","description":"The domain name"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"123e4567-e89b-12d3-a456-426655440000","description":"The organization id"}}></SchemaItem><SchemaItem collapsible={false} name={"token"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"_frontier-challenge:1234567890123456","description":"The dns TXT record token to verify the domain"}}></SchemaItem><SchemaItem collapsible={false} name={"verified"} required={false} schemaName={"boolean"} qualifierMessage={undefined} schema={{"type":"boolean","example":true,"description":"true if the domain is verified, false otherwise"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the domain whitelist request was created"}}></SchemaItem><SchemaItem collapsible={false} name={"verifiedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the org domain was verified"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"domain\": {\n    \"id\": \"943e4567-e89b-12d3-a456-426655440000\",\n    \"name\": \"raystack.org\",\n    \"orgId\": \"123e4567-e89b-12d3-a456-426655440000\",\n    \"token\": \"_frontier-challenge:1234567890123456\",\n    \"verified\": true,\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"verifiedAt\": \"2023-06-07T05:39:56.961Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

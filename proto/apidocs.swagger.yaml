@@ -1824,6 +1824,251 @@ paths:
           type: string
       tags:
         - Organization
+  /v1beta1/organizations/{orgId}/domains:
+    get:
+      summary: List org domains
+      description: Returns all domains whitelisted for an organization (both pending and verified if no filters are provided for the state). The verified domains allow users email with the org's whitelisted domain to join the organization without invitation.
+      operationId: FrontierService_ListOrganizationDomains
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListOrganizationDomainsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: unique id of the organization for which whitelisted domains are to be listed
+          in: path
+          required: true
+          type: string
+        - name: state
+          description: filter to list domains by their state (pending/verified). If not provided, all domains for an org will be listed
+          in: query
+          required: false
+          type: string
+      tags:
+        - Organization
+    post:
+      summary: Add org domain
+      description: Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrgDomain API before it can be used as an Organization's trusted domain to sign up users.
+      operationId: FrontierService_AddOrganizationDomain
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1AddOrganizationDomainResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: unique id of the organization for which whitelisted domains are to be added
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              domain:
+                type: string
+                description: domain name to be added to the trusted domain list
+            required:
+              - domain
+      tags:
+        - Organization
+  /v1beta1/organizations/{orgId}/domains/{id}:
+    get:
+      summary: Get org domain
+      description: Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID
+      operationId: FrontierService_GetOrganizationDomain
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetOrganizationDomainResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: unique id of the organization for which whitelisted domain is to be retrieved
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: unique id of the domain to be retrieved
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
+  /v1beta1/organizations/{orgId}/domains/{id}/remove:
+    delete:
+      summary: Remove org domain
+      description: Remove a domain from the list of an organization's trusted domains list
+      operationId: FrontierService_RemoveOrganizationDomain
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1RemoveOrganizationDomainResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: unique id of the organization for which whitelisted domains are to be deleted
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: unique id of the domain to be deleted
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
+  /v1beta1/organizations/{orgId}/domains/{id}/verify:
+    post:
+      summary: Verify org domain
+      description: Verify a domain for an organization with a verification token generated by Frontier GenerateDomainVerificationToken API. The token must be added to your domain's DNS provider as a TXT record before it can be verified. This API returns the state of the domain (pending/verified) after verification.
+      operationId: FrontierService_VerifyOrgDomain
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1VerifyOrgDomainResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: unique id of the organization for which whitelisted domains are to be verified
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: unique id of the domain to be verified
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+      tags:
+        - Organization
   /v1beta1/organizations/{orgId}/groups:
     get:
       summary: List organization groups
@@ -2350,7 +2595,7 @@ paths:
         - Organization
     post:
       summary: Invite user
-      description: Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days
+      description: Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days
       operationId: FrontierService_CreateOrganizationInvitation
       responses:
         "200":
@@ -2534,6 +2779,47 @@ paths:
           required: true
           type: string
         - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
+  /v1beta1/organizations/{orgId}/join:
+    post:
+      summary: Join organization
+      description: Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.
+      operationId: FrontierService_JoinOrganization
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1JoinOrganizationResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
           in: path
           required: true
           type: string
@@ -2768,6 +3054,48 @@ paths:
             $ref: '#/definitions/v1beta1RoleRequestBody'
       tags:
         - Role
+  /v1beta1/organizations/domains/{name}:
+    get:
+      summary: List orgs by domain
+      description: Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of).
+      operationId: FrontierService_ListOrganizationsByDomain
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListOrganizationsByDomainResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: name
+          description: domain name to be used to list all the organizations that have this domain whitelisted
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
   /v1beta1/permissions:
     get:
       summary: Get all permissions
@@ -5245,6 +5573,11 @@ definitions:
     type: object
   v1beta1AddGroupUsersResponse:
     type: object
+  v1beta1AddOrganizationDomainResponse:
+    type: object
+    properties:
+      domain:
+        $ref: '#/definitions/v1beta1Domain'
   v1beta1AddOrganizationUsersResponse:
     type: object
   v1beta1AuditLog:
@@ -5509,6 +5842,39 @@ definitions:
     type: object
   v1beta1DisableUserResponse:
     type: object
+  v1beta1Domain:
+    type: object
+    properties:
+      id:
+        type: string
+        example: 943e4567-e89b-12d3-a456-426655440000
+        description: The domain id
+      name:
+        type: string
+        example: raystack.org
+        description: The domain name
+      orgId:
+        type: string
+        example: 123e4567-e89b-12d3-a456-426655440000
+        description: The organization id
+      token:
+        type: string
+        example: _frontier-challenge:1234567890123456
+        description: The dns TXT record token to verify the domain
+      state:
+        type: string
+        example: pending
+        description: The domain state either pending or verified
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the domain whitelist request was created
+      updatedAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time the org domain was updated
   v1beta1EnableGroupResponse:
     type: object
   v1beta1EnableOrganizationResponse:
@@ -5553,6 +5919,11 @@ definitions:
     properties:
       log:
         $ref: '#/definitions/v1beta1AuditLog'
+  v1beta1GetOrganizationDomainResponse:
+    type: object
+    properties:
+      domain:
+        $ref: '#/definitions/v1beta1Domain'
   v1beta1GetOrganizationInvitationResponse:
     type: object
     properties:
@@ -5747,6 +6118,8 @@ definitions:
         type: string
         description: Used for ECDSA keys.
     title: JSON Web Key as specified in RFC 7517
+  v1beta1JoinOrganizationResponse:
+    type: object
   v1beta1KeyCredential:
     type: object
     properties:
@@ -5843,6 +6216,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1AuditLog'
+  v1beta1ListOrganizationDomainsResponse:
+    type: object
+    properties:
+      domains:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Domain'
   v1beta1ListOrganizationGroupsResponse:
     type: object
     properties:
@@ -5891,6 +6272,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+  v1beta1ListOrganizationsByDomainResponse:
+    type: object
+    properties:
+      organizations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Organization'
   v1beta1ListOrganizationsResponse:
     type: object
     properties:
@@ -6294,6 +6683,8 @@ definitions:
         type: string
   v1beta1RemoveGroupUserResponse:
     type: object
+  v1beta1RemoveOrganizationDomainResponse:
+    type: object
   v1beta1RemoveOrganizationUserResponse:
     type: object
   v1beta1Resource:
@@ -6556,6 +6947,11 @@ definitions:
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"`
     required:
       - email
+  v1beta1VerifyOrgDomainResponse:
+    type: object
+    properties:
+      state:
+        type: string
 securityDefinitions:
   Basic:
     type: basic
