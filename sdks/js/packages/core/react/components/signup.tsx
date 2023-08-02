@@ -15,10 +15,12 @@ const styles = {
 type SignupProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
+  excludes?: string[];
 };
 export const Signup = ({
   logo,
   title = 'Create your account',
+  excludes = [],
   ...props
 }: SignupProps) => {
   const { config } = useFrontier();
@@ -30,16 +32,18 @@ export const Signup = ({
       if (!client) return;
 
       const {
-        data: { endpoint }
-      } = await client.frontierServiceAuthenticate(name, {
-        redirect: true
-      });
+        data: { endpoint = '' }
+      } = await client.frontierServiceAuthenticate(name);
+
+      window.location.href = endpoint;
     },
     [strategies]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
-  const filteredOIDC = strategies.filter(s => s.name !== 'mailotp');
+  const filteredOIDC = strategies
+    .filter(s => s.name !== 'mailotp')
+    .filter(s => !excludes.includes(s.name ?? ''));
 
   return (
     <Container {...props}>

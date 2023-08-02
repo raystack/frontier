@@ -169,10 +169,7 @@ export const FrontierContextProvider = ({
 };
 
 export const useFrontierClient = (options: FrontierClientOptions) => {
-  const frontierClient = React.useMemo(
-    () => Frontier.getInstance({ endpoint: options.endpoint }),
-    []
-  );
+  const frontierClient = React.useMemo(() => Frontier.getInstance(options), []);
 
   return { frontierClient };
 };

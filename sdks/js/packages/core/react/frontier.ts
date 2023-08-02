@@ -8,14 +8,14 @@ export default class Frontier {
   private constructor() {}
 
   public static getInstance({ endpoint }: any): V1Beta1 {
-    if (!Frontier.instance) {
-      Frontier.instance = new FrontierClient({
+    if (!this.instance) {
+      this.instance = new FrontierClient({
         baseUrl: endpoint,
         baseApiParams: {
           credentials: 'include'
         }
       });
     }
-    return Frontier.instance;
+    return this.instance;
   }
 }

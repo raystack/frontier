@@ -15,26 +15,34 @@ const styles = {
 type SignedInProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
+  excludes?: string[];
 };
 export const SignedIn = ({
   logo,
   title = 'Login to Raypoint',
+  excludes = [],
   ...props
 }: SignedInProps) => {
-  const { config } = useFrontier();
-  const { client, strategies = [] } = useFrontier();
+  const { config, client, strategies = [] } = useFrontier();
 
   const clickHandler = useCallback(
     async (name?: string) => {
       if (!name) return;
       if (!client) return;
-      await client.frontierServiceAuthenticate(name, { redirect: true });
+      const {
+        data: { endpoint = '' }
+      } = await client.frontierServiceAuthenticate(name);
+
+      window.location.href = endpoint;
     },
     [strategies]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
-  const filteredOIDC = strategies.filter(s => s.name !== 'mailotp');
+  const filteredOIDC = strategies
+    .filter(s => s.name !== 'mailotp')
+    .filter(s => !excludes.includes(s.name ?? ''));
+
   return (
     <Container {...props}>
       <Header logo={logo} title={title} />
