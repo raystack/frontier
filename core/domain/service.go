@@ -6,10 +6,27 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+	"strings"
+
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
+type UserService interface {
+	GetByID(ctx context.Context, id string) (user.User, error)
+}
+
+type OrgService interface {
+	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
+	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
+}
+
 type Service struct {
-	repository Repository
+	repository  Repository
+	userService UserService
+	orgService  OrgService
 }
 
 const (
@@ -17,9 +34,11 @@ const (
 	txtLength    = 16
 )
 
-func NewService(repository Repository) *Service {
+func NewService(repository Repository, userService UserService, orgService OrgService) *Service {
 	return &Service{
-		repository: repository,
+		repository:  repository,
+		userService: userService,
+		orgService:  orgService,
 	}
 }
 
@@ -34,7 +53,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Domain, error) {
 }
 
 // Remove an organization's whitelisted domain from the database
-func (s Service) Delete(ctx context.Context, id string) (string, error) {
+func (s Service) Delete(ctx context.Context, id string) error {
 	return s.repository.Delete(ctx, id)
 }
 
@@ -68,11 +87,59 @@ func (s Service) VerifyDomain(ctx context.Context, id string) error {
 	for _, txtRecord := range txtRecords {
 		if txtRecord == domain.Token {
 			domain.Verified = true
-			s.repository.Update(ctx, id, domain)
+			s.repository.Update(ctx, domain)
 		}
 	}
 
 	return ErrNotExist
+}
+
+// Join an organization as a member if the user domain matches the org whitelisted domains
+func (s Service) Join(ctx context.Context, orgID string, userId string) error {
+	currUser, err := s.userService.GetByID(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	// check if user is already a member of the organization. if yes, do nothing and return nil
+	userOrgs, err := s.orgService.ListByUser(ctx, currUser.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, org := range userOrgs {
+		if org.ID == orgID {
+			return nil
+		}
+	}
+
+	userDomain := extractDomainFromEmail(currUser.Email)
+	if userDomain == "" {
+		return user.ErrInvalidEmail
+	}
+
+	// check if user domain matches the org whitelisted domains
+	orgTrustedDomains, err := s.List(ctx, Filter{
+		OrgID:    orgID,
+		Verified: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, dmn := range orgTrustedDomains {
+		if userDomain == dmn.Name {
+			if err = s.orgService.AddMember(ctx, orgID, schema.MemberRelationName, authenticate.Principal{
+				ID:   currUser.ID,
+				Type: schema.UserPrincipal,
+			}); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	return ErrDomainsMisMatch
 }
 
 func generateRandomTXT() (string, error) {
@@ -85,4 +152,12 @@ func generateRandomTXT() (string, error) {
 	// Encode the random bytes in Base64
 	txtRecord := base64.StdEncoding.EncodeToString(randomBytes)
 	return txtRecord, nil
+}
+
+func extractDomainFromEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) == 2 {
+		return parts[1]
+	}
+	return ""
 }

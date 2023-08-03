@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -31,7 +32,7 @@ func NewDomainRepository(logger log.Logger, dbc *db.Client) *DomainRepository {
 	}
 }
 
-func (s *DomainRepository) Create(ctx context.Context, domain *domain.Domain) error {
+func (s *DomainRepository) Create(ctx context.Context, domain domain.Domain) error {
 	if domain.ID == "" {
 		domain.ID = uuid.New().String()
 	}
@@ -71,7 +72,7 @@ func (s *DomainRepository) Create(ctx context.Context, domain *domain.Domain) er
 	return nil
 }
 
-func (s *FlowRepository) List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error) {
+func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error) {
 	stmt := dialect.Select(
 		goqu.I("d.id"),
 		goqu.I("d.org_id"),
@@ -118,7 +119,7 @@ func (s *FlowRepository) List(ctx context.Context, flt domain.Filter) ([]domain.
 	return result, nil
 }
 
-func (s *DomainRepository) Get(ctx context.Context, id string) (*domain.Domain, error) {
+func (s *DomainRepository) Get(ctx context.Context, id string) (domain.Domain, error) {
 	query, params, err := dialect.Select(
 		goqu.I("d.id"),
 		goqu.I("d.org_id"),
@@ -132,7 +133,7 @@ func (s *DomainRepository) Get(ctx context.Context, id string) (*domain.Domain, 
 	}).ToSQL()
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var domainModel Domain
@@ -140,14 +141,14 @@ func (s *DomainRepository) Get(ctx context.Context, id string) (*domain.Domain, 
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&domainModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	domain := domainModel.transform()
-	return &domain, nil
+	return domain, nil
 }
 
-func (s *DomainRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (s *DomainRepository) Delete(ctx context.Context, id string) error {
 	query, params, err := dialect.Delete(TABLE_DOMAINS).Where(goqu.Ex{
 		"id": id,
 	}).Returning(&Domain{}).ToSQL()
@@ -170,17 +171,21 @@ func (s *DomainRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-func (s *DomainRepository) Update(ctx context.Context, id string, toUpdate *domain.Domain) error {
+func (s *DomainRepository) Update(ctx context.Context, toUpdate domain.Domain) (domain.Domain, error) {
+	if strings.TrimSpace(toUpdate.ID) == "" {
+		return domain.Domain{}, domain.ErrInvalidId
+	}
+
 	query, params, err := dialect.Update(TABLE_DOMAINS).Set(
 		goqu.Record{
 			"token":      toUpdate.Token,
 			"verified":   toUpdate.Verified,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
-		"id": id,
+		"id": toUpdate.ID,
 	}).Returning(&Domain{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var domainModel Domain
@@ -190,11 +195,12 @@ func (s *DomainRepository) Update(ctx context.Context, id string, toUpdate *doma
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return domain.ErrNotExist
+			return domain.Domain{}, domain.ErrNotExist
 		default:
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return domain.Domain{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
 	}
 
-	return nil
+	domain := domainModel.transform()
+	return domain, nil
 }

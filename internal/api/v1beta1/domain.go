@@ -5,6 +5,7 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/domain"
+	"github.com/raystack/frontier/core/organization"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,6 +14,7 @@ import (
 
 var (
 	grpcDomainNotFoundErr = status.Errorf(codes.NotFound, "domain whitelist request doesn't exist")
+	grpcDomainMisMatchErr = status.Errorf(codes.InvalidArgument, "user and org's whitelisted domains doesn't match")
 )
 
 type DomainService interface {
@@ -21,6 +23,7 @@ type DomainService interface {
 	Delete(ctx context.Context, id string) error
 	Create(ctx context.Context, toCreate domain.Domain) (domain.Domain, error)
 	VerifyDomain(ctx context.Context, id string) (domain.Domain, error)
+	Join(ctx context.Context, orgID string, userID string) error
 }
 
 func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1beta1.AddOrganizationDomainRequest) (*frontierv1beta1.AddOrganizationDomainResponse, error) {
@@ -83,6 +86,35 @@ func (h Handler) GetOrganizationDomain(ctx context.Context, request *frontierv1b
 
 	domainPB := transformDomainToPB(domainResp)
 	return &frontierv1beta1.GetOrganizationDomainResponse{Domain: &domainPB}, nil
+}
+
+func (h Handler) JoinOrganization(ctx context.Context, request *frontierv1beta1.JoinOrganizationRequest) (*frontierv1beta1.JoinOrganizationResponse, error) {
+	logger := grpczap.Extract(ctx)
+	orgId := request.GetOrgId()
+	if orgId == "" {
+		return nil, grpcBadBodyError
+	}
+
+	// get current user
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	if err := h.domainService.Join(ctx, orgId, principal.ID); err != nil {
+		logger.Error(err.Error())
+		switch err {
+		case organization.ErrNotExist:
+			return nil, grpcOrgNotFoundErr
+		case domain.ErrDomainsMisMatch:
+			return nil, grpcDomainMisMatchErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &frontierv1beta1.JoinOrganizationResponse{}, nil
 }
 
 func (h Handler) VerifyOrgDomain(ctx context.Context, request *frontierv1beta1.VerifyOrgDomainRequest) (*frontierv1beta1.VerifyOrgDomainResponse, error) {

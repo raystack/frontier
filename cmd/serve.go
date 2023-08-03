@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/domain"
 
 	"github.com/raystack/frontier/core/serviceuser"
 
@@ -254,6 +255,9 @@ func buildAPIDependencies(
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(organizationRepository, relationService, userService, authnService)
 
+	domainRepository := postgres.NewDomainRepository(logger, dbc)
+	domainService := domain.NewService(domainRepository, userService, organizationService)
+
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService)
 
@@ -308,6 +312,7 @@ func buildAPIDependencies(
 		InvitationService:   invitationService,
 		ServiceUserService:  serviceUserService,
 		AuditService:        auditService,
+		DomainService:       domainService,
 	}
 	return dependencies, nil
 }

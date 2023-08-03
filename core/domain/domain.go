@@ -8,9 +8,9 @@ import (
 type Repository interface {
 	Create(ctx context.Context, domain Domain) error
 	Get(ctx context.Context, id string) (Domain, error)
-	Update(ctx context.Context, id string, domain Domain) (Domain, error)
+	Update(ctx context.Context, domain Domain) (Domain, error)
 	List(ctx context.Context, flt Filter) ([]Domain, error)
-	Delete(ctx context.Context, id string) (string, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type Domain struct {

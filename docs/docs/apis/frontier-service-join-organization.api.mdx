@@ -1,13 +1,13 @@
 ---
 id: frontier-service-join-organization
 title: "Join organization"
-description: "Allows a user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains."
+description: "Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains."
 sidebar_label: "Join organization"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Allows a user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.",
+    "description": "Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.",
     "operationId": "FrontierService_JoinOrganization",
     "responses":
       {
@@ -206,13 +206,6 @@ api:
           "required": true,
           "schema": { "type": "string" },
         },
-        {
-          "name": "userId",
-          "description": "user_id is email id of user who wants to join the organization.",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-        },
       ],
     "tags": ["Organization"],
     "method": "post",
@@ -259,26 +252,14 @@ api:
         "name": "Join organization",
         "description":
           {
-            "content": "Allows a user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.",
+            "content": "Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.",
             "type": "text/plain",
           },
         "url":
           {
             "path": ["v1beta1", "organizations", ":orgId", "join"],
             "host": ["{{baseUrl}}"],
-            "query":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "user_id is email id of user who wants to join the organization.",
-                      "type": "text/plain",
-                    },
-                  "key": "userId",
-                  "value": "",
-                },
-              ],
+            "query": [],
             "variable":
               [
                 {
@@ -311,9 +292,9 @@ import TabItem from "@theme/TabItem";
 
 ## Join organization
 
-Allows a user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.
+Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"userId","description":"user_id is email id of user who wants to join the organization.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
