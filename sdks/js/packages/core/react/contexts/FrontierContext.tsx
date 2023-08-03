@@ -111,11 +111,11 @@ export const FrontierContextProvider = ({
   }, []);
 
   useEffect(() => {
-    async function getFrontierCurrentUserGroups(userId: string) {
+    async function getFrontierCurrentUserGroups() {
       try {
         const {
           data: { groups = [] }
-        } = await frontierClient.frontierServiceListUserGroups(userId);
+        } = await frontierClient.frontierServiceListCurrentUserGroups();
         setGroups(groups);
       } catch (error) {
         console.error(
@@ -125,16 +125,16 @@ export const FrontierContextProvider = ({
     }
 
     if (user?.id) {
-      getFrontierCurrentUserGroups(user.id);
+      getFrontierCurrentUserGroups();
     }
-  }, [user]);
+  }, [frontierClient, user]);
 
   useEffect(() => {
-    async function getFrontierCurrentUserOrganizations(userId: string) {
+    async function getFrontierCurrentUserOrganizations() {
       try {
         const {
           data: { organizations = [] }
-        } = await frontierClient.frontierServiceGetOrganizationsByUser(userId);
+        } = await frontierClient.frontierServiceGetOrganizationsByCurrentUser();
         setOrganizations(organizations);
       } catch (error) {
         console.error(
@@ -144,9 +144,9 @@ export const FrontierContextProvider = ({
     }
 
     if (user?.id) {
-      getFrontierCurrentUserOrganizations(user.id);
+      getFrontierCurrentUserOrganizations();
     }
-  }, [user]);
+  }, [frontierClient, user]);
 
   return (
     <FrontierContext.Provider

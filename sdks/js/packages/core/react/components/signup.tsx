@@ -51,9 +51,11 @@ export const Signup = ({
       <Flex direction="column" style={{ width: '100%', gap: '8px' }}>
         {filteredOIDC.map((s, index) => {
           return (
-            <OIDCButton key={index} onClick={() => clickHandler(s.name)}>
-              {s.name}
-            </OIDCButton>
+            <OIDCButton
+              key={index}
+              onClick={() => clickHandler(s.name)}
+              provider={s.name || ''}
+            ></OIDCButton>
           );
         })}
 

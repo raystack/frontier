@@ -53,13 +53,15 @@ type ContainerProps = ComponentPropsWithRef<'div'> & {
   children?: React.ReactNode;
   shadow?: 'none' | 'xs' | 'sm' | 'md' | 'lg';
   radius?: 'none' | 'xs' | 'sm' | 'md' | 'lg';
+  className?: string;
 };
 
 export const Container = ({
   children,
   shadow = 'none',
   radius = 'md',
-  style
+  style,
+  className
 }: ContainerProps) => {
   return (
     <Flex
@@ -70,6 +72,7 @@ export const Container = ({
         boxShadow: shadowOptions[shadow],
         borderRadius: borderRadiusOptions[radius]
       }}
+      className={className}
     >
       {children}
     </Flex>
