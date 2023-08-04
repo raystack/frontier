@@ -1,10 +1,10 @@
 import '@raystack/apsara/index.css';
 
-export * from './components/login';
-export * from './components/magiclink-verify';
-export * from './components/organization';
-export * from './components/signup';
-export * from './components/Container';
+export { Container } from './components/Container';
+export { MagicLinkVerify } from './components/onboarding/magiclink-verify';
+export { SignIn } from './components/onboarding/signin';
+export { SignUp } from './components/onboarding/signup';
+export { CreateOrganization } from './components/organization/create';
 
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';

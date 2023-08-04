@@ -1,8 +1,8 @@
 import { Flex, Link, Text } from '@raystack/apsara';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
-import { useFrontier } from '../contexts/FrontierContext';
-import { Container } from './Container';
-import { Header } from './Header';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { Container } from '../Container';
+import { Header } from '../Header';
 import { MagicLink } from './magiclink';
 import { OIDCButton } from './oidc';
 
@@ -17,9 +17,9 @@ type SignedInProps = ComponentPropsWithRef<typeof Container> & {
   title?: string;
   excludes?: string[];
 };
-export const SignedIn = ({
+export const SignIn = ({
   logo,
-  title = 'Login to Raypoint',
+  title = 'Login to Raystack',
   excludes = [],
   ...props
 }: SignedInProps) => {

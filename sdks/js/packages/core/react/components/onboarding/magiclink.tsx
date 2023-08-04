@@ -1,6 +1,6 @@
 import { Button, Separator, Text, TextField } from '@raystack/apsara';
 import React, { useCallback, useState } from 'react';
-import { useFrontier } from '../contexts/FrontierContext';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 
 const styles = {
   container: {

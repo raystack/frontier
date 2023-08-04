@@ -1,5 +1,10 @@
 {
   "extends": "@raystack/frontier-tsconfig/react-library.json",
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./*"]
+    }
+  },
   "include": ["."],
   "exclude": ["dist", "dist", "node_modules"]
 }

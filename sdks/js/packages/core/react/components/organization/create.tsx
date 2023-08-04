@@ -5,8 +5,8 @@ import { Button, Flex, InputField, Text, TextField } from '@raystack/apsara';
 import { ComponentPropsWithRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { useFrontier } from '../contexts/FrontierContext';
-import { Container } from './Container';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { Container } from '../Container';
 
 const styles = {
   container: {
@@ -98,7 +98,7 @@ export const CreateOrganization = ({
                     // @ts-ignore
                     size="medium"
                     label="Workspace URL"
-                    placeholder="raypoint.co/"
+                    placeholder="raystack.org/"
                   />
                 )}
                 control={control}
