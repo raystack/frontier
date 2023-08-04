@@ -1,7 +1,7 @@
 import { Button, Text } from '@raystack/apsara';
 import React from 'react';
-import { capitalize } from './helper';
-import GoogleLogo from '../assets/logos/google-logo.svg';
+import GoogleLogo from '~/react/assets/logos/google-logo.svg';
+import { capitalize } from '~/utils';
 
 const oidcLogoMap = new Map([['google', GoogleLogo]]);
 
@@ -30,6 +30,7 @@ export const OIDCButton = ({
     onClick={onClick}
   >
     {oidcLogoMap.has(provider) ? (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={oidcLogoMap.get(provider)}
         alt={provider + '-logo'}

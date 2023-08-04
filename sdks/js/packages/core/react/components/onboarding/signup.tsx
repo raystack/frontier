@@ -1,8 +1,8 @@
 import { Flex, Link, Text } from '@raystack/apsara';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
-import { useFrontier } from '../contexts/FrontierContext';
-import { Container } from './Container';
-import { Header } from './Header';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { Container } from '../Container';
+import { Header } from '../Header';
 import { MagicLink } from './magiclink';
 import { OIDCButton } from './oidc';
 
@@ -12,17 +12,17 @@ const styles = {
   }
 };
 
-type SignupProps = ComponentPropsWithRef<typeof Container> & {
+type SignUpProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
   excludes?: string[];
 };
-export const Signup = ({
+export const SignUp = ({
   logo,
   title = 'Create your account',
   excludes = [],
   ...props
-}: SignupProps) => {
+}: SignUpProps) => {
   const { config } = useFrontier();
   const { client, strategies = [] } = useFrontier();
 

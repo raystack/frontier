@@ -18,7 +18,8 @@ export default defineConfig(() => [
     external: ['react', 'svelte', 'vue', 'solid-js'],
     dts: true,
     loader: {
-      '.svg': 'dataurl'
+      '.svg': 'dataurl',
+      '.png': 'dataurl'
     }
   }
 ]);

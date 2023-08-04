@@ -7,10 +7,10 @@ import React, {
   useEffect,
   useState
 } from 'react';
-import { useFrontier } from '../contexts/FrontierContext';
-import { Container } from './Container';
-import { Header } from './Header';
-import { hasWindow } from './helper';
+import { Container } from '~/react/components/Container';
+import { Header } from '~/react/components/Header';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { hasWindow } from '~/utils/index';
 
 const styles = {
   wrapper: {
