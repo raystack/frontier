@@ -78,12 +78,18 @@ export const Sidebar = () => {
               {userNavItems
                 .filter(s => s.name.toLowerCase().includes(search))
                 .map(nav => (
-                  <SidebarComponent.NavigationCell key={nav.name} asChild>
+                  <SidebarComponent.NavigationCell
+                    key={nav.name}
+                    asChild
+                    style={{ padding: 0 }}
+                  >
                     <Link
                       key={nav.name}
                       to={nav.to as string}
                       style={{
-                        textDecoration: 'none'
+                        width: '100%',
+                        textDecoration: 'none',
+                        padding: 'var(--pd-8)'
                       }}
                     >
                       <Text

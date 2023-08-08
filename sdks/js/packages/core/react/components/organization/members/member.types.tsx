@@ -10,5 +10,4 @@ export enum MemberActionmethods {
 
 export type MembersTableType = {
   users: User[];
-  setOpenInviteDialog: React.Dispatch<React.SetStateAction<boolean>>;
 };

@@ -1,18 +1,18 @@
-import { Flex } from '@raystack/apsara';
+import { Flex, ThemeProvider } from '@raystack/apsara';
 import { useEffect, useState } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import GeneralSetting from './general';
 import WorkspaceMembers from './members';
+import { InviteMember } from './members/invite';
+import UserPreferences from './preferences';
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
+import { UserSetting } from './user';
 interface OrganizationProfileProps {
   organizationId: string;
 }
-const components = {
-  general: <></>
-};
 
 export const OrganizationProfile = ({
   organizationId
@@ -41,23 +41,34 @@ export const OrganizationProfile = ({
 
   return (
     <MemoryRouter>
-      <Toaster richColors />
-      <Flex style={{ width: '100%', height: '100%' }}>
-        <Sidebar />
-        <Flex style={{ flexGrow: '1', overflowY: 'auto' }}>
-          <Routes>
-            <Route
-              path="/"
-              element={<GeneralSetting organization={organization} />}
-            />
-            <Route path="/security" element={<WorkspaceSecurity />} />
-            <Route
-              path="/members"
-              element={<WorkspaceMembers users={[]}></WorkspaceMembers>}
-            />
-          </Routes>
+      <ThemeProvider>
+        <Toaster richColors />
+        <Flex style={{ width: '100%', height: '100%' }}>
+          <Sidebar />
+          <Flex style={{ flexGrow: '1', overflowY: 'auto' }}>
+            <Routes>
+              <Route
+                path="/"
+                element={<GeneralSetting organization={organization} />}
+              />
+              <Route path="/security" element={<WorkspaceSecurity />} />
+              <Route
+                path="/members"
+                element={<WorkspaceMembers users={users}></WorkspaceMembers>}
+              >
+                <Route
+                  path="modal"
+                  element={
+                    <InviteMember organization={organization} users={users} />
+                  }
+                />
+              </Route>
+              <Route path="/profile" element={<UserSetting />} />
+              <Route path="/perferences" element={<UserPreferences />} />
+            </Routes>
+          </Flex>
         </Flex>
-      </Flex>
+      </ThemeProvider>
     </MemoryRouter>
   );
-};;;;
+};

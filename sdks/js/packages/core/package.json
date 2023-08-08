@@ -48,6 +48,7 @@
     }
   },
   "devDependencies": {
+    "@radix-ui/react-icons": "^1.3.0",
     "@raystack/frontier-tsconfig": "workspace:^",
     "@size-limit/preset-small-lib": "^8.2.6",
     "@tanstack/react-table": "^8.9.3",
