@@ -57,6 +57,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
       <Button
         variant="secondary"
         size="medium"
+        style={styles.button}
         onClick={() => setVisiable(true)}
       >
         <Text>Continue with Email</Text>
@@ -67,6 +68,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
     <div style={{ ...styles.container, flexDirection: 'column' }}>
       <Separator />
       <TextField
+        // @ts-ignore
         size="medium"
         key={'email'}
         placeholder="name@example.com"
@@ -85,7 +87,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
         onClick={magicLinkClickHandler}
       >
         <Text style={{ color: 'var(--foreground-inverted)' }}>
-          {loading ? 'loading...' : 'Continue with Email'}
+          {loading ? 'loading...' : 'Continue with Emails'}
         </Text>
       </Button>
     </div>

@@ -23,6 +23,7 @@ export default function WorkspaceSecurity() {
       over email."
           name="email"
         />
+        <Separator></Separator>
       </Flex>
     </Flex>
   );

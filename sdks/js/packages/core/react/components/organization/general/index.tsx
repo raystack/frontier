@@ -24,9 +24,7 @@ export default function GeneralSetting({ organization }: GeneralSettingProps) {
         <Separator></Separator>
         <GeneralOrganization organization={organization} />
         <Separator></Separator>
-        {organization && (
-          <GeneralDeleteOrganization organization={organization} />
-        )}
+        <GeneralDeleteOrganization organization={organization} />
       </Flex>
     </Flex>
   );

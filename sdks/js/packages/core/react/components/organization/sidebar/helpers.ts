@@ -25,10 +25,6 @@ export const organizationNavItems = [
   {
     name: 'Projects',
     to: '/projects'
-  },
-  {
-    name: 'Billing',
-    to: '/billing'
   }
 ] as NavigationItemsTypes[];
 
@@ -40,9 +36,5 @@ export const userNavItems = [
   {
     name: 'Perferences',
     to: '/perferences'
-  },
-  {
-    name: 'Notification',
-    to: '/notification'
   }
 ] as NavigationItemsTypes[];

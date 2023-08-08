@@ -8,13 +8,12 @@ import {
   Separator,
   Text
 } from '@raystack/apsara';
-import { useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { styles } from '../styles';
 import { columns } from './member.columns';
 import type { MembersTableType, MembersType } from './member.types';
 
 export default function WorkspaceMembers({ users }: MembersType) {
-  const [_, setOpenInviteDialog] = useState(false);
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -23,9 +22,11 @@ export default function WorkspaceMembers({ users }: MembersType) {
       <Flex direction="column" gap="large" style={styles.container}>
         <AllowedEmailDomains />
         <Separator></Separator>
-        <ManageMembers />
-        <MembersTable users={users} setOpenInviteDialog={setOpenInviteDialog} />
+        <Flex direction="column" style={{ gap: '24px' }}>
+          <ManageMembers />
+        </Flex>
       </Flex>
+      <Outlet />
     </Flex>
   );
 }
@@ -64,7 +65,9 @@ const ManageMembers = () => (
   </Flex>
 );
 
-const MembersTable = ({ users, setOpenInviteDialog }: MembersTableType) => {
+const MembersTable = ({ users }: MembersTableType) => {
+  let navigate = useNavigate();
+
   const tableStyle = users?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
@@ -81,14 +84,17 @@ const MembersTable = ({ users, setOpenInviteDialog }: MembersTableType) => {
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
           <Flex justify="between" gap="small">
-            <DataTable.GloabalSearch
-              placeholder="Search by name or email"
-              type="small"
-            />
+            <Flex style={{ maxWidth: '360px', width: '100%' }}>
+              <DataTable.GloabalSearch
+                placeholder="Search by name or email"
+                size="medium"
+              />
+            </Flex>
+
             <Button
               variant="primary"
-              onClick={() => setOpenInviteDialog(true)}
               style={{ width: 'fit-content' }}
+              onClick={() => navigate('/members/modal')}
             >
               Invite member
             </Button>
