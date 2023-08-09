@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS domains (
     name text NOT NULL,
     org_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     token text NOT NULL,
-    verified boolean NOT NULL DEFAULT false,
-    verified_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT NOW()
+    state text NOT NULL DEFAULT 'pending',
+    updated_at timestamptz NOT NULL DEFAULT NOW(),
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    CONSTRAINT org_id_name_unique UNIQUE (org_id, name)
 );
+CREATE INDEX IF NOT EXISTS domains_org_id_idx ON domains(org_id);

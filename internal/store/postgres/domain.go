@@ -8,23 +8,23 @@ import (
 )
 
 type Domain struct {
-	ID         string       `db:"id"`
-	OrgID      string       `db:"org_id"`
-	Name       string       `db:"name"`
-	Token      string       `db:"token"`
-	Verified   bool         `db:"verified"`
-	VerifiedAt sql.NullTime `db:"verified_at"`
-	CreatedAt  time.Time    `db:"created_at"`
+	ID        string       `db:"id"`
+	OrgID     string       `db:"org_id"`
+	Name      string       `db:"name"`
+	Token     string       `db:"token"`
+	State     string       `db:"state"`
+	UpdatedAt sql.NullTime `db:"updated_at"`
+	CreatedAt time.Time    `db:"created_at"`
 }
 
 func (d Domain) transform() domain.Domain {
 	return domain.Domain{
-		ID:         d.ID,
-		OrgID:      d.OrgID,
-		Name:       d.Name,
-		Token:      d.Token,
-		Verified:   d.Verified,
-		VerifiedAt: d.VerifiedAt.Time,
-		CreatedAt:  d.CreatedAt,
+		ID:        d.ID,
+		OrgID:     d.OrgID,
+		Name:      d.Name,
+		Token:     d.Token,
+		State:     d.State,
+		UpdatedAt: d.UpdatedAt.Time,
+		CreatedAt: d.CreatedAt,
 	}
 }

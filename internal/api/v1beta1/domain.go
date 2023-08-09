@@ -14,6 +14,8 @@ import (
 
 var (
 	grpcDomainNotFoundErr = status.Errorf(codes.NotFound, "domain whitelist request doesn't exist")
+	grpcInvalidHostErr    = status.Errorf(codes.NotFound, "invalid domain. No such host found")
+	grpcTXTRecordNotFound = status.Errorf(codes.NotFound, "required TXT record not found for domain verification")
 	grpcDomainMisMatchErr = status.Errorf(codes.InvalidArgument, "user and org's whitelisted domains doesn't match")
 )
 
@@ -33,7 +35,7 @@ func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1b
 		return nil, grpcBadBodyError
 	}
 
-	domain, err := h.domainService.Create(ctx, domain.Domain{
+	dmn, err := h.domainService.Create(ctx, domain.Domain{
 		OrgID: request.GetOrgId(),
 		Name:  request.GetDomain(),
 	})
@@ -42,7 +44,7 @@ func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1b
 		return nil, grpcInternalServerError
 	}
 
-	domainPB := transformDomainToPB(domain)
+	domainPB := transformDomainToPB(dmn)
 	return &frontierv1beta1.AddOrganizationDomainResponse{Domain: &domainPB}, nil
 }
 
@@ -128,24 +130,57 @@ func (h Handler) VerifyOrgDomain(ctx context.Context, request *frontierv1beta1.V
 	if err != nil {
 		logger.Error(err.Error())
 		switch err {
+		case domain.ErrInvalidDomain:
+			return nil, grpcInvalidHostErr
 		case domain.ErrNotExist:
 			return nil, grpcDomainNotFoundErr
+		case domain.ErrTXTrecordNotFound:
+			return nil, grpcTXTRecordNotFound
 		default:
 			return nil, grpcInternalServerError
 		}
 	}
 
-	return &frontierv1beta1.VerifyOrgDomainResponse{Verified: domainResp.Verified}, nil
+	return &frontierv1beta1.VerifyOrgDomainResponse{State: domainResp.State}, nil
+}
+
+func (h Handler) ListOrganizationDomains(ctx context.Context, request *frontierv1beta1.ListOrganizationDomainsRequest) (*frontierv1beta1.ListOrganizationDomainsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	domains, err := h.domainService.List(ctx, domain.Filter{OrgID: request.GetOrgId(), State: request.GetState()})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var domainPBs []*frontierv1beta1.Domain
+	for _, d := range domains {
+		domainPBs = append(domainPBs, &frontierv1beta1.Domain{
+			Id:        d.ID,
+			Name:      d.Name,
+			OrgId:     d.OrgID,
+			Token:     d.Token,
+			State:     d.State,
+			CreatedAt: timestamppb.New(d.CreatedAt),
+			UpdatedAt: timestamppb.New(d.UpdatedAt),
+		})
+	}
+
+	return &frontierv1beta1.ListOrganizationDomainsResponse{Domains: domainPBs}, nil
 }
 
 func transformDomainToPB(from domain.Domain) frontierv1beta1.Domain {
 	return frontierv1beta1.Domain{
-		Id:         from.ID,
-		Name:       from.Name,
-		OrgId:      from.OrgID,
-		Token:      from.Token,
-		Verified:   from.Verified,
-		CreatedAt:  timestamppb.New(from.CreatedAt),
-		VerifiedAt: timestamppb.New(from.VerifiedAt),
+		Id:        from.ID,
+		Name:      from.Name,
+		OrgId:     from.OrgID,
+		Token:     from.Token,
+		State:     from.State,
+		CreatedAt: timestamppb.New(from.CreatedAt),
+		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}
 }

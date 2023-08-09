@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
@@ -32,33 +31,15 @@ func NewDomainRepository(logger log.Logger, dbc *db.Client) *DomainRepository {
 	}
 }
 
-func (s *DomainRepository) Create(ctx context.Context, domain domain.Domain) error {
-	if domain.ID == "" {
-		domain.ID = uuid.New().String()
-	}
-	if domain.CreatedAt.IsZero() {
-		domain.CreatedAt = s.Now()
-	}
-
+func (s *DomainRepository) Create(ctx context.Context, toCreate domain.Domain) (domain.Domain, error) {
 	query, params, err := dialect.Insert(TABLE_DOMAINS).Rows(
 		goqu.Record{
-			"id":          domain.ID,
-			"org_id":      domain.OrgID,
-			"name":        domain.Name,
-			"token":       domain.Token,
-			"verified":    domain.Verified,
-			"verified_at": domain.VerifiedAt,
-			"created_at":  domain.CreatedAt,
-		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
-		"org_id":      domain.OrgID,
-		"name":        domain.Name,
-		"token":       domain.Token,
-		"verified":    domain.Verified,
-		"verified_at": domain.VerifiedAt,
-		"created_at":  domain.CreatedAt,
-	})).Returning(&Domain{}).ToSQL()
+			"org_id": toCreate.OrgID,
+			"name":   toCreate.Name,
+			"token":  toCreate.Token,
+		}).Returning(&Domain{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var domainModel Domain
@@ -66,38 +47,31 @@ func (s *DomainRepository) Create(ctx context.Context, domain domain.Domain) err
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&domainModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return fmt.Errorf("%w: %s", dbErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return nil
+	dmn := domainModel.transform()
+	return dmn, nil
 }
 
 func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error) {
-	stmt := dialect.Select(
-		goqu.I("d.id"),
-		goqu.I("d.org_id"),
-		goqu.I("d.name"),
-		goqu.I("d.token"),
-		goqu.I("d.verified"),
-		goqu.I("d.verified_at"),
-		goqu.I("d.created_at"),
-	)
-	if flt.OrgID != "" && flt.Verified {
+	stmt := dialect.Select().From(TABLE_DOMAINS)
+	if flt.OrgID != "" && flt.State != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"org_id":   flt.OrgID,
-			"verified": flt.Verified,
+			"org_id": flt.OrgID,
+			"state":  flt.State,
 		})
 	} else if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
 		})
-	} else if flt.Verified {
+	} else if flt.State != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"verified": flt.Verified,
+			"state": flt.State,
 		})
 	}
 
-	query, params, err := stmt.From(TABLE_DOMAINS).ToSQL()
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -120,15 +94,7 @@ func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domai
 }
 
 func (s *DomainRepository) Get(ctx context.Context, id string) (domain.Domain, error) {
-	query, params, err := dialect.Select(
-		goqu.I("d.id"),
-		goqu.I("d.org_id"),
-		goqu.I("d.name"),
-		goqu.I("d.token"),
-		goqu.I("d.verified"),
-		goqu.I("d.verified_at"),
-		goqu.I("d.created_at"),
-	).From(TABLE_DOMAINS).Where(goqu.Ex{
+	query, params, err := dialect.From(TABLE_DOMAINS).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 
@@ -179,7 +145,7 @@ func (s *DomainRepository) Update(ctx context.Context, toUpdate domain.Domain) (
 	query, params, err := dialect.Update(TABLE_DOMAINS).Set(
 		goqu.Record{
 			"token":      toUpdate.Token,
-			"verified":   toUpdate.Verified,
+			"state":      toUpdate.State,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": toUpdate.ID,
