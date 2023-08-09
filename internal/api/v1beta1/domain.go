@@ -22,6 +22,7 @@ var (
 type DomainService interface {
 	Get(ctx context.Context, id string) (domain.Domain, error)
 	List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error)
+	ListOrgByDomain(ctx context.Context, domain string) ([]string, error)
 	Delete(ctx context.Context, id string) error
 	Create(ctx context.Context, toCreate domain.Domain) (domain.Domain, error)
 	VerifyDomain(ctx context.Context, id string) (domain.Domain, error)
@@ -183,4 +184,33 @@ func transformDomainToPB(from domain.Domain) frontierv1beta1.Domain {
 		CreatedAt: timestamppb.New(from.CreatedAt),
 		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}
+}
+
+func (h Handler) ListOrganizationsByDomain(ctx context.Context, request *frontierv1beta1.ListOrganizationsByDomainRequest) (*frontierv1beta1.ListOrganizationsByDomainResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetDomainId() == "" {
+		return nil, grpcBadBodyError
+	}
+	orgIDs, err := h.domainService.ListOrgByDomain(ctx, request.GetDomainId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var orgs []*frontierv1beta1.Organization
+	for _, orgID := range orgIDs {
+		org, err := h.orgService.Get(ctx, orgID)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		orgPB, err := transformOrgToPB(org)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		orgs = append(orgs, orgPB)
+	}
+	return &frontierv1beta1.ListOrganizationsByDomainResponse{Organizations: orgs}, nil
 }

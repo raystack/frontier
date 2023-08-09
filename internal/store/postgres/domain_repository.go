@@ -61,13 +61,14 @@ func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domai
 			"org_id": flt.OrgID,
 			"state":  flt.State,
 		})
+	} else if flt.Name != "" && flt.State != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"name":  flt.Name,
+			"state": flt.State,
+		})
 	} else if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
-		})
-	} else if flt.State != "" {
-		stmt = stmt.Where(goqu.Ex{
-			"state": flt.State,
 		})
 	}
 

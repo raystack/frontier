@@ -147,6 +147,22 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 	return ErrDomainsMisMatch
 }
 
+func (s Service) ListOrgByDomain(ctx context.Context, domain string) ([]string, error) {
+	domains, err := s.repository.List(ctx, Filter{
+		Name:  domain,
+		State: Verified.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var orgIDs []string
+	for _, domain := range domains {
+		orgIDs = append(orgIDs, domain.OrgID)
+	}
+	return orgIDs, nil
+}
+
 func generateRandomTXT() (string, error) {
 	randomBytes := make([]byte, txtLength)
 	_, err := rand.Read(randomBytes)
