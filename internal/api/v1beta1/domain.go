@@ -195,10 +195,10 @@ func transformDomainToPB(from domain.Domain) frontierv1beta1.Domain {
 func (h Handler) ListOrganizationsByDomain(ctx context.Context, request *frontierv1beta1.ListOrganizationsByDomainRequest) (*frontierv1beta1.ListOrganizationsByDomainResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if request.GetDomainId() == "" {
+	if request.GetName() == "" {
 		return nil, grpcBadBodyError
 	}
-	orgIDs, err := h.domainService.ListOrgByDomain(ctx, request.GetDomainId())
+	orgIDs, err := h.domainService.ListOrgByDomain(ctx, request.GetName())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

@@ -1,13 +1,13 @@
 ---
 id: frontier-service-list-organizations-by-domain
 title: "List orgs by domain"
-description: "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified."
+description: "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of)."
 sidebar_label: "List orgs by domain"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified.",
+    "description": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of).",
     "operationId": "FrontierService_ListOrganizationsByDomain",
     "responses":
       {
@@ -241,8 +241,8 @@ api:
     "parameters":
       [
         {
-          "name": "domainId",
-          "description": "domain id or domain name to be used to list all the organizations that have this domain whitelisted",
+          "name": "name",
+          "description": "domain name to be used to list all the organizations that have this domain whitelisted",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
@@ -250,7 +250,7 @@ api:
       ],
     "tags": ["Organization"],
     "method": "get",
-    "path": "/v1beta1/organizations/domains/{domainId}",
+    "path": "/v1beta1/organizations/domains/{name}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -293,12 +293,12 @@ api:
         "name": "List orgs by domain",
         "description":
           {
-            "content": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified.",
+            "content": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of).",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", "domains", ":domainId"],
+            "path": ["v1beta1", "organizations", "domains", ":name"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -307,12 +307,12 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) domain id or domain name to be used to list all the organizations that have this domain whitelisted",
+                      "content": "(Required) domain name to be used to list all the organizations that have this domain whitelisted",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
-                  "key": "domainId",
+                  "key": "name",
                 },
               ],
           },
@@ -336,9 +336,9 @@ import TabItem from "@theme/TabItem";
 
 ## List orgs by domain
 
-Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified.
+Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of).
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"domainId","description":"domain id or domain name to be used to list all the organizations that have this domain whitelisted","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"name","description":"domain name to be used to list all the organizations that have this domain whitelisted","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
