@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	grpcDomainNotFoundErr = status.Errorf(codes.NotFound, "domain whitelist request doesn't exist")
-	grpcInvalidHostErr    = status.Errorf(codes.NotFound, "invalid domain. No such host found")
-	grpcTXTRecordNotFound = status.Errorf(codes.NotFound, "required TXT record not found for domain verification")
-	grpcDomainMisMatchErr = status.Errorf(codes.InvalidArgument, "user and org's whitelisted domains doesn't match")
+	grpcDomainNotFoundErr      = status.Errorf(codes.NotFound, "domain whitelist request doesn't exist")
+	grpcDomainAlreadyExistsErr = status.Errorf(codes.AlreadyExists, "domain name already exists for that organization")
+	grpcInvalidHostErr         = status.Errorf(codes.NotFound, "invalid domain. No such host found")
+	grpcTXTRecordNotFound      = status.Errorf(codes.NotFound, "required TXT record not found for domain verification")
+	grpcDomainMisMatchErr      = status.Errorf(codes.InvalidArgument, "user and org's whitelisted domains doesn't match")
 )
 
 type DomainService interface {
@@ -42,7 +43,12 @@ func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1b
 	})
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch err {
+		case domain.ErrDuplicateKey:
+			return nil, grpcDomainAlreadyExistsErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	domainPB := transformDomainToPB(dmn)

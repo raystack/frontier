@@ -47,6 +47,9 @@ func (s *DomainRepository) Create(ctx context.Context, toCreate domain.Domain) (
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&domainModel)
 	}); err != nil {
 		err = checkPostgresError(err)
+		if errors.Is(err, ErrDuplicateKey) {
+			return domain.Domain{}, domain.ErrDuplicateKey
+		}
 		return domain.Domain{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 

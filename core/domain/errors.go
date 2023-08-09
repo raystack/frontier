@@ -8,4 +8,5 @@ var (
 	ErrTXTrecordNotFound = errors.New("required TXT record not found for domain verification")
 	ErrDomainsMisMatch   = errors.New("user domain does not match the organization domain")
 	ErrInvalidId         = errors.New("invalid domain id")
+	ErrDuplicateKey      = errors.New("domain name already exists for that organization")
 )
