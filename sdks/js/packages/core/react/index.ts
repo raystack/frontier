@@ -9,3 +9,4 @@ export { OrganizationProfile } from './components/organization/profile';
 
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
+export { DropdownContent } from './components/dropdowns';
