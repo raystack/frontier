@@ -399,7 +399,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 	}
 
 	// extract user from session if present
-	if slices.Contains[ClientAssertion](assertions, SessionClientAssertion) {
+	if slices.Contains[[]ClientAssertion](assertions, SessionClientAssertion) {
 		session, err := s.sessionService.ExtractFromContext(ctx)
 		if err == nil && session.IsValid(s.Now()) && utils.IsValidUUID(session.UserID) {
 			// userID is a valid uuid
@@ -426,7 +426,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 			return Principal{}, errors.ErrUnauthenticated
 		}
 
-		if slices.Contains[ClientAssertion](assertions, AccessTokenClientAssertion) {
+		if slices.Contains[[]ClientAssertion](assertions, AccessTokenClientAssertion) {
 			//check type of jwt
 			if val, ok := insecureJWT.Get(token.GeneratedClaimKey); ok {
 				if claimVal, ok := val.(string); ok && claimVal == token.GeneratedClaimValue {
@@ -453,7 +453,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		}
 
 		// extract user from token if it's a service user
-		if slices.Contains[ClientAssertion](assertions, JWTGrantClientAssertion) {
+		if slices.Contains[[]ClientAssertion](assertions, JWTGrantClientAssertion) {
 			serviceUser, err := s.serviceUserService.GetByToken(ctx, userToken)
 			if err == nil {
 				return Principal{
@@ -470,7 +470,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 	}
 
 	// check for client secret
-	if slices.Contains[ClientAssertion](assertions, ClientCredentialsClientAssertion) {
+	if slices.Contains[[]ClientAssertion](assertions, ClientCredentialsClientAssertion) {
 		userSecretRaw, secretOK := GetSecretFromContext(ctx)
 		if secretOK {
 			// verify client secret
@@ -500,7 +500,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		}
 	}
 
-	if slices.Contains[ClientAssertion](assertions, PassthroughHeaderClientAssertion) {
+	if slices.Contains[[]ClientAssertion](assertions, PassthroughHeaderClientAssertion) {
 		// check if header with user email is set
 		// TODO(kushsharma): this should ideally be deprecated
 		if val, ok := GetEmailFromContext(ctx); ok && len(val) > 0 {

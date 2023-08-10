@@ -37,7 +37,7 @@ type Resource struct {
 }
 
 func (res Resource) CreateURN(projectName string) string {
-	return fmt.Sprintf("srn:%s:%s:%s", projectName, res.NamespaceID, res.Name)
+	return fmt.Sprintf("frn:%s:%s:%s", projectName, res.NamespaceID, res.Name)
 }
 
 type YAML struct {

@@ -83,6 +83,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{
+		ID:            res.ID,
 		URN:           res.CreateURN(resourceProject.Name),
 		Name:          res.Name,
 		Title:         res.Title,

@@ -128,6 +128,8 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 		case errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidDetail):
 			return nil, grpcBadBodyError
+		case errors.Is(err, resource.ErrConflict):
+			return nil, grpcConflictError
 		default:
 			return nil, grpcInternalServerError
 		}

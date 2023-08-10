@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/uuid"
@@ -80,18 +82,24 @@ func TestListPermissions(t *testing.T) {
 					Name:      testPermissions[0].Name,
 					Namespace: testPermissions[0].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[0].NamespaceID, testPermissions[0].Name),
+					CreatedAt: timestamppb.New(testPermissions[0].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[0].UpdatedAt),
 				},
 				{
 					Id:        testPermissions[1].ID,
 					Name:      testPermissions[1].Name,
 					Namespace: testPermissions[1].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[1].NamespaceID, testPermissions[1].Name),
+					CreatedAt: timestamppb.New(testPermissions[1].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[1].UpdatedAt),
 				},
 				{
 					Id:        testPermissions[2].ID,
 					Name:      testPermissions[2].Name,
 					Namespace: testPermissions[2].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[2].NamespaceID, testPermissions[2].Name),
+					CreatedAt: timestamppb.New(testPermissions[2].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[2].UpdatedAt),
 				},
 			}},
 			err: nil,
@@ -223,12 +231,16 @@ func TestCreatePermission(t *testing.T) {
 					Name:      testPermissions[testPermissionIdx].Name + "0",
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
 				},
 				{
 					Id:        testPermissions[testPermissionIdx].ID,
 					Name:      testPermissions[testPermissionIdx].Name + "1",
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"1"),
+					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
 				},
 			}},
 			err: nil,
@@ -269,6 +281,8 @@ func TestCreatePermission(t *testing.T) {
 					Name:      testPermissions[testPermissionIdx].Name + "0",
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
 				},
 			}},
 			err: nil,
@@ -344,6 +358,8 @@ func TestHandler_GetPermission(t *testing.T) {
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
+					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
 				},
 			},
 			wantErr: nil,
@@ -480,6 +496,8 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
+					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
+					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
 				},
 			},
 			wantErr: nil,

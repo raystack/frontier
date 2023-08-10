@@ -13,7 +13,7 @@ import (
 
 	"database/sql"
 
-	"github.com/doug-martin/goqu/v9"
+	goqu "github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/pkg/db"
 )
@@ -34,6 +34,18 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	}
 	if strings.TrimSpace(res.ID) == "" {
 		res.ID = uuid.New().String()
+	} else {
+		// check if the uuid is already in use
+		existingResource, err := r.GetByID(ctx, res.ID)
+		if err != nil {
+			if !errors.Is(err, resource.ErrNotExist) {
+				return resource.Resource{}, err
+			}
+		} else {
+			if existingResource.ID == res.ID {
+				return resource.Resource{}, resource.ErrConflict
+			}
+		}
 	}
 
 	principalID := sql.NullString{String: res.PrincipalID, Valid: res.PrincipalID != ""}

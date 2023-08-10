@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/pkg/metadata"
@@ -67,6 +69,9 @@ func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.
 		}
 		if permName == "" || permNamespace == "" {
 			return nil, grpcBadBodyError
+		}
+		if permNamespace == schema.DefaultNamespace {
+			return nil, status.Errorf(codes.InvalidArgument, "permission namespace cannot be %s", schema.DefaultNamespace)
 		}
 		permissionSlugs = append(permissionSlugs, schema.FQPermissionNameFromNamespace(permNamespace, permName))
 
@@ -202,9 +207,11 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 
 	return &frontierv1beta1.Permission{
 		Id:        perm.ID,
-		Key:       schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name),
 		Name:      perm.Name,
+		CreatedAt: timestamppb.New(perm.CreatedAt),
+		UpdatedAt: timestamppb.New(perm.UpdatedAt),
 		Namespace: perm.NamespaceID,
 		Metadata:  metadata,
+		Key:       schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name),
 	}, nil
 }
