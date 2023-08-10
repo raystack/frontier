@@ -174,3 +174,26 @@ func (s *DomainRepository) Update(ctx context.Context, toUpdate domain.Domain) (
 	domain := domainModel.transform()
 	return domain, nil
 }
+
+func (s *DomainRepository) DeleteExpiredDomainRequests(ctx context.Context) error {
+	query, params, err := dialect.Delete(TABLE_DOMAINS).Where(goqu.Ex{
+		"created_at": goqu.Op{"lte": s.Now().Add(-domain.DefaultTokenExpiry)},
+		"state":      domain.Pending,
+	}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	return s.dbc.WithTimeout(ctx, TABLE_DOMAINS, "DeleteExpiredDomain", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			err = checkPostgresError(err)
+			return fmt.Errorf("%w: %s", dbErr, err)
+		}
+
+		count, _ := result.RowsAffected()
+		s.log.Debug("DeleteExpiredDomains", "expired_domain_count", count)
+
+		return nil
+	})
+}

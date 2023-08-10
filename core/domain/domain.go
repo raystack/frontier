@@ -11,6 +11,7 @@ type Repository interface {
 	Update(ctx context.Context, domain Domain) (Domain, error)
 	List(ctx context.Context, flt Filter) ([]Domain, error)
 	Delete(ctx context.Context, id string) error
+	DeleteExpiredDomainRequests(ctx context.Context) error
 }
 
 type Status string

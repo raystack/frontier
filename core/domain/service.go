@@ -7,11 +7,15 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
+
+	"github.com/raystack/salt/log"
 
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/robfig/cron/v3"
 )
 
 type UserService interface {
@@ -27,18 +31,24 @@ type Service struct {
 	repository  Repository
 	userService UserService
 	orgService  OrgService
+	cron        *cron.Cron
+	log         log.Logger
 }
 
 const (
-	DNSChallenge = "_frontier-challenge.%s"
-	txtLength    = 40
+	DNSChallenge       = "_frontier-domain-verification=%s"
+	txtLength          = 40
+	DefaultTokenExpiry = time.Hour * 24 * 7 // 7 days
+	refreshTime        = "0 0 * * *"        // Once a day at midnight (UTC)
 )
 
-func NewService(repository Repository, userService UserService, orgService OrgService) *Service {
+func NewService(logger log.Logger, repository Repository, userService UserService, orgService OrgService) *Service {
 	return &Service{
 		repository:  repository,
 		userService: userService,
 		orgService:  orgService,
+		cron:        cron.New(),
+		log:         logger,
 	}
 }
 
@@ -161,6 +171,24 @@ func (s Service) ListOrgByDomain(ctx context.Context, domain string) ([]string, 
 		orgIDs = append(orgIDs, domain.OrgID)
 	}
 	return orgIDs, nil
+}
+
+// InitDomainVerification starts a cron job that runs once a day to delete expired domain requests which are still in pending state after 7 days of creation
+func (s Service) InitDomainVerification(ctx context.Context) error {
+	_, err := s.cron.AddFunc(refreshTime, func() {
+		if err := s.repository.DeleteExpiredDomainRequests(ctx); err != nil {
+			s.log.Warn("error deleting expired domain requests", "err", err)
+		}
+	})
+	if err != nil {
+		return err
+	}
+	s.cron.Start()
+	return nil
+}
+
+func (s Service) Close() {
+	s.cron.Stop()
 }
 
 func generateRandomTXT() (string, error) {

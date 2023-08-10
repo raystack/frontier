@@ -142,6 +142,13 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		deps.SessionService.Close()
 	}()
 
+	if err := deps.DomainService.InitDomainVerification(context.Background()); err != nil {
+		logger.Warn("domains database cleanup failed", "err", err)
+	}
+	defer func() {
+		deps.DomainService.Close()
+	}()
+
 	if err := deps.AuthnService.InitFlows(context.Background()); err != nil {
 		logger.Warn("flows database cleanup failed", "err", err)
 	}
@@ -256,7 +263,7 @@ func buildAPIDependencies(
 	organizationService := organization.NewService(organizationRepository, relationService, userService, authnService)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
-	domainService := domain.NewService(domainRepository, userService, organizationService)
+	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService)
