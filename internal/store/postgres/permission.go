@@ -42,5 +42,7 @@ func (from Permission) transformToPermission() (permission.Permission, error) {
 		Slug:        from.Slug,
 		NamespaceID: from.NamespaceID,
 		Metadata:    unmarshalledMetadata,
+		CreatedAt:   from.CreatedAt,
+		UpdatedAt:   from.UpdatedAt,
 	}, nil
 }

@@ -366,10 +366,10 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 
 		listProjCurrentUsersResp, err := s.testBench.Client.GetProjectsByCurrentUser(ctxOrgAdminAuth, &frontierv1beta1.GetProjectsByCurrentUserRequest{})
 		s.Assert().NoError(err)
-		s.Assert().True(slices.ContainsFunc[*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
+		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
 			return p.Name == "org-project-2-p1"
 		}))
-		s.Assert().True(slices.ContainsFunc[*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
+		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
 			return p.Name == "org-project-2-p2"
 		}))
 	})
@@ -1212,7 +1212,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAuditLogsAPI() {
 		s.Assert().NotNil(listLogResp)
 		unMatchedLogs := 2
 		for _, log := range listLogResp.GetLogs() {
-			if slices.ContainsFunc[*frontierv1beta1.AuditLog](dummyAuditLogs, func(l *frontierv1beta1.AuditLog) bool {
+			if slices.ContainsFunc[[]*frontierv1beta1.AuditLog](dummyAuditLogs, func(l *frontierv1beta1.AuditLog) bool {
 				return l.Action == log.Action && l.Source == log.Source
 			}) {
 				unMatchedLogs--

@@ -60,6 +60,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 
 	newOrg, err := s.repository.Create(ctx, Organization{
 		Name:     org.Name,
+		Title:    org.Title,
 		Metadata: org.Metadata,
 	})
 	if err != nil {
