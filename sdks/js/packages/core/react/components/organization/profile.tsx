@@ -7,8 +7,12 @@ import GeneralSetting from './general';
 import WorkspaceMembers from './members';
 import { InviteMember } from './members/invite';
 import UserPreferences from './preferences';
+import { default as WorkspaceProjects } from './project';
+import { AddProject } from './project/add';
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
+import WorkspaceTeams from './teams';
+import { AddTeam } from './teams/add';
 import { UserSetting } from './user';
 interface OrganizationProfileProps {
   organizationId: string;
@@ -61,6 +65,25 @@ export const OrganizationProfile = ({
                   element={
                     <InviteMember organization={organization} users={users} />
                   }
+                />
+              </Route>
+
+              <Route
+                path="/teams"
+                element={<WorkspaceTeams organization={organization} />}
+              >
+                <Route
+                  path="modal"
+                  element={<AddTeam organization={organization} />}
+                />
+              </Route>
+              <Route
+                path="/projects"
+                element={<WorkspaceProjects organization={organization} />}
+              >
+                <Route
+                  path="modal"
+                  element={<AddProject organization={organization} />}
                 />
               </Route>
               <Route path="/profile" element={<UserSetting />} />

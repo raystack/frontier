@@ -42,10 +42,10 @@ export const GeneralOrganization = ({
   }, [organization, reset]);
 
   async function onSubmit(data: any) {
-    try {
-      if (!client) return;
-      if (!organization?.id) return;
+    if (!client) return;
+    if (!organization?.id) return;
 
+    try {
       await client.frontierServiceUpdateOrganization(organization?.id, data);
       toast.success('Updated organization');
     } catch ({ error }: any) {
