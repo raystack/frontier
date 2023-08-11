@@ -31,14 +31,7 @@ export default function WorkspaceMembers({ users }: MembersType) {
   );
 }
 
-const MembersHeading = () => (
-  <Flex direction="column" gap="small" style={styles.container}>
-    <Text size={10}>Members</Text>
-    <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
-      Manage who has access to this workspace
-    </Text>
-  </Flex>
-);
+
 
 const AllowedEmailDomains = () => (
   <Flex direction="row" justify="between" align="center">
@@ -96,7 +89,7 @@ const MembersTable = ({ users }: MembersTableType) => {
               style={{ width: 'fit-content' }}
               onClick={() => navigate('/members/modal')}
             >
-              Invite member
+              Invite people
             </Button>
           </Flex>
         </DataTable.Toolbar>
