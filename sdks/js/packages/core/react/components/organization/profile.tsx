@@ -1,6 +1,11 @@
 import { Flex, ThemeProvider } from '@raystack/apsara';
 import { useEffect, useState } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+  UNSAFE_LocationContext
+} from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import GeneralSetting from './general';
@@ -44,54 +49,57 @@ export const OrganizationProfile = ({
   }, [organizationId, client]);
 
   return (
-    <MemoryRouter>
-      <ThemeProvider>
-        <Toaster richColors />
-        <Flex style={{ width: '100%', height: '100%' }}>
-          <Sidebar />
-          <Flex style={{ flexGrow: '1', overflowY: 'auto' }}>
-            <Routes>
-              <Route
-                path="/"
-                element={<GeneralSetting organization={organization} />}
-              />
-              <Route path="/security" element={<WorkspaceSecurity />} />
-              <Route
-                path="/members"
-                element={<WorkspaceMembers users={users}></WorkspaceMembers>}
-              >
+    // @ts-ignore
+    <UNSAFE_LocationContext.Provider value={null}>
+      <MemoryRouter>
+        <ThemeProvider>
+          <Toaster richColors />
+          <Flex style={{ width: '100%', height: '100%' }}>
+            <Sidebar />
+            <Flex style={{ flexGrow: '1', overflowY: 'auto' }}>
+              <Routes>
                 <Route
-                  path="modal"
-                  element={
-                    <InviteMember organization={organization} users={users} />
-                  }
+                  path="/"
+                  element={<GeneralSetting organization={organization} />}
                 />
-              </Route>
+                <Route path="/security" element={<WorkspaceSecurity />} />
+                <Route
+                  path="/members"
+                  element={<WorkspaceMembers users={users}></WorkspaceMembers>}
+                >
+                  <Route
+                    path="modal"
+                    element={
+                      <InviteMember organization={organization} users={users} />
+                    }
+                  />
+                </Route>
 
-              <Route
-                path="/teams"
-                element={<WorkspaceTeams organization={organization} />}
-              >
                 <Route
-                  path="modal"
-                  element={<AddTeam organization={organization} />}
-                />
-              </Route>
-              <Route
-                path="/projects"
-                element={<WorkspaceProjects organization={organization} />}
-              >
+                  path="/teams"
+                  element={<WorkspaceTeams organization={organization} />}
+                >
+                  <Route
+                    path="modal"
+                    element={<AddTeam organization={organization} />}
+                  />
+                </Route>
                 <Route
-                  path="modal"
-                  element={<AddProject organization={organization} />}
-                />
-              </Route>
-              <Route path="/profile" element={<UserSetting />} />
-              <Route path="/perferences" element={<UserPreferences />} />
-            </Routes>
+                  path="/projects"
+                  element={<WorkspaceProjects organization={organization} />}
+                >
+                  <Route
+                    path="modal"
+                    element={<AddProject organization={organization} />}
+                  />
+                </Route>
+                <Route path="/profile" element={<UserSetting />} />
+                <Route path="/perferences" element={<UserPreferences />} />
+              </Routes>
+            </Flex>
           </Flex>
-        </Flex>
-      </ThemeProvider>
-    </MemoryRouter>
+        </ThemeProvider>
+      </MemoryRouter>
+    </UNSAFE_LocationContext.Provider>
   );
 };
