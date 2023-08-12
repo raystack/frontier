@@ -25,7 +25,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//go:generate mockery --name=AuthnService -r --case underscore --with-expecter --structname AuthnService --filename authn_service.go --output=./mocks
 type AuthnService interface {
 	StartFlow(ctx context.Context, request authenticate.RegistrationStartRequest) (*authenticate.RegistrationStartResponse, error)
 	FinishFlow(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
@@ -37,7 +36,6 @@ type AuthnService interface {
 	Close()
 }
 
-//go:generate mockery --name=SessionService -r --case underscore --with-expecter --structname SessionService --filename session_service.go --output=./mocks
 type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
 	Create(ctx context.Context, userID string) (*frontiersession.Session, error)

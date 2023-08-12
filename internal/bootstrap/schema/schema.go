@@ -231,6 +231,20 @@ func IsSystemNamespace(namespace string) bool {
 		namespace == PlatformNamespace
 }
 
+// IsValidPermissionName checks if the provided name is a valid permission name
+func IsValidPermissionName(name string) bool {
+	if name == "" {
+		return false
+	}
+	// check if name contains anything other than alphanumeric characters
+	for _, r := range name {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
+			return false
+		}
+	}
+	return true
+}
+
 var PredefinedRoles = []RoleDefinition{
 	// org
 	{

@@ -24,7 +24,6 @@ import (
 
 var grpcRoleNotFoundErr = status.Errorf(codes.NotFound, "role doesn't exist")
 
-//go:generate mockery --name=RoleService -r --case underscore --with-expecter --structname RoleService --filename role_service.go --output=./mocks
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
 	Upsert(ctx context.Context, toCreate role.Role) (role.Role, error)

@@ -22,7 +22,6 @@ import (
 
 var grpcProjectNotFoundErr = status.Errorf(codes.NotFound, "project doesn't exist")
 
-//go:generate mockery --name=ProjectService -r --case underscore --with-expecter --structname ProjectService --filename project_service.go --output=./mocks
 type ProjectService interface {
 	Get(ctx context.Context, idOrName string) (project.Project, error)
 	Create(ctx context.Context, prj project.Project) (project.Project, error)

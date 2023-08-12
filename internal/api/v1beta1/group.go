@@ -23,7 +23,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-//go:generate mockery --name=GroupService -r --case underscore --with-expecter --structname GroupService --filename group_service.go --output=./mocks
 type GroupService interface {
 	Create(ctx context.Context, grp group.Group) (group.Group, error)
 	Get(ctx context.Context, id string) (group.Group, error)
@@ -303,6 +302,7 @@ func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
 	return frontierv1beta1.Group{
 		Id:        grp.ID,
 		Name:      grp.Name,
+		Title:     grp.Title,
 		OrgId:     grp.OrganizationID,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(grp.CreatedAt),

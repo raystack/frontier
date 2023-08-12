@@ -27,7 +27,6 @@ import (
 
 var grpcOrgNotFoundErr = status.Errorf(codes.NotFound, "org doesn't exist")
 
-//go:generate mockery --name=OrganizationService -r --case underscore --with-expecter --structname OrganizationService --filename org_service.go --output=./mocks
 type OrganizationService interface {
 	Get(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)

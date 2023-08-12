@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/core/relation"
@@ -20,12 +21,12 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-//go:generate mockery --name=ResourceService -r --case underscore --with-expecter --structname ResourceService --filename resource_service.go --output=./mocks
 type ResourceService interface {
 	Get(ctx context.Context, id string) (resource.Resource, error)
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Update(ctx context.Context, resource resource.Resource) (resource.Resource, error)
+	Delete(ctx context.Context, namespace, id string) error
 	CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error)
 }
 
@@ -233,9 +234,39 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 	}, nil
 }
 
-func (h Handler) DeleteProjectResource(ctx context.Context, in *frontierv1beta1.DeleteProjectResourceRequest) (*frontierv1beta1.DeleteProjectResourceResponse, error) {
-	//TODO implement me
-	return nil, grpcOperationUnsupported
+func (h Handler) DeleteProjectResource(ctx context.Context,
+	request *frontierv1beta1.DeleteProjectResourceRequest) (*frontierv1beta1.DeleteProjectResourceResponse, error) {
+	logger := grpczap.Extract(ctx)
+	resourceToDel, err := h.resourceService.Get(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, resource.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidID),
+			errors.Is(err, resource.ErrInvalidUUID):
+			return nil, grpcResourceNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	parentProject, err := h.projectService.Get(ctx, resourceToDel.ProjectID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	err = h.resourceService.Delete(ctx, resourceToDel.NamespaceID, resourceToDel.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{
+		ID:   request.GetId(),
+		Type: resourceToDel.NamespaceID,
+	})
+	return &frontierv1beta1.DeleteProjectResourceResponse{}, nil
 }
 
 func transformResourceToPB(from resource.Resource) (*frontierv1beta1.Resource, error) {

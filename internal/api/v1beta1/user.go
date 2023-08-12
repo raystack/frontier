@@ -29,7 +29,6 @@ import (
 
 var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")
 
-//go:generate mockery --name=UserService -r --case underscore --with-expecter --structname UserService --filename user_service.go --output=./mocks
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)

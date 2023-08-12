@@ -20,7 +20,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//go:generate mockery --name=PermissionService -r --case underscore --with-expecter --structname PermissionService --filename permission_service.go --output=./mocks
 type PermissionService interface {
 	Get(ctx context.Context, id string) (permission.Permission, error)
 	List(ctx context.Context, filter permission.Filter) ([]permission.Permission, error)
@@ -28,7 +27,6 @@ type PermissionService interface {
 	Update(ctx context.Context, perm permission.Permission) (permission.Permission, error)
 }
 
-//go:generate mockery --name=BootstrapService -r --case underscore --with-expecter --structname BootstrapService --filename bootstrap_service.go --output=./mocks
 type BootstrapService interface {
 	AppendSchema(ctx context.Context, definition schema.ServiceDefinition) error
 }
@@ -70,6 +68,10 @@ func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.
 		if permName == "" || permNamespace == "" {
 			return nil, grpcBadBodyError
 		}
+		if !schema.IsValidPermissionName(permName) {
+			return nil, status.Errorf(codes.InvalidArgument, "permission name cannot contain special characters")
+		}
+
 		if permNamespace == schema.DefaultNamespace {
 			return nil, status.Errorf(codes.InvalidArgument, "permission namespace cannot be %s", schema.DefaultNamespace)
 		}
