@@ -15,7 +15,7 @@ import (
 var (
 	grpcDomainNotFoundErr      = status.Errorf(codes.NotFound, "domain whitelist request doesn't exist")
 	grpcDomainAlreadyExistsErr = status.Errorf(codes.AlreadyExists, "domain name already exists for that organization")
-	grpcInvalidHostErr         = status.Errorf(codes.NotFound, "invalid domain. No such host found")
+	grpcInvalidHostErr         = status.Errorf(codes.NotFound, "invalid domain, no such host found")
 	grpcTXTRecordNotFound      = status.Errorf(codes.NotFound, "required TXT record not found for domain verification")
 	grpcDomainMisMatchErr      = status.Errorf(codes.InvalidArgument, "user and org's whitelisted domains doesn't match")
 )
@@ -150,7 +150,7 @@ func (h Handler) VerifyOrgDomain(ctx context.Context, request *frontierv1beta1.V
 		}
 	}
 
-	return &frontierv1beta1.VerifyOrgDomainResponse{State: domainResp.State}, nil
+	return &frontierv1beta1.VerifyOrgDomainResponse{State: domainResp.State.String()}, nil
 }
 
 func (h Handler) ListOrganizationDomains(ctx context.Context, request *frontierv1beta1.ListOrganizationDomainsRequest) (*frontierv1beta1.ListOrganizationDomainsResponse, error) {
@@ -160,7 +160,7 @@ func (h Handler) ListOrganizationDomains(ctx context.Context, request *frontierv
 		return nil, grpcBadBodyError
 	}
 
-	domains, err := h.domainService.List(ctx, domain.Filter{OrgID: request.GetOrgId(), State: request.GetState()})
+	domains, err := h.domainService.List(ctx, domain.Filter{OrgID: request.GetOrgId(), State: domain.Status(request.GetState())})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -173,7 +173,7 @@ func (h Handler) ListOrganizationDomains(ctx context.Context, request *frontierv
 			Name:      d.Name,
 			OrgId:     d.OrgID,
 			Token:     d.Token,
-			State:     d.State,
+			State:     d.State.String(),
 			CreatedAt: timestamppb.New(d.CreatedAt),
 			UpdatedAt: timestamppb.New(d.UpdatedAt),
 		})
@@ -188,7 +188,7 @@ func transformDomainToPB(from domain.Domain) frontierv1beta1.Domain {
 		Name:      from.Name,
 		OrgId:     from.OrgID,
 		Token:     from.Token,
-		State:     from.State,
+		State:     from.State.String(),
 		CreatedAt: timestamppb.New(from.CreatedAt),
 		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}

@@ -26,7 +26,7 @@ To verify domain ownership, Frontier provides a verification token which needs t
 
 4. **Add Verification Code to DNS Records**:  Once you're in the DNS management section, look for the option to add new DNS records. Choose the record type "TXT" (Text), which allows you to add free-form text information to the domain's DNS records.
 
-Frontier verification token looks something like this `_frontier-challenge:1234567890123456`. The token is a combination of a prefix `_frontier-challenge:` and a random string of 16 characters. The prefix is used to identify the token as a Frontier verification token. The random string is used to ensure that the token is unique and not guessable.
+Frontier verification token looks something like this `_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg==`. The token is a combination of a prefix `_frontier-domain-verification=` and a random string of 40 characters. The prefix is used to identify the token as a Frontier verification token. The random string is used to ensure that the token is unique and not guessable.
 
 5. **Paste Verification code**: Copy a verification code which the above Frontier API returns. This is the same record Frontier expects in the DNS record of the domain an Organization claims to own.
 

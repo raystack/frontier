@@ -99,9 +99,12 @@ func (s Service) VerifyDomain(ctx context.Context, id string) (Domain, error) {
 	}
 
 	for _, txtRecord := range txtRecords {
-		if txtRecord == domain.Token {
-			domain.State = Verified.String()
-			s.repository.Update(ctx, domain)
+		if strings.TrimSpace(txtRecord) == strings.TrimSpace(domain.Token) {
+			domain.State = Verified
+			domain, err = s.repository.Update(ctx, domain)
+			if err != nil {
+				return Domain{}, err
+			}
 			return domain, nil
 		}
 	}
@@ -136,7 +139,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 	// check if user domain matches the org whitelisted domains
 	orgTrustedDomains, err := s.List(ctx, Filter{
 		OrgID: orgID,
-		State: Verified.String(),
+		State: Verified,
 	})
 	if err != nil {
 		return err
@@ -160,7 +163,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 func (s Service) ListOrgByDomain(ctx context.Context, domain string) ([]string, error) {
 	domains, err := s.repository.List(ctx, Filter{
 		Name:  domain,
-		State: Verified.String(),
+		State: Verified,
 	})
 	if err != nil {
 		return nil, err

@@ -134,7 +134,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	}
 
 	// session service initialization and cleanup
-	if err := deps.SessionService.InitSessions(context.Background()); err != nil {
+	if err := deps.SessionService.InitSessions(ctx); err != nil {
 		logger.Warn("sessions database cleanup failed", "err", err)
 	}
 	defer func() {
@@ -142,14 +142,14 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		deps.SessionService.Close()
 	}()
 
-	if err := deps.DomainService.InitDomainVerification(context.Background()); err != nil {
+	if err := deps.DomainService.InitDomainVerification(ctx); err != nil {
 		logger.Warn("domains database cleanup failed", "err", err)
 	}
 	defer func() {
 		deps.DomainService.Close()
 	}()
 
-	if err := deps.AuthnService.InitFlows(context.Background()); err != nil {
+	if err := deps.AuthnService.InitFlows(ctx); err != nil {
 		logger.Warn("flows database cleanup failed", "err", err)
 	}
 	defer func() {

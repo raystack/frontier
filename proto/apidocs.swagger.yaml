@@ -5859,7 +5859,7 @@ definitions:
         description: The organization id
       token:
         type: string
-        example: _frontier-challenge:1234567890123456
+        example: _frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg==
         description: The dns TXT record token to verify the domain
       state:
         type: string

@@ -30,7 +30,7 @@ type Domain struct {
 	Name      string
 	OrgID     string
 	Token     string
-	State     string
+	State     Status
 	UpdatedAt time.Time
 	CreatedAt time.Time
 }

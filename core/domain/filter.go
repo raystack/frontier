@@ -2,6 +2,6 @@ package domain
 
 type Filter struct {
 	OrgID string
-	State string
+	State Status
 	Name  string
 }
