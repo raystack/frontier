@@ -77,6 +77,10 @@ const (
 	ProjectCreatedEvent EventName = "app.project.created"
 	ProjectUpdatedEvent EventName = "app.project.updated"
 	ProjectDeletedEvent EventName = "app.project.deleted"
+
+	ResourceCreatedEvent EventName = "app.resource.created"
+	ResourceUpdatedEvent EventName = "app.resource.updated"
+	ResourceDeletedEvent EventName = "app.resource.deleted"
 )
 
 func OrgTarget(id string) Target {

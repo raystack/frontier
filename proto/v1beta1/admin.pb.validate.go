@@ -2272,38 +2272,9 @@ func (m *PermissionRequestBody) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetName()) < 3 {
-		err := PermissionRequestBodyValidationError{
-			field:  "Name",
-			reason: "value length must be at least 3 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Name
 
-	if !_PermissionRequestBody_Name_Pattern.MatchString(m.GetName()) {
-		err := PermissionRequestBodyValidationError{
-			field:  "Name",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetNamespace()) < 3 {
-		err := PermissionRequestBodyValidationError{
-			field:  "Namespace",
-			reason: "value length must be at least 3 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Namespace
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -2417,8 +2388,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PermissionRequestBodyValidationError{}
-
-var _PermissionRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9]+$")
 
 // Validate checks the field values on CreatePermissionRequest with the rules
 // defined in the proto definition for this message. If any rules are

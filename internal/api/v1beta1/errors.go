@@ -24,5 +24,5 @@ var (
 	grpcBadBodyMetaSchemaError = status.Error(codes.InvalidArgument, ErrBadRequest.Error()+" : "+ErrInvalidMetadata.Error())
 	grpcUnauthenticated        = status.Error(codes.Unauthenticated, errors.ErrUnauthenticated.Error())
 	grpcPermissionDenied       = status.Error(codes.PermissionDenied, errors.ErrForbidden.Error())
-	grpcOperationUnsupported   = status.Error(codes.Unavailable, ErrOperationUnsupported.Error())
+	grpcOperationUnsupported   = status.Error(codes.Unavailable, ErrOperationUnsupported.Error()) //nolint:unused
 )

@@ -4,58 +4,29 @@ import CodeBlock from '@theme/CodeBlock';
 
 # Manage Resources
 
+A resource is a logical entity that represents any user-defined entity in the system. A resource always belongs to 
+a `project` and is identified by a unique identifier called `urn` or via it's `id`. For example, in a system that
+manages databases, a resource can be a database instance. For a database instance, it's namespace can be `db/instance`
+and when the actual db service creates a database instance, it can create a resource in the frontier to manage it authorization.
+When working with custom resources, ensure that the namespace has enough permissions to `create`, `update` and `delete` resources.
+Without these permissions, the frontier will not be able to manage the resource, specially when the resource is deleted.
+
 A resource in Frontier looks like
 
 <Tabs groupId="model">
-  <TabItem value="Model" label="Model" default>
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-
-</TabItem>
 <TabItem value="JSON" label="Sample JSON" default>
 
 ```json
 {
-  "resource": {
-    "id": "5723e961-7259-48b3-b721-292868d652d7",
-    "name": "test-random-name",
-    "project": {
-      "id": "1b89026b-6713-4327-9d7e-ed03345da288",
-      "name": "",
-      "slug": "",
-      "orgId": "",
-      "metadata": null,
-      "createdAt": null,
-      "updatedAt": null
-    },
-    "organization": {
-      "id": "4eb3c3b4-962b-4b45-b55b-4c07d3810ca8",
-      "name": "",
-      "slug": "",
-      "metadata": null,
-      "createdAt": null,
-      "updatedAt": null
-    },
-    "namespace": {
-      "id": "entropy/firehose",
-      "name": "",
-      "createdAt": null,
-      "updatedAt": null
-    },
-    "createdAt": "2022-12-13T11:59:23.964065Z",
-    "updatedAt": "2022-12-13T11:59:23.964065Z",
-    "user": {
-      "id": "2fd7f306-61db-4198-9623-6f5f1809df11",
-      "name": "",
-      "slug": "",
-      "email": "",
-      "metadata": null,
-      "createdAt": null,
-      "updatedAt": null
-    },
-    "urn": "r/entropy/firehose/test-random-name"
-  }
+  "id": "39aee58b-ea9a-474d-ad99-3f5e0e53d588",
+  "name": "instance-1",
+  "created_at": "2023-08-10T11:58:03.607320Z",
+  "updated_at": "2023-08-10T11:58:03.607320Z",
+  "urn": "frn:proj1:compute/instance:instance-1",
+  "project_id": "4bcb528f-b397-47f6-8e1f-397d7ae88b32",
+  "namespace": "compute/instance",
+  "principal": "app/user:f4641672-cfdc-493f-95f0-c440515ad032",
+  "metadata": null
 }
 ```
 
@@ -66,7 +37,7 @@ A resource in Frontier looks like
 
 ### Create resources
 
-There are two ways to create a resource in the frontier,
+To create a resource in the frontier:
 
 #### API Interface
 
@@ -92,44 +63,12 @@ There are two ways to create a resource in the frontier,
   </TabItem>
 </Tabs>
 
-#### Proxy Hook
-
-Users can add hooks to rules set to create a resource. The hook will be called after the proxy request is completed.
-Hooks can read query, header, params, payload, and response to get the values for Resource.
-
-```yaml
-- name: test-res
-  path: /test-res
-  target: "http://127.0.0.1:3000/"
-  methods: ["POST"]
-  frontends:
-    - name: create test-res
-      path: "/test-res"
-      method: "POST"
-      hooks:
-        - name: authz
-          config:
-            attributes:
-              project:
-                key: project
-                type: json_payload
-              organization:
-                key: organization
-                type: json_payload
-              team:
-                key: team
-                type: json_payload
-              resource:
-                key: urns.#.id
-                type: json_payload
-```
-
 ### List all resources across projects
 
 <Tabs groupId="api">
   <TabItem value="HTTP" label="HTTP" default>
         <CodeBlock className="language-bash">
-    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/admin/resources'
+    {`$ curl --location --request GET 'http://localhost:8000/v1beta1/projects/:project_id/resources'
 --header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
@@ -159,6 +98,19 @@ Hooks can read query, header, params, payload, and response to get the values fo
   "projectId": "1b89026b-6713-4327-9d7e-ed03345da288",
   "namespaceId": "entropy/firehose"
 }'`}
+    </CodeBlock>
+  </TabItem>
+</Tabs>
+
+### Delete resources
+
+Ensure `delete` permission is created for the resource and provided to caller.
+
+<Tabs groupId="api">
+  <TabItem value="HTTP" label="HTTP" default>
+        <CodeBlock className="language-bash">
+    {`$ curl -curl --location --request DELETE 'http://localhost:8000/v1beta1/projects/1b89026b-6713-4327-9d7e-ed03345da288/resources/28105b9a-1717-47cf-a5d9-49249b6638df'
+--header 'Accept: application/json'`}
     </CodeBlock>
   </TabItem>
 </Tabs>

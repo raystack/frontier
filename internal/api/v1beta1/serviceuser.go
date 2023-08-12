@@ -12,7 +12,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-//go:generate mockery --name=ServiceUserService -r --case underscore --with-expecter --structname ServiceUserService --filename serviceuser_service.go --output=./mocks
 type ServiceUserService interface {
 	List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error)
 	Create(ctx context.Context, serviceUser serviceuser.ServiceUser) (serviceuser.ServiceUser, error)

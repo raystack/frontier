@@ -76,6 +76,9 @@ func BuildServiceDefinitionFromAZSchema(azDefinitions []*azcore.NamespaceDefinit
 						resource, permission = permissionParts[0], permissionParts[1]
 					case 1:
 						permission = permissionParts[0]
+					default:
+						service, resource = permissionParts[0], permissionParts[1]
+						permission = strings.Join(permissionParts[2:], "")
 					}
 
 					if len(serviceFilter) > 0 && !utils.Contains(serviceFilter, service) {

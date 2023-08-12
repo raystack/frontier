@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//go:generate mockery --name=CascadeDeleter -r --case underscore --with-expecter --structname CascadeDeleter --filename cascade_deleter.go --output=./mocks
 type CascadeDeleter interface {
 	DeleteProject(ctx context.Context, id string) error
 	DeleteOrganization(ctx context.Context, id string) error

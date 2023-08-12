@@ -17,7 +17,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//go:generate mockery --name=RelationService -r --case underscore --with-expecter --structname RelationService --filename relation_service.go --output=./mocks
 type RelationService interface {
 	Get(ctx context.Context, id string) (relation.Relation, error)
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)

@@ -9,7 +9,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-//go:generate mockery --name=AuditService -r --case underscore --with-expecter --structname AuditService --filename audit_service.go --output=./mocks
 type AuditService interface {
 	List(ctx context.Context, filter audit.Filter) ([]audit.Log, error)
 	GetByID(ctx context.Context, id string) (audit.Log, error)

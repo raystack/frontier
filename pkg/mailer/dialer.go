@@ -13,7 +13,6 @@ const (
 	defaultFromHeader = "frontier@raystack.org"
 )
 
-//go:generate mockery --name=Dialer -r --case underscore --with-expecter --structname Dialer --filename dialer.go --output=./mocks
 type Dialer interface {
 	DialAndSend(m *mail.Message) error
 	FromHeader() string

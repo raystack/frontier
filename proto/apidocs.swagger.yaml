@@ -6149,7 +6149,7 @@ definitions:
         description: The name of the permission. It should be unique across a Frontier instance and can contain only alphanumeric characters.
       namespace:
         type: string
-        description: The namespace of the permission.The namespace should be in service/resource format.<br/>*Example:*`app/guardian`
+        description: The namespace of the permission. The namespace should be in service/resource format.<br/>*Example:*`compute/guardian`
         title: namespace should be in service/resource format
       metadata:
         type: object
@@ -6160,7 +6160,10 @@ definitions:
       key:
         type: string
         example: compute.instance.get
-        description: Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
+        description: Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'. Namespace name cannot be `app` as it's reserved for core permissions.
+        title: |-
+          key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
+          Use this instead of using name and namespace fields
   v1beta1Policy:
     type: object
     properties:
