@@ -1,61 +1,21 @@
 ---
-id: frontier-service-list-organizations-by-domain
-title: "List orgs by domain"
-description: "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of)."
-sidebar_label: "List orgs by domain"
+id: frontier-service-delete-organization-domain
+title: "Delete org domain"
+description: "Remove a domain from the list of an organization's trusted domains list"
+sidebar_label: "Delete org domain"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of).",
-    "operationId": "FrontierService_ListOrganizationsByDomain",
+    "description": "Remove a domain from the list of an organization's trusted domains list",
+    "operationId": "FrontierService_DeleteOrganizationDomain",
     "responses":
       {
         "200":
           {
             "description": "A successful response.",
             "content":
-              {
-                "application/json":
-                  {
-                    "schema":
-                      {
-                        "type": "object",
-                        "properties":
-                          {
-                            "organizations":
-                              {
-                                "type": "array",
-                                "items":
-                                  {
-                                    "type": "object",
-                                    "properties":
-                                      {
-                                        "id": { "type": "string" },
-                                        "name": { "type": "string" },
-                                        "title": { "type": "string" },
-                                        "metadata": { "type": "object" },
-                                        "createdAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the organization was created.",
-                                          },
-                                        "updatedAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the organization was last updated.",
-                                          },
-                                      },
-                                  },
-                              },
-                          },
-                      },
-                  },
-              },
+              { "application/json": { "schema": { "type": "object" } } },
           },
         "400":
           {
@@ -241,16 +201,23 @@ api:
     "parameters":
       [
         {
-          "name": "name",
-          "description": "domain name to be used to list all the organizations that have this domain whitelisted",
+          "name": "orgId",
+          "description": "unique id of the organization for which whitelisted domains are to be deleted",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "id",
+          "description": "unique id of the domain to be deleted",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
     "tags": ["Organization"],
-    "method": "get",
-    "path": "/v1beta1/organizations/domains/{name}",
+    "method": "delete",
+    "path": "/v1beta1/organizations/{orgId}/domains/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -290,15 +257,15 @@ api:
       },
     "postman":
       {
-        "name": "List orgs by domain",
+        "name": "Delete org domain",
         "description":
           {
-            "content": "Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of).",
+            "content": "Remove a domain from the list of an organization's trusted domains list",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", "domains", ":name"],
+            "path": ["v1beta1", "organizations", ":orgId", "domains", ":id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -307,20 +274,31 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) domain name to be used to list all the organizations that have this domain whitelisted",
+                      "content": "(Required) unique id of the organization for which whitelisted domains are to be deleted",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
-                  "key": "name",
+                  "key": "orgId",
+                },
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "(Required) unique id of the domain to be deleted",
+                      "type": "text/plain",
+                    },
+                  "type": "any",
+                  "value": "",
+                  "key": "id",
                 },
               ],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "GET",
+        "method": "DELETE",
       },
   }
-sidebar_class_name: "get api-method"
+sidebar_class_name: "delete api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -334,15 +312,19 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List orgs by domain
+## Delete org domain
 
-Returns all organizations that have a specific domain whitelisted. This API will return only those organizations in which the domain ownership have been verified. Useful when you want to show a list of organizations that users can join based on their email domain (by default will also show the orgs of which user is already a part of).
+Remove a domain from the list of an organization's trusted domains list
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"name","description":"domain name to be used to list all the organizations that have this domain whitelisted","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"unique id of the organization for which whitelisted domains are to be deleted","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"unique id of the domain to be deleted","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>organizations</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was last updated."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"organizations\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
+
+object
+
+</div></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

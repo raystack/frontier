@@ -246,11 +246,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/AddOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.AddOrganizationDomainRequest)
+		pbreq := req.(*frontierv1beta1.CreateOrganizationDomainRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.RemoveOrganizationDomainRequest)
+		pbreq := req.(*frontierv1beta1.DeleteOrganizationDomainRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationDomains": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -265,7 +265,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/VerifyOrgDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.VerifyOrgDomainRequest)
+		pbreq := req.(*frontierv1beta1.VerifyOrganizationDomainRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {

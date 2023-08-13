@@ -25,6 +25,7 @@ type UserService interface {
 type OrgService interface {
 	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
 	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
+	Get(ctx context.Context, id string) (organization.Organization, error)
 }
 
 type Service struct {
@@ -69,11 +70,17 @@ func (s Service) Delete(ctx context.Context, id string) error {
 
 // Creates a record for the domain in the database and returns the TXT record that needs to be added to the DNS for the domain verification
 func (s Service) Create(ctx context.Context, domain Domain) (Domain, error) {
+	orgResp, err := s.orgService.Get(ctx, domain.OrgID)
+	if err != nil {
+		return Domain{}, err
+	}
+
 	txtRecord, err := generateRandomTXT()
 	if err != nil {
 		return Domain{}, err
 	}
 
+	domain.OrgID = orgResp.ID // in case the orgName is provided in the request, replace with the orgID
 	domain.Token = fmt.Sprintf(DNSChallenge, txtRecord)
 	var domainResp Domain
 	if domainResp, err = s.repository.Create(ctx, domain); err != nil {
@@ -114,6 +121,11 @@ func (s Service) VerifyDomain(ctx context.Context, id string) (Domain, error) {
 
 // Join an organization as a member if the user domain matches the org whitelisted domains
 func (s Service) Join(ctx context.Context, orgID string, userId string) error {
+	orgResp, err := s.orgService.Get(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
 	currUser, err := s.userService.GetByID(ctx, userId)
 	if err != nil {
 		return err
@@ -126,7 +138,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 	}
 
 	for _, org := range userOrgs {
-		if org.ID == orgID {
+		if org.ID == orgResp.ID {
 			return nil
 		}
 	}
@@ -138,7 +150,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 
 	// check if user domain matches the org whitelisted domains
 	orgTrustedDomains, err := s.List(ctx, Filter{
-		OrgID: orgID,
+		OrgID: orgResp.ID,
 		State: Verified,
 	})
 	if err != nil {
@@ -147,7 +159,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 
 	for _, dmn := range orgTrustedDomains {
 		if userDomain == dmn.Name {
-			if err = s.orgService.AddMember(ctx, orgID, schema.MemberRelationName, authenticate.Principal{
+			if err = s.orgService.AddMember(ctx, orgResp.ID, schema.MemberRelationName, authenticate.Principal{
 				ID:   currUser.ID,
 				Type: schema.UserPrincipal,
 			}); err != nil {
@@ -160,7 +172,8 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 	return ErrDomainsMisMatch
 }
 
-func (s Service) ListOrgByDomain(ctx context.Context, domain string) ([]string, error) {
+func (s Service) ListOrgByDomain(ctx context.Context, email string) ([]string, error) {
+	domain := extractDomainFromEmail(email)
 	domains, err := s.repository.List(ctx, Filter{
 		Name:  domain,
 		State: Verified,

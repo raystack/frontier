@@ -23,7 +23,7 @@ var (
 type DomainService interface {
 	Get(ctx context.Context, id string) (domain.Domain, error)
 	List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error)
-	ListOrgByDomain(ctx context.Context, domain string) ([]string, error)
+	ListOrgByDomain(ctx context.Context, email string) ([]string, error)
 	Delete(ctx context.Context, id string) error
 	Create(ctx context.Context, toCreate domain.Domain) (domain.Domain, error)
 	VerifyDomain(ctx context.Context, id string) (domain.Domain, error)
@@ -32,7 +32,7 @@ type DomainService interface {
 	Close()
 }
 
-func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1beta1.AddOrganizationDomainRequest) (*frontierv1beta1.AddOrganizationDomainResponse, error) {
+func (h Handler) CreateOrganizationDomain(ctx context.Context, request *frontierv1beta1.CreateOrganizationDomainRequest) (*frontierv1beta1.CreateOrganizationDomainResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.GetOrgId() == "" || request.GetDomain() == "" {
@@ -46,6 +46,8 @@ func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1b
 	if err != nil {
 		logger.Error(err.Error())
 		switch err {
+		case organization.ErrNotExist:
+			return nil, grpcOrgNotFoundErr
 		case domain.ErrDuplicateKey:
 			return nil, grpcDomainAlreadyExistsErr
 		default:
@@ -54,10 +56,10 @@ func (h Handler) AddOrganizationDomain(ctx context.Context, request *frontierv1b
 	}
 
 	domainPB := transformDomainToPB(dmn)
-	return &frontierv1beta1.AddOrganizationDomainResponse{Domain: &domainPB}, nil
+	return &frontierv1beta1.CreateOrganizationDomainResponse{Domain: &domainPB}, nil
 }
 
-func (h Handler) RemoveOrganizationDomain(ctx context.Context, request *frontierv1beta1.RemoveOrganizationDomainRequest) (*frontierv1beta1.RemoveOrganizationDomainResponse, error) {
+func (h Handler) DeleteOrganizationDomain(ctx context.Context, request *frontierv1beta1.DeleteOrganizationDomainRequest) (*frontierv1beta1.DeleteOrganizationDomainResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.GetId() == "" || request.GetOrgId() == "" {
@@ -67,6 +69,8 @@ func (h Handler) RemoveOrganizationDomain(ctx context.Context, request *frontier
 	if err := h.domainService.Delete(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		switch err {
+		case organization.ErrNotExist:
+			return nil, grpcOrgNotFoundErr
 		case domain.ErrNotExist:
 			return nil, grpcDomainNotFoundErr
 		default:
@@ -74,7 +78,7 @@ func (h Handler) RemoveOrganizationDomain(ctx context.Context, request *frontier
 		}
 	}
 
-	return &frontierv1beta1.RemoveOrganizationDomainResponse{}, nil
+	return &frontierv1beta1.DeleteOrganizationDomainResponse{}, nil
 }
 
 func (h Handler) GetOrganizationDomain(ctx context.Context, request *frontierv1beta1.GetOrganizationDomainRequest) (*frontierv1beta1.GetOrganizationDomainResponse, error) {
@@ -128,7 +132,7 @@ func (h Handler) JoinOrganization(ctx context.Context, request *frontierv1beta1.
 	return &frontierv1beta1.JoinOrganizationResponse{}, nil
 }
 
-func (h Handler) VerifyOrgDomain(ctx context.Context, request *frontierv1beta1.VerifyOrgDomainRequest) (*frontierv1beta1.VerifyOrgDomainResponse, error) {
+func (h Handler) VerifyOrganizationDomain(ctx context.Context, request *frontierv1beta1.VerifyOrganizationDomainRequest) (*frontierv1beta1.VerifyOrganizationDomainResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	if request.GetId() == "" || request.GetOrgId() == "" {
@@ -150,7 +154,7 @@ func (h Handler) VerifyOrgDomain(ctx context.Context, request *frontierv1beta1.V
 		}
 	}
 
-	return &frontierv1beta1.VerifyOrgDomainResponse{State: domainResp.State.String()}, nil
+	return &frontierv1beta1.VerifyOrganizationDomainResponse{State: domainResp.State.String()}, nil
 }
 
 func (h Handler) ListOrganizationDomains(ctx context.Context, request *frontierv1beta1.ListOrganizationDomainsRequest) (*frontierv1beta1.ListOrganizationDomainsResponse, error) {
@@ -192,33 +196,4 @@ func transformDomainToPB(from domain.Domain) frontierv1beta1.Domain {
 		CreatedAt: timestamppb.New(from.CreatedAt),
 		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}
-}
-
-func (h Handler) ListOrganizationsByDomain(ctx context.Context, request *frontierv1beta1.ListOrganizationsByDomainRequest) (*frontierv1beta1.ListOrganizationsByDomainResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	if request.GetName() == "" {
-		return nil, grpcBadBodyError
-	}
-	orgIDs, err := h.domainService.ListOrgByDomain(ctx, request.GetName())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-
-	var orgs []*frontierv1beta1.Organization
-	for _, orgID := range orgIDs {
-		org, err := h.orgService.Get(ctx, orgID)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
-		}
-		orgPB, err := transformOrgToPB(org)
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
-		}
-		orgs = append(orgs, orgPB)
-	}
-	return &frontierv1beta1.ListOrganizationsByDomainResponse{Organizations: orgs}, nil
 }

@@ -2397,6 +2397,40 @@ func (m *GetOrganizationsByUserResponse) validate(all bool) error {
 
 	}
 
+	for idx, item := range m.GetJoinableViaDomain() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetOrganizationsByUserResponseValidationError{
+						field:  fmt.Sprintf("JoinableViaDomain[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetOrganizationsByUserResponseValidationError{
+						field:  fmt.Sprintf("JoinableViaDomain[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetOrganizationsByUserResponseValidationError{
+					field:  fmt.Sprintf("JoinableViaDomain[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return GetOrganizationsByUserResponseMultiError(errors)
 	}
@@ -2632,6 +2666,40 @@ func (m *GetOrganizationsByCurrentUserResponse) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return GetOrganizationsByCurrentUserResponseValidationError{
 					field:  fmt.Sprintf("Organizations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetJoinableViaDomain() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetOrganizationsByCurrentUserResponseValidationError{
+						field:  fmt.Sprintf("JoinableViaDomain[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetOrganizationsByCurrentUserResponseValidationError{
+						field:  fmt.Sprintf("JoinableViaDomain[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetOrganizationsByCurrentUserResponseValidationError{
+					field:  fmt.Sprintf("JoinableViaDomain[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -14671,22 +14739,22 @@ var _ interface {
 	ErrorName() string
 } = GetOrganizationDomainResponseValidationError{}
 
-// Validate checks the field values on AddOrganizationDomainRequest with the
+// Validate checks the field values on CreateOrganizationDomainRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *AddOrganizationDomainRequest) Validate() error {
+func (m *CreateOrganizationDomainRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on AddOrganizationDomainRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// AddOrganizationDomainRequestMultiError, or nil if none found.
-func (m *AddOrganizationDomainRequest) ValidateAll() error {
+// ValidateAll checks the field values on CreateOrganizationDomainRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreateOrganizationDomainRequestMultiError, or nil if none found.
+func (m *CreateOrganizationDomainRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *AddOrganizationDomainRequest) validate(all bool) error {
+func (m *CreateOrganizationDomainRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -14694,7 +14762,7 @@ func (m *AddOrganizationDomainRequest) validate(all bool) error {
 	var errors []error
 
 	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
-		err := AddOrganizationDomainRequestValidationError{
+		err := CreateOrganizationDomainRequestValidationError{
 			field:  "OrgId",
 			reason: "value length must be at least 3 runes",
 		}
@@ -14705,7 +14773,7 @@ func (m *AddOrganizationDomainRequest) validate(all bool) error {
 	}
 
 	if utf8.RuneCountInString(m.GetDomain()) < 3 {
-		err := AddOrganizationDomainRequestValidationError{
+		err := CreateOrganizationDomainRequestValidationError{
 			field:  "Domain",
 			reason: "value length must be at least 3 runes",
 		}
@@ -14716,19 +14784,19 @@ func (m *AddOrganizationDomainRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return AddOrganizationDomainRequestMultiError(errors)
+		return CreateOrganizationDomainRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// AddOrganizationDomainRequestMultiError is an error wrapping multiple
-// validation errors returned by AddOrganizationDomainRequest.ValidateAll() if
-// the designated constraints aren't met.
-type AddOrganizationDomainRequestMultiError []error
+// CreateOrganizationDomainRequestMultiError is an error wrapping multiple
+// validation errors returned by CreateOrganizationDomainRequest.ValidateAll()
+// if the designated constraints aren't met.
+type CreateOrganizationDomainRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m AddOrganizationDomainRequestMultiError) Error() string {
+func (m CreateOrganizationDomainRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -14737,12 +14805,12 @@ func (m AddOrganizationDomainRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m AddOrganizationDomainRequestMultiError) AllErrors() []error { return m }
+func (m CreateOrganizationDomainRequestMultiError) AllErrors() []error { return m }
 
-// AddOrganizationDomainRequestValidationError is the validation error returned
-// by AddOrganizationDomainRequest.Validate if the designated constraints
-// aren't met.
-type AddOrganizationDomainRequestValidationError struct {
+// CreateOrganizationDomainRequestValidationError is the validation error
+// returned by CreateOrganizationDomainRequest.Validate if the designated
+// constraints aren't met.
+type CreateOrganizationDomainRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -14750,24 +14818,24 @@ type AddOrganizationDomainRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e AddOrganizationDomainRequestValidationError) Field() string { return e.field }
+func (e CreateOrganizationDomainRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e AddOrganizationDomainRequestValidationError) Reason() string { return e.reason }
+func (e CreateOrganizationDomainRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e AddOrganizationDomainRequestValidationError) Cause() error { return e.cause }
+func (e CreateOrganizationDomainRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e AddOrganizationDomainRequestValidationError) Key() bool { return e.key }
+func (e CreateOrganizationDomainRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e AddOrganizationDomainRequestValidationError) ErrorName() string {
-	return "AddOrganizationDomainRequestValidationError"
+func (e CreateOrganizationDomainRequestValidationError) ErrorName() string {
+	return "CreateOrganizationDomainRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e AddOrganizationDomainRequestValidationError) Error() string {
+func (e CreateOrganizationDomainRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -14779,14 +14847,14 @@ func (e AddOrganizationDomainRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sAddOrganizationDomainRequest.%s: %s%s",
+		"invalid %sCreateOrganizationDomainRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = AddOrganizationDomainRequestValidationError{}
+var _ error = CreateOrganizationDomainRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -14794,24 +14862,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = AddOrganizationDomainRequestValidationError{}
+} = CreateOrganizationDomainRequestValidationError{}
 
-// Validate checks the field values on AddOrganizationDomainResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *AddOrganizationDomainResponse) Validate() error {
+// Validate checks the field values on CreateOrganizationDomainResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CreateOrganizationDomainResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on AddOrganizationDomainResponse with
+// ValidateAll checks the field values on CreateOrganizationDomainResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// AddOrganizationDomainResponseMultiError, or nil if none found.
-func (m *AddOrganizationDomainResponse) ValidateAll() error {
+// CreateOrganizationDomainResponseMultiError, or nil if none found.
+func (m *CreateOrganizationDomainResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *AddOrganizationDomainResponse) validate(all bool) error {
+func (m *CreateOrganizationDomainResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -14822,7 +14891,7 @@ func (m *AddOrganizationDomainResponse) validate(all bool) error {
 		switch v := interface{}(m.GetDomain()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AddOrganizationDomainResponseValidationError{
+				errors = append(errors, CreateOrganizationDomainResponseValidationError{
 					field:  "Domain",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -14830,7 +14899,7 @@ func (m *AddOrganizationDomainResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AddOrganizationDomainResponseValidationError{
+				errors = append(errors, CreateOrganizationDomainResponseValidationError{
 					field:  "Domain",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -14839,7 +14908,7 @@ func (m *AddOrganizationDomainResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetDomain()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AddOrganizationDomainResponseValidationError{
+			return CreateOrganizationDomainResponseValidationError{
 				field:  "Domain",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -14848,19 +14917,20 @@ func (m *AddOrganizationDomainResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return AddOrganizationDomainResponseMultiError(errors)
+		return CreateOrganizationDomainResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// AddOrganizationDomainResponseMultiError is an error wrapping multiple
-// validation errors returned by AddOrganizationDomainResponse.ValidateAll()
-// if the designated constraints aren't met.
-type AddOrganizationDomainResponseMultiError []error
+// CreateOrganizationDomainResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateOrganizationDomainResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateOrganizationDomainResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m AddOrganizationDomainResponseMultiError) Error() string {
+func (m CreateOrganizationDomainResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -14869,12 +14939,12 @@ func (m AddOrganizationDomainResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m AddOrganizationDomainResponseMultiError) AllErrors() []error { return m }
+func (m CreateOrganizationDomainResponseMultiError) AllErrors() []error { return m }
 
-// AddOrganizationDomainResponseValidationError is the validation error
-// returned by AddOrganizationDomainResponse.Validate if the designated
+// CreateOrganizationDomainResponseValidationError is the validation error
+// returned by CreateOrganizationDomainResponse.Validate if the designated
 // constraints aren't met.
-type AddOrganizationDomainResponseValidationError struct {
+type CreateOrganizationDomainResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -14882,24 +14952,24 @@ type AddOrganizationDomainResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e AddOrganizationDomainResponseValidationError) Field() string { return e.field }
+func (e CreateOrganizationDomainResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e AddOrganizationDomainResponseValidationError) Reason() string { return e.reason }
+func (e CreateOrganizationDomainResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e AddOrganizationDomainResponseValidationError) Cause() error { return e.cause }
+func (e CreateOrganizationDomainResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e AddOrganizationDomainResponseValidationError) Key() bool { return e.key }
+func (e CreateOrganizationDomainResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e AddOrganizationDomainResponseValidationError) ErrorName() string {
-	return "AddOrganizationDomainResponseValidationError"
+func (e CreateOrganizationDomainResponseValidationError) ErrorName() string {
+	return "CreateOrganizationDomainResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e AddOrganizationDomainResponseValidationError) Error() string {
+func (e CreateOrganizationDomainResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -14911,14 +14981,14 @@ func (e AddOrganizationDomainResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sAddOrganizationDomainResponse.%s: %s%s",
+		"invalid %sCreateOrganizationDomainResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = AddOrganizationDomainResponseValidationError{}
+var _ error = CreateOrganizationDomainResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -14926,24 +14996,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = AddOrganizationDomainResponseValidationError{}
+} = CreateOrganizationDomainResponseValidationError{}
 
-// Validate checks the field values on RemoveOrganizationDomainRequest with the
+// Validate checks the field values on DeleteOrganizationDomainRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *RemoveOrganizationDomainRequest) Validate() error {
+func (m *DeleteOrganizationDomainRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on RemoveOrganizationDomainRequest with
+// ValidateAll checks the field values on DeleteOrganizationDomainRequest with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// RemoveOrganizationDomainRequestMultiError, or nil if none found.
-func (m *RemoveOrganizationDomainRequest) ValidateAll() error {
+// DeleteOrganizationDomainRequestMultiError, or nil if none found.
+func (m *DeleteOrganizationDomainRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *RemoveOrganizationDomainRequest) validate(all bool) error {
+func (m *DeleteOrganizationDomainRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -14951,7 +15021,7 @@ func (m *RemoveOrganizationDomainRequest) validate(all bool) error {
 	var errors []error
 
 	if utf8.RuneCountInString(m.GetId()) < 3 {
-		err := RemoveOrganizationDomainRequestValidationError{
+		err := DeleteOrganizationDomainRequestValidationError{
 			field:  "Id",
 			reason: "value length must be at least 3 runes",
 		}
@@ -14962,7 +15032,7 @@ func (m *RemoveOrganizationDomainRequest) validate(all bool) error {
 	}
 
 	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
-		err := RemoveOrganizationDomainRequestValidationError{
+		err := DeleteOrganizationDomainRequestValidationError{
 			field:  "OrgId",
 			reason: "value length must be at least 3 runes",
 		}
@@ -14973,19 +15043,19 @@ func (m *RemoveOrganizationDomainRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return RemoveOrganizationDomainRequestMultiError(errors)
+		return DeleteOrganizationDomainRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// RemoveOrganizationDomainRequestMultiError is an error wrapping multiple
-// validation errors returned by RemoveOrganizationDomainRequest.ValidateAll()
+// DeleteOrganizationDomainRequestMultiError is an error wrapping multiple
+// validation errors returned by DeleteOrganizationDomainRequest.ValidateAll()
 // if the designated constraints aren't met.
-type RemoveOrganizationDomainRequestMultiError []error
+type DeleteOrganizationDomainRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m RemoveOrganizationDomainRequestMultiError) Error() string {
+func (m DeleteOrganizationDomainRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -14994,12 +15064,12 @@ func (m RemoveOrganizationDomainRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m RemoveOrganizationDomainRequestMultiError) AllErrors() []error { return m }
+func (m DeleteOrganizationDomainRequestMultiError) AllErrors() []error { return m }
 
-// RemoveOrganizationDomainRequestValidationError is the validation error
-// returned by RemoveOrganizationDomainRequest.Validate if the designated
+// DeleteOrganizationDomainRequestValidationError is the validation error
+// returned by DeleteOrganizationDomainRequest.Validate if the designated
 // constraints aren't met.
-type RemoveOrganizationDomainRequestValidationError struct {
+type DeleteOrganizationDomainRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -15007,24 +15077,24 @@ type RemoveOrganizationDomainRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e RemoveOrganizationDomainRequestValidationError) Field() string { return e.field }
+func (e DeleteOrganizationDomainRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e RemoveOrganizationDomainRequestValidationError) Reason() string { return e.reason }
+func (e DeleteOrganizationDomainRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e RemoveOrganizationDomainRequestValidationError) Cause() error { return e.cause }
+func (e DeleteOrganizationDomainRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e RemoveOrganizationDomainRequestValidationError) Key() bool { return e.key }
+func (e DeleteOrganizationDomainRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e RemoveOrganizationDomainRequestValidationError) ErrorName() string {
-	return "RemoveOrganizationDomainRequestValidationError"
+func (e DeleteOrganizationDomainRequestValidationError) ErrorName() string {
+	return "DeleteOrganizationDomainRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e RemoveOrganizationDomainRequestValidationError) Error() string {
+func (e DeleteOrganizationDomainRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -15036,14 +15106,14 @@ func (e RemoveOrganizationDomainRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sRemoveOrganizationDomainRequest.%s: %s%s",
+		"invalid %sDeleteOrganizationDomainRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = RemoveOrganizationDomainRequestValidationError{}
+var _ error = DeleteOrganizationDomainRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -15051,25 +15121,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = RemoveOrganizationDomainRequestValidationError{}
+} = DeleteOrganizationDomainRequestValidationError{}
 
-// Validate checks the field values on RemoveOrganizationDomainResponse with
+// Validate checks the field values on DeleteOrganizationDomainResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the first error encountered is returned, or nil if there are
 // no violations.
-func (m *RemoveOrganizationDomainResponse) Validate() error {
+func (m *DeleteOrganizationDomainResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on RemoveOrganizationDomainResponse with
+// ValidateAll checks the field values on DeleteOrganizationDomainResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// RemoveOrganizationDomainResponseMultiError, or nil if none found.
-func (m *RemoveOrganizationDomainResponse) ValidateAll() error {
+// DeleteOrganizationDomainResponseMultiError, or nil if none found.
+func (m *DeleteOrganizationDomainResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *RemoveOrganizationDomainResponse) validate(all bool) error {
+func (m *DeleteOrganizationDomainResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -15077,20 +15147,20 @@ func (m *RemoveOrganizationDomainResponse) validate(all bool) error {
 	var errors []error
 
 	if len(errors) > 0 {
-		return RemoveOrganizationDomainResponseMultiError(errors)
+		return DeleteOrganizationDomainResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// RemoveOrganizationDomainResponseMultiError is an error wrapping multiple
+// DeleteOrganizationDomainResponseMultiError is an error wrapping multiple
 // validation errors returned by
-// RemoveOrganizationDomainResponse.ValidateAll() if the designated
+// DeleteOrganizationDomainResponse.ValidateAll() if the designated
 // constraints aren't met.
-type RemoveOrganizationDomainResponseMultiError []error
+type DeleteOrganizationDomainResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m RemoveOrganizationDomainResponseMultiError) Error() string {
+func (m DeleteOrganizationDomainResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -15099,12 +15169,12 @@ func (m RemoveOrganizationDomainResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m RemoveOrganizationDomainResponseMultiError) AllErrors() []error { return m }
+func (m DeleteOrganizationDomainResponseMultiError) AllErrors() []error { return m }
 
-// RemoveOrganizationDomainResponseValidationError is the validation error
-// returned by RemoveOrganizationDomainResponse.Validate if the designated
+// DeleteOrganizationDomainResponseValidationError is the validation error
+// returned by DeleteOrganizationDomainResponse.Validate if the designated
 // constraints aren't met.
-type RemoveOrganizationDomainResponseValidationError struct {
+type DeleteOrganizationDomainResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -15112,24 +15182,24 @@ type RemoveOrganizationDomainResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e RemoveOrganizationDomainResponseValidationError) Field() string { return e.field }
+func (e DeleteOrganizationDomainResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e RemoveOrganizationDomainResponseValidationError) Reason() string { return e.reason }
+func (e DeleteOrganizationDomainResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e RemoveOrganizationDomainResponseValidationError) Cause() error { return e.cause }
+func (e DeleteOrganizationDomainResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e RemoveOrganizationDomainResponseValidationError) Key() bool { return e.key }
+func (e DeleteOrganizationDomainResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e RemoveOrganizationDomainResponseValidationError) ErrorName() string {
-	return "RemoveOrganizationDomainResponseValidationError"
+func (e DeleteOrganizationDomainResponseValidationError) ErrorName() string {
+	return "DeleteOrganizationDomainResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e RemoveOrganizationDomainResponseValidationError) Error() string {
+func (e DeleteOrganizationDomainResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -15141,14 +15211,14 @@ func (e RemoveOrganizationDomainResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sRemoveOrganizationDomainResponse.%s: %s%s",
+		"invalid %sDeleteOrganizationDomainResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = RemoveOrganizationDomainResponseValidationError{}
+var _ error = DeleteOrganizationDomainResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -15156,24 +15226,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = RemoveOrganizationDomainResponseValidationError{}
+} = DeleteOrganizationDomainResponseValidationError{}
 
-// Validate checks the field values on VerifyOrgDomainRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on VerifyOrganizationDomainRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *VerifyOrgDomainRequest) Validate() error {
+func (m *VerifyOrganizationDomainRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on VerifyOrgDomainRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// VerifyOrgDomainRequestMultiError, or nil if none found.
-func (m *VerifyOrgDomainRequest) ValidateAll() error {
+// ValidateAll checks the field values on VerifyOrganizationDomainRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// VerifyOrganizationDomainRequestMultiError, or nil if none found.
+func (m *VerifyOrganizationDomainRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *VerifyOrgDomainRequest) validate(all bool) error {
+func (m *VerifyOrganizationDomainRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -15181,7 +15251,7 @@ func (m *VerifyOrgDomainRequest) validate(all bool) error {
 	var errors []error
 
 	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
-		err := VerifyOrgDomainRequestValidationError{
+		err := VerifyOrganizationDomainRequestValidationError{
 			field:  "OrgId",
 			reason: "value length must be at least 3 runes",
 		}
@@ -15192,7 +15262,7 @@ func (m *VerifyOrgDomainRequest) validate(all bool) error {
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 3 {
-		err := VerifyOrgDomainRequestValidationError{
+		err := VerifyOrganizationDomainRequestValidationError{
 			field:  "Id",
 			reason: "value length must be at least 3 runes",
 		}
@@ -15203,19 +15273,19 @@ func (m *VerifyOrgDomainRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return VerifyOrgDomainRequestMultiError(errors)
+		return VerifyOrganizationDomainRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// VerifyOrgDomainRequestMultiError is an error wrapping multiple validation
-// errors returned by VerifyOrgDomainRequest.ValidateAll() if the designated
-// constraints aren't met.
-type VerifyOrgDomainRequestMultiError []error
+// VerifyOrganizationDomainRequestMultiError is an error wrapping multiple
+// validation errors returned by VerifyOrganizationDomainRequest.ValidateAll()
+// if the designated constraints aren't met.
+type VerifyOrganizationDomainRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m VerifyOrgDomainRequestMultiError) Error() string {
+func (m VerifyOrganizationDomainRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -15224,11 +15294,12 @@ func (m VerifyOrgDomainRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m VerifyOrgDomainRequestMultiError) AllErrors() []error { return m }
+func (m VerifyOrganizationDomainRequestMultiError) AllErrors() []error { return m }
 
-// VerifyOrgDomainRequestValidationError is the validation error returned by
-// VerifyOrgDomainRequest.Validate if the designated constraints aren't met.
-type VerifyOrgDomainRequestValidationError struct {
+// VerifyOrganizationDomainRequestValidationError is the validation error
+// returned by VerifyOrganizationDomainRequest.Validate if the designated
+// constraints aren't met.
+type VerifyOrganizationDomainRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -15236,24 +15307,24 @@ type VerifyOrgDomainRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e VerifyOrgDomainRequestValidationError) Field() string { return e.field }
+func (e VerifyOrganizationDomainRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e VerifyOrgDomainRequestValidationError) Reason() string { return e.reason }
+func (e VerifyOrganizationDomainRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e VerifyOrgDomainRequestValidationError) Cause() error { return e.cause }
+func (e VerifyOrganizationDomainRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e VerifyOrgDomainRequestValidationError) Key() bool { return e.key }
+func (e VerifyOrganizationDomainRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e VerifyOrgDomainRequestValidationError) ErrorName() string {
-	return "VerifyOrgDomainRequestValidationError"
+func (e VerifyOrganizationDomainRequestValidationError) ErrorName() string {
+	return "VerifyOrganizationDomainRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e VerifyOrgDomainRequestValidationError) Error() string {
+func (e VerifyOrganizationDomainRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -15265,14 +15336,14 @@ func (e VerifyOrgDomainRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sVerifyOrgDomainRequest.%s: %s%s",
+		"invalid %sVerifyOrganizationDomainRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = VerifyOrgDomainRequestValidationError{}
+var _ error = VerifyOrganizationDomainRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -15280,24 +15351,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = VerifyOrgDomainRequestValidationError{}
+} = VerifyOrganizationDomainRequestValidationError{}
 
-// Validate checks the field values on VerifyOrgDomainResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *VerifyOrgDomainResponse) Validate() error {
+// Validate checks the field values on VerifyOrganizationDomainResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *VerifyOrganizationDomainResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on VerifyOrgDomainResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// VerifyOrgDomainResponseMultiError, or nil if none found.
-func (m *VerifyOrgDomainResponse) ValidateAll() error {
+// ValidateAll checks the field values on VerifyOrganizationDomainResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// VerifyOrganizationDomainResponseMultiError, or nil if none found.
+func (m *VerifyOrganizationDomainResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *VerifyOrgDomainResponse) validate(all bool) error {
+func (m *VerifyOrganizationDomainResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -15307,19 +15379,20 @@ func (m *VerifyOrgDomainResponse) validate(all bool) error {
 	// no validation rules for State
 
 	if len(errors) > 0 {
-		return VerifyOrgDomainResponseMultiError(errors)
+		return VerifyOrganizationDomainResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// VerifyOrgDomainResponseMultiError is an error wrapping multiple validation
-// errors returned by VerifyOrgDomainResponse.ValidateAll() if the designated
+// VerifyOrganizationDomainResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// VerifyOrganizationDomainResponse.ValidateAll() if the designated
 // constraints aren't met.
-type VerifyOrgDomainResponseMultiError []error
+type VerifyOrganizationDomainResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m VerifyOrgDomainResponseMultiError) Error() string {
+func (m VerifyOrganizationDomainResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -15328,11 +15401,12 @@ func (m VerifyOrgDomainResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m VerifyOrgDomainResponseMultiError) AllErrors() []error { return m }
+func (m VerifyOrganizationDomainResponseMultiError) AllErrors() []error { return m }
 
-// VerifyOrgDomainResponseValidationError is the validation error returned by
-// VerifyOrgDomainResponse.Validate if the designated constraints aren't met.
-type VerifyOrgDomainResponseValidationError struct {
+// VerifyOrganizationDomainResponseValidationError is the validation error
+// returned by VerifyOrganizationDomainResponse.Validate if the designated
+// constraints aren't met.
+type VerifyOrganizationDomainResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -15340,24 +15414,24 @@ type VerifyOrgDomainResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e VerifyOrgDomainResponseValidationError) Field() string { return e.field }
+func (e VerifyOrganizationDomainResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e VerifyOrgDomainResponseValidationError) Reason() string { return e.reason }
+func (e VerifyOrganizationDomainResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e VerifyOrgDomainResponseValidationError) Cause() error { return e.cause }
+func (e VerifyOrganizationDomainResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e VerifyOrgDomainResponseValidationError) Key() bool { return e.key }
+func (e VerifyOrganizationDomainResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e VerifyOrgDomainResponseValidationError) ErrorName() string {
-	return "VerifyOrgDomainResponseValidationError"
+func (e VerifyOrganizationDomainResponseValidationError) ErrorName() string {
+	return "VerifyOrganizationDomainResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e VerifyOrgDomainResponseValidationError) Error() string {
+func (e VerifyOrganizationDomainResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -15369,14 +15443,14 @@ func (e VerifyOrgDomainResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sVerifyOrgDomainResponse.%s: %s%s",
+		"invalid %sVerifyOrganizationDomainResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = VerifyOrgDomainResponseValidationError{}
+var _ error = VerifyOrganizationDomainResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -15384,7 +15458,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = VerifyOrgDomainResponseValidationError{}
+} = VerifyOrganizationDomainResponseValidationError{}
 
 // Validate checks the field values on DeleteOrganizationInvitationResponse
 // with the rules defined in the proto definition for this message. If any

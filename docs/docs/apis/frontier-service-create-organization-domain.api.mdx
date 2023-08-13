@@ -1,14 +1,14 @@
 ---
-id: frontier-service-add-organization-domain
-title: "Add org domain"
-description: "Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrgDomain API before it can be used as an Organization's trusted domain to sign up users."
-sidebar_label: "Add org domain"
+id: frontier-service-create-organization-domain
+title: "Create org domain"
+description: "Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrganizationDomain API before it can be used as an Organization's trusted domain to sign up users."
+sidebar_label: "Create org domain"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrgDomain API before it can be used as an Organization's trusted domain to sign up users.",
-    "operationId": "FrontierService_AddOrganizationDomain",
+    "description": "Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrganizationDomain API before it can be used as an Organization's trusted domain to sign up users.",
+    "operationId": "FrontierService_CreateOrganizationDomain",
     "responses":
       {
         "200":
@@ -336,10 +336,10 @@ api:
       },
     "postman":
       {
-        "name": "Add org domain",
+        "name": "Create org domain",
         "description":
           {
-            "content": "Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrgDomain API before it can be used as an Organization's trusted domain to sign up users.",
+            "content": "Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrganizationDomain API before it can be used as an Organization's trusted domain to sign up users.",
             "type": "text/plain",
           },
         "url":
@@ -390,9 +390,9 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Add org domain
+## Create org domain
 
-Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrgDomain API before it can be used as an Organization's trusted domain to sign up users.
+Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrganizationDomain API before it can be used as an Organization's trusted domain to sign up users.
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"unique id of the organization for which whitelisted domains are to be added","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"domain"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"domain name to be added to the trusted domain list"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

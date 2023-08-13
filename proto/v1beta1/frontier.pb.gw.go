@@ -3591,8 +3591,8 @@ func local_request_FrontierService_ListOrganizationDomains_0(ctx context.Context
 
 }
 
-func request_FrontierService_AddOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AddOrganizationDomainRequest
+func request_FrontierService_CreateOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateOrganizationDomainRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -3620,13 +3620,13 @@ func request_FrontierService_AddOrganizationDomain_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
 	}
 
-	msg, err := client.AddOrganizationDomain(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.CreateOrganizationDomain(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_AddOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AddOrganizationDomainRequest
+func local_request_FrontierService_CreateOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateOrganizationDomainRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -3654,13 +3654,13 @@ func local_request_FrontierService_AddOrganizationDomain_0(ctx context.Context, 
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "org_id", err)
 	}
 
-	msg, err := server.AddOrganizationDomain(ctx, &protoReq)
+	msg, err := server.CreateOrganizationDomain(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_FrontierService_RemoveOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RemoveOrganizationDomainRequest
+func request_FrontierService_DeleteOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteOrganizationDomainRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -3690,13 +3690,13 @@ func request_FrontierService_RemoveOrganizationDomain_0(ctx context.Context, mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.RemoveOrganizationDomain(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.DeleteOrganizationDomain(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_RemoveOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RemoveOrganizationDomainRequest
+func local_request_FrontierService_DeleteOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteOrganizationDomainRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -3726,7 +3726,7 @@ func local_request_FrontierService_RemoveOrganizationDomain_0(ctx context.Contex
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.RemoveOrganizationDomain(ctx, &protoReq)
+	msg, err := server.DeleteOrganizationDomain(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -3803,8 +3803,8 @@ func local_request_FrontierService_GetOrganizationDomain_0(ctx context.Context, 
 
 }
 
-func request_FrontierService_VerifyOrgDomain_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq VerifyOrgDomainRequest
+func request_FrontierService_VerifyOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq VerifyOrganizationDomainRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -3842,13 +3842,13 @@ func request_FrontierService_VerifyOrgDomain_0(ctx context.Context, marshaler ru
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.VerifyOrgDomain(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.VerifyOrganizationDomain(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_VerifyOrgDomain_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq VerifyOrgDomainRequest
+func local_request_FrontierService_VerifyOrganizationDomain_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq VerifyOrganizationDomainRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -3886,59 +3886,7 @@ func local_request_FrontierService_VerifyOrgDomain_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.VerifyOrgDomain(ctx, &protoReq)
-	return msg, metadata, err
-
-}
-
-func request_FrontierService_ListOrganizationsByDomain_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListOrganizationsByDomainRequest
-	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-
-	msg, err := client.ListOrganizationsByDomain(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-func local_request_FrontierService_ListOrganizationsByDomain_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListOrganizationsByDomainRequest
-	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-
-	msg, err := server.ListOrganizationsByDomain(ctx, &protoReq)
+	msg, err := server.VerifyOrganizationDomain(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -7840,7 +7788,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_AddOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_FrontierService_CreateOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -7848,12 +7796,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/AddOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_AddOrganizationDomain_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_CreateOrganizationDomain_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -7861,11 +7809,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_AddOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_CreateOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_FrontierService_RemoveOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_FrontierService_DeleteOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -7873,12 +7821,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}/remove"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_RemoveOrganizationDomain_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_DeleteOrganizationDomain_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -7886,7 +7834,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_RemoveOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_DeleteOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -7915,7 +7863,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_VerifyOrgDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_FrontierService_VerifyOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -7923,12 +7871,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/VerifyOrgDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}/verify"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/VerifyOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}/verify"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_VerifyOrgDomain_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_VerifyOrganizationDomain_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -7936,32 +7884,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_VerifyOrgDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
-	})
-
-	mux.Handle("GET", pattern_FrontierService_ListOrganizationsByDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/domains/{name}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_FrontierService_ListOrganizationsByDomain_0(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-
-		forward_FrontierService_ListOrganizationsByDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_VerifyOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -10479,47 +10402,47 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_AddOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_FrontierService_CreateOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/AddOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_AddOrganizationDomain_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_CreateOrganizationDomain_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_AddOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_CreateOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_FrontierService_RemoveOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_FrontierService_DeleteOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}/remove"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_RemoveOrganizationDomain_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_DeleteOrganizationDomain_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_RemoveOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_DeleteOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -10545,47 +10468,25 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_VerifyOrgDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_FrontierService_VerifyOrganizationDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/VerifyOrgDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}/verify"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/VerifyOrganizationDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/{org_id}/domains/{id}/verify"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_VerifyOrgDomain_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_VerifyOrganizationDomain_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_VerifyOrgDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
-	})
-
-	mux.Handle("GET", pattern_FrontierService_ListOrganizationsByDomain_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByDomain", runtime.WithHTTPPathPattern("/v1beta1/organizations/domains/{name}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_FrontierService_ListOrganizationsByDomain_0(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-
-		forward_FrontierService_ListOrganizationsByDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_VerifyOrganizationDomain_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -11745,15 +11646,13 @@ var (
 
 	pattern_FrontierService_ListOrganizationDomains_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "org_id", "domains"}, ""))
 
-	pattern_FrontierService_AddOrganizationDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "org_id", "domains"}, ""))
+	pattern_FrontierService_CreateOrganizationDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "org_id", "domains"}, ""))
 
-	pattern_FrontierService_RemoveOrganizationDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1beta1", "organizations", "org_id", "domains", "id", "remove"}, ""))
+	pattern_FrontierService_DeleteOrganizationDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "organizations", "org_id", "domains", "id"}, ""))
 
 	pattern_FrontierService_GetOrganizationDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "organizations", "org_id", "domains", "id"}, ""))
 
-	pattern_FrontierService_VerifyOrgDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1beta1", "organizations", "org_id", "domains", "id", "verify"}, ""))
-
-	pattern_FrontierService_ListOrganizationsByDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "organizations", "domains", "name"}, ""))
+	pattern_FrontierService_VerifyOrganizationDomain_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1beta1", "organizations", "org_id", "domains", "id", "verify"}, ""))
 
 	pattern_FrontierService_JoinOrganization_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "organizations", "org_id", "join"}, ""))
 
@@ -11969,15 +11868,13 @@ var (
 
 	forward_FrontierService_ListOrganizationDomains_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_AddOrganizationDomain_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_CreateOrganizationDomain_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_RemoveOrganizationDomain_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_DeleteOrganizationDomain_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_GetOrganizationDomain_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_VerifyOrgDomain_0 = runtime.ForwardResponseMessage
-
-	forward_FrontierService_ListOrganizationsByDomain_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_VerifyOrganizationDomain_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_JoinOrganization_0 = runtime.ForwardResponseMessage
 
